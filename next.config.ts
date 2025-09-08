@@ -8,7 +8,6 @@ const nextConfig: NextConfig = {
 		"clsx",
 		"@hookform/resolvers",
 	],
-
 	reactStrictMode: true,
 };
 
