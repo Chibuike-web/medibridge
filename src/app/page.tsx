@@ -10,7 +10,7 @@ export default function Home() {
 					alt="african american physician discussing disease symptoms questionnaire with sick woman patient"
 					width={1388}
 					height={1024}
-					className="w-full h-full object-cover xl:object-contain xl:object-right"
+					className="w-full h-full object-cover xl:object-[500px]"
 				/>
 			</div>
 			<div className="w-full sm:max-w-[700] xl:min-w-[500px] flex flex-col items-center px-6 xl:px-0">
