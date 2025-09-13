@@ -1,3 +1,5 @@
-export default function Details() {
-	return <div>Info</div>;
+import InfoClient from "./info-client";
+
+export default function Info() {
+	return <InfoClient />;
 }

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function Home() {
 	return (
@@ -21,13 +22,16 @@ export default function Home() {
 				<h1 className="font-bold text-[56px] w-full text-gray-800 text-center leading-[1.2em] tracking-[-0.02em] mt-[100px]">
 					Welcome to MediBridge
 				</h1>
-				<p className="text-gray-600 font-medium text-center leading-[1.4em] tracking-[-0.02em] text-xl mt-6">
+				<p className="text-gray-600 font-medium text-center leading-[1.4em] tracking-[-0.02em] text-lg mt-6 text-balance">
 					Securely connect your institution to the MediBridge network.
 				</p>
 				<div className="flex flex-col gap-4 w-full mt-[100px] mb-[100px] xl:mb-0">
-					<Button className="h-[44px]">Begin Registration</Button>
-					<Button className="h-[44px]" variant="outline">
-						Log in
+					<Button asChild className="h-11 w-full">
+						<Link href="/info">Begin Registration</Link>
+					</Button>
+
+					<Button asChild className="h-11 w-full" variant="outline">
+						<Link href="/login">Log in</Link>
 					</Button>
 				</div>
 			</div>
