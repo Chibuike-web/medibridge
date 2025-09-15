@@ -1,3 +1,5 @@
+import UploadClient from "./upload-client";
+
 export default function Uploads() {
-	return <div>Uploads</div>;
+	return <UploadClient />;
 }

@@ -1,11 +1,14 @@
 "use client";
+
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export default function InfoClient() {
+	const router = useRouter();
 	return (
 		<div className="px-6 xl:px-0">
 			<div className="max-w-[800px] mx-auto py-8">
@@ -17,7 +20,12 @@ export default function InfoClient() {
 				<h1 className="text-[1.8rem] text-center font-semibold leading-[1.2] my-10">
 					Institution Details
 				</h1>
-				<form>
+				<form
+					onSubmit={(e) => {
+						e.preventDefault();
+						router.push("/uploads");
+					}}
+				>
 					<div className="mb-4">
 						<Label>Hospital Name</Label>
 						<Input placeholder="eg., St. Mary's General Hospital" className="h-11 mt-1" />
@@ -38,7 +46,9 @@ export default function InfoClient() {
 						<Label>Primary Contact Phone number</Label>
 						<Input placeholder="eg., +1 (312) 555-0198" className="h-11 mt-1" />
 					</div>
-					<Button className="w-full h-11 mt-12">Continue</Button>
+					<Button className="w-full h-11 mt-12" type="submit">
+						Continue
+					</Button>
 				</form>
 			</div>
 		</div>
