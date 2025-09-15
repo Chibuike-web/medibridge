@@ -1,3 +1,5 @@
+import AdminClient from "./admin-client";
+
 export default function Admin() {
-	return <div>Admin</div>;
+	return <AdminClient />;
 }

@@ -10,7 +10,7 @@ export default function UploadClient() {
 	return (
 		<div className="px-6 xl:px-0">
 			<div className="max-w-[800px] mx-auto py-8">
-				<Link href="/info" className="flex gap-2">
+				<Link href="/info" className="flex gap-2 w-max">
 					<ArrowLeft /> <span>Back</span>
 				</Link>
 			</div>
@@ -25,7 +25,9 @@ export default function UploadClient() {
 						router.push("/admin");
 					}}
 				>
-					<p>Upload hospital accreditation or official license document</p>
+					<p className="text-gray-600">
+						Upload hospital accreditation or official license document
+					</p>
 					<div className="relative w-full flex flex-col items-center p-8 border border-dashed border-gray-200 gap-[20px] rounded-[8px] mt-[12px]">
 						<CloudUpload className="text-gray-600" />
 						<div className="flex flex-col gap-[6px] items-center">
