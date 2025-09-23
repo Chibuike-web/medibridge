@@ -1,3 +1,5 @@
+"use client"
+
 import LoginClient from "./login-client";
 
 export default function Login() {

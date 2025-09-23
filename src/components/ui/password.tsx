@@ -1,20 +1,30 @@
+"use client";
+
 import { Label } from "@/components/ui/label";
 import React, { useState } from "react";
 import { Input } from "./input";
 import { Eye, EyeClosed } from "lucide-react";
 
-export default function Password({ id }: { id: string }) {
+export default function Password({
+	id,
+	label = "Password",
+	placeholder = "Enter a secure password",
+}: {
+	id: string;
+	label?: string;
+	placeholder?: string;
+}) {
 	const [isVisible, setIsVisible] = useState(false);
 	return (
 		<div className="mb-4">
 			<Label htmlFor={id} className="mb-1">
-				Password
+				{label}
 			</Label>
 			<div className="relative">
 				<Input
 					id={id}
 					type={isVisible ? "text" : "password"}
-					placeholder="Enter a secure password"
+					placeholder={placeholder}
 					className="h-11"
 				/>
 				<button
