@@ -26,7 +26,7 @@ export default function LoginClient() {
 				</Label>
 				<Input id="email" className="h-11" placeholder="eg., john.doe@stmaryhospital.org" />
 			</div>
-			<Password id="password" label="Password" />
+			<Password id="password" />
 			<div className="flex items-center justify-between mb-4">
 				<Checkbox id="rememberMe">Remember me</Checkbox>
 				<Link href="/forgot-password" className="font-medium text-[14px]">

@@ -11,7 +11,7 @@ type CheckboxItem = {
 };
 
 export default function Verify() {
-	const [checkboxes, setCheckboxes] = useState<CheckboxItem[]>([
+	const [checkboxes] = useState<CheckboxItem[]>([
 		{ id: "registration", value: "Registration", status: "submitted" },
 		{ id: "emailVerification", value: "Email Verification", status: "pending" },
 		{ id: "institutionalVerification", value: "Institutional Verification", status: "pending" },
