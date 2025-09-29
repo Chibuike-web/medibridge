@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import Plus from "@/icons/plus";
 
 export default function PatientsRecords() {
 	return (

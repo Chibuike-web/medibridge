@@ -1,5 +1,5 @@
+import Check from "@/icons/check";
 import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
 import { ChangeEvent } from "react";
 
 type CheckBoxType = {

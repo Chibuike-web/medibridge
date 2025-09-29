@@ -1,13 +1,13 @@
-import { ArrowLeft } from "lucide-react";
 import InfoClient from "./info-client";
 import Link from "next/link";
+import ArrowLeftLongLine from "@/icons/arrow-left-long-line";
 
 export default function Info() {
 	return (
 		<div className="px-6 xl:px-0">
 			<div className="max-w-[800px] mx-auto py-8">
-				<Link href="/" className="flex gap-2 w-max">
-					<ArrowLeft /> <span>Back</span>
+				<Link href="/" className="flex gap-2 w-max items-center text-foreground">
+					<ArrowLeftLongLine className="size-5" /> <span>Back</span>
 				</Link>
 			</div>
 			<div className="max-w-[550px] mx-auto">

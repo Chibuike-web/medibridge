@@ -1,5 +1,5 @@
+import ArrowLeftLongLine from "@/icons/arrow-left-long-line";
 import UploadClient from "./upload-client";
-import { ArrowLeft } from "lucide-react";
 
 import Link from "next/link";
 export default function Uploads() {
@@ -7,7 +7,7 @@ export default function Uploads() {
 		<div className="px-6 xl:px-0">
 			<div className="max-w-[800px] mx-auto py-8">
 				<Link href="/info" className="flex gap-2 w-max">
-					<ArrowLeft /> <span>Back</span>
+					<ArrowLeftLongLine className="size-5" /> <span>Back</span>
 				</Link>
 			</div>
 			<div className="max-w-[550px] mx-auto">

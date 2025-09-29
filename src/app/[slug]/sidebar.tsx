@@ -1,10 +1,13 @@
+import FileListFill from "@/icons/file-list-fill";
+import FileListLine from "@/icons/file-list-line";
+import FileTransferFill from "@/icons/file-transfer-fill";
+import FileTransferLine from "@/icons/file-transfer-line";
+import FunctionFill from "@/icons/function-fill";
+import FunctionLine from "@/icons/function-line";
 import { cn } from "@/lib/utils";
-import { FileCode2, FileInput, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 
 export default function Sidebar({ activeId }: { activeId: string }) {
-	const menuIcon = {};
-
 	return (
 		<aside className="w-[267px] h-full overflow-auto border-r border-gray-200">
 			<div className="px-[20px] py-6">
@@ -30,20 +33,24 @@ export default function Sidebar({ activeId }: { activeId: string }) {
 							>
 								<span>
 									{id === "dashboard" ? (
-										<LayoutDashboard
-											className={`size-5 ${isActive ? "text-gray-800" : "text-gray-500"}`}
-										/>
+										isActive ? (
+											<FunctionFill className="size-5" />
+										) : (
+											<FunctionLine className="size-5" />
+										)
 									) : id === "patients-records" ? (
-										<FileCode2
-											className={`size-5 ${isActive ? "text-gray-800" : "text-gray-500"}`}
-										/>
+										isActive ? (
+											<FileListFill className="size-5" />
+										) : (
+											<FileListLine className="size-5" />
+										)
 									) : id === "transfers" ? (
-										<FileInput
-											className={`size-5 ${isActive ? "text-gray-800" : "text-gray-500"}`}
-										/>
-									) : (
-										""
-									)}
+										isActive ? (
+											<FileTransferFill className="size-5" />
+										) : (
+											<FileTransferLine className="size-5" />
+										)
+									) : null}
 								</span>
 								<span>{text}</span>
 							</Link>

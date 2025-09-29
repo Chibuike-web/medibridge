@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CloudUpload } from "lucide-react";
+import UploadCloudLine from "@/icons/upload-cloud-line";
 import { useRouter } from "next/navigation";
 
 export default function UploadClient() {
@@ -16,7 +16,7 @@ export default function UploadClient() {
 		>
 			<p className="text-gray-600">Upload hospital accreditation or official license document</p>
 			<div className="relative w-full flex flex-col items-center p-8 border border-dashed border-gray-200 gap-[20px] rounded-[8px] mt-[12px]">
-				<CloudUpload className="text-gray-600" />
+				<UploadCloudLine className="text-gray-600 size-5" />
 				<div className="flex flex-col gap-[6px] items-center">
 					<p className="font-medium text-gray-800 text-[14px]">
 						Choose a file or drag & drop it here.

@@ -3,7 +3,8 @@
 import { Label } from "@/components/ui/label";
 import React, { useState } from "react";
 import { Input } from "./input";
-import { Eye, EyeClosed } from "lucide-react";
+import EyeOffLine from "@/icons/eye-off-line";
+import EyeLine from "@/icons/eye-line";
 
 export default function Password({
 	id,
@@ -34,9 +35,9 @@ export default function Password({
 					onClick={() => setIsVisible(!isVisible)}
 				>
 					{isVisible ? (
-						<EyeClosed className="size-[20px] text-gray-600" />
+						<EyeOffLine className="size-[20px] text-gray-600" />
 					) : (
-						<Eye className="size-[20px] text-gray-600" />
+						<EyeLine className="size-[20px] text-gray-600" />
 					)}
 				</button>
 			</div>
