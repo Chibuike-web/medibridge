@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import Plus from "@/icons/plus";
 import { useState } from "react";
-import UploadPatientModal from "./upload-patient-modal";
+import UploadPatientModal from "@/components/upload-patient-modal";
 import { AnimatePresence } from "motion/react";
 
 export default function DashboardClient() {

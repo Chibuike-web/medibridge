@@ -5,7 +5,7 @@ import Checkbox from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Password from "@/components/ui/password";
-import { Info } from "lucide-react";
+import InformationLine from "@/icons/information-line";
 import { useRouter } from "next/navigation";
 
 export default function AdminClient() {
@@ -32,7 +32,7 @@ export default function AdminClient() {
 					aria-describedby="info"
 				/>
 				<p id="info" className="flex gap-[4px] items-center mt-2">
-					<Info className="text-gray-400 size-4" aria-hidden="true" />
+					<InformationLine className="text-gray-400 size-4" aria-hidden="true" />
 					<span className="text-[14px] text-gray-400">
 						Must be official verified hospital email
 					</span>

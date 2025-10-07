@@ -1,5 +1,7 @@
+"use client";
+
 import UploadCloudLine from "@/icons/upload-cloud-line";
-import { Button } from "./button";
+import { Button } from "./ui/button";
 
 export default function FileUploadIdle() {
 	return (

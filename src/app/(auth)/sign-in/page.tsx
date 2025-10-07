@@ -1,6 +1,7 @@
-"use client"
+"use client";
 
-import LoginClient from "./login-client";
+import Link from "next/link";
+import SignInClient from "./sign-in-client";
 
 export default function Login() {
 	return (
@@ -13,7 +14,13 @@ export default function Login() {
 					Secure access for verified healthcare institutions.
 				</p>
 
-				<LoginClient />
+				<SignInClient />
+				<p className="text-center mt-4">
+					<span>Need an account? </span>
+					<Link href="/info" className="font-medium">
+						Register
+					</Link>
+				</p>
 			</div>
 		</main>
 	);

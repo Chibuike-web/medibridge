@@ -1,3 +1,5 @@
+"use client";
+
 import NotificationLine from "@/icons/notification-line";
 import SearchLine from "@/icons/search-line";
 

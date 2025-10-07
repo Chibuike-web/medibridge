@@ -9,11 +9,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
 
-export default function LoginClient() {
+export default function SignInClient() {
 	const router = useRouter();
 	return (
 		<form
-			aria-describedby="login-note"
+			aria-describedby="sign-in-note"
 			onSubmit={(e) => {
 				e.preventDefault();
 				router.push("/uploads");
@@ -34,18 +34,12 @@ export default function LoginClient() {
 				</Link>
 			</div>
 
-			<p id="login-note" className="text-[14px]">
+			<p id="sign-in-note" className="text-[14px]">
 				Use your verified hospital credentials. Access is monitored for compliance and security.
 			</p>
 			<Button className="w-full h-11 mt-12" type="submit">
 				Log in
 			</Button>
-			<p className="text-center mt-4">
-				<span>Need an account? </span>
-				<Link href="/info" className="font-medium">
-					Register
-				</Link>
-			</p>
 		</form>
 	);
 }

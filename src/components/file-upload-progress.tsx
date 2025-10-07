@@ -1,3 +1,5 @@
+"use client";
+
 import CloseLine from "@/icons/close-line";
 import LoaderLine from "@/icons/loader-line";
 import Image from "next/image";

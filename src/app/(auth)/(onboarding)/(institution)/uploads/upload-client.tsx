@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import FileUploadIdle from "@/components/ui/file-upload-idle";
+import FileUploadIdle from "@/components/file-upload-idle";
 import { useRouter } from "next/navigation";
 
 export default function UploadClient() {

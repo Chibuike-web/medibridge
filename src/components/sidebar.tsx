@@ -1,3 +1,5 @@
+"use client";
+
 import FileListFill from "@/icons/file-list-fill";
 import FileListLine from "@/icons/file-list-line";
 import FileTransferFill from "@/icons/file-transfer-fill";
@@ -6,8 +8,11 @@ import FunctionFill from "@/icons/function-fill";
 import FunctionLine from "@/icons/function-line";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-export default function Sidebar({ activeId }: { activeId: string }) {
+export default function Sidebar() {
+	const pathname = usePathname();
+
 	return (
 		<aside className="w-[267px] h-full overflow-auto border-r border-gray-200">
 			<div className="px-[20px] py-6">
@@ -15,7 +20,7 @@ export default function Sidebar({ activeId }: { activeId: string }) {
 			</div>
 			<ul className="p-4 flex flex-col gap-4">
 				{menus.map(({ id, text }) => {
-					const isActive = activeId === id;
+					const isActive = pathname === `/${id}`;
 					return (
 						<li
 							key={id}

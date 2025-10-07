@@ -1,9 +1,9 @@
 "use client";
 
-import FileUploadIdle from "@/components/ui/file-upload-idle";
+import FileUploadIdle from "@/components/file-upload-idle";
 import CloseLine from "@/icons/close-line";
 import MotionDiv from "@/lib/motion-wrapper";
-import FileUploadProgress from "@/components/ui/file-upload-progress";
+import FileUploadProgress from "@/components/file-upload-progress";
 
 type UploadPatientModalPropsType = {
 	setIsUploadPatientModalOpen: (value: boolean) => void;
