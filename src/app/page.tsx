@@ -3,31 +3,20 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export const metadata = {
-	title: "MediBridge | Connect Hospitals Seamlessly",
+	title: "MediBridge",
 	description:
-		"Securely connect your healthcare institution to the MediBridge network. Enable fast, interoperable patient data sharing and modernize your hospital operations.",
-	openGraph: {
-		title: "MediBridge | Connect Hospitals Seamlessly",
-		description:
-			"Join MediBridge to securely exchange medical records and connect your hospital to the future of healthcare.",
-		url: "https://medibridge.com",
-		siteName: "MediBridge",
-		images: [
-			{
-				url: "/assets/hero-image.png",
-				width: 1200,
-				height: 630,
-				alt: "Doctor discussing with patient — MediBridge",
-			},
-		],
-		type: "website",
-	},
-	twitter: {
-		card: "summary_large_image",
-		title: "MediBridge | Connect Hospitals Seamlessly",
-		description: "Securely connect your healthcare institution to the MediBridge network.",
-		images: ["/assets/hero-image.png"],
-	},
+		"Join MediBridge to securely exchange medical records and connect your hospital to the future of healthcare.",
+	url: "https://medibridge.com",
+	siteName: "MediBridge",
+	images: [
+		{
+			url: "/assets/hero-image.png",
+			width: 1200,
+			height: 630,
+			alt: "Doctor discussing with patient — MediBridge",
+		},
+	],
+	type: "website",
 };
 
 export default function Home() {

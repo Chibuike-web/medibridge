@@ -9,12 +9,13 @@ import FunctionLine from "@/icons/function-line";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import UserProfile from "./user-profile";
 
 export default function Sidebar() {
 	const pathname = usePathname();
 
 	return (
-		<aside className="w-[267px] h-full overflow-auto border-r border-gray-200">
+		<aside className="flex flex-col w-full max-w-[272px] h-full overflow-auto border-r border-gray-200">
 			<div className="px-[20px] py-6">
 				<h1 className="font-bold text-[20px] tracking-[-0.02em]">MediBridge</h1>
 			</div>
@@ -63,6 +64,8 @@ export default function Sidebar() {
 					);
 				})}
 			</ul>
+
+			<UserProfile />
 		</aside>
 	);
 }

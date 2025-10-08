@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import ArrowLeftLongLine from "@/icons/arrow-left-long-line";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -13,7 +13,7 @@ export default function ForgotPassword() {
 		<div className="px-6 xl:px-0">
 			<div className="max-w-[800px] mx-auto py-8">
 				<Link href="/uploads" className="flex gap-2 w-max">
-					<ArrowLeft /> <span>Back</span>
+					<ArrowLeftLongLine /> <span>Back</span>
 				</Link>
 			</div>
 			<div className="max-w-[550px] mx-auto">
