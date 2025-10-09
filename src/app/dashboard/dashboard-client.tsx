@@ -20,7 +20,7 @@ export default function DashboardClient() {
 				</Button>
 			</div>
 
-			<AnimatePresence initial={false}>
+			<AnimatePresence>
 				{isUploadPatientModalOpen && (
 					<UploadPatientModal setIsUploadPatientModalOpen={setIsUploadPatientModalOpen} />
 				)}

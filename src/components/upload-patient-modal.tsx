@@ -5,9 +5,16 @@ import MotionDiv from "@/lib/motion-wrapper";
 import useFileUpload from "@/hooks/use-file-upload";
 import FileUploadCard from "./file-upload-card";
 import ChooseFileCard from "./choose-file-card";
+import { useEffect, useRef } from "react";
 
 type UploadPatientModalPropsType = {
 	setIsUploadPatientModalOpen: (value: boolean) => void;
+};
+
+const modalVariants = {
+	hidden: { opacity: 0, scale: 0.9 },
+	visible: { opacity: 1, scale: 1, transition: { duration: 0.2 } },
+	exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2 } },
 };
 
 export default function UploadPatientModal({
@@ -16,16 +23,25 @@ export default function UploadPatientModal({
 	const { file, isLoading, uploadError, uploadType, onClear, handleFileChange, uploadRef } =
 		useFileUpload();
 
+	const hasAnimatedRef = useRef(false);
+
+	useEffect(() => {
+		const t = setTimeout(() => {
+			hasAnimatedRef.current = true;
+		}, 200);
+		return () => clearTimeout(t);
+	}, []);
+
 	return (
 		<div
 			className="bg-foreground/80 fixed inset-0 backdrop-blur-[4px] flex items-center justify-center "
 			onClick={() => setIsUploadPatientModalOpen(false)}
 		>
 			<MotionDiv
-				initial={{ opacity: 0, scale: 0.9 }}
-				animate={{ opacity: 1, scale: 1 }}
-				exit={{ opacity: 0, scale: 0.9 }}
-				transition={{ duration: 0.2 }}
+				variants={modalVariants}
+				initial={hasAnimatedRef.current ? false : "hidden"}
+				animate="visible"
+				exit="exit"
 				onClick={(e) => e.stopPropagation()}
 				className="bg-white max-w-[600px] w-full p-6 rounded-[24px] flex flex-col gap-4"
 			>
