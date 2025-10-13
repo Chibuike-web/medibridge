@@ -8,6 +8,6 @@ type MotionDivProps = MotionProps &
 	};
 
 export default function MotionDiv({ children, as: Component = "div", ...props }: MotionDivProps) {
-	const MotionComponent = motion(Component);
+	const MotionComponent = motion.create(Component);
 	return <MotionComponent {...props}>{children}</MotionComponent>;
 }

@@ -1,14 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-	serverExternalPackages: [
-		"zod",
-		"uuid",
-		"class-variance-authority",
-		"clsx",
-		"@hookform/resolvers",
-	],
-	reactStrictMode: true,
+	experimental: {
+		turbopackFileSystemCacheForDev: true,
+		serverActions: {
+			bodySizeLimit: "2mb",
+		},
+	},
 };
 
 export default nextConfig;

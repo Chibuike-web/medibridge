@@ -42,8 +42,9 @@ export default function FileUploadCard({
 					<div>
 						<p className="text-[14px] font-semibold">{file.name}</p>
 						<div className="flex items-center gap-1 text-[12px]">
-							<div className="flex ">
-								<p>{formatFileSize(file.size)}</p> <span>.</span>
+							<div className="flex items-center gap-1 ">
+								<p>{formatFileSize(file.size)}</p>
+								<span className="size-[2px] block bg-foreground rounded-full" />
 							</div>
 							<div className="flex items-center gap-1">
 								<LoaderLine className="size-4 text-blue-500" />

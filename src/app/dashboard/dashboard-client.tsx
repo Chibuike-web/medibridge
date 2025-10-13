@@ -19,7 +19,6 @@ export default function DashboardClient() {
 					<Plus /> Add new patient
 				</Button>
 			</div>
-
 			<AnimatePresence>
 				{isUploadPatientModalOpen && (
 					<UploadPatientModal setIsUploadPatientModalOpen={setIsUploadPatientModalOpen} />
