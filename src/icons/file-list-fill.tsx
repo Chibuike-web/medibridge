@@ -1,5 +1,4 @@
 import { IconProps } from "@/lib/types";
-import React from "react";
 
 export default function FileListFill({ className = "" }: IconProps) {
 	return (

@@ -8,7 +8,7 @@ export type FileExtensionType = "pdf" | "png" | "jpg" | "doc" | "";
 
 export default function useFileUpload() {
 	const [file, setFile] = useState<File | null>(null);
-	const [isLoading, setIsLoading] = useState(false);
+	const [status, setStatus] = useState<"idle" | "uploading" | "completed" | "failed">("idle");
 	const [uploadInfo, setUploadInfo] = useState({});
 	const [uploadError, setUploadError] = useState("");
 	const uploadRef = useRef<HTMLInputElement | null>(null);
@@ -16,6 +16,7 @@ export default function useFileUpload() {
 
 	const onClear = () => {
 		setFile(null);
+		setStatus("idle");
 		if (uploadRef.current) uploadRef.current.value = "";
 	};
 
@@ -45,7 +46,7 @@ export default function useFileUpload() {
 		setUploadType(fileExtension as FileExtensionType);
 		setUploadError("");
 
-		setIsLoading(true);
+		setStatus("uploading");
 		try {
 			const formData = new FormData();
 			formData.append("file", selectedFile);
@@ -55,21 +56,22 @@ export default function useFileUpload() {
 			});
 			const data = await res.json();
 			if (!res.ok) {
+				setUploadError(data.error);
 				throw new Error("Issue uploading file");
 			}
+			setStatus("completed");
 			setFile(selectedFile);
 			setUploadInfo(data);
 		} catch (error) {
 			console.error(error);
 			setUploadError("Upload failed.");
-		} finally {
-			setIsLoading(false);
+			setStatus("failed");
 		}
 	};
 
 	return {
 		file,
-		isLoading,
+		status,
 		uploadError,
 		uploadType,
 		uploadRef,

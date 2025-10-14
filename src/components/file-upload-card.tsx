@@ -8,15 +8,18 @@ import pngFileFormat from "@/assets/file-formats/png.svg";
 import jpgFileFormat from "@/assets/file-formats/jpg.svg";
 import docFileFormat from "@/assets/file-formats/doc.svg";
 
-import { formatFileSize } from "@/lib/utils";
+import { cn, formatFileSize } from "@/lib/utils";
 import { FileExtensionType } from "@/hooks/use-file-upload";
+import CheckCircle from "@/icons/check-circle";
+import DeleteBinLine from "@/icons/delete-bin-line";
+import ErrorWarningFill from "./error-warning-fill";
 
 type FileUploadCardProps = {
 	file: File | null;
 	onClear: () => void;
 	uploadType: FileExtensionType;
 	uploadError: string;
-	isLoading: boolean;
+	status: "idle" | "uploading" | "completed" | "failed";
 };
 
 export default function FileUploadCard({
@@ -24,7 +27,7 @@ export default function FileUploadCard({
 	onClear,
 	uploadType,
 	uploadError,
-	isLoading,
+	status,
 }: FileUploadCardProps) {
 	if (!file) return null;
 	const fileFormat: Record<string, string> = {
@@ -35,7 +38,12 @@ export default function FileUploadCard({
 	};
 
 	return (
-		<div className="flex flex-col px-[14px] py-4 border border-gray-200 rounded-[8px]">
+		<div
+			className={cn(
+				"flex flex-col px-[14px] py-4 border border-gray-200  rounded-[8px]",
+				status === "failed" && "border-red-500"
+			)}
+		>
 			<div className="flex items-center gap-2">
 				<Image src={fileFormat[uploadType]} alt="" width={40} height={40} />
 				<div className="flex w-full items-start justify-between">
@@ -47,13 +55,29 @@ export default function FileUploadCard({
 								<span className="size-[2px] block bg-foreground rounded-full" />
 							</div>
 							<div className="flex items-center gap-1">
-								<LoaderLine className="size-4 text-blue-500" />
-								<p>Uploading...</p>
+								{status === "uploading" ? (
+									<LoaderLine className="size-4 text-blue-500 animate-spin " />
+								) : status === "completed" ? (
+									<CheckCircle className="size-4 text-green-500" />
+								) : status === "failed" ? (
+									<ErrorWarningFill className="size-4 text-red-500" />
+								) : null}
+								{status === "uploading" ? (
+									<p>Uploading...</p>
+								) : status === "completed" ? (
+									<p>Completed</p>
+								) : status === "failed" ? (
+									<p>Failed</p>
+								) : null}
 							</div>
 						</div>
 					</div>
 					<button onClick={onClear}>
-						<CloseLine className="size-5" />
+						{status === "uploading" ? (
+							<CloseLine className="size-5" />
+						) : (
+							<DeleteBinLine className="size-5" />
+						)}
 					</button>
 				</div>
 			</div>
