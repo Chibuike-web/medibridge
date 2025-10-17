@@ -47,9 +47,7 @@ Return JSON only, no markdown formatting.
 		`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
 		{
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
+			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(payload),
 		}
 	);
@@ -80,11 +78,7 @@ Return JSON only, no markdown formatting.
 	} catch (err) {
 		console.error("Invalid JSON output:", textResponse);
 		return Response.json(
-			{
-				status: "error",
-				message: "Invalid JSON from model",
-				raw: textResponse,
-			},
+			{ status: "error", message: "Invalid JSON from model", raw: textResponse },
 			{ status: 500 }
 		);
 	}

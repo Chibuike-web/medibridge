@@ -11,3 +11,9 @@ export const formatFileSize = (bytes: number) => {
 	}
 	return (bytes / 1024).toFixed(2) + " " + "KB";
 };
+
+export function formatKey(key: string) {
+	return key
+		.replace(/([A-Z])/g, " $1") // insert space before capital letters
+		.replace(/^./, (str) => str.toUpperCase()); // capitalize first letter
+}

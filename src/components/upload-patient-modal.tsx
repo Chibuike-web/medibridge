@@ -8,6 +8,9 @@ import ChooseFileCard from "./choose-file-card";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import LoaderLine from "@/icons/loader-line";
+import { useRouter } from "next/navigation";
+import CheckCircle from "@/icons/check-circle";
+import { useParsedPatient } from "@/store/use-parsed-patient-store";
 
 type UploadPatientModalPropsType = {
 	setIsUploadPatientModalOpen: (value: boolean) => void;
@@ -24,7 +27,9 @@ export default function UploadPatientModal({
 }: UploadPatientModalPropsType) {
 	const { file, status, uploadError, uploadType, onClear, handleFileChange, uploadRef } =
 		useFileUpload();
+	const { setData } = useParsedPatient();
 
+	const router = useRouter();
 	const hasAnimatedRef = useRef(false);
 
 	useEffect(() => {
@@ -34,12 +39,12 @@ export default function UploadPatientModal({
 		return () => clearTimeout(t);
 	}, []);
 
-	const [isLoading, setIsLoading] = useState(false);
+	const [parseStatus, setParseStatus] = useState<"idle" | "parsing" | "success" | "error">("idle");
 
 	const parseFile = async () => {
 		if (!file) return;
 
-		setIsLoading(true);
+		setParseStatus("parsing");
 		try {
 			const res = await fetch("/api/parse-file", {
 				method: "POST",
@@ -47,17 +52,19 @@ export default function UploadPatientModal({
 				body: JSON.stringify({ filename: file.name }),
 			});
 
-			const data = await res.json();
+			const { data } = await res.json();
 
 			if (!res.ok) {
 				throw new Error("Issue parsing file");
 			}
-			setIsLoading(false);
+			setParseStatus("success");
 			console.log("Parsed info", data);
+			setTimeout(() => {
+				setData(data);
+				router.push("/review-info-extract");
+			}, 1500);
 		} catch (error) {
 			console.error(error);
-		} finally {
-			setIsLoading(false);
 		}
 	};
 
@@ -100,21 +107,36 @@ export default function UploadPatientModal({
 
 				{status === "completed" && (
 					<div className="flex items-center justify-between p-6 border-t border-gray-200">
-						{isLoading ? (
-							<div className="flex items-center justify-center gap-4 self-center justify-self-center w-full">
-								<LoaderLine className="animate-spin size-5" />
-								<span>Extracting patient data...</span>
+						{["parsing", "success"].includes(parseStatus) ? (
+							<div className="flex items-center justify-center gap-4 w-full">
+								{parseStatus === "parsing" ? (
+									<LoaderLine className="animate-spin size-5" />
+								) : (
+									<CheckCircle className="size-5" />
+								)}
+								<span>
+									{parseStatus === "parsing"
+										? "Extracting patient data..."
+										: " Patient data extracted successfully."}
+								</span>
 							</div>
-						) : (
+						) : parseStatus === "idle" ? (
 							<>
-								<Button variant="outline" className="h-11 cursor-pointer">
+								<Button
+									variant="outline"
+									className="h-11 cursor-pointer"
+									onClick={() => {
+										setParseStatus("idle");
+										onClear();
+									}}
+								>
 									Cancel
 								</Button>
-								<Button className="h-11 cursor-pointer" onClick={parseFile} disabled={isLoading}>
+								<Button className="h-11 cursor-pointer" onClick={parseFile}>
 									Parse Document
 								</Button>
 							</>
-						)}
+						) : null}
 					</div>
 				)}
 			</MotionDiv>
