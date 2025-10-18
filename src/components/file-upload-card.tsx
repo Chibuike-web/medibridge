@@ -12,7 +12,8 @@ import { cn, formatFileSize } from "@/lib/utils";
 import { FileExtensionType } from "@/hooks/use-file-upload";
 import CheckCircle from "@/icons/check-circle";
 import DeleteBinLine from "@/icons/delete-bin-line";
-import ErrorWarningFill from "./error-warning-fill";
+import ErrorWarningFill from "../icons/error-warning-fill";
+import { useFileUploadContext } from "../../context/file-upload";
 
 type FileUploadCardProps = {
 	file: File | null;
@@ -22,13 +23,9 @@ type FileUploadCardProps = {
 	status: "idle" | "uploading" | "completed" | "failed";
 };
 
-export default function FileUploadCard({
-	file,
-	onClear,
-	uploadType,
-	uploadError,
-	status,
-}: FileUploadCardProps) {
+export default function FileUploadCard() {
+	const { file, onClear, uploadType, status } = useFileUploadContext();
+
 	if (!file) return null;
 	const fileFormat: Record<string, string> = {
 		pdf: pdfFileFormat,

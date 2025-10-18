@@ -75,8 +75,8 @@ export default function useFileUpload() {
 		uploadError,
 		uploadType,
 		uploadRef,
+		uploadInfo,
 		onClear,
 		handleFileChange,
-		uploadInfo,
 	};
 }

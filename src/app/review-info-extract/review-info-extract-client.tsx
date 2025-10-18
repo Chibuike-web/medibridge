@@ -9,8 +9,8 @@ import { AnimatePresence } from "motion/react";
 import { useState } from "react";
 
 export default function ReviewInfoExtractClient() {
-	const { data } = useParsedPatient();
-	const dataArray = Object.entries(data ?? {});
+	const { patientData } = useParsedPatient();
+	const dataArray = Object.entries(patientData ?? {});
 	return (
 		<div className="my-10 flex flex-col gap-3 items-start">
 			{dataArray.map(([key, value]) => (
