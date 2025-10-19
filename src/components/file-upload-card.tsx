@@ -7,13 +7,11 @@ import pdfFileFormat from "@/assets/file-formats/pdf.svg";
 import pngFileFormat from "@/assets/file-formats/png.svg";
 import jpgFileFormat from "@/assets/file-formats/jpg.svg";
 import docFileFormat from "@/assets/file-formats/doc.svg";
-
 import { cn, formatFileSize } from "@/lib/utils";
 import { FileExtensionType } from "@/hooks/use-file-upload";
 import CheckCircle from "@/icons/check-circle";
 import DeleteBinLine from "@/icons/delete-bin-line";
 import ErrorWarningFill from "../icons/error-warning-fill";
-import { useFileUploadContext } from "../../context/file-upload";
 
 type FileUploadCardProps = {
 	file: File | null;
@@ -23,9 +21,13 @@ type FileUploadCardProps = {
 	status: "idle" | "uploading" | "completed" | "failed";
 };
 
-export default function FileUploadCard() {
-	const { file, onClear, uploadType, status } = useFileUploadContext();
-
+export default function FileUploadCard({
+	file,
+	onClear,
+	status,
+	uploadType,
+	uploadError,
+}: FileUploadCardProps) {
 	if (!file) return null;
 	const fileFormat: Record<string, string> = {
 		pdf: pdfFileFormat,

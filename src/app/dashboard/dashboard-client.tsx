@@ -5,8 +5,6 @@ import Plus from "@/icons/plus";
 import { useState } from "react";
 import { AnimatePresence } from "motion/react";
 
-import { FileUploadProvider } from "../../../context/file-upload";
-import FileParseProvider from "../../../context/file.parse";
 import PatientFileUploadModal from "./patient-file-upload-modal";
 
 export default function DashboardClient() {
@@ -24,13 +22,7 @@ export default function DashboardClient() {
 			</div>
 			<AnimatePresence>
 				{isUploadPatientModalOpen && (
-					// <UploadPatientModal setIsUploadPatientModalOpen={setIsUploadPatientModalOpen} />
-
-					<FileUploadProvider>
-						<FileParseProvider>
-							<PatientFileUploadModal setIsUploadPatientModalOpen={setIsUploadPatientModalOpen} />
-						</FileParseProvider>
-					</FileUploadProvider>
+					<PatientFileUploadModal setIsUploadPatientModalOpen={setIsUploadPatientModalOpen} />
 				)}
 			</AnimatePresence>
 		</div>

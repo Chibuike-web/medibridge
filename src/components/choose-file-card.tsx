@@ -3,10 +3,14 @@
 import UploadCloudLine from "@/icons/upload-cloud-line";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
-import { useFileUploadContext } from "../../context/file-upload";
+import { ChangeEvent, Ref } from "react";
 
-export default function ChooseFileCard() {
-	const { handleFileChange, uploadRef } = useFileUploadContext();
+type ChooseFileCardPropsType = {
+	handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
+	uploadRef: Ref<HTMLInputElement>;
+};
+
+export default function ChooseFileCard({ handleFileChange, uploadRef }: ChooseFileCardPropsType) {
 	return (
 		<Label
 			htmlFor="file-upload"

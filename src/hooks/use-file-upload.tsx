@@ -1,24 +1,25 @@
 "use client";
 
-import { ChangeEvent, useRef, useState } from "react";
+import { FileExtensionType, useUpload } from "@/store/use-upload-store";
+import { ChangeEvent } from "react";
 
 const MAXSIZEINBYTES = 50 * 1024 * 1024;
 
-export type FileExtensionType = "pdf" | "png" | "jpg" | "doc" | "";
-
 export default function useFileUpload() {
-	const [file, setFile] = useState<File | null>(null);
-	const [status, setStatus] = useState<"idle" | "uploading" | "completed" | "failed">("idle");
-	const [uploadInfo, setUploadInfo] = useState({});
-	const [uploadError, setUploadError] = useState("");
-	const uploadRef = useRef<HTMLInputElement | null>(null);
-	const [uploadType, setUploadType] = useState<FileExtensionType>("");
-
-	const onClear = () => {
-		setFile(null);
-		setStatus("idle");
-		if (uploadRef.current) uploadRef.current.value = "";
-	};
+	const {
+		file,
+		status,
+		setFile,
+		setStatus,
+		uploadError,
+		uploadInfo,
+		uploadType,
+		uploadRef,
+		setUploadError,
+		setUploadInfo,
+		setUploadType,
+		onClear,
+	} = useUpload();
 
 	const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
 		const selectedFile = e.target.files?.[0];

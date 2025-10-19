@@ -1,5 +1,3 @@
-import { useFileUploadContext } from "../../../context/file-upload";
-import { useFileParseContext } from "../../../context/file.parse";
 import CloseLine from "@/icons/close-line";
 import LoaderLine from "@/icons/loader-line";
 import CheckCircle from "@/icons/check-circle";
@@ -15,14 +13,19 @@ import {
 	DialogMain,
 	DialogTitle,
 } from "@/components/ui/dialog-modal";
+import useFileParse from "@/hooks/use-file-parse";
+import useFileUpload from "@/hooks/use-file-upload";
 
 export default function PatientFileUploadModal({
 	setIsUploadPatientModalOpen,
 }: {
 	setIsUploadPatientModalOpen: (value: boolean) => void;
 }) {
-	const { file, onClear, status } = useFileUploadContext();
-	const { parseStatus, setParseStatus, parseFile } = useFileParseContext();
+	const { file, status, uploadType, uploadError, uploadRef, onClear, handleFileChange } =
+		useFileUpload();
+
+	const { parseFile, parseStatus, setParseStatus } = useFileParse();
+
 	return (
 		<DialogBackdrop setIsUploadPatientModalOpen={setIsUploadPatientModalOpen}>
 			<DialogMain>
@@ -42,11 +45,21 @@ export default function PatientFileUploadModal({
 							Upload a document containing patient information. Supported formats: PDF, PNG, JPG,
 							DOCX.
 						</p>
-						{file ? <FileUploadCard /> : <ChooseFileCard />}
+						{file ? (
+							<FileUploadCard
+								file={file}
+								onClear={onClear}
+								status={status}
+								uploadType={uploadType}
+								uploadError={uploadError}
+							/>
+						) : (
+							<ChooseFileCard handleFileChange={handleFileChange} uploadRef={uploadRef} />
+						)}
 					</DialogContent>
 				</div>
 				<DialogFooter>
-					{status === "completed" && (
+					{status === "completed" && parseStatus !== "error" && (
 						<div className="flex items-center justify-between p-6 border-t border-gray-200">
 							{["parsing", "success"].includes(parseStatus) ? (
 								<div className="flex items-center justify-center gap-4 w-full">
