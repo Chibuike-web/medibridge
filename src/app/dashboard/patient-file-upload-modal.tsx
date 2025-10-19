@@ -15,19 +15,24 @@ import {
 } from "@/components/ui/dialog-modal";
 import useFileParse from "@/hooks/use-file-parse";
 import useFileUpload from "@/hooks/use-file-upload";
+import { useCallback } from "react";
 
 export default function PatientFileUploadModal({
-	setIsUploadPatientModalOpen,
+	setIsModalOpen,
 }: {
-	setIsUploadPatientModalOpen: (value: boolean) => void;
+	setIsModalOpen: (value: boolean) => void;
 }) {
 	const { file, status, uploadType, uploadError, uploadRef, onClear, handleFileChange } =
 		useFileUpload();
 
-	const { parseFile, parseStatus, setParseStatus } = useFileParse();
+	const { setParseStatus } = useFileParse();
+	const handleClick = useCallback(() => {
+		setIsModalOpen(false);
+		setParseStatus("idle");
+	}, [setIsModalOpen, setParseStatus]);
 
 	return (
-		<DialogBackdrop setIsUploadPatientModalOpen={setIsUploadPatientModalOpen}>
+		<DialogBackdrop handleClick={handleClick}>
 			<DialogMain>
 				<div className="px-6 pt-6 pb-6">
 					<DialogHeader>
@@ -35,7 +40,12 @@ export default function PatientFileUploadModal({
 							<h1 className="text-[clamp(18px,5vw,24px)] font-semibold">Upload Patient's Record</h1>
 						</DialogTitle>
 						<DialogClose>
-							<button onClick={() => setIsUploadPatientModalOpen(false)}>
+							<button
+								onClick={() => {
+									setIsModalOpen(false);
+									setParseStatus("idle");
+								}}
+							>
 								<CloseLine className="size-8" />
 							</button>
 						</DialogClose>
@@ -58,45 +68,53 @@ export default function PatientFileUploadModal({
 						)}
 					</DialogContent>
 				</div>
-				<DialogFooter>
-					{status === "completed" && parseStatus !== "error" && (
-						<div className="flex items-center justify-between p-6 border-t border-gray-200">
-							{["parsing", "success"].includes(parseStatus) ? (
-								<div className="flex items-center justify-center gap-4 w-full">
-									{parseStatus === "parsing" ? (
-										<LoaderLine className="animate-spin size-5" />
-									) : (
-										<CheckCircle className="size-5" />
-									)}
-									<span>
-										{parseStatus === "parsing"
-											? "Extracting patient data..."
-											: " Patient data extracted successfully."}
-									</span>
-								</div>
-							) : null}
-
-							{parseStatus === "idle" ? (
-								<>
-									<Button
-										variant="outline"
-										className="h-11 cursor-pointer"
-										onClick={() => {
-											setParseStatus("idle");
-											onClear();
-										}}
-									>
-										Cancel
-									</Button>
-									<Button className="h-11 cursor-pointer" onClick={parseFile}>
-										Parse Document
-									</Button>
-								</>
-							) : null}
-						</div>
-					)}
-				</DialogFooter>
+				{status === "completed" && <Footer />}
 			</DialogMain>
 		</DialogBackdrop>
 	);
 }
+
+const Footer = () => {
+	const { parseFile, parseStatus, setParseStatus } = useFileParse();
+	const { onClear } = useFileUpload();
+	if (parseStatus === "error") return null;
+
+	return (
+		<DialogFooter>
+			<div className="flex items-center justify-between p-6 border-t border-gray-200">
+				{["parsing", "success"].includes(parseStatus) ? (
+					<div className="flex items-center justify-center gap-4 w-full">
+						{parseStatus === "parsing" ? (
+							<LoaderLine className="animate-spin size-5" />
+						) : (
+							<CheckCircle className="size-5" />
+						)}
+						<span>
+							{parseStatus === "parsing"
+								? "Extracting patient data..."
+								: " Patient data extracted successfully."}
+						</span>
+					</div>
+				) : null}
+
+				{parseStatus === "idle" ? (
+					<>
+						<Button
+							variant="outline"
+							className="h-11 cursor-pointer"
+							onClick={() => {
+								setParseStatus("idle");
+								onClear();
+							}}
+						>
+							Cancel
+						</Button>
+						<Button className="h-11 cursor-pointer" onClick={parseFile}>
+							Parse Document
+						</Button>
+					</>
+				) : null}
+			</div>
+		</DialogFooter>
+	);
+};

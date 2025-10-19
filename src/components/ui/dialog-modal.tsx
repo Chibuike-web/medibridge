@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 
 type DialogType = {
 	children: React.ReactNode;
-	setIsUploadPatientModalOpen: (value: boolean) => void;
+	handleClick: () => void;
 };
 
 const modalVariants = {
@@ -12,11 +12,11 @@ const modalVariants = {
 	exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2 } },
 };
 
-export function DialogBackdrop({ children, setIsUploadPatientModalOpen }: DialogType) {
+export function DialogBackdrop({ children, handleClick }: DialogType) {
 	return (
 		<div
 			className="bg-foreground/80 fixed inset-0 backdrop-blur-[4px] flex items-center justify-center px-6 xl:px-0"
-			onClick={() => setIsUploadPatientModalOpen(false)}
+			onClick={() => handleClick()}
 		>
 			{children}
 		</div>

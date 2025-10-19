@@ -8,7 +8,8 @@ import { AnimatePresence } from "motion/react";
 import PatientFileUploadModal from "./patient-file-upload-modal";
 
 export default function DashboardClient() {
-	const [isUploadPatientModalOpen, setIsUploadPatientModalOpen] = useState(false);
+	const [isModalOpen, setIsModalOpen] = useState(false);
+
 	return (
 		<div className="w-full mx-auto max-w-[1440px] flex items-center justify-center h-full p-10">
 			<div className="flex flex-col items-center max-w-[355px]">
@@ -16,14 +17,12 @@ export default function DashboardClient() {
 				<p className="mb-12 text-center">
 					You haven’t added any patients to your list. Start by creating a new patient profile.
 				</p>
-				<Button onClick={() => setIsUploadPatientModalOpen(true)}>
+				<Button onClick={() => setIsModalOpen(true)}>
 					<Plus /> Add new patient
 				</Button>
 			</div>
 			<AnimatePresence>
-				{isUploadPatientModalOpen && (
-					<PatientFileUploadModal setIsUploadPatientModalOpen={setIsUploadPatientModalOpen} />
-				)}
+				{isModalOpen && <PatientFileUploadModal setIsModalOpen={setIsModalOpen} />}
 			</AnimatePresence>
 		</div>
 	);

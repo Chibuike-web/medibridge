@@ -10,7 +10,6 @@ export default function useFileParse() {
 	const { file, onClear } = useUpload();
 
 	const parseFile = async () => {
-		console.log("click");
 		if (!file) return;
 		console.log("click");
 		setParseStatus("parsing");
@@ -29,11 +28,12 @@ export default function useFileParse() {
 			}
 
 			setParseStatus("success");
-			console.log("Parsed info", data);
+			router.push("/review-info-extract");
+
 			setTimeout(() => {
 				setPatientData(data);
-				router.push("/review-info-extract");
 				onClear();
+				setParseStatus("idle");
 			}, 1500);
 		} catch (error) {
 			console.error(error);
