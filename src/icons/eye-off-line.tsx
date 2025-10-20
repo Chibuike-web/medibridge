@@ -1,4 +1,4 @@
-import { IconProps } from "@/lib/types";
+import { IconProps } from "@/lib/types/icon-prop-type";
 
 export default function EyeOffLine({ className = "" }: IconProps) {
 	return (

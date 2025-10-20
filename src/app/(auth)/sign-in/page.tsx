@@ -13,7 +13,6 @@ export default function Login() {
 				<p className="text-center mt-4 text-gray-600">
 					Secure access for verified healthcare institutions.
 				</p>
-
 				<SignInClient />
 				<p className="text-center mt-4">
 					<span>Need an account? </span>

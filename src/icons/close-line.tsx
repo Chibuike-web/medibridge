@@ -1,4 +1,4 @@
-import { IconProps } from "@/lib/types";
+import { IconProps } from "@/lib/types/icon-prop-type";
 import React from "react";
 
 export default function CloseLine({ className = "" }: IconProps) {
