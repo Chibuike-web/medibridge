@@ -1,19 +1,13 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import ArrowLeftLongLine from "@/icons/arrow-left-long-line";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import ForgotPasswordClient from "./forgot-password-client";
 
 export default function ForgotPassword() {
-	const router = useRouter();
 	return (
 		<div className="px-6 xl:px-0">
 			<div className="max-w-[800px] mx-auto py-8">
-				<Link href="/uploads" className="flex gap-2 w-max">
-					<ArrowLeftLongLine /> <span>Back</span>
+				<Link href="/uploads" className="flex items-center gap-2 w-max">
+					<ArrowLeftLongLine className="size-5" /> <span>Back</span>
 				</Link>
 			</div>
 			<div className="max-w-[550px] mx-auto">
@@ -25,23 +19,7 @@ export default function ForgotPassword() {
 						We’ll send a link to reset your password.
 					</p>
 				</div>
-				<form
-					onSubmit={(e) => {
-						e.preventDefault();
-						router.push("/forgot-password/verify");
-					}}
-					className="text-gray-800 mt-12"
-				>
-					<div className="mb-4">
-						<Label htmlFor="email" className="mb-1">
-							Email Address
-						</Label>
-						<Input id="email" className="h-11" placeholder="eg., john.doe@stmaryhospital.org" />
-					</div>
-					<Button className="w-full h-11 mt-12" type="submit">
-						Send Reset Link
-					</Button>
-				</form>
+				<ForgotPasswordClient />
 			</div>
 		</div>
 	);

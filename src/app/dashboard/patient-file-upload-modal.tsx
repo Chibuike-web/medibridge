@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dialog-modal";
 import useFileParse from "@/hooks/use-file-parse";
 import useFileUpload from "@/hooks/use-file-upload";
-import { useCallback } from "react";
 
 export default function PatientFileUploadModal({
 	setIsModalOpen,
@@ -25,11 +24,11 @@ export default function PatientFileUploadModal({
 	const { file, status, uploadType, uploadError, uploadRef, onClear, handleFileChange } =
 		useFileUpload();
 
-	const { setParseStatus } = useFileParse();
-	const handleClick = useCallback(() => {
+	const { parseStatus, setParseStatus } = useFileParse();
+	const handleClick = () => {
 		setIsModalOpen(false);
 		setParseStatus("idle");
-	}, [setIsModalOpen, setParseStatus]);
+	};
 
 	return (
 		<DialogBackdrop handleClick={handleClick}>
@@ -67,6 +66,9 @@ export default function PatientFileUploadModal({
 							<ChooseFileCard handleFileChange={handleFileChange} uploadRef={uploadRef} />
 						)}
 					</DialogContent>
+					{parseStatus === "error" && (
+						<p className="text-red-500 font-medium mt-2">Issue parsing the file, Try again</p>
+					)}
 				</div>
 				{status === "completed" && <Footer />}
 			</DialogMain>
@@ -77,7 +79,6 @@ export default function PatientFileUploadModal({
 const Footer = () => {
 	const { parseFile, parseStatus, setParseStatus } = useFileParse();
 	const { onClear } = useFileUpload();
-	if (parseStatus === "error") return null;
 
 	return (
 		<DialogFooter>
@@ -97,7 +98,7 @@ const Footer = () => {
 					</div>
 				) : null}
 
-				{parseStatus === "idle" ? (
+				{parseStatus === "idle" || parseStatus === "error" ? (
 					<>
 						<Button
 							variant="outline"

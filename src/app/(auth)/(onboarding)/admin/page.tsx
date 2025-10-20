@@ -6,7 +6,7 @@ export default function Admin() {
 	return (
 		<div className="px-6 xl:px-0">
 			<div className="max-w-[800px] mx-auto py-8">
-				<Link href="/uploads" className="flex gap-2 w-max">
+				<Link href="/hospital-upload" className="flex items-center gap-2 w-max">
 					<ArrowLeftLongLine className="size-5" /> <span>Back</span>
 				</Link>
 			</div>

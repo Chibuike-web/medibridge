@@ -34,10 +34,10 @@ export default function Verify() {
 						<Checkbox
 							id={c.id}
 							key={c.id}
-							checked={c.status === "pending" ? false : true}
+							defaultChecked={c.status !== "pending"}
 							className="text-[16px]"
 						>
-							{c.value} {c.status}
+							{c.value} - {c.status}
 						</Checkbox>
 					))}
 				</div>

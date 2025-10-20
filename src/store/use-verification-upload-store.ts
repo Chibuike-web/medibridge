@@ -24,7 +24,7 @@ type UploadState = {
 	onClear: () => void;
 };
 
-const useUploadStore = create<UploadState>((set) => ({
+const useVerificationUploadStore = create<UploadState>((set) => ({
 	file: null,
 	status: "idle",
 	uploadInfo: {},
@@ -49,19 +49,19 @@ const useUploadStore = create<UploadState>((set) => ({
 		}),
 }));
 
-export const useUpload = () => ({
-	file: useUploadStore((s) => s.file),
-	status: useUploadStore((s) => s.status),
-	uploadInfo: useUploadStore((s) => s.uploadInfo),
-	uploadError: useUploadStore((s) => s.uploadError),
-	uploadType: useUploadStore((s) => s.uploadType),
-	uploadRef: useUploadStore((s) => s.uploadRef),
+export const useVerificationUpload = () => ({
+	file: useVerificationUploadStore((s) => s.file),
+	status: useVerificationUploadStore((s) => s.status),
+	uploadInfo: useVerificationUploadStore((s) => s.uploadInfo),
+	uploadError: useVerificationUploadStore((s) => s.uploadError),
+	uploadType: useVerificationUploadStore((s) => s.uploadType),
+	uploadRef: useVerificationUploadStore((s) => s.uploadRef),
 
-	setFile: useUploadStore((s) => s.setFile),
-	setStatus: useUploadStore((s) => s.setStatus),
-	setUploadInfo: useUploadStore((s) => s.setUploadInfo),
-	setUploadError: useUploadStore((s) => s.setUploadError),
-	setUploadType: useUploadStore((s) => s.setUploadType),
-	setUploadRef: useUploadStore((s) => s.setUploadRef),
-	onClear: useUploadStore((s) => s.onClear),
+	setFile: useVerificationUploadStore((s) => s.setFile),
+	setStatus: useVerificationUploadStore((s) => s.setStatus),
+	setUploadInfo: useVerificationUploadStore((s) => s.setUploadInfo),
+	setUploadError: useVerificationUploadStore((s) => s.setUploadError),
+	setUploadType: useVerificationUploadStore((s) => s.setUploadType),
+	setUploadRef: useVerificationUploadStore((s) => s.setUploadRef),
+	onClear: useVerificationUploadStore((s) => s.onClear),
 });

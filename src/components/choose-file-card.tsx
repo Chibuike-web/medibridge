@@ -14,7 +14,7 @@ export default function ChooseFileCard({ handleFileChange, uploadRef }: ChooseFi
 	return (
 		<Label
 			htmlFor="file-upload"
-			className="relative w-full flex flex-col items-center p-8 border border-dashed border-gray-200 gap-[20px] rounded-[8px] mt-[12px]"
+			className="relative w-full flex flex-col items-center p-8 border border-dashed border-gray-200 gap-[20px] rounded-[8px]"
 		>
 			<input
 				type="file"

@@ -1,6 +1,6 @@
-import InfoClient from "./info-client";
 import Link from "next/link";
 import ArrowLeftLongLine from "@/icons/arrow-left-long-line";
+import HospitalDetailsClient from "./hospital-details-client";
 
 export default function Info() {
 	return (
@@ -12,9 +12,9 @@ export default function Info() {
 			</div>
 			<div className="max-w-[550px] mx-auto">
 				<h1 className="text-[1.8rem] text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] my-10">
-					Institution Details
+					Hospital Details
 				</h1>
-				<InfoClient />
+				<HospitalDetailsClient />
 			</div>
 		</div>
 	);
