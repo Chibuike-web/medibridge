@@ -12,16 +12,19 @@ import { hospitalAdminSchema, HospitalAdminType } from "@/lib/schemas/hospital-a
 import { useState } from "react";
 import EyeOffLine from "@/icons/eye-off-line";
 import EyeLine from "@/icons/eye-line";
+import { useHospitalStore } from "@/store/use-hospital-store";
 
 export default function AdminClient() {
 	const router = useRouter();
+	const [isVisible, setIsVisible] = useState(false);
+	const { setHospitalInfo } = useHospitalStore();
+
 	const {
 		register,
 		handleSubmit,
 		formState: { errors, isSubmitting },
 	} = useForm({ resolver: zodResolver(hospitalAdminSchema) });
 
-	const [isVisible, setIsVisible] = useState(false);
 	const onSubmit = (data: HospitalAdminType) => {
 		console.log(data);
 		router.push("/verify");

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { hospitalDetailsSchema, HospitalDetailsType } from "@/lib/schemas/hospital-details-schema";
+import { useHospitalStore } from "@/store/use-hospital-store";
 
 export default function HospitalDetailsClient() {
 	const router = useRouter();
@@ -16,7 +17,12 @@ export default function HospitalDetailsClient() {
 		formState: { errors, isSubmitting },
 	} = useForm({ resolver: zodResolver(hospitalDetailsSchema) });
 
-	const onSubmit = (data: HospitalDetailsType) => {};
+	const { setHospitalInfo } = useHospitalStore();
+
+	const onSubmit = (data: HospitalDetailsType) => {
+		setHospitalInfo(data);
+		router.push("/hospital-upload");
+	};
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className="text-gray-800">
 			<div className="mb-5">

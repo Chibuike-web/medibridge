@@ -12,9 +12,9 @@ export default function ForgotPassword() {
 					</Link>
 				</div>
 			</nav>
-			<div className="max-w-[550px] mx-auto">
-				<div className="mb-12">
-					<h1 className="text-[1.8rem] text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] mt-10">
+			<div className="max-w-[550px] mx-auto px-6 xl:px-0">
+				<div className="mb-12 mt-40">
+					<h1 className="text-[1.8rem] text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] ">
 						Forgot Your Password?
 					</h1>
 					<p className="text-center mt-5 text-gray-600 font-medium">

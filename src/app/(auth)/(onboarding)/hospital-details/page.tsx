@@ -12,7 +12,7 @@ export default function Info() {
 					</Link>
 				</div>
 			</nav>
-			<div className="max-w-[550px] mx-auto mb-20">
+			<div className="max-w-[550px] mx-auto mb-20 px-6 xl:px-0">
 				<h1 className="text-[1.8rem] text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] my-10">
 					Hospital Details
 				</h1>
