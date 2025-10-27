@@ -1,8 +1,8 @@
-import { writeFileSync } from "fs";
-import { mkdir } from "fs/promises";
-import path from "path";
+import { mkdir } from "node:fs/promises";
+import path from "node:path";
+import { saveFile } from "../utils/save-file";
 
-const uploadDir = path.resolve("uploads");
+const uploadDir = path.resolve("patient-uploads");
 
 export async function POST(req: Request) {
 	try {
@@ -16,23 +16,17 @@ export async function POST(req: Request) {
 		await mkdir(uploadDir, { recursive: true });
 
 		saveFile(filePath, buffer);
-		return Response.json({
-			status: "success",
-			filename: file.name,
-			mimetype: file.type,
-			size: file.size,
-		});
+		return Response.json(
+			{
+				status: "success",
+				filename: file.name,
+				mimetype: file.type,
+				size: file.size,
+			},
+			{ status: 200 }
+		);
 	} catch (error) {
 		console.log(error);
-		return Response.json({ error: "Upload failed" }, { status: 500 });
+		return Response.json({ status: "failed" }, { status: 500 });
 	}
 }
-
-const saveFile = (filePath: string, buffer: Buffer) => {
-	try {
-		writeFileSync(filePath, buffer);
-		console.log("File written successfully");
-	} catch (err) {
-		console.error("Failed to write file:", err);
-	}
-};

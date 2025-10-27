@@ -3,7 +3,7 @@ import { create } from "zustand";
 
 export type FileExtensionType = "pdf" | "png" | "jpg" | "doc" | "";
 
-type UploadInfo = Record<string, any>;
+type UploadInfo = Record<string, string>;
 
 type UploadStatus = "idle" | "uploading" | "completed" | "failed";
 

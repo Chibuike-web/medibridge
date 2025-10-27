@@ -13,6 +13,7 @@ export default function HospitalUploadClient() {
 		file,
 		status,
 		uploadType,
+		uploadInfo,
 		setUploadError,
 		uploadError,
 		uploadRef,
@@ -30,7 +31,12 @@ export default function HospitalUploadClient() {
 					setUploadError("No file is uploaded. Please upload a file");
 					return;
 				}
-				setHospitalInfo({ file });
+
+				setHospitalInfo({
+					filename: uploadInfo.filename,
+					mimetype: uploadInfo.mimetype,
+					size: uploadInfo.size,
+				});
 				router.push("/admin");
 			}}
 		>

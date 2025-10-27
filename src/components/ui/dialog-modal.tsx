@@ -1,4 +1,4 @@
-import MotionDiv from "@/lib/motion-wrapper";
+import MotionDiv from "@/lib/utils/motion-wrapper";
 import { useEffect, useRef } from "react";
 
 type DialogType = {

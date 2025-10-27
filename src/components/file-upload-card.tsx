@@ -7,11 +7,12 @@ import pdfFileFormat from "@/assets/file-formats/pdf.svg";
 import pngFileFormat from "@/assets/file-formats/png.svg";
 import jpgFileFormat from "@/assets/file-formats/jpg.svg";
 import docFileFormat from "@/assets/file-formats/doc.svg";
-import { cn, formatFileSize } from "@/lib/utils";
+import { cn } from "@/lib/utils/cn";
 import CheckCircle from "@/icons/check-circle";
 import DeleteBinLine from "@/icons/delete-bin-line";
 import ErrorWarningFill from "../icons/error-warning-fill";
 import { FileExtensionType } from "@/store/use-upload-store";
+import { formatFileSize } from "@/lib/utils/format-file-size";
 
 type FileUploadCardProps = {
 	file: File | null;

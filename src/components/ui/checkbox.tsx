@@ -1,5 +1,5 @@
 import Check from "@/icons/check";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/cn";
 import { ChangeEvent } from "react";
 import { FieldValues, Path, UseFormRegister } from "react-hook-form";
 

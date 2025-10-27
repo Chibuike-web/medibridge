@@ -49,28 +49,28 @@ export default function useVerificationFileUpload() {
 		setUploadError("");
 		setStatus("uploading");
 
-		// try {
-		// 	const formData = new FormData();
-		// 	formData.append("file", selectedFile);
-		// 	const res = await fetch("/api/verification-file-upload", {
-		// 		method: "POST",
-		// 		body: formData,
-		// 	});
-		// 	const data = await res.json();
+		try {
+			const formData = new FormData();
+			formData.append("file", selectedFile);
+			const res = await fetch("/api/verification-file-upload", {
+				method: "POST",
+				body: formData,
+			});
+			const data = await res.json();
 
-		// 	if (!res.ok) {
-		// 		setUploadError(data.error);
-		// 		throw new Error("Issue uploading file");
-		// 	}
+			if (!res.ok) {
+				setUploadError(data.error);
+				throw new Error("Issue uploading file");
+			}
 
-		setStatus("completed");
-		setFile(selectedFile);
-		// setUploadInfo(data);
-		// } catch (error) {
-		// 	console.error(error);
-		// 	setUploadError("Upload failed.");
-		// 	setStatus("failed");
-		// }
+			setStatus("completed");
+			setFile(selectedFile);
+			setUploadInfo(data);
+		} catch (error) {
+			console.error(error);
+			setUploadError("Upload failed.");
+			setStatus("failed");
+		}
 	};
 
 	return {

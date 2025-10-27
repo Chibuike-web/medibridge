@@ -6,7 +6,7 @@ import FileTransferFill from "@/icons/file-transfer-fill";
 import FileTransferLine from "@/icons/file-transfer-line";
 import FunctionFill from "@/icons/function-fill";
 import FunctionLine from "@/icons/function-line";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import UserProfile from "./user-profile";

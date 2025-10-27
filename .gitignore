@@ -43,4 +43,5 @@ next-env.d.ts
 .vscode
 
 
-uploads
+patients-uploads
+hospitals-uploads

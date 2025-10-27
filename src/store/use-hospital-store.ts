@@ -1,13 +1,17 @@
+import { HospitalAdminType } from "@/lib/schemas/hospital-admin-schema";
 import { HospitalDetailsType } from "@/lib/schemas/hospital-details-schema";
 import { create } from "zustand";
 
-export type HospitalType = HospitalDetailsType & {
-	file: File | null;
-};
+export type HospitalType = HospitalAdminType &
+	HospitalDetailsType & {
+		filename: string;
+		mimetype: string;
+		size: string;
+	};
 
 type HospitalStore = {
 	hospitalInfo: HospitalType | null;
-	setHospitalInfo: (info: Partial<HospitalType>) => void;
+	setHospitalInfo: (info: Partial<HospitalType | HospitalAdminType>) => void;
 	clearHospitalInfo: () => void;
 };
 

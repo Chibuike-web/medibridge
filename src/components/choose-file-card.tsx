@@ -4,7 +4,7 @@ import UploadCloudLine from "@/icons/upload-cloud-line";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { ChangeEvent, Ref } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/cn";
 
 type ChooseFileCardPropsType = {
 	handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
