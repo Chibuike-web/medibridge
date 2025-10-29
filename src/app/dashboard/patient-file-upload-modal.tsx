@@ -29,6 +29,10 @@ export default function PatientFileUploadModal({
 		setIsModalOpen(false);
 		setParseStatus("idle");
 	};
+	const handleClear = () => {
+		onClear();
+		setParseStatus("idle");
+	};
 
 	return (
 		<DialogBackdrop handleClick={handleClick}>
@@ -57,7 +61,7 @@ export default function PatientFileUploadModal({
 						{file ? (
 							<FileUploadCard
 								file={file}
-								onClear={onClear}
+								onClear={handleClear}
 								status={status}
 								uploadType={uploadType}
 								uploadError={uploadError}
