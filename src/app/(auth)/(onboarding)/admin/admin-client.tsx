@@ -49,7 +49,6 @@ export default function AdminClient() {
 			}
 			setTimeout(() => {
 				router.push("/verify");
-				setSuccess("");
 				clearHospitalInfo();
 				reset();
 				onClear();

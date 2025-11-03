@@ -1,7 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import useModal from "@/hooks/use-modal";
 import Plus from "@/icons/plus";
+import PatientTransferModal from "./patient-transfer-modal";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 export default function TransfersClient() {
 	return (
@@ -11,9 +14,14 @@ export default function TransfersClient() {
 				<p className="mb-12 text-center">
 					Start by creating your first transfer request to move patient records securely.
 				</p>
-				<Button>
-					<Plus /> New Transfer Request
-				</Button>
+				<Dialog>
+					<DialogTrigger asChild>
+						<Button>
+							<Plus /> New Transfer Request
+						</Button>
+					</DialogTrigger>
+					<PatientTransferModal />
+				</Dialog>
 			</div>
 		</div>
 	);

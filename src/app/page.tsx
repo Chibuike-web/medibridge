@@ -48,7 +48,7 @@ export default function Home() {
 					</Button>
 
 					<Button asChild className="h-11 w-full" variant="outline">
-						<Link href="/login">Log in</Link>
+						<Link href="/sign-in">Log in</Link>
 					</Button>
 				</div>
 			</div>

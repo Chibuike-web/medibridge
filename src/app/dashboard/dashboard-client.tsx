@@ -2,13 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import Plus from "@/icons/plus";
-import { useState } from "react";
-import { AnimatePresence } from "motion/react";
 
 import PatientFileUploadModal from "./patient-file-upload-modal";
+import useModal from "@/hooks/use-modal";
 
 export default function DashboardClient() {
-	const [isModalOpen, setIsModalOpen] = useState(false);
+	const { isOpen, open, close } = useModal();
 
 	return (
 		<div className="w-full mx-auto max-w-[1440px] flex items-center justify-center h-full p-10">
@@ -17,13 +16,13 @@ export default function DashboardClient() {
 				<p className="mb-12 text-center">
 					You haven’t added any patients to your list. Start by creating a new patient profile.
 				</p>
-				<Button onClick={() => setIsModalOpen(true)}>
+
+				<Button onClick={open}>
 					<Plus /> Add new patient
 				</Button>
 			</div>
-			<AnimatePresence>
-				{isModalOpen && <PatientFileUploadModal setIsModalOpen={setIsModalOpen} />}
-			</AnimatePresence>
+			<PatientFileUploadModal open={open} close={close} isOpen={isOpen} />
+			{/* <AnimatePresence>{isOpen && <PatientFileUploadModal close={close} />}</AnimatePresence> */}
 		</div>
 	);
 }

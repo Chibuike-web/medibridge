@@ -8,7 +8,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 export async function POST(req: Request) {
 	const { filename } = await req.json();
 	if (!filename) return Response.json({ error: "Missing file" }, { status: 400 });
-	const filePath = path.resolve("uploads", filename);
+	const filePath = path.resolve("patient-uploads", filename);
 	if (!existsSync(filePath)) {
 		return Response.json({ error: "File not found" }, { status: 404 });
 	}
