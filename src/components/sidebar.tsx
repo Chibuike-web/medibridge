@@ -26,14 +26,14 @@ export default function Sidebar() {
 						<li
 							key={id}
 							className={cn(
-								" flex items-center w-full rounded-[8px]",
+								" flex items-center w-full rounded-[8px] hover:bg-gray-200",
 								isActive ? "bg-gray-200" : ""
 							)}
 						>
 							<Link
 								href={`/${id}`}
 								className={cn(
-									"px-[12px] flex items-center gap-2 w-full h-[36px]",
+									"px-[12px] flex items-center gap-2 w-full h-[36px] ",
 									isActive && "font-semibold"
 								)}
 							>
