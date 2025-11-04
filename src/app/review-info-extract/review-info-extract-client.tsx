@@ -10,6 +10,7 @@ import { useState } from "react";
 
 export default function ReviewInfoExtractClient() {
 	const { patientData } = useParsedPatient();
+
 	const dataArray = Object.entries(patientData ?? {});
 	return (
 		<div className="my-10 flex flex-col gap-3 items-start">

@@ -2,16 +2,17 @@ import { useRouter } from "next/navigation";
 import { useParsedPatient } from "@/store/use-parsed-patient-store";
 import { useParseStatus } from "@/store/use-parse-status-store";
 import { useUpload } from "@/store/use-upload-store";
+import { useModal } from "@/store/use-modal-store";
 
 export default function useFileParse() {
-	const { parseStatus, setParseStatus } = useParseStatus();
 	const router = useRouter();
+	const { parseStatus, setParseStatus } = useParseStatus();
 	const { setPatientData } = useParsedPatient();
 	const { file, onClear } = useUpload();
+	const { setIsOpen } = useModal();
 
 	const parseFile = async () => {
 		if (!file) return;
-		console.log("click");
 		setParseStatus("parsing");
 		try {
 			const res = await fetch("/api/parse-file", {
@@ -28,12 +29,16 @@ export default function useFileParse() {
 			}
 
 			setParseStatus("success");
-			router.push("/review-info-extract");
+			setPatientData(data);
+
+			await new Promise((res) => setTimeout(res, 1000));
+
+			router.replace("/review-info-extract");
 
 			setTimeout(() => {
-				setPatientData(data);
 				onClear();
 				setParseStatus("idle");
+				setIsOpen(false);
 			}, 1500);
 		} catch (error) {
 			console.error(error);

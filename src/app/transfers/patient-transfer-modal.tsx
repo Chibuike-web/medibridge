@@ -8,6 +8,16 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectLabel,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 import CloseLine from "@/icons/close-line";
 import { cn } from "@/lib/utils/cn";
@@ -35,7 +45,44 @@ export default function PatientTransferModal() {
 					</Fragment>
 				))}
 			</div>
-			<DialogFooter>
+			<div className="px-6 mb-6">
+				<Select>
+					<SelectGroup className="w-full">
+						<SelectLabel className="text-gray-800 text-[1rem]">Select Patient</SelectLabel>
+						<SelectTrigger className="w-full h-11 px-4">
+							<SelectValue placeholder="Select patient" className="text-[16px]" />
+						</SelectTrigger>
+						<SelectContent className="rounded-[16px] h-[300px]" align="center">
+							<div className="p-[6px]">
+								<Input
+									className="h-10 mb-3 placeholder:text-[16px]"
+									type="search"
+									placeholder="Search by name, MRN, or date of birth"
+								/>
+
+								{patients.map((p) => (
+									<SelectItem
+										key={p.hospitalId + p.name}
+										value={`${p.hospitalId}-${p.name}`}
+										className="h-11 px-4 rounded-[8px] text-[16px] focus:bg-gray-200"
+									>
+										<div className="flex items-center gap-[12px]">
+											<span className="font-medium text-[16px]">{p.name}</span>
+											<span className="p-[4px] rounded-[4px] bg-white text-[12px] border border-gray-200 leading-[1.2em]">
+												{p.hospitalId}
+											</span>
+											<span className="p-[4px] rounded-[4px] bg-white text-[12px] border border-gray-200 leading-[1.2em]">
+												{p.dob}
+											</span>
+										</div>
+									</SelectItem>
+								))}
+							</div>
+						</SelectContent>
+					</SelectGroup>
+				</Select>
+			</div>
+			<DialogFooter className="border-t">
 				<Button variant="outline" className="h-11 cursor-pointer">
 					Cancel
 				</Button>
@@ -44,6 +91,19 @@ export default function PatientTransferModal() {
 		</DialogContent>
 	);
 }
+
+const patients = [
+	{ name: "Alice Johnson", hospitalId: "A123456", dob: "1982-05-14" },
+	{ name: "Brian Smith", hospitalId: "B234567", dob: "1982-05-14" },
+	{ name: "Clara Davis", hospitalId: "C345678", dob: "1982-05-14" },
+	{ name: "David Martinez", hospitalId: "D456789", dob: "1982-05-14" },
+	{ name: "Emma Thompson", hospitalId: "E567890", dob: "1982-05-14" },
+	{ name: "Frank Wilson", hospitalId: "F678901", dob: "1982-05-14" },
+	{ name: "Grace Lee", hospitalId: "B234567", dob: "1982-05-14" },
+	{ name: "Henry Clark", hospitalId: "B234567", dob: "1982-05-14" },
+	{ name: "Isabella Turner", hospitalId: "B234567", dob: "1982-05-14" },
+	{ name: "Jack Walker", hospitalId: "B234567", dob: "1982-05-14" },
+];
 
 const steps = [
 	{ label: "Patient Selection", status: "current" },
@@ -58,7 +118,7 @@ const BreadCrumbs = ({ label, status }: { label: string; status: string }) => {
 			case "completed":
 				return "bg-gray-800";
 			case "current":
-				return "bg-blue-600";
+				return "bg-gray-800";
 			default:
 				return "";
 		}
@@ -68,7 +128,7 @@ const BreadCrumbs = ({ label, status }: { label: string; status: string }) => {
 			case "completed":
 				return "text-gray-800";
 			case "current":
-				return "text-blue-600";
+				return "text-gray-800";
 			default:
 				return "text-gray-400";
 		}
@@ -79,7 +139,7 @@ const BreadCrumbs = ({ label, status }: { label: string; status: string }) => {
 			case "completed":
 				return "border-gray-800";
 			case "current":
-				return "border-blue-600";
+				return "border-gray-800";
 			default:
 				return "border-gray-400";
 		}

@@ -74,7 +74,7 @@ Return JSON only, no markdown formatting.
 			);
 		}
 
-		return Response.json({ status: "success", data: parsed.data }, { status: 200 });
+		return Response.json({ status: "success", data: json }, { status: 200 });
 	} catch (err) {
 		console.error("Invalid JSON output:", textResponse);
 		return Response.json(

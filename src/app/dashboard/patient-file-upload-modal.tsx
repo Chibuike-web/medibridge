@@ -14,23 +14,16 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { useModal } from "@/store/use-modal-store";
 
-export default function PatientFileUploadModal({
-	close,
-	open,
-	isOpen,
-}: {
-	close: () => void;
-	open: () => void;
-	isOpen: boolean;
-}) {
+export default function PatientFileUploadModal() {
 	const { file, status, uploadType, uploadError, uploadRef, onClear, handleFileChange } =
 		useFileUpload();
-
 	const { parseStatus, setParseStatus } = useFileParse();
+	const { isOpen, setIsOpen } = useModal();
 
 	const handleClick = () => {
-		close();
+		setIsOpen(false);
 		setParseStatus("idle");
 	};
 	const handleClear = () => {
@@ -48,7 +41,7 @@ export default function PatientFileUploadModal({
 					<DialogClose asChild>
 						<button
 							onClick={() => {
-								close();
+								setIsOpen(false);
 								setParseStatus("idle");
 							}}
 						>
@@ -87,7 +80,7 @@ const Footer = () => {
 	const { onClear } = useFileUpload();
 
 	return (
-		<DialogFooter className="flex items-center justify-between p-6 border-t border-gray-200">
+		<DialogFooter className="border-t border-gray-200">
 			{["parsing", "success"].includes(parseStatus) ? (
 				<div className="flex items-center justify-center gap-4 w-full">
 					{parseStatus === "parsing" ? (

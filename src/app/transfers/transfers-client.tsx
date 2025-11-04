@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import useModal from "@/hooks/use-modal";
 import Plus from "@/icons/plus";
 import PatientTransferModal from "./patient-transfer-modal";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
