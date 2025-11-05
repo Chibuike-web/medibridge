@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { hospitalDetailsSchema, HospitalDetailsType } from "@/lib/schemas/hospital-details-schema";
 import { useHospitalStore } from "@/store/use-hospital-store";
+import ErrorWarningLine from "@/icons/error-warning-line";
 
 export default function HospitalDetailsClient() {
 	const router = useRouter();
@@ -92,13 +93,24 @@ export default function HospitalDetailsClient() {
 					type="email"
 					className="h-11 mt-1"
 					{...register("primaryContactEmail")}
-					aria-labelledby={errors.primaryContactEmail ? "primary-contact-email-error" : undefined}
+					aria-labelledby={
+						errors.primaryContactEmail
+							? "primary-contact-email-error"
+							: "primary-contact-email-info"
+					}
 					aria-invalid={!!errors.primaryContactEmail}
 				/>
-				{errors.primaryContactEmail && (
+				{errors.primaryContactEmail ? (
 					<p id="primary-contact-email-error" className="font-medium text-red-500 mt-1 text-[14px]">
 						{errors.primaryContactEmail.message}
 					</p>
+				) : (
+					<div className="text-[14px] flex gap-1 items-center mt-1 text-gray-400">
+						<span aria-hidden>
+							<ErrorWarningLine className="size-4" />
+						</span>
+						<p id="primary-contact-email-info">Use your official hospital email</p>
+					</div>
 				)}
 			</div>
 			<div>

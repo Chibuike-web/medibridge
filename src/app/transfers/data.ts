@@ -22,3 +22,39 @@ export const initialSteps: Step[] = [
 	{ label: "Attach Records", status: "upcoming" },
 	{ label: "Review & Send", status: "upcoming" },
 ];
+
+export type ClinicalRecord = {
+	id: string;
+	label: string;
+	selected: boolean;
+};
+
+export const initialClinicalRecords: ClinicalRecord[] = [
+	{
+		id: crypto.randomUUID(),
+		label: "Discharge Summaries",
+		selected: false,
+	},
+	{
+		id: crypto.randomUUID(),
+		label: "Lab Reports",
+		selected: false,
+	},
+	{
+		id: crypto.randomUUID(),
+		label: "Imaging",
+		selected: false,
+	},
+	{
+		id: crypto.randomUUID(),
+		label: "Progress Notes",
+		selected: false,
+	},
+	{
+		id: crypto.randomUUID(),
+		label: "Medication",
+		selected: false,
+	},
+];
+
+export const formats = ["PDF", "Image", "Word"];
