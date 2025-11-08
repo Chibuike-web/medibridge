@@ -28,6 +28,8 @@ import CheckCircle from "@/icons/check-circle";
 import { Label } from "@/components/ui/label";
 import ErrorWarningLine from "@/icons/error-warning-line";
 import Check from "@/icons/check";
+import EditLine from "@/icons/edit-line";
+import Checkbox from "@/components/ui/checkbox";
 
 export default function PatientTransferModal() {
 	const [currentStep, setCurrentStep] = useState(0);
@@ -78,7 +80,7 @@ export default function PatientTransferModal() {
 					<StepThree />
 				</Activity>
 				<Activity mode={currentStep === 3 ? "visible" : "hidden"}>
-					<div>Step 4</div>
+					<StepFour />{" "}
 				</Activity>
 			</div>
 			<DialogFooter className="border-t">
@@ -91,7 +93,7 @@ export default function PatientTransferModal() {
 					Back
 				</Button>
 				<Button className="h-11 cursor-pointer" onClick={handleNext}>
-					Next
+					{currentStep === 3 ? "Send for Approval" : "Next"}
 				</Button>
 			</DialogFooter>
 		</DialogContent>
@@ -301,6 +303,96 @@ const StepThree = () => {
 					className="w-full border border-gray-200 px-4 py-3 focus:outline-none focus-within:ring-3 focus-within:ring-foreground/15 focus-within:border-foreground/35 rounded-[8px]"
 				></textarea>
 			</div>
+		</>
+	);
+};
+
+const details = [
+	{
+		id: "patientDetails",
+		title: "Patient Details",
+		fields: {
+			Name: "Jane Doe",
+			"Date Of Birth": "1994-06-15",
+			MRN: 12345,
+		},
+	},
+	{
+		id: "destinationHospital",
+		title: "Destination Hospital",
+		fields: {
+			"Hospital Name": "Lakeside Medical Center",
+			"Admin Email": "admin@lakesidehospital.org",
+		},
+	},
+];
+
+const selectedDocuments = {
+	documents: ["Discharge Summaries", "Lab Reports", "Imaging"],
+	format: "PDF",
+};
+
+const StepFour = () => {
+	return (
+		<>
+			<div className="bg-gray-50 p-6 rounded-[16px] flex flex-col gap-4">
+				{/* Patient Details */}
+
+				{details.map((item) => {
+					const fieldsArray = Object.entries(item.fields);
+					return (
+						<div key={item.id} className="flex flex-col gap-2">
+							<div className="flex items-center justify-between">
+								<h2 className="text-[20px] font-semibold text-gray-600">{item.title}</h2>
+								<button className="flex items-center gap-2">
+									<EditLine className="size-[18px] text-gray-600" />{" "}
+									<span className="text-gray-400">Edit</span>
+								</button>
+							</div>
+							<ul className="flex flex-col gap-[10px] font-medium">
+								{fieldsArray.map((item, index) => (
+									<li key={index}>
+										<span className="text-gray-400">{item[0]}:</span>{" "}
+										<span className="text-gray-600">{item[1]}</span>
+									</li>
+								))}
+							</ul>
+						</div>
+					);
+				})}
+				<div className="flex flex-col gap-2">
+					<div className="flex items-center justify-between">
+						<h2 className="text-[20px] font-semibold text-gray-600">Selected Documents</h2>
+						<button className="flex items-center gap-2">
+							<EditLine className="size-[18px] text-gray-600" />
+							<span className="text-gray-400">Edit</span>
+						</button>
+					</div>
+					<div>
+						<ul className="flex items-center gap-[14px] flex-wrap">
+							{selectedDocuments.documents.map((item, index) => (
+								<li
+									key={index}
+									className="text-gray-400 px-[12px] py-[8px] rounded-full border border-gray-200 bg-white mb-[14px]"
+								>
+									{item}
+								</li>
+							))}
+						</ul>
+						<span className="text-gray-400">Format:</span>{" "}
+						<span className="text-gray-600">{selectedDocuments.format}</span>
+					</div>
+				</div>
+			</div>
+
+			<Checkbox id="transfer-request" className="w-full gap-4 mt-10">
+				<p className="w-full">
+					I have reviewed the <span className="text-gray-800">patient details</span>,{" "}
+					<span className="text-gray-800">selected records</span>, and
+					<span className="text-gray-800">hospital information</span>. Everything is accurate and
+					ready to proceed.
+				</p>
+			</Checkbox>
 		</>
 	);
 };

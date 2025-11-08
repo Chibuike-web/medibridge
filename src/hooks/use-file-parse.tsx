@@ -21,7 +21,7 @@ export default function useFileParse() {
 				body: JSON.stringify({ filename: file.name }),
 			});
 
-			const { data } = await res.json();
+			const parsed = await res.json();
 
 			if (!res.ok) {
 				setParseStatus("error");
@@ -29,11 +29,11 @@ export default function useFileParse() {
 			}
 
 			setParseStatus("success");
-			setPatientData(data);
+			setPatientData(parsed);
 
 			await new Promise((res) => setTimeout(res, 1000));
 
-			router.replace("/review-info-extract");
+			router.push("/review-info-extract");
 
 			setTimeout(() => {
 				onClear();
