@@ -48,6 +48,8 @@ export default function useFileUpload() {
 		setUploadError("");
 
 		setStatus("uploading");
+		setFile(selectedFile);
+
 		try {
 			const formData = new FormData();
 			formData.append("file", selectedFile);
@@ -61,7 +63,6 @@ export default function useFileUpload() {
 				throw new Error("Issue uploading file");
 			}
 			setStatus("completed");
-			setFile(selectedFile);
 			setUploadInfo(data);
 		} catch (error) {
 			console.error(error);

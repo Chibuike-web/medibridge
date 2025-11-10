@@ -1,25 +1,36 @@
-import { generateObject } from "ai";
+import { FilePart, generateObject } from "ai";
 import { PatientSchema } from "@/lib/schemas/patient-schema";
-import path from "path";
-import { existsSync } from "fs";
-import { prepareFileInput } from "./utils/prepare-file-input";
+import { supabase } from "../file-upload/utils/supabase";
 
 export async function POST(req: Request) {
 	try {
 		const { filename } = await req.json();
 		if (!filename) return Response.json({ error: "Missing file" }, { status: 400 });
-		const filePath = path.resolve("patient-uploads", filename);
-		if (!existsSync(filePath)) {
-			return Response.json({ error: "File not found" }, { status: 404 });
-		}
 
-		const fileContent = await prepareFileInput(filePath);
+		const { data, error } = await supabase.storage.from("patients-uploads").download(filename);
+
+		if (error || !data) {
+			console.error(error);
+			return Response.json(
+				{ status: "failed", error: "File not found in storage" },
+				{ status: 404 }
+			);
+		}
+		const mediaType = data.type;
+
+		const buffer = Buffer.from(await data.arrayBuffer());
+
+		const fileContent: FilePart = {
+			type: "file",
+			mediaType,
+			data: buffer,
+		};
 
 		const prompt = `
-	Extract resume info matching the schema:
-  Do not use null.
-  Use empty string ("") for missing text values.
-  Use 0 for unknown numeric values.`;
+		Extract resume info matching the schema:
+		Do not use null.
+		Use empty string ("") for missing text values.
+		Use 0 for unknown numeric values.`;
 
 		const result = await generateObject({
 			model: "gpt-5",

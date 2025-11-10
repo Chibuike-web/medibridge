@@ -42,7 +42,7 @@ export default function ReviewInfoExtractClient() {
 				</div>
 			</footer>
 
-			{isOpen && <SuccessModal isOpen={isOpen} setIsOpen={setIsOpen} />}
+			{isOpen && <SuccessModal isOpen={isOpen} />}
 		</div>
 	);
 }
@@ -102,13 +102,9 @@ const InfoExtractAccordion = ({
 	);
 };
 
-const SuccessModal = ({
-	isOpen,
-	setIsOpen,
-}: {
-	isOpen: boolean;
-	setIsOpen: (value: boolean) => void;
-}) => {
+const SuccessModal = ({ isOpen }: { isOpen: boolean }) => {
+	const router = useRouter();
+
 	return (
 		<Dialog open={isOpen}>
 			<DialogContent>
@@ -125,7 +121,12 @@ const SuccessModal = ({
 					</div>
 				</div>
 				<DialogFooter className="border-t border-gray-200 w-full">
-					<Button className="h-11 w-full cursor-pointer">Return to Dashboard</Button>
+					<Button
+						className="h-11 w-full cursor-pointer"
+						onClick={() => router.replace("/dashboard")}
+					>
+						Return to Dashboard
+					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

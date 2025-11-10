@@ -1,8 +1,4 @@
-import { mkdir } from "node:fs/promises";
-import path from "node:path";
-import { saveFile } from "../utils/save-file";
-
-const uploadDir = path.resolve("patient-uploads");
+import { supabase } from "./utils/supabase";
 
 export async function POST(req: Request) {
 	try {
@@ -11,22 +7,35 @@ export async function POST(req: Request) {
 		if (!file) return Response.json({ error: "No file" }, { status: 400 });
 
 		const buffer = Buffer.from(await file.arrayBuffer());
-		const filePath = path.join(uploadDir, file.name);
 
-		await mkdir(uploadDir, { recursive: true });
+		const { error } = await supabase.storage.from("patients-uploads").upload(file.name, buffer, {
+			contentType: file.type,
+			upsert: true,
+		});
 
-		saveFile(filePath, buffer);
+		if (error) {
+			console.log(error);
+			return Response.json({ status: "failed", error: "upload failed" }, { status: 500 });
+		}
+
+		const { data: signed, error: signedError } = await supabase.storage
+			.from("patients-uploads")
+			.createSignedUrl(file.name, 60 * 60);
+
+		if (signedError) console.log(signedError);
+
 		return Response.json(
 			{
 				status: "success",
 				filename: file.name,
 				mimetype: file.type,
 				size: file.size,
+				url: signed?.signedUrl,
 			},
 			{ status: 200 }
 		);
 	} catch (error) {
 		console.log(error);
-		return Response.json({ status: "failed" }, { status: 500 });
+		return Response.json({ status: "failed", error }, { status: 500 });
 	}
 }

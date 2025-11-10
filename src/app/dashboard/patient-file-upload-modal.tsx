@@ -55,13 +55,18 @@ export default function PatientFileUploadModal() {
 				</p>
 				<div className="px-6 pb-6">
 					{file ? (
-						<FileUploadCard
-							file={file}
-							onClear={handleClear}
-							status={status}
-							uploadType={uploadType}
-							uploadError={uploadError}
-						/>
+						<>
+							<FileUploadCard
+								file={file}
+								onClear={handleClear}
+								status={status}
+								uploadType={uploadType}
+								uploadError={uploadError}
+							/>
+							<div>
+								{uploadError && <p className="text-red-500 text-[14px] mt-2">{uploadError}</p>}
+							</div>
+						</>
 					) : (
 						<ChooseFileCard handleFileChange={handleFileChange} uploadRef={uploadRef} />
 					)}

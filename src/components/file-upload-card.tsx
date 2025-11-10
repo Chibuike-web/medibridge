@@ -81,7 +81,6 @@ export default function FileUploadCard({
 					</button>
 				</div>
 			</div>
-			<div></div>
 		</div>
 	);
 }
