@@ -1,6 +1,6 @@
 import { FilePart, generateObject } from "ai";
 import { PatientSchema } from "@/lib/schemas/patient-schema";
-import { supabase } from "../file-upload/utils/supabase";
+import { supabase } from "../utils/supabase";
 
 export async function POST(req: Request) {
 	try {
@@ -16,7 +16,13 @@ export async function POST(req: Request) {
 				{ status: 404 }
 			);
 		}
-		const mediaType = data.type;
+
+		const { data: meta } = await supabase.storage
+			.from("patients-uploads")
+			.list("", { search: filename });
+		console.log(meta);
+
+		const mediaType = meta?.[0]?.metadata?.mimetype;
 
 		const buffer = Buffer.from(await data.arrayBuffer());
 

@@ -1,4 +1,4 @@
-import { supabase } from "./utils/supabase";
+import { supabase } from "../utils/supabase";
 
 export async function POST(req: Request) {
 	try {
@@ -8,10 +8,12 @@ export async function POST(req: Request) {
 
 		const buffer = Buffer.from(await file.arrayBuffer());
 
-		const { error } = await supabase.storage.from("patients-uploads").upload(file.name, buffer, {
-			contentType: file.type,
-			upsert: true,
-		});
+		const { data: info, error } = await supabase.storage
+			.from("patients-uploads")
+			.upload(file.name, buffer, {
+				contentType: file.type,
+				upsert: true,
+			});
 
 		if (error) {
 			console.log(error);

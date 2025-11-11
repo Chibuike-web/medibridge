@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { saveFile } from "../file-upload/utils/save-file";
+import { saveFile } from "../utils/save-file";
 
 const uploadDir = path.resolve("hospital-uploads");
 
