@@ -2,9 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import EyeLine from "@/icons/eye-line";
 import EyeOffLine from "@/icons/eye-off-line";
-import { Label } from "@radix-ui/react-label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 export default function CreateNewPasswordClient() {
@@ -23,7 +23,7 @@ export default function CreateNewPasswordClient() {
 		>
 			<div className="mb-4">
 				<Label htmlFor="newPassword" className="block mb-2">
-					New Password{" "}
+					New Password
 				</Label>
 				<div className="relative">
 					<Input
@@ -36,7 +36,7 @@ export default function CreateNewPasswordClient() {
 						type="button"
 						aria-label={isPasswordVisible ? "Hide password" : "Show password"}
 						className="absolute right-4 top-1/2 -translate-y-1/2"
-						onClick={() => setIsConfirmPasswordVisible(!isPasswordVisible)}
+						onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 					>
 						{isPasswordVisible ? (
 							<EyeOffLine className="size-[20px] text-gray-600" />

@@ -20,7 +20,7 @@ export default function HospitalUploadClient() {
 		onClear,
 		handleFileChange,
 	} = useVerificationFileUpload();
-	const { setHospitalInfo } = useHospitalStore();
+	const { hospitalInfo, setHospitalInfo, hydrated } = useHospitalStore();
 
 	return (
 		<form
@@ -43,6 +43,7 @@ export default function HospitalUploadClient() {
 			<p className="text-gray-600 mb-4 text-center">
 				Upload hospital accreditation or official license document
 			</p>
+
 			{file ? (
 				<FileUploadCard
 					file={file}
@@ -66,6 +67,13 @@ export default function HospitalUploadClient() {
 					role="alert"
 				>
 					{uploadError}
+				</p>
+			)}
+			{hydrated && !file && hospitalInfo?.filename && !uploadError && (
+				<p className="text-sm text-gray-500 mt-2 text-center">
+					Previously uploaded: <span className="font-medium">{hospitalInfo.filename}</span>
+					<br />
+					Please reselect to continue.
 				</p>
 			)}
 			<Button className="w-full h-11 mt-12" type="submit">

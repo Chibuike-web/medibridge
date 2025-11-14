@@ -12,7 +12,6 @@ type CheckboxItem = {
 
 export default function VerifyClient() {
 	const { hospitalInfo } = useHospitalStore();
-	console.log(hospitalInfo);
 	const [checkboxes] = useState<CheckboxItem[]>([
 		{ id: "registration", value: "Registration", status: "submitted" },
 		{ id: "emailVerification", value: "Email Verification", status: "pending" },

@@ -9,16 +9,33 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { hospitalDetailsSchema, HospitalDetailsType } from "@/lib/schemas/hospital-details-schema";
 import { useHospitalStore } from "@/store/use-hospital-store";
 import ErrorWarningLine from "@/icons/error-warning-line";
+import { useEffect } from "react";
 
 export default function HospitalDetailsClient() {
+	const { hospitalInfo, hydrated, setHospitalInfo } = useHospitalStore();
+
 	const router = useRouter();
 	const {
 		register,
 		handleSubmit,
+		reset,
 		formState: { errors, isSubmitting },
-	} = useForm({ resolver: zodResolver(hospitalDetailsSchema) });
+	} = useForm({ resolver: zodResolver(hospitalDetailsSchema), defaultValues: hospitalInfo ?? {} });
 
-	const { setHospitalInfo } = useHospitalStore();
+	useEffect(() => {
+		if (!hydrated) return;
+
+		const raw = localStorage.getItem("hospital");
+		if (!raw) return;
+
+		try {
+			const data = JSON.parse(raw);
+			console.log(data);
+			reset(data.state.hospitalInfo);
+		} catch {
+			console.error("Invalid hospital data in storage");
+		}
+	}, [hydrated, reset]);
 
 	const onSubmit = (data: HospitalDetailsType) => {
 		setHospitalInfo(data);

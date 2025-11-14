@@ -47,11 +47,14 @@ export default function AdminClient() {
 				console.log(response.message);
 				setSuccess(response.message || "");
 			}
+			router.replace("/verify");
+
 			setTimeout(() => {
-				router.push("/verify");
 				clearHospitalInfo();
 				reset();
 				onClear();
+				setSuccess("");
+				localStorage.removeItem("hospitalInfo");
 			}, 1000);
 		} catch (error) {
 			console.error(error);
@@ -106,7 +109,7 @@ export default function AdminClient() {
 						</p>
 					)}
 					{!errors.adminEmail && (
-						<p id="admin-email-info" className="flex gap-[4px] items-center mt-2">
+						<p id="admin-email-info" className="flex gap-1 items-center mt-2">
 							<InformationLine className="text-gray-400 size-4" aria-hidden="true" />
 							<span className="text-[14px] text-gray-400">
 								Must be official verified hospital email
@@ -137,9 +140,9 @@ export default function AdminClient() {
 						>
 							<span aria-hidden="true">
 								{isVisible ? (
-									<EyeOffLine className="size-[20px] text-gray-600" />
+									<EyeOffLine className="size-5 text-gray-600" />
 								) : (
-									<EyeLine className="size-[20px] text-gray-600" />
+									<EyeLine className="size-5 text-gray-600" />
 								)}
 							</span>
 						</button>
@@ -169,9 +172,9 @@ export default function AdminClient() {
 				)}
 
 				{error && (
-					<div className="text-red-500 flex items-center gap-2 px-6 py-4 border border-red-500 rounded-[8px]">
+					<div className="text-red-500 flex items-center gap-2 px-6 py-4 border border-red-500 rounded-xl">
 						<span>
-							<ErrorWarningFill className="size-4 " />
+							<ErrorWarningFill className="size-4" />
 						</span>
 						<span>{error}</span>
 					</div>

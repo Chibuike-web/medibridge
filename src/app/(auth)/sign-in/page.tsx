@@ -16,7 +16,7 @@ export default function Login() {
 				<SignInClient />
 				<p className="text-center mt-4">
 					<span>Need an account? </span>
-					<Link href="/info" className="font-medium">
+					<Link href="/hospital-details" className="font-medium">
 						Register
 					</Link>
 				</p>

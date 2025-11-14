@@ -48,6 +48,7 @@ export default function useVerificationFileUpload() {
 		setUploadType(fileExtension as FileExtensionType);
 		setUploadError("");
 		setStatus("uploading");
+		setFile(selectedFile);
 
 		try {
 			const formData = new FormData();
@@ -62,9 +63,7 @@ export default function useVerificationFileUpload() {
 				setUploadError(data.error);
 				throw new Error("Issue uploading file");
 			}
-
 			setStatus("completed");
-			setFile(selectedFile);
 			setUploadInfo(data);
 		} catch (error) {
 			console.error(error);

@@ -17,7 +17,7 @@ export default function ForgotPasswordClient() {
 			className="text-gray-800 mt-12"
 		>
 			<div className="mb-4">
-				<Label htmlFor="email" className="mb-1">
+				<Label htmlFor="email" className="block mb-2">
 					Email Address
 				</Label>
 				<Input id="email" className="h-11" placeholder="eg., john.doe@stmaryhospital.org" />
