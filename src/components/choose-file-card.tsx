@@ -1,5 +1,3 @@
-"use client";
-
 import UploadCloudLine from "@/icons/upload-cloud-line";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
@@ -23,7 +21,7 @@ export default function ChooseFileCard({
 		<div
 			className={cn(
 				"relative w-full flex flex-col items-center",
-				" p-8 border border-dashed border-gray-200 gap-[20px] rounded-[8px]",
+				" p-8 border border-dashed border-gray-200 gap-5 rounded-[8px]",
 				error && "border-red-500"
 			)}
 		>
@@ -40,7 +38,7 @@ export default function ChooseFileCard({
 				/>
 			</Label>
 			<UploadCloudLine className="text-gray-600 size-5" />
-			<div className="flex flex-col gap-[6px] items-center">
+			<div className="flex flex-col gap-1.5 items-center">
 				<p className="font-medium text-gray-800 text-[14px] text-center">
 					Choose a file or drag & drop it here.
 				</p>

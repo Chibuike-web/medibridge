@@ -116,7 +116,7 @@ const SuccessModal = ({
 			<DialogContent>
 				<div className="flex flex-col gap-12 items-center px-6 py-6">
 					<Image src="/assets/success-icon.svg" width={160} height={160} alt="" />
-					<div className="flex flex-col items-center gap-[20px]">
+					<div className="flex flex-col items-center gap-5">
 						<DialogTitle className="text-[clamp(18px,5vw,24px)] font-semibold">
 							Patient Record Saved Successfully
 						</DialogTitle>

@@ -20,10 +20,10 @@ import LogoutBoxLine from "@/icons/logout-box-line";
 
 export default function UserProfile() {
 	return (
-		<div className=" w-full mt-auto p-[12px]">
+		<div className=" w-full mt-auto p-3">
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<button className="flex p-[12px] justify-between w-full items-center cursor-pointer hover:bg-gray-200 rounded-[8px]">
+					<button className="flex p-3 justify-between w-full items-center cursor-pointer hover:bg-gray-200 rounded-[8px]">
 						<Image
 							src={userProfileImage}
 							alt="profile image"
@@ -35,7 +35,7 @@ export default function UserProfile() {
 							<p className="font-medium text-[14px] text-foreground">Admin</p>
 							<p className="text-[12px] text-foreground/60">obinnatc2018@gmail.com</p>
 						</div>
-						<span className="flex-shrink-0">
+						<span className="shrink-0">
 							<ExpandUpDownLine className="size-5" />
 						</span>
 					</button>

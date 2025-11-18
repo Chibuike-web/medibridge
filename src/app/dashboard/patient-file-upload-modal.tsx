@@ -50,7 +50,7 @@ export default function PatientFileUploadModal() {
 					</DialogClose>
 				</DialogHeader>
 
-				<p className="text-gray-600 mt-[14px] mb-6 px-6">
+				<p className="text-gray-600 mt-3.5 mb-6 px-6">
 					Upload a document containing patient information. Supported formats: PDF, PNG, JPG, DOCX.
 				</p>
 				<div className="px-6 pb-6">

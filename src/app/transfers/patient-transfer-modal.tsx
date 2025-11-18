@@ -107,7 +107,7 @@ const Stepper = ({ steps }: { steps: Step[] }) => {
 				<Fragment key={step.label}>
 					<BreadCrumbs label={step.label} status={step.status} />
 					{index < steps.length - 1 && (
-						<span className="w-[88px] h-[2px] block bg-gray-400 rounded-full mt-[11px]" />
+						<span className="w-[88px] h-0.5 block bg-gray-400 rounded-full mt-[11px]" />
 					)}
 				</Fragment>
 			))}
@@ -149,7 +149,7 @@ const BreadCrumbs = ({ label, status }: { label: string; status: string }) => {
 	};
 
 	return (
-		<div className="flex flex-col items-center w-full max-w-[40px] justify-center gap-[6px]">
+		<div className="flex flex-col items-center w-full max-w-10 justify-center gap-1.5">
 			{status === "completed" ? (
 				<CheckCircle className="size-6" />
 			) : (
@@ -175,8 +175,8 @@ const StepOne = () => {
 				<SelectTrigger className="w-full h-11 px-4">
 					<SelectValue placeholder="Select patient" className="text-[16px]" />
 				</SelectTrigger>
-				<SelectContent className="rounded-[16px] h-[300px]" align="center">
-					<div className="p-[6px]">
+				<SelectContent className="rounded-2xl h-[300px]" align="center">
+					<div className="p-1.5">
 						<Input
 							className="h-10 mb-3 placeholder:text-[16px]"
 							type="search"
@@ -189,12 +189,12 @@ const StepOne = () => {
 								value={`${p.hospitalId}-${p.name}`}
 								className="h-11 px-4 rounded-[8px] text-[16px] focus:bg-gray-200"
 							>
-								<div className="flex items-center gap-[12px]">
+								<div className="flex items-center gap-3">
 									<span className="font-medium text-[16px]">{p.name}</span>
-									<span className="p-[4px] rounded-[4px] bg-white text-[12px] border border-gray-200 leading-[1.2em]">
+									<span className="p-1 rounded-lg bg-white text-[12px] border border-gray-200 leading-[1.2em]">
 										{p.hospitalId}
 									</span>
-									<span className="p-[4px] rounded-[4px] bg-white text-[12px] border border-gray-200 leading-[1.2em]">
+									<span className="p-1 rounded-lg bg-white text-[12px] border border-gray-200 leading-[1.2em]">
 										{p.dob}
 									</span>
 								</div>
@@ -266,7 +266,7 @@ const StepThree = () => {
 		<>
 			<div className="mb-6">
 				<p>Attach Clinical Records</p>
-				<div className="flex gap-[12px] flex-wrap mt-[12px]">
+				<div className="flex gap-3 flex-wrap mt-3">
 					{clinicalRecords.map((item) => (
 						<CheckButton
 							key={item.id}
@@ -280,7 +280,7 @@ const StepThree = () => {
 			</div>
 			<div className="mb-6">
 				<p>Send as</p>
-				<div className="flex gap-[12px] flex-wrap mt-[12px]">
+				<div className="flex gap-3 flex-wrap mt-3">
 					{formats.map((format, index) => (
 						<CheckButton
 							key={index}
@@ -335,7 +335,7 @@ const selectedDocuments = {
 const StepFour = () => {
 	return (
 		<>
-			<div className="bg-gray-50 p-6 rounded-[16px] flex flex-col gap-4">
+			<div className="bg-gray-50 p-6 rounded-2xl flex flex-col gap-4">
 				{/* Patient Details */}
 
 				{details.map((item) => {
@@ -349,7 +349,7 @@ const StepFour = () => {
 									<span className="text-gray-400">Edit</span>
 								</button>
 							</div>
-							<ul className="flex flex-col gap-[10px] font-medium">
+							<ul className="flex flex-col gap-2.5 font-medium">
 								{fieldsArray.map((item, index) => (
 									<li key={index}>
 										<span className="text-gray-400">{item[0]}:</span>{" "}
@@ -369,11 +369,11 @@ const StepFour = () => {
 						</button>
 					</div>
 					<div>
-						<ul className="flex items-center gap-[14px] flex-wrap">
+						<ul className="flex items-center gap-3.5 flex-wrap">
 							{selectedDocuments.documents.map((item, index) => (
 								<li
 									key={index}
-									className="text-gray-400 px-[12px] py-[8px] rounded-full border border-gray-200 bg-white mb-[14px]"
+									className="text-gray-400 px-3 py-2 rounded-full border border-gray-200 bg-white mb-3.5"
 								>
 									{item}
 								</li>
@@ -411,7 +411,7 @@ const CheckButton = ({
 			type="button"
 			onClick={handleClick}
 			className={cn(
-				"px-[14] py-[8px] border rounded-full text-gray-400 flex items-center gap-2",
+				"px-[14] py-2 border rounded-full text-gray-400 flex items-center gap-2",
 				selected
 					? "border-foreground text-foreground bg-foreground/5"
 					: "border-gray-200 text-gray-500 hover:border-gray-300"

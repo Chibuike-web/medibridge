@@ -16,7 +16,7 @@ export default function Sidebar() {
 
 	return (
 		<aside className="flex flex-col w-full max-w-[272px] h-full overflow-auto border-r border-gray-200">
-			<div className="px-[20px] py-6">
+			<div className="px-5 py-6">
 				<h1 className="font-bold text-[20px] tracking-[-0.02em]">MediBridge</h1>
 			</div>
 			<ul className="p-4 flex flex-col gap-4">
@@ -33,7 +33,7 @@ export default function Sidebar() {
 							<Link
 								href={`/${id}`}
 								className={cn(
-									"px-[12px] flex items-center gap-2 w-full h-[36px] ",
+									"px-3 flex items-center gap-2 w-full h-9 ",
 									isActive && "font-semibold"
 								)}
 							>

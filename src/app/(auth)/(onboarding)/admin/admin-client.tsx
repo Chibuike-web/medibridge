@@ -13,10 +13,10 @@ import { useState } from "react";
 import EyeOffLine from "@/icons/eye-off-line";
 import EyeLine from "@/icons/eye-line";
 import { useHospitalStore } from "@/store/use-hospital-store";
-import saveHospital from "@/actions/save-hospital-action";
 import ErrorWarningFill from "@/icons/error-warning-fill";
 import CheckCircle from "@/icons/check-circle";
 import { useVerificationUpload } from "@/store/use-verification-upload-store";
+import saveHospital from "@/actions/save-hospital-action";
 
 export default function AdminClient() {
 	const router = useRouter();
@@ -34,28 +34,30 @@ export default function AdminClient() {
 	} = useForm({ resolver: zodResolver(hospitalAdminSchema) });
 
 	const onSubmit = async (data: HospitalAdminType) => {
+		setError("");
 		setHospitalInfo(data);
-		const fullData = hospitalInfo;
-		if (!fullData) return;
-		console.log(fullData);
+		if (!hospitalInfo) return;
+		console.log(hospitalInfo);
 		try {
-			const response = await saveHospital(fullData);
+			const response = await saveHospital(hospitalInfo);
 			if (response.status === "failed") {
 				console.error(response.error);
 				setError(response.error || "");
+				return;
 			} else if (response.status === "success") {
 				console.log(response.message);
 				setSuccess(response.message || "");
-			}
-			router.replace("/verify");
 
-			setTimeout(() => {
-				clearHospitalInfo();
-				reset();
-				onClear();
-				setSuccess("");
-				localStorage.removeItem("hospitalInfo");
-			}, 1000);
+				router.replace("/verify");
+
+				setTimeout(() => {
+					clearHospitalInfo();
+					reset();
+					onClear();
+					setSuccess("");
+					localStorage.removeItem("hospitalInfo");
+				}, 1000);
+			}
 		} catch (error) {
 			console.error(error);
 		}
@@ -172,7 +174,7 @@ export default function AdminClient() {
 				)}
 
 				{error && (
-					<div className="text-red-500 flex items-center gap-2 px-6 py-4 border border-red-500 rounded-xl">
+					<div className="text-red-500 flex items-center mt-4 gap-2 px-6 py-4 border border-red-500 rounded-xl">
 						<span>
 							<ErrorWarningFill className="size-4" />
 						</span>
@@ -180,7 +182,14 @@ export default function AdminClient() {
 					</div>
 				)}
 				<Button className="w-full h-11 mt-12" type="submit" disabled={isSubmitting}>
-					Continue
+					{isSubmitting ? (
+						<span className="flex items-center gap-2">
+							<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+							Signing up...
+						</span>
+					) : (
+						"Continue"
+					)}
 				</Button>
 			</form>
 		</>

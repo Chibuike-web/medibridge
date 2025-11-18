@@ -2,23 +2,6 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export const metadata = {
-	title: "MediBridge",
-	description:
-		"Join MediBridge to securely exchange medical records and connect your hospital to the future of healthcare.",
-	url: "https://medibridge.com",
-	siteName: "MediBridge",
-	images: [
-		{
-			url: "/assets/hero-image.png",
-			width: 1200,
-			height: 630,
-			alt: "Doctor discussing with patient — MediBridge",
-		},
-	],
-	type: "website",
-};
-
 export default function Home() {
 	return (
 		<main className="flex flex-col xl:flex-row gap-x-[145px] gap-y-10 items-center max-w-[1440px] mx-auto justify-end">

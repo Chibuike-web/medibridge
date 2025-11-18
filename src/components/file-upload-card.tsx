@@ -1,5 +1,3 @@
-"use client";
-
 import CloseLine from "@/icons/close-line";
 import LoaderLine from "@/icons/loader-line";
 import Image from "next/image";
@@ -40,7 +38,7 @@ export default function FileUploadCard({
 	return (
 		<div
 			className={cn(
-				"flex flex-col px-[14px] py-4 border border-gray-200 rounded-[8px]",
+				"flex flex-col px-3.5 py-4 border border-gray-200 rounded-[8px]",
 				status === "failed" && "border-red-500"
 			)}
 		>
@@ -52,7 +50,7 @@ export default function FileUploadCard({
 						<div className="flex items-center gap-1 text-[12px]">
 							<div className="flex items-center gap-1 ">
 								<p>{formatFileSize(file.size)}</p>
-								<span className="size-[2px] block bg-foreground rounded-full" />
+								<span className="size-0.5 block bg-foreground rounded-full" />
 							</div>
 							<div className="flex items-center gap-1">
 								{status === "uploading" ? (
@@ -72,7 +70,7 @@ export default function FileUploadCard({
 							</div>
 						</div>
 					</div>
-					<button onClick={onClear}>
+					<button onClick={() => onClear()}>
 						{status === "uploading" ? (
 							<CloseLine className="size-5" />
 						) : (
