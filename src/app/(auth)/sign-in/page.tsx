@@ -6,7 +6,7 @@ import SignInClient from "./sign-in-client";
 export default function Login() {
 	return (
 		<main className="max-w-[550px] min-h-dvh grid place-items-center mx-auto">
-			<div className="w-full">
+			<div className="w-full px-6 xl:px-0">
 				<h1 className="text-[1.8rem] text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] mt-10">
 					Welcome Back to MediBridge
 				</h1>

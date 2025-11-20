@@ -4,9 +4,8 @@ import { hospitalDetails, organization } from "@/db/auth-schema";
 import { auth, db } from "@/lib/better-auth/auth";
 import { HospitalType } from "@/store/use-hospital-store";
 
-export default async function saveHospital(data: HospitalType) {
+export default async function saveHospitalAction(data: HospitalType) {
 	try {
-		console.log(data);
 		const signUpRes = await auth.api.signUpEmail({
 			body: {
 				name: data.adminName,
@@ -18,7 +17,7 @@ export default async function saveHospital(data: HospitalType) {
 		if (!userId) {
 			return {
 				status: "failed",
-				message: "User creation fialed",
+				message: "User creation failed",
 			};
 		}
 
@@ -38,7 +37,6 @@ export default async function saveHospital(data: HospitalType) {
 			primaryContactName: data.primaryContactName,
 			primaryContactEmail: data.primaryContactEmail,
 			primaryContactPhoneNumber: data.primaryContactPhoneNumber,
-			isVerified: false,
 			documentPath: null,
 			createdAt: new Date(),
 		});

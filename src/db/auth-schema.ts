@@ -73,6 +73,7 @@ export const organization = pgTable("organization", {
 	logo: text("logo"),
 	createdAt: timestamp("created_at").notNull(),
 	metadata: text("metadata"),
+	isVerified: boolean("is_verified").default(false).notNull(),
 });
 
 export const member = pgTable("member", {
@@ -112,6 +113,5 @@ export const hospitalDetails = pgTable("hospitalDetails", {
 	primaryContactEmail: text("primary_contact_email").notNull().unique(),
 	primaryContactPhoneNumber: text("primary_contact_phone_number").notNull(),
 	documentPath: text("document_path"),
-	isVerified: boolean("is_verified").default(false).notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });

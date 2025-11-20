@@ -16,7 +16,7 @@ import { useHospitalStore } from "@/store/use-hospital-store";
 import ErrorWarningFill from "@/icons/error-warning-fill";
 import CheckCircle from "@/icons/check-circle";
 import { useVerificationUpload } from "@/store/use-verification-upload-store";
-import saveHospital from "@/actions/save-hospital-action";
+import saveHospitalAction from "@/actions/save-hospital-action";
 
 export default function AdminClient() {
 	const router = useRouter();
@@ -37,9 +37,8 @@ export default function AdminClient() {
 		setError("");
 		setHospitalInfo(data);
 		if (!hospitalInfo) return;
-		console.log(hospitalInfo);
 		try {
-			const response = await saveHospital(hospitalInfo);
+			const response = await saveHospitalAction(hospitalInfo);
 			if (response.status === "failed") {
 				console.error(response.error);
 				setError(response.error || "");
@@ -59,7 +58,7 @@ export default function AdminClient() {
 				}, 1000);
 			}
 		} catch (error) {
-			console.error(error);
+			setError(error instanceof Error ? error.message : "Unknown error");
 		}
 	};
 	return (
@@ -103,7 +102,7 @@ export default function AdminClient() {
 						className="h-11"
 						{...register("adminEmail")}
 						aria-invalid={!!errors.adminEmail}
-						aria-describedby={errors.adminEmail ? "admin-error-error" : "admin-email-info"}
+						aria-describedby={errors.adminEmail ? "admin-email-error" : "admin-email-info"}
 					/>
 					{errors.adminEmail && (
 						<p id="admin-email-error" className="font-medium text-red-500 mt-1 text-[14px]">
@@ -158,18 +157,18 @@ export default function AdminClient() {
 				<Checkbox<HospitalAdminType>
 					id="terms"
 					register={register}
-					name="checkbox"
-					ariaInvalid={!!errors.checkbox}
-					ariaDescribedBy={errors.checkbox ? "checkbox-error" : undefined}
+					name="terms"
+					ariaInvalid={!!errors.terms}
+					ariaDescribedBy={errors.terms ? "terms-error" : undefined}
 				>
 					<div>
 						I agree to the <span className="font-medium text-gray-800">Terms of Use</span> and{" "}
 						<span className="font-medium text-gray-800">Privacy Policy</span>
 					</div>
 				</Checkbox>
-				{errors.checkbox && (
-					<p id="checkbox-error" className="font-medium text-red-500 mt-1 text-[14px]">
-						{errors.checkbox.message}
+				{errors.terms && (
+					<p id="terms-error" className="font-medium text-red-500 mt-1 text-[14px]">
+						{errors.terms.message}
 					</p>
 				)}
 

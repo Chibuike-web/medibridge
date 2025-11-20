@@ -1,7 +1,6 @@
-import { z } from "zod";
+import z from "zod";
 
-export const hospitalAdminSchema = z.object({
-	adminName: z.string().min(1, "Admin name is required"),
+export const hospitalAdminSignInSchema = z.object({
 	adminEmail: z
 		.string()
 		.min(1, "Admin email is required")
@@ -9,7 +8,7 @@ export const hospitalAdminSchema = z.object({
 		.refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), "Invalid email address")
 		.refine((val) => val.endsWith(".org"), { message: "Email must end with .org" }),
 	adminPassword: z.string().min(1, "Admin password is required"),
-	terms: z.literal(true, "You must agree to the Terms of Use and Privacy Policy"),
+	rememberMe: z.boolean().optional(),
 });
 
-export type HospitalAdminType = z.infer<typeof hospitalAdminSchema>;
+export type HospitalAdminSignInType = z.infer<typeof hospitalAdminSignInSchema>;

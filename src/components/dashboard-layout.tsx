@@ -9,7 +9,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 		<Suspense
 			fallback={<div className="min-h-screen grid place-items-center">Authenticating....</div>}
 		>
-			<Main children={children} />
+			<Main>{children}</Main>
 		</Suspense>
 	);
 }
