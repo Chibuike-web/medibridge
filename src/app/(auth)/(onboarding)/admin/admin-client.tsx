@@ -16,7 +16,8 @@ import { useHospitalStore } from "@/store/use-hospital-store";
 import ErrorWarningFill from "@/icons/error-warning-fill";
 import CheckCircle from "@/icons/check-circle";
 import { useVerificationUpload } from "@/store/use-verification-upload-store";
-import saveHospitalAction from "@/actions/save-hospital-action";
+import { createAdminAction } from "@/actions/create-admin-action";
+import { createHospitalAction } from "@/actions/create-hospital-action";
 
 export default function AdminClient() {
 	const router = useRouter();
@@ -35,28 +36,33 @@ export default function AdminClient() {
 
 	const onSubmit = async (data: HospitalAdminType) => {
 		setError("");
+		setSuccess("");
+
 		setHospitalInfo(data);
 		if (!hospitalInfo) return;
+
 		try {
-			const response = await saveHospitalAction(hospitalInfo);
-			if (response.status === "failed") {
-				console.error(response.error);
-				setError(response.error || "");
+			const adminRes = await createAdminAction(hospitalInfo);
+			if (adminRes.status === "failed") {
+				setError(adminRes.message || "Admin creation failed");
 				return;
-			} else if (response.status === "success") {
-				console.log(response.message);
-				setSuccess(response.message || "");
-
-				router.replace("/verify");
-
-				setTimeout(() => {
-					clearHospitalInfo();
-					reset();
-					onClear();
-					setSuccess("");
-					localStorage.removeItem("hospitalInfo");
-				}, 1000);
 			}
+			const hospitalRes = await createHospitalAction(hospitalInfo);
+			if (hospitalRes.status === "failed") {
+				setError(hospitalRes.message || "Hospital creation failed");
+				return;
+			}
+			setSuccess("Hospital successfully created");
+
+			router.replace("/verify");
+
+			setTimeout(() => {
+				clearHospitalInfo();
+				reset();
+				onClear();
+				setSuccess("");
+				localStorage.removeItem("hospitalInfo");
+			}, 1000);
 		} catch (error) {
 			setError(error instanceof Error ? error.message : "Unknown error");
 		}

@@ -1,4 +1,4 @@
-import { getSessionData } from "@/api/get-session-data";
+import { getSessionData } from "@/lib/api/get-session-data";
 import Sidebar from "./sidebar";
 import Topbar from "./topbar";
 import { redirect } from "next/navigation";

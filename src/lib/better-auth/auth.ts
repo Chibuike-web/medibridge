@@ -22,5 +22,9 @@ export const auth = betterAuth({
 	session: { expiresIn: 60 * 60 * 24 * 7 },
 	debug: true,
 	secret: process.env.BETTER_AUTH_SECRET!,
-	plugins: [admin(), organization(), nextCookies()],
+	plugins: [
+		admin(),
+		organization({ creatorRole: "owner", allowUserToCreateOrganization: true }),
+		nextCookies(),
+	],
 });
