@@ -109,9 +109,8 @@ export const hospitalDetails = pgTable("hospitalDetails", {
 		.references(() => organization.id, { onDelete: "cascade" }),
 	hospitalName: text("hospital_name").notNull(),
 	hospitalAddress: text("hospital_address").notNull(),
-	primaryContactName: text("primary_contact_name").notNull(),
-	primaryContactEmail: text("primary_contact_email").notNull().unique(),
-	primaryContactPhoneNumber: text("primary_contact_phone_number").notNull(),
+	hospitalOwnerName: text("hospital_owner_name").notNull(),
+	hospitalOwnerEmail: text("hospital_owner_email").notNull().unique(),
 	documentPath: text("document_path"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });

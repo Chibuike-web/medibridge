@@ -1,48 +1,74 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import ChooseFileCard from "@/components/choose-file-card";
+import FileUploadCard from "@/components/file-upload-card";
+import useVerificationFileUpload from "@/hooks/use-verification-file-upload";
+import { useState, useTransition } from "react";
+import { createHospitalAction } from "@/actions/create-hospital-action";
+import CheckCircle from "@/icons/check-circle";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { hospitalDetailsSchema, HospitalDetailsType } from "@/lib/schemas/hospital-details-schema";
-import { useHospitalStore } from "@/store/use-hospital-store";
-import ErrorWarningLine from "@/icons/error-warning-line";
-import { useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import ErrorWarningFill from "@/icons/error-warning-fill";
 
-export default function HospitalDetailsClient() {
-	const { hospitalInfo, hydrated, setHospitalInfo } = useHospitalStore();
-
+export default function HospitalUploadClient() {
 	const router = useRouter();
+	const {
+		file,
+		status,
+		uploadType,
+		uploadInfo,
+		setUploadError,
+		uploadError,
+		uploadRef,
+		onClear,
+		handleFileChange,
+	} = useVerificationFileUpload();
+	const [error, setError] = useState("");
+	const [success, setSuccess] = useState("");
+	const [isPending, startTransition] = useTransition();
+
 	const {
 		register,
 		handleSubmit,
 		reset,
-		formState: { errors, isSubmitting },
-	} = useForm({ resolver: zodResolver(hospitalDetailsSchema), defaultValues: hospitalInfo ?? {} });
-
-	useEffect(() => {
-		if (!hydrated) return;
-
-		const raw = localStorage.getItem("hospital");
-		if (!raw) return;
-
-		try {
-			const data = JSON.parse(raw);
-			console.log(data);
-			reset(data.state.hospitalInfo);
-		} catch {
-			console.error("Invalid hospital data in storage");
-		}
-	}, [hydrated, reset]);
+		formState: { errors },
+	} = useForm({ resolver: zodResolver(hospitalDetailsSchema) });
 
 	const onSubmit = (data: HospitalDetailsType) => {
-		setHospitalInfo(data);
-		router.push("/hospital-upload");
+		setError("");
+		if (!file) {
+			setUploadError("No file is uploaded. Please upload a file");
+			return;
+		}
+
+		startTransition(async () => {
+			try {
+				const res = await createHospitalAction(data);
+				if (res?.status === "failed") {
+					setError(res.message || "Hospital creation failed");
+					return;
+				}
+				setSuccess("Hospital successfully created");
+
+				setTimeout(() => {
+					router.replace("/verify");
+					reset();
+					onClear();
+					setSuccess("");
+				}, 1000);
+			} catch (error) {
+				setError(error instanceof Error ? error.message : "Unknown error");
+			}
+		});
 	};
+
 	return (
-		<form onSubmit={handleSubmit(onSubmit)} className="text-gray-800">
+		<form className="w-full" onSubmit={handleSubmit(onSubmit)}>
 			<div className="mb-5">
 				<Label htmlFor="hospitalName" className="block mb-2">
 					Hospital Name
@@ -81,81 +107,61 @@ export default function HospitalDetailsClient() {
 					</p>
 				)}
 			</div>
-			<div className="mb-5">
-				<Label htmlFor="primaryContactName" className="block mb-2">
-					Primary Contact Name
-				</Label>
-				<Input
-					id="primaryContactName"
-					type="text"
-					placeholder="eg., John Doe"
-					className="h-11 mt-1"
-					{...register("primaryContactName")}
-					aria-labelledby={errors.primaryContactName ? "primary-contact-name-error" : undefined}
-					aria-invalid={!!errors.primaryContactName}
+			<p className="text-gray-600 mb-2">
+				Upload hospital accreditation or official license document
+			</p>
+
+			{file ? (
+				<FileUploadCard
+					file={file}
+					onClear={onClear}
+					status={status}
+					uploadType={uploadType}
+					uploadError={uploadError}
 				/>
-				{errors.primaryContactName && (
-					<p id="primary-contact-name-error" className="font-medium text-red-500 mt-1 text-[14px]">
-						{errors.primaryContactName.message}
-					</p>
-				)}
-			</div>
-			<div className="mb-5">
-				<Label htmlFor="primaryContactEmail" className="block mb-2">
-					Primary Contact Email
-				</Label>
-				<Input
-					id="primaryContactEmail"
-					placeholder="eg., john.doe@stmaryhospital.org"
-					type="email"
-					className="h-11 mt-1"
-					{...register("primaryContactEmail")}
-					aria-labelledby={
-						errors.primaryContactEmail
-							? "primary-contact-email-error"
-							: "primary-contact-email-info"
-					}
-					aria-invalid={!!errors.primaryContactEmail}
+			) : (
+				<ChooseFileCard
+					handleFileChange={handleFileChange}
+					uploadRef={uploadRef}
+					error={uploadError}
+					errorId="file-upload-error"
 				/>
-				{errors.primaryContactEmail ? (
-					<p id="primary-contact-email-error" className="font-medium text-red-500 mt-1 text-[14px]">
-						{errors.primaryContactEmail.message}
-					</p>
+			)}
+			{uploadError && (
+				<p
+					id="file-upload-error"
+					className="text-red-500 font-medium text-[14px] mt-2"
+					role="alert"
+				>
+					{uploadError}
+				</p>
+			)}
+
+			{error && (
+				<div className="text-red-500 flex items-center mt-4 gap-2 px-4 py-4 border bg-red-100 border-red-500 rounded-xl">
+					<span>
+						<ErrorWarningFill className="size-4" />
+					</span>
+					<span>{error}</span>
+				</div>
+			)}
+			{success && (
+				<div className="flex items-center gap-2 px-4 py-4 mb-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200 shadow-sm">
+					<span>
+						<CheckCircle className="size-5" />
+					</span>
+					<span>{success}</span>
+				</div>
+			)}
+			<Button className="w-full h-11 mt-12" type="submit" disabled={isPending}>
+				{isPending ? (
+					<span className="flex items-center gap-2">
+						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+						Signing up...
+					</span>
 				) : (
-					<div className="text-[14px] flex gap-1 items-center mt-1 text-gray-400">
-						<span aria-hidden>
-							<ErrorWarningLine className="size-4" />
-						</span>
-						<p id="primary-contact-email-info">Use your official hospital email</p>
-					</div>
+					"Continue"
 				)}
-			</div>
-			<div>
-				<Label htmlFor="primaryContactPhoneNumber" className="block mb-2">
-					Primary Contact Phone number
-				</Label>
-				<Input
-					id="primaryContactPhoneNumber"
-					placeholder="eg., +1 (312) 555-0198"
-					type="text"
-					className="h-11 mt-1"
-					{...register("primaryContactPhoneNumber")}
-					aria-labelledby={
-						errors.primaryContactPhoneNumber ? "primary-contact-phone-number-error" : undefined
-					}
-					aria-invalid={!!errors.primaryContactPhoneNumber}
-				/>
-				{errors.primaryContactPhoneNumber && (
-					<p
-						id="primary-contact-phone-number-error"
-						className="font-medium text-red-500 mt-1 text-[14px]"
-					>
-						{errors.primaryContactPhoneNumber.message}
-					</p>
-				)}
-			</div>
-			<Button className="w-full h-11 mt-12" type="submit" disabled={isSubmitting}>
-				Continue
 			</Button>
 		</form>
 	);

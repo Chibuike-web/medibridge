@@ -1,9 +1,9 @@
 "use server";
 
 import { auth } from "@/lib/better-auth/auth";
-import { HospitalAdminType } from "@/lib/schemas/hospital-admin-schema";
+import { OwnerType } from "@/lib/schemas/owner-schema";
 
-export async function createAdminAction(data: HospitalAdminType) {
+export async function createOwnerAction(data: OwnerType) {
 	try {
 		const res = await auth.api.signUpEmail({
 			body: {

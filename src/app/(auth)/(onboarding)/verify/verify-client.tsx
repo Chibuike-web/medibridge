@@ -1,7 +1,6 @@
 "use client";
 
 import Checkbox from "@/components/ui/checkbox";
-import { useHospitalStore } from "@/store/use-hospital-store";
 import { useState } from "react";
 
 type CheckboxItem = {
@@ -11,11 +10,10 @@ type CheckboxItem = {
 };
 
 export default function VerifyClient() {
-	const { hospitalInfo } = useHospitalStore();
 	const [checkboxes] = useState<CheckboxItem[]>([
 		{ id: "registration", value: "Registration", status: "submitted" },
 		{ id: "emailVerification", value: "Email Verification", status: "pending" },
-		{ id: "institutionalVerification", value: "Institutional Verification", status: "pending" },
+		{ id: "hospitalVerification", value: "Hospital Verification", status: "pending" },
 	]);
 
 	return (

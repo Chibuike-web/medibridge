@@ -27,11 +27,11 @@ export default function Home() {
 				</p>
 				<div className="flex flex-col gap-4 w-full mt-[100px] mb-[100px] xl:mb-0">
 					<Button asChild className="h-11 w-full">
-						<Link href="/hospital-details">Begin Registration</Link>
+						<Link href="/owner">Begin Registration</Link>
 					</Button>
 
 					<Button asChild className="h-11 w-full" variant="outline">
-						<Link href="/sign-in">Log in</Link>
+						<Link href="/sign-in">Sign in</Link>
 					</Button>
 				</div>
 			</div>
