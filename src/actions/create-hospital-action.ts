@@ -17,6 +17,7 @@ export async function createHospitalAction(data: HospitalType) {
 				slug: data.hospitalName.toLowerCase().replace(/\s+/g, "-"),
 				userId,
 			},
+			headers: await headers(),
 		});
 
 		if (!orgRes) return { status: "failed", message: "Organization creation failed" };
@@ -42,6 +43,7 @@ export async function createHospitalAction(data: HospitalType) {
 				organizationId,
 				resend: true,
 			},
+			headers: await headers(),
 		});
 
 		console.log(`inviteId: ${invite.id}`);
