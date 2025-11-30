@@ -21,7 +21,8 @@ export default function Sidebar() {
 			</div>
 			<ul className="p-4 flex flex-col gap-4">
 				{menus.map(({ id, text }) => {
-					const isActive = pathname === `/${id}`;
+					const route = id === "dashboard" ? `/${id}` : `/dashboard/${id}`;
+					const isActive = pathname === route;
 					return (
 						<li
 							key={id}
@@ -31,7 +32,7 @@ export default function Sidebar() {
 							)}
 						>
 							<Link
-								href={`/${id}`}
+								href={`${route}`}
 								className={cn(
 									"px-3 flex items-center gap-2 w-full h-9 ",
 									isActive && "font-semibold"

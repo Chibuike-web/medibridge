@@ -8,16 +8,3 @@ export const PatientSchema = z.object({
 });
 
 export type PatientType = z.infer<typeof PatientSchema>;
-
-
-
-/**
- * z.object({
- * "title": z.string()
- * 
- * 
- * })
- * 
- * 
- * 
- */

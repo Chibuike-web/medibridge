@@ -8,20 +8,18 @@ import { useParsedPatient } from "@/store/use-parsed-patient-store";
 import { AnimatePresence } from "motion/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import Image from "next/image";
+
+import SuccessModal from "@/components/success-modal";
 
 export default function ReviewInfoExtractClient() {
 	const { patientData } = useParsedPatient();
 	const router = useRouter();
 	const dataArray = Object.entries(patientData ?? {});
 	const [isOpen, setIsOpen] = useState(false);
+	const closeModal = () => {
+		router.replace("/dashboard");
+		setIsOpen(false);
+	};
 	return (
 		<div className="my-10 flex flex-col gap-3 items-start">
 			{dataArray.map(([key, value]) => (
@@ -42,7 +40,15 @@ export default function ReviewInfoExtractClient() {
 				</div>
 			</footer>
 
-			{isOpen && <SuccessModal isOpen={isOpen} setIsOpen={setIsOpen} />}
+			{isOpen && (
+				<SuccessModal
+					isOpen={isOpen}
+					onClick={closeModal}
+					heading="Patient Record Saved Successfully"
+					description="The patient's information has been securely saved. You may now proceed with additional	documentation or return to the dashboard."
+					buttonText="Return to Dashboard"
+				/>
+			)}
 		</div>
 	);
 }
@@ -55,7 +61,6 @@ const InfoExtractAccordion = ({
 	subHeading: string | number;
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
-
 	return (
 		<div className="w-full border p-4 rounded-[8px]">
 			<button
@@ -99,44 +104,5 @@ const InfoExtractAccordion = ({
 				)}
 			</AnimatePresence>
 		</div>
-	);
-};
-
-const SuccessModal = ({
-	isOpen,
-	setIsOpen,
-}: {
-	isOpen: boolean;
-	setIsOpen: (value: boolean) => void;
-}) => {
-	const router = useRouter();
-
-	return (
-		<Dialog open={isOpen}>
-			<DialogContent>
-				<div className="flex flex-col gap-12 items-center px-6 py-6">
-					<Image src="/assets/success-icon.svg" width={160} height={160} alt="" />
-					<div className="flex flex-col items-center gap-5">
-						<DialogTitle className="text-[clamp(18px,5vw,24px)] font-semibold">
-							Patient Record Saved Successfully
-						</DialogTitle>
-						<DialogDescription className="text-[20px] text-center">
-							The patient's information has been securely saved. You may now proceed with additional
-							documentation or return to the dashboard.
-						</DialogDescription>
-					</div>
-				</div>
-				<DialogFooter className="border-t border-gray-200 w-full">
-					<Button
-						className="h-11 w-full cursor-pointer"
-						onClick={() => {
-							router.replace("/dashboard"), setIsOpen(false);
-						}}
-					>
-						Return to Dashboard
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
 	);
 };

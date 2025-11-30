@@ -152,11 +152,11 @@ export default function OwnerClient() {
 				{isSubmitting ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-						Signing up...
+						Creating...
 					</span>
 				) : (
-					"Continue"
-				)}{" "}
+					"Create account"
+				)}
 			</Button>
 		</form>
 	);

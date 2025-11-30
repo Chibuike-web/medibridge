@@ -9,10 +9,7 @@ import ErrorWarningFill from "@/icons/error-warning-fill";
 import EyeLine from "@/icons/eye-line";
 import EyeOffLine from "@/icons/eye-off-line";
 import InformationLine from "@/icons/information-line";
-import {
-	hospitalAdminSignInSchema,
-	HospitalAdminSignInType,
-} from "@/lib/schemas/hospital-admin-sign-in-schema";
+import { signInSchema, SignInType } from "@/lib/schemas/sign-in-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,10 +27,10 @@ export default function SignInClient() {
 		handleSubmit,
 		formState: { errors, isSubmitting },
 	} = useForm({
-		resolver: zodResolver(hospitalAdminSignInSchema),
+		resolver: zodResolver(signInSchema),
 	});
 
-	const onSubmit = async (data: HospitalAdminSignInType) => {
+	const onSubmit = async (data: SignInType) => {
 		setError("");
 		try {
 			const response = await signInAction(data);
@@ -61,24 +58,24 @@ export default function SignInClient() {
 		>
 			<div className="mb-4">
 				<Label htmlFor="adminEmail" className="block mb-2">
-					Admin Email Address
+					Email Address
 				</Label>
 				<Input
 					id="adminEmail"
 					type="text"
 					placeholder="sarah.thompson@stmaryhospital.org"
 					className="h-11"
-					{...register("adminEmail")}
-					aria-invalid={!!errors.adminEmail}
-					aria-describedby={errors.adminEmail ? "admin-error-error" : "admin-email-info"}
+					{...register("email")}
+					aria-invalid={!!errors.email}
+					aria-describedby={errors.email ? "email-error" : "email-info"}
 				/>
-				{errors.adminEmail && (
-					<p id="admin-email-error" className="font-medium text-red-500 mt-1 text-[14px]">
-						{errors.adminEmail.message}
+				{errors.email && (
+					<p id="email-error" className="font-medium text-red-500 mt-1 text-[14px]">
+						{errors.email.message}
 					</p>
 				)}
-				{!errors.adminEmail && (
-					<p id="admin-email-info" className="flex gap-1 items-center mt-2">
+				{!errors.email && (
+					<p id="email-info" className="flex gap-1 items-center mt-2">
 						<InformationLine className="text-gray-400 size-4" aria-hidden="true" />
 						<span className="text-[14px] text-gray-400">
 							Must be official verified hospital email
@@ -96,9 +93,9 @@ export default function SignInClient() {
 						type={isVisible ? "text" : "password"}
 						placeholder="Enter new password"
 						className="h-11"
-						{...register("adminPassword")}
-						aria-describedby={errors.adminPassword ? "admin-password-error" : undefined}
-						aria-invalid={!!errors.adminPassword}
+						{...register("password")}
+						aria-describedby={errors.password ? "admin-password-error" : undefined}
+						aria-invalid={!!errors.password}
 					/>
 					<button
 						type="button"
@@ -115,14 +112,14 @@ export default function SignInClient() {
 						</span>
 					</button>
 				</div>
-				{errors.adminPassword && (
+				{errors.password && (
 					<p id="admin-password-error" className="font-medium text-red-500 mt-1 text-[14px]">
-						{errors.adminPassword.message}
+						{errors.password.message}
 					</p>
 				)}
 			</div>
 			<div className="flex items-center justify-between mb-4">
-				<Checkbox<HospitalAdminSignInType> id="rememberMe" register={register} name="rememberMe">
+				<Checkbox<SignInType> id="rememberMe" register={register} name="rememberMe">
 					Remember me
 				</Checkbox>
 				<Link href="/forgot-password" className="font-medium text-[14px]">

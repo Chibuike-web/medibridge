@@ -39,7 +39,7 @@ export default function useFileParse() {
 				onClear();
 				setParseStatus("idle");
 				setIsOpen(false);
-			}, 1500);
+			}, 2500);
 		} catch (error) {
 			console.error(error);
 			setParseStatus("error");

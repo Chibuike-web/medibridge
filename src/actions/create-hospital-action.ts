@@ -43,7 +43,7 @@ export async function createHospitalAction(data: HospitalDetailsType) {
 		const invite = await auth.api.createInvitation({
 			body: {
 				email: "ebube@gmail.com",
-				role: "member",
+				role: "admin",
 				organizationId,
 				resend: true,
 			},

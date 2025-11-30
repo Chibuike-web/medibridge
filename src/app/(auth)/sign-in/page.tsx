@@ -11,13 +11,16 @@ export default function Login() {
 					Welcome Back to MediBridge
 				</h1>
 				<p className="text-center mt-4 text-gray-600">
-					Secure access for verified healthcare institutions.
+					Sign in with your verified hospital credentials.
 				</p>
 				<SignInClient />
-				<p className="text-center mt-4">
-					<span>Need an account? </span>
-					<Link href="/hospital-details" className="font-medium">
-						Register
+				<p className="text-center mt-4 font-medium">
+					<span className="text-gray-600">Don't have an account? </span>
+					<Link
+						href="/owner-sign-up"
+						className="font-medium underline underline-offset-3 text-gray-800"
+					>
+						Create an account
 					</Link>
 				</p>
 			</div>

@@ -6,14 +6,14 @@ import { useState } from "react";
 type CheckboxItem = {
 	id: string;
 	value: string;
-	status: "submitted" | "pending" | "verified";
+	status: "done" | "pending";
 };
 
 export default function VerifyClient() {
 	const [checkboxes] = useState<CheckboxItem[]>([
-		{ id: "registration", value: "Registration", status: "submitted" },
-		{ id: "emailVerification", value: "Email Verification", status: "pending" },
-		{ id: "hospitalVerification", value: "Hospital Verification", status: "pending" },
+		{ id: "registration", value: "Account created", status: "done" },
+		{ id: "emailVerification", value: "Email address verification", status: "pending" },
+		{ id: "hospitalVerification", value: "Hospital verification", status: "pending" },
 	]);
 
 	return (
@@ -25,7 +25,7 @@ export default function VerifyClient() {
 					defaultChecked={c.status !== "pending"}
 					className="text-[16px]"
 				>
-					{c.value} - {c.status}
+					{c.value}
 				</Checkbox>
 			))}
 		</div>

@@ -3,7 +3,7 @@ import VerifyClient from "./verify-client";
 
 export default function Verify() {
 	return (
-		<main className="max-w-[600px] min-h-dvh grid place-items-center mx-auto px-6 xl:px-0">
+		<main className="max-w-[550px] min-h-dvh grid place-items-center mx-auto px-6 xl:px-0">
 			<div className="flex flex-col items-center">
 				<Image src="/assets/verification-icon.svg" width={160} height={160} alt="" />
 
@@ -11,8 +11,9 @@ export default function Verify() {
 					Verification In Progress
 				</h1>
 				<p className="text-gray-600 font-medium text-center mt-6">
-					Your registration is in progress. You’ll be notified via email once both your institution
-					and account have been verified.
+					Your account has been created. Please check your email to verify your address while we
+					review your hospital’s accreditation. Once the hospital verification is complete, you’ll
+					be prompted to sign in to create admin.
 				</p>
 				<VerifyClient />
 			</div>

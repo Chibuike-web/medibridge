@@ -27,7 +27,7 @@ export default function Home() {
 				</p>
 				<div className="flex flex-col gap-4 w-full mt-[100px] mb-[100px] xl:mb-0">
 					<Button asChild className="h-11 w-full">
-						<Link href="/owner">Begin Registration</Link>
+						<Link href="/owner-sign-up">Begin Registration</Link>
 					</Button>
 
 					<Button asChild className="h-11 w-full" variant="outline">

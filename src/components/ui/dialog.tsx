@@ -43,20 +43,22 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
 	return (
 		<>
-			<DialogOverlay className="overflow-y-auto">
-				<div className="flex min-h-screen items-center justify-center p-6">
-					<DialogPrimitive.Content
-						data-slot="dialog-content"
-						className={cn(
-							"bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 w-full max-w-[600px] rounded-[24px] border shadow-lg",
-							className
-						)}
-						{...props}
-					>
-						{children}
-					</DialogPrimitive.Content>
-				</div>
-			</DialogOverlay>
+			<DialogPortal>
+				<DialogOverlay className="overflow-y-auto">
+					<div className="flex min-h-screen items-center justify-center p-6">
+						<DialogPrimitive.Content
+							data-slot="dialog-content"
+							className={cn(
+								"bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 w-full max-w-[600px] rounded-[24px] border shadow-lg",
+								className
+							)}
+							{...props}
+						>
+							{children}
+						</DialogPrimitive.Content>
+					</div>
+				</DialogOverlay>
+			</DialogPortal>
 		</>
 	);
 }

@@ -2,7 +2,7 @@
 
 import { hospitalDetails, organization } from "@/db/auth-schema";
 import { auth, db } from "@/lib/better-auth/auth";
-import { HospitalAdminSignInType } from "@/lib/schemas/hospital-admin-sign-in-schema";
+import { HospitalAdminSignInType } from "@/lib/schemas/sign-in-schema";
 import { eq } from "drizzle-orm";
 
 export async function signInAction(data: HospitalAdminSignInType) {
