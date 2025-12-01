@@ -1,10 +1,12 @@
 "use client";
 
+import { listOrganizationAction } from "@/actions/list-organization-action";
 import { signInAction } from "@/actions/sign-in-action";
 import { Button } from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import CheckCircle from "@/icons/check-circle";
 import ErrorWarningFill from "@/icons/error-warning-fill";
 import EyeLine from "@/icons/eye-line";
 import EyeOffLine from "@/icons/eye-off-line";
@@ -20,6 +22,7 @@ export default function SignInClient() {
 	const router = useRouter();
 	const [isVisible, setIsVisible] = useState(false);
 	const [error, setError] = useState("");
+	const [success, setSuccess] = useState("");
 
 	const {
 		register,
@@ -32,21 +35,35 @@ export default function SignInClient() {
 
 	const onSubmit = async (data: SignInType) => {
 		setError("");
+		setSuccess("");
 		try {
 			const response = await signInAction(data);
 			if (response.status === "failed") {
 				console.error(response.error);
 				setError(response.error || "");
 				return;
-			} else if (response.status === "success") {
-				router.replace("/");
-
-				setTimeout(() => {
-					reset();
-				}, 1000);
 			}
 		} catch (error) {
 			setError(error instanceof Error ? error.message : "Unknown error");
+			return;
+		}
+		try {
+			const response = await listOrganizationAction();
+			if (response.status === "failed") {
+				console.error(response.error);
+				setError(response.error || "");
+				return;
+			}
+
+			setSuccess("Sign in successful");
+			router.replace("/dashboard");
+
+			setTimeout(() => {
+				reset();
+			}, 2000);
+		} catch (error) {
+			setError(error instanceof Error ? error.message : "Unknown error");
+			return;
 		}
 	};
 
@@ -137,6 +154,15 @@ export default function SignInClient() {
 						<ErrorWarningFill className="size-4" />
 					</span>
 					<span>{error}</span>
+				</div>
+			)}
+
+			{success && (
+				<div className="flex items-center gap-2 px-4 py-4 mt-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200">
+					<span>
+						<CheckCircle className="size-5" />
+					</span>
+					<span>{success}</span>
 				</div>
 			)}
 			<Button className="w-full h-11 mt-12" type="submit" disabled={isSubmitting}>

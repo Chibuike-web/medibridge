@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import EditLine from "@/icons/edit-line";
-import MotionDiv from "@/lib/utils/motion-wrapper";
+import MotionDiv from "@/components/motion-wrapper";
 import { formatKey } from "@/lib/utils/format-key";
 import { useParsedPatient } from "@/store/use-parsed-patient-store";
 import { AnimatePresence } from "motion/react";

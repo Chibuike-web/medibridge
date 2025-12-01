@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ErrorWarningLine from "@/icons/error-warning-line";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EyeOffLine from "@/icons/eye-off-line";
 import EyeLine from "@/icons/eye-line";
 import { ownerSchema, OwnerType } from "@/lib/schemas/owner-schema";
@@ -25,26 +25,29 @@ export default function OwnerClient() {
 		handleSubmit,
 		reset,
 		formState: { errors, isSubmitting },
-	} = useForm({ resolver: zodResolver(ownerSchema) });
+	} = useForm({
+		resolver: zodResolver(ownerSchema),
+		defaultValues: {
+			name: "",
+			email: "",
+			password: "",
+		},
+	});
 
-	const onSubmit = async (data: OwnerType) => {
-		console.log("click", data);
-		try {
-			const res = await createOwnerAction(data);
-			if (res?.status === "failed") {
-				setError(res.message || "Account creation failed");
-				return;
-			}
-			setSuccess("Account successfully created");
+	useEffect(() => {
+		const cache = localStorage.getItem("ONBOARDING_CACHE");
+		if (!cache) return;
 
-			setTimeout(() => {
-				router.replace("/hospital-details");
-				reset();
-				setSuccess("");
-			}, 1000);
-		} catch (error) {
-			setError(error instanceof Error ? error.message : "Unknown error");
+		const parsed = JSON.parse(cache);
+		if (parsed.owner) {
+			reset(parsed.owner);
 		}
+	}, [reset]);
+
+	const onSubmit = (data: OwnerType) => {
+		console.log("click", data);
+		localStorage.setItem("ONBOARDING_CACHE", JSON.stringify({ owner: data }));
+		router.push("/hospital-details");
 	};
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className="text-gray-800">
@@ -131,32 +134,8 @@ export default function OwnerClient() {
 				)}
 			</div>
 
-			{success && (
-				<div className="flex items-center gap-2 px-4 py-4 mt-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200 shadow-sm">
-					<span>
-						<CheckCircle className="size-5" />
-					</span>
-					<span>{success}</span>
-				</div>
-			)}
-
-			{error && (
-				<div className="text-red-500 flex items-center mt-4 gap-2 px-4 py-4 border bg-red-100 border-red-500 rounded-xl">
-					<span>
-						<ErrorWarningFill className="size-4" />
-					</span>
-					<span>{error}</span>
-				</div>
-			)}
-			<Button className="w-full h-11 mt-12" type="submit" disabled={isSubmitting}>
-				{isSubmitting ? (
-					<span className="flex items-center gap-2">
-						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-						Creating...
-					</span>
-				) : (
-					"Create account"
-				)}
+			<Button className="w-full h-11 mt-12" type="submit">
+				Continue
 			</Button>
 		</form>
 	);

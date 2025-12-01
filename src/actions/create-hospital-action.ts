@@ -10,7 +10,6 @@ export async function createHospitalAction(data: HospitalDetailsType) {
 		const session = await auth.api.getSession({ headers: await headers() });
 		if (!session) return;
 		const userId = session?.user?.id;
-		console.log("user id from session", userId);
 
 		const orgRes = await auth.api.createOrganization({
 			body: {
@@ -24,9 +23,7 @@ export async function createHospitalAction(data: HospitalDetailsType) {
 
 		if (!orgRes) return { status: "failed", message: "Organization creation failed" };
 
-		console.log("run1");
 		const organizationId = orgRes?.id;
-		console.log("run2");
 
 		await db.insert(hospitalDetails).values({
 			id: crypto.randomUUID(),
@@ -38,19 +35,6 @@ export async function createHospitalAction(data: HospitalDetailsType) {
 			documentPath: null,
 			createdAt: new Date(),
 		});
-		console.log("run3");
-
-		const invite = await auth.api.createInvitation({
-			body: {
-				email: "ebube@gmail.com",
-				role: "admin",
-				organizationId,
-				resend: true,
-			},
-			headers: await headers(),
-		});
-
-		console.log(`inviteId: ${invite.id}`);
 
 		return { status: "success", message: "Hospital data successfully saved" };
 	} catch (error) {

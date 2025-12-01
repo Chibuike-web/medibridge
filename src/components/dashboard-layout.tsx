@@ -3,6 +3,7 @@ import Sidebar from "./sidebar";
 import Topbar from "./topbar";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import UserContextProvider from "@/contexts/user-context";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
 	return (
@@ -15,17 +16,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
 }
 
 async function Main({ children }: { children: React.ReactNode }) {
-	const session = await getSessionData();
-	if (!session) {
+	const data = await getSessionData();
+	if (!data) {
 		redirect("/sign-in");
 	}
 	return (
-		<main className="flex h-screen">
-			<Sidebar />
-			<div className="flex flex-col flex-1 overflow-auto">
-				<Topbar />
-				<>{children}</>
-			</div>
-		</main>
+		<UserContextProvider user={data.user}>
+			<main className="flex h-screen">
+				<Sidebar />
+				<div className="flex flex-col flex-1 overflow-auto">
+					<Topbar />
+					<>{children}</>
+				</div>
+			</main>
+		</UserContextProvider>
 	);
 }

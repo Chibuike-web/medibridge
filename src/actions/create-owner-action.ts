@@ -26,5 +26,5 @@ export async function createOwnerAction(data: OwnerType) {
 		};
 	}
 
-	return { status: "success", message: "Admin successfully saved" };
+	return { status: "success", message: "User successfully saved" };
 }

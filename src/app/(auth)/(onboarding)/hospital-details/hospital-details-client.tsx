@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import ChooseFileCard from "@/components/choose-file-card";
 import FileUploadCard from "@/components/file-upload-card";
 import useVerificationFileUpload from "@/hooks/use-verification-file-upload";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { createHospitalAction } from "@/actions/create-hospital-action";
 import CheckCircle from "@/icons/check-circle";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { hospitalDetailsSchema, HospitalDetailsType } from "@/lib/schemas/hospital-details-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ErrorWarningFill from "@/icons/error-warning-fill";
+import { createOwnerAction } from "@/actions/create-owner-action";
 
 export default function HospitalUploadClient() {
 	const router = useRouter();
@@ -39,14 +40,41 @@ export default function HospitalUploadClient() {
 		formState: { errors },
 	} = useForm({ resolver: zodResolver(hospitalDetailsSchema) });
 
+	useEffect(() => {
+		const cache = localStorage.getItem("ONBOARDING_CACHE");
+		if (!cache) return;
+
+		const parsed = JSON.parse(cache);
+		if (parsed.hosptial) {
+			reset(parsed.hospital);
+		}
+	}, [reset]);
+
 	const onSubmit = (data: HospitalDetailsType) => {
 		setError("");
 		if (!file) {
 			setUploadError("No file is uploaded. Please upload a file");
 			return;
 		}
-
+		const cache = JSON.parse(localStorage.getItem("ONBOARDING_CACHE") || "{}");
+		localStorage.setItem(
+			"ONBOARDING_CACHE",
+			JSON.stringify({
+				...cache,
+				hospital: data,
+			})
+		);
 		startTransition(async () => {
+			try {
+				const res = await createOwnerAction(cache.owner);
+				if (res?.status === "failed") {
+					setError(res.message || "Account creation failed");
+					return;
+				}
+			} catch (error) {
+				setError(error instanceof Error ? error.message : "Unknown error");
+				return;
+			}
 			try {
 				const res = await createHospitalAction(data);
 				if (res?.status === "failed") {
@@ -56,6 +84,7 @@ export default function HospitalUploadClient() {
 				setSuccess("Hospital successfully created");
 
 				setTimeout(() => {
+					localStorage.removeItem("ONBOARDING_CACHE");
 					router.replace("/verify");
 					reset();
 					onClear();
@@ -146,7 +175,7 @@ export default function HospitalUploadClient() {
 				</div>
 			)}
 			{success && (
-				<div className="flex items-center gap-2 px-4 py-4 mb-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200 shadow-sm">
+				<div className="flex items-center gap-2 px-4 py-4 mt-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200">
 					<span>
 						<CheckCircle className="size-5" />
 					</span>
@@ -157,10 +186,10 @@ export default function HospitalUploadClient() {
 				{isPending ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-						Signing up...
+						Creating...
 					</span>
 				) : (
-					"Continue"
+					"Create account"
 				)}
 			</Button>
 		</form>
