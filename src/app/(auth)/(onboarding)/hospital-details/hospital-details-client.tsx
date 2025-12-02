@@ -15,6 +15,7 @@ import { hospitalDetailsSchema, HospitalDetailsType } from "@/lib/schemas/hospit
 import { zodResolver } from "@hookform/resolvers/zod";
 import ErrorWarningFill from "@/icons/error-warning-fill";
 import { createOwnerAction } from "@/actions/create-owner-action";
+import { authClient } from "@/lib/better-auth/auth.client";
 
 export default function HospitalUploadClient() {
 	const router = useRouter();
@@ -38,7 +39,13 @@ export default function HospitalUploadClient() {
 		handleSubmit,
 		reset,
 		formState: { errors },
-	} = useForm({ resolver: zodResolver(hospitalDetailsSchema) });
+	} = useForm({
+		resolver: zodResolver(hospitalDetailsSchema),
+		defaultValues: {
+			hospitalName: "",
+			hospitalAddress: "",
+		},
+	});
 
 	useEffect(() => {
 		const cache = localStorage.getItem("ONBOARDING_CACHE");

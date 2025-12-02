@@ -16,10 +16,7 @@ export default function Login() {
 				<SignInClient />
 				<p className="text-center mt-4 font-medium">
 					<span className="text-gray-600">Don't have an account? </span>
-					<Link
-						href="/owner-sign-up"
-						className="font-medium underline underline-offset-3 text-gray-800"
-					>
+					<Link href="/owner" className="font-medium underline underline-offset-3 text-gray-800">
 						Create an account
 					</Link>
 				</p>

@@ -11,20 +11,15 @@ import { useEffect, useState } from "react";
 import EyeOffLine from "@/icons/eye-off-line";
 import EyeLine from "@/icons/eye-line";
 import { ownerSchema, OwnerType } from "@/lib/schemas/owner-schema";
-import { createOwnerAction } from "@/actions/create-owner-action";
-import CheckCircle from "@/icons/check-circle";
-import ErrorWarningFill from "@/icons/error-warning-fill";
 
 export default function OwnerClient() {
 	const [isVisible, setIsVisible] = useState(false);
-	const [error, setError] = useState("");
-	const [success, setSuccess] = useState("");
 	const router = useRouter();
 	const {
 		register,
 		handleSubmit,
 		reset,
-		formState: { errors, isSubmitting },
+		formState: { errors },
 	} = useForm({
 		resolver: zodResolver(ownerSchema),
 		defaultValues: {

@@ -1,22 +1,24 @@
 "use server";
 
-import { auth } from "@/lib/better-auth/auth";
+import { hospitalDetails } from "@/db/auth-schema";
+import { auth, db } from "@/lib/better-auth/auth";
 import { OwnerType } from "@/lib/schemas/owner-schema";
+import { and, eq } from "drizzle-orm";
 
 export async function createOwnerAction(data: OwnerType) {
 	try {
-		const res = await auth.api.signUpEmail({
-			body: {
-				name: data.name,
-				email: data.email,
-				password: data.password,
-			},
-		});
+		const existing = await db
+			.select()
+			.from(hospitalDetails)
+			.where(
+				and(
+					eq(hospitalDetails.hospitalOwnerEmail, data.email),
+					eq(hospitalDetails.hospitalOwnerName, data.name)
+				)
+			);
 
-		const userId = res.user.id;
-		console.log("user Id:" + userId);
-		if (!userId) {
-			return { status: "failed", message: "User creation failed" };
+		if (existing.length > 0) {
+			return { status: "success", message: "Owner already exists" };
 		}
 	} catch (error) {
 		console.error(error);
@@ -26,5 +28,27 @@ export async function createOwnerAction(data: OwnerType) {
 		};
 	}
 
-	return { status: "success", message: "User successfully saved" };
+	try {
+		await auth.api.signUpEmail({
+			body: {
+				name: data.name,
+				email: data.email,
+				password: data.password,
+			},
+		});
+
+		await auth.api.sendVerificationEmail({
+			body: {
+				email: data.email,
+			},
+		});
+
+		return { status: "success", message: "User successfully created" };
+	} catch (error) {
+		console.error(error);
+		return {
+			status: "failed",
+			error: error instanceof Error ? error.message : "Unknown error",
+		};
+	}
 }

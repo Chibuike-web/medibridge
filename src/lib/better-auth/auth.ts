@@ -7,6 +7,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "@/db/auth-schema";
 import { ENV } from "../utils/env";
+import { sendEmail } from "../send-email";
 
 const sql = postgres(ENV.DATABASE_URL!);
 export const db = drizzle({ client: sql });
@@ -17,6 +18,19 @@ export const auth = betterAuth({
 		schema,
 	}),
 	emailAndPassword: { enabled: true },
+	emailVerification: {
+		sendVerificationEmail: async ({ user, url, token }) => {
+			console.log(user);
+			console.log("Verification URL:", url);
+			const data = await sendEmail(user.email, url);
+			console.log(data);
+		},
+	},
+	user: {
+		deleteUser: {
+			enabled: true,
+		},
+	},
 	session: { expiresIn: 60 * 60 * 24 * 7 },
 	debug: true,
 	secret: ENV.BETTER_AUTH_SECRET!,
