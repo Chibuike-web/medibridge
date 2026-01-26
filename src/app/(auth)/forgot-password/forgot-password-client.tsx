@@ -17,12 +17,12 @@ export default function ForgotPasswordClient() {
 			className="text-gray-800 mt-12"
 		>
 			<div className="mb-4">
-				<Label htmlFor="email" className="block mb-2">
+				<Label htmlFor="email" className="block mb-3.5">
 					Email Address
 				</Label>
 				<Input id="email" className="h-11" placeholder="eg., john.doe@stmaryhospital.org" />
 			</div>
-			<Button className="w-full h-11 mt-12" type="submit">
+			<Button className="w-full h-11 mt-16" type="submit">
 				Send Reset Link
 			</Button>
 		</form>

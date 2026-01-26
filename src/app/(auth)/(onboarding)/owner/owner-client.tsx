@@ -6,13 +6,13 @@ import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import ErrorWarningLine from "@/icons/error-warning-line";
+import { ErrorWarningLine } from "@/icons/error-warning-line";
 import { useEffect, useState } from "react";
-import EyeOffLine from "@/icons/eye-off-line";
-import EyeLine from "@/icons/eye-line";
+import { EyeOffLine } from "@/icons/eye-off-line";
+import { EyeLine } from "@/icons/eye-line";
 import { ownerSchema, OwnerType } from "@/lib/schemas/owner-schema";
 
-export default function OwnerClient() {
+export function OwnerClient() {
 	const [isVisible, setIsVisible] = useState(false);
 	const router = useRouter();
 	const {
@@ -46,15 +46,15 @@ export default function OwnerClient() {
 	};
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className="text-gray-800">
-			<div className="mb-5">
-				<Label htmlFor="name" className="block mb-2">
+			<div className="mb-8">
+				<Label htmlFor="name" className="block mb-3.5">
 					Name
 				</Label>
 				<Input
 					id="name"
 					type="text"
 					placeholder="eg., John Doe"
-					className="h-11 mt-1"
+					className="h-11"
 					{...register("name")}
 					aria-labelledby={errors.name ? "name-error" : undefined}
 					aria-invalid={!!errors.name}
@@ -65,25 +65,25 @@ export default function OwnerClient() {
 					</p>
 				)}
 			</div>
-			<div className="mb-5">
-				<Label htmlFor="email" className="block mb-2">
+			<div className="mb-8">
+				<Label htmlFor="email" className="block mb-3.5">
 					Email
 				</Label>
 				<Input
 					id="email"
 					placeholder="eg., john.doe@stmaryhospital.org"
 					type="email"
-					className="h-11 mt-1"
+					className="h-11"
 					{...register("email")}
 					aria-labelledby={errors.email ? "email-error" : "email-info"}
 					aria-invalid={!!errors.email}
 				/>
 				{errors.email ? (
-					<p id="email-error" className="font-medium text-red-500 mt-1 text-[14px]">
+					<p id="email-error" className="font-medium text-red-500 mt-2 text-sm">
 						{errors.email.message}
 					</p>
 				) : (
-					<div className="text-[14px] flex gap-1 items-center mt-1 text-gray-400">
+					<div className="text-sm flex gap-1 items-center mt-2 text-gray-400">
 						<span aria-hidden>
 							<ErrorWarningLine className="size-4" />
 						</span>
@@ -93,7 +93,7 @@ export default function OwnerClient() {
 			</div>
 
 			<div>
-				<Label htmlFor="password" className="block mb-2">
+				<Label htmlFor="password" className="block mb-3.5">
 					Password
 				</Label>
 				<div className="relative">
@@ -123,13 +123,13 @@ export default function OwnerClient() {
 					</button>
 				</div>
 				{errors.password && (
-					<p id="password-error" className="font-medium text-red-500 mt-1 text-[14px]">
+					<p id="password-error" className="font-medium text-red-500 mt-2 text-sm">
 						{errors.password.message}
 					</p>
 				)}
 			</div>
 
-			<Button className="w-full h-11 mt-12" type="submit">
+			<Button className="w-full h-11 mt-16" type="submit">
 				Continue
 			</Button>
 		</form>

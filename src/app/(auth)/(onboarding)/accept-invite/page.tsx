@@ -1,12 +1,10 @@
-import Link from "next/link";
-import ArrowLeftLine from "@/icons/arrow-left-line";
-import AcceptInviteClient from "./accept-invite-client";
+import { AcceptInviteClient } from "./accept-invite-client";
 
-export default function Owner() {
+export default function AcceptInvite() {
 	return (
 		<main>
-			<div className="max-w-[550px] mx-auto  min-h-[calc(100dvh-90px)] grid place-items-center">
-				<div className="w-full px-6 xl:px-0 ">
+			<div className="max-w-[600px] mx-auto  min-h-dvh grid place-items-center">
+				<div className="w-full px-6 md:px-0 ">
 					<div className="mb-10">
 						<h1 className="text-[1.8rem] text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] mb-4">
 							Complete Account Setup

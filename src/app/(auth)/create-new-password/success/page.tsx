@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
 export default function Verify() {
@@ -9,6 +10,10 @@ export default function Verify() {
 				<p className="text-gray-600 font-medium text-center mt-6">
 					You have successfully create a new password
 				</p>
+
+				<Button className="h-11 mt-16" type="submit">
+					Continue to sign in
+				</Button>
 			</div>
 		</main>
 	);

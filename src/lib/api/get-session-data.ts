@@ -20,8 +20,6 @@ async function cachedSession(token: string) {
 	const cookieHeader = `better-auth.session_token=${token}`;
 
 	return await auth.api.getSession({
-		headers: {
-			cookie: cookieHeader,
-		},
+		headers: { cookie: cookieHeader },
 	});
 }

@@ -1,9 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import Plus from "@/icons/plus";
+import { Plus } from "@/icons/plus";
+import Link from "next/link";
 
-export default function PatientsRecordsClient() {
+export function PatientsRecordsClient() {
 	return (
 		<div className="w-full mx-auto max-w-[1440px] flex items-center justify-center h-full p-10">
 			<div className="flex flex-col items-center max-w-[355px]">
@@ -11,9 +12,10 @@ export default function PatientsRecordsClient() {
 				<p className="mb-12 text-center">
 					Patient records will appear here once you add them. Start by creating a patient profile.
 				</p>
-				<Button>
-					<Plus />
-					Add new patient
+				<Button className="h-11" asChild>
+					<Link href="/dashboard/add-new-patient">
+						<Plus className="size-6" /> Add new patient
+					</Link>
 				</Button>
 			</div>
 		</div>

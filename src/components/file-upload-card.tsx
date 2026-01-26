@@ -1,14 +1,14 @@
-import CloseLine from "@/icons/close-line";
-import LoaderLine from "@/icons/loader-line";
+import { CloseLine } from "@/icons/close-line";
+import { LoaderLine } from "@/icons/loader-line";
 import Image from "next/image";
 import pdfFileFormat from "@/assets/file-formats/pdf.svg";
 import pngFileFormat from "@/assets/file-formats/png.svg";
 import jpgFileFormat from "@/assets/file-formats/jpg.svg";
 import docFileFormat from "@/assets/file-formats/doc.svg";
 import { cn } from "@/lib/utils/cn";
-import CheckCircle from "@/icons/check-circle";
-import DeleteBinLine from "@/icons/delete-bin-line";
-import ErrorWarningFill from "../icons/error-warning-fill";
+import { CheckCircle } from "@/icons/check-circle";
+import { DeleteBinLine } from "@/icons/delete-bin-line";
+import { ErrorWarningFill } from "../icons/error-warning-fill";
 import { FileExtensionType } from "@/store/use-upload-store";
 import { formatFileSize } from "@/lib/utils/format-file-size";
 
@@ -20,7 +20,7 @@ type FileUploadCardProps = {
 	status: "idle" | "uploading" | "completed" | "failed";
 };
 
-export default function FileUploadCard({
+export function FileUploadCard({
 	file,
 	onClear,
 	status,
@@ -39,7 +39,7 @@ export default function FileUploadCard({
 		<div
 			className={cn(
 				"flex flex-col px-3.5 py-4 border border-gray-200 rounded-[8px]",
-				status === "failed" && "border-red-500"
+				status === "failed" && "border-red-500",
 			)}
 		>
 			<div className="flex items-center gap-2">

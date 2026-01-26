@@ -1,6 +1,6 @@
 import { IconProps } from "@/lib/types/icon-prop-type";
 
-export default function SparklingLine({ className = "" }: IconProps) {
+export function SparklingLine({ className = "" }: IconProps) {
 	return (
 		<svg
 			className={className}

@@ -4,7 +4,7 @@ import { useParseStatus } from "@/store/use-parse-status-store";
 import { useUpload } from "@/store/use-upload-store";
 import { useModal } from "@/store/use-modal-store";
 
-export default function useFileParse() {
+export function useFileParse() {
 	const router = useRouter();
 	const { parseStatus, setParseStatus } = useParseStatus();
 	const { setPatientData } = useParsedPatient();
@@ -33,7 +33,7 @@ export default function useFileParse() {
 
 			await new Promise((res) => setTimeout(res, 1000));
 
-			router.push("/review-info-extract");
+			router.push("/dashboard/review-info-extract");
 
 			setTimeout(() => {
 				onClear();

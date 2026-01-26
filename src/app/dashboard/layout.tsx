@@ -1,6 +1,6 @@
-import DashboardLayout from "@/components/dashboard-layout";
+import { DashboardAuth } from "@/components/dashboard-auth";
 import { ReactNode } from "react";
 
 export default function Layout({ children }: { children: ReactNode }) {
-	return <DashboardLayout>{children}</DashboardLayout>;
+	return <DashboardAuth>{children}</DashboardAuth>;
 }

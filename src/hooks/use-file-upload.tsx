@@ -3,9 +3,9 @@
 import { FileExtensionType, useUpload } from "@/store/use-upload-store";
 import { ChangeEvent } from "react";
 
-const MAXSIZEINBYTES = 50 * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 
-export default function useFileUpload() {
+export function useFileUpload() {
 	const {
 		file,
 		status,
@@ -21,7 +21,7 @@ export default function useFileUpload() {
 		onClear,
 	} = useUpload();
 
-	const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+	const uploadSelectedFiles = async (e: ChangeEvent<HTMLInputElement>) => {
 		const selectedFile = e.target.files?.[0];
 		if (!selectedFile) {
 			setUploadError("Please select a valid file.");
@@ -38,7 +38,7 @@ export default function useFileUpload() {
 			return;
 		}
 
-		if (selectedFile.size > MAXSIZEINBYTES) {
+		if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
 			setUploadError("File is too large. Maximum allowed size is 50MB.");
 			setFile(null);
 			return;
@@ -79,6 +79,6 @@ export default function useFileUpload() {
 		uploadRef,
 		uploadInfo,
 		onClear,
-		handleFileChange,
+		uploadSelectedFiles,
 	};
 }

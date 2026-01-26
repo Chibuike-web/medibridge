@@ -1,10 +1,10 @@
 import { DashboardLayout } from "@/components/dashboard-layout";
-import TransfersClient from "./transfers-client";
+import { OverviewClient } from "./overview-client";
 
-export default function Transfers() {
+export default function Overview() {
 	return (
 		<DashboardLayout>
-			<TransfersClient />
+			<OverviewClient />
 		</DashboardLayout>
 	);
 }

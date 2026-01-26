@@ -1,6 +1,6 @@
 import { IconProps } from "@/lib/types/icon-prop-type";
 
-export default function BankCardLine({ className = "" }: IconProps) {
+export function BankCardLine({ className = "" }: IconProps) {
 	return (
 		<svg
 			className={className}

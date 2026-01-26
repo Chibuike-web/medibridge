@@ -9,7 +9,7 @@ import {
 import Image from "next/image";
 import { Button } from "./ui/button";
 
-export default function SuccessModal({
+export function SuccessModal({
 	isOpen,
 	onClick,
 	heading,
@@ -25,13 +25,13 @@ export default function SuccessModal({
 	return (
 		<Dialog open={isOpen}>
 			<DialogContent>
-				<div className="flex flex-col gap-12 items-center px-6 py-6">
+				<div className="flex flex-col gap-6 items-center py-16 px-12">
 					<Image src="/assets/success-icon.svg" width={160} height={160} alt="" />
-					<div className="flex flex-col items-center gap-5">
+					<div className="flex flex-col items-center gap-4">
 						<DialogTitle className="text-[clamp(18px,5vw,24px)] font-semibold">
 							{heading}
 						</DialogTitle>
-						<DialogDescription className="text-[20px] text-center">{description}</DialogDescription>
+						<DialogDescription className="text-center">{description}</DialogDescription>
 					</div>
 				</div>
 				<DialogFooter className="border-t border-gray-200 w-full">

@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import CheckCircle from "@/icons/check-circle";
-import ErrorWarningFill from "@/icons/error-warning-fill";
-import EyeLine from "@/icons/eye-line";
-import EyeOffLine from "@/icons/eye-off-line";
-import InformationLine from "@/icons/information-line";
+import { CheckCircle } from "@/icons/check-circle";
+import { ErrorWarningFill } from "@/icons/error-warning-fill";
+import { EyeLine } from "@/icons/eye-line";
+import { EyeOffLine } from "@/icons/eye-off-line";
+import { InformationLine } from "@/icons/information-line";
 import { signInSchema, SignInType } from "@/lib/schemas/sign-in-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -60,6 +60,7 @@ export default function SignInClient() {
 
 			setTimeout(() => {
 				reset();
+				setSuccess("");
 			}, 2000);
 		} catch (error) {
 			setError(error instanceof Error ? error.message : "Unknown error");
@@ -73,8 +74,8 @@ export default function SignInClient() {
 			onSubmit={handleSubmit(onSubmit)}
 			className="text-gray-800 mt-12"
 		>
-			<div className="mb-4">
-				<Label htmlFor="adminEmail" className="block mb-2">
+			<div className="mb-8">
+				<Label htmlFor="adminEmail" className="block mb-3.5">
 					Email Address
 				</Label>
 				<Input
@@ -87,21 +88,19 @@ export default function SignInClient() {
 					aria-describedby={errors.email ? "email-error" : "email-info"}
 				/>
 				{errors.email && (
-					<p id="email-error" className="font-medium text-red-500 mt-1 text-[14px]">
+					<p id="email-error" className="font-medium text-red-500 mt-2 text-sm">
 						{errors.email.message}
 					</p>
 				)}
 				{!errors.email && (
-					<p id="email-info" className="flex gap-1 items-center mt-2">
+					<p id="email-info" className="flex gap-1 items-center mt-3.5">
 						<InformationLine className="text-gray-400 size-4" aria-hidden="true" />
-						<span className="text-[14px] text-gray-400">
-							Must be official verified hospital email
-						</span>
+						<span className="text-sm text-gray-400">Must be official verified hospital email</span>
 					</p>
 				)}
 			</div>
-			<div className="mb-4">
-				<Label htmlFor="password" className="block mb-2">
+			<div className="mb-2">
+				<Label htmlFor="password" className="block mb-3.5">
 					Password
 				</Label>
 				<div className="relative">
@@ -144,8 +143,9 @@ export default function SignInClient() {
 				</Link>
 			</div>
 
-			<p id="sign-in-note" className="text-[14px]">
-				Use your verified hospital credentials. Access is monitored for compliance and security.
+			<p id="sign-in-note" className="text-sm">
+				Use your verified hospital credentials. Access is monitored for compliance and
+				security.{" "}
 			</p>
 
 			{error && (
@@ -165,7 +165,7 @@ export default function SignInClient() {
 					<span>{success}</span>
 				</div>
 			)}
-			<Button className="w-full h-11 mt-12" type="submit" disabled={isSubmitting}>
+			<Button className="w-full h-11 mt-16" type="submit" disabled={isSubmitting}>
 				{isSubmitting ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

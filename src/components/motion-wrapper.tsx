@@ -7,7 +7,7 @@ type MotionDivProps = MotionProps &
 		as?: ElementType;
 	};
 
-export default function MotionDiv({ children, as: Component = "div", ...props }: MotionDivProps) {
+export function MotionDiv({ children, as: Component = "div", ...props }: MotionDivProps) {
 	const MotionComponent = motion.create(Component);
 	return <MotionComponent {...props}>{children}</MotionComponent>;
 }

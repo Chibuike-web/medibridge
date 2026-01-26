@@ -10,61 +10,65 @@ import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import UserProfile from "./user-profile";
+import { Input } from "./ui/input";
+import { SearchLine } from "@/icons/search-line";
 
 export default function Sidebar() {
 	const pathname = usePathname();
 
 	return (
-		<aside className="flex flex-col w-full max-w-[272px] h-full overflow-auto border-r border-gray-200">
-			<div className="px-5 py-6">
+		<aside className="flex flex-col w-full max-w-[272px] h-full overflow-y-auto border-r border-gray-200">
+			<div className="px-5 h-16 flex items-center">
 				<h1 className="font-bold text-[20px] tracking-[-0.02em]">MediBridge</h1>
 			</div>
-			<ul className="p-4 flex flex-col gap-4">
-				{menus.map(({ id, text }) => {
-					const route = id === "dashboard" ? `/${id}` : `/dashboard/${id}`;
-					const isActive = pathname === route;
-					return (
-						<li
-							key={id}
-							className={cn(
-								" flex items-center w-full rounded-[8px] hover:bg-gray-200",
-								isActive ? "bg-gray-200" : ""
-							)}
-						>
-							<Link
-								href={`${route}`}
+			<div className="p-2">
+				<div className="relative">
+					<span className="absolute left-3 top-1/2 -translate-y-1/2">
+						<SearchLine className="size-5" />
+					</span>
+					<Input type="search" className="mb-6 pl-10" placeholder="Search..." />
+				</div>
+				<ul className="flex flex-col gap-px">
+					{menus.map(({ id, href, text }) => {
+						const isActive = pathname === href;
+
+						return (
+							<li
+								key={id}
 								className={cn(
-									"px-3 flex items-center gap-2 w-full h-9 ",
-									isActive && "font-semibold"
+									"flex items-center w-full rounded-[8px] hover:bg-gray-200 font-medium",
+									isActive && "bg-gray-200",
 								)}
 							>
-								<span>
-									{id === "dashboard" ? (
-										isActive ? (
-											<FunctionFill className="size-5" />
-										) : (
-											<FunctionLine className="size-5" />
-										)
-									) : id === "patients-records" ? (
-										isActive ? (
-											<FileListFill className="size-5" />
-										) : (
-											<FileListLine className="size-5" />
-										)
-									) : id === "transfers" ? (
-										isActive ? (
-											<FileTransferFill className="size-5" />
-										) : (
-											<FileTransferLine className="size-5" />
-										)
-									) : null}
-								</span>
-								<span>{text}</span>
-							</Link>
-						</li>
-					);
-				})}
-			</ul>
+								<Link href={href} className={cn("px-3 flex items-center gap-2 w-full h-9 ")}>
+									<span>
+										{id === "overview" ? (
+											isActive ? (
+												<FunctionFill className="size-5" />
+											) : (
+												<FunctionLine className="size-5" />
+											)
+										) : id === "patients-records" ? (
+											isActive ? (
+												<FileListFill className="size-5" />
+											) : (
+												<FileListLine className="size-5" />
+											)
+										) : id === "transfers" ? (
+											isActive ? (
+												<FileTransferFill className="size-5" />
+											) : (
+												<FileTransferLine className="size-5" />
+											)
+										) : null}
+									</span>
+									<span>{text}</span>
+								</Link>
+							</li>
+						);
+					})}
+				</ul>
+			</div>
 
 			<UserProfile />
 		</aside>
@@ -72,16 +76,7 @@ export default function Sidebar() {
 }
 
 const menus = [
-	{
-		id: "dashboard",
-		text: "Dashboard",
-	},
-	{
-		id: "patients-records",
-		text: "Patients Records",
-	},
-	{
-		id: "transfers",
-		text: "Transfers",
-	},
-];
+	{ id: "overview", text: "Overview", href: "/dashboard/overview" },
+	{ id: "patients-records", text: "Patients Records", href: "/dashboard/patients-records" },
+	{ id: "transfers", text: "Transfers", href: "/dashboard/transfers" },
+] as const;

@@ -19,14 +19,14 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-import CloseLine from "@/icons/close-line";
+import { CloseLine } from "@/icons/close-line";
 import { cn } from "@/lib/utils/cn";
 import { Activity, ReactNode, useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 import { formats, initialClinicalRecords, initialSteps, patients, type Step } from "./data";
-import CheckCircle from "@/icons/check-circle";
+import { CheckCircle } from "@/icons/check-circle";
 import { Label } from "@/components/ui/label";
-import ErrorWarningLine from "@/icons/error-warning-line";
+import { ErrorWarningLine } from "@/icons/error-warning-line";
 import Check from "@/icons/check";
 import EditLine from "@/icons/edit-line";
 import Checkbox from "@/components/ui/checkbox";
@@ -41,7 +41,7 @@ export default function PatientTransferModal() {
 				if (i < index) return { ...step, status: "completed" };
 				if (i === index) return { ...step, status: "current" };
 				return { ...step, status: "upcoming" };
-			})
+			}),
 		);
 	};
 
@@ -156,7 +156,7 @@ const BreadCrumbs = ({ label, status }: { label: string; status: string }) => {
 				<div
 					className={cn(
 						"size-6 rounded-full border flex items-center justify-center",
-						getBorderStyle()
+						getBorderStyle(),
 					)}
 				>
 					<span className={cn("size-4 inline-block rounded-full", getCircleStyle())} />
@@ -259,7 +259,9 @@ const StepThree = () => {
 
 	const handleClinicalRecordClick = (id: string) => {
 		setClinicalRecords(
-			clinicalRecords.map((item) => (item.id === id ? { ...item, selected: !item.selected } : item))
+			clinicalRecords.map((item) =>
+				item.id === id ? { ...item, selected: !item.selected } : item,
+			),
 		);
 	};
 	return (
@@ -414,7 +416,7 @@ const CheckButton = ({
 				"px-[14] py-2 border rounded-full text-gray-400 flex items-center gap-2",
 				selected
 					? "border-foreground text-foreground bg-foreground/5"
-					: "border-gray-200 text-gray-500 hover:border-gray-300"
+					: "border-gray-200 text-gray-500 hover:border-gray-300",
 			)}
 		>
 			<span>{children}</span>

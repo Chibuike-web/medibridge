@@ -1,6 +1,6 @@
 import { IconProps } from "@/lib/types/icon-prop-type";
 
-export default function VerifiedBadgeLine({ className = "" }: IconProps) {
+export function VerifiedBadgeLine({ className = "" }: IconProps) {
 	return (
 		<svg
 			className={className}

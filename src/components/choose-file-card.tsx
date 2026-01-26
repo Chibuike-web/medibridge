@@ -11,7 +11,7 @@ type ChooseFileCardPropsType = {
 	errorId?: string;
 };
 
-export default function ChooseFileCard({
+export function ChooseFileCard({
 	handleFileChange,
 	uploadRef,
 	error,
@@ -22,7 +22,7 @@ export default function ChooseFileCard({
 			className={cn(
 				"relative w-full flex flex-col items-center",
 				" p-8 border border-dashed border-gray-200 gap-5 rounded-[8px]",
-				error && "border-red-500"
+				error && "border-red-500",
 			)}
 		>
 			<Label htmlFor="file-upload">

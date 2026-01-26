@@ -1,4 +1,4 @@
-import { FilePart, generateObject } from "ai";
+import { FilePart, generateText, Output } from "ai";
 import { PatientSchema } from "@/lib/schemas/patient-schema";
 import { supabase } from "../utils/supabase";
 
@@ -38,19 +38,19 @@ export async function POST(req: Request) {
 		Use empty string ("") for missing text values.
 		Use 0 for unknown numeric values.`;
 
-		const result = await generateObject({
+		const { output } = await generateText({
 			model: "gpt-5",
-			schema: PatientSchema,
 			messages: [
 				{
 					role: "user",
 					content: [{ type: "text", text: prompt }, fileContent],
 				},
 			],
+			output: Output.object({ schema: PatientSchema }),
 		});
-		console.log("✅ Extracted object:", result.object);
+		console.log("✅ Extracted object:", output);
 
-		return Response.json(result.object);
+		return Response.json(output);
 	} catch (error) {
 		console.error("Error extracting resume", error);
 		return Response.json({ status: "error", message: "Error extracting resume" }, { status: 500 });

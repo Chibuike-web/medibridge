@@ -1,6 +1,6 @@
 import { IconProps } from "@/lib/types/icon-prop-type";
 
-export default function ErrorWarningLine({ className = "" }: IconProps) {
+export function ErrorWarningLine({ className = "" }: IconProps) {
 	return (
 		<svg
 			className={className}

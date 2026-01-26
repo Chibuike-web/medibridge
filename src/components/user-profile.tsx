@@ -11,36 +11,41 @@ import {
 	DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import SparklingLine from "@/icons/sparkling-line";
-import VerifiedBadgeLine from "@/icons/verified-badge-line";
-import BankCardLine from "@/icons/bank-card-line";
-import LogoutBoxLine from "@/icons/logout-box-line";
-import { useUserContext } from "@/contexts/user-context";
+import { SparklingLine } from "@/icons/sparkling-line";
+import { VerifiedBadgeLine } from "@/icons/verified-badge-line";
+import { BankCardLine } from "@/icons/bank-card-line";
+import { LogoutBoxLine } from "@/icons/logout-box-line";
 import { useTransition } from "react";
-import { authClient } from "@/lib/better-auth/auth.client";
+import { authClient, useSession } from "@/lib/better-auth/auth.client";
 import { useRouter } from "next/navigation";
+import { LoaderLine } from "@/icons/loader-line";
 
 export default function UserProfile() {
-	const user = useUserContext();
+	const { data } = useSession();
 	const [isPending, startTransition] = useTransition();
 	const router = useRouter();
+
 	return (
 		<div className=" w-full mt-auto p-3">
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<button className="flex p-3 justify-between w-full items-center cursor-pointer hover:bg-gray-200 rounded-[8px]">
 						<Avatar className="size-10 rounded-full">
-							<AvatarImage src={user?.image ?? ""} alt="profile image" className="rounded-full" />
+							<AvatarImage
+								src={data?.user?.image ?? ""}
+								alt="profile image"
+								className="rounded-full"
+							/>
 							<AvatarFallback className="rounded-lg">
-								{user?.name
+								{data?.user?.name
 									.split(" ")
 									.map((u) => u.charAt(0).toUpperCase())
 									.join("")}
 							</AvatarFallback>
 						</Avatar>
 						<div className="flex flex-col items-start w-[142px]">
-							<p className="font-medium text-[14px] text-foreground">{user?.name}</p>
-							<p className="text-[12px] text-foreground/60 truncate w-full">{user?.email}</p>
+							<p className="font-medium text-[14px] text-foreground">{data?.user?.name}</p>
+							<p className="text-[12px] text-foreground/60 truncate w-full">{data?.user?.email}</p>
 						</div>
 						<span className="shrink-0">
 							<ExpandUpDownLine className="size-5" />
@@ -55,18 +60,21 @@ export default function UserProfile() {
 					<DropdownMenuLabel className="p-0 font-normal">
 						<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 							<Avatar className="h-8 w-8 rounded-full">
-								<AvatarImage src={user?.image ?? ""} alt="profile image" className="rounded-full" />
+								<AvatarImage
+									src={data?.user?.image ?? ""}
+									alt="profile image"
+									className="rounded-full"
+								/>
 								<AvatarFallback className="rounded-lg">
-									{" "}
-									{user?.name
+									{data?.user?.name
 										.split(" ")
 										.map((u) => u.charAt(0).toUpperCase())
 										.join("")}
 								</AvatarFallback>
 							</Avatar>
 							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-medium">{user?.name}</span>
-								<span className="truncate text-xs">{user?.email}</span>
+								<span className="truncate font-medium">{data?.user?.name}</span>
+								<span className="truncate text-xs">{data?.user?.email}</span>
 							</div>
 						</div>
 					</DropdownMenuLabel>
@@ -106,6 +114,15 @@ export default function UserProfile() {
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
+
+			{isPending && (
+				<div className="absolute inset-0 z-[100] bg-white grid place-items-center">
+					<div className="flex flex-col gap-2 items-center">
+						<LoaderLine className="size-6 animate-spin" />
+						<span className="text-18px">Authenticating....</span>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

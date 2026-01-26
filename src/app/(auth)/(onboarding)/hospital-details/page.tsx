@@ -1,19 +1,17 @@
 import Link from "next/link";
-import HospitalUploadClient from "./hospital-details-client";
 import ArrowLeftLine from "@/icons/arrow-left-line";
+import { HospitalDetailsClient } from "./hospital-details-client";
 
-export default function Upload() {
+export default function HospitalDetails() {
 	return (
 		<main>
-			<nav className="w-full  py-8 sticky top-0 bg-white border-b border-gray-300 px-6 xl:px-0">
-				<div className="max-w-[800px] mx-auto">
-					<Link href="/owner" className="flex gap-2 w-max items-center text-foreground">
-						<ArrowLeftLine className="size-5" /> <span>Back</span>
-					</Link>
-				</div>
+			<nav className="w-full h-16 flex items-center sticky top-0 bg-white border-b border-gray-300 px-8">
+				<Link href="/owner" className="flex gap-2 w-max items-center text-foreground">
+					<ArrowLeftLine className="size-5" /> <span className="sr-only">Back</span>
+				</Link>
 			</nav>
-			<div className="max-w-[550px] mx-auto  min-h-[calc(100dvh-90px)] grid place-items-center">
-				<div className="w-full px-6 xl:px-0 ">
+			<div className="max-w-[600px] mx-auto  min-h-[calc(100dvh-90px)] grid place-items-center">
+				<div className="w-full px-6 md:px-0">
 					<div className="mb-10">
 						<h1 className="text-[1.8rem] text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] mb-4">
 							Hospital Details
@@ -23,7 +21,7 @@ export default function Upload() {
 							verification.
 						</p>
 					</div>
-					<HospitalUploadClient />
+					<HospitalDetailsClient />
 				</div>
 			</div>
 		</main>

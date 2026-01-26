@@ -2,26 +2,24 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import EyeOffLine from "@/icons/eye-off-line";
-import EyeLine from "@/icons/eye-line";
-import CheckCircle from "@/icons/check-circle";
-import ErrorWarningFill from "@/icons/error-warning-fill";
+import { EyeOffLine } from "@/icons/eye-off-line";
+import { EyeLine } from "@/icons/eye-line";
+import { CheckCircle } from "@/icons/check-circle";
+import { ErrorWarningFill } from "@/icons/error-warning-fill";
 import { acceptInviteSchema, AcceptInviteType } from "@/lib/schemas/accept-invite-schema";
+import { SuccessModal } from "@/components/success-modal";
 
-export default function AcceptInviteClient() {
+export function AcceptInviteClient() {
 	const [isVisible, setIsVisible] = useState(false);
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
-	const router = useRouter();
 	const {
 		register,
 		handleSubmit,
-		reset,
 		formState: { errors, isSubmitting },
 	} = useForm({ resolver: zodResolver(acceptInviteSchema) });
 
@@ -30,21 +28,15 @@ export default function AcceptInviteClient() {
 	};
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className="text-gray-800">
-			<div className="mb-5">
-				<Label htmlFor="name" className="block mb-2">
-					Name
-				</Label>
-				<Input id="name" type="text" placeholder="eg., John Doe" className="h-11 mt-1" />
-			</div>
-			<div className="mb-5">
-				<Label htmlFor="email" className="block mb-2">
+			<div className="mb-8">
+				<Label htmlFor="email" className="block mb-3.5">
 					Email
 				</Label>
 				<Input
 					id="email"
 					placeholder="eg., john.doe@stmaryhospital.org"
 					type="email"
-					className="h-11 mt-1"
+					className="h-11"
 				/>
 			</div>
 
@@ -79,7 +71,7 @@ export default function AcceptInviteClient() {
 					</button>
 				</div>
 				{errors.password && (
-					<p id="password-error" className="font-medium text-red-500 mt-1 text-[14px]">
+					<p id="password-error" className="font-medium text-red-500 mt-2 text-sm">
 						{errors.password.message}
 					</p>
 				)}
@@ -102,7 +94,7 @@ export default function AcceptInviteClient() {
 					<span>{error}</span>
 				</div>
 			)}
-			<Button className="w-full h-11 mt-12" type="submit" disabled={isSubmitting}>
+			<Button className="w-full h-11 mt-16" type="submit" disabled={isSubmitting}>
 				{isSubmitting ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -112,6 +104,15 @@ export default function AcceptInviteClient() {
 					"Sign up"
 				)}
 			</Button>
+			<SuccessModal
+				isOpen={true}
+				onClick={() => {
+					console.log("man");
+				}}
+				heading="Account Set up Completed"
+				description="You have successfully setup your account. Your designated role is administrator  for this organization"
+				buttonText="Continue to Dashboard"
+			/>
 		</form>
 	);
 }

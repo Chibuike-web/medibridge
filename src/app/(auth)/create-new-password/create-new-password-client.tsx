@@ -3,11 +3,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import EyeLine from "@/icons/eye-line";
-import EyeOffLine from "@/icons/eye-off-line";
+import { EyeLine } from "@/icons/eye-line";
+import { EyeOffLine } from "@/icons/eye-off-line";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-export default function CreateNewPasswordClient() {
+
+export function CreateNewPasswordClient() {
 	const router = useRouter();
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
@@ -17,12 +18,12 @@ export default function CreateNewPasswordClient() {
 			aria-describedby="login-note"
 			onSubmit={(e) => {
 				e.preventDefault();
-				router.push("/create-new-password/verify");
+				router.push("/create-new-password/success");
 			}}
 			className="text-gray-800 mt-12"
 		>
-			<div className="mb-4">
-				<Label htmlFor="newPassword" className="block mb-2">
+			<div className="mb-8">
+				<Label htmlFor="newPassword" className="block mb-3.5">
 					New Password
 				</Label>
 				<div className="relative">
@@ -39,15 +40,15 @@ export default function CreateNewPasswordClient() {
 						onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 					>
 						{isPasswordVisible ? (
-							<EyeOffLine className="size-[20px] text-gray-600" />
+							<EyeOffLine className="size-5 text-gray-600" />
 						) : (
-							<EyeLine className="size-[20px] text-gray-600" />
+							<EyeLine className="size-5 text-gray-600" />
 						)}
 					</button>
 				</div>
 			</div>
-			<div className="mb-4">
-				<Label htmlFor="confirmNewPassword" className="block mb-2">
+			<div className="mb-8">
+				<Label htmlFor="confirmNewPassword" className="block mb-3.5">
 					Confirm New Password
 				</Label>
 				<div className="relative">
@@ -64,14 +65,14 @@ export default function CreateNewPasswordClient() {
 						onClick={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
 					>
 						{isConfirmPasswordVisible ? (
-							<EyeOffLine className="size-[20px] text-gray-600" />
+							<EyeOffLine className="size-5 text-gray-600" />
 						) : (
-							<EyeLine className="size-[20px] text-gray-600" />
+							<EyeLine className="size-5 text-gray-600" />
 						)}
 					</button>
 				</div>
 			</div>
-			<Button className="w-full h-11 mt-12" type="submit">
+			<Button className="w-full h-11 mt-16" type="submit">
 				Reset Password
 			</Button>
 		</form>

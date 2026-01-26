@@ -6,7 +6,7 @@ import { ChangeEvent } from "react";
 const MAXSIZEINBYTES = 50 * 1024 * 1024;
 type FileExtensionType = "pdf" | "png" | "jpg" | "doc";
 
-export default function useVerificationFileUpload() {
+export function useVerificationFileUpload() {
 	const {
 		file,
 		status,

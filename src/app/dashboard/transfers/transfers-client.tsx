@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import Plus from "@/icons/plus";
+import { Plus } from "@/icons/plus";
 import PatientTransferModal from "./patient-transfer-modal";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
@@ -15,7 +15,7 @@ export default function TransfersClient() {
 				</p>
 				<Dialog>
 					<DialogTrigger asChild>
-						<Button>
+						<Button className="h-11">
 							<Plus /> New Transfer Request
 						</Button>
 					</DialogTrigger>

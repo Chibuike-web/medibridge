@@ -2,28 +2,26 @@
 
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import ChooseFileCard from "@/components/choose-file-card";
-import FileUploadCard from "@/components/file-upload-card";
-import useVerificationFileUpload from "@/hooks/use-verification-file-upload";
+import { useVerificationFileUpload } from "@/hooks/use-verification-file-upload";
 import { useEffect, useState, useTransition } from "react";
 import { createHospitalAction } from "@/actions/create-hospital-action";
-import CheckCircle from "@/icons/check-circle";
+import { CheckCircle } from "@/icons/check-circle";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { hospitalDetailsSchema, HospitalDetailsType } from "@/lib/schemas/hospital-details-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import ErrorWarningFill from "@/icons/error-warning-fill";
+import { ErrorWarningFill } from "@/icons/error-warning-fill";
 import { createOwnerAction } from "@/actions/create-owner-action";
-import { authClient } from "@/lib/better-auth/auth.client";
+import { FileUploadCard } from "@/components/file-upload-card";
+import { ChooseFileCard } from "@/components/choose-file-card";
 
-export default function HospitalUploadClient() {
+export function HospitalDetailsClient() {
 	const router = useRouter();
 	const {
 		file,
 		status,
 		uploadType,
-		uploadInfo,
 		setUploadError,
 		uploadError,
 		uploadRef,
@@ -69,7 +67,7 @@ export default function HospitalUploadClient() {
 			JSON.stringify({
 				...cache,
 				hospital: data,
-			})
+			}),
 		);
 		startTransition(async () => {
 			try {
@@ -105,15 +103,15 @@ export default function HospitalUploadClient() {
 
 	return (
 		<form className="w-full" onSubmit={handleSubmit(onSubmit)}>
-			<div className="mb-5">
-				<Label htmlFor="hospitalName" className="block mb-2">
+			<div className="mb-8">
+				<Label htmlFor="hospitalName" className="block mb-3.5">
 					Hospital Name
 				</Label>
 				<Input
 					id="hospitalName"
 					type="text"
 					placeholder="eg., St. Mary's General Hospital"
-					className="h-11 mt-1"
+					className="h-11"
 					{...register("hospitalName")}
 					aria-labelledby={errors.hospitalName ? "hospital-name-error" : undefined}
 					aria-invalid={!!errors.hospitalName}
@@ -124,15 +122,15 @@ export default function HospitalUploadClient() {
 					</p>
 				)}
 			</div>
-			<div className="mb-5">
-				<Label htmlFor="hospitalAddress" className="block mb-2">
+			<div className="mb-8">
+				<Label htmlFor="hospitalAddress" className="block mb-3.5">
 					Hospital Address
 				</Label>
 				<Input
 					id="hospitalAddress"
 					type="text"
 					placeholder="eg., 123 Healthway Blvd, Springfield, IL"
-					className="h-11 mt-1"
+					className="h-11"
 					{...register("hospitalAddress")}
 					aria-labelledby={errors.hospitalAddress ? "hospital-address-error" : undefined}
 					aria-invalid={!!errors.hospitalAddress}
@@ -143,7 +141,7 @@ export default function HospitalUploadClient() {
 					</p>
 				)}
 			</div>
-			<p className="text-gray-600 mb-2">
+			<p className="text-gray-600 mb-3.5">
 				Upload hospital accreditation or official license document
 			</p>
 
@@ -189,7 +187,7 @@ export default function HospitalUploadClient() {
 					<span>{success}</span>
 				</div>
 			)}
-			<Button className="w-full h-11 mt-12" type="submit" disabled={isPending}>
+			<Button className="w-full h-11 mt-16" type="submit" disabled={isPending}>
 				{isPending ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

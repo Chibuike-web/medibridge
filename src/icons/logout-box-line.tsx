@@ -1,6 +1,6 @@
 import { IconProps } from "@/lib/types/icon-prop-type";
 
-export default function LogoutBoxLine({ className = "" }: IconProps) {
+export function LogoutBoxLine({ className = "" }: IconProps) {
 	return (
 		<svg
 			className={className}
