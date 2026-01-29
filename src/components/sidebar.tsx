@@ -9,8 +9,7 @@ import FunctionLine from "@/icons/function-line";
 import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import UserProfile from "./user-profile";
-import { Input } from "./ui/input";
+import { UserProfile } from "./user-profile";
 import { SearchLine } from "@/icons/search-line";
 
 export default function Sidebar() {
@@ -22,11 +21,9 @@ export default function Sidebar() {
 				<h1 className="font-bold text-[20px] tracking-[-0.02em]">MediBridge</h1>
 			</div>
 			<div className="p-2">
-				<div className="relative">
-					<span className="absolute left-3 top-1/2 -translate-y-1/2">
-						<SearchLine className="size-5" />
-					</span>
-					<Input type="search" className="mb-6 pl-10" placeholder="Search..." />
+				<div className="px-3 flex items-center gap-2 w-full h-9 mb-6 cursor-pointer hover:bg-gray-200 rounded-[8px]">
+					<SearchLine className="size-5" aria-hidden />
+					<p>Search... </p>
 				</div>
 				<ul className="flex flex-col gap-px">
 					{menus.map(({ id, href, text }) => {
@@ -36,11 +33,11 @@ export default function Sidebar() {
 							<li
 								key={id}
 								className={cn(
-									"flex items-center w-full rounded-[8px] hover:bg-gray-200 font-medium",
+									"rounded-[8px] hover:bg-gray-200 font-medium",
 									isActive && "bg-gray-200",
 								)}
 							>
-								<Link href={href} className={cn("px-3 flex items-center gap-2 w-full h-9 ")}>
+								<Link href={href} className={cn("px-3 flex items-center gap-2 w-full h-9")}>
 									<span>
 										{id === "overview" ? (
 											isActive ? (

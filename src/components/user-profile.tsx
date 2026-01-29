@@ -20,7 +20,7 @@ import { authClient, useSession } from "@/lib/better-auth/auth.client";
 import { useRouter } from "next/navigation";
 import { LoaderLine } from "@/icons/loader-line";
 
-export default function UserProfile() {
+export function UserProfile() {
 	const { data } = useSession();
 	const [isPending, startTransition] = useTransition();
 	const router = useRouter();

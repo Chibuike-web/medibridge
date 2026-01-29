@@ -17,7 +17,7 @@ export function AddNewPatientClient() {
 	};
 	return (
 		<div>
-			<div className="px-6 pb-6">
+			<div>
 				{file ? (
 					<>
 						<FileUploadCard
@@ -27,9 +27,7 @@ export function AddNewPatientClient() {
 							uploadType={uploadType}
 							uploadError={uploadError}
 						/>
-						<div>
-							{uploadError && <p className="text-red-500 text-[14px] mt-2">{uploadError}</p>}
-						</div>
+						<div>{uploadError && <p className="text-red-500 text-sm mt-2">{uploadError}</p>}</div>
 					</>
 				) : (
 					<ChooseFileCard handleFileChange={uploadSelectedFiles} uploadRef={uploadRef} />

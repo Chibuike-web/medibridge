@@ -3,7 +3,7 @@
 import { listOrganizationAction } from "@/actions/list-organization-action";
 import { signInAction } from "@/actions/sign-in-action";
 import { Button } from "@/components/ui/button";
-import Checkbox from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle } from "@/icons/check-circle";
@@ -16,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 export default function SignInClient() {
 	const router = useRouter();
@@ -28,6 +28,7 @@ export default function SignInClient() {
 		register,
 		reset,
 		handleSubmit,
+		control,
 		formState: { errors, isSubmitting },
 	} = useForm({
 		resolver: zodResolver(signInSchema),
@@ -134,18 +135,26 @@ export default function SignInClient() {
 					</p>
 				)}
 			</div>
-			<div className="flex items-center justify-between mb-4">
-				<Checkbox<SignInType> id="rememberMe" register={register} name="rememberMe">
-					Remember me
-				</Checkbox>
-				<Link href="/forgot-password" className="font-medium text-[14px]">
+			<div className="flex items-center justify-between mb-4 text-sm">
+				<Controller
+					name="rememberMe"
+					control={control}
+					defaultValue={false}
+					render={({ field }) => (
+						<Label className="flex items-center gap-2 cursor-pointer">
+							<Checkbox checked={field.value} onCheckedChange={field.onChange} />
+							Remember me
+						</Label>
+					)}
+				/>
+
+				<Link href="/forgot-password" className="font-medium text-sm">
 					Forgot Password
 				</Link>
 			</div>
 
 			<p id="sign-in-note" className="text-sm">
-				Use your verified hospital credentials. Access is monitored for compliance and
-				security.{" "}
+				Use your verified hospital credentials. Access is monitored for compliance and security.
 			</p>
 
 			{error && (

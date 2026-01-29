@@ -32,6 +32,7 @@ export function ChooseFileCard({
 					ref={uploadRef}
 					onChange={handleFileChange}
 					className="opacity-0 absolute inset-0"
+					multiple
 					aria-invalid={!!error}
 					aria-describedby={error ? errorId : undefined}
 					aria-label="Upload hospital accreditation or license document"

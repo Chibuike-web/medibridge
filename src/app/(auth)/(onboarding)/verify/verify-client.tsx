@@ -1,6 +1,8 @@
 "use client";
 
-import Checkbox from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils/cn";
 import { useState } from "react";
 
 type CheckboxItem = {
@@ -19,14 +21,10 @@ export default function VerifyClient() {
 	return (
 		<div className="mt-16 flex flex-col items-center gap-4">
 			{checkboxes.map((c) => (
-				<Checkbox
-					id={c.id}
-					key={c.id}
-					defaultChecked={c.status !== "pending"}
-					className="text-[16px]"
-				>
+				<Label key={c.id} className={cn("flex items-center gap-2 opacity-50 cursor-not-allowed")}>
+					<Checkbox id={c.id} key={c.id} defaultChecked={c.status !== "pending"} disabled />
 					{c.value}
-				</Checkbox>
+				</Label>
 			))}
 		</div>
 	);
