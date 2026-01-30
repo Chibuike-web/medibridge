@@ -20,27 +20,127 @@ import { SearchLine } from "@/icons/search-line";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { CloseLine } from "@/icons/close-line";
+import { DialogClose } from "@radix-ui/react-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { SuccessModal } from "@/components/success-modal";
+import { useShowSuccess } from "@/hooks/use-show-success";
+import { useRouter } from "next/navigation";
 
 export default function NewTransferRequestClient() {
+	const { showSuccess, setShowSuccess } = useShowSuccess();
+	const router = useRouter();
 	return (
-		<form className="w-full">
-			<SelectPatient />
-			<AttachClinicalRecords />
-			<SendAs />
-			<div className="flex flex-col gap-3.5 mt-8">
-				<Label>Target Hospital Name</Label>
-				<Input className="h-11" placeholder="e.g., Enugu State Teaching Hospital" />
-			</div>
-			<div className="flex flex-col gap-3.5 mt-8">
-				<Label>Target Hospital Name</Label>
-				<Input className="h-11" placeholder="e.g., Enugu State Teaching Hospital" />
-			</div>
-			<div className="flex flex-col gap-3.5 mt-8">
-				<Label>Target Hospital Name</Label>
-				<Textarea placeholder="Add context or special instructions" />
-			</div>
-			<Button className="h-11 w-full mt-16">Send for Patient Approval</Button>
-		</form>
+		<>
+			<form className="w-full">
+				<SelectPatient />
+				<AttachClinicalRecords />
+				<SendAs />
+				<div className="flex flex-col gap-3.5 mt-8">
+					<Label>Target Hospital Name</Label>
+					<Input className="h-11" placeholder="e.g., Enugu State Teaching Hospital" />
+				</div>
+				<div className="flex flex-col gap-3.5 mt-8">
+					<Label>Target Hospital Name</Label>
+					<Input className="h-11" placeholder="e.g., Enugu State Teaching Hospital" />
+				</div>
+				<div className="flex flex-col gap-3.5 mt-8">
+					<Label>Target Hospital Name</Label>
+					<Textarea placeholder="Add context or special instructions" />
+				</div>
+				<Dialog>
+					<DialogTrigger asChild>
+						<Button className="h-11 w-full mt-16" type="button">
+							Send for Patient Approval
+						</Button>
+					</DialogTrigger>
+					<DialogContent>
+						<DialogHeader className="h-16 px-6 border-b border-gray-200">
+							<DialogTitle className="text-[20px] font-semibold">
+								Confirm Transfer Request
+							</DialogTitle>
+							<DialogClose>
+								<CloseLine className="size-6" />
+							</DialogClose>
+						</DialogHeader>
+						<div className="mt-8 px-6">
+							<p className="text-gray-600 font-medium">
+								Before this transfer request is sent, please review and confirm the following:
+							</p>
+							<ul className="mt-6 mb-8 text-gray-600 flex flex-col gap-4">
+								<li className="flex items-center gap-2">
+									<span aria-hidden>
+										<Check className="size-5" />
+									</span>
+									<span>The correct patient is selected</span>
+								</li>
+								<li className="flex items-center gap-2">
+									<span aria-hidden>
+										<Check className="size-5" />
+									</span>
+									<span>The correct patient is selected</span>
+								</li>
+								<li className="flex items-center gap-2">
+									<span aria-hidden>
+										<Check className="size-5" />
+									</span>
+									<span>The correct patient is selected</span>
+								</li>
+							</ul>
+							<Label className="flex items-center gap-4 px-5 py-3.5 rounded-[8px] bg-gray-50">
+								<Checkbox />
+								<div className="text-sm leading-[1.4em] font-normal">
+									I have reviewed the patient details, selected records, and target hospital
+									information. Everything is accurate and ready to proceed.
+								</div>
+							</Label>
+						</div>
+						<DialogFooter className="mt-16 border-t border-gray-200">
+							<div className="flex gap-4 ml-auto">
+								<Button
+									variant="outline"
+									className="h-11"
+									onClick={() => router.push("/dashboard/transfers")}
+								>
+									Cancel
+								</Button>
+								<Button
+									className="h-11"
+									onClick={() => router.push("/dashboard/new-transfer-request")}
+								>
+									Continue
+								</Button>
+							</div>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+			</form>
+
+			{showSuccess && (
+				<SuccessModal
+					isOpen={showSuccess}
+					setIsOpen={setShowSuccess}
+					heading="Transfer Request Sent"
+					description="Your transfer request has been successfully submitted. 
+The patient will review and approve this transfer before it is sent to the target hospital. You can track the status of this request in the Transfers section."
+				>
+					<DialogFooter className="border-t border-gray-200">
+						<Button variant="outline" className="h-11">
+							Return to Dashboard
+						</Button>
+						<Button className="h-11">Create another request</Button>
+					</DialogFooter>
+				</SuccessModal>
+			)}
+		</>
 	);
 }
 
@@ -121,26 +221,9 @@ function AttachClinicalRecords() {
 							<span className="w-full shrink-0">Select patient records</span>
 						</div>
 					) : (
-						<div className="flex flex-wrap gap-2">
-							{selectedRecords.map((item) => (
-								<span
-									key={item.id}
-									className="flex items-center gap-1 rounded-full bg-foreground/5 px-2 py-1 text-sm text-foreground"
-								>
-									{item.label}
-									<span
-										role="button"
-										tabIndex={0}
-										onClick={(e) => {
-											e.stopPropagation();
-											selectClinicalRecordClick(item.id);
-										}}
-										className="cursor-pointer px-1"
-									>
-										×
-									</span>
-								</span>
-							))}
+						<div className="flex gap-1.5 items-center text-sm text-foreground">
+							<span className="flex items-center">{selectedRecords[0].label}</span>
+							{selectedRecords.length - 1 > 0 && <span> +{selectedRecords.length - 1} more</span>}
 						</div>
 					)}
 					<ArrowDownLine className="size-5 text-gray-400 shrink-0" />

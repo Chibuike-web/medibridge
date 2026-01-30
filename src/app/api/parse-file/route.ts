@@ -1,6 +1,6 @@
 import { FilePart, generateText, Output } from "ai";
 import { PatientSchema } from "@/lib/schemas/patient-schema";
-import { supabase } from "../utils/supabase";
+import { supabase } from "../../../lib/utils/supabase";
 
 export async function POST(req: Request) {
 	try {
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 			console.error(error);
 			return Response.json(
 				{ status: "failed", error: "File not found in storage" },
-				{ status: 404 }
+				{ status: 404 },
 			);
 		}
 

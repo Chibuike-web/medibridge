@@ -1,29 +1,23 @@
 "use client";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import Image from "next/image";
-import { Button } from "./ui/button";
+import { ReactNode } from "react";
 
 export function SuccessModal({
 	isOpen,
-	onClick,
+	setIsOpen,
 	heading,
 	description,
-	buttonText,
+	children,
 }: {
 	isOpen: boolean;
-	onClick: () => void;
+	setIsOpen: (value: boolean) => void;
 	heading: string;
 	description: string;
-	buttonText: string;
+	children: ReactNode;
 }) {
 	return (
-		<Dialog open={isOpen}>
+		<Dialog open={isOpen} onOpenChange={() => setIsOpen(!isOpen)}>
 			<DialogContent>
 				<div className="flex flex-col gap-6 items-center py-16 px-12">
 					<Image src="/assets/success-icon.svg" width={160} height={160} alt="" />
@@ -34,11 +28,7 @@ export function SuccessModal({
 						<DialogDescription className="text-center">{description}</DialogDescription>
 					</div>
 				</div>
-				<DialogFooter className="border-t border-gray-200 w-full">
-					<Button className="h-11 w-full cursor-pointer" onClick={onClick}>
-						{buttonText}
-					</Button>
-				</DialogFooter>
+				{children}
 			</DialogContent>
 		</Dialog>
 	);

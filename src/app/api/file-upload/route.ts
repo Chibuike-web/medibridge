@@ -1,4 +1,5 @@
-import { supabase } from "@/app/api/utils/supabase";
+import { supabase } from "@/lib/utils/supabase";
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
 	try {
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
 
 		if (signedError) console.log(signedError);
 
-		return Response.json(
+		return NextResponse.json(
 			{
 				status: "success",
 				filename: file.name,
@@ -34,10 +35,10 @@ export async function POST(req: Request) {
 				size: file.size,
 				url: signed?.signedUrl,
 			},
-			{ status: 200 }
+			{ status: 200 },
 		);
 	} catch (error) {
 		console.log(error);
-		return Response.json({ status: "failed", error }, { status: 500 });
+		return NextResponse.json({ status: "failed", error }, { status: 500 });
 	}
 }
