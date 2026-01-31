@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/select";
 import { patients } from "../transfers/data";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import ArrowDownLine from "@/icons/arrow-down-line";
-import Check from "@/icons/check";
+import { ArrowDownLine } from "@/icons/arrow-down-line";
+import { Check } from "@/icons/check";
 import { cn } from "@/lib/utils/cn";
 import { ReactNode, useRef, useState } from "react";
 import { SearchLine } from "@/icons/search-line";
@@ -214,7 +214,7 @@ function AttachClinicalRecords() {
 			<Popover>
 				<PopoverTrigger
 					ref={popoverTriggerRef}
-					className="flex min-h-[44px] items-center justify-between gap-4 w-full border border-input px-4 py-2 text-left rounded-md"
+					className="flex h-[44px] items-center justify-between gap-4 w-full border border-input px-4 py-2 text-left outline-0 rounded-md focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
 				>
 					{selectedRecords.length === 0 ? (
 						<div className="text-gray-500 whitespace-nowrap overflow-hidden gap-2 ">
@@ -234,7 +234,7 @@ function AttachClinicalRecords() {
 						<MultiSelectItem
 							key={item.id}
 							selected={item.selected}
-							handleClick={() => selectClinicalRecordClick(item.id)}
+							onClick={() => selectClinicalRecordClick(item.id)}
 						>
 							{item.label}
 						</MultiSelectItem>
@@ -260,7 +260,7 @@ function SendAs() {
 					<CheckButton
 						key={index}
 						selected={selectedFormat === index}
-						handleClick={() => sendFileFormatClick(index)}
+						onClick={() => sendFileFormatClick(index)}
 					>
 						{format}
 					</CheckButton>
@@ -309,16 +309,16 @@ const formats = ["PDF", "Image", "Word"];
 function MultiSelectItem({
 	children,
 	selected,
-	handleClick,
+	onClick,
 }: {
 	children: ReactNode;
 	selected: boolean;
-	handleClick: () => void;
+	onClick: () => void;
 }) {
 	return (
 		<button
 			type="button"
-			onClick={handleClick}
+			onClick={onClick}
 			className={cn(
 				"flex w-full text-left items-center justify-between rounded-md px-3 h-11 text-sm",
 				selected ? "bg-foreground/5 text-foreground" : "text-gray-600 hover:bg-gray-50",
@@ -333,16 +333,16 @@ function MultiSelectItem({
 const CheckButton = ({
 	children,
 	selected,
-	handleClick,
+	onClick,
 }: {
 	children: ReactNode;
 	selected: number | boolean;
-	handleClick: () => void;
+	onClick: () => void;
 }) => {
 	return (
 		<button
 			type="button"
-			onClick={handleClick}
+			onClick={onClick}
 			className={cn(
 				"px-[14px] py-2 border rounded-full text-gray-400 flex items-center gap-2 focus:outline-0 focus-visible:ring-ring/50 focus-visible:ring-[3px]",
 				selected

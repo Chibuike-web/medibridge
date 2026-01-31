@@ -45,7 +45,7 @@ export function OwnerClient() {
 		router.push("/hospital-details");
 	};
 	return (
-		<form onSubmit={handleSubmit(onSubmit)} className="text-gray-800">
+		<form onSubmit={handleSubmit(onSubmit)} className="text-gray-800 w-full">
 			<div className="mb-8">
 				<Label htmlFor="name" className="block mb-3.5">
 					Name
@@ -92,42 +92,40 @@ export function OwnerClient() {
 				)}
 			</div>
 
-			<div>
-				<Label htmlFor="password" className="block mb-3.5">
-					Password
-				</Label>
-				<div className="relative">
-					<Input
-						id="password"
-						type={isVisible ? "text" : "password"}
-						placeholder="Enter a secure password"
-						className="h-11"
-						{...register("password")}
-						aria-describedby={errors.password ? "password-error" : undefined}
-						aria-invalid={!!errors.password}
-					/>
-					<button
-						type="button"
-						aria-pressed={isVisible}
-						aria-label={isVisible ? "Hide password" : "Show password"}
-						className="absolute right-4 top-1/2 -translate-y-1/2"
-						onClick={() => setIsVisible(!isVisible)}
-					>
-						<span aria-hidden="true">
-							{isVisible ? (
-								<EyeOffLine className="size-5 text-gray-600" />
-							) : (
-								<EyeLine className="size-5 text-gray-600" />
-							)}
-						</span>
-					</button>
-				</div>
-				{errors.password && (
-					<p id="password-error" className="font-medium text-red-500 mt-2 text-sm">
-						{errors.password.message}
-					</p>
-				)}
+			<Label htmlFor="password" className="block mb-3.5">
+				Password
+			</Label>
+			<div className="relative">
+				<Input
+					id="password"
+					type={isVisible ? "text" : "password"}
+					placeholder="Enter a secure password"
+					className="h-11"
+					{...register("password")}
+					aria-describedby={errors.password ? "password-error" : undefined}
+					aria-invalid={!!errors.password}
+				/>
+				<button
+					type="button"
+					aria-pressed={isVisible}
+					aria-label={isVisible ? "Hide password" : "Show password"}
+					className="absolute right-4 top-1/2 -translate-y-1/2"
+					onClick={() => setIsVisible(!isVisible)}
+				>
+					<span aria-hidden="true">
+						{isVisible ? (
+							<EyeOffLine className="size-5 text-gray-600" />
+						) : (
+							<EyeLine className="size-5 text-gray-600" />
+						)}
+					</span>
+				</button>
 			</div>
+			{errors.password && (
+				<p id="password-error" className="font-medium text-red-500 mt-2 text-sm">
+					{errors.password.message}
+				</p>
+			)}
 
 			<Button className="w-full h-11 mt-16" type="submit">
 				Continue

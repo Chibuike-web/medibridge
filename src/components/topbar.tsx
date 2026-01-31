@@ -1,7 +1,7 @@
 "use client";
 
-import NotificationLine from "@/icons/notification-line";
-import SearchLine from "@/icons/search-line";
+import { NotificationLine } from "@/icons/notification-line";
+import { SearchLine } from "@/icons/search-line";
 
 export default function Topbar() {
 	return (

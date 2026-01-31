@@ -1,11 +1,11 @@
 "use client";
 
-import FileListFill from "@/icons/file-list-fill";
-import FileListLine from "@/icons/file-list-line";
-import FileTransferFill from "@/icons/file-transfer-fill";
-import FileTransferLine from "@/icons/file-transfer-line";
-import FunctionFill from "@/icons/function-fill";
-import FunctionLine from "@/icons/function-line";
+import { FileListFill } from "@/icons/file-list-fill";
+import { FileListLine } from "@/icons/file-list-line";
+import { FileTransferFill } from "@/icons/file-transfer-fill";
+import { FileTransferLine } from "@/icons/file-transfer-line";
+import { FunctionFill } from "@/icons/function-fill";
+import { FunctionLine } from "@/icons/function-line";
 import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

@@ -44,33 +44,32 @@ export function AdminInviteClient() {
 						</p>
 					)}
 				</div>
-				<div>
-					<Label htmlFor="email" className="block mb-3.5">
-						Email Address
-					</Label>
-					<Input
-						id="email"
-						type="email"
-						placeholder="sarah.thompson@stmaryhospital.org"
-						className="h-11"
-						{...register("email")}
-						aria-invalid={!!errors.email}
-						aria-describedby={errors.email ? "email-error" : "email-info"}
-					/>
-					{errors.email && (
-						<p id="email-error" className="font-medium text-red-500 mt-2 text-sm">
-							{errors.email.message}
-						</p>
-					)}
-					{!errors.email && (
-						<p id="email-info" className="flex gap-1 items-center mt-2">
-							<InformationLine className="text-gray-400 size-4" aria-hidden="true" />
-							<span className="text-[14px] text-gray-400">
-								Must be official verified hospital email
-							</span>
-						</p>
-					)}
-				</div>
+
+				<Label htmlFor="email" className="block mb-3.5">
+					Email Address
+				</Label>
+				<Input
+					id="email"
+					type="email"
+					placeholder="sarah.thompson@stmaryhospital.org"
+					className="h-11"
+					{...register("email")}
+					aria-invalid={!!errors.email}
+					aria-describedby={errors.email ? "email-error" : "email-info"}
+				/>
+				{errors.email && (
+					<p id="email-error" className="font-medium text-red-500 mt-2 text-sm">
+						{errors.email.message}
+					</p>
+				)}
+				{!errors.email && (
+					<p id="email-info" className="flex gap-1 items-center mt-2">
+						<InformationLine className="text-gray-400 size-4" aria-hidden="true" />
+						<span className="text-[14px] text-gray-400">
+							Must be official verified hospital email
+						</span>
+					</p>
+				)}
 
 				<Button className="w-full h-11 mt-16" type="submit" disabled={isSubmitting}>
 					{isSubmitting ? (
@@ -93,7 +92,7 @@ export function AdminInviteClient() {
 					<DialogFooter className="border-t border-gray-200 w-full">
 						<Button
 							className="h-11 w-full cursor-pointer"
-							onClick={() => router.push("/dashboard")}
+							onClick={() => router.push("/dashboard/overview")}
 						>
 							Continue to Dashboard
 						</Button>

@@ -46,42 +46,40 @@ export function AcceptInviteClient() {
 					/>
 				</div>
 
-				<div>
-					<Label htmlFor="password" className="block mb-2">
-						Password
-					</Label>
-					<div className="relative">
-						<Input
-							id="password"
-							type={isVisible ? "text" : "password"}
-							placeholder="Enter a secure password"
-							className="h-11"
-							{...register("password")}
-							aria-describedby={errors.password ? "password-error" : undefined}
-							aria-invalid={!!errors.password}
-						/>
-						<button
-							type="button"
-							aria-pressed={isVisible}
-							aria-label={isVisible ? "Hide password" : "Show password"}
-							className="absolute right-4 top-1/2 -translate-y-1/2"
-							onClick={() => setIsVisible(!isVisible)}
-						>
-							<span aria-hidden="true">
-								{isVisible ? (
-									<EyeOffLine className="size-5 text-gray-600" />
-								) : (
-									<EyeLine className="size-5 text-gray-600" />
-								)}
-							</span>
-						</button>
-					</div>
-					{errors.password && (
-						<p id="password-error" className="font-medium text-red-500 mt-2 text-sm">
-							{errors.password.message}
-						</p>
-					)}
+				<Label htmlFor="password" className="block mb-2">
+					Password
+				</Label>
+				<div className="relative">
+					<Input
+						id="password"
+						type={isVisible ? "text" : "password"}
+						placeholder="Enter a secure password"
+						className="h-11"
+						{...register("password")}
+						aria-describedby={errors.password ? "password-error" : undefined}
+						aria-invalid={!!errors.password}
+					/>
+					<button
+						type="button"
+						aria-pressed={isVisible}
+						aria-label={isVisible ? "Hide password" : "Show password"}
+						className="absolute right-4 top-1/2 -translate-y-1/2"
+						onClick={() => setIsVisible(!isVisible)}
+					>
+						<span aria-hidden="true">
+							{isVisible ? (
+								<EyeOffLine className="size-5 text-gray-600" />
+							) : (
+								<EyeLine className="size-5 text-gray-600" />
+							)}
+						</span>
+					</button>
 				</div>
+				{errors.password && (
+					<p id="password-error" className="font-medium text-red-500 mt-2 text-sm">
+						{errors.password.message}
+					</p>
+				)}
 
 				{success && (
 					<div className="flex items-center gap-2 px-4 py-4 mt-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200 shadow-sm">

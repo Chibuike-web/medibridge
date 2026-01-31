@@ -20,13 +20,7 @@ type FileUploadCardProps = {
 	status: "idle" | "uploading" | "completed" | "failed";
 };
 
-export function FileUploadCard({
-	file,
-	onClear,
-	status,
-	uploadType,
-	uploadError,
-}: FileUploadCardProps) {
+export function FileUploadCard({ file, onClear, status, uploadType }: FileUploadCardProps) {
 	if (!file) return null;
 	const fileFormat: Record<string, string> = {
 		pdf: pdfFileFormat,

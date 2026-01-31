@@ -1,6 +1,6 @@
 import { IconProps } from "@/lib/types/icon-prop-type";
 
-export default function CircleLine({ className = "" }: IconProps) {
+export function CircleLine({ className = "" }: IconProps) {
 	return (
 		<svg
 			className={className}

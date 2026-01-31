@@ -3,9 +3,9 @@
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { cn } from "@/lib/utils/cn";
-import Check from "@/icons/check";
-import ArrowUpLine from "@/icons/arrow-up-line";
-import ArrowDownLine from "@/icons/arrow-down-line";
+import { Check } from "@/icons/check";
+import { ArrowUpLine } from "@/icons/arrow-up-line";
+import { ArrowDownLine } from "@/icons/arrow-down-line";
 
 function Select({ ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {
 	return <SelectPrimitive.Root data-slot="select" {...props} />;

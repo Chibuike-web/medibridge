@@ -1,4 +1,4 @@
-import UploadCloudLine from "@/icons/upload-cloud-line";
+import { UploadCloudLine } from "@/icons/upload-cloud-line";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { ChangeEvent, Ref } from "react";

@@ -4,13 +4,13 @@ import { HospitalDetailsClient } from "./hospital-details-client";
 
 export default function HospitalDetails() {
 	return (
-		<main>
+		<>
 			<nav className="w-full h-16 flex items-center sticky top-0 bg-white border-b border-gray-300 px-8">
 				<Link href="/owner" className="flex gap-2 w-max items-center text-foreground">
 					<ArrowLeftLine className="size-5" /> <span className="sr-only">Back</span>
 				</Link>
 			</nav>
-			<div className="max-w-[600px] mx-auto  min-h-[calc(100dvh-90px)] grid place-items-center">
+			<main className="max-w-[600px] mx-auto  min-h-[calc(100dvh-64px)] grid place-items-center my-10">
 				<div className="w-full px-6 md:px-0">
 					<div className="mb-10">
 						<h1 className="text-[1.8rem] text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] mb-4">
@@ -23,7 +23,7 @@ export default function HospitalDetails() {
 					</div>
 					<HospitalDetailsClient />
 				</div>
-			</div>
-		</main>
+			</main>
+		</>
 	);
 }

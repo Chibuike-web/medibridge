@@ -1,6 +1,6 @@
 import { IconProps } from "@/lib/types/icon-prop-type";
 
-export default function ArrowRightLine({ className = "" }: IconProps) {
+export function ArrowRightLine({ className = "" }: IconProps) {
 	return (
 		<svg
 			className={className}

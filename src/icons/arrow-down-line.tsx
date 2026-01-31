@@ -1,6 +1,6 @@
 import { IconProps } from "@/lib/types/icon-prop-type";
 
-export default function ArrowDownLine({ className = "" }: IconProps) {
+export function ArrowDownLine({ className = "" }: IconProps) {
 	return (
 		<svg
 			className={className}

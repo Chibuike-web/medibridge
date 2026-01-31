@@ -1,5 +1,5 @@
 "use client";
 
-export default function TransfersClient() {
+export function TransfersClient() {
 	return <div></div>;
 }
