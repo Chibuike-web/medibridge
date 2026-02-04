@@ -5,50 +5,64 @@ import { FileUploadCard } from "@/components/file-upload-card";
 import { Button } from "@/components/ui/button";
 import { useFileParse } from "@/hooks/use-file-parse";
 import { useFileUpload } from "@/hooks/use-file-upload";
+import { useRef } from "react";
 
 export function AddNewPatientClient() {
-	const { file, status, uploadType, uploadError, uploadRef, onClear, uploadSelectedFiles } =
-		useFileUpload();
-	const { parseStatus, setParseStatus } = useFileParse();
+	const { selectedFiles: files, clearFile, uploadError, uploadSelectedFiles } = useFileUpload();
+	const { parseStatus } = useFileParse();
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	const clearAndResetParseStatus = () => {
-		onClear();
-		setParseStatus("idle");
+	const clear = (id: string) => {
+		clearFile(id);
+		if (fileInputRef.current) {
+			fileInputRef.current.value = "";
+		}
 	};
 	return (
-		<div>
+		<>
 			<div>
-				{file ? (
+				{files.length > 0 ? (
 					<>
-						<FileUploadCard
-							file={file}
-							onClear={clearAndResetParseStatus}
-							status={status}
-							uploadType={uploadType}
-							uploadError={uploadError}
-						/>
-						<div>{uploadError && <p className="text-red-500 text-sm mt-2">{uploadError}</p>}</div>
+						<div className="flex flex-col gap-3 mb-50">
+							{files.map((file) => (
+								<FileUploadCard key={file.id} file={file} onRemove={clear} />
+							))}
+						</div>
+						{uploadError ? (
+							<p className="text-red-500 text-sm mt-2 text-pretty">{uploadError}</p>
+						) : null}
 					</>
 				) : (
-					<ChooseFileCard handleFileChange={uploadSelectedFiles} uploadRef={uploadRef} />
+					<ChooseFileCard handleFileChange={uploadSelectedFiles} fileInputRef={fileInputRef} />
 				)}
-				{parseStatus === "error" && (
-					<p className="text-red-500 font-medium mt-2">Issue parsing the file, Try again</p>
-				)}
+				{parseStatus === "error" ? (
+					<p className="text-red-500 font-medium mt-2 text-pretty">
+						Issue parsing the file, Try again
+					</p>
+				) : null}
 			</div>
 			<Footer />
-		</div>
+		</>
 	);
 }
 
 function Footer() {
+	const { setParseStatus, parseFile } = useFileParse();
 	return (
-		<footer className="fixed z-100 bottom-0 left-0 right-0 flex items-center justify-center border-t h-22 border-gray-200">
-			<div className="flex w-full justify-between items-center max-w-[600px]">
+		<footer className="fixed z-50 bottom-0 left-0 right-0 flex items-center justify-center border-t h-20 border-gray-200 pb-[env(safe-area-inset-bottom)] bg-white">
+			<div className="flex w-full justify-between items-center max-w-xl">
 				<Button variant="outline" className="h-11">
-					Upload more
+					Upload More
 				</Button>
-				<Button className="h-11">Parse document</Button>
+				<Button
+					className="h-11"
+					onClick={() => {
+						parseFile();
+						setParseStatus("parsing");
+					}}
+				>
+					Parse Document
+				</Button>
 			</div>
 		</footer>
 	);

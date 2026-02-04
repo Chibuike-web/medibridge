@@ -19,18 +19,14 @@ export const auth = betterAuth({
 	}),
 	emailAndPassword: { enabled: true },
 	emailVerification: {
-		sendVerificationEmail: async ({ user, url, token }) => {
+		sendVerificationEmail: async ({ user, url }) => {
 			console.log(user);
 			console.log("Verification URL:", url);
 			const data = await sendEmail(user.email, url);
 			console.log(data);
 		},
 	},
-	user: {
-		deleteUser: {
-			enabled: true,
-		},
-	},
+	user: { deleteUser: { enabled: true } },
 	session: { expiresIn: 60 * 60 * 24 * 7 },
 	debug: true,
 	secret: ENV.BETTER_AUTH_SECRET!,

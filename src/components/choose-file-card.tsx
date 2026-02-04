@@ -1,19 +1,19 @@
 import { UploadCloudLine } from "@/icons/upload-cloud-line";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
-import { ChangeEvent, Ref } from "react";
+import { ChangeEvent, RefObject } from "react";
 import { cn } from "@/lib/utils/cn";
 
 type ChooseFileCardPropsType = {
 	handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
-	uploadRef: Ref<HTMLInputElement>;
+	fileInputRef: RefObject<HTMLInputElement | null>;
 	error?: string;
 	errorId?: string;
 };
 
 export function ChooseFileCard({
 	handleFileChange,
-	uploadRef,
+	fileInputRef,
 	error,
 	errorId,
 }: ChooseFileCardPropsType) {
@@ -29,7 +29,7 @@ export function ChooseFileCard({
 				<input
 					type="file"
 					id="file-upload"
-					ref={uploadRef}
+					ref={fileInputRef}
 					onChange={handleFileChange}
 					className="opacity-0 absolute inset-0"
 					multiple
@@ -45,7 +45,7 @@ export function ChooseFileCard({
 				</p>
 				<p className="text-gray-600 text-[12px] text-center">JPEG, PNG, and PDF, up to 50 MB.</p>
 			</div>
-			<Button variant="outline" type="button">
+			<Button variant="outline" type="button" onClick={() => fileInputRef.current?.click()}>
 				Browse File
 			</Button>
 		</div>

@@ -8,17 +8,18 @@ export function useFileParse() {
 	const router = useRouter();
 	const { parseStatus, setParseStatus } = useParseStatus();
 	const { setPatientData } = useParsedPatient();
-	const { file, onClear } = useUpload();
-	const { setIsOpen } = useModal();
+	const { selectedFiles, clearAll } = useUpload();
 
 	const parseFile = async () => {
-		if (!file) return;
+		if (selectedFiles.length === 0) return;
 		setParseStatus("parsing");
 		try {
+			const filenames = selectedFiles.map((f) => f.file.name);
+
 			const res = await fetch("/api/parse-file", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ filename: file.name }),
+				body: JSON.stringify({ filenames }),
 			});
 
 			const parsed = await res.json();
@@ -31,15 +32,8 @@ export function useFileParse() {
 			setParseStatus("success");
 			setPatientData(parsed);
 
-			await new Promise((res) => setTimeout(res, 1000));
-
+			clearAll();
 			router.push("/dashboard/review-info-extract");
-
-			setTimeout(() => {
-				onClear();
-				setParseStatus("idle");
-				setIsOpen(false);
-			}, 2500);
 		} catch (error) {
 			console.error(error);
 			setParseStatus("error");

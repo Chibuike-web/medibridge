@@ -1,67 +1,72 @@
 import { Ref } from "react";
 import { create } from "zustand";
 
-export type FileExtensionType = "pdf" | "png" | "jpg" | "doc" | "";
+export type AllowedFileExtension = "pdf" | "png" | "jpg" | "doc" | "";
 
-type UploadInfo = Record<string, any>;
+export type UploadResult = {
+	name: string;
+	size: number;
+	type: string;
+	url: string;
+};
+export type UploadStatus = "idle" | "uploading" | "completed" | "failed";
 
-type UploadStatus = "idle" | "uploading" | "completed" | "failed";
+export type SelectedFile = {
+	id: string;
+	file: File;
+	extension: AllowedFileExtension;
+	status: UploadStatus;
+	fileInputRef?: Ref<HTMLInputElement>;
+};
 
 type UploadState = {
-	file: File | null;
-	status: UploadStatus;
-	uploadInfo: UploadInfo;
+	selectedFiles: SelectedFile[];
+	uploadResults: UploadResult[];
 	uploadError: string;
-	uploadType: FileExtensionType;
-	uploadRef: Ref<HTMLInputElement | null>;
 
-	setFile: (file: File | null) => void;
-	setStatus: (status: UploadStatus) => void;
-	setUploadInfo: (info: UploadInfo) => void;
+	setSelectedFiles: (files: SelectedFile[]) => void;
+	updateFileStatus: (id: string, status: UploadStatus) => void;
+	clearFile: (id: string) => void;
+	clearAll: () => void;
 	setUploadError: (error: string) => void;
-	setUploadType: (type: FileExtensionType) => void;
-	setUploadRef: (ref: Ref<HTMLInputElement | null>) => void;
-	onClear: () => void;
+	setUploadResults: (results: UploadResult[]) => void;
 };
 
 const useUploadStore = create<UploadState>((set) => ({
-	file: null,
-	status: "idle",
-	uploadInfo: {},
+	selectedFiles: [],
+	uploadResults: [],
 	uploadError: "",
-	uploadType: "",
-	uploadRef: null,
 
-	setFile: (file) => set({ file }),
-	setStatus: (status) => set({ status }),
-	setUploadInfo: (uploadInfo) => set({ uploadInfo }),
-	setUploadError: (uploadError) => set({ uploadError }),
-	setUploadType: (uploadType) => set({ uploadType }),
-	setUploadRef: (uploadRef) => set({ uploadRef }),
-	onClear: () =>
+	setSelectedFiles: (files) => set({ selectedFiles: files }),
+	updateFileStatus: (id, status) =>
+		set((state) => ({
+			selectedFiles: state.selectedFiles.map((file) =>
+				file.id === id ? { ...file, status } : file,
+			),
+		})),
+	clearFile: (id) =>
+		set((state) => ({
+			selectedFiles: state.selectedFiles.filter((f) => f.id !== id),
+		})),
+	clearAll: () =>
 		set({
-			file: null,
-			status: "idle",
-			uploadInfo: {},
+			selectedFiles: [],
+			uploadResults: [],
 			uploadError: "",
-			uploadType: "",
-			uploadRef: null,
 		}),
+	setUploadError: (error: string) => set({ uploadError: error }),
+	setUploadResults: (uploadResults) => set({ uploadResults }),
 }));
 
 export const useUpload = () => ({
-	file: useUploadStore((s) => s.file),
-	status: useUploadStore((s) => s.status),
-	uploadInfo: useUploadStore((s) => s.uploadInfo),
+	selectedFiles: useUploadStore((s) => s.selectedFiles),
+	uploadResults: useUploadStore((s) => s.uploadResults),
 	uploadError: useUploadStore((s) => s.uploadError),
-	uploadType: useUploadStore((s) => s.uploadType),
-	uploadRef: useUploadStore((s) => s.uploadRef),
 
-	setFile: useUploadStore((s) => s.setFile),
-	setStatus: useUploadStore((s) => s.setStatus),
-	setUploadInfo: useUploadStore((s) => s.setUploadInfo),
+	setSelectedFiles: useUploadStore((s) => s.setSelectedFiles),
+	updateFileStatus: useUploadStore((s) => s.updateFileStatus),
+	setUploadResults: useUploadStore((s) => s.setUploadResults),
 	setUploadError: useUploadStore((s) => s.setUploadError),
-	setUploadType: useUploadStore((s) => s.setUploadType),
-	setUploadRef: useUploadStore((s) => s.setUploadRef),
-	onClear: useUploadStore((s) => s.onClear),
+	clearFile: useUploadStore((s) => s.clearFile),
+	clearAll: useUploadStore((s) => s.clearAll),
 });

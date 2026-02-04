@@ -6,15 +6,15 @@ import Link from "next/link";
 
 export function PatientsRecordsClient() {
 	return (
-		<div className="w-full mx-auto max-w-[1440px] flex items-center justify-center h-full p-10">
-			<div className="flex flex-col items-center max-w-[355px]">
-				<h1 className="font-semibold text-[24px] text-center mb-6">No records yet</h1>
-				<p className="mb-12 text-center">
+		<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">
+			<div className="flex flex-col items-center max-w-xl">
+				<h1 className="font-semibold text-2xl text-center text-balance mb-6">No Records Yet</h1>
+				<p className="mb-12 text-center text-pretty">
 					Patient records will appear here once you add them. Start by creating a patient profile.
 				</p>
 				<Button className="h-11" asChild>
 					<Link href="/dashboard/add-new-patient">
-						<Plus className="size-6" /> Add new patient
+						<Plus className="size-6" /> Add New Patient
 					</Link>
 				</Button>
 			</div>

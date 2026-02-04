@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
-import { saveFile } from "../../../lib/save-file";
+import { saveFile } from "@/lib/save-file";
 
 const uploadDir = path.resolve("hospital-uploads");
 
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 				mimetype: file.type,
 				size: file.size,
 			},
-			{ status: 200 }
+			{ status: 200 },
 		);
 	} catch (error) {
 		console.log(error);
