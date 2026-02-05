@@ -1,4 +1,3 @@
-import { Ref } from "react";
 import { create } from "zustand";
 
 export type AllowedFileExtension = "pdf" | "png" | "jpg" | "doc" | "";
@@ -16,7 +15,6 @@ export type SelectedFile = {
 	file: File;
 	extension: AllowedFileExtension;
 	status: UploadStatus;
-	fileInputRef?: Ref<HTMLInputElement>;
 };
 
 type UploadState = {
