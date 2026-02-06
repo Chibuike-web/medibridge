@@ -2,14 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import EditLine from "@/icons/edit-line";
-import MotionDiv from "@/components/motion-wrapper";
 import { formatKey } from "@/lib/utils/format-key";
 import { useParsedPatient } from "@/store/use-parsed-patient-store";
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-import SuccessModal from "@/components/success-modal";
+import { SuccessModal } from "@/components/success-modal";
+import { DialogFooter } from "@/components/ui/dialog";
 
 export default function ReviewInfoExtractClient() {
 	const { patientData } = useParsedPatient();
@@ -43,11 +42,16 @@ export default function ReviewInfoExtractClient() {
 			{isOpen && (
 				<SuccessModal
 					isOpen={isOpen}
-					onClick={closeModal}
+					setIsOpen={setIsOpen}
 					heading="Patient Record Saved Successfully"
 					description="The patient's information has been securely saved. You may now proceed with additional	documentation or return to the dashboard."
-					buttonText="Return to Dashboard"
-				/>
+				>
+					<DialogFooter className="border-t border-gray-200 w-full">
+						<Button className="h-11 w-full cursor-pointer" onClick={closeModal}>
+							Return to Dashboard
+						</Button>
+					</DialogFooter>
+				</SuccessModal>
 			)}
 		</div>
 	);
@@ -74,7 +78,7 @@ const InfoExtractAccordion = ({
 
 			<AnimatePresence>
 				{isOpen && (
-					<MotionDiv
+					<motion.div
 						key={heading}
 						initial={{ opacity: 0, height: 0 }}
 						animate={{ opacity: 1, height: "auto" }}
@@ -100,7 +104,7 @@ const InfoExtractAccordion = ({
 								<span className="leading-3.5 block">Edit</span>
 							</button>
 						</div>
-					</MotionDiv>
+					</motion.div>
 				)}
 			</AnimatePresence>
 		</div>

@@ -12,7 +12,8 @@ export function AddNewPatientClient() {
 	const { parseStatus } = useFileParse();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	const clear = (id: string) => {
+	const clear = (id?: string) => {
+		if (!id) return;
 		clearFile(id);
 		if (fileInputRef.current) {
 			fileInputRef.current.value = "";
@@ -25,7 +26,14 @@ export function AddNewPatientClient() {
 					<>
 						<div className="flex flex-col gap-3 mb-50">
 							{files.map((file) => (
-								<FileUploadCard key={file.id} file={file} onRemove={clear} />
+								<FileUploadCard
+									key={file.id}
+									file={file.file}
+									extension={file.extension}
+									id={file.id}
+									status={file.status}
+									onRemove={clear}
+								/>
 							))}
 						</div>
 						{uploadError ? (

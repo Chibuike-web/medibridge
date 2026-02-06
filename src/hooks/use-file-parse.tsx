@@ -2,7 +2,6 @@ import { useRouter } from "next/navigation";
 import { useParsedPatient } from "@/store/use-parsed-patient-store";
 import { useParseStatus } from "@/store/use-parse-status-store";
 import { useUpload } from "@/store/use-upload-store";
-import { useModal } from "@/store/use-modal-store";
 
 export function useFileParse() {
 	const router = useRouter();

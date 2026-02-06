@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useVerificationFileUpload } from "@/hooks/use-verification-file-upload";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { createHospitalAction } from "@/actions/create-hospital-action";
 import { CheckCircle } from "@/icons/check-circle";
 import { Input } from "@/components/ui/input";
@@ -18,16 +18,8 @@ import { ChooseFileCard } from "@/components/choose-file-card";
 
 export function HospitalDetailsClient() {
 	const router = useRouter();
-	const {
-		file,
-		status,
-		uploadType,
-		setUploadError,
-		uploadError,
-		uploadRef,
-		onClear,
-		handleFileChange,
-	} = useVerificationFileUpload();
+	const { file, status, uploadType, setUploadError, uploadError, onClear, handleFileChange } =
+		useVerificationFileUpload();
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
 	const [isPending, startTransition] = useTransition();
@@ -44,6 +36,8 @@ export function HospitalDetailsClient() {
 			hospitalAddress: "",
 		},
 	});
+
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
 		const cache = localStorage.getItem("ONBOARDING_CACHE");
@@ -146,17 +140,11 @@ export function HospitalDetailsClient() {
 			</p>
 
 			{file ? (
-				<FileUploadCard
-					file={file}
-					onClear={onClear}
-					status={status}
-					uploadType={uploadType}
-					uploadError={uploadError}
-				/>
+				<FileUploadCard file={file} onRemove={onClear} status={status} extension={uploadType} />
 			) : (
 				<ChooseFileCard
 					handleFileChange={handleFileChange}
-					uploadRef={uploadRef}
+					fileInputRef={fileInputRef}
 					error={uploadError}
 					errorId="file-upload-error"
 				/>
