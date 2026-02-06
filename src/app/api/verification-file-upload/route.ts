@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 			{ status: 200 },
 		);
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 		return Response.json({ status: "failed" }, { status: 500 });
 	}
 }

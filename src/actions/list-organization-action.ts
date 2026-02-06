@@ -5,12 +5,9 @@ import { headers } from "next/headers";
 
 export async function listOrganizationAction() {
 	try {
-		const org = await auth.api.listOrganizations({
+		await auth.api.listOrganizations({
 			headers: await headers(),
 		});
-
-		const selectedOrg = org[0];
-		console.log(selectedOrg.id);
 
 		return {
 			status: "success",

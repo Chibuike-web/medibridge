@@ -33,6 +33,7 @@ export function useFileUpload() {
 		for (const ext of fileExtensions) {
 			if (!ext || !allowedTypes.includes(ext)) {
 				setUploadError("Invalid file type. Only PDF, PNG, JPG, and DOC are allowed.");
+				e.target.value = "";
 				return;
 			}
 		}
@@ -41,6 +42,8 @@ export function useFileUpload() {
 			if (file.size > MAX_FILE_SIZE_BYTES) {
 				setUploadError("File is too large. Maximum allowed size is 50MB.");
 				setSelectedFiles([]);
+				e.target.value = "";
+
 				return;
 			}
 		}
@@ -81,20 +84,17 @@ export function useFileUpload() {
 
 			data.files.forEach((result: { name: string }) => {
 				const file = selectedFilesWithStatus.find((f) => f.file.name === result.name);
-				console.log(file?.id);
-				console.log(file?.file.name);
 				if (file) {
 					updateFileStatus(file.id, "completed");
 				}
 			});
-
-			console.log(data.files);
 		} catch (error) {
-			console.error(error);
-			setUploadError("Upload failed.");
-			selectedFiles.forEach((file) => {
-				updateFileStatus(file.id, "failed");
-			});
+			if (Error.isError(error)) {
+				setUploadError("Upload failed." + error.message);
+				selectedFilesWithStatus.forEach((file) => {
+					updateFileStatus(file.id, "failed");
+				});
+			}
 		}
 	};
 
