@@ -2,7 +2,7 @@
 
 import { hospitalDetails } from "@/db/auth-schema";
 import { auth, db } from "@/lib/better-auth/auth";
-import { OwnerType } from "@/lib/schemas/owner-schema";
+import { OwnerType } from "@/app/(auth)/schemas/owner-schema";
 import { and, eq } from "drizzle-orm";
 
 export async function createOwnerAction(data: OwnerType) {
@@ -13,8 +13,8 @@ export async function createOwnerAction(data: OwnerType) {
 			.where(
 				and(
 					eq(hospitalDetails.hospitalOwnerEmail, data.email),
-					eq(hospitalDetails.hospitalOwnerName, data.name)
-				)
+					eq(hospitalDetails.hospitalOwnerName, data.name),
+				),
 			);
 
 		if (existing.length > 0) {

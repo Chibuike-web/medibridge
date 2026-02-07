@@ -1,4 +1,4 @@
-import { PatientType } from "@/lib/schemas/patient-schema";
+import { PatientType } from "@/app/(auth)/schemas/patient-schema";
 import { create } from "zustand";
 
 type Store = {

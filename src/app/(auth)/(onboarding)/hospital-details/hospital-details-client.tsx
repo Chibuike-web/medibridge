@@ -9,7 +9,10 @@ import { CheckCircle } from "@/icons/check-circle";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
-import { hospitalDetailsSchema, HospitalDetailsType } from "@/lib/schemas/hospital-details-schema";
+import {
+	hospitalDetailsSchema,
+	HospitalDetailsType,
+} from "@/app/(auth)/schemas/hospital-details-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ErrorWarningFill } from "@/icons/error-warning-fill";
 import { createOwnerAction } from "@/actions/create-owner-action";

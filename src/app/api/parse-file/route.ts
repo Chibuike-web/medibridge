@@ -1,5 +1,5 @@
 import { FilePart, generateText, Output } from "ai";
-import { PatientSchema } from "@/lib/schemas/patient-schema";
+import { PatientSchema } from "@/app/(auth)/schemas/patient-schema";
 import { supabase } from "../../../lib/utils/supabase";
 
 export async function POST(req: Request) {

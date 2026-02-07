@@ -10,7 +10,7 @@ import { ErrorWarningLine } from "@/icons/error-warning-line";
 import { useEffect, useState } from "react";
 import { EyeOffLine } from "@/icons/eye-off-line";
 import { EyeLine } from "@/icons/eye-line";
-import { ownerSchema, OwnerType } from "@/lib/schemas/owner-schema";
+import { ownerSchema, OwnerType } from "@/app/(auth)/schemas/owner-schema";
 
 export function OwnerClient() {
 	const [isVisible, setIsVisible] = useState(false);

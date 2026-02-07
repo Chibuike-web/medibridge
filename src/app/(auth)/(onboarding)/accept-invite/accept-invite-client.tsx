@@ -10,7 +10,7 @@ import { EyeOffLine } from "@/icons/eye-off-line";
 import { EyeLine } from "@/icons/eye-line";
 import { CheckCircle } from "@/icons/check-circle";
 import { ErrorWarningFill } from "@/icons/error-warning-fill";
-import { acceptInviteSchema, AcceptInviteType } from "@/lib/schemas/accept-invite-schema";
+import { acceptInviteSchema, AcceptInviteType } from "@/app/(auth)/schemas/accept-invite-schema";
 import { SuccessModal } from "@/components/success-modal";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";

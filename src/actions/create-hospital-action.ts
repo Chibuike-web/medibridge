@@ -2,7 +2,7 @@
 
 import { auth, db } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
-import { HospitalDetailsType } from "@/lib/schemas/hospital-details-schema";
+import { HospitalDetailsType } from "@/app/(auth)/schemas/hospital-details-schema";
 import { hospitalDetails } from "@/db/auth-schema";
 
 export async function createHospitalAction(data: HospitalDetailsType) {

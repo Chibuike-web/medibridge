@@ -11,7 +11,7 @@ import { ErrorWarningFill } from "@/icons/error-warning-fill";
 import { EyeLine } from "@/icons/eye-line";
 import { EyeOffLine } from "@/icons/eye-off-line";
 import { InformationLine } from "@/icons/information-line";
-import { signInSchema, SignInType } from "@/lib/schemas/sign-in-schema";
+import { signInSchema, SignInType } from "@/app/(auth)/schemas/sign-in-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
