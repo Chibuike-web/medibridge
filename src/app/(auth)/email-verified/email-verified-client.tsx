@@ -67,7 +67,7 @@ const InvalidOrExpired = ({ type }: { type: "invalid_token" | "expired_token" })
 
 const NoSession = () => {
 	return (
-		<main className="min-h-screen flex items-center justify-center bg-white px-6">
+		<main className="min-h-dvh flex items-center justify-center bg-white px-6">
 			<div className="max-w-md text-center">
 				<h1 className="text-2xl font-semibold text-yellow-600">You are not signed in</h1>
 

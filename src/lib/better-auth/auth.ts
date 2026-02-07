@@ -5,7 +5,7 @@ import { admin } from "better-auth/plugins/admin";
 import { nextCookies } from "better-auth/next-js";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import * as schema from "@/db/auth-schema";
+import * as schema from "@/db/schemas/auth";
 import { ENV } from "../utils/env";
 import { sendEmail } from "../send-email";
 
