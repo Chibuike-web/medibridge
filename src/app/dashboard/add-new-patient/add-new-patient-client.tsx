@@ -3,12 +3,21 @@
 import { ChooseFileCard } from "@/components/choose-file-card";
 import { FileUploadCard } from "@/components/file-upload-card";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { useFileParse } from "@/hooks/use-file-parse";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { CloseLine } from "@/icons/close-line";
 import { ErrorWarningLine } from "@/icons/error-warning-line";
 import { cn } from "@/lib/utils/cn";
-import { ChangeEvent, RefObject, useRef } from "react";
+import { RefObject, useRef } from "react";
 
 export function AddNewPatientClient() {
 	const {
@@ -107,7 +116,7 @@ export function AddNewPatientClient() {
 	);
 }
 function Footer({ fileInputRef }: { fileInputRef: RefObject<HTMLInputElement | null> }) {
-	const { uploadError, setUploadError, uploadSelectedFiles } = useFileUpload();
+	const { uploadError, setUploadError, uploadSelectedFiles, selectedFiles } = useFileUpload();
 	const { setParseStatus, parseFile } = useFileParse();
 
 	const uploadErrorId = "upload-error-message";
@@ -134,15 +143,50 @@ function Footer({ fileInputRef }: { fileInputRef: RefObject<HTMLInputElement | n
 					</label>
 				</Button>
 
-				<Button
-					className="h-11"
-					onClick={() => {
-						parseFile();
-						setParseStatus("parsing");
-					}}
-				>
-					Parse Document
-				</Button>
+				<Dialog>
+					<DialogTrigger asChild>
+						<Button disabled={selectedFiles.length === 0} className="h-11">
+							Parse Document
+						</Button>
+					</DialogTrigger>
+					<DialogContent>
+						<DialogHeader className="h-16 px-6 border-b border-gray-200">
+							<DialogTitle className="text-[20px] font-semibold">
+								Confirm Transfer Request
+							</DialogTitle>
+							<DialogClose>
+								<CloseLine className="size-6" />
+							</DialogClose>
+						</DialogHeader>
+						<div className="mt-8 px-6">
+							<p className="text-gray-600 font-medium">
+								Please ensure all required patient records are uploaded and correct.Once parsing
+								starts, additional files cannot be added and the process cannot be paused or
+								restarted.
+							</p>
+						</div>
+						<DialogFooter className="mt-16 border-t border-gray-200">
+							<div className="flex gap-4 ml-auto">
+								<DialogClose asChild>
+									<Button variant="outline" className="h-11">
+										Cancel
+									</Button>
+								</DialogClose>
+								<DialogClose asChild>
+									<Button
+										className="h-11"
+										onClick={() => {
+											parseFile();
+											setParseStatus("parsing");
+										}}
+									>
+										Start Parsing
+									</Button>
+								</DialogClose>
+							</div>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
 			</div>
 		</footer>
 	);
