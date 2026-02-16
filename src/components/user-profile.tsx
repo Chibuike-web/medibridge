@@ -11,17 +11,25 @@ import {
 	DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { SparklingLine } from "@/icons/sparkling-line";
 import { VerifiedBadgeLine } from "@/icons/verified-badge-line";
-import { BankCardLine } from "@/icons/bank-card-line";
 import { LogoutBoxLine } from "@/icons/logout-box-line";
 import { useTransition } from "react";
-import { authClient, useSession } from "@/lib/better-auth/auth.client";
+import { authClient } from "@/lib/better-auth/auth.client";
 import { useRouter } from "next/navigation";
 import { LoaderLine } from "@/icons/loader-line";
 
 export function UserProfile() {
-	const { data } = useSession();
+	const dummyUser = {
+		name: "John Doe",
+		email: "john.doe@example.com",
+		image: "https://api.dicebear.com/7.x/initials/svg?seed=John%20Doe",
+	};
+
+	const initials = dummyUser.name
+		.split(" ")
+		.map((namePart) => namePart.charAt(0).toUpperCase())
+		.join("");
+
 	const [isPending, startTransition] = useTransition();
 	const router = useRouter();
 
@@ -31,21 +39,12 @@ export function UserProfile() {
 				<DropdownMenuTrigger asChild>
 					<button className="flex p-3 justify-between w-full items-center cursor-pointer hover:bg-gray-200 rounded-[8px]">
 						<Avatar className="size-10 rounded-full">
-							<AvatarImage
-								src={data?.user?.image ?? ""}
-								alt="profile image"
-								className="rounded-full"
-							/>
-							<AvatarFallback className="rounded-lg">
-								{data?.user?.name
-									.split(" ")
-									.map((u) => u.charAt(0).toUpperCase())
-									.join("")}
-							</AvatarFallback>
+							<AvatarImage src={dummyUser.image} alt="profile image" className="rounded-full" />
+							<AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
 						</Avatar>
 						<div className="flex flex-col items-start w-[142px]">
-							<p className="font-medium text-[14px] text-foreground">{data?.user?.name}</p>
-							<p className="text-[12px] text-foreground/60 truncate w-full">{data?.user?.email}</p>
+							<p className="font-medium text-[14px] text-foreground">{dummyUser.name}</p>
+							<p className="text-[12px] text-foreground/60 truncate w-full">{dummyUser.email}</p>
 						</div>
 						<span className="shrink-0">
 							<ExpandUpDownLine className="size-5" />
@@ -60,40 +59,20 @@ export function UserProfile() {
 					<DropdownMenuLabel className="p-0 font-normal">
 						<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 							<Avatar className="h-8 w-8 rounded-full">
-								<AvatarImage
-									src={data?.user?.image ?? ""}
-									alt="profile image"
-									className="rounded-full"
-								/>
-								<AvatarFallback className="rounded-lg">
-									{data?.user?.name
-										.split(" ")
-										.map((u) => u.charAt(0).toUpperCase())
-										.join("")}
-								</AvatarFallback>
+								<AvatarImage src={dummyUser.image} alt="profile image" className="rounded-full" />
+								<AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
 							</Avatar>
 							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-medium">{data?.user?.name}</span>
-								<span className="truncate text-xs">{data?.user?.email}</span>
+								<span className="truncate font-medium">{dummyUser.name}</span>
+								<span className="truncate text-xs">{dummyUser.email}</span>
 							</div>
 						</div>
 					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					<DropdownMenuGroup>
 						<DropdownMenuItem>
-							<SparklingLine className="size-4" />
-							Upgrade to Pro
-						</DropdownMenuItem>
-					</DropdownMenuGroup>
-					<DropdownMenuSeparator />
-					<DropdownMenuGroup>
-						<DropdownMenuItem>
 							<VerifiedBadgeLine className="size-4" />
 							Account
-						</DropdownMenuItem>
-						<DropdownMenuItem>
-							<BankCardLine className="size-4" />
-							Billing
 						</DropdownMenuItem>
 					</DropdownMenuGroup>
 					<DropdownMenuSeparator />

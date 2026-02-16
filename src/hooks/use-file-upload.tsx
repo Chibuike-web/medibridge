@@ -28,7 +28,7 @@ export function useFileUpload() {
 		const browserFiles = Array.from(files);
 
 		const fileExtensions = browserFiles.map((file) => file.name.split(".").pop()?.toLowerCase());
-		const allowedTypes = ["pdf", "png", "jpg", "doc"];
+		const allowedTypes = ["pdf", "png", "jpg", "doc", "docx"];
 
 		for (const ext of fileExtensions) {
 			if (!ext || !allowedTypes.includes(ext)) {
@@ -60,8 +60,14 @@ export function useFileUpload() {
 				status: "uploading" as UploadStatus,
 			};
 		});
+		const filteredNewFiles = selectedFilesWithStatus.filter((newFile) => {
+			return !selectedFiles.some(
+				(existing) =>
+					existing.file.name === newFile.file.name && existing.extension === newFile.extension,
+			);
+		});
 
-		setSelectedFiles(selectedFilesWithStatus);
+		setSelectedFiles([...selectedFiles, ...filteredNewFiles]);
 
 		try {
 			const formData = new FormData();
@@ -102,6 +108,8 @@ export function useFileUpload() {
 		selectedFiles,
 		uploadResults,
 		uploadError,
+		setUploadError,
+		setSelectedFiles,
 		clearFile,
 		uploadSelectedFiles,
 	};

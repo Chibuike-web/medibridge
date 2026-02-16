@@ -28,6 +28,7 @@ export function FileUploadCard({ file, extension, status, id, onRemove }: FileUp
 		jpg: jpgFileFormat,
 		png: pngFileFormat,
 		doc: docFileFormat,
+		docx: docFileFormat,
 	};
 
 	return (
