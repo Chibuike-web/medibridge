@@ -6,13 +6,20 @@ export type UploadResult = {
 	name: string;
 	size: number;
 	type: string;
-	url: string;
+	path: string;
+	error?: string;
 };
 export type UploadStatus = "idle" | "uploading" | "completed" | "failed";
 
-export type SelectedFile = {
+export type SavedFileTypes = {
 	id: string;
-	file: File;
+	url?: string;
+	type?: string;
+	size: number;
+	name: string;
+};
+
+export type SelectedFile = SavedFileTypes & {
 	extension: AllowedFileExtension;
 	status: UploadStatus;
 };
@@ -23,7 +30,6 @@ type UploadState = {
 	uploadError: string;
 
 	setSelectedFiles: (files: SelectedFile[]) => void;
-	updateFileStatus: (id: string, status: UploadStatus) => void;
 	clearFile: (id: string) => void;
 	clearAll: () => void;
 	setUploadError: (error: string) => void;
@@ -36,12 +42,7 @@ const useUploadStore = create<UploadState>((set) => ({
 	uploadError: "",
 
 	setSelectedFiles: (files) => set({ selectedFiles: files }),
-	updateFileStatus: (id, status) =>
-		set((state) => ({
-			selectedFiles: state.selectedFiles.map((file) =>
-				file.id === id ? { ...file, status } : file,
-			),
-		})),
+
 	clearFile: (id) =>
 		set((state) => ({
 			selectedFiles: state.selectedFiles.filter((f) => f.id !== id),
@@ -62,7 +63,6 @@ export const useUpload = () => ({
 	uploadError: useUploadStore((s) => s.uploadError),
 
 	setSelectedFiles: useUploadStore((s) => s.setSelectedFiles),
-	updateFileStatus: useUploadStore((s) => s.updateFileStatus),
 	setUploadResults: useUploadStore((s) => s.setUploadResults),
 	setUploadError: useUploadStore((s) => s.setUploadError),
 	clearFile: useUploadStore((s) => s.clearFile),

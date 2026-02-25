@@ -46,6 +46,7 @@
 		"zustand": "^5.0.10"
 	},
 	"devDependencies": {
+		"@ai-sdk/devtools": "^0.0.14",
 		"@eslint/eslintrc": "^3.3.3",
 		"@tailwindcss/postcss": "^4.1.18",
 		"@types/bcrypt": "^6.0.0",

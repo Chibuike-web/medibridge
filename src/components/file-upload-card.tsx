@@ -14,15 +14,21 @@ import { AllowedFileExtension, UploadStatus } from "@/store/use-upload-store";
 
 type FileUploadCardProps = {
 	id?: string;
-	file: File;
+	name: string;
+	size: number;
 	extension: AllowedFileExtension;
 	status: UploadStatus;
 	onRemove: (id?: string) => void;
 };
 
-export function FileUploadCard({ file, extension, status, id, onRemove }: FileUploadCardProps) {
-	if (!file) return;
-
+export function FileUploadCard({
+	name,
+	size,
+	extension,
+	status,
+	id,
+	onRemove,
+}: FileUploadCardProps) {
 	const fileFormat: Record<string, string> = {
 		pdf: pdfFileFormat,
 		jpg: jpgFileFormat,
@@ -42,10 +48,10 @@ export function FileUploadCard({ file, extension, status, id, onRemove }: FileUp
 				<Image src={fileFormat[extension]} alt="" width={40} height={40} />
 				<div className="flex w-full items-start justify-between">
 					<div>
-						<p className="text-[14px] font-semibold">{file.name}</p>
+						<p className="text-[14px] font-semibold">{name}</p>
 						<div className="flex items-center gap-1 text-[12px]">
 							<div className="flex items-center gap-1 ">
-								<p>{formatFileSize(file.size)}</p>
+								<p>{formatFileSize(size)}</p>
 								<span className="size-0.5 block bg-foreground rounded-full" />
 							</div>
 							<div className="flex items-center gap-1">

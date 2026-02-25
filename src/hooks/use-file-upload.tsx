@@ -1,7 +1,7 @@
 "use client";
 
-import { AllowedFileExtension, UploadStatus, useUpload } from "@/store/use-upload-store";
-import { ChangeEvent } from "react";
+import { AllowedFileExtension, SelectedFile, useUpload } from "@/store/use-upload-store";
+import { ChangeEvent, useOptimistic, startTransition } from "react";
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 
@@ -10,12 +10,12 @@ export function useFileUpload() {
 		selectedFiles,
 		setSelectedFiles,
 		uploadError,
-		updateFileStatus,
 		uploadResults,
 		setUploadError,
 		setUploadResults,
 		clearFile,
 	} = useUpload();
+	const [optimisticFiles, setOptimisticFiles] = useOptimistic(selectedFiles);
 
 	const uploadSelectedFiles = async (e: ChangeEvent<HTMLInputElement>) => {
 		const files = e.target.files;
@@ -43,65 +43,65 @@ export function useFileUpload() {
 				setUploadError("File is too large. Maximum allowed size is 50MB.");
 				setSelectedFiles([]);
 				e.target.value = "";
-
 				return;
 			}
 		}
 
 		setUploadError("");
 
-		const selectedFilesWithStatus = browserFiles.map((file) => {
+		const optimisticItems: SelectedFile[] = browserFiles.map((file) => {
 			const extension = file.name.split(".").pop()?.toLowerCase() as AllowedFileExtension;
 
 			return {
 				id: crypto.randomUUID(),
-				file,
+				name: file.name,
+				size: file.size,
 				extension,
-				status: "uploading" as UploadStatus,
+				status: "uploading",
 			};
 		});
-		const filteredNewFiles = selectedFilesWithStatus.filter((newFile) => {
-			return !selectedFiles.some(
-				(existing) =>
-					existing.file.name === newFile.file.name && existing.extension === newFile.extension,
-			);
-		});
 
-		setSelectedFiles([...selectedFiles, ...filteredNewFiles]);
+		startTransition(async () => {
+			setOptimisticFiles((prev) => [...prev, ...optimisticItems]);
+			e.target.value = "";
 
-		try {
-			const formData = new FormData();
-
-			for (const file of browserFiles) {
-				formData.append("file", file);
-			}
-
-			const res = await fetch("/api/file-upload", {
-				method: "POST",
-				body: formData,
-			});
-			const data = await res.json();
-			if (!res.ok) {
-				setUploadError(data.error);
-				throw new Error("Issue uploading file");
-			}
-
-			setUploadResults(data.files);
-
-			data.files.forEach((result: { name: string }) => {
-				const file = selectedFilesWithStatus.find((f) => f.file.name === result.name);
-				if (file) {
-					updateFileStatus(file.id, "completed");
+			try {
+				const formData = new FormData();
+				for (const file of browserFiles) {
+					formData.append("file", file);
 				}
-			});
-		} catch (error) {
-			if (Error.isError(error)) {
-				setUploadError("Upload failed." + error.message);
-				selectedFilesWithStatus.forEach((file) => {
-					updateFileStatus(file.id, "failed");
+
+				const res = await fetch("/api/file-upload", {
+					method: "POST",
+					body: formData,
 				});
+				const data = await res.json();
+				if (!res.ok) {
+					setUploadError(data.error);
+					throw new Error("Issue uploading file");
+				}
+
+				setUploadResults(data.files);
+
+				await new Promise((r) => setTimeout(r, 5000));
+
+				startTransition(() => {
+					const uploaded = data.files.map((f: SelectedFile) => {
+						const extension = f.name.split(".").pop()?.toLowerCase() as AllowedFileExtension;
+
+						return {
+							...f,
+							extension,
+							status: "completed",
+						};
+					});
+					const map = new Map([...selectedFiles, ...uploaded].map((f) => [f.name, f]));
+					setSelectedFiles(Array.from(map.values()));
+				});
+			} catch (error) {
+				console.error(error);
 			}
-		}
+		});
 	};
 
 	return {
@@ -112,5 +112,6 @@ export function useFileUpload() {
 		setSelectedFiles,
 		clearFile,
 		uploadSelectedFiles,
+		optimisticFiles,
 	};
 }

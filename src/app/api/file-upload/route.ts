@@ -1,3 +1,4 @@
+import { SavedFileTypes } from "@/store/use-upload-store";
 import { NextResponse } from "next/server";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -17,12 +18,7 @@ export async function POST(req: Request) {
 			mkdirSync(uploadDir, { recursive: true });
 		}
 
-		const uploadedFiles: {
-			url: string;
-			type: string;
-			size: number;
-			name: string;
-		}[] = [];
+		const uploadedFiles: SavedFileTypes[] = [];
 
 		for (const file of files) {
 			if (!(file instanceof File)) {
@@ -30,11 +26,11 @@ export async function POST(req: Request) {
 			}
 			const arrayBuffer = await file.arrayBuffer();
 			const buffer = Buffer.from(arrayBuffer);
-			console.log(file.name);
 			const savePath = path.join(uploadDir, file.name);
 			writeFileSync(savePath, buffer);
 
 			uploadedFiles.push({
+				id: crypto.randomUUID(),
 				name: file.name,
 				type: file.type,
 				size: file.size,

@@ -17,16 +17,19 @@ import { useFileUpload } from "@/hooks/use-file-upload";
 import { CloseLine } from "@/icons/close-line";
 import { ErrorWarningLine } from "@/icons/error-warning-line";
 import { cn } from "@/lib/utils/cn";
-import { RefObject, useRef } from "react";
+import { SelectedFile } from "@/store/use-upload-store";
+import { ChangeEvent, RefObject, useRef } from "react";
 
 export function AddNewPatientClient() {
 	const {
+		optimisticFiles,
 		selectedFiles: files,
 		clearFile,
 		uploadError,
 		setUploadError,
 		uploadSelectedFiles,
 	} = useFileUpload();
+
 	const { parseStatus, setParseStatus } = useFileParse();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const uploadErrorId = "upload-error-message";
@@ -43,7 +46,7 @@ export function AddNewPatientClient() {
 	return (
 		<>
 			<div className="pb-40">
-				{files.length > 0 ? (
+				{optimisticFiles.length > 0 ? (
 					<>
 						<div
 							className={cn(
@@ -51,10 +54,11 @@ export function AddNewPatientClient() {
 								parseStatus === "parsing" && "opacity-50 cursor-not-allowed",
 							)}
 						>
-							{files.map((file) => (
+							{optimisticFiles.map((file) => (
 								<FileUploadCard
 									key={file.id}
-									file={file.file}
+									name={file.name}
+									size={file.size}
 									extension={file.extension}
 									id={file.id}
 									status={file.status}
@@ -111,13 +115,34 @@ export function AddNewPatientClient() {
 					</div>
 				) : null}
 			</div>
-			<Footer fileInputRef={fileInputRef} />
+			<Footer
+				fileInputRef={fileInputRef}
+				uploadError={uploadError}
+				setUploadError={setUploadError}
+				uploadSelectedFiles={uploadSelectedFiles}
+				files={files}
+				setParseStatus={setParseStatus}
+			/>
 		</>
 	);
 }
-function Footer({ fileInputRef }: { fileInputRef: RefObject<HTMLInputElement | null> }) {
-	const { uploadError, setUploadError, uploadSelectedFiles, selectedFiles } = useFileUpload();
-	const { setParseStatus, parseFile } = useFileParse();
+
+function Footer({
+	fileInputRef,
+	uploadError,
+	setUploadError,
+	uploadSelectedFiles,
+	files,
+	setParseStatus,
+}: {
+	fileInputRef: RefObject<HTMLInputElement | null>;
+	uploadError: string;
+	setUploadError: (msg: string) => void;
+	uploadSelectedFiles: (e: ChangeEvent<HTMLInputElement>) => void;
+	files: SelectedFile[];
+	setParseStatus: (status: "idle" | "parsing" | "error") => void;
+}) {
+	const { parseFile } = useFileParse();
 
 	const uploadErrorId = "upload-error-message";
 
@@ -145,7 +170,7 @@ function Footer({ fileInputRef }: { fileInputRef: RefObject<HTMLInputElement | n
 
 				<Dialog>
 					<DialogTrigger asChild>
-						<Button disabled={selectedFiles.length === 0} className="h-11">
+						<Button disabled={files.length === 0} className="h-11">
 							Parse Document
 						</Button>
 					</DialogTrigger>

@@ -1,36 +1,33 @@
-import { FilePart, generateText, Output } from "ai";
+import { FilePart, gateway, generateText, Output, wrapLanguageModel } from "ai";
 import { PatientSchema } from "@/app/(auth)/schemas/patient-schema";
-import { supabase } from "../../../lib/utils/supabase";
+import { NextResponse } from "next/server";
+import { devToolsMiddleware } from "@ai-sdk/devtools";
+import path from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+
+const model = wrapLanguageModel({
+	model: gateway("anthropic/claude-haiku-4.5"),
+	middleware: devToolsMiddleware(),
+});
 
 export async function POST(req: Request) {
 	try {
-		const { filename } = await req.json();
-		if (!filename) return Response.json({ error: "Missing file" }, { status: 400 });
+		const { filenames } = await req.json();
+		if (!filenames) return NextResponse.json({ error: "Missing file" }, { status: 400 });
 
-		const { data, error } = await supabase.storage.from("patients-uploads").download(filename);
-
-		if (error || !data) {
-			console.error(error);
-			return Response.json(
-				{ status: "failed", error: "File not found in storage" },
-				{ status: 404 },
-			);
+		// const fileContent: FilePart = {
+		// 	type: "file",
+		// 	mediaType,
+		// 	data: buffer,
+		// };
+		for (const filename of filenames) {
+			const uploadDir = path.resolve("patient-uploads");
+			if (!existsSync(uploadDir)) {
+				throw new Error("Directory does not exist");
+			}
+			const filePath = path.join(uploadDir, filename);
+			const fileBuffer = readFileSync(filePath);
 		}
-
-		const { data: meta } = await supabase.storage
-			.from("patients-uploads")
-			.list("", { search: filename });
-		console.log(meta);
-
-		const mediaType = meta?.[0]?.metadata?.mimetype;
-
-		const buffer = Buffer.from(await data.arrayBuffer());
-
-		const fileContent: FilePart = {
-			type: "file",
-			mediaType,
-			data: buffer,
-		};
 
 		const prompt = `
 		Extract resume info matching the schema:
@@ -39,7 +36,7 @@ export async function POST(req: Request) {
 		Use 0 for unknown numeric values.`;
 
 		const { output } = await generateText({
-			model: "gpt-5",
+			model,
 			messages: [
 				{
 					role: "user",
@@ -50,9 +47,12 @@ export async function POST(req: Request) {
 		});
 		console.log("✅ Extracted object:", output);
 
-		return Response.json(output);
+		return NextResponse.json(output);
 	} catch (error) {
 		console.error("Error extracting resume", error);
-		return Response.json({ status: "error", message: "Error extracting resume" }, { status: 500 });
+		return NextResponse.json(
+			{ status: "error", message: "Error extracting resume" },
+			{ status: 500 },
+		);
 	}
 }
