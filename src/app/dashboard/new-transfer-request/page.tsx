@@ -1,6 +1,6 @@
-import ArrowLeftLine from "@/icons/arrow-left-line";
+import { ArrowLeftLine } from "@/icons/arrow-left-line";
 import Link from "next/link";
-import NewTransferRequestClient from "./new-transfer-request-client";
+import { NewTransferRequestClient } from "./new-transfer-request-client";
 
 export default function NewTransferRequest() {
 	return (

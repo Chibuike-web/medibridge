@@ -9,7 +9,13 @@ export type UploadResult = {
 	path: string;
 	error?: string;
 };
-export type UploadStatus = "idle" | "uploading" | "completed" | "failed";
+export type UploadStatus =
+	| "idle"
+	| "uploading"
+	| "completed"
+	| "failed"
+	| "extracting"
+	| "extracted";
 
 export type SavedFileTypes = {
 	id: string;
@@ -20,16 +26,15 @@ export type SavedFileTypes = {
 };
 
 export type SelectedFile = SavedFileTypes & {
-	extension: AllowedFileExtension;
 	status: UploadStatus;
 };
 
 type UploadState = {
-	selectedFiles: SelectedFile[];
+	files: SelectedFile[];
 	uploadResults: UploadResult[];
 	uploadError: string;
 
-	setSelectedFiles: (files: SelectedFile[]) => void;
+	setFiles: (files: SelectedFile[]) => void;
 	clearFile: (id: string) => void;
 	clearAll: () => void;
 	setUploadError: (error: string) => void;
@@ -37,19 +42,19 @@ type UploadState = {
 };
 
 const useUploadStore = create<UploadState>((set) => ({
-	selectedFiles: [],
+	files: [],
 	uploadResults: [],
 	uploadError: "",
 
-	setSelectedFiles: (files) => set({ selectedFiles: files }),
+	setFiles: (files) => set({ files }),
 
 	clearFile: (id) =>
 		set((state) => ({
-			selectedFiles: state.selectedFiles.filter((f) => f.id !== id),
+			files: state.files.filter((f) => f.id !== id),
 		})),
 	clearAll: () =>
 		set({
-			selectedFiles: [],
+			files: [],
 			uploadResults: [],
 			uploadError: "",
 		}),
@@ -58,11 +63,11 @@ const useUploadStore = create<UploadState>((set) => ({
 }));
 
 export const useUpload = () => ({
-	selectedFiles: useUploadStore((s) => s.selectedFiles),
+	files: useUploadStore((s) => s.files),
 	uploadResults: useUploadStore((s) => s.uploadResults),
 	uploadError: useUploadStore((s) => s.uploadError),
 
-	setSelectedFiles: useUploadStore((s) => s.setSelectedFiles),
+	setFiles: useUploadStore((s) => s.setFiles),
 	setUploadResults: useUploadStore((s) => s.setUploadResults),
 	setUploadError: useUploadStore((s) => s.setUploadError),
 	clearFile: useUploadStore((s) => s.clearFile),

@@ -1,6 +1,6 @@
 "use client";
 
-import ExpandUpDownLine from "@/icons/expand-up-down-line";
+import { ExpandUpDownLine } from "@/icons/expand-up-down-line";
 import {
 	DropdownMenu,
 	DropdownMenuContent,

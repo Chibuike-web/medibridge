@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/better-auth/auth.client";
 
-export default function EmailVerifiedClient() {
+export function EmailVerifiedClient() {
 	const searchParams = useSearchParams();
 	const error = searchParams.get("error");
 	if (!error) return <Valid />;

@@ -11,7 +11,7 @@ type CheckboxItem = {
 	status: "done" | "pending";
 };
 
-export default function VerifyClient() {
+export function VerifyClient() {
 	const [checkboxes] = useState<CheckboxItem[]>([
 		{ id: "registration", value: "Account created", status: "done" },
 		{ id: "emailVerification", value: "Email address verification", status: "pending" },

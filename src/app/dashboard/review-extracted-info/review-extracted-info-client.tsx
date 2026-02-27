@@ -1,17 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import EditLine from "@/icons/edit-line";
+import { EditLine } from "@/icons/edit-line";
 import { formatKey } from "@/lib/utils/format-key";
-import { useParsedPatient } from "@/store/use-parsed-patient-store";
+import { useExtractedPatient } from "@/store/use-extracted-patient-store";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SuccessModal } from "@/components/success-modal";
 import { DialogFooter } from "@/components/ui/dialog";
 
-export default function ReviewInfoExtractClient() {
-	const { patientData } = useParsedPatient();
+export function ReviewExtractedInfoClient() {
+	const { patientData } = useExtractedPatient();
 	const router = useRouter();
 	const dataArray = Object.entries(patientData ?? {});
 	const [isOpen, setIsOpen] = useState(false);

@@ -6,14 +6,14 @@ type Store = {
 	setPatientData: (data: PatientType) => void;
 };
 
-const useParsedPatientStore = create<Store>((set) => ({
+const useExtractedPatientStore = create<Store>((set) => ({
 	patientData: null,
 	setPatientData: (data) => set({ patientData: data }),
 }));
 
-export const useParsedPatient = () => {
-	const patientData = useParsedPatientStore((state) => state.patientData);
-	const setPatientData = useParsedPatientStore((state) => state.setPatientData);
+export const useExtractedPatient = () => {
+	const patientData = useExtractedPatientStore((state) => state.patientData);
+	const setPatientData = useExtractedPatientStore((state) => state.setPatientData);
 
 	return { patientData, setPatientData };
 };

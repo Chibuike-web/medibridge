@@ -1,5 +1,5 @@
 import Image from "next/image";
-import VerifyClient from "./verify-client";
+import { VerifyClient } from "./verify-client";
 
 export default function Verify() {
 	return (

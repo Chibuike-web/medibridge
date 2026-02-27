@@ -35,7 +35,7 @@ import { SuccessModal } from "@/components/success-modal";
 import { useShowSuccess } from "@/hooks/use-show-success";
 import { useRouter } from "next/navigation";
 
-export default function NewTransferRequestClient() {
+export function NewTransferRequestClient() {
 	const { showSuccess, setShowSuccess } = useShowSuccess();
 	const router = useRouter();
 	return (
@@ -195,7 +195,7 @@ function AttachClinicalRecords() {
 	const selectedRecords = clinicalRecords.filter((r) => r.selected);
 	const popoverTriggerRef = useRef<HTMLButtonElement>(null);
 
-	const selectClinicalRecordClick = (id: string) => {
+	const selectClinicalRecord = (id: string) => {
 		setClinicalRecords(
 			clinicalRecords.map((item) =>
 				item.id === id ? { ...item, selected: !item.selected } : item,
@@ -234,7 +234,7 @@ function AttachClinicalRecords() {
 						<MultiSelectItem
 							key={item.id}
 							selected={item.selected}
-							onClick={() => selectClinicalRecordClick(item.id)}
+							onClick={() => selectClinicalRecord(item.id)}
 						>
 							{item.label}
 						</MultiSelectItem>

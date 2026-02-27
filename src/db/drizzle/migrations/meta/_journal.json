@@ -5,43 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1763406520827,
-      "tag": "0000_sweet_doctor_octopus",
+      "when": 1772104307959,
+      "tag": "0000_swift_bug",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1763478420379,
-      "tag": "0001_windy_black_widow",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1763494528997,
-      "tag": "0002_clean_the_spike",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1763923147862,
-      "tag": "0003_tense_chimera",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1764214266085,
-      "tag": "0004_illegal_maginty",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1770471455479,
-      "tag": "0005_dry_vengeance",
+      "when": 1772104427230,
+      "tag": "0001_naive_jack_power",
       "breakpoints": true
     }
   ]

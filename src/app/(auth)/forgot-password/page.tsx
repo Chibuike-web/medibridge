@@ -1,6 +1,6 @@
 import Link from "next/link";
-import ForgotPasswordClient from "./forgot-password-client";
-import ArrowLeftLine from "@/icons/arrow-left-line";
+import { ForgotPasswordClient } from "./forgot-password-client";
+import { ArrowLeftLine } from "@/icons/arrow-left-line";
 
 export default function ForgotPassword() {
 	return (

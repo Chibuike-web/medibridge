@@ -12,32 +12,32 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { useFileParse } from "@/hooks/use-file-parse";
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { CloseLine } from "@/icons/close-line";
 import { ErrorWarningLine } from "@/icons/error-warning-line";
 import { cn } from "@/lib/utils/cn";
-import { SelectedFile } from "@/store/use-upload-store";
+import { AllowedFileExtension, SelectedFile } from "@/store/use-upload-store";
 import { ChangeEvent, RefObject, useRef } from "react";
 
 export function AddNewPatientClient() {
 	const {
 		optimisticFiles,
-		selectedFiles: files,
+		files,
+		setFiles,
 		clearFile,
 		uploadError,
 		setUploadError,
 		uploadSelectedFiles,
+		extractInfo,
 	} = useFileUpload();
-
-	const { parseStatus, setParseStatus } = useFileParse();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const uploadErrorId = "upload-error-message";
-	const parseErrorId = "parse-error-message";
+	const extractErrorId = "extract-error-message";
+	const isExtracting = optimisticFiles.some((f) => f.status === "extracting");
+	const hasExtractError = files.some((f) => f.status === "failed");
 
 	const clear = (id?: string) => {
 		if (!id) return;
-		setParseStatus("idle");
 		clearFile(id);
 		if (fileInputRef.current) {
 			fileInputRef.current.value = "";
@@ -49,22 +49,23 @@ export function AddNewPatientClient() {
 				{optimisticFiles.length > 0 ? (
 					<>
 						<div
-							className={cn(
-								"flex flex-col gap-3",
-								parseStatus === "parsing" && "opacity-50 cursor-not-allowed",
-							)}
+							className={cn("flex flex-col gap-3", isExtracting && "opacity-50 cursor-not-allowed")}
 						>
-							{optimisticFiles.map((file) => (
-								<FileUploadCard
-									key={file.id}
-									name={file.name}
-									size={file.size}
-									extension={file.extension}
-									id={file.id}
-									status={file.status}
-									onRemove={clear}
-								/>
-							))}
+							{optimisticFiles.map((file) => {
+								const extension = file.name.split(".").pop()?.toLowerCase() as AllowedFileExtension;
+
+								return (
+									<FileUploadCard
+										key={file.id}
+										name={file.name}
+										size={file.size}
+										extension={extension}
+										id={file.id}
+										status={file.status}
+										onRemove={clear}
+									/>
+								);
+							})}
 						</div>
 					</>
 				) : (
@@ -92,23 +93,32 @@ export function AddNewPatientClient() {
 						</Button>
 					</div>
 				) : null}
-				{files.length > 0 && parseStatus === "error" ? (
+				{files.length > 0 && hasExtractError ? (
 					<div
-						id={parseErrorId}
+						id={extractErrorId}
 						role="alert"
 						aria-live="assertive"
 						aria-atomic="true"
 						className="mt-2 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-red-700"
 					>
 						<ErrorWarningLine className="mt-0.5 h-4 w-4 shrink-0" />
-						<p className="text-sm font-medium">Issue parsing file{files.length > 1 ? "s" : null}</p>
+						<p className="text-sm font-medium">
+							Issue extracting file{files.length > 1 ? "s" : null}
+						</p>
 						<Button
 							type="button"
 							variant="ghost"
 							size="icon"
 							className="ml-auto h-6 w-6 shrink-0 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
-							aria-label="Dismiss parse error"
-							onClick={() => setParseStatus("idle")}
+							aria-label="Dismiss extract error"
+							onClick={() =>
+								setFiles(
+									files.map((f) => ({
+										...f,
+										status: f.status === "failed" ? "completed" : f.status,
+									})),
+								)
+							}
 						>
 							<CloseLine className="h-3.5 w-3.5" />
 						</Button>
@@ -121,7 +131,8 @@ export function AddNewPatientClient() {
 				setUploadError={setUploadError}
 				uploadSelectedFiles={uploadSelectedFiles}
 				files={files}
-				setParseStatus={setParseStatus}
+				extractInfo={extractInfo}
+				isExtracting={isExtracting}
 			/>
 		</>
 	);
@@ -133,17 +144,17 @@ function Footer({
 	setUploadError,
 	uploadSelectedFiles,
 	files,
-	setParseStatus,
+	extractInfo,
+	isExtracting,
 }: {
 	fileInputRef: RefObject<HTMLInputElement | null>;
 	uploadError: string;
 	setUploadError: (msg: string) => void;
 	uploadSelectedFiles: (e: ChangeEvent<HTMLInputElement>) => void;
 	files: SelectedFile[];
-	setParseStatus: (status: "idle" | "parsing" | "error") => void;
+	extractInfo: () => Promise<void>;
+	isExtracting: boolean;
 }) {
-	const { parseFile } = useFileParse();
-
 	const uploadErrorId = "upload-error-message";
 
 	return (
@@ -170,8 +181,8 @@ function Footer({
 
 				<Dialog>
 					<DialogTrigger asChild>
-						<Button disabled={files.length === 0} className="h-11">
-							Parse Document
+						<Button disabled={files.length === 0 || isExtracting} className="h-11">
+							Extract Information
 						</Button>
 					</DialogTrigger>
 					<DialogContent>
@@ -185,7 +196,7 @@ function Footer({
 						</DialogHeader>
 						<div className="mt-8 px-6">
 							<p className="text-gray-600 font-medium">
-								Please ensure all required patient records are uploaded and correct.Once parsing
+								Please ensure all required patient records are uploaded and correct. Once extraction
 								starts, additional files cannot be added and the process cannot be paused or
 								restarted.
 							</p>
@@ -201,11 +212,10 @@ function Footer({
 									<Button
 										className="h-11"
 										onClick={() => {
-											parseFile();
-											setParseStatus("parsing");
+											extractInfo();
 										}}
 									>
-										Start Parsing
+										Start Extraction
 									</Button>
 								</DialogClose>
 							</div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import SignInClient from "./sign-in-client";
+import { SignInClient } from "./sign-in-client";
 
 export default function Login() {
 	return (

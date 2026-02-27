@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import EmailVerifiedClient from "./email-verified-client";
+import { EmailVerifiedClient } from "./email-verified-client";
 
 export default function EmailVerified() {
 	return (

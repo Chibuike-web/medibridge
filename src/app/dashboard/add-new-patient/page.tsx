@@ -1,4 +1,4 @@
-import ArrowLeftLine from "@/icons/arrow-left-line";
+import { ArrowLeftLine } from "@/icons/arrow-left-line";
 import { AddNewPatientClient } from "./add-new-patient-client";
 import Link from "next/link";
 
@@ -14,9 +14,9 @@ export default function AddNewPatient() {
 			<main className="flex flex-col gap-9 mt-12 max-w-[600px] mx-auto px-6 md:px-0">
 				<div>
 					<h1 className="font-semibold text-[24px] text-center mb-6">Upload Patient’s Record</h1>
-					<p className="text-gray-600 text-center">
-						Upload a document containing patient information. Supported formats: PDF, PNG, JPG,
-						DOCX.
+					<p className="text-gray-600 text-center text-balance">
+						Upload a document with the patient’s basic details to create their profile. Only
+						essential personal information is needed at this stage. Upload one document per patient.
 					</p>
 				</div>
 				<AddNewPatientClient />

@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-export default function SignInClient() {
+export function SignInClient() {
 	const router = useRouter();
 	const [isVisible, setIsVisible] = useState(false);
 	const [error, setError] = useState("");

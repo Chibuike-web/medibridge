@@ -1,31 +1,40 @@
 "use client";
 
-import { AllowedFileExtension, SelectedFile, useUpload } from "@/store/use-upload-store";
+import { useExtractedPatient } from "@/store/use-extracted-patient-store";
+import { SelectedFile, useUpload } from "@/store/use-upload-store";
+import { useRouter } from "next/navigation";
 import { ChangeEvent, useOptimistic, startTransition } from "react";
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 
 export function useFileUpload() {
 	const {
-		selectedFiles,
-		setSelectedFiles,
+		files,
+		setFiles,
 		uploadError,
 		uploadResults,
 		setUploadError,
 		setUploadResults,
 		clearFile,
+		clearAll,
 	} = useUpload();
-	const [optimisticFiles, setOptimisticFiles] = useOptimistic(selectedFiles);
+
+	const router = useRouter();
+	const { setPatientData } = useExtractedPatient();
+	const [optimisticFiles, setOptimisticFiles] = useOptimistic(files);
 
 	const uploadSelectedFiles = async (e: ChangeEvent<HTMLInputElement>) => {
-		const files = e.target.files;
+		setUploadError("");
 
-		if (!files || files.length === 0) {
+		const lists = e.target.files;
+
+		if (!lists || lists.length === 0) {
 			setUploadError("Please select a valid file.");
 			return;
 		}
 
-		const browserFiles = Array.from(files);
+		let browserFiles;
+		browserFiles = Array.from(lists);
 
 		const fileExtensions = browserFiles.map((file) => file.name.split(".").pop()?.toLowerCase());
 		const allowedTypes = ["pdf", "png", "jpg", "doc", "docx"];
@@ -41,34 +50,40 @@ export function useFileUpload() {
 		for (const file of browserFiles) {
 			if (file.size > MAX_FILE_SIZE_BYTES) {
 				setUploadError("File is too large. Maximum allowed size is 50MB.");
-				setSelectedFiles([]);
+				setFiles([]);
 				e.target.value = "";
 				return;
 			}
 		}
 
-		setUploadError("");
+		const duplicates = Array.from(lists).filter((f) => files.some((file) => file.name === f.name));
+		browserFiles = Array.from(lists).filter((f) => !files.some((file) => file.name === f.name));
 
-		const optimisticItems: SelectedFile[] = browserFiles.map((file) => {
-			const extension = file.name.split(".").pop()?.toLowerCase() as AllowedFileExtension;
+		if (duplicates.length > 0) {
+			alert(`Skipped duplicate files: ${duplicates.map((f) => f.name).join(", ")}`);
+		}
 
-			return {
-				id: crypto.randomUUID(),
-				name: file.name,
-				size: file.size,
-				extension,
-				status: "uploading",
-			};
-		});
+		if (browserFiles.length === 0) {
+			e.target.value = "";
+			return;
+		}
 
 		startTransition(async () => {
+			const optimisticItems: SelectedFile[] = browserFiles.map((f) => {
+				return {
+					id: crypto.randomUUID(),
+					name: f.name,
+					size: f.size,
+					status: "uploading",
+				};
+			});
 			setOptimisticFiles((prev) => [...prev, ...optimisticItems]);
 			e.target.value = "";
 
 			try {
 				const formData = new FormData();
-				for (const file of browserFiles) {
-					formData.append("file", file);
+				for (const f of browserFiles) {
+					formData.append("file", f);
 				}
 
 				const res = await fetch("/api/file-upload", {
@@ -83,35 +98,74 @@ export function useFileUpload() {
 
 				setUploadResults(data.files);
 
-				await new Promise((r) => setTimeout(r, 5000));
+				await new Promise((r) => setTimeout(r, 2000));
 
 				startTransition(() => {
 					const uploaded = data.files.map((f: SelectedFile) => {
-						const extension = f.name.split(".").pop()?.toLowerCase() as AllowedFileExtension;
-
 						return {
 							...f,
-							extension,
 							status: "completed",
 						};
 					});
-					const map = new Map([...selectedFiles, ...uploaded].map((f) => [f.name, f]));
-					setSelectedFiles(Array.from(map.values()));
+					setFiles([...files, ...uploaded]);
 				});
 			} catch (error) {
-				console.error(error);
+				throw new Error(Error.isError(error) ? error.message : "Internal Server");
+			}
+		});
+	};
+
+	const extractInfo = async () => {
+		if (files.length === 0) return;
+
+		startTransition(async () => {
+			const extractingFiles = files.map((f) => ({ ...f, status: "extracting" as const }));
+			setOptimisticFiles(extractingFiles);
+			setFiles(extractingFiles);
+
+			try {
+				const filenames = files.map((f) => f.name);
+
+				const res = await fetch("/api/extract-file", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ filenames }),
+				});
+
+				const extracted = await res.json();
+
+				if (!res.ok) {
+					throw new Error("Issue extracting file");
+				}
+
+				startTransition(() => {
+					const uploaded: SelectedFile[] = files.map((f: SelectedFile) => {
+						return {
+							...f,
+							status: "extracted",
+						};
+					});
+					setFiles(uploaded);
+					setPatientData(extracted);
+				});
+
+				clearAll();
+				router.push("/dashboard/review-extracted-info");
+			} catch (error) {
+				throw new Error(Error.isError(error) ? error.message : "Internal Server");
 			}
 		});
 	};
 
 	return {
-		selectedFiles,
+		files,
 		uploadResults,
 		uploadError,
 		setUploadError,
-		setSelectedFiles,
+		setFiles,
 		clearFile,
 		uploadSelectedFiles,
 		optimisticFiles,
+		extractInfo,
 	};
 }

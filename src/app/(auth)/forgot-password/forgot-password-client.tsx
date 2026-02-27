@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 
-export default function ForgotPasswordClient() {
+export function ForgotPasswordClient() {
 	const router = useRouter();
 
 	return (

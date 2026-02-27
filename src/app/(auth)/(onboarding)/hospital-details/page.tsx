@@ -1,5 +1,5 @@
 import Link from "next/link";
-import ArrowLeftLine from "@/icons/arrow-left-line";
+import { ArrowLeftLine } from "@/icons/arrow-left-line";
 import { HospitalDetailsClient } from "./hospital-details-client";
 
 export default function HospitalDetails() {

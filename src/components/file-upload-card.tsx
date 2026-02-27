@@ -55,17 +55,21 @@ export function FileUploadCard({
 								<span className="size-0.5 block bg-foreground rounded-full" />
 							</div>
 							<div className="flex items-center gap-1">
-								{status === "uploading" ? (
+								{status === "uploading" || status === "extracting" ? (
 									<LoaderLine className="size-4 text-blue-500 animate-spin " />
-								) : status === "completed" ? (
+								) : status === "completed" || status === "extracted" ? (
 									<CheckCircle className="size-4 text-green-500" />
 								) : status === "failed" ? (
 									<ErrorWarningFill className="size-4 text-red-500" />
 								) : null}
 								{status === "uploading" ? (
 									<p>Uploading...</p>
+								) : status === "extracting" ? (
+									<p>Extracting...</p>
 								) : status === "completed" ? (
 									<p>Completed</p>
+								) : status === "extracted" ? (
+									<p>Extracted</p>
 								) : status === "failed" ? (
 									<p>Failed</p>
 								) : null}
@@ -81,7 +85,7 @@ export function FileUploadCard({
 							}
 						}}
 					>
-						{status === "uploading" ? (
+						{status === "uploading" || status === "extracting" ? (
 							<CloseLine className="size-5" />
 						) : (
 							<DeleteBinLine className="size-5" />

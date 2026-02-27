@@ -143,7 +143,13 @@ export function HospitalDetailsClient() {
 			</p>
 
 			{file ? (
-				<FileUploadCard file={file} onRemove={onClear} status={status} extension={uploadType} />
+				<FileUploadCard
+					name={file.name}
+					size={file.size}
+					onRemove={onClear}
+					status={status}
+					extension={uploadType}
+				/>
 			) : (
 				<ChooseFileCard
 					handleFileChange={handleFileChange}

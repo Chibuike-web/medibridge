@@ -12,7 +12,7 @@ import { usePathname } from "next/navigation";
 import { UserProfile } from "./user-profile";
 import { SearchLine } from "@/icons/search-line";
 
-export default function Sidebar() {
+export function Sidebar() {
 	const pathname = usePathname();
 
 	return (

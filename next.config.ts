@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
 	reactCompiler: false,
 	cacheComponents: false,
 	logging: { fetches: { fullUrl: true } },
+	serverExternalPackages: ["tesseract.js", "pdf-parse", "mammoth"],
 	experimental: {
 		turbopackFileSystemCacheForBuild: true,
 	},
