@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function AddNewPatient() {
 	return (
 		<>
-			<nav className="w-full h-16 flex items-center sticky top-0 bg-white border-b border-gray-300 px-8">
+			<nav className="w-full h-16 flex items-center sticky z-1 top-0 bg-white border-b border-gray-300 px-8">
 				<Link href="/dashboard/overview" className="flex gap-2 w-max items-center text-foreground">
 					<ArrowLeftLine className="size-5" /> <span className="sr-only">Back</span>
 				</Link>

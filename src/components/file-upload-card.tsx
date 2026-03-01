@@ -10,7 +10,7 @@ import { CheckCircle } from "@/icons/check-circle";
 import { DeleteBinLine } from "@/icons/delete-bin-line";
 import { ErrorWarningFill } from "../icons/error-warning-fill";
 import { formatFileSize } from "@/lib/utils/format-file-size";
-import { AllowedFileExtension, UploadStatus } from "@/store/use-upload-store";
+import { AllowedFileExtension, UploadStatus } from "@/types/upload";
 
 type FileUploadCardProps = {
 	id?: string;

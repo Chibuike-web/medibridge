@@ -1,27 +1,7 @@
 import { create } from "zustand";
+import { VerificationUploadState } from "@/types/verification-upload";
 
-export type FileExtensionType = "pdf" | "png" | "jpg" | "doc" | "";
-
-type UploadInfo = Record<string, string>;
-
-type UploadStatus = "idle" | "uploading" | "completed" | "failed";
-
-type UploadState = {
-	file: File | null;
-	status: UploadStatus;
-	uploadInfo: UploadInfo;
-	uploadError: string;
-	uploadType: FileExtensionType;
-
-	setFile: (file: File | null) => void;
-	setStatus: (status: UploadStatus) => void;
-	setUploadInfo: (info: UploadInfo) => void;
-	setUploadError: (error: string) => void;
-	setUploadType: (type: FileExtensionType) => void;
-	onClear: () => void;
-};
-
-const useVerificationUploadStore = create<UploadState>((set) => ({
+const useVerificationUploadStore = create<VerificationUploadState>((set) => ({
 	file: null,
 	status: "idle",
 	uploadInfo: {},

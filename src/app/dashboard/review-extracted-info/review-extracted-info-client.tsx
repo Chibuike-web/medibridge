@@ -20,24 +20,13 @@ export function ReviewExtractedInfoClient() {
 		setIsOpen(false);
 	};
 	return (
-		<div className="my-10 flex flex-col gap-3 items-start">
+		<div className="flex flex-col gap-3 items-start">
 			{dataArray.map(([key, value]) => (
 				<InfoExtractAccordion key={key} heading={key} subHeading={value} />
 			))}
-			<footer className="fixed bg-white bottom-0 right-0 left-0 py-8 border-t border-gray-200">
-				<div className="max-w-[550px] mx-auto flex gap-4 px-6 xl:px-0">
-					<Button
-						variant="outline"
-						className="flex-1 w-full"
-						onClick={() => router.replace("/dashboard")}
-					>
-						Cancel
-					</Button>
-					<Button className="flex-1 w-full" onClick={() => setIsOpen(true)}>
-						Save Patient Record
-					</Button>
-				</div>
-			</footer>
+			<Button className="w-full mt-16" onClick={() => setIsOpen(true)}>
+				Save Patient Record{" "}
+			</Button>
 
 			{isOpen && (
 				<SuccessModal

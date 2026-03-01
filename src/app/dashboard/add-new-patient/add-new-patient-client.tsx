@@ -16,25 +16,27 @@ import { useFileUpload } from "@/hooks/use-file-upload";
 import { CloseLine } from "@/icons/close-line";
 import { ErrorWarningLine } from "@/icons/error-warning-line";
 import { cn } from "@/lib/utils/cn";
-import { AllowedFileExtension, SelectedFile } from "@/store/use-upload-store";
-import { ChangeEvent, RefObject, useRef } from "react";
+import { AllowedFileExtension, SelectedFile } from "@/types/upload";
+import { RefObject, useRef, useState } from "react";
 
 export function AddNewPatientClient() {
 	const {
-		optimisticFiles,
 		files,
 		setFiles,
 		clearFile,
 		uploadError,
+		extractError,
 		setUploadError,
-		uploadSelectedFiles,
+		setExtractError,
+		handleFiles,
 		extractInfo,
 	} = useFileUpload();
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const dropzoneRef = useRef<HTMLElement>(null);
+	const [active, setActive] = useState(false);
 	const uploadErrorId = "upload-error-message";
 	const extractErrorId = "extract-error-message";
-	const isExtracting = optimisticFiles.some((f) => f.status === "extracting");
-	const hasExtractError = files.some((f) => f.status === "failed");
+	const isExtracting = files.some((f) => f.status === "extracting");
 
 	const clear = (id?: string) => {
 		if (!id) return;
@@ -44,14 +46,48 @@ export function AddNewPatientClient() {
 		}
 	};
 	return (
-		<>
-			<div className="pb-40">
-				{optimisticFiles.length > 0 ? (
+		<main
+			ref={dropzoneRef}
+			className="relative pb-40"
+			onDragEnter={(e) => {
+				e.preventDefault();
+				setActive(true);
+			}}
+			onDragOver={(e) => {
+				e.preventDefault();
+				setActive(true);
+			}}
+			onDragLeave={(e) => {
+				e.preventDefault();
+				if (!dropzoneRef.current?.contains(e.relatedTarget as Node)) {
+					setActive(false);
+				}
+			}}
+			onDrop={(e) => {
+				e.preventDefault();
+				setActive(false);
+				handleFiles(Array.from(e.dataTransfer.files));
+			}}
+		>
+			<div
+				className={cn(
+					"pointer-events-none fixed inset-0 z-100 flex items-center justify-center bg-white/80 transition-opacity",
+					active ? "opacity-100" : "opacity-0",
+				)}
+				aria-hidden={!active}
+			>
+				<div className="px-5 py-4 text-center">
+					<p className="text-2xl font-medium text-gray-900">Drop files here</p>
+					<p className="mt-1 text-base text-gray-500">PDF, PNG, JPG, DOC, DOCX up to 50MB</p>
+				</div>
+			</div>
+			<div>
+				{files.length > 0 ? (
 					<>
 						<div
 							className={cn("flex flex-col gap-3", isExtracting && "opacity-50 cursor-not-allowed")}
 						>
-							{optimisticFiles.map((file) => {
+							{files.map((file) => {
 								const extension = file.name.split(".").pop()?.toLowerCase() as AllowedFileExtension;
 
 								return (
@@ -69,7 +105,17 @@ export function AddNewPatientClient() {
 						</div>
 					</>
 				) : (
-					<ChooseFileCard handleFileChange={uploadSelectedFiles} fileInputRef={fileInputRef} />
+					<ChooseFileCard
+						handleFileChange={(e) => {
+							const lists = e.target.files;
+							if (!lists || lists.length === 0) {
+								return;
+							}
+							handleFiles(Array.from(lists));
+							e.target.value = "";
+						}}
+						fileInputRef={fileInputRef}
+					/>
 				)}
 				{uploadError ? (
 					<div
@@ -93,7 +139,7 @@ export function AddNewPatientClient() {
 						</Button>
 					</div>
 				) : null}
-				{files.length > 0 && hasExtractError ? (
+				{extractError ? (
 					<div
 						id={extractErrorId}
 						role="alert"
@@ -102,23 +148,22 @@ export function AddNewPatientClient() {
 						className="mt-2 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-red-700"
 					>
 						<ErrorWarningLine className="mt-0.5 h-4 w-4 shrink-0" />
-						<p className="text-sm font-medium">
-							Issue extracting file{files.length > 1 ? "s" : null}
-						</p>
+						<p className="text-sm font-medium">{extractError}</p>
 						<Button
 							type="button"
 							variant="ghost"
 							size="icon"
 							className="ml-auto h-6 w-6 shrink-0 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
 							aria-label="Dismiss extract error"
-							onClick={() =>
+							onClick={() => {
+								setExtractError("");
 								setFiles(
 									files.map((f) => ({
 										...f,
 										status: f.status === "failed" ? "completed" : f.status,
 									})),
-								)
-							}
+								);
+							}}
 						>
 							<CloseLine className="h-3.5 w-3.5" />
 						</Button>
@@ -129,12 +174,12 @@ export function AddNewPatientClient() {
 				fileInputRef={fileInputRef}
 				uploadError={uploadError}
 				setUploadError={setUploadError}
-				uploadSelectedFiles={uploadSelectedFiles}
+				handleFiles={handleFiles}
 				files={files}
 				extractInfo={extractInfo}
 				isExtracting={isExtracting}
 			/>
-		</>
+		</main>
 	);
 }
 
@@ -142,7 +187,7 @@ function Footer({
 	fileInputRef,
 	uploadError,
 	setUploadError,
-	uploadSelectedFiles,
+	handleFiles,
 	files,
 	extractInfo,
 	isExtracting,
@@ -150,7 +195,7 @@ function Footer({
 	fileInputRef: RefObject<HTMLInputElement | null>;
 	uploadError: string;
 	setUploadError: (msg: string) => void;
-	uploadSelectedFiles: (e: ChangeEvent<HTMLInputElement>) => void;
+	handleFiles: (incomingFiles: File[]) => void;
 	files: SelectedFile[];
 	extractInfo: () => Promise<void>;
 	isExtracting: boolean;
@@ -171,7 +216,12 @@ function Footer({
 							aria-describedby={uploadError ? uploadErrorId : undefined}
 							onChange={(e) => {
 								setUploadError("");
-								uploadSelectedFiles(e);
+								const lists = e.target.files;
+								if (!lists || lists.length === 0) {
+									return;
+								}
+								handleFiles(Array.from(lists));
+								e.target.value = "";
 							}}
 							multiple
 						/>

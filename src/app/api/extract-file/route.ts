@@ -117,7 +117,7 @@ export async function POST(req: Request) {
 					name: filename,
 					path: filePath,
 					text: "",
-					error: Error.isError(error) ? error.message : "OCR failed.",
+					error: error instanceof Error ? error.message : "OCR failed.",
 				});
 			}
 		}
@@ -143,7 +143,7 @@ export async function POST(req: Request) {
 		return NextResponse.json(output);
 	} catch (error) {
 		return NextResponse.json(
-			{ error: Error.isError(error) ? error.message : "Internal Server error" },
+			{ error: error instanceof Error ? error.message : "Internal Server error" },
 			{ status: 400 },
 		);
 	} finally {

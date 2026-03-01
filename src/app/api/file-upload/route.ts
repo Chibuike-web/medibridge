@@ -1,4 +1,4 @@
-import { SavedFileTypes } from "@/store/use-upload-store";
+import { SavedFileTypes } from "@/types/upload";
 import { NextResponse } from "next/server";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -43,9 +43,10 @@ export async function POST(req: Request) {
 			{ status: 200 },
 		);
 	} catch (error) {
-		if (Error.isError(error)) {
+		if (error instanceof Error) {
 			console.log(error.message);
 			return NextResponse.json({ status: "failed", error: error.message }, { status: 500 });
 		}
+		return NextResponse.json({ status: "failed", error: "Internal Server error" }, { status: 500 });
 	}
 }

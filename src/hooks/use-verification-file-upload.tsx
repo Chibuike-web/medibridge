@@ -1,10 +1,10 @@
 "use client";
 
 import { useVerificationUpload } from "@/store/use-verification-upload-store";
+import { FileExtensionType } from "@/types/verification-upload";
 import { ChangeEvent } from "react";
 
 const MAXSIZEINBYTES = 50 * 1024 * 1024;
-type FileExtensionType = "pdf" | "png" | "jpg" | "doc";
 
 export function useVerificationFileUpload() {
 	const {
