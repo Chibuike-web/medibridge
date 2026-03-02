@@ -1,25 +1,28 @@
 "use client";
 
-import { useVerificationUpload } from "@/store/use-verification-upload-store";
-import { FileExtensionType } from "@/types/verification-upload";
-import { ChangeEvent } from "react";
+import {
+	FileExtensionType,
+	UploadInfo,
+	VerificationUploadStatus,
+} from "@/types/verification-upload";
+import { ChangeEvent, useState } from "react";
 
 const MAXSIZEINBYTES = 50 * 1024 * 1024;
 
 export function useVerificationFileUpload() {
-	const {
-		file,
-		status,
-		uploadError,
-		uploadInfo,
-		uploadType,
-		setFile,
-		setStatus,
-		setUploadError,
-		setUploadInfo,
-		setUploadType,
-		onClear,
-	} = useVerificationUpload();
+	const [file, setFile] = useState<File | null>(null);
+	const [status, setStatus] = useState<VerificationUploadStatus>("idle");
+	const [uploadError, setUploadError] = useState("");
+	const [uploadInfo, setUploadInfo] = useState<UploadInfo>({});
+	const [uploadType, setUploadType] = useState<FileExtensionType>("");
+
+	const onClear = () => {
+		setFile(null);
+		setStatus("idle");
+		setUploadInfo({});
+		setUploadError("");
+		setUploadType("");
+	};
 
 	const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
 		const selectedFile = e.target.files?.[0];

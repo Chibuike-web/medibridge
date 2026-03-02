@@ -1,7 +1,6 @@
 "use client";
 
 import { useExtractedPatient } from "@/store/use-extracted-patient-store";
-import { useUpload } from "@/store/use-upload-store";
 import { SelectedFile } from "@/types/upload";
 import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
@@ -9,12 +8,20 @@ import { startTransition, useState } from "react";
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 
 export function useFileUpload() {
-	const { files, setFiles, uploadResults, setUploadResults, clearFile, clearAll } = useUpload();
+	const [files, setFiles] = useState<SelectedFile[]>([]);
 	const [uploadError, setUploadError] = useState("");
 	const [extractError, setExtractError] = useState("");
 
 	const router = useRouter();
 	const { setPatientData } = useExtractedPatient();
+
+	const clearFile = (id: string) => {
+		setFiles((prev) => prev.filter((f) => f.id !== id));
+	};
+
+	const clearAll = () => {
+		setFiles([]);
+	};
 
 	const handleFiles = async (incomingFiles: File[]) => {
 		setUploadError("");
@@ -92,8 +99,6 @@ export function useFileUpload() {
 				return;
 			}
 
-			setUploadResults(data.files);
-
 			await new Promise((r) => setTimeout(r, 2000));
 
 			startTransition(() => {
@@ -113,13 +118,6 @@ export function useFileUpload() {
 			});
 		} catch (error) {
 			console.error(error);
-			setFiles((prev) =>
-				prev.map((file) =>
-					optimisticItems.some((optimistic) => optimistic.id === file.id)
-						? { ...file, status: "failed" as const }
-						: file,
-				),
-			);
 			setUploadError("Upload failed.");
 		}
 	};
@@ -159,14 +157,12 @@ export function useFileUpload() {
 			clearAll();
 			router.push("/dashboard/review-extracted-info");
 		} catch (error) {
-			console.error(error);
-			setExtractError("Extraction failed.");
+			setExtractError(Error.isError(error) ? error.message : "Extraction failed.");
 		}
 	};
 
 	return {
 		files,
-		uploadResults,
 		uploadError,
 		extractError,
 		setUploadError,
