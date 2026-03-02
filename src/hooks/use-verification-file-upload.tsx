@@ -1,34 +1,46 @@
 "use client";
 
-import {
-	FileExtensionType,
-	UploadInfo,
-	VerificationUploadStatus,
-} from "@/types/verification-upload";
+import { FileExtensionType, VerificationUploadStatus } from "@/types/verification-upload";
 import { ChangeEvent, useState } from "react";
 
 const MAXSIZEINBYTES = 50 * 1024 * 1024;
 
+type VerificationFileState = {
+	file: File | null;
+	status: VerificationUploadStatus;
+	uploadedType: FileExtensionType;
+	error: string;
+};
+
 export function useVerificationFileUpload() {
-	const [file, setFile] = useState<File | null>(null);
-	const [status, setStatus] = useState<VerificationUploadStatus>("idle");
-	const [uploadError, setUploadError] = useState("");
-	const [uploadInfo, setUploadInfo] = useState<UploadInfo>({});
-	const [uploadType, setUploadType] = useState<FileExtensionType>("");
+	const [verificationFile, setVerificationFile] = useState<VerificationFileState>({
+		file: null,
+		status: "idle",
+		uploadedType: "",
+		error: "",
+	});
+
+	const setUploadError = (error: string) => {
+		setVerificationFile((prev) => ({ ...prev, error }));
+	};
 
 	const onClear = () => {
-		setFile(null);
-		setStatus("idle");
-		setUploadInfo({});
-		setUploadError("");
-		setUploadType("");
+		setVerificationFile({
+			file: null,
+			status: "idle",
+			uploadedType: "",
+			error: "",
+		});
 	};
 
 	const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
 		const selectedFile = e.target.files?.[0];
 		if (!selectedFile) {
-			setUploadError("Please select a valid file.");
-			setUploadType("");
+			setVerificationFile((prev) => ({
+				...prev,
+				error: "Please select a valid file.",
+				uploadedType: "",
+			}));
 			return;
 		}
 
@@ -36,21 +48,29 @@ export function useVerificationFileUpload() {
 		const allowedTypes = ["pdf", "png", "jpg", "doc"];
 
 		if (!fileExtension || !allowedTypes.includes(fileExtension)) {
-			setUploadError("Invalid file type. Only PDF, PNG, JPG, and DOC are allowed.");
-			setUploadType("");
+			setVerificationFile((prev) => ({
+				...prev,
+				error: "Invalid file type. Only PDF, PNG, JPG, and DOC are allowed.",
+				uploadedType: "",
+			}));
 			return;
 		}
 
 		if (selectedFile.size > MAXSIZEINBYTES) {
-			setUploadError("File is too large. Maximum allowed size is 50MB.");
-			setFile(null);
+			setVerificationFile((prev) => ({
+				...prev,
+				file: null,
+				error: "File is too large. Maximum allowed size is 50MB.",
+			}));
 			return;
 		}
 
-		setUploadType(fileExtension as FileExtensionType);
-		setUploadError("");
-		setStatus("uploading");
-		setFile(selectedFile);
+		setVerificationFile({
+			file: selectedFile,
+			status: "uploading",
+			uploadedType: fileExtension as FileExtensionType,
+			error: "",
+		});
 
 		try {
 			const formData = new FormData();
@@ -65,21 +85,22 @@ export function useVerificationFileUpload() {
 				setUploadError(data.error);
 				throw new Error("Issue uploading file");
 			}
-			setStatus("completed");
-			setUploadInfo(data);
+			setVerificationFile((prev) => ({ ...prev, status: "completed" }));
 		} catch (error) {
 			console.error(error);
-			setUploadError("Upload failed.");
-			setStatus("failed");
+			setVerificationFile((prev) => ({
+				...prev,
+				error: "Upload failed.",
+				status: "failed",
+			}));
 		}
 	};
 
 	return {
-		file,
-		status,
-		uploadError,
-		uploadType,
-		uploadInfo,
+		file: verificationFile.file,
+		status: verificationFile.status,
+		uploadError: verificationFile.error,
+		uploadedType: verificationFile.uploadedType,
 		onClear,
 		handleFileChange,
 		setUploadError,

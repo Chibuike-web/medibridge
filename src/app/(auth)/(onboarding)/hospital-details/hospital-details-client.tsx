@@ -21,7 +21,7 @@ import { ChooseFileCard } from "@/components/choose-file-card";
 
 export function HospitalDetailsClient() {
 	const router = useRouter();
-	const { file, status, uploadType, setUploadError, uploadError, onClear, handleFileChange } =
+	const { file, status, uploadedType, setUploadError, uploadError, onClear, handleFileChange } =
 		useVerificationFileUpload();
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
@@ -148,7 +148,7 @@ export function HospitalDetailsClient() {
 					size={file.size}
 					onRemove={onClear}
 					status={status}
-					extension={uploadType}
+					extension={uploadedType}
 				/>
 			) : (
 				<ChooseFileCard
