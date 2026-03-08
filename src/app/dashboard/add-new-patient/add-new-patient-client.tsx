@@ -15,14 +15,15 @@ import {
 import { useFileUpload } from "@/hooks/use-file-upload";
 import { CloseLine } from "@/icons/close-line";
 import { ErrorWarningLine } from "@/icons/error-warning-line";
+import { LoaderLine } from "@/icons/loader-line";
 import { cn } from "@/lib/utils/cn";
 import { AllowedFileExtension, SelectedFile } from "@/types/upload";
+import Link from "next/link";
 import { RefObject, useRef, useState } from "react";
 
 export function AddNewPatientClient() {
 	const {
 		files,
-		setFiles,
 		clearFile,
 		uploadError,
 		extractError,
@@ -30,21 +31,22 @@ export function AddNewPatientClient() {
 		setExtractError,
 		handleFiles,
 		extractInfo,
+		isExtracting,
 	} = useFileUpload();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const dropzoneRef = useRef<HTMLElement>(null);
 	const [active, setActive] = useState(false);
 	const uploadErrorId = "upload-error-message";
 	const extractErrorId = "extract-error-message";
-	const isExtracting = files.some((f) => f.status === "extracting");
 
-	const clear = (id?: string) => {
+	const clear = async (id?: string) => {
 		if (!id) return;
-		clearFile(id);
+		await clearFile(id);
 		if (fileInputRef.current) {
 			fileInputRef.current.value = "";
 		}
 	};
+
 	return (
 		<main
 			ref={dropzoneRef}
@@ -83,27 +85,25 @@ export function AddNewPatientClient() {
 			</div>
 			<div>
 				{files.length > 0 ? (
-					<>
-						<div
-							className={cn("flex flex-col gap-3", isExtracting && "opacity-50 cursor-not-allowed")}
-						>
-							{files.map((file) => {
-								const extension = file.name.split(".").pop()?.toLowerCase() as AllowedFileExtension;
+					<div
+						className={cn("flex flex-col gap-3", isExtracting && "opacity-50 cursor-not-allowed")}
+					>
+						{files.map((file) => {
+							const extension = file.name.split(".").pop()?.toLowerCase() as AllowedFileExtension;
 
-								return (
-									<FileUploadCard
-										key={file.id}
-										name={file.name}
-										size={file.size}
-										extension={extension}
-										id={file.id}
-										status={file.status}
-										onRemove={clear}
-									/>
-								);
-							})}
-						</div>
-					</>
+							return (
+								<FileUploadCard
+									key={file.id}
+									name={file.name}
+									size={file.size}
+									extension={extension}
+									id={file.id}
+									status={file.status}
+									onRemove={clear}
+								/>
+							);
+						})}
+					</div>
 				) : (
 					<ChooseFileCard
 						handleFileChange={(e) => {
@@ -157,12 +157,6 @@ export function AddNewPatientClient() {
 							aria-label="Dismiss extract error"
 							onClick={() => {
 								setExtractError("");
-								setFiles(
-									files.map((f) => ({
-										...f,
-										status: f.status === "failed" ? "completed" : f.status,
-									})),
-								);
 							}}
 						>
 							<CloseLine className="h-3.5 w-3.5" />
@@ -201,78 +195,95 @@ function Footer({
 	isExtracting: boolean;
 }) {
 	const uploadErrorId = "upload-error-message";
+	const extractionComplete =
+		files.length > 0 &&
+		files.some((file) => file.status === "extract-complete" || file.status === "extract-failed");
 
 	return (
 		<footer className="fixed z-50 bottom-0 left-0 right-0 flex items-center justify-center border-t h-20 border-gray-200 pb-[env(safe-area-inset-bottom)] bg-white">
-			<div className="flex w-full justify-between items-center max-w-xl">
-				<Button type="button" variant="outline" className="h-11">
-					<label htmlFor="file-input">
-						<input
-							type="file"
-							className="sr-only"
-							id="file-input"
-							ref={fileInputRef}
-							aria-invalid={Boolean(uploadError)}
-							aria-describedby={uploadError ? uploadErrorId : undefined}
-							onChange={(e) => {
-								setUploadError("");
-								const lists = e.target.files;
-								if (!lists || lists.length === 0) {
-									return;
-								}
-								handleFiles(Array.from(lists));
-								e.target.value = "";
-							}}
-							multiple
-						/>
-						<span>Upload More</span>
-					</label>
-				</Button>
+			{!isExtracting && !extractionComplete ? (
+				<div className="flex w-full justify-between items-center max-w-xl">
+					<Button type="button" variant="outline" className="h-11" disabled={files.length === 0}>
+						<label htmlFor="file-input">
+							<input
+								type="file"
+								className="sr-only"
+								id="file-input"
+								ref={fileInputRef}
+								aria-invalid={Boolean(uploadError)}
+								aria-describedby={uploadError ? uploadErrorId : undefined}
+								onChange={(e) => {
+									setUploadError("");
+									const lists = e.target.files;
+									if (!lists || lists.length === 0) {
+										return;
+									}
+									handleFiles(Array.from(lists));
+									e.target.value = "";
+								}}
+								multiple
+							/>
+							<span>Upload More</span>
+						</label>
+					</Button>
 
-				<Dialog>
-					<DialogTrigger asChild>
-						<Button disabled={files.length === 0 || isExtracting} className="h-11">
-							Extract Information
-						</Button>
-					</DialogTrigger>
-					<DialogContent>
-						<DialogHeader className="h-16 px-6 border-b border-gray-200">
-							<DialogTitle className="text-[20px] font-semibold">
-								Confirm Transfer Request
-							</DialogTitle>
-							<DialogClose>
-								<CloseLine className="size-6" />
-							</DialogClose>
-						</DialogHeader>
-						<div className="mt-8 px-6">
-							<p className="text-gray-600 font-medium">
-								Please ensure all required patient records are uploaded and correct. Once extraction
-								starts, additional files cannot be added and the process cannot be paused or
-								restarted.
-							</p>
-						</div>
-						<DialogFooter className="mt-16 border-t border-gray-200">
-							<div className="flex gap-4 ml-auto">
-								<DialogClose asChild>
-									<Button variant="outline" className="h-11">
-										Cancel
-									</Button>
+					<Dialog>
+						<DialogTrigger asChild>
+							<Button disabled={files.length === 0 || isExtracting} className="h-11">
+								Extract Information
+							</Button>
+						</DialogTrigger>
+						<DialogContent>
+							<DialogHeader className="h-16 px-6 border-b border-gray-200">
+								<DialogTitle className="text-[20px] font-semibold">
+									Confirm Transfer Request
+								</DialogTitle>
+								<DialogClose>
+									<CloseLine className="size-6" />
 								</DialogClose>
-								<DialogClose asChild>
-									<Button
-										className="h-11"
-										onClick={() => {
-											extractInfo();
-										}}
-									>
-										Start Extraction
-									</Button>
-								</DialogClose>
+							</DialogHeader>
+							<div className="mt-8 px-6">
+								<p className="text-gray-600 font-medium">
+									Please ensure all required patient records are uploaded and correct. Once
+									extraction starts, additional files cannot be added and the process cannot be
+									paused or restarted.
+								</p>
 							</div>
-						</DialogFooter>
-					</DialogContent>
-				</Dialog>
-			</div>
+							<DialogFooter className="mt-16 border-t border-gray-200">
+								<div className="flex gap-4 ml-auto">
+									<DialogClose asChild>
+										<Button variant="outline" className="h-11">
+											Cancel
+										</Button>
+									</DialogClose>
+									<DialogClose asChild>
+										<Button
+											className="h-11"
+											onClick={() => {
+												void extractInfo();
+											}}
+										>
+											Start Extraction
+										</Button>
+									</DialogClose>
+								</div>
+							</DialogFooter>
+						</DialogContent>
+					</Dialog>
+				</div>
+			) : null}
+
+			{isExtracting ? (
+				<div className="flex items-center gap-2">
+					<LoaderLine className="size-4 animate-spin" /> <span>Extracting patient data...</span>
+				</div>
+			) : null}
+
+			{extractionComplete ? (
+				<Button className="h-11 w-xl" asChild>
+					<Link href="/dashboard/review-extracted-info">Continue</Link>
+				</Button>
+			) : null}
 		</footer>
 	);
 }

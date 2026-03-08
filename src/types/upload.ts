@@ -1,12 +1,12 @@
-export type AllowedFileExtension = "pdf" | "png" | "jpg" | "doc" | "";
+export type AllowedFileExtension = "pdf" | "png" | "jpg" | "doc" | "docx" | "";
 
-export type UploadStatus =
+export type FileStatus =
 	| "idle"
 	| "uploading"
-	| "completed"
-	| "failed"
-	| "extracting"
-	| "extracted";
+	| "upload-complete"
+	| "deleting"
+	| "extract-complete"
+	| "extract-failed";
 
 export type SavedFileTypes = {
 	id: string;
@@ -17,5 +17,13 @@ export type SavedFileTypes = {
 };
 
 export type SelectedFile = SavedFileTypes & {
-	status: UploadStatus;
+	status: FileStatus;
+};
+
+export type ExtractionResult = {
+	name: string;
+	path: string;
+	status: "success" | "failed";
+	error?: string;
+	text: string;
 };

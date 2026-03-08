@@ -14,7 +14,7 @@ export default function Home() {
 					className="w-full h-full object-cover"
 				/>
 			</div>
-			<div className="w-full sm:max-w-[700] xl:w-[600px] flex shrink-0 flex-col items-center px-6 xl:px-20">
+			<div className="w-full sm:w-[500px] flex shrink-0 flex-col items-center mx-6 xl:mx-40">
 				<span className="font-bold text-[1.5rem] leading-[1.2em] tracking-[-0.02em] text-gray-800">
 					MediBridge
 				</span>

@@ -82,17 +82,23 @@ export function useVerificationFileUpload() {
 			const data = await res.json();
 
 			if (!res.ok) {
-				setUploadError(data.error);
-				throw new Error("Issue uploading file");
+				setVerificationFile({
+					file: null,
+					status: "idle",
+					uploadedType: "",
+					error: data.error ?? "Upload failed.",
+				});
+				return;
 			}
-			setVerificationFile((prev) => ({ ...prev, status: "completed" }));
+			setVerificationFile((prev) => ({ ...prev, status: "upload-complete" }));
 		} catch (error) {
 			console.error(error);
-			setVerificationFile((prev) => ({
-				...prev,
+			setVerificationFile({
+				file: null,
+				status: "idle",
+				uploadedType: "",
 				error: "Upload failed.",
-				status: "failed",
-			}));
+			});
 		}
 	};
 
