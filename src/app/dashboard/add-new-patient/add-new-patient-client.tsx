@@ -31,13 +31,13 @@ export function AddNewPatientClient() {
 		setExtractError,
 		handleFiles,
 		extractInfo,
-		isExtracting,
 	} = useFileUpload();
 	const fileInputRef = useRef<HTMLInputElement>(null);
-	const dropzoneRef = useRef<HTMLElement>(null);
+	const dropzoneRef = useRef<HTMLDivElement>(null);
 	const [active, setActive] = useState(false);
 	const uploadErrorId = "upload-error-message";
 	const extractErrorId = "extract-error-message";
+	const isExtracting = files.some((f) => f.status === "extracting");
 
 	const clear = async (id?: string) => {
 		if (!id) return;
@@ -53,6 +53,7 @@ export function AddNewPatientClient() {
 			className="relative pb-40"
 			onDragEnter={(e) => {
 				e.preventDefault();
+				if (isExtracting) return;
 				setActive(true);
 			}}
 			onDragOver={(e) => {
@@ -67,6 +68,7 @@ export function AddNewPatientClient() {
 			}}
 			onDrop={(e) => {
 				e.preventDefault();
+				if (isExtracting) return;
 				setActive(false);
 				handleFiles(Array.from(e.dataTransfer.files));
 			}}
@@ -191,19 +193,29 @@ function Footer({
 	setUploadError: (msg: string) => void;
 	handleFiles: (incomingFiles: File[]) => void;
 	files: SelectedFile[];
-	extractInfo: () => Promise<void>;
+	extractInfo: (filenames?: string[]) => Promise<void>;
 	isExtracting: boolean;
 }) {
 	const uploadErrorId = "upload-error-message";
+	const uploadComplete =
+		files.length > 0 && files.every((file) => file.status === "upload-complete");
 	const extractionComplete =
 		files.length > 0 &&
-		files.some((file) => file.status === "extract-complete" || file.status === "extract-failed");
+		files.every((file) => file.status === "extract-complete" || file.status === "extract-failed");
+	const isFailedExtract = files.some((file) => file.status === "extract-failed");
+
+	function retryExtraction() {
+		const failedFiles = files.filter((f) => f.status === "extract-failed").map((f) => f.name);
+		if (failedFiles.length === 0) return;
+
+		void extractInfo(failedFiles);
+	}
 
 	return (
-		<footer className="fixed z-50 bottom-0 left-0 right-0 flex items-center justify-center border-t h-20 border-gray-200 pb-[env(safe-area-inset-bottom)] bg-white">
+		<footer className="fixed z-50 bottom-0 left-0 right-0 flex items-center justify-center border-t h-20 border-gray-200 pb-[env(safe-area-inset-bottom)] bg-white px-4 md:px-0">
 			{!isExtracting && !extractionComplete ? (
 				<div className="flex w-full justify-between items-center max-w-xl">
-					<Button type="button" variant="outline" className="h-11" disabled={files.length === 0}>
+					<Button type="button" variant="outline" className="h-11" disabled={!uploadComplete}>
 						<label htmlFor="file-input">
 							<input
 								type="file"
@@ -229,7 +241,7 @@ function Footer({
 
 					<Dialog>
 						<DialogTrigger asChild>
-							<Button disabled={files.length === 0 || isExtracting} className="h-11">
+							<Button disabled={!uploadComplete || isExtracting} className="h-11">
 								Extract Information
 							</Button>
 						</DialogTrigger>
@@ -279,11 +291,17 @@ function Footer({
 				</div>
 			) : null}
 
-			{extractionComplete ? (
+			{extractionComplete && !isFailedExtract && (
 				<Button className="h-11 w-xl" asChild>
 					<Link href="/dashboard/review-extracted-info">Continue</Link>
 				</Button>
-			) : null}
+			)}
+
+			{isFailedExtract && (
+				<Button onClick={retryExtraction} variant="outline">
+					Try again
+				</Button>
+			)}
 		</footer>
 	);
 }

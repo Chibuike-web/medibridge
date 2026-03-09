@@ -11,7 +11,7 @@ export function useFileUpload() {
 	const [files, setFiles] = useState<SelectedFile[]>([]);
 	const [uploadError, setUploadError] = useState("");
 	const [extractError, setExtractError] = useState("");
-	const [isExtracting, setIsExtracting] = useState(false);
+	// const [isExtracting, setIsExtracting] = useState(false);
 
 	const { setPatientData } = useExtractedPatient();
 
@@ -132,28 +132,32 @@ export function useFileUpload() {
 		}
 	};
 
-	const extractInfo = async () => {
+	const extractInfo = async (filenames?: string[]) => {
+		const isExtracting = files.some((f) => f.status === "extracting");
 		if (files.length === 0 || isExtracting) return;
 
 		setExtractError("");
-		setIsExtracting(true);
 
+		const targetFiles = filenames ?? files.map((f) => f.name);
+
+		setFiles((prev) =>
+			prev.map((f) => (targetFiles.includes(f.name) ? { ...f, status: "extracting" } : f)),
+		);
 		try {
-			const filenames = files.map((f) => f.name);
-
 			const res = await fetch("/api/extract-file", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ filenames }),
+				body: JSON.stringify({ filenames: targetFiles }),
 			});
 
 			const data = await res.json();
 
 			if (!res.ok) {
-				const errorMessage =
-					typeof data?.error === "string" && data.error ? data.error : "Issue extracting file";
-				setExtractError(errorMessage);
-				setFiles((prev) => prev.map((f) => ({ ...f, status: "extract-failed" as const })));
+				setExtractError(data.error ?? "Issue extracting file");
+
+				setFiles((prev) =>
+					prev.map((f) => (targetFiles.includes(f.name) ? { ...f, status: "extract-failed" } : f)),
+				);
 				return;
 			}
 
@@ -162,13 +166,12 @@ export function useFileUpload() {
 			startTransition(() => {
 				setFiles((prev) =>
 					prev.map((file) => {
-						const matchedResult = results.find((result) => result.name === file.name);
-
-						if (!matchedResult) return file;
+						const matched = results.find((result) => result.name === file.name);
+						if (!matched) return file;
 
 						return {
 							...file,
-							status: matchedResult.status === "failed" ? "extract-failed" : "extract-complete",
+							status: matched.status === "failed" ? "extract-failed" : "extract-complete",
 						};
 					}),
 				);
@@ -176,10 +179,10 @@ export function useFileUpload() {
 				setPatientData(data.extracted);
 			});
 		} catch (error) {
-			setFiles((prev) => prev.map((f) => ({ ...f, status: "extract-failed" as const })));
 			setExtractError(Error.isError(error) ? error.message : "Extraction failed.");
-		} finally {
-			setIsExtracting(false);
+			setFiles((prev) =>
+				prev.map((f) => (targetFiles.includes(f.name) ? { ...f, status: "extract-failed" } : f)),
+			);
 		}
 	};
 
@@ -187,7 +190,6 @@ export function useFileUpload() {
 		files,
 		uploadError,
 		extractError,
-		isExtracting,
 		setUploadError,
 		setExtractError,
 		setFiles,

@@ -5,6 +5,7 @@ export type FileStatus =
 	| "uploading"
 	| "upload-complete"
 	| "deleting"
+	| "extracting"
 	| "extract-complete"
 	| "extract-failed";
 
