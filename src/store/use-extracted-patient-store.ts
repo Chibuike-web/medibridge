@@ -1,15 +1,24 @@
-import { PatientType } from "@/app/(auth)/schemas/patient-schema";
+import { PatientType } from "@/app/api/extract-file/schemas/patient-schema";
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 type Store = {
 	patientData: PatientType | null;
 	setPatientData: (data: PatientType) => void;
 };
 
-const useExtractedPatientStore = create<Store>((set) => ({
-	patientData: null,
-	setPatientData: (data) => set({ patientData: data }),
-}));
+export const useExtractedPatientStore = create<Store>()(
+	persist(
+		(set) => ({
+			patientData: null,
+			setPatientData: (data) => set({ patientData: data }),
+		}),
+		{
+			name: "extracted-patient-data",
+			storage: createJSONStorage(() => localStorage),
+		}
+	)
+);
 
 export const useExtractedPatient = () => {
 	const patientData = useExtractedPatientStore((state) => state.patientData);

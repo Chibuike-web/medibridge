@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import { Agentation } from "agentation";
+import "@/styles/globals.css";
+import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
 	title: "MediBridge | Connect Hospitals Seamlessly",
@@ -12,8 +14,13 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en">
-			<body className="antialiased">{children}</body>
+		<html lang="en" suppressHydrationWarning>
+			<body className="antialiased">
+				<Providers>
+					{children}
+					{process.env.NODE_ENV === "development" && <Agentation />}
+				</Providers>
+			</body>
 		</html>
 	);
 }

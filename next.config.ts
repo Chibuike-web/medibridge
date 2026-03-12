@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
 	reactCompiler: false,
-	cacheComponents: false,
 	logging: { fetches: { fullUrl: true } },
 	serverExternalPackages: ["tesseract.js", "pdf-parse", "mammoth"],
 	experimental: {

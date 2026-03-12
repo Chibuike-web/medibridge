@@ -7,7 +7,7 @@ import { PDFParse } from "pdf-parse";
 
 import path from "node:path";
 import { existsSync, readFileSync } from "node:fs";
-import { patientSchema } from "./utils/patient-schema";
+import { PatientRecordSchema, PatientSchema } from "@/app/api/extract-file/schemas/patient-schema";
 import { ExtractionResult } from "@/types/upload";
 
 const model = wrapLanguageModel({
@@ -144,7 +144,7 @@ Extract patient data per document.`;
 					content: [{ type: "text", text: prompt }],
 				},
 			],
-			output: Output.object({ schema: patientSchema }),
+			output: Output.array(PatientSchema),
 		});
 		console.log("Extracted object:", output);
 

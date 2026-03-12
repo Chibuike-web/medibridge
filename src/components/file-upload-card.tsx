@@ -38,8 +38,6 @@ export function FileUploadCard({
 		docx: docFileFormat,
 	};
 
-	const isExtractionResolved = status === "extract-complete" || status === "extract-failed";
-
 	return (
 		<div
 			className={cn(
@@ -84,37 +82,27 @@ export function FileUploadCard({
 							</div>
 						</div>
 					</div>
-					{isExtractionResolved ? (
-						<span
-							className={cn(
-								"inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
-								status === "extract-complete"
-									? "bg-green-100 text-green-700"
-									: "bg-red-100 text-red-700",
-							)}
-						>
-							{status === "extract-complete" ? "Success" : "Failed"}
-						</span>
-					) : (
-						<Button
-							variant="ghost"
-							className="has-[>svg]:px-0 py-0 h-max"
-							disabled={status === "deleting"}
-							onClick={() => {
-								if (id) {
-									void onRemove(id);
-								} else {
-									void onRemove();
-								}
-							}}
-						>
-							{status === "uploading" ? (
-								<CloseLine className="size-5" />
-							) : (
-								<DeleteBinLine className="size-5" />
-							)}
-						</Button>
-					)}
+
+					<Button
+						variant="ghost"
+						className="has-[>svg]:px-0 py-0 h-max"
+						disabled={
+							status === "deleting" || status === "extract-complete" || status === "uploading"
+						}
+						onClick={() => {
+							if (id) {
+								void onRemove(id);
+							} else {
+								void onRemove();
+							}
+						}}
+					>
+						{status === "uploading" ? (
+							<CloseLine className="size-5" />
+						) : (
+							<DeleteBinLine className="size-5" />
+						)}
+					</Button>
 				</div>
 			</div>
 		</div>

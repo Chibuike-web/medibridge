@@ -1,101 +1,323 @@
 "use client";
 
+import { PatientRecord, PatientType } from "@/app/api/extract-file/schemas/patient-schema";
+import { SuccessModal } from "@/components/success-modal";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { EditLine } from "@/icons/edit-line";
 import { formatKey } from "@/lib/utils/format-key";
 import { useExtractedPatient } from "@/store/use-extracted-patient-store";
-import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { SuccessModal } from "@/components/success-modal";
-import { DialogFooter } from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
+import { formatPatientLabel } from "./utils/format-patient-label";
+
+const EXTRACTED_PATIENT_DATA_KEY = "extracted-patient-data";
+
+type SectionData = Record<string, string | number | null>;
+
+type EditableInfoSectionProps = {
+	title: string;
+	sectionKey: keyof PatientRecord;
+	info: SectionData;
+	index: number;
+	records: PatientType;
+};
+
+function getStoredPatientData(): PatientType {
+	if (typeof window === "undefined") return [];
+
+	try {
+		const rawValue = localStorage.getItem(EXTRACTED_PATIENT_DATA_KEY);
+		if (!rawValue) return [];
+
+		const parsed = JSON.parse(rawValue) as {
+			state?: {
+				patientData?: PatientType;
+			};
+		};
+
+		return parsed.state?.patientData ?? [];
+	} catch {
+		return [];
+	}
+}
 
 export function ReviewExtractedInfoClient() {
 	const { patientData } = useExtractedPatient();
 	const router = useRouter();
-	const dataArray = Object.entries(patientData ?? {});
 	const [isOpen, setIsOpen] = useState(false);
+	const [records, setRecords] = useState<PatientType | null>(null);
+
+	useEffect(() => {
+		queueMicrotask(() => {
+			setRecords(patientData ?? getStoredPatientData());
+		});
+	}, [patientData]);
+
 	const closeModal = () => {
 		router.replace("/dashboard");
 		setIsOpen(false);
 	};
-	return (
-		<div className="flex flex-col gap-3 items-start">
-			{dataArray.map(([key, value]) => (
-				<InfoExtractAccordion key={key} heading={key} subHeading={value} />
-			))}
-			<Button className="w-full mt-16" onClick={() => setIsOpen(true)}>
-				Save Patient Record{" "}
-			</Button>
 
-			{isOpen && (
-				<SuccessModal
-					isOpen={isOpen}
-					setIsOpen={setIsOpen}
-					heading="Patient Record Saved Successfully"
-					description="The patient's information has been securely saved. You may now proceed with additional	documentation or return to the dashboard."
-				>
-					<DialogFooter className="border-t border-gray-200 w-full">
-						<Button className="h-11 w-full cursor-pointer" onClick={closeModal}>
-							Return to Dashboard
-						</Button>
-					</DialogFooter>
-				</SuccessModal>
-			)}
+	if (records === null) {
+		return <div className="min-h-dvh" />;
+	}
+
+	if (records.length === 0) {
+		return (
+			<h1 className="grid min-h-dvh place-items-center text-3xl font-semibold text-gray-800">
+				No patient data extracted
+			</h1>
+		);
+	}
+
+	return (
+		<main className="mx-auto my-10 grid min-h-dvh max-w-[600px] place-items-center">
+			<div className="w-full">
+				<h1 className="mt-10 mb-5 text-center text-[1.8rem] font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
+					Review Patient Information
+				</h1>
+				<div className="mb-10 text-center text-gray-600">
+					<p className="text-balance">
+						The documents have been processed. Please review the extracted details before saving.
+					</p>
+				</div>
+				<div className="flex w-full flex-col gap-4">
+					{records.map((record, index) => (
+						<Dialog key={index}>
+							<DialogTrigger asChild>
+								<button
+									type="button"
+									className="w-full rounded-xl border border-gray-200 bg-white p-5 text-left transition-colors hover:border-gray-300"
+								>
+									<h2 className="text-lg font-semibold text-gray-900">
+										{formatPatientLabel(record.personalInfo)}
+									</h2>
+								</button>
+							</DialogTrigger>
+							<DialogContent>
+								<div className="flex flex-col gap-6 p-6">
+									<DialogHeader>
+										<DialogTitle className="text-[20px] font-semibold text-gray-900">
+											{formatPatientLabel(record.personalInfo)}
+										</DialogTitle>
+									</DialogHeader>
+									<div className="flex flex-col gap-4">
+										<PersonalInfo
+											index={index}
+											personalInfo={record.personalInfo}
+											records={records}
+										/>
+										<ContactInfo index={index} contactInfo={record.contactInfo} records={records} />
+										<EmergencyInfo
+											index={index}
+											emergencyInfo={record.emergencyInfo}
+											records={records}
+										/>
+										<PhysicalInfo
+											index={index}
+											physicalInfo={record.physicalInfo}
+											records={records}
+										/>
+									</div>
+								</div>
+							</DialogContent>
+						</Dialog>
+					))}
+
+					<Button className="mt-8 w-full" onClick={() => setIsOpen(true)}>
+						Save Patient Record
+					</Button>
+
+					{isOpen && (
+						<SuccessModal
+							isOpen={isOpen}
+							setIsOpen={setIsOpen}
+							heading="Patient Record Saved Successfully"
+							description="The patient's information has been securely saved. You may now proceed with additional documentation or return to the dashboard."
+						>
+							<DialogFooter className="w-full border-t border-gray-200">
+								<Button className="h-11 w-full cursor-pointer" onClick={closeModal}>
+									Return to Dashboard
+								</Button>
+							</DialogFooter>
+						</SuccessModal>
+					)}
+				</div>
+			</div>
+		</main>
+	);
+}
+
+type PersonalInfo = PatientRecord["personalInfo"];
+type ContactInfo = PatientRecord["contactInfo"];
+type EmergencyInfo = PatientRecord["emergencyInfo"];
+type PhysicalInfo = PatientRecord["physicalInfo"];
+
+function EditableInfoSection({
+	title,
+	sectionKey,
+	info,
+	index,
+	records,
+}: EditableInfoSectionProps) {
+	const { setPatientData } = useExtractedPatient();
+	const [sectionInfo, setSectionInfo] = useState(info);
+	const [edit, setEdit] = useState<string | number | null>(null);
+	const [editValue, setEditValue] = useState<string | number>("");
+
+	function handleSave() {
+		if (edit === null) return;
+
+		const nextInfo = {
+			...sectionInfo,
+			[edit]: editValue,
+		};
+
+		const nextPatientData = records.map((record, recordIndex) =>
+			recordIndex === index ? { ...record, [sectionKey]: nextInfo } : record,
+		);
+
+		setSectionInfo(nextInfo);
+		setPatientData(nextPatientData);
+		setEdit(null);
+		setEditValue("");
+	}
+
+	function handleCancel() {
+		setEdit(null);
+		setEditValue("");
+	}
+
+	return (
+		<div className="flex flex-col gap-[16px]">
+			<h2 className="text-[16px] font-semibold tracking-[-0.02em]">{title}</h2>
+			<div className="flex flex-col gap-[24px]">
+				{Object.entries(sectionInfo).map(([key, value]) => {
+					const isEditing = edit === key;
+
+					return (
+						<div key={key} className="flex items-end justify-between text-[14px]">
+							<div className="flex flex-col gap-[8px]">
+								<p className="text-gray-400">{formatKey(key)}</p>
+								{isEditing ? (
+									<Input value={editValue} onChange={(e) => setEditValue(e.target.value)} />
+								) : (
+									<p>{value === null || value === "" ? "--" : value}</p>
+								)}
+							</div>
+							{isEditing ? (
+								<div className="flex gap-2">
+									<Button variant="outline" onClick={handleCancel}>
+										Cancel
+									</Button>
+									<Button onClick={handleSave}>Save</Button>
+								</div>
+							) : (
+								<Button
+									variant="ghost"
+									className="has-[>svg]:px-0 py-0 h-max hover:bg-transparent"
+									onClick={() => {
+										setEdit(key);
+										setEditValue(value ?? "");
+									}}
+								>
+									<EditLine className="size-4" /> Edit
+								</Button>
+							)}
+						</div>
+					);
+				})}
+			</div>
 		</div>
 	);
 }
 
-const InfoExtractAccordion = ({
-	heading,
-	subHeading,
+function PersonalInfo({
+	index,
+	personalInfo,
+	records,
 }: {
-	heading: string;
-	subHeading: string | number;
-}) => {
-	const [isOpen, setIsOpen] = useState(false);
+	index: number;
+	personalInfo: PersonalInfo;
+	records: PatientType;
+}) {
 	return (
-		<div className="w-full border p-4 rounded-[8px]">
-			<button
-				onClick={() => setIsOpen((prev) => !prev)}
-				className="w-full flex"
-				aria-expanded={isOpen}
-				aria-controls={`accordion-${heading}`}
-			>
-				<h2>{formatKey(heading)}</h2>
-			</button>
-
-			<AnimatePresence>
-				{isOpen && (
-					<motion.div
-						key={heading}
-						initial={{ opacity: 0, height: 0 }}
-						animate={{ opacity: 1, height: "auto" }}
-						exit={{ opacity: 0, height: 0 }}
-						transition={{ duration: 0.25, ease: "easeInOut" }}
-						className="overflow-hidden"
-					>
-						<div
-							id={`accordion-${heading}`}
-							className="mt-2 text-sm w-full flex items-center justify-between text-gray-700"
-						>
-							{subHeading}
-							<button
-								className="ml-2 text-sm text-gray-600 flex items-end gap-2"
-								onClick={(e) => {
-									e.stopPropagation();
-									console.log("Edit clicked for", heading);
-								}}
-							>
-								<span>
-									<EditLine className="size-[18px]" />
-								</span>
-								<span className="leading-3.5 block">Edit</span>
-							</button>
-						</div>
-					</motion.div>
-				)}
-			</AnimatePresence>
-		</div>
+		<EditableInfoSection
+			title="Personal Info"
+			sectionKey="personalInfo"
+			info={personalInfo}
+			index={index}
+			records={records}
+		/>
 	);
-};
+}
+
+function ContactInfo({
+	index,
+	contactInfo,
+	records,
+}: {
+	index: number;
+	contactInfo: ContactInfo;
+	records: PatientType;
+}) {
+	return (
+		<EditableInfoSection
+			title="Contact Info"
+			sectionKey="contactInfo"
+			info={contactInfo}
+			index={index}
+			records={records}
+		/>
+	);
+}
+
+function EmergencyInfo({
+	index,
+	emergencyInfo,
+	records,
+}: {
+	index: number;
+	emergencyInfo: EmergencyInfo;
+	records: PatientType;
+}) {
+	return (
+		<EditableInfoSection
+			title="Emergency Info"
+			sectionKey="emergencyInfo"
+			info={emergencyInfo}
+			index={index}
+			records={records}
+		/>
+	);
+}
+
+function PhysicalInfo({
+	index,
+	physicalInfo,
+	records,
+}: {
+	index: number;
+	physicalInfo: PhysicalInfo;
+	records: PatientType;
+}) {
+	return (
+		<EditableInfoSection
+			title="Physical Info"
+			sectionKey="physicalInfo"
+			info={physicalInfo}
+			index={index}
+			records={records}
+		/>
+	);
+}
