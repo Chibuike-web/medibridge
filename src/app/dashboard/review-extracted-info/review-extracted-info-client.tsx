@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
@@ -111,7 +110,7 @@ export function ReviewExtractedInfoClient() {
 											{formatPatientLabel(record.personalInfo)}
 										</DialogTitle>
 									</DialogHeader>
-									<div className="flex flex-col gap-4">
+									<div className="flex flex-col gap-6">
 										<PersonalInfo
 											index={index}
 											personalInfo={record.personalInfo}
@@ -199,7 +198,7 @@ function EditableInfoSection({
 	}
 
 	return (
-		<div className="flex flex-col gap-[16px]">
+		<div className="flex flex-col gap-[12px]">
 			<h2 className="text-[16px] font-semibold tracking-[-0.02em]">{title}</h2>
 			<div className="flex flex-col gap-[24px]">
 				{Object.entries(sectionInfo).map(([key, value]) => {
