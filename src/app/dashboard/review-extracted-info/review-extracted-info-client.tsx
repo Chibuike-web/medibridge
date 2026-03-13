@@ -5,6 +5,7 @@ import { SuccessModal } from "@/components/success-modal";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
+	DialogClose,
 	DialogContent,
 	DialogFooter,
 	DialogHeader,
@@ -12,9 +13,12 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { ArrowRightLine } from "@/icons/arrow-right-line";
+import { CloseLine } from "@/icons/close-line";
 import { EditLine } from "@/icons/edit-line";
 import { formatKey } from "@/lib/utils/format-key";
 import { useExtractedPatient } from "@/store/use-extracted-patient-store";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { formatPatientLabel } from "./utils/format-patient-label";
@@ -80,7 +84,7 @@ export function ReviewExtractedInfoClient() {
 	}
 
 	return (
-		<main className="mx-auto my-10 grid min-h-dvh max-w-[600px] place-items-center">
+		<main className="mx-auto my-10 grid min-h-dvh max-w-[37.5rem] place-items-center">
 			<div className="w-full">
 				<h1 className="mt-10 mb-5 text-center text-[1.8rem] font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
 					Review Patient Information
@@ -90,27 +94,40 @@ export function ReviewExtractedInfoClient() {
 						The documents have been processed. Please review the extracted details before saving.
 					</p>
 				</div>
-				<div className="flex w-full flex-col gap-4">
+				<div className="flex w-full flex-col gap-4 px-4 md:px-0">
 					{records.map((record, index) => (
 						<Dialog key={index}>
 							<DialogTrigger asChild>
 								<button
 									type="button"
-									className="w-full rounded-xl border border-gray-200 bg-white p-5 text-left transition-colors hover:border-gray-300"
+									className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-gray-200 bg-white p-4 text-left transition-colors hover:border-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
 								>
 									<h2 className="text-lg font-semibold text-gray-900">
 										{formatPatientLabel(record.personalInfo)}
 									</h2>
+									<ArrowRightLine className="size-6" aria-hidden="true" />
 								</button>
 							</DialogTrigger>
-							<DialogContent>
-								<div className="flex flex-col gap-6 p-6">
-									<DialogHeader>
-										<DialogTitle className="text-[20px] font-semibold text-gray-900">
-											{formatPatientLabel(record.personalInfo)}
-										</DialogTitle>
+							<DialogContent className="flex max-h-[53.125rem] flex-col overflow-hidden p-0">
+								<div className="flex flex-col overflow-y-auto">
+									<DialogHeader className="sticky top-0 z-10 bg-white px-4 py-3 border-b border-gray-200">
+										<div className="flex w-full items-center justify-between gap-4">
+											<DialogTitle className="text-xl font-semibold text-gray-900">
+												{formatPatientLabel(record.personalInfo)}
+											</DialogTitle>
+											<DialogClose asChild>
+												<Button
+													variant="ghost"
+													size="icon"
+													className="size-10 rounded-full"
+													aria-label="Close patient details"
+												>
+													<CloseLine className="size-5" aria-hidden="true" />
+												</Button>
+											</DialogClose>
+										</div>
 									</DialogHeader>
-									<div className="flex flex-col gap-6">
+									<div className="flex flex-col gap-6 p-4">
 										<PersonalInfo
 											index={index}
 											personalInfo={record.personalInfo}
@@ -145,8 +162,11 @@ export function ReviewExtractedInfoClient() {
 							description="The patient's information has been securely saved. You may now proceed with additional documentation or return to the dashboard."
 						>
 							<DialogFooter className="w-full border-t border-gray-200">
-								<Button className="h-11 w-full cursor-pointer" onClick={closeModal}>
+								<Button className="h-11" variant="outline" onClick={closeModal}>
 									Return to Dashboard
+								</Button>
+								<Button className="h-11" asChild>
+									<Link href="/dashboard/add-new-patient">Add Another Record</Link>
 								</Button>
 							</DialogFooter>
 						</SuccessModal>
@@ -198,20 +218,29 @@ function EditableInfoSection({
 	}
 
 	return (
-		<div className="flex flex-col gap-[12px]">
-			<h2 className="text-[16px] font-semibold tracking-[-0.02em]">{title}</h2>
-			<div className="flex flex-col gap-[24px]">
+		<div className="flex flex-col gap-4">
+			<h2 className="text-base font-semibold tracking-[-0.02em]">{title}</h2>
+			<div className="flex flex-col gap-6">
 				{Object.entries(sectionInfo).map(([key, value]) => {
 					const isEditing = edit === key;
+					const fieldId = `${sectionKey}-${index}-${key}`;
 
 					return (
-						<div key={key} className="flex items-end justify-between text-[14px]">
-							<div className="flex flex-col gap-[8px]">
-								<p className="text-gray-400">{formatKey(key)}</p>
+						<div key={key} className="flex items-end justify-between text-sm">
+							<div className="flex flex-col gap-4">
+								<label htmlFor={fieldId} className="text-gray-400 no-line-height">
+									{formatKey(key)}
+								</label>
 								{isEditing ? (
-									<Input value={editValue} onChange={(e) => setEditValue(e.target.value)} />
+									<Input
+										id={fieldId}
+										value={editValue}
+										onChange={(e) => setEditValue(e.target.value)}
+									/>
 								) : (
-									<p>{value === null || value === "" ? "--" : value}</p>
+									<p id={fieldId} className="no-line-height">
+										{value === null || value === "" ? "--" : value}
+									</p>
 								)}
 							</div>
 							{isEditing ? (
@@ -224,13 +253,13 @@ function EditableInfoSection({
 							) : (
 								<Button
 									variant="ghost"
-									className="has-[>svg]:px-0 py-0 h-max hover:bg-transparent"
+									className="h-max py-0 hover:bg-transparent has-[>svg]:px-0"
 									onClick={() => {
 										setEdit(key);
 										setEditValue(value ?? "");
 									}}
 								>
-									<EditLine className="size-4" /> Edit
+									<EditLine className="size-4" aria-hidden="true" /> Edit
 								</Button>
 							)}
 						</div>

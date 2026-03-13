@@ -9,9 +9,9 @@ export default function Overview() {
 	return (
 		<DashboardLayout>
 			<div className="h-full">
-				<div className="w-full mx-auto max-w-[1440px] flex items-center justify-center h-full p-10">
+				<div className="w-full mx-auto max-w-[90rem] flex items-center justify-center h-full p-10">
 					<div className="flex flex-col items-center max-w-[600x]">
-						<h1 className="font-semibold text-[24px] text-center mb-6">No patients yet</h1>
+						<h1 className="font-semibold text-2xl text-center mb-6">No patients yet</h1>
 						<p className="mb-12 text-center">
 							You haven’t added any patients to your list. Start by creating a new patient profile.
 						</p>
@@ -27,3 +27,4 @@ export default function Overview() {
 		</DashboardLayout>
 	);
 }
+

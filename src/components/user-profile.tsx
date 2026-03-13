@@ -37,14 +37,14 @@ export function UserProfile() {
 		<div className=" w-full mt-auto p-3">
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<button className="flex p-3 justify-between w-full items-center cursor-pointer hover:bg-gray-200 rounded-[8px]">
+					<button className="flex p-3 justify-between w-full items-center cursor-pointer hover:bg-gray-200 rounded-lg">
 						<Avatar className="size-10 rounded-full">
 							<AvatarImage src={dummyUser.image} alt="profile image" className="rounded-full" />
 							<AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
 						</Avatar>
-						<div className="flex flex-col items-start w-[142px]">
-							<p className="font-medium text-[14px] text-foreground">{dummyUser.name}</p>
-							<p className="text-[12px] text-foreground/60 truncate w-full">{dummyUser.email}</p>
+						<div className="flex flex-col items-start w-[8.875rem]">
+							<p className="font-medium text-sm text-foreground">{dummyUser.name}</p>
+							<p className="text-xs text-foreground/60 truncate w-full">{dummyUser.email}</p>
 						</div>
 						<span className="shrink-0">
 							<ExpandUpDownLine className="size-5" />
@@ -105,3 +105,4 @@ export function UserProfile() {
 		</div>
 	);
 }
+

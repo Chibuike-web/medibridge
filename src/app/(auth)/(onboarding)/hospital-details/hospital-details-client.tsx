@@ -114,7 +114,7 @@ export function HospitalDetailsClient() {
 					aria-invalid={!!errors.hospitalName}
 				/>
 				{errors.hospitalName && (
-					<p id="hospital-name-error" className="font-medium text-red-500 mt-1 text-[14px]">
+					<p id="hospital-name-error" className="font-medium text-red-500 mt-1 text-sm">
 						{errors.hospitalName.message}
 					</p>
 				)}
@@ -133,7 +133,7 @@ export function HospitalDetailsClient() {
 					aria-invalid={!!errors.hospitalAddress}
 				/>
 				{errors.hospitalAddress && (
-					<p id="hospital-address-error" className="font-medium text-red-500 mt-1 text-[14px]">
+					<p id="hospital-address-error" className="font-medium text-red-500 mt-1 text-sm">
 						{errors.hospitalAddress.message}
 					</p>
 				)}
@@ -161,7 +161,7 @@ export function HospitalDetailsClient() {
 			{uploadError && (
 				<p
 					id="file-upload-error"
-					className="text-red-500 font-medium text-[14px] mt-2"
+					className="text-red-500 font-medium text-sm mt-2"
 					role="alert"
 				>
 					{uploadError}
@@ -197,3 +197,4 @@ export function HospitalDetailsClient() {
 		</form>
 	);
 }
+

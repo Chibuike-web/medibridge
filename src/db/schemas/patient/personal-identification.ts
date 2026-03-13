@@ -10,6 +10,7 @@ export const patientPersonalIdentification = pgTable("patient_personal_identific
 	middleName: text("middle_name"),
 	lastName: text("last_name").notNull(),
 	patientId: text("patient_id").notNull().unique(),
+	dateOfBirth: text("date_of_birth"),
 	age: integer("age"),
 	sex: text("sex"),
 	maritalStatus: text("marital_status"),

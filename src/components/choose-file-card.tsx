@@ -21,7 +21,7 @@ export function ChooseFileCard({
 		<div
 			className={cn(
 				"relative w-full flex flex-col items-center",
-				" p-8 border border-dashed border-gray-200 gap-5 rounded-[8px]",
+				" p-8 border border-dashed border-gray-200 gap-5 rounded-lg",
 				error && "border-red-500",
 			)}
 		>
@@ -40,10 +40,10 @@ export function ChooseFileCard({
 			</Label>
 			<UploadCloudLine className="text-gray-600 size-5" />
 			<div className="flex flex-col gap-1.5 items-center">
-				<p className="font-medium text-gray-800 text-[14px] text-center">
+				<p className="font-medium text-gray-800 text-sm text-center">
 					Choose a file or drag & drop it here.
 				</p>
-				<p className="text-gray-600 text-[12px] text-center">JPEG, PNG, and PDF, up to 50 MB.</p>
+				<p className="text-gray-600 text-xs text-center">JPEG, PNG, and PDF, up to 50 MB.</p>
 			</div>
 			<Button variant="outline" type="button" onClick={() => fileInputRef.current?.click()}>
 				Browse File
@@ -51,3 +51,4 @@ export function ChooseFileCard({
 		</div>
 	);
 }
+

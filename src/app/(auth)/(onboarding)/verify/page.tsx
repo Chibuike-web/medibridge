@@ -3,7 +3,7 @@ import { VerifyClient } from "./verify-client";
 
 export default function Verify() {
 	return (
-		<main className="max-w-[600px] min-h-dvh grid place-items-center mx-auto px-6 md:px-0 my-10">
+		<main className="max-w-[37.5rem] min-h-dvh grid place-items-center mx-auto px-6 md:px-0 my-10">
 			<div className="flex flex-col items-center">
 				<Image src="/assets/verification-icon.svg" width={160} height={160} alt="" />
 
@@ -20,3 +20,4 @@ export default function Verify() {
 		</main>
 	);
 }
+

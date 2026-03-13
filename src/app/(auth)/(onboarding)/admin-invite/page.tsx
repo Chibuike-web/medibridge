@@ -4,7 +4,7 @@ import { AdminInviteClient } from "./admin-invite-client";
 
 export default function AdminInvite() {
 	return (
-		<main className="max-w-[600px] min-h-dvh grid place-items-center mx-auto">
+		<main className="max-w-[37.5rem] min-h-dvh grid place-items-center mx-auto">
 			<div className="w-full px-6 md:px-0">
 				<h1 className="text-[1.8rem] text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] mt-10">
 					Invite Administrator
@@ -18,3 +18,4 @@ export default function AdminInvite() {
 		</main>
 	);
 }
+

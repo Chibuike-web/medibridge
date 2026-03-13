@@ -2,7 +2,7 @@ import { AcceptInviteClient } from "./accept-invite-client";
 
 export default function AcceptInvite() {
 	return (
-		<main className="max-w-[600px] mx-auto  min-h-dvh grid place-items-center">
+		<main className="max-w-[37.5rem] mx-auto  min-h-dvh grid place-items-center">
 			<div className="w-full px-6 md:px-0 ">
 				<div className="mb-10">
 					<h1 className="text-[1.8rem] text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] mb-4">
@@ -18,3 +18,4 @@ export default function AcceptInvite() {
 		</main>
 	);
 }
+

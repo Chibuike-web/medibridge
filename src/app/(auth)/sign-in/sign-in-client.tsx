@@ -130,7 +130,7 @@ export function SignInClient() {
 					</button>
 				</div>
 				{errors.password && (
-					<p id="admin-password-error" className="font-medium text-red-500 mt-1 text-[14px]">
+					<p id="admin-password-error" className="font-medium text-red-500 mt-1 text-sm">
 						{errors.password.message}
 					</p>
 				)}
@@ -187,3 +187,4 @@ export function SignInClient() {
 		</form>
 	);
 }
+

@@ -41,7 +41,7 @@ export function FileUploadCard({
 	return (
 		<div
 			className={cn(
-				"flex flex-col px-3.5 py-4 border border-gray-200 rounded-[8px]",
+				"flex flex-col px-3.5 py-4 border border-gray-200 rounded-lg",
 				status === "extract-failed" && "border-red-500",
 				status === "deleting" && "opacity-50",
 			)}
@@ -50,8 +50,8 @@ export function FileUploadCard({
 				<Image src={fileFormat[extension]} alt="" width={40} height={40} />
 				<div className="flex w-full items-start justify-between gap-1.5">
 					<div>
-						<p className="text-[14px] font-semibold">{name}</p>
-						<div className="flex items-center gap-1 text-[12px]">
+						<p className="text-sm font-semibold">{name}</p>
+						<div className="flex items-center gap-1 text-xs">
 							<div className="flex items-center gap-1 ">
 								<p>{formatFileSize(size)}</p>
 								<span className="size-0.5 block bg-foreground rounded-full" />
@@ -108,3 +108,4 @@ export function FileUploadCard({
 		</div>
 	);
 }
+

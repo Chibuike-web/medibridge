@@ -65,7 +65,7 @@ export function AdminInviteClient() {
 				{!errors.email && (
 					<p id="email-info" className="flex gap-1 items-center mt-2">
 						<InformationLine className="text-gray-400 size-4" aria-hidden="true" />
-						<span className="text-[14px] text-gray-400">
+						<span className="text-sm text-gray-400">
 							Must be official verified hospital email
 						</span>
 					</p>
@@ -102,3 +102,4 @@ export function AdminInviteClient() {
 		</>
 	);
 }
+

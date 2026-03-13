@@ -16,13 +16,13 @@ export function Sidebar() {
 	const pathname = usePathname();
 
 	return (
-		<aside className="flex flex-col w-full max-w-[272px] h-full overflow-y-auto border-r border-gray-200">
+		<aside className="flex flex-col w-full max-w-[17rem] h-full overflow-y-auto border-r border-gray-200">
 			<div className="px-5 h-16 flex items-center">
-				<h1 className="font-bold text-[20px] tracking-[-0.02em]">MediBridge</h1>
+				<h1 className="font-bold text-xl tracking-[-0.02em]">MediBridge</h1>
 			</div>
 
 			<ul className="flex flex-col gap-px p-2">
-				<li className="px-3 flex items-center gap-2 w-full h-9 cursor-pointer hover:bg-gray-200 rounded-[8px]">
+				<li className="px-3 flex items-center gap-2 w-full h-9 cursor-pointer hover:bg-gray-200 rounded-lg">
 					<SearchLine className="size-5" aria-hidden />
 					<p>Search... </p>
 				</li>
@@ -33,7 +33,7 @@ export function Sidebar() {
 						<li
 							key={id}
 							className={cn(
-								"rounded-[8px] hover:bg-gray-200 font-medium",
+								"rounded-lg hover:bg-gray-200 font-medium",
 								isActive && "bg-gray-200",
 							)}
 						>
@@ -76,3 +76,4 @@ const menus = [
 	{ id: "patients-records", text: "Patients Records", href: "/dashboard/patients-records" },
 	{ id: "transfers", text: "Transfers", href: "/dashboard/transfers" },
 ] as const;
+

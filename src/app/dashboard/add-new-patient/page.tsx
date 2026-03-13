@@ -11,9 +11,9 @@ export default function AddNewPatient() {
 				</Link>
 			</nav>
 
-			<main className="flex flex-col gap-9 mt-12 max-w-[600px] mx-auto px-6 md:px-0">
+			<main className="flex flex-col gap-9 mt-12 max-w-[37.5rem] mx-auto px-6 md:px-0">
 				<div>
-					<h1 className="font-semibold text-[24px] text-center mb-6">Upload Patient’s Record</h1>
+					<h1 className="font-semibold text-2xl text-center mb-6">Upload Patient’s Record</h1>
 					<p className="text-gray-600 text-center text-balance">
 						Upload a document with the patient’s basic details to create their profile. Only
 						essential personal information is needed at this stage. Upload one document per patient.
@@ -24,3 +24,4 @@ export default function AddNewPatient() {
 		</>
 	);
 }
+

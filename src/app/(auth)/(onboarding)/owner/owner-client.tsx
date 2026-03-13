@@ -60,7 +60,7 @@ export function OwnerClient() {
 					aria-invalid={!!errors.name}
 				/>
 				{errors.name && (
-					<p id="name-error" className="font-medium text-red-500 mt-1 text-[14px]">
+					<p id="name-error" className="font-medium text-red-500 mt-1 text-sm">
 						{errors.name.message}
 					</p>
 				)}
@@ -133,3 +133,4 @@ export function OwnerClient() {
 		</form>
 	);
 }
+

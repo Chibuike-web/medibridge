@@ -64,7 +64,7 @@ export function NewTransferRequestClient() {
 					</DialogTrigger>
 					<DialogContent>
 						<DialogHeader className="h-16 px-6 border-b border-gray-200">
-							<DialogTitle className="text-[20px] font-semibold">
+							<DialogTitle className="text-xl font-semibold">
 								Confirm Transfer Request
 							</DialogTitle>
 							<DialogClose>
@@ -95,7 +95,7 @@ export function NewTransferRequestClient() {
 									<span>The correct patient is selected</span>
 								</li>
 							</ul>
-							<Label className="flex items-center gap-4 px-5 py-3.5 rounded-[8px] bg-gray-50">
+							<Label className="flex items-center gap-4 px-5 py-3.5 rounded-lg bg-gray-50">
 								<Checkbox />
 								<div className="text-sm leading-[1.4em] font-normal">
 									I have reviewed the patient details, selected records, and target hospital
@@ -157,14 +157,14 @@ function SelectPatient() {
 			</span>
 			<Select>
 				<SelectTrigger className="w-full h-11 px-4" ref={selectTriggerRef}>
-					<SelectValue placeholder="Select patient" className="text-[16px]" />
+					<SelectValue placeholder="Select patient" className="text-base" />
 				</SelectTrigger>
 
-				<SelectContent className="rounded-2xl h-[300px] flex flex-col p-1.5" align="start">
+				<SelectContent className="rounded-2xl h-[18.75rem] flex flex-col p-1.5" align="start">
 					<div className="flex items-center gap-2 mb-2 text-gray-400 pl-2">
 						<SearchLine className="size-5" />
 						<input
-							className="h-10 placeholder:text-[16px] focus:outline-0 w-full"
+							className="h-10 placeholder:text-base focus:outline-0 w-full"
 							type="search"
 							placeholder="Search by name, MRN, or date of birth"
 						/>
@@ -174,12 +174,12 @@ function SelectPatient() {
 							<SelectItem
 								key={p.hospitalId + p.name}
 								value={`${p.hospitalId}-${p.name}`}
-								className="h-11 px-4 rounded-[8px] text-[16px] w-full focus:bg-gray-200"
+								className="h-11 px-4 rounded-lg text-base w-full focus:bg-gray-200"
 							>
 								<div className="flex items-center gap-3">
 									<span className="font-medium">{p.name}</span>
-									<span className="p-1 rounded-lg bg-white text-[12px] border">{p.hospitalId}</span>
-									<span className="p-1 rounded-lg bg-white text-[12px] border">{p.dob}</span>
+									<span className="p-1 rounded-lg bg-white text-xs border">{p.hospitalId}</span>
+									<span className="p-1 rounded-lg bg-white text-xs border">{p.dob}</span>
 								</div>
 							</SelectItem>
 						))}
@@ -214,7 +214,7 @@ function AttachClinicalRecords() {
 			<Popover>
 				<PopoverTrigger
 					ref={popoverTriggerRef}
-					className="flex h-[44px] items-center justify-between gap-4 w-full border border-input px-4 py-2 text-left outline-0 rounded-md focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+					className="flex h-11 items-center justify-between gap-4 w-full border border-input px-4 py-2 text-left outline-0 rounded-md focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
 				>
 					{selectedRecords.length === 0 ? (
 						<div className="text-gray-500 whitespace-nowrap overflow-hidden gap-2 ">
@@ -344,7 +344,7 @@ const CheckButton = ({
 			type="button"
 			onClick={onClick}
 			className={cn(
-				"px-[14px] py-2 border rounded-full text-gray-400 flex items-center gap-2 focus:outline-0 focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+				"px-3.5 py-2 border rounded-full text-gray-400 flex items-center gap-2 focus:outline-0 focus-visible:ring-ring/50 focus-visible:ring-3",
 				selected
 					? "border-foreground text-foreground bg-foreground/5"
 					: "border-gray-200 text-gray-500",
@@ -355,3 +355,4 @@ const CheckButton = ({
 		</button>
 	);
 };
+

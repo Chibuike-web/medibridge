@@ -214,7 +214,7 @@ function Footer({
 	return (
 		<footer className="fixed z-50 bottom-0 left-0 right-0 flex items-center justify-center border-t h-20 border-gray-200 bg-white px-4 md:px-0">
 			{!isExtracting && !extractionComplete ? (
-				<div className="flex w-full justify-between items-center max-w-[600px]">
+				<div className="flex w-full justify-between items-center max-w-[37.5rem]">
 					<Button type="button" variant="outline" className="h-11" disabled={!uploadComplete}>
 						<label htmlFor="file-input">
 							<input
@@ -247,7 +247,7 @@ function Footer({
 						</DialogTrigger>
 						<DialogContent>
 							<DialogHeader className="h-16 px-6 border-b border-gray-200">
-								<DialogTitle className="text-[20px] font-semibold">
+								<DialogTitle className="text-xl font-semibold">
 									Confirm Transfer Request
 								</DialogTitle>
 								<DialogClose>
@@ -305,3 +305,4 @@ function Footer({
 		</footer>
 	);
 }
+

@@ -10,10 +10,11 @@ export default function NewTransferRequest() {
 					<ArrowLeftLine className="size-5" /> <span className="sr-only">Back</span>
 				</Link>
 			</nav>
-			<main className="flex flex-col gap-9 my-12 max-w-[600px] w-full mx-auto px-6 md:px-0">
-				<h1 className="font-semibold text-[24px] text-center">New Transfer Request</h1>
+			<main className="flex flex-col gap-9 my-12 max-w-[37.5rem] w-full mx-auto px-6 md:px-0">
+				<h1 className="font-semibold text-2xl text-center">New Transfer Request</h1>
 				<NewTransferRequestClient />
 			</main>
 		</>
 	);
 }
+
