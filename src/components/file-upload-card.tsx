@@ -89,11 +89,11 @@ export function FileUploadCard({
 						disabled={
 							status === "deleting" || status === "extract-complete" || status === "uploading"
 						}
-						onClick={() => {
+						onClick={async () => {
 							if (id) {
-								void onRemove(id);
+								await onRemove(id);
 							} else {
-								void onRemove();
+								await onRemove();
 							}
 						}}
 					>
@@ -108,4 +108,6 @@ export function FileUploadCard({
 		</div>
 	);
 }
+
+
 

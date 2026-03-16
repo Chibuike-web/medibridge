@@ -32,10 +32,7 @@ export function Sidebar() {
 					return (
 						<li
 							key={id}
-							className={cn(
-								"rounded-lg hover:bg-gray-200 font-medium",
-								isActive && "bg-gray-200",
-							)}
+							className={cn("rounded-lg hover:bg-gray-200 font-medium", isActive && "bg-gray-200")}
 						>
 							<Link href={href} className={cn("px-3 flex items-center gap-2 w-full h-9")}>
 								<span>
@@ -76,4 +73,3 @@ const menus = [
 	{ id: "patients-records", text: "Patients Records", href: "/dashboard/patients-records" },
 	{ id: "transfers", text: "Transfers", href: "/dashboard/transfers" },
 ] as const;
-

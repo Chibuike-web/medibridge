@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useVerificationFileUpload } from "@/hooks/use-verification-file-upload";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { createHospitalAction } from "@/actions/create-hospital-action";
+import { createHospitalAction, createOwnerAction } from "@/actions/auth-actions";
 import { CheckCircle } from "@/icons/check-circle";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,6 @@ import {
 } from "@/app/(auth)/schemas/hospital-details-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ErrorWarningFill } from "@/icons/error-warning-fill";
-import { createOwnerAction } from "@/actions/create-owner-action";
 import { FileUploadCard } from "@/components/file-upload-card";
 import { ChooseFileCard } from "@/components/choose-file-card";
 

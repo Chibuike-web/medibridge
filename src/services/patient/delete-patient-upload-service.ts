@@ -3,7 +3,7 @@
 import { existsSync, unlinkSync } from "node:fs";
 import path from "node:path";
 
-export async function deletePatientUploadAction(relativePath: string) {
+export async function deletePatientUploadService(relativePath: string) {
 	try {
 		if (!relativePath) {
 			return { status: "failed", error: "Missing file path" };

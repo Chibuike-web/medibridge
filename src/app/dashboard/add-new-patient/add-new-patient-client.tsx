@@ -204,11 +204,11 @@ function Footer({
 		files.every((file) => file.status === "extract-complete" || file.status === "extract-failed");
 	const isFailedExtract = files.some((file) => file.status === "extract-failed");
 
-	function retryExtraction() {
+	async function retryExtraction() {
 		const failedFiles = files.filter((f) => f.status === "extract-failed").map((f) => f.name);
 		if (failedFiles.length === 0) return;
 
-		void extractInfo(failedFiles);
+		await extractInfo(failedFiles);
 	}
 
 	return (
@@ -271,8 +271,8 @@ function Footer({
 									<DialogClose asChild>
 										<Button
 											className="h-11"
-											onClick={() => {
-												void extractInfo();
+											onClick={async () => {
+												await extractInfo();
 											}}
 										>
 											Start Extraction
@@ -305,4 +305,3 @@ function Footer({
 		</footer>
 	);
 }
-

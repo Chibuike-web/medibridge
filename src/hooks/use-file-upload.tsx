@@ -1,6 +1,6 @@
 "use client";
 
-import { deletePatientUploadAction } from "@/actions/delete-patient-upload-action";
+import { deletePatientUploadAction } from "@/actions/patient-actions";
 import { useExtractedPatient } from "@/store/use-extracted-patient-store";
 import { ExtractionResult, SelectedFile } from "@/types/upload";
 import { startTransition, useState } from "react";
@@ -179,7 +179,7 @@ export function useFileUpload() {
 				setPatientData(data.extracted);
 			});
 		} catch (error) {
-			setExtractError(Error.isError(error) ? error.message : "Extraction failed.");
+			setExtractError(error instanceof Error ? error.message : "Extraction failed.");
 			setFiles((prev) =>
 				prev.map((f) => (targetFiles.includes(f.name) ? { ...f, status: "extract-failed" } : f)),
 			);
@@ -198,3 +198,4 @@ export function useFileUpload() {
 		extractInfo,
 	};
 }
+

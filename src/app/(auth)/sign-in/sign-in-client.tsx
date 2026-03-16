@@ -1,7 +1,6 @@
 "use client";
 
-import { listOrganizationAction } from "@/actions/list-organization-action";
-import { signInAction } from "@/actions/sign-in-action";
+import { listOrganizationAction, signInAction } from "@/actions/auth-actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";

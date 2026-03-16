@@ -1,6 +1,7 @@
 "use client";
 
 import { PatientRecord, PatientType } from "@/app/api/extract-file/schemas/patient-schema";
+import { savePatientRecordsAction } from "@/actions/patient-actions";
 import { SuccessModal } from "@/components/success-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +21,7 @@ import { formatKey } from "@/lib/utils/format-key";
 import { useExtractedPatient } from "@/store/use-extracted-patient-store";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { formatPatientLabel } from "./utils/format-patient-label";
 
 const EXTRACTED_PATIENT_DATA_KEY = "extracted-patient-data";
@@ -55,10 +56,12 @@ function getStoredPatientData(): PatientType {
 }
 
 export function ReviewExtractedInfoClient() {
-	const { patientData } = useExtractedPatient();
+	const { patientData, setPatientData } = useExtractedPatient();
 	const router = useRouter();
 	const [isOpen, setIsOpen] = useState(false);
 	const [records, setRecords] = useState<PatientType | null>(null);
+	const [saveError, setSaveError] = useState("");
+	const [isPending, startTransition] = useTransition();
 
 	useEffect(() => {
 		queueMicrotask(() => {
@@ -69,6 +72,23 @@ export function ReviewExtractedInfoClient() {
 	const closeModal = () => {
 		router.replace("/dashboard");
 		setIsOpen(false);
+	};
+
+	const handleSave = () => {
+		if (!records || records.length === 0 || isPending) return;
+
+		setSaveError("");
+		startTransition(async () => {
+			const result = await savePatientRecordsAction(records);
+
+			if (result.status === "failed") {
+				setSaveError(result.error);
+				return;
+			}
+
+			setPatientData([]);
+			setIsOpen(true);
+		});
 	};
 
 	if (records === null) {
@@ -110,7 +130,7 @@ export function ReviewExtractedInfoClient() {
 							</DialogTrigger>
 							<DialogContent className="flex max-h-[53.125rem] flex-col overflow-hidden p-0">
 								<div className="flex flex-col overflow-y-auto">
-									<DialogHeader className="sticky top-0 z-10 bg-white px-4 py-3 border-b border-gray-200">
+									<DialogHeader className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-3">
 										<div className="flex w-full items-center justify-between gap-4">
 											<DialogTitle className="text-xl font-semibold text-gray-900">
 												{formatPatientLabel(record.personalInfo)}
@@ -150,11 +170,15 @@ export function ReviewExtractedInfoClient() {
 						</Dialog>
 					))}
 
-					<Button className="mt-8 w-full" onClick={() => setIsOpen(true)}>
-						Save Patient Record
+					{saveError ? (
+						<p className="text-sm font-medium text-red-600 text-pretty">{saveError}</p>
+					) : null}
+
+					<Button className="mt-8 w-full" onClick={handleSave} disabled={isPending}>
+						{isPending ? "Saving..." : "Save Patient Record"}
 					</Button>
 
-					{isOpen && (
+					{isOpen ? (
 						<SuccessModal
 							isOpen={isOpen}
 							setIsOpen={setIsOpen}
@@ -170,7 +194,7 @@ export function ReviewExtractedInfoClient() {
 								</Button>
 							</DialogFooter>
 						</SuccessModal>
-					)}
+					) : null}
 				</div>
 			</div>
 		</main>
@@ -233,6 +257,7 @@ function EditableInfoSection({
 								</label>
 								{isEditing ? (
 									<Input
+										ref={(el) => el?.focus()}
 										id={fieldId}
 										value={editValue}
 										onChange={(e) => setEditValue(e.target.value)}
