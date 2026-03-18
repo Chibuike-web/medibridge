@@ -17,7 +17,7 @@ import { CloseLine } from "@/icons/close-line";
 import { ErrorWarningLine } from "@/icons/error-warning-line";
 import { LoaderLine } from "@/icons/loader-line";
 import { cn } from "@/lib/utils/cn";
-import { AllowedFileExtension, SelectedFile } from "@/types/upload";
+import { AllowedFileExtension, SelectedFile } from "@/lib/types/upload";
 import Link from "next/link";
 import { RefObject, useRef, useState } from "react";
 

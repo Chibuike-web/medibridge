@@ -64,9 +64,7 @@ export function NewTransferRequestClient() {
 					</DialogTrigger>
 					<DialogContent>
 						<DialogHeader className="h-16 px-6 border-b border-gray-200">
-							<DialogTitle className="text-xl font-semibold">
-								Confirm Transfer Request
-							</DialogTitle>
+							<DialogTitle className="text-xl font-semibold">Confirm Transfer Request</DialogTitle>
 							<DialogClose>
 								<CloseLine className="size-6" />
 							</DialogClose>
@@ -279,12 +277,32 @@ type ClinicalRecord = {
 const initialClinicalRecords: ClinicalRecord[] = [
 	{
 		id: crypto.randomUUID(),
-		label: "Discharge Summaries",
+		label: "Patient Details",
 		selected: false,
 	},
 	{
 		id: crypto.randomUUID(),
-		label: "Lab Reports",
+		label: "Appointments",
+		selected: false,
+	},
+	{
+		id: crypto.randomUUID(),
+		label: "Medical History",
+		selected: false,
+	},
+	{
+		id: crypto.randomUUID(),
+		label: "Medications",
+		selected: false,
+	},
+	{
+		id: crypto.randomUUID(),
+		label: "Encounters",
+		selected: false,
+	},
+	{
+		id: crypto.randomUUID(),
+		label: "Labs",
 		selected: false,
 	},
 	{
@@ -294,12 +312,7 @@ const initialClinicalRecords: ClinicalRecord[] = [
 	},
 	{
 		id: crypto.randomUUID(),
-		label: "Progress Notes",
-		selected: false,
-	},
-	{
-		id: crypto.randomUUID(),
-		label: "Medication",
+		label: "Documents",
 		selected: false,
 	},
 ];
@@ -355,4 +368,3 @@ const CheckButton = ({
 		</button>
 	);
 };
-

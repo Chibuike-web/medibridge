@@ -4,11 +4,10 @@ import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { createWorker } from "tesseract.js";
 import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
-
 import path from "node:path";
 import { existsSync, readFileSync } from "node:fs";
-import { PatientRecordSchema, PatientSchema } from "@/app/api/extract-file/schemas/patient-schema";
-import { ExtractionResult } from "@/types/upload";
+import { PatientSchema } from "@/app/api/extract-file/schemas/patient-schema";
+import { ExtractionResult } from "@/lib/types/upload";
 
 const model = wrapLanguageModel({
 	model: gateway("anthropic/claude-haiku-4.5"),

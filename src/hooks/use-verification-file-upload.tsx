@@ -1,6 +1,6 @@
 "use client";
 
-import { FileExtensionType, VerificationUploadStatus } from "@/types/verification-upload";
+import { FileExtensionType, VerificationUploadStatus } from "@/lib/types/verification-upload";
 import { ChangeEvent, useState } from "react";
 
 const MAXSIZEINBYTES = 50 * 1024 * 1024;

@@ -16,7 +16,7 @@ export function Sidebar() {
 	const pathname = usePathname();
 
 	return (
-		<aside className="flex flex-col w-full max-w-[17rem] h-full overflow-y-auto border-r border-gray-200">
+		<aside className="flex flex-col w-full max-w-[17rem] max-h-full overflow-y-auto border-r border-gray-200">
 			<div className="px-5 h-16 flex items-center">
 				<h1 className="font-bold text-xl tracking-[-0.02em]">MediBridge</h1>
 			</div>

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils/cn";
 import { CheckCircle } from "@/icons/check-circle";
 import { ErrorWarningFill } from "../icons/error-warning-fill";
 import { formatFileSize } from "@/lib/utils/format-file-size";
-import { AllowedFileExtension, FileStatus } from "@/types/upload";
+import { AllowedFileExtension, FileStatus } from "@/lib/types/upload";
 import { Button } from "./ui/button";
 import { DeleteBinLine } from "@/icons/delete-bin-line";
 
@@ -108,6 +108,3 @@ export function FileUploadCard({
 		</div>
 	);
 }
-
-
-

@@ -2,7 +2,7 @@
 
 import { deletePatientUploadAction } from "@/actions/patient-actions";
 import { useExtractedPatient } from "@/store/use-extracted-patient-store";
-import { ExtractionResult, SelectedFile } from "@/types/upload";
+import { ExtractionResult, SelectedFile } from "@/lib/types/upload";
 import { startTransition, useState } from "react";
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
@@ -11,8 +11,6 @@ export function useFileUpload() {
 	const [files, setFiles] = useState<SelectedFile[]>([]);
 	const [uploadError, setUploadError] = useState("");
 	const [extractError, setExtractError] = useState("");
-	// const [isExtracting, setIsExtracting] = useState(false);
-
 	const { setPatientData } = useExtractedPatient();
 
 	const clearFile = async (id: string) => {
@@ -198,4 +196,3 @@ export function useFileUpload() {
 		extractInfo,
 	};
 }
-

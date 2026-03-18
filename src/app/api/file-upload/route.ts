@@ -1,4 +1,4 @@
-import { SavedFileTypes } from "@/types/upload";
+import { SavedFileTypes } from "@/lib/types/upload";
 import { NextResponse } from "next/server";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";

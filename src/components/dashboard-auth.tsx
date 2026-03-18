@@ -1,5 +1,3 @@
-import { getSessionData } from "@/lib/api/get-session-data";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { LoaderLine } from "@/icons/loader-line";
 
