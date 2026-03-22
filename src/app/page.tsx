@@ -12,6 +12,7 @@ export default function Home() {
 					width={1388}
 					height={1024}
 					className="w-full h-full object-cover"
+					loading="eager"
 				/>
 			</div>
 			<div className="w-full sm:w-[31.25rem] flex shrink-0 flex-col items-center mx-6 xl:mx-40">
@@ -38,4 +39,3 @@ export default function Home() {
 		</main>
 	);
 }
-

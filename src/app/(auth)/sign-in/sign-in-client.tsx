@@ -5,17 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle } from "@/icons/check-circle";
-import { ErrorWarningFill } from "@/icons/error-warning-fill";
-import { EyeLine } from "@/icons/eye-line";
-import { EyeOffLine } from "@/icons/eye-off-line";
-import { InformationLine } from "@/icons/information-line";
 import { signInSchema, SignInType } from "@/app/(auth)/schemas/sign-in-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { RiCheckboxCircleFill, RiErrorWarningFill, RiEyeLine, RiEyeOffLine, RiInformationLine } from "@remixicon/react";
 
 export function SignInClient() {
 	const router = useRouter();
@@ -94,7 +90,7 @@ export function SignInClient() {
 				)}
 				{!errors.email && (
 					<p id="email-info" className="flex gap-1 items-center mt-3.5">
-						<InformationLine className="text-gray-400 size-4" aria-hidden="true" />
+						<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
 						<span className="text-sm text-gray-400">Must be official verified hospital email</span>
 					</p>
 				)}
@@ -121,9 +117,9 @@ export function SignInClient() {
 					>
 						<span aria-hidden="true">
 							{isVisible ? (
-								<EyeOffLine className="size-5 text-gray-600" />
+								<RiEyeOffLine className="size-5 text-gray-600" />
 							) : (
-								<EyeLine className="size-5 text-gray-600" />
+								<RiEyeLine className="size-5 text-gray-600" />
 							)}
 						</span>
 					</button>
@@ -159,7 +155,7 @@ export function SignInClient() {
 			{error && (
 				<div className="text-red-500 flex items-center mt-4 gap-2 px-6 py-4 border border-red-500 rounded-xl">
 					<span>
-						<ErrorWarningFill className="size-4" />
+						<RiErrorWarningFill className="size-4" />
 					</span>
 					<span>{error}</span>
 				</div>
@@ -168,7 +164,7 @@ export function SignInClient() {
 			{success && (
 				<div className="flex items-center gap-2 px-4 py-4 mt-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200">
 					<span>
-						<CheckCircle className="size-5" />
+						<RiCheckboxCircleFill className="size-5" />
 					</span>
 					<span>{success}</span>
 				</div>

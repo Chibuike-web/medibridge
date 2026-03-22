@@ -3,10 +3,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { EyeLine } from "@/icons/eye-line";
-import { EyeOffLine } from "@/icons/eye-off-line";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { RiEyeLine, RiEyeOffLine } from "@remixicon/react";
 
 export function CreateNewPasswordClient() {
 	const router = useRouter();
@@ -40,9 +39,9 @@ export function CreateNewPasswordClient() {
 						onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 					>
 						{isPasswordVisible ? (
-							<EyeOffLine className="size-5 text-gray-600" />
+							<RiEyeOffLine className="size-5 text-gray-600" />
 						) : (
-							<EyeLine className="size-5 text-gray-600" />
+							<RiEyeLine className="size-5 text-gray-600" />
 						)}
 					</button>
 				</div>
@@ -65,9 +64,9 @@ export function CreateNewPasswordClient() {
 						onClick={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
 					>
 						{isConfirmPasswordVisible ? (
-							<EyeOffLine className="size-5 text-gray-600" />
+							<RiEyeOffLine className="size-5 text-gray-600" />
 						) : (
-							<EyeLine className="size-5 text-gray-600" />
+							<RiEyeLine className="size-5 text-gray-600" />
 						)}
 					</button>
 				</div>

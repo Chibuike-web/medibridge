@@ -6,11 +6,9 @@ import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ErrorWarningLine } from "@/icons/error-warning-line";
 import { useEffect, useState } from "react";
-import { EyeOffLine } from "@/icons/eye-off-line";
-import { EyeLine } from "@/icons/eye-line";
 import { ownerSchema, OwnerType } from "@/app/(auth)/schemas/owner-schema";
+import { RiErrorWarningLine, RiEyeLine, RiEyeOffLine } from "@remixicon/react";
 
 export function OwnerClient() {
 	const [isVisible, setIsVisible] = useState(false);
@@ -85,7 +83,7 @@ export function OwnerClient() {
 				) : (
 					<div className="text-sm flex gap-1 items-center mt-2 text-gray-400">
 						<span aria-hidden>
-							<ErrorWarningLine className="size-4" />
+							<RiErrorWarningLine className="size-4" />
 						</span>
 						<p id="email-info">Use your official hospital email</p>
 					</div>
@@ -114,9 +112,9 @@ export function OwnerClient() {
 				>
 					<span aria-hidden="true">
 						{isVisible ? (
-							<EyeOffLine className="size-5 text-gray-600" />
+							<RiEyeOffLine className="size-5 text-gray-600" />
 						) : (
-							<EyeLine className="size-5 text-gray-600" />
+							<RiEyeLine className="size-5 text-gray-600" />
 						)}
 					</span>
 				</button>

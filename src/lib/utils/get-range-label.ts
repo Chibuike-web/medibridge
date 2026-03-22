@@ -1,14 +1,6 @@
-function formatRangeDate(date: Date) {
-	return new Intl.DateTimeFormat("en-US", {
-		day: "2-digit",
-		month: "short",
-		year: "numeric",
-	}).format(date);
-}
+import { formatRangeDate } from "./format-range-date";
 
 export function getRangeLabel(duration?: string) {
-	if (!duration) return "All time";
-
 	const now = new Date();
 	const endDate = new Date(now);
 	const startDate = new Date(now);
@@ -23,7 +15,7 @@ export function getRangeLabel(duration?: string) {
 			const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 			return `${formatRangeDate(lastMonthStart)} - ${formatRangeDate(lastMonthEnd)}`;
 		}
-		case "Last 7 days":
+		case "Last 7 Days":
 			startDate.setDate(startDate.getDate() - 7);
 			return `${formatRangeDate(startDate)} - ${formatRangeDate(endDate)}`;
 		case "Last 3 Months":

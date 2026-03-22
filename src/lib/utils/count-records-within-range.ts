@@ -1,10 +1,13 @@
-export function countPatientsWithinRange(patientCreatedAt: Date[], duration?: string) {
-	if (!duration) return patientCreatedAt.length;
+export function countRecordsWithinRange(recordDates: Date[], duration?: string) {
+	if (!duration) return recordDates.length;
 
 	const now = new Date();
 	const startDate = new Date(now);
 
 	switch (duration) {
+		case "Last 7 Days":
+			startDate.setDate(startDate.getDate() - 7);
+			break;
 		case "This Month":
 			startDate.setDate(1);
 			startDate.setHours(0, 0, 0, 0);
@@ -14,7 +17,7 @@ export function countPatientsWithinRange(patientCreatedAt: Date[], duration?: st
 			startDate.setHours(0, 0, 0, 0);
 			now.setDate(1);
 			now.setHours(0, 0, 0, 0);
-			return patientCreatedAt.filter((date) => date >= startDate && date < now).length;
+			return recordDates.filter((date) => date >= startDate && date < now).length;
 		case "Last 3 Months":
 			startDate.setMonth(startDate.getMonth() - 3);
 			break;
@@ -28,11 +31,11 @@ export function countPatientsWithinRange(patientCreatedAt: Date[], duration?: st
 		case "Last Year": {
 			const lastYearStart = new Date(now.getFullYear() - 1, 0, 1);
 			const thisYearStart = new Date(now.getFullYear(), 0, 1);
-			return patientCreatedAt.filter((date) => date >= lastYearStart && date < thisYearStart).length;
+			return recordDates.filter((date) => date >= lastYearStart && date < thisYearStart).length;
 		}
 		default:
 			startDate.setDate(startDate.getDate() - 7);
 	}
 
-	return patientCreatedAt.filter((date) => date >= startDate).length;
+	return recordDates.filter((date) => date >= startDate).length;
 }

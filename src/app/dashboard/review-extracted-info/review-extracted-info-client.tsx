@@ -12,17 +12,17 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
+	DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ArrowRightLine } from "@/icons/arrow-right-line";
-import { CloseLine } from "@/icons/close-line";
-import { EditLine } from "@/icons/edit-line";
 import { formatKey } from "@/lib/utils/format-key";
 import { useExtractedPatient } from "@/store/use-extracted-patient-store";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { formatPatientLabel } from "./utils/format-patient-label";
+import { cn } from "@/lib/utils/cn";
+import { RiArrowRightLine, RiCloseLine, RiEditLine } from "@remixicon/react";
 
 const EXTRACTED_PATIENT_DATA_KEY = "extracted-patient-data";
 
@@ -125,7 +125,7 @@ export function ReviewExtractedInfoClient() {
 									<h2 className="text-lg font-semibold text-gray-900">
 										{formatPatientLabel(record.personalInfo)}
 									</h2>
-									<ArrowRightLine className="size-6" aria-hidden="true" />
+									<RiArrowRightLine className="size-6" aria-hidden="true" />
 								</button>
 							</DialogTrigger>
 							<DialogContent className="flex max-h-[53.125rem] flex-col overflow-hidden p-0">
@@ -142,10 +142,13 @@ export function ReviewExtractedInfoClient() {
 													className="size-10 rounded-full"
 													aria-label="Close patient details"
 												>
-													<CloseLine className="size-5" aria-hidden="true" />
+													<RiCloseLine className="size-5" aria-hidden="true" />
 												</Button>
 											</DialogClose>
 										</div>
+										<DialogDescription className="sr-only">
+											Review and edit extracted patient information
+										</DialogDescription>
 									</DialogHeader>
 									<div className="flex flex-col gap-6 p-4">
 										<PersonalInfo
@@ -250,7 +253,13 @@ function EditableInfoSection({
 					const fieldId = `${sectionKey}-${index}-${key}`;
 
 					return (
-						<div key={key} className="flex items-end justify-between text-sm">
+						<div
+							key={key}
+							className={cn(
+								"flex justify-between text-sm",
+								edit === key && "flex-col md:flex-row md:items-end gap-2",
+							)}
+						>
 							<div className="flex flex-col gap-4">
 								<label htmlFor={fieldId} className="text-gray-400 no-line-height">
 									{formatKey(key)}
@@ -258,6 +267,7 @@ function EditableInfoSection({
 								{isEditing ? (
 									<Input
 										ref={(el) => el?.focus()}
+										type={key === "dateOfBirth" ? "date" : "text"}
 										id={fieldId}
 										value={editValue}
 										onChange={(e) => setEditValue(e.target.value)}
@@ -269,7 +279,7 @@ function EditableInfoSection({
 								)}
 							</div>
 							{isEditing ? (
-								<div className="flex gap-2">
+								<div className="flex gap-2 self-end">
 									<Button variant="outline" onClick={handleCancel}>
 										Cancel
 									</Button>
@@ -284,7 +294,7 @@ function EditableInfoSection({
 										setEditValue(value ?? "");
 									}}
 								>
-									<EditLine className="size-4" aria-hidden="true" /> Edit
+									<RiEditLine className="size-4" aria-hidden="true" /> Edit
 								</Button>
 							)}
 						</div>

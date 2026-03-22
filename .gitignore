@@ -48,3 +48,5 @@ patient-uploads
 hospital-uploads
 .devtools
 eng.traineddata
+# next-agents-md
+.next-docs/

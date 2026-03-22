@@ -1,10 +1,10 @@
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
-import { Plus } from "@/icons/plus";
 import Link from "next/link";
 import { getOverviewStatsService } from "@/services/patient/get-overview-stats-service";
 import { OverviewStats } from "@/services/patient/types";
 import { OverviewClient } from "./overview-client";
+import { RiAddLine } from "@remixicon/react";
 
 const previewPatientCreatedAt = [
 	...Array.from({ length: 6 }, (_, index) => {
@@ -52,7 +52,7 @@ export default async function Overview({
 						</p>
 						<Button className="h-11" asChild>
 							<Link href="/dashboard/add-new-patient">
-								<Plus className="size-6" /> Add New Patient
+								<RiAddLine className="size-6" /> Add New Patient
 							</Link>
 						</Button>
 					</div>

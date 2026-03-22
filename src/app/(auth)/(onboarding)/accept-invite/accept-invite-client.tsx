@@ -6,20 +6,17 @@ import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { EyeOffLine } from "@/icons/eye-off-line";
-import { EyeLine } from "@/icons/eye-line";
-import { CheckCircle } from "@/icons/check-circle";
-import { ErrorWarningFill } from "@/icons/error-warning-fill";
 import { acceptInviteSchema, AcceptInviteType } from "@/app/(auth)/schemas/accept-invite-schema";
 import { SuccessModal } from "@/components/success-modal";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { useShowSuccess } from "@/hooks/use-show-success";
+import { RiCheckboxCircleFill, RiErrorWarningFill, RiEyeLine, RiEyeOffLine } from "@remixicon/react";
 
 export function AcceptInviteClient() {
 	const [isVisible, setIsVisible] = useState(false);
-	const [error, setError] = useState("");
-	const [success, setSuccess] = useState("");
+	const [error] = useState("");
+	const [success] = useState("");
 	const { showSuccess, setShowSuccess } = useShowSuccess();
 	const router = useRouter();
 	const {
@@ -68,9 +65,9 @@ export function AcceptInviteClient() {
 					>
 						<span aria-hidden="true">
 							{isVisible ? (
-								<EyeOffLine className="size-5 text-gray-600" />
+								<RiEyeOffLine className="size-5 text-gray-600" />
 							) : (
-								<EyeLine className="size-5 text-gray-600" />
+								<RiEyeLine className="size-5 text-gray-600" />
 							)}
 						</span>
 					</button>
@@ -84,7 +81,7 @@ export function AcceptInviteClient() {
 				{success && (
 					<div className="flex items-center gap-2 px-4 py-4 mt-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200 shadow-sm">
 						<span>
-							<CheckCircle className="size-5" />
+							<RiCheckboxCircleFill className="size-5" />
 						</span>
 						<span>{success}</span>
 					</div>
@@ -93,7 +90,7 @@ export function AcceptInviteClient() {
 				{error && (
 					<div className="text-red-500 flex items-center mt-4 gap-2 px-4 py-4 border bg-red-100 border-red-500 rounded-xl">
 						<span>
-							<ErrorWarningFill className="size-4" />
+							<RiErrorWarningFill className="size-4" />
 						</span>
 						<span>{error}</span>
 					</div>

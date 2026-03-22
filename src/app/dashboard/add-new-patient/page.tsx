@@ -1,13 +1,13 @@
-import { ArrowLeftLine } from "@/icons/arrow-left-line";
 import { AddNewPatientClient } from "./add-new-patient-client";
 import Link from "next/link";
+import { RiArrowLeftLine } from "@remixicon/react";
 
 export default function AddNewPatient() {
 	return (
 		<>
 			<nav className="w-full h-16 flex items-center sticky z-1 top-0 bg-white border-b border-gray-300 px-8">
 				<Link href="/dashboard/overview" className="flex gap-2 w-max items-center text-foreground">
-					<ArrowLeftLine className="size-5" /> <span className="sr-only">Back</span>
+					<RiArrowLeftLine className="size-5" /> <span className="sr-only">Back</span>
 				</Link>
 			</nav>
 

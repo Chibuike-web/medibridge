@@ -3,9 +3,7 @@
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { cn } from "@/lib/utils/cn";
-import { Check } from "@/icons/check";
-import { ArrowUpLine } from "@/icons/arrow-up-line";
-import { ArrowDownLine } from "@/icons/arrow-down-line";
+import { RiArrowDownLine, RiArrowUpLine, RiCheckLine } from "@remixicon/react";
 
 function Select({ ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {
 	return <SelectPrimitive.Root data-slot="select" {...props} />;
@@ -35,7 +33,7 @@ function SelectTrigger({
 		>
 			{children}
 			<SelectPrimitive.Icon asChild>
-				<ArrowDownLine className="size-5 opacity-50" />
+				<RiArrowDownLine className="size-5 opacity-50" />
 			</SelectPrimitive.Icon>
 		</SelectPrimitive.Trigger>
 	);
@@ -93,7 +91,7 @@ function SelectItem({
 		>
 			<span className="absolute right-2 flex size-3.5 items-center justify-center">
 				<SelectPrimitive.ItemIndicator>
-					<Check className="size-4" />
+					<RiCheckLine className="size-4" />
 				</SelectPrimitive.ItemIndicator>
 			</span>
 			<SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
@@ -124,7 +122,7 @@ function SelectScrollUpButton({
 			className={cn("flex cursor-default items-center justify-center py-1", className)}
 			{...props}
 		>
-			<ArrowUpLine className="size-4" />
+			<RiArrowUpLine className="size-4" />
 		</SelectPrimitive.ScrollUpButton>
 	);
 }
@@ -139,7 +137,7 @@ function SelectScrollDownButton({
 			className={cn("flex cursor-default items-center justify-center py-1", className)}
 			{...props}
 		>
-			<ArrowDownLine className="size-4" />
+			<RiArrowDownLine className="size-4" />
 		</SelectPrimitive.ScrollDownButton>
 	);
 }

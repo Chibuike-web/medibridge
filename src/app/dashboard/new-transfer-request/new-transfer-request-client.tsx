@@ -10,13 +10,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { patients } from "../transfers/data";
+import { patients } from "./data";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { ArrowDownLine } from "@/icons/arrow-down-line";
-import { Check } from "@/icons/check";
 import { cn } from "@/lib/utils/cn";
 import { ReactNode, useRef, useState } from "react";
-import { SearchLine } from "@/icons/search-line";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -28,12 +25,12 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { CloseLine } from "@/icons/close-line";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SuccessModal } from "@/components/success-modal";
 import { useShowSuccess } from "@/hooks/use-show-success";
 import { useRouter } from "next/navigation";
+import { RiArrowDownLine, RiCheckLine, RiCloseLine, RiSearchLine } from "@remixicon/react";
 
 export function NewTransferRequestClient() {
 	const { showSuccess, setShowSuccess } = useShowSuccess();
@@ -66,7 +63,7 @@ export function NewTransferRequestClient() {
 						<DialogHeader className="h-16 px-6 border-b border-gray-200">
 							<DialogTitle className="text-xl font-semibold">Confirm Transfer Request</DialogTitle>
 							<DialogClose>
-								<CloseLine className="size-6" />
+								<RiCloseLine className="size-6" />
 							</DialogClose>
 						</DialogHeader>
 						<div className="mt-8 px-6">
@@ -76,19 +73,19 @@ export function NewTransferRequestClient() {
 							<ul className="mt-6 mb-8 text-gray-600 flex flex-col gap-4">
 								<li className="flex items-center gap-2">
 									<span aria-hidden>
-										<Check className="size-5" />
+										<RiCheckLine className="size-5" />
 									</span>
 									<span>The correct patient is selected</span>
 								</li>
 								<li className="flex items-center gap-2">
 									<span aria-hidden>
-										<Check className="size-5" />
+										<RiCheckLine className="size-5" />
 									</span>
 									<span>The correct patient is selected</span>
 								</li>
 								<li className="flex items-center gap-2">
 									<span aria-hidden>
-										<Check className="size-5" />
+										<RiCheckLine className="size-5" />
 									</span>
 									<span>The correct patient is selected</span>
 								</li>
@@ -160,7 +157,7 @@ function SelectPatient() {
 
 				<SelectContent className="rounded-2xl h-[18.75rem] flex flex-col p-1.5" align="start">
 					<div className="flex items-center gap-2 mb-2 text-gray-400 pl-2">
-						<SearchLine className="size-5" />
+						<RiSearchLine className="size-5" />
 						<input
 							className="h-10 placeholder:text-base focus:outline-0 w-full"
 							type="search"
@@ -224,10 +221,10 @@ function AttachClinicalRecords() {
 							{selectedRecords.length - 1 > 0 && <span> +{selectedRecords.length - 1} more</span>}
 						</div>
 					)}
-					<ArrowDownLine className="size-5 text-gray-400 shrink-0" />
+					<RiArrowDownLine className="size-5 text-gray-400 shrink-0" />
 				</PopoverTrigger>
 
-				<PopoverContent sideOffset={8} className="flex flex-col gap-2 rounded-2xl p-2 ">
+				<PopoverContent sideOffset={8} className="flex flex-col gap-1 rounded-2xl p-2 ">
 					{clinicalRecords.map((item) => (
 						<MultiSelectItem
 							key={item.id}
@@ -338,7 +335,7 @@ function MultiSelectItem({
 			)}
 		>
 			<span>{children}</span>
-			{selected && <Check className="size-4" />}
+			{selected && <RiCheckLine className="size-4" />}
 		</button>
 	);
 }
@@ -364,7 +361,7 @@ const CheckButton = ({
 			)}
 		>
 			<span>{children}</span>
-			{selected && <Check className="size-4" />}
+			{selected && <RiCheckLine className="size-4" />}
 		</button>
 	);
 };

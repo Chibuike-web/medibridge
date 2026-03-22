@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { LoaderLine } from "@/icons/loader-line";
+import { RiLoaderLine } from "@remixicon/react";
 
 export async function DashboardAuth({ children }: { children: React.ReactNode }) {
 	return (
@@ -7,7 +7,7 @@ export async function DashboardAuth({ children }: { children: React.ReactNode })
 			fallback={
 				<div className="min-h-screen grid place-items-center">
 					<div className="flex flex-col gap-2 items-center">
-						<LoaderLine className="size-6 animate-spin" />
+						<RiLoaderLine className="size-6 animate-spin" />
 						<span className="text-18px">Authenticating....</span>
 					</div>
 				</div>

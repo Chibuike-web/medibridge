@@ -1,16 +1,10 @@
 "use client";
 
-import { FileListFill } from "@/icons/file-list-fill";
-import { FileListLine } from "@/icons/file-list-line";
-import { FileTransferFill } from "@/icons/file-transfer-fill";
-import { FileTransferLine } from "@/icons/file-transfer-line";
-import { FunctionFill } from "@/icons/function-fill";
-import { FunctionLine } from "@/icons/function-line";
 import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserProfile } from "./user-profile";
-import { SearchLine } from "@/icons/search-line";
+import { RiFileListFill, RiFileListLine, RiFileTransferFill, RiFileTransferLine, RiFunctionFill, RiFunctionLine, RiSearchLine } from "@remixicon/react";
 
 export function Sidebar() {
 	const pathname = usePathname();
@@ -23,7 +17,7 @@ export function Sidebar() {
 
 			<ul className="flex flex-col gap-px p-2">
 				<li className="px-3 flex items-center gap-2 w-full h-9 cursor-pointer hover:bg-gray-200 rounded-lg">
-					<SearchLine className="size-5" aria-hidden />
+					<RiSearchLine className="size-5" aria-hidden />
 					<p>Search... </p>
 				</li>
 				{menus.map(({ id, href, text }) => {
@@ -38,21 +32,21 @@ export function Sidebar() {
 								<span>
 									{id === "overview" ? (
 										isActive ? (
-											<FunctionFill className="size-5" />
+											<RiFunctionFill className="size-5" />
 										) : (
-											<FunctionLine className="size-5" />
+											<RiFunctionLine className="size-5" />
 										)
 									) : id === "patients-records" ? (
 										isActive ? (
-											<FileListFill className="size-5" />
+											<RiFileListFill className="size-5" />
 										) : (
-											<FileListLine className="size-5" />
+											<RiFileListLine className="size-5" />
 										)
 									) : id === "transfers" ? (
 										isActive ? (
-											<FileTransferFill className="size-5" />
+											<RiFileTransferFill className="size-5" />
 										) : (
-											<FileTransferLine className="size-5" />
+											<RiFileTransferLine className="size-5" />
 										)
 									) : null}
 								</span>

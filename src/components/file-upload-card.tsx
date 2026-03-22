@@ -1,17 +1,13 @@
-import { CloseLine } from "@/icons/close-line";
-import { LoaderLine } from "@/icons/loader-line";
 import Image from "next/image";
 import pdfFileFormat from "@/assets/file-formats/pdf.svg";
 import pngFileFormat from "@/assets/file-formats/png.svg";
 import jpgFileFormat from "@/assets/file-formats/jpg.svg";
 import docFileFormat from "@/assets/file-formats/doc.svg";
 import { cn } from "@/lib/utils/cn";
-import { CheckCircle } from "@/icons/check-circle";
-import { ErrorWarningFill } from "../icons/error-warning-fill";
 import { formatFileSize } from "@/lib/utils/format-file-size";
 import { AllowedFileExtension, FileStatus } from "@/lib/types/upload";
 import { Button } from "./ui/button";
-import { DeleteBinLine } from "@/icons/delete-bin-line";
+import { RiCheckboxCircleFill, RiCloseLine, RiDeleteBinLine, RiErrorWarningFill, RiLoaderLine } from "@remixicon/react";
 
 type FileUploadCardProps = {
 	id?: string;
@@ -58,11 +54,11 @@ export function FileUploadCard({
 							</div>
 							<div className="flex items-center gap-1">
 								{status === "uploading" || status === "deleting" || status === "extracting" ? (
-									<LoaderLine className="size-4 text-blue-500 animate-spin" />
+									<RiLoaderLine className="size-4 text-blue-500 animate-spin" />
 								) : status === "upload-complete" || status === "extract-complete" ? (
-									<CheckCircle className="size-4 text-green-500" />
+									<RiCheckboxCircleFill className="size-4 text-green-500" />
 								) : status === "extract-failed" ? (
-									<ErrorWarningFill className="size-4 text-red-500" />
+									<RiErrorWarningFill className="size-4 text-red-500" />
 								) : null}
 								{status === "idle" ? (
 									<p>Ready</p>
@@ -98,9 +94,9 @@ export function FileUploadCard({
 						}}
 					>
 						{status === "uploading" ? (
-							<CloseLine className="size-5" />
+							<RiCloseLine className="size-5" />
 						) : (
-							<DeleteBinLine className="size-5" />
+							<RiDeleteBinLine className="size-5" />
 						)}
 					</Button>
 				</div>

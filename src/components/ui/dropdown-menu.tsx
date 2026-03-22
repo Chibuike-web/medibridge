@@ -3,9 +3,7 @@
 import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { cn } from "@/lib/utils/cn";
-import { Check } from "@/icons/check";
-import { ArrowRightLine } from "@/icons/arrow-right-line";
-import { CircleLine } from "@/icons/circle-line";
+import { RiArrowRightLine, RiCheckLine, RiCheckboxBlankCircleLine } from "@remixicon/react";
 
 function DropdownMenu({ ...props }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
 	return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
@@ -88,7 +86,7 @@ function DropdownMenuCheckboxItem({
 		>
 			<span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
 				<DropdownMenuPrimitive.ItemIndicator>
-					<Check className="size-4" />
+					<RiCheckLine className="size-4" />
 				</DropdownMenuPrimitive.ItemIndicator>
 			</span>
 			{children}
@@ -118,7 +116,7 @@ function DropdownMenuRadioItem({
 		>
 			<span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
 				<DropdownMenuPrimitive.ItemIndicator>
-					<CircleLine className="size-2 fill-current" />
+					<RiCheckboxBlankCircleLine className="size-2 fill-current" />
 				</DropdownMenuPrimitive.ItemIndicator>
 			</span>
 			{children}
@@ -189,7 +187,7 @@ function DropdownMenuSubTrigger({
 			{...props}
 		>
 			{children}
-			<ArrowRightLine className="ml-auto size-4" />
+			<RiArrowRightLine className="ml-auto size-4" />
 		</DropdownMenuPrimitive.SubTrigger>
 	);
 }

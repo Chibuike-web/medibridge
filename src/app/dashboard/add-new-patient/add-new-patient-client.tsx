@@ -13,13 +13,11 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { useFileUpload } from "@/hooks/use-file-upload";
-import { CloseLine } from "@/icons/close-line";
-import { ErrorWarningLine } from "@/icons/error-warning-line";
-import { LoaderLine } from "@/icons/loader-line";
 import { cn } from "@/lib/utils/cn";
 import { AllowedFileExtension, SelectedFile } from "@/lib/types/upload";
 import Link from "next/link";
 import { RefObject, useRef, useState } from "react";
+import { RiCloseLine, RiErrorWarningLine, RiLoaderLine } from "@remixicon/react";
 
 export function AddNewPatientClient() {
 	const {
@@ -127,7 +125,7 @@ export function AddNewPatientClient() {
 						aria-atomic="true"
 						className="mt-2 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-red-700"
 					>
-						<ErrorWarningLine className="mt-0.5 h-4 w-4 shrink-0" />
+						<RiErrorWarningLine className="mt-0.5 h-4 w-4 shrink-0" />
 						<p className="text-sm font-medium">{uploadError}</p>
 						<Button
 							type="button"
@@ -137,7 +135,7 @@ export function AddNewPatientClient() {
 							aria-label="Dismiss upload error"
 							onClick={() => setUploadError("")}
 						>
-							<CloseLine className="h-3.5 w-3.5" />
+							<RiCloseLine className="h-3.5 w-3.5" />
 						</Button>
 					</div>
 				) : null}
@@ -149,7 +147,7 @@ export function AddNewPatientClient() {
 						aria-atomic="true"
 						className="mt-2 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-red-700"
 					>
-						<ErrorWarningLine className="mt-0.5 h-4 w-4 shrink-0" />
+						<RiErrorWarningLine className="mt-0.5 h-4 w-4 shrink-0" />
 						<p className="text-sm font-medium">{extractError}</p>
 						<Button
 							type="button"
@@ -161,7 +159,7 @@ export function AddNewPatientClient() {
 								setExtractError("");
 							}}
 						>
-							<CloseLine className="h-3.5 w-3.5" />
+							<RiCloseLine className="h-3.5 w-3.5" />
 						</Button>
 					</div>
 				) : null}
@@ -251,7 +249,7 @@ function Footer({
 									Confirm Transfer Request
 								</DialogTitle>
 								<DialogClose>
-									<CloseLine className="size-6" />
+									<RiCloseLine className="size-6" />
 								</DialogClose>
 							</DialogHeader>
 							<div className="mt-8 px-6">
@@ -287,7 +285,7 @@ function Footer({
 
 			{isExtracting ? (
 				<div className="flex items-center gap-2">
-					<LoaderLine className="size-4 animate-spin" /> <span>Extracting patient data...</span>
+					<RiLoaderLine className="size-4 animate-spin" /> <span>Extracting patient data...</span>
 				</div>
 			) : null}
 

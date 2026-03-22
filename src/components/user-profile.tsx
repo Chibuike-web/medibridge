@@ -1,6 +1,5 @@
 "use client";
 
-import { ExpandUpDownLine } from "@/icons/expand-up-down-line";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -11,12 +10,10 @@ import {
 	DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { VerifiedBadgeLine } from "@/icons/verified-badge-line";
-import { LogoutBoxLine } from "@/icons/logout-box-line";
 import { useTransition } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { useRouter } from "next/navigation";
-import { LoaderLine } from "@/icons/loader-line";
+import { RiExpandUpDownLine, RiLoaderLine, RiLogoutBoxLine, RiVerifiedBadgeLine } from "@remixicon/react";
 
 export function UserProfile() {
 	const dummyUser = {
@@ -47,7 +44,7 @@ export function UserProfile() {
 							<p className="text-xs text-foreground/60 truncate w-full">{dummyUser.email}</p>
 						</div>
 						<span className="shrink-0">
-							<ExpandUpDownLine className="size-5" />
+							<RiExpandUpDownLine className="size-5" />
 						</span>
 					</button>
 				</DropdownMenuTrigger>
@@ -71,7 +68,7 @@ export function UserProfile() {
 					<DropdownMenuSeparator />
 					<DropdownMenuGroup>
 						<DropdownMenuItem>
-							<VerifiedBadgeLine className="size-4" />
+							<RiVerifiedBadgeLine className="size-4" />
 							Account
 						</DropdownMenuItem>
 					</DropdownMenuGroup>
@@ -88,7 +85,7 @@ export function UserProfile() {
 							});
 						}}
 					>
-						<LogoutBoxLine />
+						<RiLogoutBoxLine />
 						{isPending ? "Logging Out..." : "Log out"}
 					</DropdownMenuItem>
 				</DropdownMenuContent>
@@ -97,7 +94,7 @@ export function UserProfile() {
 			{isPending && (
 				<div className="absolute inset-0 z-[100] bg-white grid place-items-center">
 					<div className="flex flex-col gap-2 items-center">
-						<LoaderLine className="size-6 animate-spin" />
+						<RiLoaderLine className="size-6 animate-spin" />
 						<span className="text-18px">Authenticating....</span>
 					</div>
 				</div>

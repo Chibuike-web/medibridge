@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useVerificationFileUpload } from "@/hooks/use-verification-file-upload";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createHospitalAction, createOwnerAction } from "@/actions/auth-actions";
-import { CheckCircle } from "@/icons/check-circle";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
@@ -14,9 +13,9 @@ import {
 	HospitalDetailsType,
 } from "@/app/(auth)/schemas/hospital-details-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ErrorWarningFill } from "@/icons/error-warning-fill";
 import { FileUploadCard } from "@/components/file-upload-card";
 import { ChooseFileCard } from "@/components/choose-file-card";
+import { RiCheckboxCircleFill, RiErrorWarningFill } from "@remixicon/react";
 
 export function HospitalDetailsClient() {
 	const router = useRouter();
@@ -170,7 +169,7 @@ export function HospitalDetailsClient() {
 			{error && (
 				<div className="text-red-500 flex items-center mt-4 gap-2 px-4 py-4 border bg-red-100 border-red-500 rounded-xl">
 					<span>
-						<ErrorWarningFill className="size-4" />
+						<RiErrorWarningFill className="size-4" />
 					</span>
 					<span>{error}</span>
 				</div>
@@ -178,7 +177,7 @@ export function HospitalDetailsClient() {
 			{success && (
 				<div className="flex items-center gap-2 px-4 py-4 mt-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200">
 					<span>
-						<CheckCircle className="size-5" />
+						<RiCheckboxCircleFill className="size-5" />
 					</span>
 					<span>{success}</span>
 				</div>

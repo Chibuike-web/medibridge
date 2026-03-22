@@ -1,8 +1,8 @@
-import { UploadCloudLine } from "@/icons/upload-cloud-line";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { ChangeEvent, RefObject } from "react";
 import { cn } from "@/lib/utils/cn";
+import { RiUploadCloudLine } from "@remixicon/react";
 
 type ChooseFileCardPropsType = {
 	handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -38,7 +38,7 @@ export function ChooseFileCard({
 					aria-label="Upload hospital accreditation or license document"
 				/>
 			</Label>
-			<UploadCloudLine className="text-gray-600 size-5" />
+			<RiUploadCloudLine className="text-gray-600 size-5" />
 			<div className="flex flex-col gap-1.5 items-center">
 				<p className="font-medium text-gray-800 text-sm text-center">
 					Choose a file or drag & drop it here.
