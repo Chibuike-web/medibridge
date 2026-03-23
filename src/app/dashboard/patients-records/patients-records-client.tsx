@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { RiAddLine, RiFilter3Line, RiShareForwardBoxLine } from "@remixicon/react";
+import { RiAddLine, RiFilter3Line, RiSearch2Line, RiShareForwardBoxLine } from "@remixicon/react";
 
 export function PatientsRecordsClient() {
 	return (
@@ -12,7 +12,8 @@ export function PatientsRecordsClient() {
 					Patient Records
 				</h1>
 				<div className="flex items-center gap-2 flex-1 justify-end">
-					<div className="flex-1 max-w-[500px] min-w-[200px]">
+					<div className="flex-1 max-w-[500px] min-w-[200px] relative">
+						<RiSearch2Line className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400 " />{" "}
 						<Input
 							type="text"
 							className="h-10 w-full"

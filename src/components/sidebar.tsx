@@ -4,7 +4,15 @@ import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserProfile } from "./user-profile";
-import { RiFileListFill, RiFileListLine, RiFileTransferFill, RiFileTransferLine, RiFunctionFill, RiFunctionLine, RiSearchLine } from "@remixicon/react";
+import {
+	RiFileListFill,
+	RiFileListLine,
+	RiFileTransferFill,
+	RiFileTransferLine,
+	RiFunctionFill,
+	RiFunctionLine,
+	RiSearchLine,
+} from "@remixicon/react";
 
 export function Sidebar() {
 	const pathname = usePathname();
@@ -28,7 +36,10 @@ export function Sidebar() {
 							key={id}
 							className={cn("rounded-lg hover:bg-gray-200 font-medium", isActive && "bg-gray-200")}
 						>
-							<Link href={href} className={cn("px-3 flex items-center gap-2 w-full h-9")}>
+							<Link
+								href={href}
+								className={cn("px-3 rounded-lg flex items-center gap-2 w-full h-9")}
+							>
 								<span>
 									{id === "overview" ? (
 										isActive ? (

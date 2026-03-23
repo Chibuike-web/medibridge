@@ -5,6 +5,7 @@ import { getOverviewStatsService } from "@/services/patient/get-overview-stats-s
 import { OverviewStats } from "@/services/patient/types";
 import { OverviewClient } from "./overview-client";
 import { RiAddLine } from "@remixicon/react";
+import { StatContextProvider } from "./stats-context";
 
 const previewPatientCreatedAt = [
 	...Array.from({ length: 6 }, (_, index) => {
@@ -39,7 +40,9 @@ export default async function Overview({
 	return (
 		<DashboardLayout>
 			{stats.hasPatients ? (
-				<OverviewClient stats={stats} />
+				<StatContextProvider stats={stats}>
+					<OverviewClient />
+				</StatContextProvider>
 			) : (
 				<div className="mx-auto flex h-full w-full max-w-7xl items-center justify-center p-10">
 					<div className="flex max-w-xl flex-col items-center">
