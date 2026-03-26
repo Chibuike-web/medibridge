@@ -1,11 +1,5 @@
 "use client";
 
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { countRecordsWithinRange } from "@/lib/utils/count-records-within-range";
 import { formatStat } from "@/lib/utils/format-stat";
 import { getRangeLabel } from "@/lib/utils/get-range-label";
@@ -26,66 +20,57 @@ import { cn } from "@/lib/utils/cn";
 
 const TOTAL_PATIENTS_LABEL = "Total No. of Patients";
 const TRANSFERRED_RECORDS_LABEL = "Transferred Records";
-const NEW_PATIENTS_LABEL = "New patients";
+const PENDING_TRANSFERS_LABEL = "Pending Transfers";
+const DEFAULT_CARD_DURATION = "This Month";
 
-function getPatientGrowth(patientCreatedAt: Date[]) {
-	const thisMonthCount = countRecordsWithinRange(patientCreatedAt, "This Month");
-	const lastMonthCount = countRecordsWithinRange(patientCreatedAt, "Last Month");
-	const difference = thisMonthCount - lastMonthCount;
+function getComparison(currentCount: number, previousCount: number) {
+	const difference = currentCount - previousCount;
 	const percentChange =
-		lastMonthCount > 0
-			? Math.round((difference / lastMonthCount) * 100)
-			: thisMonthCount > 0
-				? 100
-				: 0;
+		previousCount > 0 ? Math.round((difference / previousCount) * 100) : currentCount > 0 ? 100 : 0;
 
-	return { thisMonthCount, difference, percentChange };
+	return { currentCount, difference, percentChange };
 }
 
 function getOverviewCards(
 	stats: OverviewStats,
 	patientCreatedAt: Date[],
-	selectedDuration: Record<string, string>,
+	patientTransferredAt: Date[],
+	pendingTransferredAt: Date[],
 ) {
-	const transferredRecordsDuration =
-		selectedDuration[TRANSFERRED_RECORDS_LABEL] ?? durationGroups[0];
-
-	const newPatientsDuration = selectedDuration[NEW_PATIENTS_LABEL] ?? durationGroups[0];
-
-	const patientGrowth = getPatientGrowth(patientCreatedAt);
+	const thisMonthPatients = countRecordsWithinRange(patientCreatedAt, "This Month");
+	const lastMonthPatients = countRecordsWithinRange(patientCreatedAt, "Last Month");
+	const patientGrowth = getComparison(thisMonthPatients, lastMonthPatients);
+	const thisMonthTransfers = countRecordsWithinRange(patientTransferredAt, "This Month");
+	const lastMonthTransfers = countRecordsWithinRange(patientTransferredAt, "Last Month");
+	const transferredGrowth = getComparison(thisMonthTransfers, lastMonthTransfers);
+	const thisMonthPendingTransfers = countRecordsWithinRange(pendingTransferredAt, "This Month");
+	const lastMonthPendingTransfers = countRecordsWithinRange(pendingTransferredAt, "Last Month");
+	const pendingTransfersGrowth = getComparison(
+		thisMonthPendingTransfers,
+		lastMonthPendingTransfers,
+	);
 
 	return [
 		{
 			label: TOTAL_PATIENTS_LABEL,
 			value: stats.totalPatients,
 			growth: patientGrowth,
+			rangeLabel: getRangeLabel(DEFAULT_CARD_DURATION),
 		},
 		{
 			label: TRANSFERRED_RECORDS_LABEL,
-			value: transferredRecordsDuration
-				? countRecordsWithinRange(patientCreatedAt, transferredRecordsDuration)
-				: stats.transferredRecords,
-			rangeLabel: getRangeLabel(transferredRecordsDuration),
+			value: stats.transferredRecords,
+			growth: transferredGrowth,
+			rangeLabel: getRangeLabel(DEFAULT_CARD_DURATION),
 		},
 		{
-			label: NEW_PATIENTS_LABEL,
-			value: newPatientsDuration
-				? countRecordsWithinRange(patientCreatedAt, newPatientsDuration)
-				: stats.newPatients,
-			rangeLabel: getRangeLabel(newPatientsDuration),
+			label: PENDING_TRANSFERS_LABEL,
+			value: stats.pendingTransfers,
+			growth: pendingTransfersGrowth,
+			rangeLabel: getRangeLabel(DEFAULT_CARD_DURATION),
 		},
 	];
 }
-
-const durationGroups = [
-	"Last 7 Days",
-	"This Month",
-	"Last Month",
-	"Last 3 Months",
-	"Last 6 Months",
-	"This Year",
-	"Last Year",
-];
 
 export function OverviewClient() {
 	return (
@@ -107,14 +92,19 @@ export function OverviewClient() {
 
 function Cards() {
 	const stats = useStats();
-	const [selectedDuration, setSelectedDuration] = useState<Record<string, string>>({});
 	const [patientCreatedAt] = useState(() =>
 		stats.patientCreatedAt.map((createdAt) => new Date(createdAt)),
 	);
+	const [patientTransferredAt] = useState(() =>
+		stats.patientTransferredAt.map((transferredAt) => new Date(transferredAt)),
+	);
+	const [pendingTransferredAt] = useState(() =>
+		stats.pendingTransferredAt.map((transferredAt) => new Date(transferredAt)),
+	);
 
 	const cards = useMemo(() => {
-		return getOverviewCards(stats, patientCreatedAt, selectedDuration);
-	}, [stats, patientCreatedAt, selectedDuration]);
+		return getOverviewCards(stats, patientCreatedAt, patientTransferredAt, pendingTransferredAt);
+	}, [stats, patientCreatedAt, patientTransferredAt, pendingTransferredAt]);
 
 	return (
 		<div className="grid gap-4 xl:grid-cols-3">
@@ -123,48 +113,30 @@ function Cards() {
 					key={card.label}
 					className="rounded-[12px] overflow-hidden outline outline-gray-200 bg-gray-100"
 				>
-					<div className="px-3 h-12 flex items-center justify-between">
+					<div className="px-3 h-10 flex items-center">
 						<p className="text-sm text-gray-400">{card.label}</p>
-						{card.label === TOTAL_PATIENTS_LABEL ? null : (
-							<DropdownMenu>
-								<DropdownMenuTrigger className="group text-[12px] outline outline-gray-200 bg-white no-line-height px-[6px] h-6 rounded-[4px] text-gray-400 flex items-center">
-									<span>
-										{(selectedDuration[card.label] ?? durationGroups[0]) || "Select duration"}
-									</span>
-									<RiArrowDownSLine className="size-4 transition-transform group-data-[state=open]:rotate-180" />
-								</DropdownMenuTrigger>
-								<DropdownMenuContent>
-									{durationGroups.map((item, index) => (
-										<DropdownMenuItem
-											key={index}
-											onClick={() =>
-												setSelectedDuration((prev) => ({ ...prev, [card.label]: item }))
-											}
-										>
-											{item}
-										</DropdownMenuItem>
-									))}
-								</DropdownMenuContent>
-							</DropdownMenu>
-						)}
 					</div>
 					<div className="bg-white rounded-[12px] px-3 pt-6 outline outline-gray-200 h-full">
 						<p className="text-4xl font-semibold text-gray-950">{formatStat(card.value)}</p>
 						<div className="mt-4 border-t border-gray-100 py-[14px] text-sm text-pretty text-gray-600">
-							{card.label === TOTAL_PATIENTS_LABEL ? (
-								<div className="flex items-center justify-between gap-3">
-									<p className="text-gray-400">{card.growth?.thisMonthCount} added this month</p>
-									<div>
-										<span>
-											{card.growth?.difference && card.growth.difference >= 0 ? "+" : ""}
-											{card.growth?.percentChange}%
-										</span>
-										<span>vs last month</span>
-									</div>
+							<div className="flex items-center justify-between gap-3 font-medium">
+								<p className="text-gray-400">{card.rangeLabel}</p>
+								<div className="flex items-center gap-1">
+									<span
+										className={cn(
+											card.growth?.difference && card.growth.difference > 0
+												? "text-emerald-600"
+												: card.growth?.difference && card.growth.difference < 0
+													? "text-red-600"
+													: "text-gray-400",
+										)}
+									>
+										{card.growth?.difference && card.growth.difference >= 0 ? "+" : ""}
+										{card.growth?.percentChange}%
+									</span>
+									<span>vs last month</span>
 								</div>
-							) : (
-								<p>{card.rangeLabel}</p>
-							)}
+							</div>
 						</div>
 					</div>
 				</div>

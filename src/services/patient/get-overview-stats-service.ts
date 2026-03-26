@@ -14,8 +14,10 @@ export async function getOverviewStatsService(): Promise<OverviewStats> {
 		return {
 			totalPatients: 0,
 			transferredRecords: 0,
-			newPatients: 0,
+			pendingTransfers: 0,
 			patientCreatedAt: [],
+			patientTransferredAt: [],
+			pendingTransferredAt: [],
 			hasPatients: false,
 		};
 	}
@@ -25,19 +27,16 @@ export async function getOverviewStatsService(): Promise<OverviewStats> {
 		.from(patientPersonalIdentification)
 		.where(eq(patientPersonalIdentification.organizationId, organizationId));
 
-	const now = new Date();
-	const last7DaysStart = new Date(now);
-	last7DaysStart.setDate(now.getDate() - 7);
-
-	const newPatients = patientRows.filter((patient) => patient.createdAt >= last7DaysStart).length;
 	const totalPatients = patientRows.length;
 	const patientCreatedAt = patientRows.map((patient) => patient.createdAt.toISOString());
 
 	return {
 		totalPatients,
 		transferredRecords: 0,
-		newPatients,
+		pendingTransfers: 0,
 		patientCreatedAt,
+		patientTransferredAt: [],
+		pendingTransferredAt: [],
 		hasPatients: totalPatients > 0,
 	};
 }

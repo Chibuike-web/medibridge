@@ -23,7 +23,7 @@ export function Sidebar() {
 				<h1 className="font-bold text-xl tracking-[-0.02em]">MediBridge</h1>
 			</div>
 
-			<ul className="flex flex-col gap-px p-2">
+			<ul className="flex flex-col gap-px p-2 text-[14px]">
 				<li className="px-3 flex items-center gap-2 w-full h-9 cursor-pointer hover:bg-gray-200 rounded-lg">
 					<RiSearchLine className="size-5" aria-hidden />
 					<p>Search... </p>
