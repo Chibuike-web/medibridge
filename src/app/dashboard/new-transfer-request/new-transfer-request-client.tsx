@@ -155,7 +155,7 @@ export function NewTransferRequestClient() {
 							</div>
 							<div className="flex flex-col gap-3.5 mt-8">
 								<Label>
-									Notes <span>(Optional)</span>
+									Notes<span className="text-gray-400">(Optional)</span>
 								</Label>
 								<Textarea placeholder="Add context or special instructions" />
 							</div>

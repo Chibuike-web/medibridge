@@ -1,3 +1,5 @@
+"use client";
+
 import { CheckButton } from "@/components/check-button";
 import { formats } from "../data";
 import { EMPTY_PATIENT_DATA, PatientDataType } from "../types";
