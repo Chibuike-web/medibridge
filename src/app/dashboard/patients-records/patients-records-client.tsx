@@ -16,7 +16,7 @@ export function PatientsRecordsClient() {
 						<RiSearch2Line className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400 " />{" "}
 						<Input
 							type="text"
-							className="h-10 w-full"
+							className="h-10 w-full pl-8"
 							placeholder="Search by department or physician"
 						/>
 					</div>

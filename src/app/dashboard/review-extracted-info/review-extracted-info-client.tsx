@@ -19,10 +19,10 @@ import { formatKey } from "@/lib/utils/format-key";
 import { useExtractedPatient } from "@/store/use-extracted-patient-store";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { formatPatientLabel } from "./utils/format-patient-label";
 import { cn } from "@/lib/utils/cn";
-import { RiArrowRightLine, RiCloseLine, RiEditLine } from "@remixicon/react";
+import { RiArrowRightSLine, RiCloseLine, RiEditLine } from "@remixicon/react";
 
 const EXTRACTED_PATIENT_DATA_KEY = "extracted-patient-data";
 
@@ -36,38 +36,12 @@ type EditableInfoSectionProps = {
 	records: PatientType;
 };
 
-function getStoredPatientData(): PatientType {
-	if (typeof window === "undefined") return [];
-
-	try {
-		const rawValue = localStorage.getItem(EXTRACTED_PATIENT_DATA_KEY);
-		if (!rawValue) return [];
-
-		const parsed = JSON.parse(rawValue) as {
-			state?: {
-				patientData?: PatientType;
-			};
-		};
-
-		return parsed.state?.patientData ?? [];
-	} catch {
-		return [];
-	}
-}
-
 export function ReviewExtractedInfoClient() {
 	const { patientData, setPatientData } = useExtractedPatient();
 	const router = useRouter();
 	const [isOpen, setIsOpen] = useState(false);
-	const [records, setRecords] = useState<PatientType | null>(null);
 	const [saveError, setSaveError] = useState("");
 	const [isPending, startTransition] = useTransition();
-
-	useEffect(() => {
-		queueMicrotask(() => {
-			setRecords(patientData ?? getStoredPatientData());
-		});
-	}, [patientData]);
 
 	const closeModal = () => {
 		router.replace("/dashboard");
@@ -75,11 +49,11 @@ export function ReviewExtractedInfoClient() {
 	};
 
 	const handleSave = () => {
-		if (!records || records.length === 0 || isPending) return;
+		if (!patientData || patientData.length === 0 || isPending) return;
 
 		setSaveError("");
 		startTransition(async () => {
-			const result = await savePatientRecordsAction(records);
+			const result = await savePatientRecordsAction(patientData);
 
 			if (result.status === "failed") {
 				setSaveError(result.error);
@@ -87,15 +61,32 @@ export function ReviewExtractedInfoClient() {
 			}
 
 			setPatientData([]);
+			localStorage.removeItem(EXTRACTED_PATIENT_DATA_KEY);
 			setIsOpen(true);
 		});
 	};
 
-	if (records === null) {
-		return <div className="min-h-dvh" />;
+	if (patientData === null) {
+		return (
+			<main className="mx-auto my-10 grid min-h-dvh max-w-[37.5rem] place-items-center">
+				<div className="w-full px-4 md:px-0">
+					<div className="mx-auto h-9 w-72 animate-pulse rounded-md bg-gray-200" />
+					<div className="mt-4 mx-auto h-5 w-full max-w-md animate-pulse rounded-md bg-gray-100" />
+					<div className="mt-10 flex flex-col gap-4">
+						{Array.from({ length: 5 }).map((_, i) => (
+							<div
+								key={i}
+								className="h-[3.5rem] w-full animate-pulse rounded-xl border border-gray-200 bg-white"
+							/>
+						))}
+					</div>
+					<div className="mt-8 h-11 w-full animate-pulse rounded-md bg-gray-200" />
+				</div>
+			</main>
+		);
 	}
 
-	if (records.length === 0) {
+	if (patientData.length === 0) {
 		return (
 			<h1 className="grid min-h-dvh place-items-center text-3xl font-semibold text-gray-800">
 				No patient data extracted
@@ -115,7 +106,7 @@ export function ReviewExtractedInfoClient() {
 					</p>
 				</div>
 				<div className="flex w-full flex-col gap-4 px-4 md:px-0">
-					{records.map((record, index) => (
+					{patientData.map((record, index) => (
 						<Dialog key={index}>
 							<DialogTrigger asChild>
 								<button
@@ -125,7 +116,7 @@ export function ReviewExtractedInfoClient() {
 									<h2 className="text-lg font-semibold text-gray-900">
 										{formatPatientLabel(record.personalInfo)}
 									</h2>
-									<RiArrowRightLine className="size-6" aria-hidden="true" />
+									<RiArrowRightSLine className="size-6" aria-hidden="true" />
 								</button>
 							</DialogTrigger>
 							<DialogContent className="flex max-h-[53.125rem] flex-col overflow-hidden p-0">
@@ -154,18 +145,22 @@ export function ReviewExtractedInfoClient() {
 										<PersonalInfo
 											index={index}
 											personalInfo={record.personalInfo}
-											records={records}
+											records={patientData}
 										/>
-										<ContactInfo index={index} contactInfo={record.contactInfo} records={records} />
+										<ContactInfo
+											index={index}
+											contactInfo={record.contactInfo}
+											records={patientData}
+										/>
 										<EmergencyInfo
 											index={index}
 											emergencyInfo={record.emergencyInfo}
-											records={records}
+											records={patientData}
 										/>
 										<PhysicalInfo
 											index={index}
 											physicalInfo={record.physicalInfo}
-											records={records}
+											records={patientData}
 										/>
 									</div>
 								</div>
@@ -177,7 +172,7 @@ export function ReviewExtractedInfoClient() {
 						<p className="text-sm font-medium text-red-600 text-pretty">{saveError}</p>
 					) : null}
 
-					<Button className="mt-8 w-full" onClick={handleSave} disabled={isPending}>
+					<Button className="mt-8 h-11 w-full" onClick={handleSave} disabled={isPending}>
 						{isPending ? "Saving..." : "Save Patient Record"}
 					</Button>
 
