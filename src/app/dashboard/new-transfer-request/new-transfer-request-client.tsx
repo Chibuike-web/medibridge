@@ -101,6 +101,11 @@ export function NewTransferRequestClient() {
 										onClick={(e) => {
 											e.stopPropagation();
 											removeSelectedPatient(s);
+											setPatientData((prev) => {
+												const updated = { ...prev };
+												delete updated[s.patientId];
+												return updated;
+											});
 										}}
 									>
 										<RiCloseLine size={16} />

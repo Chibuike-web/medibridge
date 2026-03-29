@@ -6,7 +6,6 @@ import { getRangeLabel } from "@/lib/utils/get-range-label";
 import { OverviewStats } from "@/services/patient/types";
 import { useMemo, useState } from "react";
 import { RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react";
-import { useStats } from "./stats-hook";
 import {
 	ColumnDef,
 	flexRender,
@@ -17,6 +16,7 @@ import {
 import { recentPatients, type RecentPatientType } from "./data";
 import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils/cn";
+import { useStats } from "./stats-context";
 
 const TOTAL_PATIENTS_LABEL = "Total No. of Patients";
 const TRANSFERRED_RECORDS_LABEL = "Transferred Records";

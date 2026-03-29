@@ -1,9 +1,19 @@
 "use client";
 
 import { OverviewStats } from "@/services/patient/types";
-import { createContext } from "react";
+import { createContext, use } from "react";
 
-export const StatContext = createContext<OverviewStats | null>(null);
+const StatContext = createContext<OverviewStats | null>(null);
+
+export function useStats(): OverviewStats {
+	const context = use(StatContext);
+
+	if (!context) {
+		throw new Error("useStats must be used within a StatContextProvider");
+	}
+
+	return context;
+}
 
 export function StatContextProvider({
 	children,
