@@ -1,4 +1,4 @@
-import { ClinicalRecord } from "./types";
+import { ClinicalRecord, RecentTransferType } from "./types";
 
 export const patients = [
 	{ name: "Alice Johnson", patientId: "A123456" },
@@ -41,5 +41,50 @@ export const clinicalRecords: ClinicalRecord[] = [
 	{
 		id: "documents",
 		label: "Documents",
+	},
+];
+
+export const recentTransfers: RecentTransferType[] = [
+	{
+		name: "James Brown",
+		requestedAt: "2025-04-17T16:30:00",
+		patientId: "A123456",
+		targetHospital: "Enugu State Teaching Hospital, Parklane",
+		status: "Failed",
+	},
+	{
+		name: "Sophie Williams",
+		requestedAt: "2025-04-18T17:30:00",
+		patientId: "B234567",
+		targetHospital: "Lagos University Teaching Hospital (LUTH), Lagos",
+		status: "Completed",
+	},
+	{
+		name: "Arthur Taylor",
+		requestedAt: "2025-04-19T18:30:00",
+		patientId: "C345678",
+		targetHospital: "Ahmadu Bello University Teaching Hospital",
+		status: "Pending",
+	},
+	{
+		name: "Emma Wright",
+		patientId: "D456789",
+		requestedAt: "2025-04-20T19:30:00",
+		targetHospital: "University College Hospital (UCH), Ibadan",
+		status: "Approved",
+	},
+	{
+		name: "Emma Wright",
+		patientId: "D456789",
+		requestedAt: "2025-04-20T19:30:00",
+		targetHospital: "University College Hospital (UCH), Ibadan",
+		status: "Approved",
+	},
+	{
+		name: "Emma Wright",
+		patientId: "D456789",
+		requestedAt: "2025-04-20T19:30:00",
+		targetHospital: "University College Hospital (UCH), Ibadan",
+		status: "Approved",
 	},
 ];

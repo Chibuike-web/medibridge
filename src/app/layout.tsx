@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Agentation } from "agentation";
 import "@/styles/globals.css";
 import { Providers } from "@/components/providers";
@@ -15,6 +16,23 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en" suppressHydrationWarning>
+			<head>
+				{process.env.NODE_ENV === "development" && (
+					<Script
+						src="//unpkg.com/react-scan/dist/auto.global.js"
+						crossOrigin="anonymous"
+						strategy="beforeInteractive"
+					/>
+				)}
+
+				{process.env.NODE_ENV === "development" && (
+					<Script
+						src="//unpkg.com/react-grab/dist/index.global.js"
+						crossOrigin="anonymous"
+						strategy="beforeInteractive"
+					/>
+				)}
+			</head>
 			<body className="antialiased" suppressHydrationWarning>
 				<Providers>
 					{children}

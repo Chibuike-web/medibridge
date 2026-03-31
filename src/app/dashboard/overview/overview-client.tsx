@@ -5,18 +5,12 @@ import { formatStat } from "@/lib/utils/format-stat";
 import { getRangeLabel } from "@/lib/utils/get-range-label";
 import { OverviewStats } from "@/services/patient/types";
 import { useMemo, useState } from "react";
-import { RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react";
-import {
-	ColumnDef,
-	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
-	useReactTable,
-} from "@tanstack/react-table";
-import { recentPatients, type RecentPatientType } from "./data";
-import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 import { cn } from "@/lib/utils/cn";
 import { useStats } from "./stats-context";
+
+import { RecentPatientsTable } from "@/features/patients/components/recent-patients-table";
+import { RecentTransfersTable } from "@/features/transfers/components/recent-transfers-table";
 
 const TOTAL_PATIENTS_LABEL = "Total No. of Patients";
 const TRANSFERRED_RECORDS_LABEL = "Transferred Records";
@@ -74,8 +68,8 @@ function getOverviewCards(
 
 export function OverviewClient() {
 	return (
-		<div className="flex h-full flex-col">
-			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center">
+		<div className="flex flex-col">
+			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-10">
 				<h1 className="text-xl font-semibold text-balance text-gray-950 tracking-[-0.015em]">
 					Overview
 				</h1>
@@ -83,8 +77,8 @@ export function OverviewClient() {
 
 			<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
 				<Cards />
-				<RecentPatients />
-				<RecentTransfers />
+				<RecentPatientsTable />
+				<RecentTransfersTable />
 			</section>
 		</div>
 	);
@@ -143,104 +137,4 @@ function Cards() {
 			))}
 		</div>
 	);
-}
-
-const columns: ColumnDef<RecentPatientType>[] = [
-	{
-		header: "Patient Name",
-		accessorKey: "name",
-		enableSorting: true,
-	},
-
-	{
-		header: "Patient ID",
-		accessorKey: "patientId",
-		enableSorting: false,
-	},
-	{
-		header: "Gender",
-		accessorKey: "gender",
-		enableSorting: false,
-	},
-	{
-		header: "Age",
-		accessorKey: "age",
-		enableSorting: false,
-	},
-	{
-		header: "Created At",
-		accessorKey: "createdAt",
-		enableSorting: true,
-	},
-];
-
-function RecentPatients() {
-	const data = useMemo(() => recentPatients, []);
-	const cols = useMemo(() => columns, []);
-
-	const table = useReactTable({
-		data,
-		columns: cols,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-	});
-	return (
-		<div className="mt-12 max-w-7xl">
-			<div className="overflow-x-auto border border-gray-200 rounded-lg">
-				<Table className="w-full min-w-[800px] text-left border-separate border-spacing-0">
-					<TableHeader className="bg-gray-50 text-gray-500 text-xs font-semibold h-12">
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header) => (
-									<TableHead
-										key={header.id}
-										onClick={header.column.getToggleSortingHandler()}
-										onKeyDown={(event) => {
-											if (event.key === "Enter") {
-												header.column.getToggleSortingHandler()?.(event);
-											}
-										}}
-										className={cn(
-											"px-4 whitespace-nowrap z-10",
-											header.column.id === "name" &&
-												"left-0 sticky bg-gray-50 max-[800px]:border-r border-gray-200",
-											header.column.getCanSort() ? "cursor-pointer select-none" : "",
-										)}
-									>
-										<div className="flex items-center justify-between">
-											{header.isPlaceholder
-												? null
-												: flexRender(header.column.columnDef.header, header.getContext())}{" "}
-											{header.column.getCanSort() ? (
-												<div className="-space-y-2">
-													<RiArrowUpSLine
-														className={cn(
-															"size-4 text-tremor-content-strong",
-															header.column.getIsSorted() === "desc" ? "opacity-30" : "",
-														)}
-														aria-hidden={true}
-													/>
-													<RiArrowDownSLine
-														className={cn(
-															"size-4 text-tremor-content-strong",
-															header.column.getIsSorted() === "asc" ? "opacity-30" : "",
-														)}
-														aria-hidden={true}
-													/>
-												</div>
-											) : null}
-										</div>
-									</TableHead>
-								))}
-							</TableRow>
-						))}
-					</TableHeader>
-				</Table>
-			</div>
-		</div>
-	);
-}
-
-function RecentTransfers() {
-	return <div></div>;
 }

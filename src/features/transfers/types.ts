@@ -18,3 +18,11 @@ export const EMPTY_PATIENT_DATA: PatientData = {
 	hospitalEmail: "",
 	notes: "",
 };
+
+export type RecentTransferType = {
+	name: string;
+	requestedAt: string;
+	patientId: string;
+	targetHospital: string;
+	status: "Approved" | "Pending" | "Failed" | "Completed";
+};
