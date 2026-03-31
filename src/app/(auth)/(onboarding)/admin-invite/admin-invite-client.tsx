@@ -6,7 +6,7 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useShowSuccess } from "@/hooks/use-show-success";
-import { inviteSchema } from "@/app/(auth)/schemas/invite-schema";
+import { inviteSchema } from "@/features/auth/schemas/invite-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";

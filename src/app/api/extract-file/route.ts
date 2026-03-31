@@ -6,13 +6,16 @@ import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
 import path from "node:path";
 import { existsSync, readFileSync } from "node:fs";
-import { PatientSchema } from "@/app/api/extract-file/schemas/patient-schema";
+import { PatientSchema } from "@/features/patients/schemas/patient-schema";
 import { ExtractionResult } from "@/lib/types/upload";
 
-const model = wrapLanguageModel({
-	model: gateway("anthropic/claude-haiku-4.5"),
-	middleware: devToolsMiddleware(),
-});
+const model =
+	process.env.NODE_ENV === "development"
+		? wrapLanguageModel({
+				model: gateway("anthropic/claude-haiku-4.5"),
+				middleware: devToolsMiddleware(),
+			})
+		: gateway("anthropic/claude-haiku-4.5");
 
 const results: ExtractionResult[] = [];
 

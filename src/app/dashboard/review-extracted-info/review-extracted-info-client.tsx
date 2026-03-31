@@ -1,7 +1,7 @@
 "use client";
 
-import { PatientRecord, PatientType } from "@/app/api/extract-file/schemas/patient-schema";
-import { savePatientRecordsAction } from "@/actions/patient-actions";
+import { PatientRecord, PatientType } from "@/features/patients/schemas/patient-schema";
+import { savePatientRecordsAction } from "@/features/patients/server/actions";
 import { SuccessModal } from "@/components/success-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,11 +16,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { formatKey } from "@/lib/utils/format-key";
-import { useExtractedPatient } from "@/store/use-extracted-patient-store";
+import { useExtractedPatient } from "@/features/patients/store/use-extracted-patient-store";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { formatPatientLabel } from "./utils/format-patient-label";
+import { formatPatientLabel } from "../../../features/patients/utils/format-patient-label";
 import { cn } from "@/lib/utils/cn";
 import { RiArrowRightSLine, RiCloseLine, RiEditLine } from "@remixicon/react";
 

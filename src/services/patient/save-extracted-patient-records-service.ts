@@ -1,6 +1,6 @@
 "use server";
 
-import { PatientSchema, PatientType } from "@/app/api/extract-file/schemas/patient-schema";
+import { PatientSchema, PatientType } from "@/features/patients/schemas/patient-schema";
 import {
 	patientContactInformation,
 	patientEmergencyContact,

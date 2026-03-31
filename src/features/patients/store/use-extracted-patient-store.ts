@@ -1,4 +1,4 @@
-import { PatientType } from "@/app/api/extract-file/schemas/patient-schema";
+import { PatientType } from "@/features/patients/schemas/patient-schema";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 

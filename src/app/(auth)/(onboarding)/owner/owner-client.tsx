@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { ownerSchema, OwnerType } from "@/app/(auth)/schemas/owner-schema";
+import { ownerSchema, OwnerType } from "@/features/auth/schemas/owner-schema";
 import { RiErrorWarningLine, RiEyeLine, RiEyeOffLine } from "@remixicon/react";
 
 export function OwnerClient() {

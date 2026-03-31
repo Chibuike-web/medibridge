@@ -1,39 +1,39 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
 import { RiArrowDownSLine } from "@remixicon/react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MultiSelectItem } from "@/components/multi-select-item";
-import { clinicalRecords } from "../data";
-import { EMPTY_PATIENT_DATA, PatientData, PatientDataType } from "../types";
+import { clinicalRecords } from "@/features/transfers/data";
+import { EMPTY_PATIENT_DATA, PatientData, PatientDataType } from "@/features/transfers/types";
 
 type AttachClinicalRecordsProps = {
 	activePatient: string;
 	currentData: PatientData;
-	setPatientData: Dispatch<SetStateAction<PatientDataType>>;
+	patientData: PatientDataType;
+	setPatientData: (patientData: PatientDataType) => void;
 };
 
 export function AttachClinicalRecords({
 	activePatient,
 	currentData,
+	patientData,
 	setPatientData,
 }: AttachClinicalRecordsProps) {
 	const currentPatientRecords = currentData.records;
 
 	function toggleRecord(id: string, label: string) {
-		setPatientData((prev) => {
-			const isExists = currentPatientRecords.some((item) => item.id === id);
+		const isExists = currentPatientRecords.some((item) => item.id === id);
 
-			const newRecords = isExists
-				? currentPatientRecords.filter((item) => item.id !== id)
-				: [...currentPatientRecords, { id, label }];
-			return {
-				...prev,
-				[activePatient]: {
-					...(prev[activePatient] || EMPTY_PATIENT_DATA),
-					records: newRecords,
-				},
-			};
+		const newRecords = isExists
+			? currentPatientRecords.filter((item) => item.id !== id)
+			: [...currentPatientRecords, { id, label }];
+
+		setPatientData({
+			...patientData,
+			[activePatient]: {
+				...(patientData[activePatient] || EMPTY_PATIENT_DATA),
+				records: newRecords,
+			},
 		});
 	}
 

@@ -1,11 +1,11 @@
 "use client";
 
-import { listOrganizationAction, signInAction } from "@/actions/auth-actions";
+import { listOrganizationAction, signInAction } from "@/features/auth/server/actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { signInSchema, SignInType } from "@/app/(auth)/schemas/sign-in-schema";
+import { signInSchema, SignInType } from "@/features/auth/schemas/sign-in-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

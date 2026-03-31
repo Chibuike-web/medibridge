@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { NewTransferRequestClient } from "./new-transfer-request-client";
+import { NewTransferRequestClient } from "@/app/dashboard/new-transfer-request/new-transfer-request-client";
 import { RiArrowLeftLine } from "@remixicon/react";
 
 export default function NewTransferRequest() {
@@ -17,4 +17,3 @@ export default function NewTransferRequest() {
 		</>
 	);
 }
-

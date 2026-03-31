@@ -1,7 +1,7 @@
 "use client";
 
-import { deletePatientUploadAction } from "@/actions/patient-actions";
-import { useExtractedPatient } from "@/store/use-extracted-patient-store";
+import { deletePatientUploadAction } from "@/features/patients/server/actions";
+import { useExtractedPatient } from "@/features/patients/store/use-extracted-patient-store";
 import { ExtractionResult, SelectedFile } from "@/lib/types/upload";
 import { startTransition, useState } from "react";
 
@@ -33,9 +33,8 @@ export function useFileUpload() {
 				);
 				return;
 			}
+			setFiles((prev) => prev.filter((f) => f.id !== id));
 		}
-
-		setFiles((prev) => prev.filter((f) => f.id !== id));
 	};
 
 	const handleFiles = async (incomingFiles: File[]) => {

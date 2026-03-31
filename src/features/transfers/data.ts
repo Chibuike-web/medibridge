@@ -43,5 +43,3 @@ export const clinicalRecords: ClinicalRecord[] = [
 		label: "Documents",
 	},
 ];
-
-export const formats = ["PDF", "Image", "Word"];

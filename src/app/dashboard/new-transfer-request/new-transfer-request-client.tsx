@@ -2,9 +2,8 @@
 
 import { Label } from "@/components/ui/label";
 
-import { formats } from "./data";
 import { cn } from "@/lib/utils/cn";
-import { Dispatch, Fragment, SetStateAction, useEffect, useState } from "react";
+import { Fragment, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -18,26 +17,21 @@ import {
 } from "@/components/ui/dialog";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SuccessModal } from "@/components/success-modal";
-import { useShowSuccess } from "@/hooks/use-show-success";
-import { useSelectedTransferPatients } from "@/store/use-selected-transfer-patients-store";
+import { useSelectedTransferPatients } from "@/features/transfers/stores/use-selected-transfer-patients";
 import { useRouter } from "next/navigation";
 import { RiCheckLine, RiCloseLine } from "@remixicon/react";
-import { CheckButton } from "@/components/check-button";
-import { AttachClinicalRecords } from "./components/attach-clinical-records";
-import { EMPTY_PATIENT_DATA, PatientData, PatientDataType } from "./types";
-import { SelectPatient } from "./components/select-patient";
+import { AttachClinicalRecords } from "@/features/transfers/components/attach-clinical-records";
+import { EMPTY_PATIENT_DATA, PatientData } from "@/features/transfers/types";
+import { SelectPatient } from "@/features/transfers/components/select-patient";
+import { useTransferPatientData } from "@/features/transfers/stores/use-transfer-patient-data";
+import { useShowSuccess } from "@/hooks/use-show-success";
+import { SuccessModal } from "@/components/success-modal";
 
 export function NewTransferRequestClient() {
-	const { showSuccess, setShowSuccess } = useShowSuccess();
 	const { selectedPatients, removeSelectedPatient } = useSelectedTransferPatients();
+	const { patientData, setPatientData, removePatientData } = useTransferPatientData();
+	const { showSuccess, setShowSuccess } = useShowSuccess();
 	const [currentId, setCurrentId] = useState<string | null>(null);
-
-	const [patientData, setPatientData] = useState<PatientDataType>(() => {
-		if (typeof window === "undefined") return {};
-		const saved = localStorage.getItem("transfer-data");
-		return saved ? JSON.parse(saved) : {};
-	});
 	const router = useRouter();
 	const [step, setStep] = useState(1);
 	function handleStep() {
@@ -50,10 +44,6 @@ export function NewTransferRequestClient() {
 		selectedPatients.find((p) => p.patientId === currentId)?.patientId ??
 		selectedPatients[0]?.patientId ??
 		"";
-
-	useEffect(() => {
-		localStorage.setItem("transfer-data", JSON.stringify(patientData));
-	}, [patientData]);
 
 	const currentData: PatientData = {
 		...EMPTY_PATIENT_DATA,
@@ -101,11 +91,7 @@ export function NewTransferRequestClient() {
 										onClick={(e) => {
 											e.stopPropagation();
 											removeSelectedPatient(s);
-											setPatientData((prev) => {
-												const updated = { ...prev };
-												delete updated[s.patientId];
-												return updated;
-											});
+											removePatientData(s.patientId);
 										}}
 									>
 										<RiCloseLine size={16} />
@@ -117,13 +103,15 @@ export function NewTransferRequestClient() {
 							<AttachClinicalRecords
 								activePatient={activePatient}
 								currentData={currentData}
+								patientData={patientData}
 								setPatientData={setPatientData}
 							/>
-							<SendAs
-								activePatient={activePatient}
-								currentData={currentData}
-								setPatientData={setPatientData}
-							/>
+							<div className="mt-8 rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4">
+								<p className="text-sm font-medium text-gray-800">Transfer document</p>
+								<p className="mt-1 text-sm leading-6 text-gray-600">
+									Each patient&apos;s records will be prepared as a PDF document.
+								</p>
+							</div>
 							<div className="flex flex-col gap-3.5 mt-8">
 								<Label>Target Hospital Name</Label>
 								<Input
@@ -131,13 +119,15 @@ export function NewTransferRequestClient() {
 									placeholder="e.g., Enugu State Teaching Hospital"
 									value={currentData.hospitalName ?? ""}
 									onChange={(e) => {
-										setPatientData((prev) => ({
-											...prev,
+										const nextPatientData = {
+											...patientData,
 											[activePatient]: {
-												...(prev[activePatient] || EMPTY_PATIENT_DATA),
+												...(patientData[activePatient] || EMPTY_PATIENT_DATA),
 												hospitalName: e.target.value,
 											},
-										}));
+										};
+
+										setPatientData(nextPatientData);
 									}}
 								/>
 							</div>
@@ -148,13 +138,15 @@ export function NewTransferRequestClient() {
 									placeholder="e.g., Enugu State Teaching Hospital"
 									value={currentData.hospitalEmail ?? ""}
 									onChange={(e) => {
-										setPatientData((prev) => ({
-											...prev,
+										const nextPatientData = {
+											...patientData,
 											[activePatient]: {
-												...(prev[activePatient] || EMPTY_PATIENT_DATA),
+												...(patientData[activePatient] || EMPTY_PATIENT_DATA),
 												hospitalEmail: e.target.value,
 											},
-										}));
+										};
+
+										setPatientData(nextPatientData);
 									}}
 								/>
 							</div>
@@ -162,7 +154,21 @@ export function NewTransferRequestClient() {
 								<Label>
 									Notes<span className="text-gray-400">(Optional)</span>
 								</Label>
-								<Textarea placeholder="Add context or special instructions" />
+								<Textarea
+									placeholder="Add context or special instructions"
+									value={currentData.notes ?? ""}
+									onChange={(e) => {
+										const nextPatientData = {
+											...patientData,
+											[activePatient]: {
+												...(patientData[activePatient] || EMPTY_PATIENT_DATA),
+												notes: e.target.value,
+											},
+										};
+
+										setPatientData(nextPatientData);
+									}}
+								/>
 							</div>
 						</Fragment>
 
@@ -242,7 +248,6 @@ export function NewTransferRequestClient() {
 					</div>
 				)}
 			</form>
-
 			{showSuccess && (
 				<SuccessModal
 					isOpen={showSuccess}
@@ -260,44 +265,5 @@ The patient will review and approve this transfer before it is sent to the targe
 				</SuccessModal>
 			)}
 		</>
-	);
-}
-
-function SendAs({
-	activePatient,
-	currentData,
-	setPatientData,
-}: {
-	activePatient: string;
-	currentData: PatientDataType[string];
-	setPatientData: Dispatch<SetStateAction<PatientDataType>>;
-}) {
-	const selectedFormat = currentData.format;
-
-	const selectFileFormat = (index: number) => {
-		setPatientData((prev) => ({
-			...prev,
-			[activePatient]: {
-				...(prev[activePatient] || EMPTY_PATIENT_DATA),
-				format: index,
-			},
-		}));
-	};
-	return (
-		<div className="mt-8 flex flex-col gap-3.5 items-start">
-			<span className="text-gray-800 text-base block">Send as</span>
-
-			<div className="flex gap-3 flex-wrap">
-				{formats.map((format, index) => (
-					<CheckButton
-						key={index}
-						isSelected={selectedFormat === index}
-						onClick={() => selectFileFormat(index)}
-					>
-						{format}
-					</CheckButton>
-				))}
-			</div>
-		</div>
 	);
 }

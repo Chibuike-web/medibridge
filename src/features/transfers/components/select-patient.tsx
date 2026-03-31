@@ -1,9 +1,9 @@
 "use client";
 
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { useSelectedTransferPatients } from "@/store/use-selected-transfer-patients-store";
+import { useSelectedTransferPatients } from "@/features/transfers/stores/use-selected-transfer-patients";
 import { useMemo, useState } from "react";
-import { patients } from "../data";
+import { patients } from "@/features/transfers/data";
 import { RiArrowDownSLine, RiCheckLine, RiCloseLine, RiSearchLine } from "@remixicon/react";
 import { cn } from "@/lib/utils/cn";
 

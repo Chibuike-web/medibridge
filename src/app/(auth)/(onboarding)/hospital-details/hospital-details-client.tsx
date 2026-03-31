@@ -4,14 +4,14 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useVerificationFileUpload } from "@/hooks/use-verification-file-upload";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { createHospitalAction, createOwnerAction } from "@/actions/auth-actions";
+import { createHospitalAction, createOwnerAction } from "@/features/auth/server/actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import {
 	hospitalDetailsSchema,
 	HospitalDetailsType,
-} from "@/app/(auth)/schemas/hospital-details-schema";
+} from "@/features/auth/schemas/hospital-details-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FileUploadCard } from "@/components/file-upload-card";
 import { ChooseFileCard } from "@/components/choose-file-card";

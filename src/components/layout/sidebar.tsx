@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserProfile } from "./user-profile";
+import { UserProfile } from "@/components/layout/user-profile";
 import {
 	RiFileListFill,
 	RiFileListLine,

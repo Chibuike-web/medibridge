@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { acceptInviteSchema, AcceptInviteType } from "@/app/(auth)/schemas/accept-invite-schema";
+import { acceptInviteSchema, AcceptInviteType } from "@/features/auth/schemas/accept-invite-schema";
 import { SuccessModal } from "@/components/success-modal";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";

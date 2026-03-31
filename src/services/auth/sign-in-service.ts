@@ -1,6 +1,6 @@
 "use server";
 
-import { SignInType } from "@/app/(auth)/schemas/sign-in-schema";
+import { SignInType } from "@/features/auth/schemas/sign-in-schema";
 import { auth } from "@/lib/better-auth/auth";
 
 export async function signInService(data: SignInType) {

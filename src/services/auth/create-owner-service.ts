@@ -1,6 +1,6 @@
 "use server";
 
-import { OwnerType } from "@/app/(auth)/schemas/owner-schema";
+import { OwnerType } from "@/features/auth/schemas/owner-schema";
 import { hospitalDetails } from "@/db/auth-schema";
 import { auth, db } from "@/lib/better-auth/auth";
 import { and, eq } from "drizzle-orm";

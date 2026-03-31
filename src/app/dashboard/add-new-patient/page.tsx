@@ -1,4 +1,4 @@
-import { AddNewPatientClient } from "./add-new-patient-client";
+import { AddNewPatientClient } from "@/app/dashboard/add-new-patient/add-new-patient-client";
 import Link from "next/link";
 import { RiArrowLeftLine } from "@remixicon/react";
 
@@ -24,4 +24,3 @@ export default function AddNewPatient() {
 		</>
 	);
 }
-

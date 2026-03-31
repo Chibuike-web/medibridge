@@ -8,9 +8,7 @@ const StatContext = createContext<OverviewStats | null>(null);
 export function useStats(): OverviewStats {
 	const context = use(StatContext);
 
-	if (!context) {
-		throw new Error("useStats must be used within a StatContextProvider");
-	}
+	if (!context) throw new Error("useStats must be used within a StatContextProvider");
 
 	return context;
 }

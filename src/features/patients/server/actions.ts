@@ -1,8 +1,8 @@
 "use server";
 
-import { PatientType } from "@/app/api/extract-file/schemas/patient-schema";
-import { saveExtractedPatientRecordsService } from "@/services/patient/save-extracted-patient-records-service";
 import { deletePatientUploadService } from "@/services/patient/delete-patient-upload-service";
+import { saveExtractedPatientRecordsService } from "@/services/patient/save-extracted-patient-records-service";
+import { PatientType } from "../schemas/patient-schema";
 
 export async function deletePatientUploadAction(relativePath: string) {
 	return deletePatientUploadService(relativePath);
