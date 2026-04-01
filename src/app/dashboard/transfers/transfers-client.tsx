@@ -1,13 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TransferPreviewTable } from "@/features/transfers/components/transfer-preview-table";
 import { RiAddLine, RiFilter3Line, RiSearch2Line, RiShareForwardBoxLine } from "@remixicon/react";
 
 export function TransfersClient() {
 	return (
 		<div className="flex h-full flex-col">
-			<header className="border-b border-gray-200 gap-20 bg-white px-8 h-16 flex items-center">
+			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0">
 				<h1 className="text-xl font-semibold text-balance text-gray-950 tracking-[-0.015em]">
 					Transfers
 				</h1>
@@ -17,7 +19,7 @@ export function TransfersClient() {
 						<Input
 							type="search"
 							className="h-10 w-full pl-8"
-							placeholder="Search by department or physician"
+							placeholder="Search by patient name or ID"
 						/>
 					</div>
 
@@ -29,12 +31,18 @@ export function TransfersClient() {
 						<RiShareForwardBoxLine aria-hidden className="size-5 text-gray-600" />
 						Export
 					</Button>
-					<Button size="lg">
-						<RiAddLine aria-hidden className="size-5" />
-						Make new request
+					<Button size="lg" asChild>
+						<Link href="/dashboard/new-transfer-request">
+							<RiAddLine aria-hidden className="size-5" />
+							Add new transfer
+						</Link>
 					</Button>
 				</div>
 			</header>
+
+			<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
+				<TransferPreviewTable />
+			</section>
 		</div>
 	);
 }

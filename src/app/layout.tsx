@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Agentation } from "agentation";
 import "@/styles/globals.css";
 import { Providers } from "@/components/providers";
+import { Agentation } from "agentation";
 
 export const metadata: Metadata = {
 	title: "MediBridge | Connect Hospitals Seamlessly",
@@ -34,10 +34,8 @@ export default function RootLayout({
 				)}
 			</head>
 			<body className="antialiased" suppressHydrationWarning>
-				<Providers>
-					{children}
-					{process.env.NODE_ENV === "development" && <Agentation />}
-				</Providers>
+				<Providers>{children}</Providers>
+				{process.env.NODE_ENV === "development" && <Agentation />}
 			</body>
 		</html>
 	);

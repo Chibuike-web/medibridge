@@ -31,6 +31,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { RecentPatientType } from "../types";
 import { getInitials } from "@/lib/utils/get-initials";
 import { formatDate } from "@/lib/utils/format-date";
@@ -155,22 +156,26 @@ export function RecentPatientsTable() {
 							Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
 						</span>
 						<div className="flex items-center gap-2">
-							<button
+							<Button
 								type="button"
+								variant="outline"
+								size="sm"
 								onClick={() => table.previousPage()}
 								disabled={!table.getCanPreviousPage()}
-								className="rounded-md border border-gray-200 px-3 py-1 text-gray-700 transition disabled:cursor-not-allowed disabled:opacity-50"
+								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 							>
 								Previous
-							</button>
-							<button
+							</Button>
+							<Button
 								type="button"
+								variant="outline"
+								size="sm"
 								onClick={() => table.nextPage()}
 								disabled={!table.getCanNextPage()}
-								className="rounded-md border border-gray-200 px-3 py-1 text-gray-700 transition disabled:cursor-not-allowed disabled:opacity-50"
+								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 							>
 								Next
-							</button>
+							</Button>
 						</div>
 					</div>
 				</div>

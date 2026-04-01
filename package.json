@@ -64,7 +64,7 @@
 		"@types/pg": "^8.16.0",
 		"@types/react": "19.2.9",
 		"@types/react-dom": "19.2.3",
-		"agentation": "^2.3.0",
+		"agentation": "^3.0.2",
 		"drizzle-kit": "^0.31.8",
 		"eslint": "^9.39.2",
 		"eslint-config-next": "^16.2",

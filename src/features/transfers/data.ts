@@ -88,3 +88,107 @@ export const recentTransfers: RecentTransferType[] = [
 		status: "Approved",
 	},
 ];
+
+const transferPreviewSeed: RecentTransferType[] = [
+	{
+		name: "James Brown",
+		patientId: "A123456",
+		targetHospital: "University College Hospital (UCH), Ibadan",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Rejected",
+	},
+	{
+		name: "Sphia Williams",
+		patientId: "B234567",
+		targetHospital: "Lagos University Teaching Hospital (LUTH), Lagos",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Pending",
+	},
+	{
+		name: "Arthur Taylor",
+		patientId: "C345678",
+		targetHospital: "Ahmadu Bello University Teaching Hospital (ABUTH), Zaria",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Completed",
+	},
+	{
+		name: "Emma Wright",
+		patientId: "D456789",
+		targetHospital:
+			"Obafemi Awolowo University Teaching Hospitals Complex (OAUTHC), Ile-Ife",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Failed",
+	},
+	{
+		name: "Chibuike Maduabuchi",
+		patientId: "E567890",
+		targetHospital: "University of Nigeria Teaching Hospital (UNTH), Enugu",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Rejected",
+	},
+	{
+		name: "Laura Perez",
+		patientId: "G789012",
+		targetHospital: "National Hospital, Abuja",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Pending",
+	},
+	{
+		name: "Wei Chen",
+		patientId: "G789012",
+		targetHospital: "Federal Medical Centre (FMC)",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Completed",
+	},
+	{
+		name: "Lena Muller",
+		patientId: "H890123",
+		targetHospital: "Lagos State University Teaching Hospital (LASUTH), Ikeja",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Failed",
+	},
+	{
+		name: "Jumo Osmondi",
+		patientId: "I901234",
+		targetHospital: "Gbagada General Hospita",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Approved",
+	},
+	{
+		name: "Natalie Nowak",
+		patientId: "J012345",
+		targetHospital: "Abia State Specialist Hospital, Umuahia",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Pending",
+	},
+	{
+		name: "Ravi Patel",
+		patientId: "K123456",
+		targetHospital: "Borno State Specialist Hospital, Maiduguri",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Completed",
+	},
+	{
+		name: "Ravi Patel",
+		patientId: "K123456",
+		targetHospital: "Borno State Specialist Hospital, Maiduguri",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Failed",
+	},
+	{
+		name: "Ravi Patel",
+		patientId: "K123456",
+		targetHospital: "Borno State Specialist Hospital, Maiduguri",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Approved",
+	},
+	{
+		name: "Ravi Patel",
+		patientId: "K123456",
+		targetHospital: "Borno State Specialist Hospital, Maiduguri",
+		requestedAt: "2024-04-17T12:30:00",
+		status: "Rejected",
+	},
+];
+
+export const transferPreviewRecords = Array.from({ length: 7 }, () => transferPreviewSeed).flat();

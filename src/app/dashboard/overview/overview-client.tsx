@@ -69,7 +69,7 @@ function getOverviewCards(
 export function OverviewClient() {
 	return (
 		<div className="flex flex-col">
-			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-10">
+			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20">
 				<h1 className="text-xl font-semibold text-balance text-gray-950 tracking-[-0.015em]">
 					Overview
 				</h1>

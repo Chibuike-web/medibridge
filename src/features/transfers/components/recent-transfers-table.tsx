@@ -21,6 +21,7 @@ import { formatDate } from "@/lib/utils/format-date";
 import { statusStyles } from "@/lib/utils/status-styles";
 import { RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 import {
 	ColumnDef,
@@ -158,22 +159,26 @@ export function RecentTransfersTable() {
 							Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
 						</span>
 						<div className="flex items-center gap-2">
-							<button
+							<Button
 								type="button"
+								variant="outline"
+								size="sm"
 								onClick={() => table.previousPage()}
 								disabled={!table.getCanPreviousPage()}
-								className="rounded-md border border-gray-200 px-3 py-1 text-gray-700 transition disabled:cursor-not-allowed disabled:opacity-50"
+								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 							>
 								Previous
-							</button>
-							<button
+							</Button>
+							<Button
 								type="button"
+								variant="outline"
+								size="sm"
 								onClick={() => table.nextPage()}
 								disabled={!table.getCanNextPage()}
-								className="rounded-md border border-gray-200 px-3 py-1 text-gray-700 transition disabled:cursor-not-allowed disabled:opacity-50"
+								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 							>
 								Next
-							</button>
+							</Button>
 						</div>
 					</div>
 				</div>

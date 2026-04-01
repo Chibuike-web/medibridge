@@ -24,5 +24,5 @@ export type RecentTransferType = {
 	requestedAt: string;
 	patientId: string;
 	targetHospital: string;
-	status: "Approved" | "Pending" | "Failed" | "Completed";
+	status: "Approved" | "Pending" | "Failed" | "Completed" | "Rejected";
 };
