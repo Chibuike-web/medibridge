@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils/cn";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -13,9 +14,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTransition } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { useRouter } from "next/navigation";
-import { RiExpandUpDownLine, RiLoaderLine, RiLogoutBoxLine, RiVerifiedBadgeLine } from "@remixicon/react";
+import {
+	RiExpandUpDownLine,
+	RiLoaderLine,
+	RiLogoutBoxLine,
+	RiVerifiedBadgeLine,
+} from "@remixicon/react";
 
-export function UserProfile() {
+export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 	const dummyUser = {
 		name: "John Doe",
 		email: "john.doe@example.com",
@@ -31,22 +37,31 @@ export function UserProfile() {
 	const router = useRouter();
 
 	return (
-		<div className=" w-full mt-auto p-3">
+		<div className="w-full mt-auto p-2 flex justify-center">
 			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<button className="flex p-3 justify-between w-full items-center cursor-pointer hover:bg-gray-200 rounded-lg">
-						<Avatar className="size-10 rounded-full">
-							<AvatarImage src={dummyUser.image} alt="profile image" className="rounded-full" />
-							<AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
-						</Avatar>
-						<div className="flex flex-col items-start w-[8.875rem]">
-							<p className="font-medium text-sm text-foreground">{dummyUser.name}</p>
-							<p className="text-xs text-foreground/60 truncate w-full">{dummyUser.email}</p>
+				<DropdownMenuTrigger
+					className={cn(
+						"flex w-full items-center rounded-lg p-3",
+						isCollapsed ? "justify-center" : "gap-2 cursor-pointer hover:bg-gray-200",
+					)}
+				>
+					<Avatar className="size-8 rounded-full shrink-0">
+						<AvatarImage src={dummyUser.image} alt="profile image" />
+						<AvatarFallback>{initials}</AvatarFallback>
+					</Avatar>
+
+					{!isCollapsed ? (
+						<div className="flex items-center gap-2">
+							<div className="flex flex-col items-start max-w-[8.875rem]">
+								<span className="font-medium text-sm whitespace-nowrap">{dummyUser.name}</span>
+								<span className="text-xs text-foreground/60 truncate w-full">
+									{dummyUser.email}
+								</span>
+							</div>
+
+							<RiExpandUpDownLine className="size-5 shrink-0" />
 						</div>
-						<span className="shrink-0">
-							<RiExpandUpDownLine className="size-5" />
-						</span>
-					</button>
+					) : null}
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
 					className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
@@ -102,4 +117,3 @@ export function UserProfile() {
 		</div>
 	);
 }
-

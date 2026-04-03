@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserProfile } from "@/components/layout/user-profile";
 import {
+	RiContractLeftLine,
 	RiFileListFill,
 	RiFileListLine,
 	RiFileTransferFill,
@@ -13,20 +14,119 @@ import {
 	RiFunctionLine,
 	RiSearchLine,
 } from "@remixicon/react";
+import { useRef, useState } from "react";
+
+const MIN_WIDTH = 56;
+const MAX_WIDTH = 272;
+const COLLAPSE_THRESHOLD = 200;
 
 export function Sidebar() {
 	const pathname = usePathname();
+	const [width, setWidth] = useState(MAX_WIDTH);
+	const [isResizing, setIsResizing] = useState(false);
+	const [isHovered, setIsHovered] = useState(false);
+	const startXRef = useRef(0);
+	const startWidthRef = useRef(0);
+	const isCollapsed = width < COLLAPSE_THRESHOLD;
+
+	function toggleSidebar() {
+		setWidth((prev) => (prev < COLLAPSE_THRESHOLD ? MAX_WIDTH : MIN_WIDTH));
+	}
+
+	function handleMouseDown(e: React.MouseEvent) {
+		e.preventDefault();
+		setIsResizing(true);
+		startXRef.current = e.clientX;
+		startWidthRef.current = width;
+
+		const handleMouseMove = (e: MouseEvent) => {
+			const delta = e.clientX - startXRef.current;
+			const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidthRef.current + delta));
+			setWidth(newWidth);
+		};
+		const handleMouseUp = () => {
+			setIsResizing(false);
+			document.removeEventListener("mousemove", handleMouseMove);
+			document.removeEventListener("mouseup", handleMouseUp);
+		};
+
+		document.addEventListener("mousemove", handleMouseMove);
+		document.addEventListener("mouseup", handleMouseUp);
+	}
 
 	return (
-		<aside className="flex flex-col w-full max-w-[17rem] h-full overflow-y-auto border-r border-gray-200">
-			<div className="px-5 h-16 flex items-center">
-				<h1 className="font-bold text-xl tracking-[-0.02em]">MediBridge</h1>
+		<aside
+			className={cn(
+				"group/sidebar flex flex-col w-full h-full overflow-y-auto border-r border-gray-200 relative",
+				isResizing ? "" : "transition-[max-width] duration-300 ease-in-out",
+			)}
+			style={{ maxWidth: width }}
+		>
+			<div
+				className={cn(
+					"relative h-16 flex items-center transition-[padding] duration-300 ease-in-out",
+					isCollapsed ? "justify-center px-2" : "justify-between pl-5 pr-2",
+				)}
+			>
+				{isCollapsed ? (
+					<div
+						className="relative size-10"
+						onMouseEnter={() => setIsHovered(true)}
+						onMouseLeave={() => setIsHovered(false)}
+					>
+						<h1
+							className={cn(
+								"text-xl font-bold absolute inset-0 flex items-center justify-center transition-all duration-200",
+								isHovered ? "opacity-0 blur-sm" : "opacity-100 blur-0",
+							)}
+						>
+							MB
+						</h1>
+						<button
+							onClick={toggleSidebar}
+							aria-label="Expand sidebar"
+							className={cn(
+								"absolute inset-0 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-all duration-200",
+								isHovered ? "opacity-100 blur-0" : "opacity-0 blur-sm",
+							)}
+						>
+							<RiContractLeftLine className="size-5 shrink-0" aria-hidden />
+						</button>
+					</div>
+				) : (
+					<>
+						<h1
+							className={cn(
+								"overflow-hidden font-bold tracking-[-0.02em] whitespace-nowrap transition-all duration-300 ease-in-out",
+								"w-auto opacity-100 text-xl",
+							)}
+						>
+							MediBridge
+						</h1>
+						<button
+							onClick={toggleSidebar}
+							aria-label="Collapse sidebar"
+							className="flex size-10 items-center justify-center rounded-lg hover:bg-gray-200"
+						>
+							<RiContractLeftLine className="size-5 shrink-0" aria-hidden />
+						</button>
+					</>
+				)}
 			</div>
 
 			<ul className="flex flex-col gap-px p-2 text-[14px]">
-				<li className="px-3 flex items-center gap-2 w-full h-9 cursor-pointer hover:bg-gray-200 rounded-lg">
-					<RiSearchLine className="size-5" aria-hidden />
-					<p>Search... </p>
+				<li>
+					<button
+						type="button"
+						className={cn(
+							"flex w-full items-center gap-2 rounded-lg hover:bg-gray-200 px-2.5 h-8",
+							isCollapsed ? "justify-center" : "",
+						)}
+						aria-label="Search chats"
+					>
+						<RiSearchLine className="size-5 shrink-0" aria-hidden />
+						{!isCollapsed ? <span className="whitespace-nowrap">Search...</span> : null}
+					</button>
 				</li>
 				{menus.map(({ id, href, text }) => {
 					const isActive = pathname === href;
@@ -34,41 +134,57 @@ export function Sidebar() {
 					return (
 						<li
 							key={id}
-							className={cn("rounded-lg hover:bg-gray-200 font-medium", isActive && "bg-gray-200")}
+							className={cn(
+								"hover:bg-gray-200 font-medium h-8 px-2.5 flex items-center",
+								isActive && "bg-gray-200",
+								isCollapsed ? "justify-center rounded-md" : "rounded-lg",
+							)}
 						>
 							<Link
 								href={href}
-								className={cn("px-3 rounded-lg flex items-center gap-2 w-full h-9")}
+								className={cn(
+									"flex w-full items-center gap-2",
+									isCollapsed ? "justify-center" : "justify-start",
+								)}
+								aria-label={isCollapsed ? text : undefined}
 							>
-								<span>
+								<span className="shrink-0">
 									{id === "overview" ? (
 										isActive ? (
-											<RiFunctionFill className="size-5" />
+											<RiFunctionFill className="size-5 shrink-0" />
 										) : (
-											<RiFunctionLine className="size-5" />
+											<RiFunctionLine className="size-5 shrink-0" />
 										)
 									) : id === "patients-records" ? (
 										isActive ? (
-											<RiFileListFill className="size-5" />
+											<RiFileListFill className="size-5 shrink-0" />
 										) : (
-											<RiFileListLine className="size-5" />
+											<RiFileListLine className="size-5 shrink-0" />
 										)
 									) : id === "transfers" ? (
 										isActive ? (
-											<RiFileTransferFill className="size-5" />
+											<RiFileTransferFill className="size-5 shrink-0" />
 										) : (
-											<RiFileTransferLine className="size-5" />
+											<RiFileTransferLine className="size-5 shrink-0" />
 										)
 									) : null}
 								</span>
-								<span>{text}</span>
+								{!isCollapsed ? <span className="whitespace-nowrap">{text}</span> : null}
 							</Link>
 						</li>
 					);
 				})}
 			</ul>
 
-			<UserProfile />
+			<UserProfile isCollapsed={isCollapsed} />
+			<div
+				className={cn(
+					"absolute right-0 top-0 bottom-0 w-1 cursor-col-resize",
+					"hover:bg-foreground/10",
+					isResizing ? "bg-foreground/10" : "",
+				)}
+				onMouseDown={handleMouseDown}
+			/>
 		</aside>
 	);
 }
