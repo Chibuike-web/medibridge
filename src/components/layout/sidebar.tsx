@@ -57,7 +57,7 @@ export function Sidebar() {
 	return (
 		<aside
 			className={cn(
-				"group/sidebar flex flex-col w-full h-full overflow-y-auto border-r border-gray-200 relative",
+				"group/sidebar flex flex-col w-full h-full overflow-y-auto shrink-0 border-r border-gray-200 relative",
 				isResizing ? "" : "transition-[max-width] duration-300 ease-in-out",
 			)}
 			style={{ maxWidth: width }}

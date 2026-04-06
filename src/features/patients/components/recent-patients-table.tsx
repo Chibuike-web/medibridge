@@ -65,7 +65,7 @@ export function RecentPatientsTable() {
 				<Table className="w-full min-w-[800px] text-left border-separate border-spacing-0">
 					<TableHeader className="bg-gray-100 text-gray-500 text-xs font-semibold h-12">
 						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
+							<TableRow key={headerGroup.id} className="h-12">
 								{headerGroup.headers.map((header) => (
 									<TableHead
 										key={header.id}
@@ -76,7 +76,7 @@ export function RecentPatientsTable() {
 											}
 										}}
 										className={cn(
-											"px-4 whitespace-nowrap z-10 text-gray-600 bg-gray-100",
+											"h-12 px-3 py-0 whitespace-nowrap z-10 text-gray-600 bg-gray-100",
 											header.column.id === "name" &&
 												"left-0 sticky max-[800px]:border-r border-gray-200",
 											header.column.getCanSort() ? "cursor-pointer select-none" : "",
@@ -111,16 +111,16 @@ export function RecentPatientsTable() {
 						))}
 					</TableHeader>
 					<TableBody className="bg-white">
-						{table.getRowModel().rows.map((row) => (
-							<TableRow key={row.id}>
+						{table.getRowModel().rows.map((row, rowPosition) => (
+							<TableRow key={row.id} className="h-14">
 								{row.getVisibleCells().map((cell) => (
 									<TableCell
 										key={cell.id}
 										className={cn(
-											"border-b border-gray-100 bg-white px-4 py-4 text-sm text-gray-600",
-											row.index === table.getRowModel().rows.length - 1 && "border-b-0",
+											"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
+											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 											cell.column.id === "name" &&
-												"sticky left-0 z-10 bg-white max-[800px]:border-r border-gray-100",
+												"sticky left-0 z-10 bg-white max-[800px]:border-r border-gray-200",
 										)}
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -130,14 +130,14 @@ export function RecentPatientsTable() {
 						))}
 					</TableBody>
 				</Table>
-				<div className="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select
 							value={String(table.getState().pagination.pageSize)}
 							onValueChange={(value) => table.setPageSize(Number(value))}
 						>
-							<SelectTrigger className="w-[64px] border-gray-200 bg-white text-gray-700 shadow-none px-2">
+							<SelectTrigger className="h-8 w-[64px] border-gray-200 bg-white text-gray-700 shadow-none px-2">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent>

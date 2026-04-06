@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,9 +38,11 @@ export function PatientsRecordsClient() {
 				</div>
 			</header>
 
-			<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
-				<PatientRecordsTable />
-			</section>
+			<div className="min-h-0 flex-1 overflow-y-auto">
+				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10 ">
+					<PatientRecordsTable />
+				</section>
+			</div>
 		</div>
 	);
 }

@@ -39,15 +39,21 @@ import {
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
-import { RiArrowDownSLine, RiArrowUpSLine, RiMore2Fill } from "@remixicon/react";
-import { transferPreviewRecords } from "../data";
+import {
+	RiAddLine,
+	RiArrowDownSLine,
+	RiArrowUpSLine,
+	RiErrorWarningLine,
+	RiMore2Fill,
+} from "@remixicon/react";
 import { RecentTransferType } from "../types";
+import { transferRecords } from "../data";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
-export function TransferPreviewTable() {
-	const data = useMemo(() => transferPreviewRecords, []);
-	const columns = useMemo(() => transferPreviewColumns, []);
+export function TransferTable() {
+	const data = useMemo(() => transferRecords, []);
+	const columns = useMemo(() => transferColumns, []);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
@@ -73,7 +79,7 @@ export function TransferPreviewTable() {
 			<Table className="w-full min-w-[1100px] border-separate border-spacing-0 text-left">
 				<TableHeader className="h-12 bg-gray-100 text-sm font-semibold text-gray-500">
 					{table.getHeaderGroups().map((headerGroup) => (
-						<TableRow key={headerGroup.id}>
+						<TableRow key={headerGroup.id} className="h-12">
 							{headerGroup.headers.map((header) => (
 								<TableHead
 									key={header.id}
@@ -84,7 +90,7 @@ export function TransferPreviewTable() {
 										}
 									}}
 									className={cn(
-										"z-10 bg-gray-100 px-4 whitespace-nowrap text-gray-600",
+										"z-10 h-12 bg-gray-100 px-3 py-0 whitespace-nowrap text-gray-600",
 										header.column.id === "name" &&
 											"sticky left-0 max-[1100px]:border-r border-gray-200",
 										header.column.getCanSort() ? "cursor-pointer select-none" : "",
@@ -119,16 +125,16 @@ export function TransferPreviewTable() {
 					))}
 				</TableHeader>
 				<TableBody className="bg-white">
-					{table.getRowModel().rows.map((row) => (
-						<TableRow key={row.id}>
+					{table.getRowModel().rows.map((row, rowPosition) => (
+						<TableRow key={row.id} className="h-14">
 							{row.getVisibleCells().map((cell) => (
 								<TableCell
 									key={cell.id}
 									className={cn(
-										"border-b border-gray-100 bg-white px-4 py-4 text-sm text-gray-600",
-										row.index === table.getRowModel().rows.length - 1 && "border-b-0",
+										"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
+										rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 										cell.column.id === "name" &&
-											"sticky left-0 z-10 bg-white max-[1100px]:border-r border-gray-100",
+											"sticky left-0 z-10 bg-white max-[1100px]:border-r border-gray-200",
 									)}
 								>
 									{flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -138,14 +144,14 @@ export function TransferPreviewTable() {
 					))}
 				</TableBody>
 			</Table>
-			<div className="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+			<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex items-center gap-3">
 					<span>Rows per page</span>
 					<Select
 						value={String(table.getState().pagination.pageSize)}
 						onValueChange={(value) => table.setPageSize(Number(value))}
 					>
-						<SelectTrigger className="w-[68px] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
+						<SelectTrigger className="h-8 w-[68px] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 							<SelectValue aria-label="Rows per page" placeholder="Rows" />
 						</SelectTrigger>
 						<SelectContent>
@@ -160,38 +166,38 @@ export function TransferPreviewTable() {
 					</Select>
 				</div>
 				<div className="flex items-center gap-3">
-						<span>
-							Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-						</span>
-						<div className="flex items-center gap-2">
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={() => table.previousPage()}
-								disabled={!table.getCanPreviousPage()}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
-							>
-								Previous
-							</Button>
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={() => table.nextPage()}
-								disabled={!table.getCanNextPage()}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
-							>
-								Next
-							</Button>
-						</div>
+					<span>
+						Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+					</span>
+					<div className="flex items-center gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() => table.previousPage()}
+							disabled={!table.getCanPreviousPage()}
+							className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+						>
+							Previous
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() => table.nextPage()}
+							disabled={!table.getCanNextPage()}
+							className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+						>
+							Next
+						</Button>
 					</div>
 				</div>
+			</div>
 		</div>
 	);
 }
 
-const transferPreviewColumns: ColumnDef<RecentTransferType>[] = [
+const transferColumns: ColumnDef<RecentTransferType>[] = [
 	{
 		header: "Patient Name",
 		accessorKey: "name",
@@ -255,18 +261,25 @@ const transferPreviewColumns: ColumnDef<RecentTransferType>[] = [
 		cell: () => (
 			<div className="flex justify-end">
 				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<button
-							type="button"
-							className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-							aria-label="Open transfer actions"
-						>
-							<RiMore2Fill className="size-5" aria-hidden />
-						</button>
+					<DropdownMenuTrigger
+						type="button"
+						className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+						aria-label="Open transfer actions"
+					>
+						<RiMore2Fill className="size-5" aria-hidden />
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end" className="w-44">
-						<DropdownMenuItem>View transfer details</DropdownMenuItem>
-						<DropdownMenuItem>Start new transfer</DropdownMenuItem>
+					<DropdownMenuContent
+						align="end"
+						className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+					>
+						<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<RiErrorWarningLine className="text-white" />
+							<span>View transfer details</span>
+						</DropdownMenuItem>
+						<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<RiAddLine className="text-white" />
+							<span>Start new transfer</span>
+						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			</div>

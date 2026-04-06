@@ -1,15 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { TransfersClient } from "./transfers-client";
 import Link from "next/link";
+import { TransfersClient } from "./transfers-client";
+import { transferRecords } from "@/features/transfers/data";
 
-export default async function Transfers({
-	searchParams,
-}: {
-	searchParams?: Promise<{ preview?: string }>;
-}) {
-	const params = await searchParams;
-	const previewMode = params?.preview === "true";
-	return previewMode ? (
+export default function Transfers() {
+	return transferRecords.length > 0 ? (
 		<TransfersClient />
 	) : (
 		<div className="h-full">

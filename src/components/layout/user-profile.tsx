@@ -51,7 +51,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					</Avatar>
 
 					{!isCollapsed ? (
-						<div className="flex items-center gap-2">
+						<div className="flex items-center w-full justify-between">
 							<div className="flex flex-col items-start max-w-[8.875rem]">
 								<span className="font-medium text-sm whitespace-nowrap">{dummyUser.name}</span>
 								<span className="text-xs text-foreground/60 truncate w-full">

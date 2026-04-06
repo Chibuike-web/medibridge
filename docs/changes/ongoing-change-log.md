@@ -1,5 +1,23 @@
 # Ongoing Change Log
 
+## 2026-04-06
+
+### Dashboard Preview Mode Promotion
+
+#### What we changed
+
+- Removed the `preview` search-param gate from the dashboard overview, transfers, and patient-records routes.
+- Made the populated dashboard/table experiences the default render path so those pages open directly in their main state.
+- Kept the current preview-backed overview stats as the active source for the overview screen while the visual work continues.
+- Restored the original empty-state layouts and now decide between empty and populated states from the existing static dashboard data.
+
+#### Files changed
+
+- `src/app/dashboard/overview/page.tsx`
+- `src/app/dashboard/transfers/page.tsx`
+- `src/app/dashboard/patients-records/page.tsx`
+- `docs/changes/ongoing-change-log.md`
+
 ## 2026-04-03
 
 ### Dashboard Transfers Sidebar Icon

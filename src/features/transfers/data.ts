@@ -89,7 +89,7 @@ export const recentTransfers: RecentTransferType[] = [
 	},
 ];
 
-const transferPreviewSeed: RecentTransferType[] = [
+const transferSeed: RecentTransferType[] = [
 	{
 		name: "James Brown",
 		patientId: "A123456",
@@ -114,8 +114,7 @@ const transferPreviewSeed: RecentTransferType[] = [
 	{
 		name: "Emma Wright",
 		patientId: "D456789",
-		targetHospital:
-			"Obafemi Awolowo University Teaching Hospitals Complex (OAUTHC), Ile-Ife",
+		targetHospital: "Obafemi Awolowo University Teaching Hospitals Complex (OAUTHC), Ile-Ife",
 		requestedAt: "2024-04-17T12:30:00",
 		status: "Failed",
 	},
@@ -191,4 +190,4 @@ const transferPreviewSeed: RecentTransferType[] = [
 	},
 ];
 
-export const transferPreviewRecords = Array.from({ length: 7 }, () => transferPreviewSeed).flat();
+export const transferRecords = Array.from({ length: 7 }, () => transferSeed).flat();

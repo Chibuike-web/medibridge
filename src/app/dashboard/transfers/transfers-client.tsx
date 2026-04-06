@@ -1,10 +1,8 @@
-"use client";
-
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { TransferPreviewTable } from "@/features/transfers/components/transfer-preview-table";
 import { RiAddLine, RiFilter3Line, RiSearch2Line, RiShareForwardBoxLine } from "@remixicon/react";
+import { TransferTable } from "@/features/transfers/components/transfer-table";
 
 export function TransfersClient() {
 	return (
@@ -40,9 +38,11 @@ export function TransfersClient() {
 				</div>
 			</header>
 
-			<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
-				<TransferPreviewTable />
-			</section>
+			<div className="min-h-0 flex-1 overflow-y-auto">
+				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
+					<TransferTable />
+				</section>
+			</div>
 		</div>
 	);
 }

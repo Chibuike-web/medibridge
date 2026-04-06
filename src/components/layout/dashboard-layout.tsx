@@ -3,9 +3,9 @@ import { Sidebar } from "@/components/layout/sidebar";
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
 	return (
-		<main className="flex h-dvh">
+		<div className="flex items-start h-dvh">
 			<Sidebar />
-			<div className="flex flex-col flex-1 overflow-auto h-full">{children}</div>
-		</main>
+			<div className="flex flex-col flex-1 h-full">{children}</div>
+		</div>
 	);
 }

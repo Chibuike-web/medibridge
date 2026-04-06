@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { getOverviewStatsService } from "@/services/patient/get-overview-stats-service";
 import { OverviewStats } from "@/services/patient/types";
 import { OverviewClient } from "./overview-client";
-import { RiAddLine } from "@remixicon/react";
 import { StatContextProvider } from "./stats-context";
+import { RiAddLine } from "@remixicon/react";
 
 const previewPatientCreatedAt = [
 	...Array.from({ length: 6 }, (_, index) => {
@@ -55,15 +54,9 @@ const previewStats: OverviewStats = {
 	hasPatients: previewPatientCreatedAt.length > 0,
 };
 
-export default async function Overview({
-	searchParams,
-}: {
-	searchParams?: Promise<{ preview?: string }>;
-}) {
-	const params = await searchParams;
-	const previewMode = params?.preview === "true";
-	const stats = previewMode ? previewStats : await getOverviewStatsService();
+const stats = previewStats;
 
+export default function Overview() {
 	return stats.hasPatients ? (
 		<StatContextProvider stats={stats}>
 			<OverviewClient />
