@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils/cn";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PatientIdBadge } from "@/components/patient-id-badge";
 import {
 	Select,
 	SelectContent,
@@ -205,6 +206,7 @@ const recentPatientColumns: ColumnDef<RecentPatientType>[] = [
 		header: "Patient ID",
 		accessorKey: "patientId",
 		enableSorting: false,
+		cell: ({ row }) => <PatientIdBadge patientId={row.original.patientId} />,
 	},
 	{
 		header: "Gender",

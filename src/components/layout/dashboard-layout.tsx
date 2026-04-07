@@ -5,7 +5,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 	return (
 		<div className="flex items-start h-dvh">
 			<Sidebar />
-			<div className="flex flex-col flex-1 h-full">{children}</div>
+			<div className="flex flex-col flex-1 h-full overflow-x-auto">{children}</div>
 		</div>
 	);
 }

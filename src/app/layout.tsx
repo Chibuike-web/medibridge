@@ -3,6 +3,7 @@ import Script from "next/script";
 import "@/styles/globals.css";
 import { Providers } from "@/components/providers";
 import { Agentation } from "agentation";
+import { CssStudioDevtools } from "@/components/dev/css-studio-devtools";
 
 export const metadata: Metadata = {
 	title: "MediBridge | Connect Hospitals Seamlessly",
@@ -24,18 +25,11 @@ export default function RootLayout({
 						strategy="beforeInteractive"
 					/>
 				)}
-
-				{process.env.NODE_ENV === "development" && (
-					<Script
-						src="//unpkg.com/react-grab/dist/index.global.js"
-						crossOrigin="anonymous"
-						strategy="beforeInteractive"
-					/>
-				)}
 			</head>
 			<body className="antialiased" suppressHydrationWarning>
 				<Providers>{children}</Providers>
 				{process.env.NODE_ENV === "development" && <Agentation />}
+				{process.env.NODE_ENV === "development" && <CssStudioDevtools />}
 			</body>
 		</html>
 	);

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PatientIdBadge } from "@/components/patient-id-badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -219,6 +220,7 @@ const patientRecordsColumns: ColumnDef<PatientRecordType>[] = [
 		header: "Patient ID",
 		accessorKey: "patientId",
 		enableSorting: false,
+		cell: ({ row }) => <PatientIdBadge patientId={row.original.patientId} />,
 	},
 	{
 		header: "Gender",

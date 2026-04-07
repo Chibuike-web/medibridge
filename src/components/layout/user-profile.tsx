@@ -41,8 +41,10 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 			<DropdownMenu>
 				<DropdownMenuTrigger
 					className={cn(
-						"flex w-full items-center rounded-lg p-3",
-						isCollapsed ? "justify-center" : "gap-2 cursor-pointer hover:bg-gray-200",
+						"flex w-full min-w-0 items-center rounded-lg p-3",
+						isCollapsed
+							? "justify-center"
+							: "gap-2 cursor-pointer overflow-hidden hover:bg-gray-200",
 					)}
 				>
 					<Avatar className="size-8 rounded-full shrink-0">
@@ -51,10 +53,12 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					</Avatar>
 
 					{!isCollapsed ? (
-						<div className="flex items-center w-full justify-between">
-							<div className="flex flex-col items-start max-w-[8.875rem]">
-								<span className="font-medium text-sm whitespace-nowrap">{dummyUser.name}</span>
-								<span className="text-xs text-foreground/60 truncate w-full">
+						<div className="flex min-w-0 items-center w-full justify-between">
+							<div className="flex min-w-0 flex-1 flex-col items-start">
+								<span className="w-full truncate text-left text-sm font-medium">
+									{dummyUser.name}
+								</span>
+								<span className="text-xs text-foreground/60 text-left truncate w-full">
 									{dummyUser.email}
 								</span>
 							</div>

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { PatientIdBadge } from "@/components/patient-id-badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -217,6 +218,7 @@ const transferColumns: ColumnDef<RecentTransferType>[] = [
 		header: "Patient ID",
 		accessorKey: "patientId",
 		enableSorting: false,
+		cell: ({ row }) => <PatientIdBadge patientId={row.original.patientId} />,
 	},
 	{
 		header: "Target Hospital",
