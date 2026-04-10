@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils/cn";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PatientIdBadge } from "@/components/patient-id-badge";
+import { CopyIdButton } from "@/components/copy-id-button";
 import {
 	Select,
 	SelectContent,
@@ -39,7 +39,7 @@ import { formatDate } from "@/lib/utils/format-date";
 
 export function RecentPatientsTable() {
 	const data = useMemo(() => recentPatients, []);
-	const cols = useMemo(() => recentPatientColumns, []);
+	const columns = useMemo(() => recentPatientColumns, []);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
@@ -48,7 +48,7 @@ export function RecentPatientsTable() {
 
 	const table = useReactTable({
 		data,
-		columns: cols,
+		columns: columns,
 		onSortingChange: setSorting,
 		onPaginationChange: setPagination,
 		getCoreRowModel: getCoreRowModel(),
@@ -206,7 +206,7 @@ const recentPatientColumns: ColumnDef<RecentPatientType>[] = [
 		header: "Patient ID",
 		accessorKey: "patientId",
 		enableSorting: false,
-		cell: ({ row }) => <PatientIdBadge patientId={row.original.patientId} />,
+		cell: ({ row }) => <CopyIdButton id={row.original.patientId} />,
 	},
 	{
 		header: "Gender",

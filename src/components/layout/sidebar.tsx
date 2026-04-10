@@ -30,16 +30,19 @@ export function Sidebar() {
 	const isCollapsed = width < COLLAPSE_THRESHOLD;
 
 	function toggleSidebar() {
+		setIsHovered(false);
 		setWidth((prev) => (prev < COLLAPSE_THRESHOLD ? MAX_WIDTH : MIN_WIDTH));
 	}
 
 	function handleMouseDown(e: React.MouseEvent) {
 		e.preventDefault();
+		setIsHovered(false);
 		setIsResizing(true);
 		startXRef.current = e.clientX;
 		startWidthRef.current = width;
 
 		const handleMouseMove = (e: MouseEvent) => {
+			setIsHovered(false);
 			const delta = e.clientX - startXRef.current;
 			const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidthRef.current + delta));
 			setWidth(newWidth);

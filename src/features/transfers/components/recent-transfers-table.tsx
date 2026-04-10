@@ -19,7 +19,7 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { formatDate } from "@/lib/utils/format-date";
 import { statusStyles } from "@/lib/utils/status-styles";
-import { PatientIdBadge } from "@/components/patient-id-badge";
+import { CopyIdButton } from "@/components/copy-id-button";
 import { RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -208,7 +208,7 @@ const recentTransfersColumns: ColumnDef<RecentTransferType>[] = [
 		header: "Patient ID",
 		accessorKey: "patientId",
 		enableSorting: false,
-		cell: ({ row }) => <PatientIdBadge patientId={row.original.patientId} />,
+		cell: ({ row }) => <CopyIdButton id={row.original.patientId} />,
 	},
 	{
 		header: "Target Hospital",

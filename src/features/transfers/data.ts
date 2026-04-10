@@ -15,10 +15,6 @@ export const patients = [
 
 export const clinicalRecords: ClinicalRecord[] = [
 	{
-		id: "patientDetails",
-		label: "Patient Details",
-	},
-	{
 		id: "medicalHistory",
 		label: "Medical History",
 	},
@@ -64,28 +60,28 @@ export const recentTransfers: RecentTransferType[] = [
 		requestedAt: "2025-04-19T18:30:00",
 		patientId: "C345678",
 		targetHospital: "Ahmadu Bello University Teaching Hospital",
-		status: "Pending",
+		status: "Cancelled",
 	},
 	{
 		name: "Emma Wright",
 		patientId: "D456789",
 		requestedAt: "2025-04-20T19:30:00",
 		targetHospital: "University College Hospital (UCH), Ibadan",
-		status: "Approved",
+		status: "Rejected",
 	},
 	{
 		name: "Emma Wright",
 		patientId: "D456789",
 		requestedAt: "2025-04-20T19:30:00",
 		targetHospital: "University College Hospital (UCH), Ibadan",
-		status: "Approved",
+		status: "Completed",
 	},
 	{
 		name: "Emma Wright",
 		patientId: "D456789",
 		requestedAt: "2025-04-20T19:30:00",
 		targetHospital: "University College Hospital (UCH), Ibadan",
-		status: "Approved",
+		status: "Cancelled",
 	},
 ];
 
@@ -102,7 +98,7 @@ const transferSeed: RecentTransferType[] = [
 		patientId: "B234567",
 		targetHospital: "Lagos University Teaching Hospital (LUTH), Lagos",
 		requestedAt: "2024-04-17T12:30:00",
-		status: "Pending",
+		status: "Cancelled",
 	},
 	{
 		name: "Arthur Taylor",
@@ -130,7 +126,7 @@ const transferSeed: RecentTransferType[] = [
 		patientId: "G789012",
 		targetHospital: "National Hospital, Abuja",
 		requestedAt: "2024-04-17T12:30:00",
-		status: "Pending",
+		status: "Cancelled",
 	},
 	{
 		name: "Wei Chen",
@@ -151,14 +147,14 @@ const transferSeed: RecentTransferType[] = [
 		patientId: "I901234",
 		targetHospital: "Gbagada General Hospita",
 		requestedAt: "2024-04-17T12:30:00",
-		status: "Approved",
+		status: "Rejected",
 	},
 	{
 		name: "Natalie Nowak",
 		patientId: "J012345",
 		targetHospital: "Abia State Specialist Hospital, Umuahia",
 		requestedAt: "2024-04-17T12:30:00",
-		status: "Pending",
+		status: "Cancelled",
 	},
 	{
 		name: "Ravi Patel",
@@ -179,7 +175,7 @@ const transferSeed: RecentTransferType[] = [
 		patientId: "K123456",
 		targetHospital: "Borno State Specialist Hospital, Maiduguri",
 		requestedAt: "2024-04-17T12:30:00",
-		status: "Approved",
+		status: "Rejected",
 	},
 	{
 		name: "Ravi Patel",

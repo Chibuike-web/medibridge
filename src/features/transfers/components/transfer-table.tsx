@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { PatientIdBadge } from "@/components/patient-id-badge";
+import { CopyIdButton } from "@/components/copy-id-button";
+import { TransferDetailsDrawer } from "@/features/transfers/components/transfer-details-drawer";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -54,12 +55,20 @@ const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
 export function TransferTable() {
 	const data = useMemo(() => transferRecords, []);
-	const columns = useMemo(() => transferColumns, []);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: 14,
 	});
+	const [selectedTransferId, setSelectedTransferId] = useState<string | null>(null);
+
+	const columns = useMemo(() => {
+		return getTransferColumns({
+			onViewTransferDetails: (transferId) => {
+				setSelectedTransferId(transferId);
+			},
+		});
+	}, []);
 
 	const table = useReactTable({
 		data,
@@ -76,129 +85,145 @@ export function TransferTable() {
 	});
 
 	return (
-		<div className="overflow-x-auto rounded-[12px] border border-gray-200 text-sm">
-			<Table className="w-full min-w-[1100px] border-separate border-spacing-0 text-left">
-				<TableHeader className="h-12 bg-gray-100 text-sm font-semibold text-gray-500">
-					{table.getHeaderGroups().map((headerGroup) => (
-						<TableRow key={headerGroup.id} className="h-12">
-							{headerGroup.headers.map((header) => (
-								<TableHead
-									key={header.id}
-									onClick={header.column.getToggleSortingHandler()}
-									onKeyDown={(event) => {
-										if (event.key === "Enter") {
-											header.column.getToggleSortingHandler()?.(event);
-										}
-									}}
-									className={cn(
-										"z-10 h-12 bg-gray-100 px-3 py-0 whitespace-nowrap text-gray-600",
-										header.column.id === "name" &&
-											"sticky left-0 max-[1100px]:border-r border-gray-200",
-										header.column.getCanSort() ? "cursor-pointer select-none" : "",
-									)}
-								>
-									<div className="flex items-center justify-between gap-3">
-										{header.isPlaceholder
-											? null
-											: flexRender(header.column.columnDef.header, header.getContext())}
-										{header.column.getCanSort() ? (
-											<div className="-space-y-2">
-												<RiArrowUpSLine
-													className={cn(
-														"size-4 text-gray-800",
-														header.column.getIsSorted() === "desc" ? "opacity-30" : "",
-													)}
-													aria-hidden={true}
-												/>
-												<RiArrowDownSLine
-													className={cn(
-														"size-4 text-gray-800",
-														header.column.getIsSorted() === "asc" ? "opacity-30" : "",
-													)}
-													aria-hidden={true}
-												/>
-											</div>
-										) : null}
-									</div>
-								</TableHead>
-							))}
-						</TableRow>
-					))}
-				</TableHeader>
-				<TableBody className="bg-white">
-					{table.getRowModel().rows.map((row, rowPosition) => (
-						<TableRow key={row.id} className="h-14">
-							{row.getVisibleCells().map((cell) => (
-								<TableCell
-									key={cell.id}
-									className={cn(
-										"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
-										rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
-										cell.column.id === "name" &&
-											"sticky left-0 z-10 bg-white max-[1100px]:border-r border-gray-200",
-									)}
-								>
-									{flexRender(cell.column.columnDef.cell, cell.getContext())}
-								</TableCell>
-							))}
-						</TableRow>
-					))}
-				</TableBody>
-			</Table>
-			<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-				<div className="flex items-center gap-3">
-					<span>Rows per page</span>
-					<Select
-						value={String(table.getState().pagination.pageSize)}
-						onValueChange={(value) => table.setPageSize(Number(value))}
-					>
-						<SelectTrigger className="h-8 w-[68px] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
-							<SelectValue aria-label="Rows per page" placeholder="Rows" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectGroup>
-								{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
-									<SelectItem key={pageSize} value={String(pageSize)}>
-										{pageSize}
-									</SelectItem>
+		<>
+			<div className="overflow-x-auto rounded-[12px] border border-gray-200 text-sm">
+				<Table className="w-full min-w-[1100px] border-separate border-spacing-0 text-left">
+					<TableHeader className="h-12 bg-gray-100 text-sm font-semibold text-gray-500">
+						{table.getHeaderGroups().map((headerGroup) => (
+							<TableRow key={headerGroup.id} className="h-12">
+								{headerGroup.headers.map((header) => (
+									<TableHead
+										key={header.id}
+										onClick={header.column.getToggleSortingHandler()}
+										onKeyDown={(event) => {
+											if (event.key === "Enter") {
+												header.column.getToggleSortingHandler()?.(event);
+											}
+										}}
+										className={cn(
+											"z-10 h-12 bg-gray-100 px-3 py-0 whitespace-nowrap text-gray-600",
+											header.column.id === "name" &&
+												"sticky left-0 max-[1100px]:border-r border-gray-200",
+											header.column.getCanSort() ? "cursor-pointer select-none" : "",
+										)}
+									>
+										<div className="flex items-center justify-between gap-3">
+											{header.isPlaceholder
+												? null
+												: flexRender(header.column.columnDef.header, header.getContext())}
+											{header.column.getCanSort() ? (
+												<div className="-space-y-2">
+													<RiArrowUpSLine
+														className={cn(
+															"size-4 text-gray-800",
+															header.column.getIsSorted() === "desc" ? "opacity-30" : "",
+														)}
+														aria-hidden={true}
+													/>
+													<RiArrowDownSLine
+														className={cn(
+															"size-4 text-gray-800",
+															header.column.getIsSorted() === "asc" ? "opacity-30" : "",
+														)}
+														aria-hidden={true}
+													/>
+												</div>
+											) : null}
+										</div>
+									</TableHead>
 								))}
-							</SelectGroup>
-						</SelectContent>
-					</Select>
-				</div>
-				<div className="flex items-center gap-3">
-					<span>
-						Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-					</span>
-					<div className="flex items-center gap-2">
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={() => table.previousPage()}
-							disabled={!table.getCanPreviousPage()}
-							className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+							</TableRow>
+						))}
+					</TableHeader>
+					<TableBody className="bg-white">
+						{table.getRowModel().rows.map((row, rowPosition) => (
+							<TableRow key={row.id} className="h-14">
+								{row.getVisibleCells().map((cell) => (
+									<TableCell
+										key={cell.id}
+										className={cn(
+											"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
+											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
+											cell.column.id === "name" &&
+												"sticky left-0 z-10 bg-white max-[1100px]:border-r border-gray-200",
+										)}
+									>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</TableCell>
+								))}
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+				<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+					<div className="flex items-center gap-3">
+						<span>Rows per page</span>
+						<Select
+							value={String(table.getState().pagination.pageSize)}
+							onValueChange={(value) => table.setPageSize(Number(value))}
 						>
-							Previous
-						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={() => table.nextPage()}
-							disabled={!table.getCanNextPage()}
-							className="border-gray-200 px-3 text-gray-700 shadow-none transition"
-						>
-							Next
-						</Button>
+							<SelectTrigger className="h-8 w-[68px] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
+								<SelectValue aria-label="Rows per page" placeholder="Rows" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectGroup>
+									{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
+										<SelectItem key={pageSize} value={String(pageSize)}>
+											{pageSize}
+										</SelectItem>
+									))}
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
+					<div className="flex items-center gap-3">
+						<span>
+							Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+						</span>
+						<div className="flex items-center gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => table.previousPage()}
+								disabled={!table.getCanPreviousPage()}
+								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+							>
+								Previous
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => table.nextPage()}
+								disabled={!table.getCanNextPage()}
+								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+							>
+								Next
+							</Button>
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
+			<TransferDetailsDrawer
+				open={selectedTransferId !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						setSelectedTransferId(null);
+					}
+				}}
+				transferId={selectedTransferId}
+			/>
+		</>
 	);
 }
 
-const transferColumns: ColumnDef<RecentTransferType>[] = [
+function getTransferColumns({
+	onViewTransferDetails,
+}: {
+	onViewTransferDetails: (transferId: string) => void;
+}): ColumnDef<RecentTransferType>[] {
+	return [
 	{
 		header: "Patient Name",
 		accessorKey: "name",
@@ -218,7 +243,7 @@ const transferColumns: ColumnDef<RecentTransferType>[] = [
 		header: "Patient ID",
 		accessorKey: "patientId",
 		enableSorting: false,
-		cell: ({ row }) => <PatientIdBadge patientId={row.original.patientId} />,
+		cell: ({ row }) => <CopyIdButton id={row.original.patientId} />,
 	},
 	{
 		header: "Target Hospital",
@@ -260,7 +285,7 @@ const transferColumns: ColumnDef<RecentTransferType>[] = [
 		id: "actions",
 		header: "",
 		enableSorting: false,
-		cell: () => (
+		cell: ({ row }) => (
 			<div className="flex justify-end">
 				<DropdownMenu>
 					<DropdownMenuTrigger
@@ -274,7 +299,10 @@ const transferColumns: ColumnDef<RecentTransferType>[] = [
 						align="end"
 						className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 					>
-						<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+						<DropdownMenuItem
+							onSelect={() => onViewTransferDetails(row.original.patientId)}
+							className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+						>
 							<RiErrorWarningLine className="text-white" />
 							<span>View transfer details</span>
 						</DropdownMenuItem>
@@ -288,3 +316,4 @@ const transferColumns: ColumnDef<RecentTransferType>[] = [
 		),
 	},
 ];
+}

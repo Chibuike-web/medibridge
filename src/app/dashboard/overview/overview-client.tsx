@@ -6,6 +6,7 @@ import { getRangeLabel } from "@/lib/utils/get-range-label";
 import { OverviewStats } from "@/services/patient/types";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils/cn";
+import { RiArrowDownLine, RiArrowUpLine } from "@remixicon/react";
 import { useStats } from "./stats-context";
 import { RecentPatientsTable } from "@/features/patients/components/recent-patients-table";
 import { RecentTransfersTable } from "@/features/transfers/components/recent-transfers-table";
@@ -14,7 +15,6 @@ const TOTAL_PATIENTS_LABEL = "Total No. of Patients";
 const TRANSFERRED_RECORDS_LABEL = "Transferred Records";
 const PENDING_TRANSFERS_LABEL = "Pending Transfers";
 const DEFAULT_CARD_DURATION = "This Month";
-
 function getComparison(currentCount: number, previousCount: number) {
 	const difference = currentCount - previousCount;
 	const percentChange =
@@ -111,21 +111,24 @@ function Cards() {
 						<div className="mt-4 border-t border-gray-100 py-[14px] text-sm text-pretty text-gray-600">
 							<div className="flex items-center justify-between gap-3 font-medium">
 								<p className="text-gray-400">{card.rangeLabel}</p>
-								<div className="flex items-center gap-1">
-									<span
-										className={cn(
-											card.growth?.difference && card.growth.difference > 0
-												? "text-emerald-600"
-												: card.growth?.difference && card.growth.difference < 0
-													? "text-red-600"
-													: "text-gray-400",
-										)}
-									>
-										{card.growth?.difference && card.growth.difference >= 0 ? "+" : ""}
-										{card.growth?.percentChange}%
-									</span>
-									<span>vs last month</span>
-								</div>
+								<span
+									className={cn(
+										"inline-flex items-center gap-1",
+										card.growth?.difference && card.growth.difference > 0
+											? "text-emerald-600"
+											: card.growth?.difference && card.growth.difference < 0
+												? "text-red-600"
+												: "text-gray-400",
+									)}
+								>
+									{card.growth?.percentChange}%
+									{card.growth?.difference && card.growth.difference > 0 ? (
+										<RiArrowUpLine className="size-4" />
+									) : card.growth?.difference && card.growth.difference < 0 ? (
+										<RiArrowDownLine className="size-4" />
+									) : null}
+									{card.growth?.difference && card.growth.difference >= 0 ? "+" : ""}
+								</span>
 							</div>
 						</div>
 					</div>

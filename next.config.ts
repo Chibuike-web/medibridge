@@ -6,6 +6,14 @@ const nextConfig: NextConfig = {
 	serverExternalPackages: ["tesseract.js", "pdf-parse", "mammoth"],
 	experimental: {
 		turbopackFileSystemCacheForBuild: true,
+		optimizePackageImports: [
+			"@radix-ui/react-label",
+			"@radix-ui/react-dropdown-menu",
+			"@remixicon/react",
+			"@radix-ui/react-popover",
+			"@radix-ui/react-select",
+			"@radix-ui/react-checkbox",
+		],
 	},
 	reactStrictMode: true,
 	typedRoutes: true,

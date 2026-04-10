@@ -27,7 +27,13 @@ export const auth = betterAuth({
 		},
 	},
 	user: { deleteUser: { enabled: true } },
-	session: { expiresIn: 60 * 60 * 24 * 7 },
+	session: {
+		expiresIn: 60 * 60 * 24 * 7,
+		cookieCache: {
+			enabled: true,
+			maxAge: 60,
+		},
+	},
 	debug: true,
 	secret: ENV.BETTER_AUTH_SECRET!,
 	baseURL: ENV.BETTER_AUTH_URL,

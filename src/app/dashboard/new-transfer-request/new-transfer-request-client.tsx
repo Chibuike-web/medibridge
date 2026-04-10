@@ -34,6 +34,7 @@ export function NewTransferRequestClient() {
 	const [currentId, setCurrentId] = useState<string | null>(null);
 	const router = useRouter();
 	const [step, setStep] = useState(1);
+
 	function handleStep() {
 		if (selectedPatients.length > 0) {
 			setStep(2);
@@ -49,6 +50,19 @@ export function NewTransferRequestClient() {
 		...EMPTY_PATIENT_DATA,
 		...(patientData[activePatient] ?? {}),
 	};
+
+	function handleRemovePatient(patient: { patientId: string; name: string }) {
+		const isLastPatient = selectedPatients.length === 1;
+
+		removeSelectedPatient(patient);
+		removePatientData(patient.patientId);
+
+		if (isLastPatient) {
+			setStep(1);
+			setCurrentId(null);
+		}
+	}
+
 	return (
 		<>
 			<form className="w-full">
@@ -90,8 +104,7 @@ export function NewTransferRequestClient() {
 										})}
 										onClick={(e) => {
 											e.stopPropagation();
-											removeSelectedPatient(s);
-											removePatientData(s.patientId);
+											handleRemovePatient(s);
 										}}
 									>
 										<RiCloseLine size={16} />
