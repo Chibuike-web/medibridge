@@ -113,7 +113,7 @@ export function ReviewExtractedInfoClient() {
 									type="button"
 									className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-gray-200 bg-white p-4 text-left transition-colors hover:border-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
 								>
-									<h2 className="text-lg font-semibold text-gray-900">
+									<h2 className="text-lg font-semibold text-gray-800">
 										{formatPatientLabel(record.personalInfo)}
 									</h2>
 									<RiArrowRightSLine className="size-6" aria-hidden="true" />
@@ -123,7 +123,7 @@ export function ReviewExtractedInfoClient() {
 								<div className="flex flex-col overflow-y-auto">
 									<DialogHeader className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-3">
 										<div className="flex w-full items-center justify-between gap-4">
-											<DialogTitle className="text-xl font-semibold text-gray-900">
+											<DialogTitle className="text-xl font-semibold text-gray-800">
 												{formatPatientLabel(record.personalInfo)}
 											</DialogTitle>
 											<DialogClose asChild>

@@ -40,17 +40,20 @@ export function HospitalDetailsClient() {
 
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	useEffect(() => {
-		const cache = localStorage.getItem("ONBOARDING_CACHE");
-		if (!cache) return;
+	useEffect(
+		function restoreHospitalDetailsFromCache() {
+			const cache = localStorage.getItem("ONBOARDING_CACHE");
+			if (!cache) return;
 
-		const parsed = JSON.parse(cache);
-		if (parsed.hosptial) {
-			reset(parsed.hospital);
-		}
-	}, [reset]);
+			const parsed = JSON.parse(cache);
+			if (parsed.hosptial) {
+				reset(parsed.hospital);
+			}
+		},
+		[reset],
+	);
 
-	const onSubmit = (data: HospitalDetailsType) => {
+	function onSubmit(data: HospitalDetailsType) {
 		setError("");
 		if (!file) {
 			setUploadError("No file is uploaded. Please upload a file");
@@ -94,7 +97,7 @@ export function HospitalDetailsClient() {
 				setError(error instanceof Error ? error.message : "Unknown error");
 			}
 		});
-	};
+	}
 
 	return (
 		<form className="w-full" onSubmit={handleSubmit(onSubmit)}>
@@ -157,11 +160,7 @@ export function HospitalDetailsClient() {
 				/>
 			)}
 			{uploadError && (
-				<p
-					id="file-upload-error"
-					className="text-red-500 font-medium text-sm mt-2"
-					role="alert"
-				>
+				<p id="file-upload-error" className="text-red-500 font-medium text-sm mt-2" role="alert">
 					{uploadError}
 				</p>
 			)}
@@ -195,4 +194,3 @@ export function HospitalDetailsClient() {
 		</form>
 	);
 }
-

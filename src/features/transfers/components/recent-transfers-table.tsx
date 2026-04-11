@@ -200,7 +200,7 @@ const recentTransfersColumns: ColumnDef<RecentTransferType>[] = [
 						{getInitials(row.original.name)}
 					</AvatarFallback>
 				</Avatar>
-				<span className="font-medium text-gray-950">{row.original.name}</span>
+				<span className="font-medium text-gray-800">{row.original.name}</span>
 			</div>
 		),
 	},

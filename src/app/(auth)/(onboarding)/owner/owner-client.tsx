@@ -27,21 +27,24 @@ export function OwnerClient() {
 		},
 	});
 
-	useEffect(() => {
-		const cache = localStorage.getItem("ONBOARDING_CACHE");
-		if (!cache) return;
+	useEffect(
+		function restoreOwnerFromCache() {
+			const cache = localStorage.getItem("ONBOARDING_CACHE");
+			if (!cache) return;
 
-		const parsed = JSON.parse(cache);
-		if (parsed.owner) {
-			reset(parsed.owner);
-		}
-	}, [reset]);
+			const parsed = JSON.parse(cache);
+			if (parsed.owner) {
+				reset(parsed.owner);
+			}
+		},
+		[reset],
+	);
 
-	const onSubmit = (data: OwnerType) => {
+	function onSubmit(data: OwnerType) {
 		console.log("click", data);
 		localStorage.setItem("ONBOARDING_CACHE", JSON.stringify({ owner: data }));
 		router.push("/hospital-details");
-	};
+	}
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className="text-gray-800 w-full">
 			<div className="mb-8">
@@ -131,4 +134,3 @@ export function OwnerClient() {
 		</form>
 	);
 }
-

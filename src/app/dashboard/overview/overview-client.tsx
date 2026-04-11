@@ -68,7 +68,7 @@ export function OverviewClient() {
 	return (
 		<div className="flex h-full flex-col">
 			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0">
-				<h1 className="text-xl font-semibold text-balance text-gray-950 tracking-[-0.015em]">
+				<h1 className="text-xl font-semibold text-balance text-gray-800 tracking-[-0.015em]">
 					Overview
 				</h1>
 			</header>
@@ -107,7 +107,7 @@ function Cards() {
 						<p className="text-sm text-gray-400">{card.label}</p>
 					</div>
 					<div className="bg-white rounded-[12px] px-3 pt-6 border border-gray-200">
-						<p className="text-4xl font-semibold text-gray-950">{formatStat(card.value)}</p>
+						<p className="text-4xl font-semibold text-gray-800">{formatStat(card.value)}</p>
 						<div className="mt-4 border-t border-gray-100 py-[14px] text-sm text-pretty text-gray-600">
 							<div className="flex items-center justify-between gap-3 font-medium">
 								<p className="text-gray-400">{card.rangeLabel}</p>

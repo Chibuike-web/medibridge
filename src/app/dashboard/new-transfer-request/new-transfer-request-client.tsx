@@ -1,15 +1,15 @@
 "use client";
 
 import { Label } from "@/components/ui/label";
-
 import { cn } from "@/lib/utils/cn";
-import { Fragment, useState } from "react";
+import { Fragment, use, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
@@ -27,13 +27,19 @@ import { useTransferPatientData } from "@/features/transfers/stores/use-transfer
 import { useShowSuccess } from "@/hooks/use-show-success";
 import { SuccessModal } from "@/components/success-modal";
 
-export function NewTransferRequestClient() {
+export function NewTransferRequestClient({
+	searchParams,
+}: {
+	searchParams: Promise<{ patientId?: string }>;
+}) {
 	const { selectedPatients, removeSelectedPatient } = useSelectedTransferPatients();
 	const { patientData, setPatientData, removePatientData } = useTransferPatientData();
 	const { showSuccess, setShowSuccess } = useShowSuccess();
 	const [currentId, setCurrentId] = useState<string | null>(null);
 	const router = useRouter();
 	const [step, setStep] = useState(1);
+	const params = use(searchParams);
+	const patientId = params.patientId;
 
 	function handleStep() {
 		if (selectedPatients.length > 0) {
@@ -200,6 +206,10 @@ export function NewTransferRequestClient() {
 										<DialogTitle className="text-xl font-semibold">
 											Confirm Transfer Request
 										</DialogTitle>
+										<DialogDescription className="sr-only">
+											Review the selected patients and attached clinical records before submitting
+											this transfer request.
+										</DialogDescription>
 										<DialogClose>
 											<RiCloseLine className="size-6" />
 										</DialogClose>

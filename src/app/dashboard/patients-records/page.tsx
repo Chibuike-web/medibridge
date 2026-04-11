@@ -1,11 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PatientRecordsTable } from "@/features/patients/components/patient-records-table";
-import {
-	RiAddLine,
-	RiSearch2Line,
-	RiShareForwardBoxLine,
-} from "@remixicon/react";
+import { RiAddLine, RiSearch2Line, RiShareForwardBoxLine } from "@remixicon/react";
 import Link from "next/link";
 import { patientRecords } from "@/features/patients/data";
 import { FilterButton } from "./filter-button";
@@ -14,7 +10,7 @@ export default function PatientRecords() {
 	return patientRecords.length > 0 ? (
 		<div className="flex h-full flex-col">
 			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0">
-				<h1 className="text-xl font-semibold text-balance text-gray-950 tracking-[-0.015em]">
+				<h1 className="text-xl font-semibold text-balance text-gray-800 tracking-[-0.015em]">
 					Patient Records
 				</h1>
 				<div className="flex items-center gap-2 flex-1 justify-end">
@@ -52,8 +48,7 @@ export default function PatientRecords() {
 			<div className="flex flex-col items-center max-w-[37.5rem]">
 				<h1 className="font-semibold text-2xl text-center text-balance mb-6">No Records Yet</h1>
 				<p className="mb-12 text-center text-pretty">
-					Patient records will appear here once you add them. Start by creating a patient
-					profile.
+					Patient records will appear here once you add them. Start by creating a patient profile.
 				</p>
 				<Button className="h-11" asChild>
 					<Link href="/dashboard/add-new-patient">

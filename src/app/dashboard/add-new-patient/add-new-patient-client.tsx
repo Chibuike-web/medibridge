@@ -7,6 +7,7 @@ import {
 	Dialog,
 	DialogClose,
 	DialogContent,
+	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
@@ -79,7 +80,7 @@ export function AddNewPatientClient() {
 				aria-hidden={!active}
 			>
 				<div className="px-5 py-4 text-center">
-					<p className="text-2xl font-medium text-gray-900">Drop files here</p>
+					<p className="text-2xl font-medium text-gray-800">Drop files here</p>
 					<p className="mt-1 text-base text-gray-500">PDF, PNG, JPG, DOC, DOCX up to 50MB</p>
 				</div>
 			</div>
@@ -248,6 +249,10 @@ function Footer({
 								<DialogTitle className="text-xl font-semibold">
 									Confirm Transfer Request
 								</DialogTitle>
+								<DialogDescription className="sr-only">
+									Confirm that the uploaded patient records are complete before starting
+									extraction.
+								</DialogDescription>
 								<DialogClose>
 									<RiCloseLine className="size-6" />
 								</DialogClose>

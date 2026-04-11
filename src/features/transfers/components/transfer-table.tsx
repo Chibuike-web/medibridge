@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CopyIdButton } from "@/components/copy-id-button";
@@ -9,6 +10,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -43,17 +45,23 @@ import {
 } from "@tanstack/react-table";
 import {
 	RiAddLine,
+	RiArchiveLine,
 	RiArrowDownSLine,
 	RiArrowUpSLine,
+	RiCloseLine,
+	RiCornerDownLeftFill,
+	RiEdit2Line,
 	RiErrorWarningLine,
 	RiMore2Fill,
+	RiSendPlaneLine,
 } from "@remixicon/react";
-import { RecentTransferType } from "../types";
 import { transferRecords } from "../data";
+import { TransferType } from "../types";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
 export function TransferTable() {
+	const router = useRouter();
 	const data = useMemo(() => transferRecords, []);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [pagination, setPagination] = useState<PaginationState>({
@@ -62,13 +70,12 @@ export function TransferTable() {
 	});
 	const [selectedTransferId, setSelectedTransferId] = useState<string | null>(null);
 
+	function onViewTransferDetails(transferId: string) {
+		setSelectedTransferId(transferId);
+	}
 	const columns = useMemo(() => {
-		return getTransferColumns({
-			onViewTransferDetails: (transferId) => {
-				setSelectedTransferId(transferId);
-			},
-		});
-	}, []);
+		return getTransferColumns(onViewTransferDetails, router);
+	}, [router]);
 
 	const table = useReactTable({
 		data,
@@ -218,102 +225,190 @@ export function TransferTable() {
 	);
 }
 
-function getTransferColumns({
-	onViewTransferDetails,
-}: {
-	onViewTransferDetails: (transferId: string) => void;
-}): ColumnDef<RecentTransferType>[] {
+function getTransferColumns(
+	onViewTransferDetails: (transferId: string) => void,
+	router: ReturnType<typeof useRouter>,
+): ColumnDef<TransferType>[] {
 	return [
-	{
-		header: "Patient Name",
-		accessorKey: "name",
-		enableSorting: true,
-		cell: ({ row }) => (
-			<div className="flex items-center gap-3">
-				<Avatar className="size-9 border border-gray-200 bg-gray-100 text-gray-700">
-					<AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
-						{getInitials(row.original.name)}
-					</AvatarFallback>
-				</Avatar>
-				<span className="font-medium text-gray-950">{row.original.name}</span>
-			</div>
-		),
-	},
-	{
-		header: "Patient ID",
-		accessorKey: "patientId",
-		enableSorting: false,
-		cell: ({ row }) => <CopyIdButton id={row.original.patientId} />,
-	},
-	{
-		header: "Target Hospital",
-		accessorKey: "targetHospital",
-		enableSorting: false,
-		cell: ({ row }) => (
-			<span className="block max-w-[340px] whitespace-normal text-pretty">
-				{row.original.targetHospital}
-			</span>
-		),
-	},
-	{
-		header: "Requested At",
-		accessorKey: "requestedAt",
-		enableSorting: true,
-		cell: ({ row }) => formatDate(row.original.requestedAt),
-	},
-	{
-		header: "Transfer Status",
-		accessorKey: "status",
-		enableSorting: false,
-		cell: ({ row }) => {
-			const status = row.original.status;
-			const statusClassName = statusStyles[status.toLowerCase() as keyof typeof statusStyles];
-
-			return (
-				<span
-					className={cn(
-						"inline-flex rounded-full px-3 py-1 text-xs font-semibold",
-						statusClassName,
-					)}
-				>
-					{status}
-				</span>
-			);
+		{
+			header: "Patient Name",
+			accessorKey: "name",
+			enableSorting: true,
+			cell: ({ row }) => (
+				<div className="flex items-center gap-3">
+					<Avatar className="size-9 border border-gray-200 bg-gray-100 text-gray-700">
+						<AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
+							{getInitials(row.original.name)}
+						</AvatarFallback>
+					</Avatar>
+					<span className="font-medium text-gray-800">{row.original.name}</span>
+				</div>
+			),
 		},
-	},
-	{
-		id: "actions",
-		header: "",
-		enableSorting: false,
-		cell: ({ row }) => (
-			<div className="flex justify-end">
-				<DropdownMenu>
-					<DropdownMenuTrigger
-						type="button"
-						className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-						aria-label="Open transfer actions"
+		{
+			header: "Transfer ID",
+			accessorKey: "transferId",
+			enableSorting: false,
+			cell: ({ row }) => <CopyIdButton id={row.original.transferId} />,
+		},
+		{
+			header: "Target Hospital",
+			accessorKey: "targetHospital",
+			enableSorting: false,
+			cell: ({ row }) => (
+				<span className="block max-w-[340px] whitespace-normal text-pretty">
+					{row.original.targetHospital}
+				</span>
+			),
+		},
+		{
+			header: "Requested At",
+			accessorKey: "requestedAt",
+			enableSorting: true,
+			cell: ({ row }) => formatDate(row.original.requestedAt),
+		},
+		{
+			header: "Transfer Status",
+			accessorKey: "status",
+			enableSorting: false,
+			cell: ({ row }) => {
+				const status = row.original.status;
+				const statusClassName = statusStyles[status.toLowerCase() as keyof typeof statusStyles];
+
+				return (
+					<span
+						className={cn(
+							"inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+							statusClassName,
+						)}
 					>
-						<RiMore2Fill className="size-5" aria-hidden />
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
-					>
-						<DropdownMenuItem
-							onSelect={() => onViewTransferDetails(row.original.patientId)}
-							className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+						{status}
+					</span>
+				);
+			},
+		},
+		{
+			id: "actions",
+			header: "",
+			enableSorting: false,
+			cell: ({ row }) => (
+				<div className="flex justify-end">
+					<DropdownMenu>
+						<DropdownMenuTrigger
+							type="button"
+							className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+							aria-label="Open transfer actions"
 						>
-							<RiErrorWarningLine className="text-white" />
-							<span>View transfer details</span>
-						</DropdownMenuItem>
-						<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
-							<RiAddLine className="text-white" />
-							<span>Start new transfer</span>
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</div>
-		),
-	},
-];
+							<RiMore2Fill className="size-5" aria-hidden />
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align="end"
+							className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+						>
+							{row.original.status.toLowerCase() === "pending" ? (
+								<>
+									<DropdownMenuItem
+										onSelect={() => onViewTransferDetails(row.original.transferId)}
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+									>
+										<RiErrorWarningLine className="text-white" />
+										<span>View transfer details</span>
+									</DropdownMenuItem>
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+										<RiSendPlaneLine className="text-white" /> <span>Resend request</span>
+									</DropdownMenuItem>
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+										<RiCloseLine className="text-white" /> <span>Cancel transfer</span>
+									</DropdownMenuItem>
+								</>
+							) : row.original.status.toLowerCase() === "rejected" ? (
+								<>
+									<DropdownMenuItem
+										onSelect={() => onViewTransferDetails(row.original.transferId)}
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+									>
+										<RiErrorWarningLine className="text-white" />
+										<span>View transfer details</span>
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										onSelect={() =>
+											router.push(
+												`/dashboard/new-transfer-request?patientId=${row.original.patientId}`,
+											)
+										}
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+									>
+										<RiEdit2Line className="text-white" /> <span>Edit and resend request</span>
+									</DropdownMenuItem>
+									<DropdownMenuSeparator className="bg-white/20" />
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+										<RiArchiveLine className="text-white" />
+										<span>Archive</span>
+									</DropdownMenuItem>
+								</>
+							) : row.original.status.toLowerCase() === "completed" ? (
+								<>
+									<DropdownMenuItem
+										onSelect={() => onViewTransferDetails(row.original.transferId)}
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+									>
+										<RiErrorWarningLine className="text-white" />
+										<span>View transfer details</span>
+									</DropdownMenuItem>
+									<DropdownMenuSeparator className="bg-white/20" />
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+										<RiArchiveLine className="text-white" />
+										<span>Archive</span>
+									</DropdownMenuItem>
+								</>
+							) : row.original.status.toLowerCase() === "failed" ? (
+								<>
+									<DropdownMenuItem
+										onSelect={() => onViewTransferDetails(row.original.transferId)}
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+									>
+										<RiErrorWarningLine className="text-white" />
+										<span>View transfer details</span>
+									</DropdownMenuItem>
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+										<RiCornerDownLeftFill className="text-whte" /> <span>Retry transfer</span>
+									</DropdownMenuItem>
+									<DropdownMenuSeparator className="bg-white/20" />
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+										<RiArchiveLine className="text-white" />
+										<span>Archive</span>
+									</DropdownMenuItem>
+								</>
+							) : row.original.status.toLowerCase() === "cancelled" ? (
+								<>
+									<DropdownMenuItem
+										onSelect={() => onViewTransferDetails(row.original.transferId)}
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+									>
+										<RiErrorWarningLine className="text-white" />
+										<span>View transfer details</span>
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+										onSelect={() =>
+											router.push(
+												`/dashboard/new-transfer-request?patientId=${row.original.patientId}`,
+											)
+										}
+									>
+										<RiAddLine className="text-whte" /> <span>Start new transfer</span>
+									</DropdownMenuItem>
+									<DropdownMenuSeparator className="bg-white/20" />
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+										<RiArchiveLine className="text-white" />
+										<span>Archive</span>
+									</DropdownMenuItem>
+								</>
+							) : null}
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
+			),
+		},
+	];
 }

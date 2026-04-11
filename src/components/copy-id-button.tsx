@@ -1,25 +1,33 @@
 "use client";
 
+import { cn } from "@/lib/utils/cn";
 import { RiCheckLine, RiFileCopyLine } from "@remixicon/react";
 import { useEffect, useState } from "react";
 
 type CopyIdButtonProps = {
 	id: string;
+	className?: string;
 };
 
-export function CopyIdButton({ id }: CopyIdButtonProps) {
+export function CopyIdButton({ id, className }: CopyIdButtonProps) {
 	const [copied, setCopied] = useState(false);
 
-	useEffect(() => {
-		if (!copied) {
-			return;
-		}
-		const timeoutId = window.setTimeout(() => {
-			setCopied(false);
-		}, 1200);
+	useEffect(
+		function resetCopiedStateAfterDelay() {
+			if (!copied) {
+				return;
+			}
 
-		return () => window.clearTimeout(timeoutId);
-	}, [copied]);
+			const timeoutId = setTimeout(() => {
+				setCopied(false);
+			}, 1200);
+
+			return function cleanupCopiedStateTimeout() {
+				clearTimeout(timeoutId);
+			};
+		},
+		[copied],
+	);
 
 	async function handleCopy() {
 		try {
@@ -34,7 +42,10 @@ export function CopyIdButton({ id }: CopyIdButtonProps) {
 		<button
 			type="button"
 			onClick={handleCopy}
-			className="flex w-max items-center gap-[6px] rounded-[6px] border border-gray-200 bg-gray-100 p-1 text-left text-gray-600 transition-transform duration-150 ease-out active:scale-90"
+			className={cn(
+				"flex w-max items-center gap-[6px] rounded-[6px] border border-gray-200 bg-gray-100 p-1 text-left text-gray-600 transition-transform duration-150 ease-out active:scale-90",
+				className,
+			)}
 			aria-label={copied ? `${id} copied` : `Copy ${id}`}
 			title={copied ? "Copied" : "Copy ID"}
 		>

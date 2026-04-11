@@ -16,7 +16,7 @@ export default async function TransferPatientDocumentPage({
 					<p className="text-sm font-medium uppercase tracking-[0.12em] text-gray-500">
 						Patient Transfer Document
 					</p>
-					<h1 className="mt-2 text-2xl font-semibold text-gray-950">{packet.patientName}</h1>
+					<h1 className="mt-2 text-2xl font-semibold text-gray-800">{packet.patientName}</h1>
 					<p className="mt-1 text-sm text-gray-600">Patient ID: {packet.patientId}</p>
 				</div>
 				<DownloadPdfButton packet={packet} />

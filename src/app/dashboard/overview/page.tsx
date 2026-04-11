@@ -64,7 +64,7 @@ export default function Overview() {
 	) : (
 		<div className="mx-auto flex w-full max-w-7xl h-full items-center justify-center p-10">
 			<div className="flex max-w-xl flex-col items-center">
-				<h1 className="mb-6 text-center text-2xl font-semibold text-balance text-gray-950">
+				<h1 className="mb-6 text-center text-2xl font-semibold text-balance text-gray-800">
 					No Patients Yet
 				</h1>
 				<p className="mb-12 text-center text-pretty text-gray-600">

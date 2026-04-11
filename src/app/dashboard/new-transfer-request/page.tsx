@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { NewTransferRequestClient } from "@/app/dashboard/new-transfer-request/new-transfer-request-client";
 import { RiArrowLeftLine } from "@remixicon/react";
+import { Suspense } from "react";
 
-export default function NewTransferRequest() {
+export default function NewTransferRequest({
+	searchParams,
+}: {
+	searchParams: Promise<{ patientId?: string }>;
+}) {
 	return (
 		<>
 			<nav className="w-full h-16 flex items-center sticky z-1 top-0 bg-white border-b border-gray-300 px-8">
@@ -12,7 +17,9 @@ export default function NewTransferRequest() {
 			</nav>
 			<main className="flex flex-col gap-9 my-12 max-w-[37.5rem] w-full mx-auto px-6 md:px-0">
 				<h1 className="font-semibold text-2xl text-center">New Transfer Request</h1>
-				<NewTransferRequestClient />
+				<Suspense>
+					<NewTransferRequestClient searchParams={searchParams} />
+				</Suspense>
 			</main>
 		</>
 	);

@@ -25,6 +25,7 @@ export default function RootLayout({
 					/>
 				)}
 			</head>
+
 			<body className="antialiased" suppressHydrationWarning>
 				<Providers>{children}</Providers>
 				{process.env.NODE_ENV === "development" && <Agentation />}
