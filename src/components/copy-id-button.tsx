@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils/cn";
 import { RiCheckLine, RiFileCopyLine } from "@remixicon/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type CopyIdButtonProps = {
 	id: string;
@@ -12,27 +12,13 @@ type CopyIdButtonProps = {
 export function CopyIdButton({ id, className }: CopyIdButtonProps) {
 	const [copied, setCopied] = useState(false);
 
-	useEffect(
-		function resetCopiedStateAfterDelay() {
-			if (!copied) {
-				return;
-			}
-
-			const timeoutId = setTimeout(() => {
-				setCopied(false);
-			}, 1200);
-
-			return function cleanupCopiedStateTimeout() {
-				clearTimeout(timeoutId);
-			};
-		},
-		[copied],
-	);
-
 	async function handleCopy() {
 		try {
 			await navigator.clipboard.writeText(id);
 			setCopied(true);
+			setTimeout(() => {
+				setCopied(false);
+			}, 2000);
 		} catch {
 			setCopied(false);
 		}
