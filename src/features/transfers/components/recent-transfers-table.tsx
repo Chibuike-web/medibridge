@@ -34,7 +34,7 @@ import {
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
-import { RecentTransferType } from "../types";
+import { TransferType } from "../types";
 import { useMemo, useState } from "react";
 import { recentTransfers } from "../data";
 import { getInitials } from "@/lib/utils/get-initials";
@@ -66,8 +66,8 @@ export function RecentTransfersTable() {
 		<div className="mt-12 max-w-7xl">
 			<h1 className="mb-4 text-[18px] font-semibold">Recent Transfers</h1>
 			<div className="overflow-x-auto rounded-[12px] border border-gray-200">
-				<Table className="w-full min-w-[980px] border-separate border-spacing-0 text-left">
-					<TableHeader className="h-12 bg-gray-100 text-xs font-semibold text-gray-500">
+				<Table className="w-full min-w-[800px] text-left border-separate border-spacing-0 bg-gray-50">
+					<TableHeader className="h-12 text-sm font-semibold text-gray-500">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className="h-12">
 								{headerGroup.headers.map((header) => (
@@ -80,9 +80,9 @@ export function RecentTransfersTable() {
 											}
 										}}
 										className={cn(
-											"z-10 h-12 bg-gray-100 px-3 py-0 whitespace-nowrap text-gray-600",
-											header.column.id === "name" &&
-												"sticky left-0 max-[980px]:border-r border-gray-200",
+											"z-10 h-12  px-3 py-0 whitespace-nowrap text-gray-600",
+											// header.column.id === "name" &&
+											// 	"sticky left-0 max-[980px]:border-r border-gray-200",
 											header.column.getCanSort() ? "cursor-pointer select-none" : "",
 										)}
 									>
@@ -114,7 +114,7 @@ export function RecentTransfersTable() {
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody className="bg-white">
+					<TableBody>
 						{table.getRowModel().rows.map((row, rowPosition) => (
 							<TableRow key={row.id} className="h-14">
 								{row.getVisibleCells().map((cell) => (
@@ -123,8 +123,11 @@ export function RecentTransfersTable() {
 										className={cn(
 											"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
 											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
-											cell.column.id === "name" &&
-												"sticky left-0 z-10 bg-white max-[980px]:border-r border-gray-200",
+											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
+											rowPosition === 0 && cell.column.getIsFirstColumn() && "rounded-tl-lg",
+											rowPosition === 0 && cell.column.getIsLastColumn() && "rounded-tr-lg",
+											// cell.column.id === "name" &&
+											// 	"sticky left-0 z-10 bg-white max-[800px]:border-r border-gray-200",
 										)}
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -188,7 +191,7 @@ export function RecentTransfersTable() {
 	);
 }
 
-const recentTransfersColumns: ColumnDef<RecentTransferType>[] = [
+const recentTransfersColumns: ColumnDef<TransferType>[] = [
 	{
 		header: "Patient Name",
 		accessorKey: "name",
@@ -237,10 +240,11 @@ const recentTransfersColumns: ColumnDef<RecentTransferType>[] = [
 			return (
 				<span
 					className={cn(
-						"inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+						"inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold",
 						statusClassName,
 					)}
 				>
+					<span className="size-1 shrink-0 rounded-full bg-current" aria-hidden="true" />
 					{status}
 				</span>
 			);

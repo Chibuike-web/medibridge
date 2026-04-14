@@ -31,7 +31,7 @@ export function AttachClinicalRecords({
 		setPatientData({
 			...patientData,
 			[activePatient]: {
-				...(patientData[activePatient] || EMPTY_PATIENT_DATA),
+				...(patientData[activePatient] ?? EMPTY_PATIENT_DATA),
 				records: newRecords,
 			},
 		});

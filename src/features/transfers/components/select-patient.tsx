@@ -6,9 +6,11 @@ import { useMemo, useState } from "react";
 import { patients } from "@/features/transfers/data";
 import { RiArrowDownSLine, RiCheckLine, RiCloseLine, RiSearchLine } from "@remixicon/react";
 import { cn } from "@/lib/utils/cn";
+import { useRouter } from "next/navigation";
 
-export function SelectPatient() {
+export function SelectPatient({ patientId }: { patientId?: string }) {
 	const [searchTerm, setSearchTerm] = useState("");
+	const router = useRouter();
 	const { selectedPatients, toggleSelectedPatient, removeSelectedPatient } =
 		useSelectedTransferPatients();
 
@@ -101,8 +103,14 @@ export function SelectPatient() {
 						{s.name} - {s.patientId}
 						<button
 							type="button"
-							className="bg-gray-800 size-5 flex items-center justify-center text-white rounded-full"
-							onClick={() => removeSelectedPatient(s)}
+							className="bg-gray-800 size-5 flex items-center justify-center text-white rounded-full active:scale-[0.90] transition-transform"
+							onClick={() => {
+								removeSelectedPatient(s);
+
+								if (s.patientId === patientId) {
+									router.replace("/dashboard/new-transfer-request");
+								}
+							}}
 						>
 							<RiCloseLine size={16} />
 						</button>

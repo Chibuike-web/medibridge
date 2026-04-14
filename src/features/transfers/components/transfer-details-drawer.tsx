@@ -60,10 +60,11 @@ export function TransferDetailsDrawer({
 								<span className="text-gray-400">Transfer Status:</span>
 								<span
 									className={cn(
-										"inline-flex rounded-full px-3 py-1 text-sm font-semibold",
+										"inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold",
 										statusClassName,
 									)}
 								>
+									<span className="size-1 shrink-0 rounded-full bg-current" aria-hidden="true" />
 									Pending
 								</span>
 							</div>

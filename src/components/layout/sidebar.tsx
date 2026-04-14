@@ -89,7 +89,7 @@ export function Sidebar() {
 							onClick={toggleSidebar}
 							aria-label="Expand sidebar"
 							className={cn(
-								"absolute inset-0 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-all duration-200",
+								"absolute inset-0 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-all duration-200",
 								isHovered ? "opacity-100 blur-0" : "opacity-0 blur-sm",
 							)}
 						>
@@ -109,7 +109,7 @@ export function Sidebar() {
 						<button
 							onClick={toggleSidebar}
 							aria-label="Collapse sidebar"
-							className="flex size-10 items-center justify-center rounded-lg hover:bg-gray-200"
+							className="flex size-10 items-center justify-center rounded-lg hover:bg-gray-100"
 						>
 							<RiContractLeftLine className="size-5 shrink-0" aria-hidden />
 						</button>
@@ -122,7 +122,7 @@ export function Sidebar() {
 					<button
 						type="button"
 						className={cn(
-							"flex w-full items-center gap-2 rounded-lg hover:bg-gray-200 px-2.5 h-8",
+							"flex w-full items-center gap-2 rounded-lg hover:bg-gray-100 px-2.5 h-8",
 							isCollapsed ? "justify-center" : "",
 						)}
 						aria-label="Search chats"
@@ -138,7 +138,7 @@ export function Sidebar() {
 						<li
 							key={id}
 							className={cn(
-								"hover:bg-gray-200 font-medium h-8 px-2.5 flex items-center",
+								"hover:bg-gray-100 font-medium h-8 px-2.5 flex items-center",
 								isActive && "bg-gray-200",
 								isCollapsed ? "justify-center rounded-md" : "rounded-lg",
 							)}
@@ -183,8 +183,8 @@ export function Sidebar() {
 			<div
 				className={cn(
 					"absolute right-0 top-0 bottom-0 w-1 cursor-col-resize",
-					"hover:bg-foreground/10",
-					isResizing ? "bg-foreground/10" : "",
+					"hover:bg-gray-100",
+					isResizing ? "bg-gray-100" : "",
 				)}
 				onMouseDown={handleMouseDown}
 			/>

@@ -7,7 +7,7 @@ export type PatientData = {
 	records: ClinicalRecord[];
 	hospitalName: string;
 	hospitalEmail: string;
-	notes: string;
+	notes?: string;
 };
 
 export type PatientDataType = Record<string, PatientData>;

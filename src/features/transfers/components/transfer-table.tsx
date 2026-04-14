@@ -94,8 +94,8 @@ export function TransferTable() {
 	return (
 		<>
 			<div className="overflow-x-auto rounded-[12px] border border-gray-200 text-sm">
-				<Table className="w-full min-w-[1100px] border-separate border-spacing-0 text-left">
-					<TableHeader className="h-12 bg-gray-100 text-sm font-semibold text-gray-500">
+				<Table className="w-full min-w-[1000px] border-separate border-spacing-0 text-left bg-gray-50">
+					<TableHeader className="h-12 text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className="h-12">
 								{headerGroup.headers.map((header) => (
@@ -108,9 +108,9 @@ export function TransferTable() {
 											}
 										}}
 										className={cn(
-											"z-10 h-12 bg-gray-100 px-3 py-0 whitespace-nowrap text-gray-600",
-											header.column.id === "name" &&
-												"sticky left-0 max-[1100px]:border-r border-gray-200",
+											"z-10 h-12 px-3 py-0 whitespace-nowrap text-gray-600 bg-gray-50",
+											// header.column.id === "name" &&
+											// 	"sticky left-0 max-[1100px]:border-r border-gray-200",
 											header.column.getCanSort() ? "cursor-pointer select-none" : "",
 										)}
 									>
@@ -142,7 +142,7 @@ export function TransferTable() {
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody className="bg-white">
+					<TableBody className="outline outline-gray-200 rounded-t-[12px]">
 						{table.getRowModel().rows.map((row, rowPosition) => (
 							<TableRow key={row.id} className="h-14">
 								{row.getVisibleCells().map((cell) => (
@@ -151,8 +151,8 @@ export function TransferTable() {
 										className={cn(
 											"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
 											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
-											cell.column.id === "name" &&
-												"sticky left-0 z-10 bg-white max-[1100px]:border-r border-gray-200",
+											// cell.column.id === "name" &&
+											// 	"sticky left-0 z-10 bg-white max-[1100px]:border-r border-gray-200",
 										)}
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -278,10 +278,11 @@ function getTransferColumns(
 				return (
 					<span
 						className={cn(
-							"inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+							"inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold",
 							statusClassName,
 						)}
 					>
+						<span className="size-1 shrink-0 rounded-full bg-current" aria-hidden="true" />
 						{status}
 					</span>
 				);

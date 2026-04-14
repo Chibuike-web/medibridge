@@ -2,7 +2,7 @@
 
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils/cn";
-import { Fragment, use, useState } from "react";
+import { Fragment, use, useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,15 @@ import { SelectPatient } from "@/features/transfers/components/select-patient";
 import { useTransferPatientData } from "@/features/transfers/stores/use-transfer-patient-data";
 import { useShowSuccess } from "@/hooks/use-show-success";
 import { SuccessModal } from "@/components/success-modal";
+import { patients } from "@/features/transfers/data";
 
 export function NewTransferRequestClient({
 	searchParams,
 }: {
 	searchParams: Promise<{ patientId?: string }>;
 }) {
-	const { selectedPatients, removeSelectedPatient } = useSelectedTransferPatients();
+	const { selectedPatients, removeSelectedPatient, addSelectedPatient } =
+		useSelectedTransferPatients();
 	const { patientData, setPatientData, removePatientData } = useTransferPatientData();
 	const { showSuccess, setShowSuccess } = useShowSuccess();
 	const [currentId, setCurrentId] = useState<string | null>(null);
@@ -47,6 +49,11 @@ export function NewTransferRequestClient({
 		}
 	}
 
+	const isComplete = selectedPatients.every((p) => {
+		const data = patientData[p.patientId] ?? EMPTY_PATIENT_DATA;
+
+		return data.hospitalEmail && data.hospitalName && data.records.length > 0;
+	});
 	const activePatient =
 		selectedPatients.find((p) => p.patientId === currentId)?.patientId ??
 		selectedPatients[0]?.patientId ??
@@ -63,11 +70,27 @@ export function NewTransferRequestClient({
 		removeSelectedPatient(patient);
 		removePatientData(patient.patientId);
 
+		if (patient.patientId === patientId) {
+			router.replace("/dashboard/new-transfer-request");
+		}
+
 		if (isLastPatient) {
 			setStep(1);
 			setCurrentId(null);
 		}
 	}
+
+	useEffect(
+		function initializePatientFromParams() {
+			if (!patientId) return;
+
+			const patient = patients.find((p) => p.patientId === patientId);
+			if (!patient) return;
+
+			addSelectedPatient(patient);
+		},
+		[patientId, patients],
+	);
 
 	return (
 		<>
@@ -78,7 +101,7 @@ export function NewTransferRequestClient({
 
 				{step === 1 ? (
 					<>
-						<SelectPatient />
+						<SelectPatient patientId={patientId} />
 						<Button
 							className="h-11 w-full mt-16"
 							type="button"
@@ -141,7 +164,7 @@ export function NewTransferRequestClient({
 										const nextPatientData = {
 											...patientData,
 											[activePatient]: {
-												...(patientData[activePatient] || EMPTY_PATIENT_DATA),
+												...(patientData[activePatient] ?? EMPTY_PATIENT_DATA),
 												hospitalName: e.target.value,
 											},
 										};
@@ -160,7 +183,7 @@ export function NewTransferRequestClient({
 										const nextPatientData = {
 											...patientData,
 											[activePatient]: {
-												...(patientData[activePatient] || EMPTY_PATIENT_DATA),
+												...(patientData[activePatient] ?? EMPTY_PATIENT_DATA),
 												hospitalEmail: e.target.value,
 											},
 										};
@@ -180,7 +203,7 @@ export function NewTransferRequestClient({
 										const nextPatientData = {
 											...patientData,
 											[activePatient]: {
-												...(patientData[activePatient] || EMPTY_PATIENT_DATA),
+												...(patientData[activePatient] ?? EMPTY_PATIENT_DATA),
 												notes: e.target.value,
 											},
 										};
@@ -197,7 +220,7 @@ export function NewTransferRequestClient({
 							</Button>
 							<Dialog>
 								<DialogTrigger asChild>
-									<Button className="h-11" type="button">
+									<Button className="h-11" type="button" disabled={!isComplete}>
 										Continue
 									</Button>
 								</DialogTrigger>
