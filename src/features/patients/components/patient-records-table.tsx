@@ -51,6 +51,7 @@ import {
 } from "@remixicon/react";
 import { patientRecords } from "../data";
 import { PatientRecordType } from "../types";
+import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
@@ -201,6 +202,28 @@ export function PatientRecordsTable() {
 }
 
 const patientRecordsColumns: ColumnDef<PatientRecordType>[] = [
+	{
+		id: "select",
+		header: ({ table }) => (
+			<IndeterminateCheckbox
+				checked={table.getIsAllRowsSelected()}
+				indeterminate={table.getIsSomeRowsSelected()}
+				onCheckedChange={(value) => {
+					table.toggleAllRowsSelected(!!value);
+				}}
+			/>
+		),
+		cell: ({ row }) => (
+			<IndeterminateCheckbox
+				checked={row.getIsSelected()}
+				disabled={!row.getCanSelect()}
+				indeterminate={row.getIsSomeSelected()}
+				onCheckedChange={(value) => {
+					row.toggleSelected(!!value);
+				}}
+			/>
+		),
+	},
 	{
 		header: "Patient name",
 		accessorKey: "name",

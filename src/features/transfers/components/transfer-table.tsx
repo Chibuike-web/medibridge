@@ -57,6 +57,7 @@ import {
 } from "@remixicon/react";
 import { transferRecords } from "../data";
 import { TransferType } from "../types";
+import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
@@ -230,6 +231,28 @@ function getTransferColumns(
 	router: ReturnType<typeof useRouter>,
 ): ColumnDef<TransferType>[] {
 	return [
+		{
+			id: "select",
+			header: ({ table }) => (
+				<IndeterminateCheckbox
+					checked={table.getIsAllRowsSelected()}
+					indeterminate={table.getIsSomeRowsSelected()}
+					onCheckedChange={(value) => {
+						table.toggleAllRowsSelected(!!value);
+					}}
+				/>
+			),
+			cell: ({ row }) => (
+				<IndeterminateCheckbox
+					checked={row.getIsSelected()}
+					disabled={!row.getCanSelect()}
+					indeterminate={row.getIsSomeSelected()}
+					onCheckedChange={(value) => {
+						row.toggleSelected(!!value);
+					}}
+				/>
+			),
+		},
 		{
 			header: "Patient Name",
 			accessorKey: "name",

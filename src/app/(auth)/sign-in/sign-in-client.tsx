@@ -11,7 +11,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { RiCheckboxCircleFill, RiErrorWarningFill, RiEyeLine, RiEyeOffLine, RiInformationLine } from "@remixicon/react";
+import {
+	RiCheckboxCircleFill,
+	RiErrorWarningFill,
+	RiEyeLine,
+	RiEyeOffLine,
+	RiInformationLine,
+} from "@remixicon/react";
 
 export function SignInClient() {
 	const router = useRouter();
@@ -182,4 +188,3 @@ export function SignInClient() {
 		</form>
 	);
 }
-

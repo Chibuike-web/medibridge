@@ -114,7 +114,7 @@ export function RecentTransfersTable() {
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody>
+					<TableBody className="outline outline-gray-200 rounded-t-[12px]">
 						{table.getRowModel().rows.map((row, rowPosition) => (
 							<TableRow key={row.id} className="h-14">
 								{row.getVisibleCells().map((cell) => (
