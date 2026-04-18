@@ -27,16 +27,19 @@ export function CopyIdButton({ id, className }: CopyIdButtonProps) {
 	return (
 		<button
 			type="button"
-			onClick={handleCopy}
+			onClick={(e) => {
+				e.stopPropagation();
+				handleCopy();
+			}}
 			className={cn(
-				"flex w-max items-center gap-[6px] rounded-[6px] border border-gray-200 bg-gray-100 p-1 text-left text-gray-600 transition-transform duration-150 ease-out active:scale-90",
+				"flex w-max items-center gap-1.5 rounded-md border border-gray-200 bg-gray-100 p-1 text-left text-gray-600 transition-transform duration-150 ease-out active:scale-90 shrink-0",
 				className,
 			)}
 			aria-label={copied ? `${id} copied` : `Copy ${id}`}
 			title={copied ? "Copied" : "Copy ID"}
 		>
 			<span className="font-medium">{id}</span>
-			<span className="inline-flex size-5 items-center justify-center rounded-[4px]">
+			<span className="inline-flex size-5 items-center justify-center rounded">
 				{copied ? <RiCheckLine className="size-4" /> : <RiFileCopyLine className="size-4" />}
 			</span>
 		</button>

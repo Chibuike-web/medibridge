@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CopyIdButton } from "@/components/copy-id-button";
+import { StatusBadge } from "@/components/status-badge";
 import { TransferDetailsDrawer } from "@/features/transfers/components/transfer-details-drawer";
 import {
 	DropdownMenu,
@@ -32,7 +33,6 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { formatDate } from "@/lib/utils/format-date";
 import { getInitials } from "@/lib/utils/get-initials";
-import { statusStyles } from "@/lib/utils/status-styles";
 import {
 	ColumnDef,
 	flexRender,
@@ -64,7 +64,7 @@ const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 export function TransferTable() {
 	const router = useRouter();
 	const data = useMemo(() => transferRecords, []);
-	const [sorting, setSorting] = useState<SortingState>([]);
+	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: 14,
@@ -94,8 +94,8 @@ export function TransferTable() {
 
 	return (
 		<>
-			<div className="overflow-x-auto rounded-[12px] border border-gray-200 text-sm">
-				<Table className="w-full min-w-[1000px] border-separate border-spacing-0 text-left bg-gray-50">
+			<div className="overflow-x-auto rounded-xl border border-gray-200 text-sm">
+				<Table className="w-full min-w-[62.5rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="h-12 text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className="h-12">
@@ -143,9 +143,9 @@ export function TransferTable() {
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody className="outline outline-gray-200 rounded-t-[12px]">
+					<TableBody className="rounded-t-xl outline outline-gray-200">
 						{table.getRowModel().rows.map((row, rowPosition) => (
-							<TableRow key={row.id} className="h-14">
+							<TableRow key={row.id} className="h-14 hover:bg-gray-100 transition-colors">
 								{row.getVisibleCells().map((cell) => (
 									<TableCell
 										key={cell.id}
@@ -170,7 +170,7 @@ export function TransferTable() {
 							value={String(table.getState().pagination.pageSize)}
 							onValueChange={(value) => table.setPageSize(Number(value))}
 						>
-							<SelectTrigger className="h-8 w-[68px] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
+							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent>
@@ -277,9 +277,9 @@ function getTransferColumns(
 		{
 			header: "Target Hospital",
 			accessorKey: "targetHospital",
-			enableSorting: false,
+			enableSorting: true,
 			cell: ({ row }) => (
-				<span className="block max-w-[340px] whitespace-normal text-pretty">
+				<span className="block max-w-[21.25rem] whitespace-normal text-pretty">
 					{row.original.targetHospital}
 				</span>
 			),
@@ -290,27 +290,12 @@ function getTransferColumns(
 			enableSorting: true,
 			cell: ({ row }) => formatDate(row.original.requestedAt),
 		},
-		{
-			header: "Transfer Status",
-			accessorKey: "status",
-			enableSorting: false,
-			cell: ({ row }) => {
-				const status = row.original.status;
-				const statusClassName = statusStyles[status.toLowerCase() as keyof typeof statusStyles];
-
-				return (
-					<span
-						className={cn(
-							"inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold",
-							statusClassName,
-						)}
-					>
-						<span className="size-1 shrink-0 rounded-full bg-current" aria-hidden="true" />
-						{status}
-					</span>
-				);
-			},
-		},
+	{
+		header: "Transfer Status",
+		accessorKey: "status",
+		enableSorting: false,
+		cell: ({ row }) => <StatusBadge status={row.original.status} />,
+	},
 		{
 			id: "actions",
 			header: "",

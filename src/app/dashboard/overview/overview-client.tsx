@@ -102,13 +102,13 @@ function Cards() {
 	return (
 		<div className="grid gap-4 xl:grid-cols-3">
 			{cards.map((card) => (
-				<div key={card.label} className="rounded-[12px] bg-gray-50 ring ring-gray-200">
+				<div key={card.label} className="rounded-xl bg-gray-50 ring ring-gray-200">
 					<div className="px-3 h-10 flex items-center">
 						<p className="text-sm text-gray-400">{card.label}</p>
 					</div>
-					<div className="bg-white rounded-[12px] px-3 pt-6 ring ring-gray-200">
+					<div className="rounded-xl bg-white px-3 pt-6 ring ring-gray-200">
 						<p className="text-4xl font-semibold text-gray-800">{formatStat(card.value)}</p>
-						<div className="mt-4 border-t border-gray-200 py-[14px] text-sm text-pretty text-gray-600">
+						<div className="mt-4 border-t border-gray-200 py-3.5 text-sm text-pretty text-gray-600">
 							<div className="flex items-center justify-between gap-3 font-medium">
 								<p className="text-gray-400">{card.rangeLabel}</p>
 								<span

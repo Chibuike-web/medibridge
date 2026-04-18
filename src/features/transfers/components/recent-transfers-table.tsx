@@ -16,9 +16,9 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { StatusBadge } from "@/components/status-badge";
 import { cn } from "@/lib/utils/cn";
 import { formatDate } from "@/lib/utils/format-date";
-import { statusStyles } from "@/lib/utils/status-styles";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -42,7 +42,7 @@ import { getInitials } from "@/lib/utils/get-initials";
 export function RecentTransfersTable() {
 	const data = useMemo(() => recentTransfers, []);
 	const cols = useMemo(() => recentTransfersColumns, []);
-	const [sorting, setSorting] = useState<SortingState>([]);
+	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: 4,
@@ -64,9 +64,9 @@ export function RecentTransfersTable() {
 
 	return (
 		<div className="mt-12 max-w-7xl">
-			<h1 className="mb-4 text-[18px] font-semibold">Recent Transfers</h1>
-			<div className="overflow-x-auto rounded-[12px] border border-gray-200">
-				<Table className="w-full min-w-[800px] text-left border-separate border-spacing-0 bg-gray-50">
+			<h1 className="mb-4 text-lg font-semibold">Recent Transfers</h1>
+			<div className="overflow-x-auto rounded-xl border border-gray-200">
+				<Table className="w-full min-w-[50rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="h-12 text-sm font-semibold text-gray-500">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className="h-12">
@@ -114,7 +114,7 @@ export function RecentTransfersTable() {
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody className="outline outline-gray-200 rounded-t-[12px]">
+					<TableBody className="rounded-t-xl outline outline-gray-200">
 						{table.getRowModel().rows.map((row, rowPosition) => (
 							<TableRow key={row.id} className="h-14">
 								{row.getVisibleCells().map((cell) => (
@@ -144,7 +144,7 @@ export function RecentTransfersTable() {
 							value={String(table.getState().pagination.pageSize)}
 							onValueChange={(value) => table.setPageSize(Number(value))}
 						>
-							<SelectTrigger className="h-8 w-[64px] px-2 border-gray-200 bg-white text-gray-700 shadow-none">
+							<SelectTrigger className="h-8 w-16 border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent>
@@ -218,7 +218,7 @@ const recentTransfersColumns: ColumnDef<TransferType>[] = [
 		accessorKey: "targetHospital",
 		enableSorting: false,
 		cell: ({ row }) => (
-			<span className="block max-w-[280px] whitespace-normal text-pretty">
+			<span className="block max-w-[17.5rem] whitespace-normal text-pretty">
 				{row.original.targetHospital}
 			</span>
 		),
@@ -233,21 +233,6 @@ const recentTransfersColumns: ColumnDef<TransferType>[] = [
 		header: "Transfer Status",
 		accessorKey: "status",
 		enableSorting: false,
-		cell: ({ row }) => {
-			const status = row.original.status;
-			const statusClassName = statusStyles[status.toLowerCase() as keyof typeof statusStyles];
-
-			return (
-				<span
-					className={cn(
-						"inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold",
-						statusClassName,
-					)}
-				>
-					<span className="size-1 shrink-0 rounded-full bg-current" aria-hidden="true" />
-					{status}
-				</span>
-			);
-		},
+		cell: ({ row }) => <StatusBadge status={row.original.status} />,
 	},
 ];

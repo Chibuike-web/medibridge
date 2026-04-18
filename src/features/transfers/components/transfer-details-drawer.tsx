@@ -10,6 +10,7 @@ import {
 	DrawerTitle,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/status-badge";
 import {
 	RiArrowDownSLine,
 	RiCheckboxBlankCircleFill,
@@ -19,7 +20,6 @@ import {
 } from "@remixicon/react";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { cn } from "@/lib/utils/cn";
-import { statusStyles } from "@/lib/utils/status-styles";
 import { useId, useState } from "react";
 import pdfFileFormat from "@/assets/file-formats/pdf.svg";
 import Image from "next/image";
@@ -36,8 +36,6 @@ export function TransferDetailsDrawer({
 	onOpenChange,
 	transferId,
 }: TransferDetailsDrawerProps) {
-	const statusClassName = statusStyles["Pending".toLowerCase() as keyof typeof statusStyles];
-
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
@@ -58,15 +56,7 @@ export function TransferDetailsDrawer({
 						<div className="flex items-center gap-x-6 gap-y-2 flex-wrap text-nowrap">
 							<div className="flex items-center gap-2 shrink-0">
 								<span className="text-gray-400">Transfer Status:</span>
-								<span
-									className={cn(
-										"inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold",
-										statusClassName,
-									)}
-								>
-									<span className="size-1 shrink-0 rounded-full bg-current" aria-hidden="true" />
-									Pending
-								</span>
+								<StatusBadge status="Pending" className="text-sm" />
 							</div>
 							<div className="flex items-center gap-2 shrink-0">
 								<span className="text-gray-400">Patient ID:</span>
@@ -208,32 +198,47 @@ function TransferProgress() {
 			</button>
 
 			{isExpanded && (
-				<div id={panelId} aria-labelledby={titleId} className="flex flex-col px-2">
-					<div className="flex items-center gap-3">
-						<RiCheckboxCircleFill aria-hidden="true" />
-						<div className="flex flex-col">
+				<div aria-labelledby={titleId} className="flex flex-col px-2 gap-1">
+					{/* Item */}
+					<div className="grid grid-cols-[auto_1fr] gap-3">
+						{/* Left column */}
+						<div className="flex flex-col items-center gap-1">
+							<RiCheckboxCircleFill aria-hidden="true" />
+							<div className="h-[2.375rem] w-0.5 bg-gray-800" />
+						</div>
+
+						{/* Right column */}
+						<div>
 							<span className="font-semibold text-gray-600">Requested</span>
-							<span className="text-gray-400">Initiated by Dr. Adebayo</span>
+							<p className="text-gray-400">Initiated by Dr. Adebayo</p>
 						</div>
 					</div>
-					<div className="px-[0.6875rem]">
-						<span className="inline-block h-8 w-0.5 bg-gray-600" />
-					</div>
-					<div className="flex items-center gap-3">
-						<RiCheckboxBlankCircleFill aria-hidden="true" />
-						<div className="flex flex-col">
+
+					{/* Item */}
+					<div className="grid grid-cols-[auto_1fr] gap-3">
+						<div className="flex flex-col items-center gap-1">
+							<div className="relative">
+								<RiCheckboxBlankCircleLine aria-hidden="true" />
+								<RiCheckboxBlankCircleFill
+									aria-hidden="true"
+									className="size-3 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2"
+								/>
+							</div>
+							<div className="h-[2.375rem] w-0.5 bg-gray-400" />
+						</div>
+
+						<div>
 							<span className="font-semibold text-gray-600">Patient Approval</span>
-							<span className="text-gray-400">Waiting for patient response</span>
+							<p className="text-gray-400">Waiting for patient response</p>
 						</div>
 					</div>
-					<div className="px-[0.6875rem]">
-						<span className="inline-block h-8 w-0.5 bg-gray-600" />
-					</div>
-					<div className="flex items-center gap-3">
-						<RiCheckboxBlankCircleLine aria-hidden="true" />
-						<div className="flex flex-col">
+
+					{/* Last item (no line) */}
+					<div className="grid grid-cols-[auto_1fr] gap-3">
+						<RiCheckboxBlankCircleLine aria-hidden="true" className="text-gray-400" />
+						<div>
 							<span className="font-semibold text-gray-600">Sent</span>
-							<span className="text-gray-400">No started</span>
+							<p className="text-gray-400">Not started</p>
 						</div>
 					</div>
 				</div>

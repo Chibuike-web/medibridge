@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CopyIdButton } from "@/components/copy-id-button";
 import {
@@ -56,9 +57,10 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
 export function PatientRecordsTable() {
+	const router = useRouter();
 	const data = useMemo(() => patientRecords, []);
-	const columns = useMemo(() => patientRecordsColumns, []);
-	const [sorting, setSorting] = useState<SortingState>([]);
+	const columns = useMemo(() => getPatientRecordsColumns(router), [router]);
+	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: 14,
@@ -79,8 +81,8 @@ export function PatientRecordsTable() {
 	});
 
 	return (
-		<div className="overflow-x-auto rounded-[12px] border border-gray-200 text-sm">
-			<Table className="w-full min-w-[1000px] border-separate border-spacing-0 text-left bg-gray-50">
+		<div className="overflow-x-auto rounded-xl border border-gray-200 text-sm">
+			<Table className="w-full min-w-[62.5rem] border-separate border-spacing-0 bg-gray-50 text-left">
 				<TableHeader className="h-12 text-sm font-semibold text-gray-600">
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow key={headerGroup.id} className="h-12">
@@ -128,14 +130,25 @@ export function PatientRecordsTable() {
 						</TableRow>
 					))}
 				</TableHeader>
-				<TableBody className="outline outline-gray-200 rounded-t-[12px] overflow-hidden">
+				<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
 					{table.getRowModel().rows.map((row, rowPosition) => (
-						<TableRow key={row.id} className="h-14">
+						<TableRow
+							key={row.id}
+							className="h-14 group"
+							role="link"
+							tabIndex={0}
+							onClick={(e) => {
+								e.stopPropagation();
+								router.push(
+									`/dashboard/patients-records/${row.original.patientId}?category=overview`,
+								);
+							}}
+						>
 							{row.getVisibleCells().map((cell) => (
 								<TableCell
 									key={cell.id}
 									className={cn(
-										"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
+										"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
 										rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 										// cell.column.id === "name" &&
 										// 	"sticky left-0 z-10 bg-white max-[1000px]:border-r border-gray-200",
@@ -155,7 +168,7 @@ export function PatientRecordsTable() {
 						value={String(table.getState().pagination.pageSize)}
 						onValueChange={(value) => table.setPageSize(Number(value))}
 					>
-						<SelectTrigger className="h-8 w-[68px] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
+						<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 							<SelectValue aria-label="Rows per page" placeholder="Rows" />
 						</SelectTrigger>
 						<SelectContent>
@@ -201,102 +214,122 @@ export function PatientRecordsTable() {
 	);
 }
 
-const patientRecordsColumns: ColumnDef<PatientRecordType>[] = [
-	{
-		id: "select",
-		header: ({ table }) => (
-			<IndeterminateCheckbox
-				checked={table.getIsAllRowsSelected()}
-				indeterminate={table.getIsSomeRowsSelected()}
-				onCheckedChange={(value) => {
-					table.toggleAllRowsSelected(!!value);
-				}}
-			/>
-		),
-		cell: ({ row }) => (
-			<IndeterminateCheckbox
-				checked={row.getIsSelected()}
-				disabled={!row.getCanSelect()}
-				indeterminate={row.getIsSomeSelected()}
-				onCheckedChange={(value) => {
-					row.toggleSelected(!!value);
-				}}
-			/>
-		),
-	},
-	{
-		header: "Patient name",
-		accessorKey: "name",
-		enableSorting: true,
-		cell: ({ row }) => (
-			<div className="flex items-center gap-3">
-				<Avatar className="size-9 border border-gray-200 bg-gray-100 text-gray-700">
-					<AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
-						{getInitials(row.original.name)}
-					</AvatarFallback>
-				</Avatar>
-				<span className="font-medium text-gray-800">{row.original.name}</span>
-			</div>
-		),
-	},
-	{
-		header: "Patient ID",
-		accessorKey: "patientId",
-		enableSorting: false,
-		cell: ({ row }) => <CopyIdButton id={row.original.patientId} />,
-	},
-	{
-		header: "Gender",
-		accessorKey: "gender",
-		enableSorting: false,
-	},
-	{
-		header: "Age",
-		accessorKey: "age",
-		enableSorting: false,
-	},
-	{
-		header: "Created at",
-		accessorKey: "createdAt",
-		enableSorting: true,
-		cell: ({ row }) => formatDate(row.original.createdAt),
-	},
-	{
-		id: "actions",
-		header: "",
-		enableSorting: false,
-		cell: () => (
-			<div className="flex justify-end">
-				<DropdownMenu>
-					<DropdownMenuTrigger
-						type="button"
-						className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-						aria-label="Open row actions"
-					>
-						<RiMore2Fill className="size-5" aria-hidden />
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
-					>
-						<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
-							<RiErrorWarningLine className="text-white" />
-							<span> View patient</span>
-						</DropdownMenuItem>
-						<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
-							<RiShareBoxLine className="text-white" /> <span> Transfer patient</span>
-						</DropdownMenuItem>
-						<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
-							<RiShare2Line className="text-white" /> <span> Export record</span>
-						</DropdownMenuItem>
-						<DropdownMenuSeparator className="bg-white/20" />
-						<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
-							<RiArchiveLine className="text-white" />
-							<span>Archive</span>
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</div>
-		),
-	},
-];
+function getPatientRecordsColumns(
+	router: ReturnType<typeof useRouter>,
+): ColumnDef<PatientRecordType>[] {
+	return [
+		{
+			id: "select",
+			header: ({ table }) => (
+				<div onClick={(e) => e.stopPropagation()}>
+					<IndeterminateCheckbox
+						checked={table.getIsAllRowsSelected()}
+						indeterminate={table.getIsSomeRowsSelected()}
+						onCheckedChange={(value) => {
+							table.toggleAllRowsSelected(!!value);
+						}}
+					/>
+				</div>
+			),
+			cell: ({ row }) => (
+				<div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+					<IndeterminateCheckbox
+						checked={row.getIsSelected()}
+						disabled={!row.getCanSelect()}
+						indeterminate={row.getIsSomeSelected()}
+						onCheckedChange={(value) => {
+							row.toggleSelected(!!value);
+						}}
+					/>
+				</div>
+			),
+		},
+		{
+			header: "Patient name",
+			accessorKey: "name",
+			enableSorting: true,
+			cell: ({ row }) => (
+				<div className="flex items-center gap-3">
+					<Avatar className="size-9 border border-gray-200 bg-gray-100 text-gray-700">
+						<AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
+							{getInitials(row.original.name)}
+						</AvatarFallback>
+					</Avatar>
+					<span className="font-medium text-gray-800">{row.original.name}</span>
+				</div>
+			),
+		},
+		{
+			header: "Patient ID",
+			accessorKey: "patientId",
+			enableSorting: false,
+			cell: ({ row }) => <CopyIdButton id={row.original.patientId} />,
+		},
+		{
+			header: "Gender",
+			accessorKey: "gender",
+			enableSorting: false,
+		},
+		{
+			header: "Age",
+			accessorKey: "age",
+			enableSorting: true,
+		},
+		{
+			header: "Created at",
+			accessorKey: "createdAt",
+			enableSorting: true,
+			cell: ({ row }) => formatDate(row.original.createdAt),
+		},
+		{
+			id: "actions",
+			header: "",
+			enableSorting: false,
+			cell: ({ row }) => (
+				<div
+					className="flex justify-end"
+					onClick={(e) => {
+						e.stopPropagation();
+					}}
+				>
+					<DropdownMenu>
+						<DropdownMenuTrigger
+							type="button"
+							className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+							aria-label="Open row actions"
+						>
+							<RiMore2Fill className="size-5" aria-hidden />
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align="end"
+							className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+						>
+							<DropdownMenuItem
+								onSelect={() =>
+									router.push(
+										`/dashboard/patients-records/${row.original.patientId}?category=overview`,
+									)
+								}
+								className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+							>
+								<RiErrorWarningLine className="text-white" />
+								<span> View patient</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+								<RiShareBoxLine className="text-white" /> <span> Transfer patient</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+								<RiShare2Line className="text-white" /> <span> Export record</span>
+							</DropdownMenuItem>
+							<DropdownMenuSeparator className="bg-white/20" />
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+								<RiArchiveLine className="text-white" />
+								<span>Archive</span>
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
+			),
+		},
+	];
+}

@@ -14,20 +14,31 @@ import {
 	RiFunctionLine,
 	RiSearchLine,
 } from "@remixicon/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const MIN_WIDTH = 56;
 const MAX_WIDTH = 272;
 const COLLAPSE_THRESHOLD = 200;
 
-export function Sidebar() {
+export function Sidebar({ initialWidth }: { initialWidth?: string }) {
+	const parsed = initialWidth ? JSON.parse(initialWidth) : MAX_WIDTH;
+	const [width, setWidth] = useState<number>(parsed);
 	const pathname = usePathname();
-	const [width, setWidth] = useState(MAX_WIDTH);
+
 	const [isResizing, setIsResizing] = useState(false);
 	const [isHovered, setIsHovered] = useState(false);
 	const startXRef = useRef(0);
 	const startWidthRef = useRef(0);
 	const isCollapsed = width < COLLAPSE_THRESHOLD;
+
+	useEffect(
+		function saveSidebarWidth() {
+			const value = JSON.stringify(width);
+			localStorage.setItem("sidebarWidth", value);
+			document.cookie = `sidebarWidth=${value}; path=/; max-age=31536000`;
+		},
+		[width],
+	);
 
 	function toggleSidebar() {
 		setIsHovered(false);
@@ -117,7 +128,7 @@ export function Sidebar() {
 				)}
 			</div>
 
-			<ul className="flex flex-col gap-px p-2 text-[14px]">
+			<ul className="flex flex-col gap-px p-2 text-sm">
 				<li>
 					<button
 						type="button"
@@ -132,7 +143,7 @@ export function Sidebar() {
 					</button>
 				</li>
 				{menus.map(({ id, href, text }) => {
-					const isActive = pathname === href;
+					const isActive = pathname.startsWith(href);
 
 					return (
 						<li

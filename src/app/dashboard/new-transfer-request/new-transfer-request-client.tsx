@@ -95,7 +95,7 @@ export function NewTransferRequestClient({
 	return (
 		<>
 			<form className="w-full">
-				<p className="w-full text-center text-[20px] font-medium text-gray-600 mb-10">
+								<p className="mb-10 w-full text-center text-xl font-medium text-gray-600">
 					Step {step}/2
 				</p>
 

@@ -10,7 +10,7 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
 		<CheckboxPrimitive.Root
 			data-slot="checkbox"
 			className={cn(
-				"group peer border-input dark:bg-input/30",
+				"group peer border-input dark:bg-input/30 bg-white",
 				"data-[state=checked]:bg-primary",
 				"data-[state=checked]:text-primary-foreground",
 				"data-[state=checked]:border-primary",
@@ -36,7 +36,7 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
 				</span>
 
 				<span className="group-data-[state=checked]:hidden group-data-[state=indeterminate]:block">
-					<div className="h-[2px] w-2 bg-current" />
+			<div className="h-0.5 w-2 bg-current" />
 				</span>
 			</CheckboxPrimitive.Indicator>
 		</CheckboxPrimitive.Root>

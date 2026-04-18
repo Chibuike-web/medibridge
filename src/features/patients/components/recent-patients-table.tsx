@@ -40,7 +40,7 @@ import { formatDate } from "@/lib/utils/format-date";
 export function RecentPatientsTable() {
 	const data = useMemo(() => recentPatients, []);
 	const columns = useMemo(() => recentPatientColumns, []);
-	const [sorting, setSorting] = useState<SortingState>([]);
+	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: 4,
@@ -61,9 +61,9 @@ export function RecentPatientsTable() {
 	});
 	return (
 		<div className="mt-12 max-w-7xl">
-			<h1 className="font-semibold text-[18px] mb-4">Recent Patients</h1>
-			<div className="overflow-x-auto rounded-[12px] border border-gray-200">
-				<Table className="w-full min-w-[800px] text-left border-separate border-spacing-0 bg-gray-50">
+			<h1 className="mb-4 text-lg font-semibold">Recent Patients</h1>
+			<div className="overflow-x-auto rounded-xl border border-gray-200">
+				<Table className="w-full min-w-[50rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="text-gray-500 text-sm font-semibold h-12">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className="h-12">
@@ -112,7 +112,7 @@ export function RecentPatientsTable() {
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody className="outline outline-gray-200 rounded-t-[12px] overflow-hidden">
+					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
 						{table.getRowModel().rows.map((row, rowPosition) => (
 							<TableRow key={row.id} className="h-14">
 								{row.getVisibleCells().map((cell) => (
@@ -141,7 +141,7 @@ export function RecentPatientsTable() {
 							value={String(table.getState().pagination.pageSize)}
 							onValueChange={(value) => table.setPageSize(Number(value))}
 						>
-							<SelectTrigger className="h-8 w-[64px] border-gray-200 bg-white text-gray-700 shadow-none px-2">
+							<SelectTrigger className="h-8 w-16 border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent>
@@ -219,7 +219,7 @@ const recentPatientColumns: ColumnDef<RecentPatientType>[] = [
 	{
 		header: "Age",
 		accessorKey: "age",
-		enableSorting: false,
+		enableSorting: true,
 	},
 	{
 		header: "Created At",
