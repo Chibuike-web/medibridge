@@ -7,7 +7,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "@/db/schemas/auth";
 import { ENV } from "../utils/env";
-import { sendEmail } from "../send-email";
+import { sendEmail } from "../utils/send-email";
 
 const sql = postgres(ENV.DATABASE_URL!);
 export const db = drizzle({ client: sql });

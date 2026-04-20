@@ -95,9 +95,7 @@ export function NewTransferRequestClient({
 	return (
 		<>
 			<form className="w-full">
-								<p className="mb-10 w-full text-center text-xl font-medium text-gray-600">
-					Step {step}/2
-				</p>
+				<p className="mb-10 w-full text-center text-xl font-medium text-gray-600">Step {step}/2</p>
 
 				{step === 1 ? (
 					<>
@@ -148,12 +146,7 @@ export function NewTransferRequestClient({
 								patientData={patientData}
 								setPatientData={setPatientData}
 							/>
-							<div className="mt-8 rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4">
-								<p className="text-sm font-medium text-gray-800">Transfer document</p>
-								<p className="mt-1 text-sm leading-6 text-gray-600">
-									Each patient&apos;s records will be prepared as a PDF document.
-								</p>
-							</div>
+
 							<div className="flex flex-col gap-3.5 mt-8">
 								<Label>Target Hospital Name</Label>
 								<Input

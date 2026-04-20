@@ -105,16 +105,16 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 						}}
 					>
 						<RiLogoutBoxLine />
-						{isPending ? "Logging Out..." : "Log out"}
+						Log out
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
 
 			{isPending && (
-				<div className="absolute inset-0 z-[100] bg-white grid place-items-center">
+				<div className="fixed inset-0 z-[100] bg-white/80 backdrop-blur-sm grid place-items-center">
 					<div className="flex flex-col gap-2 items-center">
 						<RiLoaderLine className="size-6 animate-spin" />
-						<span className="text-18px">Authenticating....</span>
+						<span className="text-sm">Signing out...</span>
 					</div>
 				</div>
 			)}

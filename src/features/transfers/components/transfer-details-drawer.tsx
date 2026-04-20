@@ -146,23 +146,29 @@ function ClinicalPayload() {
 			</button>
 
 			{isExpanded && (
-				<div id={panelId} aria-labelledby={titleId} className="flex flex-col gap-4">
-					<div className="flex items-center gap-2 rounded-2xl border border-gray-200 px-3.5 py-4">
+				<div
+					id={panelId}
+					aria-labelledby={titleId}
+					className="flex flex-col gap-4 rounded-2xl border border-gray-200 px-4 py-4 lg:flex-row lg:items-center lg:justify-between"
+				>
+					{/* File Info */}
+					<div className="flex items-start gap-3 min-w-0">
 						<Image src={pdfFileFormat} alt="" width={40} height={40} />
 
-						<div className="flex flex-col gap-1">
-							<p className="text-sm font-semibold text-gray-800">Patient_Record_A123456.pdf</p>
-							<div className="flex items-center gap-1 text-sm text-gray-400">
-								<p>{formatFileSize(10000)}</p>
-								<span className="size-0.5 block rounded-full bg-foreground" aria-hidden="true" />
-							</div>
+						<div className="flex flex-col min-w-0">
+							<p className="text-sm font-semibold text-gray-800 truncate">
+								Patient_Record_A123456.pdf
+							</p>
+							<p className="text-sm text-gray-400">{formatFileSize(10000)}</p>
 						</div>
 					</div>
-					<div className="flex flex-col lg:flex-row gap-x-4 gap-y-2 ">
-						<Button className="flex flex-1 h-11" variant="outline">
+
+					{/* Actions */}
+					<div className="flex flex-col gap-2 w-full lg:w-auto lg:flex-row">
+						<Button className="h-11 w-full lg:w-auto" variant="outline">
 							Download Record
 						</Button>
-						<Button className="flex flex-1 h-11">View Record</Button>
+						<Button className="h-11 w-full lg:w-auto">View Record</Button>
 					</div>
 				</div>
 			)}
@@ -203,7 +209,7 @@ function TransferProgress() {
 					<div className="grid grid-cols-[auto_1fr] gap-3">
 						{/* Left column */}
 						<div className="flex flex-col items-center gap-1">
-							<RiCheckboxCircleFill aria-hidden="true" />
+							<RiCheckboxCircleFill aria-hidden="true" className="text-green-500" />
 							<div className="h-[2.375rem] w-0.5 bg-gray-800" />
 						</div>
 

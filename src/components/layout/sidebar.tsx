@@ -24,7 +24,6 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 	const parsed = initialWidth ? JSON.parse(initialWidth) : MAX_WIDTH;
 	const [width, setWidth] = useState<number>(parsed);
 	const pathname = usePathname();
-
 	const [isResizing, setIsResizing] = useState(false);
 	const [isHovered, setIsHovered] = useState(false);
 	const startXRef = useRef(0);
@@ -34,7 +33,6 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 	useEffect(
 		function saveSidebarWidth() {
 			const value = JSON.stringify(width);
-			localStorage.setItem("sidebarWidth", value);
 			document.cookie = `sidebarWidth=${value}; path=/; max-age=31536000`;
 		},
 		[width],

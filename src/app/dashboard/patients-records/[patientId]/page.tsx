@@ -1,18 +1,18 @@
 import { Suspense } from "react";
 import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
-import { capitalize } from "@/lib/utils/capitalize";
 import { patients } from "@/features/transfers/data";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils/get-initials";
 import { StatusBadge } from "@/components/status-badge";
 import { CopyIdButton } from "@/components/copy-id-button";
+import { SectionTabs } from "./section-tabs";
 
 export default function PatientPage({
 	searchParams,
 	params,
 }: {
-	searchParams: Promise<{ category: string }>;
+	searchParams: Promise<{ section: string }>;
 	params: Promise<{ patientId: string }>;
 }) {
 	return (
@@ -45,10 +45,10 @@ async function BreadCrumb({
 	searchParams,
 	params,
 }: {
-	searchParams: Promise<{ category: string }>;
+	searchParams: Promise<{ section: string }>;
 	params: Promise<{ patientId: string }>;
 }) {
-	const [{ category }, { patientId }] = await Promise.all([searchParams, params]);
+	const [{ section }, { patientId }] = await Promise.all([searchParams, params]);
 
 	const patientName = patients.find((p) => p.patientId === patientId)?.name;
 
@@ -56,7 +56,7 @@ async function BreadCrumb({
 		<>
 			<span className="shrink-0">{patientName}</span>
 			<RiArrowRightSLine aria-hidden="true" />
-			<span className="font-semibold shrink-0">{capitalize(category)}</span>
+			<span className="font-semibold shrink-0">{formatSectionLabel(section)}</span>
 		</>
 	);
 }
@@ -111,13 +111,24 @@ async function Main({
 	searchParams,
 	params,
 }: {
-	searchParams: Promise<{ category: string }>;
+	searchParams: Promise<{ section: string }>;
 	params: Promise<{ patientId: string }>;
 }) {
-	const [{ category }, { patientId }] = await Promise.all([searchParams, params]);
+	const [{ section }, { patientId }] = await Promise.all([searchParams, params]);
 	return (
 		<div>
-			{category}:{patientId}
+			<Suspense>
+				<SectionTabs />
+			</Suspense>
+			{section}:{patientId}
 		</div>
 	);
+}
+
+function formatSectionLabel(value: string) {
+	return value
+		.split("-")
+		.filter(Boolean)
+		.map((word) => word[0].toUpperCase() + word.slice(1))
+		.join(" ");
 }
