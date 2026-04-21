@@ -19,7 +19,7 @@ import { DialogClose } from "@radix-ui/react-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSelectedTransferPatients } from "@/features/transfers/stores/use-selected-transfer-patients";
 import { useRouter } from "next/navigation";
-import { RiCheckLine, RiCloseLine } from "@remixicon/react";
+import { RiCheckLine, RiCloseLine, RiErrorWarningLine } from "@remixicon/react";
 import { AttachClinicalRecords } from "@/features/transfers/components/attach-clinical-records";
 import { EMPTY_PATIENT_DATA, PatientData } from "@/features/transfers/types";
 import { SelectPatient } from "@/features/transfers/components/select-patient";
@@ -166,24 +166,30 @@ export function NewTransferRequestClient({
 									}}
 								/>
 							</div>
-							<div className="flex flex-col gap-3.5 mt-8">
-								<Label>Target Hospital Email</Label>
-								<Input
-									className="h-11"
-									placeholder="e.g., Enugu State Teaching Hospital"
-									value={currentData.hospitalEmail ?? ""}
-									onChange={(e) => {
-										const nextPatientData = {
-											...patientData,
-											[activePatient]: {
-												...(patientData[activePatient] ?? EMPTY_PATIENT_DATA),
-												hospitalEmail: e.target.value,
-											},
-										};
+							<div className="mt-8">
+								<div className="flex flex-col gap-3.5">
+									<Label>Target Hospital Email</Label>
+									<Input
+										className="h-11"
+										placeholder="e.g., Enugu State Teaching Hospital"
+										value={currentData.hospitalEmail ?? ""}
+										onChange={(e) => {
+											const nextPatientData = {
+												...patientData,
+												[activePatient]: {
+													...(patientData[activePatient] ?? EMPTY_PATIENT_DATA),
+													hospitalEmail: e.target.value,
+												},
+											};
 
-										setPatientData(nextPatientData);
-									}}
-								/>
+											setPatientData(nextPatientData);
+										}}
+									/>
+								</div>
+								<div className="text-gray-400 flex items-center gap-1.5 mt-3 text-sm">
+									<RiErrorWarningLine className="size-4" />
+									<span>Must be official verified hospital</span>
+								</div>
 							</div>
 							<div className="flex flex-col gap-3.5 mt-8">
 								<Label>

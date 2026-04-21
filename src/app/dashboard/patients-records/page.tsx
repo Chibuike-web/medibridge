@@ -4,7 +4,7 @@ import { PatientRecordsTable } from "@/features/patients/components/patient-reco
 import { RiAddLine, RiSearch2Line, RiShareForwardBoxLine } from "@remixicon/react";
 import Link from "next/link";
 import { patientRecords } from "@/features/patients/data";
-import { FilterButton } from "./filter-button";
+import { FilterButton } from "../../../features/patients/components/filter-button";
 
 export default function PatientRecords() {
 	return patientRecords.length > 0 ? (

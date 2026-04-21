@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils/get-initials";
 import { StatusBadge } from "@/components/status-badge";
 import { CopyIdButton } from "@/components/copy-id-button";
-import { SectionTabs } from "./section-tabs";
+import { SectionTabs } from "../../../../features/patients/components/section-tabs";
 
 export default function PatientPage({
 	searchParams,

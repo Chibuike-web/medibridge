@@ -52,6 +52,6 @@ export const sections = [
 	{ id: "medications", label: "Medications" },
 	{ id: "encounters", label: "Encounters" },
 	{ id: "lab-tests", label: "Lab Tests" },
-	{ id: "imaging-studies", label: "Imaging Studies" },
+	{ id: "imaging-studies", label: "Imaging" },
 	{ id: "documents", label: "Documents" },
 ] as const;
