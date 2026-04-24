@@ -9,7 +9,12 @@ const queryClient = new QueryClient();
 export function Providers({ children }: { children: React.ReactNode }) {
 	return (
 		<QueryClientProvider client={queryClient}>
-			<AppProgressProvider height="3px" color="#29d" delay={1} options={{ showSpinner: false }}>
+			<AppProgressProvider
+				height="0.1875rem"
+				color="#29d"
+				delay={1}
+				options={{ showSpinner: false }}
+			>
 				{children}
 			</AppProgressProvider>
 		</QueryClientProvider>

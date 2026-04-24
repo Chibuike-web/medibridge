@@ -7,3 +7,14 @@ export type RecentPatientType = {
 };
 
 export type PatientRecordType = RecentPatientType;
+
+export type DiagnosisType = {
+	name: string;
+	onsetLabel: string;
+	onsetSortValue: string;
+	lastReviewedLabel: string;
+	lastReviewedSortValue: string;
+	diagnosisId: string;
+	clinicalSummary: string;
+	status: "Active" | "Resolved";
+};

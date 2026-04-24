@@ -10,7 +10,7 @@ export default function HospitalDetails() {
 					<RiArrowLeftLine className="size-5" /> <span className="sr-only">Back</span>
 				</Link>
 			</nav>
-			<main className="max-w-[37.5rem] mx-auto  min-h-[calc(100dvh-64px)] grid place-items-center my-10">
+			<main className="mx-auto grid min-h-[calc(100dvh-4rem)] max-w-[37.5rem] place-items-center my-10">
 				<div className="w-full px-6 md:px-0">
 					<div className="mb-10">
 						<h1 className="text-[1.8rem] text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] mb-4">

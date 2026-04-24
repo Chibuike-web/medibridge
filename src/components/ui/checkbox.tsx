@@ -10,7 +10,7 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
 		<CheckboxPrimitive.Root
 			data-slot="checkbox"
 			className={cn(
-				"group peer border-input dark:bg-input/30 bg-white",
+				"group flex items-center justify-center peer border-input dark:bg-input/30 bg-white",
 				"data-[state=checked]:bg-primary",
 				"data-[state=checked]:text-primary-foreground",
 				"data-[state=checked]:border-primary",
@@ -30,14 +30,9 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
 			)}
 			{...props}
 		>
-			<CheckboxPrimitive.Indicator className="grid place-content-center text-current">
-				<span className="group-data-[state=checked]:block group-data-[state=indeterminate]:hidden">
-					<RiCheckLine className="size-3.5" />
-				</span>
-
-				<span className="group-data-[state=checked]:hidden group-data-[state=indeterminate]:block">
-			<div className="h-0.5 w-2 bg-current" />
-				</span>
+			<CheckboxPrimitive.Indicator className="flex items-center justify-center size-4 text-current">
+				<RiCheckLine className="group-data-[state=checked]:block group-data-[state=indeterminate]:hidden size-3.5" />
+				<span className="group-data-[state=checked]:hidden group-data-[state=indeterminate]:flex items-center justify-center h-0.5 w-2 bg-current" />
 			</CheckboxPrimitive.Indicator>
 		</CheckboxPrimitive.Root>
 	);

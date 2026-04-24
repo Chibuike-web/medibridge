@@ -80,10 +80,10 @@ body {
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-	--radius-sm: calc(var(--radius) - 4px);
-	--radius-md: calc(var(--radius) - 2px);
+	--radius-sm: calc(var(--radius) - 0.25rem);
+	--radius-md: calc(var(--radius) - 0.125rem);
 	--radius-lg: var(--radius);
-	--radius-xl: calc(var(--radius) + 4px);
+	--radius-xl: calc(var(--radius) + 0.25rem);
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
 	--color-card: var(--card);
@@ -211,8 +211,8 @@ body {
 
 /* Base Scrollbar */
 ::-webkit-scrollbar {
-	width: 8px;
-	height: 8px;
+	width: 0.5rem;
+	height: 0.5rem;
 }
 
 ::-webkit-scrollbar-track {
@@ -221,8 +221,8 @@ body {
 
 ::-webkit-scrollbar-thumb {
 	background: rgba(0, 0, 0, 0.3);
-	border-radius: 100px;
-	border: 2px solid transparent;
+	border-radius: 6.25rem;
+	border: 0.125rem solid transparent;
 	background-clip: content-box;
 	transition: background 0.3s ease;
 }

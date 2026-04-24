@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { Tabs } from "radix-ui";
 import { motion } from "motion/react";
+import { cn } from "@/lib/utils/cn";
 
 export function SectionTabs() {
 	const searchParams = useSearchParams();
@@ -19,7 +20,7 @@ export function SectionTabs() {
 
 	return (
 		<Tabs.Root value={active} onValueChange={handleChange}>
-			<Tabs.List className="flex border-b relative px-6">
+			<Tabs.List className="no-scrollbar relative flex w-full overflow-x-auto border-b px-6 whitespace-nowrap">
 				{sections.map((section) => {
 					const isActive = active === section.id;
 
@@ -27,13 +28,16 @@ export function SectionTabs() {
 						<Tabs.Trigger
 							key={section.id}
 							value={section.id}
-							className="relative py-3 px-6 text-sm font-medium shrink-0"
+							className={cn(
+								"relative shrink-0 px-6 py-3 text-sm transition-colors",
+								isActive ? "font-medium text-gray-800" : "font-normal text-gray-400",
+							)}
 						>
 							{section.label}
 							{isActive && (
 								<motion.div
 									layoutId="tab-indicator"
-									className="absolute bottom-0 left-0 right-0 h-[2px] bg-black"
+									className="absolute right-0 bottom-0 left-0 h-0.5 bg-black"
 									transition={{ type: "spring", stiffness: 400, damping: 30 }}
 								/>
 							)}
@@ -48,10 +52,13 @@ export function SectionTabs() {
 export const sections = [
 	{ id: "patient-overview", label: "Patient Overview" },
 	{ id: "patient-details", label: "Patient Details" },
-	{ id: "medical-history", label: "Medical History" },
+	{ id: "diagnoses", label: "Diagnoses" },
+	{ id: "allergies", label: "Allergies" },
+	{ id: "immunization", label: "Immunization" },
+	{ id: "procedures", label: "Procedures" },
 	{ id: "medications", label: "Medications" },
 	{ id: "encounters", label: "Encounters" },
 	{ id: "lab-tests", label: "Lab Tests" },
-	{ id: "imaging-studies", label: "Imaging" },
+	{ id: "imaging", label: "Imaging" },
 	{ id: "documents", label: "Documents" },
 ] as const;

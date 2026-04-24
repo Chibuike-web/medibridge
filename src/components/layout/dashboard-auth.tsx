@@ -8,7 +8,7 @@ export async function DashboardAuth({ children }: { children: React.ReactNode })
 				<div className="min-h-screen grid place-items-center">
 					<div className="flex flex-col gap-2 items-center">
 						<RiLoaderLine className="size-6 animate-spin" />
-						<span className="text-18px">Authenticating....</span>
+						<span className="text-[1.125rem]">Authenticating....</span>
 					</div>
 				</div>
 			}
