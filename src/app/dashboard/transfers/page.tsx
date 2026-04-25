@@ -1,11 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TransferTable } from "@/features/transfers/components/transfer-table";
-import {
-	RiAddLine,
-	RiSearch2Line,
-	RiShareForwardBoxLine,
-} from "@remixicon/react";
+import { RiAddLine, RiSearchLine, RiShareForwardBoxLine } from "@remixicon/react";
 import Link from "next/link";
 import { transferRecords } from "@/features/transfers/data";
 import { FilterButton } from "./filter-button";
@@ -19,7 +15,7 @@ export default function Transfers() {
 				</h1>
 				<div className="flex items-center gap-2 flex-1 justify-end">
 					<div className="relative min-w-[12.5rem] max-w-[31.25rem] flex-1">
-						<RiSearch2Line className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
+						<RiSearchLine className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 						<Input
 							type="search"
 							className="h-10 w-full pl-8"

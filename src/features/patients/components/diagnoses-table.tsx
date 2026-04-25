@@ -47,12 +47,11 @@ import {
 	RiEyeLine,
 	RiFilter3Line,
 	RiMore2Fill,
-	RiSearch2Line,
+	RiSearchLine,
 	RiShareForwardBoxLine,
 } from "@remixicon/react";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
@@ -89,11 +88,11 @@ export function DiagnosesTable({ patientId, section }: DiagnosesTableProps) {
 	});
 
 	return (
-		<div className="py-12">
+		<div className="py-12 px-8 ">
 			<h1 className="font-semibold text-[20px] max-w-[1280px] mx-auto">Diagnoses</h1>
 			<div className="flex items-center gap-2 max-w-[1280px] mx-auto mb-4 mt-[28px]">
 				<div className="relative w-full">
-					<RiSearch2Line className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
+					<RiSearchLine className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
 						className="h-10 w-full pl-8"
