@@ -58,7 +58,7 @@ export function SignInClient() {
 			}
 
 			setSuccess("Sign in successful");
-			router.replace("/dashboard");
+			router.replace("/dashboard/overview");
 
 			setTimeout(() => {
 				reset();

@@ -27,6 +27,7 @@ import { useTransferPatientData } from "@/features/transfers/stores/use-transfer
 import { useShowSuccess } from "@/hooks/use-show-success";
 import { SuccessModal } from "@/components/success-modal";
 import { patients } from "@/features/transfers/data";
+import { useAttachClinicalRecords } from "@/features/transfers/stores/use-attach-clinical-records";
 
 export function NewTransferRequestClient({
 	searchParams,
@@ -36,6 +37,7 @@ export function NewTransferRequestClient({
 	const { selectedPatients, removeSelectedPatient, addSelectedPatient } =
 		useSelectedTransferPatients();
 	const { patientData, setPatientData, removePatientData } = useTransferPatientData();
+	const { attachedRecords, removeAttachedRecords } = useAttachClinicalRecords();
 	const { showSuccess, setShowSuccess } = useShowSuccess();
 	const [currentId, setCurrentId] = useState<string | null>(null);
 	const router = useRouter();
@@ -51,8 +53,9 @@ export function NewTransferRequestClient({
 
 	const isComplete = selectedPatients.every((p) => {
 		const data = patientData[p.patientId] ?? EMPTY_PATIENT_DATA;
+		const records = attachedRecords[p.patientId] ?? [];
 
-		return data.hospitalEmail && data.hospitalName && data.records.length > 0;
+		return data.hospitalEmail && data.hospitalName && records.length > 0;
 	});
 	const activePatient =
 		selectedPatients.find((p) => p.patientId === currentId)?.patientId ??
@@ -69,6 +72,7 @@ export function NewTransferRequestClient({
 
 		removeSelectedPatient(patient);
 		removePatientData(patient.patientId);
+		removeAttachedRecords(patient.patientId);
 
 		if (patient.patientId === patientId) {
 			router.replace("/dashboard/new-transfer-request");
@@ -140,20 +144,17 @@ export function NewTransferRequestClient({
 							))}
 						</div>
 						<Fragment key={activePatient}>
-							<AttachClinicalRecords
-								activePatient={activePatient}
-								currentData={currentData}
-								patientData={patientData}
-								setPatientData={setPatientData}
-							/>
+							<AttachClinicalRecords activePatient={activePatient} />
 
 							<div className="flex flex-col gap-3.5 mt-8">
-								<Label>Target Hospital Name</Label>
+								<Label className="text-gray-600 font-medium">
+									Target Hospital Name <span className="text-gray-400 font-normal">(required)</span>
+								</Label>
 								<Input
 									className="h-11"
 									placeholder="e.g., Enugu State Teaching Hospital"
-									value={currentData.hospitalName ?? ""}
-									onChange={(e) => {
+									defaultValue={currentData.hospitalName ?? ""}
+									onBlur={(e) => {
 										const nextPatientData = {
 											...patientData,
 											[activePatient]: {
@@ -168,12 +169,15 @@ export function NewTransferRequestClient({
 							</div>
 							<div className="mt-8">
 								<div className="flex flex-col gap-3.5">
-									<Label>Target Hospital Email</Label>
+									<Label className="text-gray-600 font-medium">
+										Target Hospital Email
+										<span className="text-gray-400 font-normal">(required)</span>
+									</Label>
 									<Input
 										className="h-11"
 										placeholder="e.g., Enugu State Teaching Hospital"
-										value={currentData.hospitalEmail ?? ""}
-										onChange={(e) => {
+										defaultValue={currentData.hospitalEmail ?? ""}
+										onBlur={(e) => {
 											const nextPatientData = {
 												...patientData,
 												[activePatient]: {
@@ -192,13 +196,13 @@ export function NewTransferRequestClient({
 								</div>
 							</div>
 							<div className="flex flex-col gap-3.5 mt-8">
-								<Label>
-									Notes<span className="text-gray-400">(Optional)</span>
+								<Label className="text-gray-600 font-medium">
+									Notes <span className="text-gray-400 font-normal">(optional)</span>
 								</Label>
 								<Textarea
 									placeholder="Add context or special instructions"
-									value={currentData.notes ?? ""}
-									onChange={(e) => {
+									defaultValue={currentData.notes ?? ""}
+									onBlur={(e) => {
 										const nextPatientData = {
 											...patientData,
 											[activePatient]: {

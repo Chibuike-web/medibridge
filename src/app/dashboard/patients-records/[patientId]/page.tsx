@@ -172,6 +172,10 @@ function renderSectionContent(section: string, patientId: string) {
 	if (section === "imaging") {
 		return <ImagingSection section={section} patientId={patientId} />;
 	}
+
+	if (section === "documents") {
+		return <DocumentsSection section={section} patientId={patientId} />;
+	}
 }
 
 type PatientSectionProps = {
@@ -315,6 +319,24 @@ function ImagingSection({ section, patientId }: PatientSectionProps) {
 	return (
 		<div className="px-6 py-3">
 			{section}:{patientId} imaging table
+		</div>
+	);
+}
+
+function DocumentsSection({ section, patientId }: PatientSectionProps) {
+	const documents: unknown[] = [];
+
+	if (documents.length === 0) {
+		return renderEmptyState(
+			"No Documents yet",
+			"No documents have been recorded for this patient.",
+			"Add document",
+		);
+	}
+
+	return (
+		<div className="px-6 py-3">
+			{section}:{patientId} documents table
 		</div>
 	);
 }

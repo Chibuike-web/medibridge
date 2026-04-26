@@ -1,7 +1,13 @@
 import { Suspense } from "react";
 import { RiLoaderLine } from "@remixicon/react";
+import { redirect } from "next/navigation";
+import { getSessionData } from "@/lib/api/get-session-data";
 
 export async function DashboardAuth({ children }: { children: React.ReactNode }) {
+	if (process.env.NODE_ENV === "development") {
+		return <>{children}</>;
+	}
+
 	return (
 		<Suspense
 			fallback={
@@ -19,9 +25,10 @@ export async function DashboardAuth({ children }: { children: React.ReactNode })
 }
 
 async function Main({ children }: { children: React.ReactNode }) {
-	// const data = await getSessionData();
-	// if (!data) {
-	// 	redirect("/sign-in");
-	// }
+	const data = await getSessionData();
+	if (!data) {
+		redirect("/sign-in");
+	}
+
 	return <>{children}</>;
 }

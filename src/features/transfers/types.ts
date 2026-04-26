@@ -3,17 +3,22 @@ export type ClinicalRecord = {
 	label: string;
 };
 
+export type ClinicalRecordItem = {
+	id: string;
+	name: string;
+	createdAt: string;
+};
+
 export type PatientData = {
-	records: ClinicalRecord[];
 	hospitalName: string;
 	hospitalEmail: string;
 	notes?: string;
 };
 
 export type PatientDataType = Record<string, PatientData>;
+export type AttachedClinicalRecordsType = Record<string, ClinicalRecord[]>;
 
 export const EMPTY_PATIENT_DATA: PatientData = {
-	records: [],
 	hospitalName: "",
 	hospitalEmail: "",
 	notes: "",
