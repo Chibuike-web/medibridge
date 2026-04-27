@@ -11,6 +11,9 @@ import { getInitials } from "@/lib/utils/get-initials";
 import { StatusBadge } from "@/components/status-badge";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { SectionTabs } from "../../../../features/patients/components/section-tabs";
+import { PatientSectionProps } from "@/features/patients/types";
+import { PatientOverviewSection } from "@/features/patients/components/patient-overview-section";
+import { PatientDetailsSection } from "@/features/patients/components/patient-details-section";
 
 export default function PatientPage({
 	searchParams,
@@ -20,8 +23,8 @@ export default function PatientPage({
 	params: Promise<{ patientId: string }>;
 }) {
 	return (
-		<div>
-			<div>
+		<div className="flex h-full min-h-0 flex-col overflow-hidden">
+			<div className="shrink-0">
 				<nav
 					aria-label="Breadcrumb"
 					className="flex items-center gap-2 border-b border-gray-200 px-6 py-5"
@@ -117,13 +120,15 @@ function Main({
 	params: Promise<{ patientId: string }>;
 }) {
 	return (
-		<div>
+		<div className="flex min-h-0 flex-1 flex-col">
 			<Suspense fallback={null}>
 				<SectionTabs />
 			</Suspense>
-			<Suspense fallback={null}>
-				<SectionContent searchParams={searchParams} params={params} />
-			</Suspense>
+			<div className="min-h-0 flex-1 overflow-y-auto">
+				<Suspense fallback={null}>
+					<SectionContent searchParams={searchParams} params={params} />
+				</Suspense>
+			</div>
 		</div>
 	);
 }
@@ -141,49 +146,51 @@ async function SectionContent({
 }
 
 function renderSectionContent(section: string, patientId: string) {
+	if (section === "patient-overview") {
+		return <PatientOverviewSection patientId={patientId} />;
+	}
+	if (section === "patient-details") {
+		return <PatientDetailsSection patientId={patientId} />;
+	}
+
 	if (section === "diagnoses") {
-		return <DiagnosesSection section={section} patientId={patientId} />;
+		return <DiagnosesSection patientId={patientId} />;
 	}
 
 	if (section === "allergies") {
-		return <AllergiesSection section={section} patientId={patientId} />;
+		return <AllergiesSection patientId={patientId} />;
 	}
 
 	if (section === "immunization") {
-		return <ImmunizationSection section={section} patientId={patientId} />;
+		return <ImmunizationSection patientId={patientId} />;
 	}
 
 	if (section === "procedures") {
-		return <ProceduresSection section={section} patientId={patientId} />;
+		return <ProceduresSection patientId={patientId} />;
 	}
 
 	if (section === "medications") {
-		return <MedicationsSection section={section} patientId={patientId} />;
+		return <MedicationsSection patientId={patientId} />;
 	}
 
 	if (section === "encounters") {
-		return <EncountersSection section={section} patientId={patientId} />;
+		return <EncountersSection patientId={patientId} />;
 	}
 
 	if (section === "lab-tests") {
-		return <LabTestsSection section={section} patientId={patientId} />;
+		return <LabTestsSection patientId={patientId} />;
 	}
 
 	if (section === "imaging") {
-		return <ImagingSection section={section} patientId={patientId} />;
+		return <ImagingSection patientId={patientId} />;
 	}
 
 	if (section === "documents") {
-		return <DocumentsSection section={section} patientId={patientId} />;
+		return <DocumentsSection patientId={patientId} />;
 	}
 }
 
-type PatientSectionProps = {
-	section: string;
-	patientId: string;
-};
-
-function DiagnosesSection({ section, patientId }: PatientSectionProps) {
+function DiagnosesSection({ patientId }: { patientId: string }) {
 	if (diagnoses.length === 0) {
 		return renderEmptyState(
 			"No Diagnoses yet",
@@ -192,12 +199,10 @@ function DiagnosesSection({ section, patientId }: PatientSectionProps) {
 		);
 	}
 
-	return (
-		<DiagnosesTable patientId={patientId} section={section} />
-	);
+	return <DiagnosesTable patientId={patientId} />;
 }
 
-function AllergiesSection({ section, patientId }: PatientSectionProps) {
+function AllergiesSection({ patientId }: { patientId: string }) {
 	const allergies: unknown[] = [];
 
 	if (allergies.length === 0) {
@@ -208,14 +213,10 @@ function AllergiesSection({ section, patientId }: PatientSectionProps) {
 		);
 	}
 
-	return (
-		<div className="px-6 py-3">
-			{section}:{patientId} allergies table
-		</div>
-	);
+	return <div className="px-6 py-3">{patientId} allergies table</div>;
 }
 
-function ImmunizationSection({ section, patientId }: PatientSectionProps) {
+function ImmunizationSection({ patientId }: { patientId: string }) {
 	const immunizations: unknown[] = [];
 
 	if (immunizations.length === 0) {
@@ -226,14 +227,10 @@ function ImmunizationSection({ section, patientId }: PatientSectionProps) {
 		);
 	}
 
-	return (
-		<div className="px-6 py-3">
-			{section}:{patientId} immunization table
-		</div>
-	);
+	return <div className="px-6 py-3">{patientId} immunization table</div>;
 }
 
-function ProceduresSection({ section, patientId }: PatientSectionProps) {
+function ProceduresSection({ patientId }: { patientId: string }) {
 	const procedures: unknown[] = [];
 
 	if (procedures.length === 0) {
@@ -244,14 +241,10 @@ function ProceduresSection({ section, patientId }: PatientSectionProps) {
 		);
 	}
 
-	return (
-		<div className="px-6 py-3">
-			{section}:{patientId} procedures table
-		</div>
-	);
+	return <div className="px-6 py-3">:{patientId} procedures table</div>;
 }
 
-function MedicationsSection({ section, patientId }: PatientSectionProps) {
+function MedicationsSection({ patientId }: { patientId: string }) {
 	const medications: unknown[] = [];
 
 	if (medications.length === 0) {
@@ -262,14 +255,10 @@ function MedicationsSection({ section, patientId }: PatientSectionProps) {
 		);
 	}
 
-	return (
-		<div className="px-6 py-3">
-			{section}:{patientId} medications table
-		</div>
-	);
+	return <div className="px-6 py-3">{patientId} medications table</div>;
 }
 
-function EncountersSection({ section, patientId }: PatientSectionProps) {
+function EncountersSection({ patientId }: { patientId: string }) {
 	const encounters: unknown[] = [];
 
 	if (encounters.length === 0) {
@@ -280,14 +269,10 @@ function EncountersSection({ section, patientId }: PatientSectionProps) {
 		);
 	}
 
-	return (
-		<div className="px-6 py-3">
-			{section}:{patientId} encounters table
-		</div>
-	);
+	return <div className="px-6 py-3">{patientId} encounters table</div>;
 }
 
-function LabTestsSection({ section, patientId }: PatientSectionProps) {
+function LabTestsSection({ patientId }: { patientId: string }) {
 	const labTests: unknown[] = [];
 
 	if (labTests.length === 0) {
@@ -298,14 +283,10 @@ function LabTestsSection({ section, patientId }: PatientSectionProps) {
 		);
 	}
 
-	return (
-		<div className="px-6 py-3">
-			{section}:{patientId} lab tests table
-		</div>
-	);
+	return <div className="px-6 py-3">{patientId} lab tests table</div>;
 }
 
-function ImagingSection({ section, patientId }: PatientSectionProps) {
+function ImagingSection({ patientId }: { patientId: string }) {
 	const imagingStudies: unknown[] = [];
 
 	if (imagingStudies.length === 0) {
@@ -316,14 +297,10 @@ function ImagingSection({ section, patientId }: PatientSectionProps) {
 		);
 	}
 
-	return (
-		<div className="px-6 py-3">
-			{section}:{patientId} imaging table
-		</div>
-	);
+	return <div className="px-6 py-3">{patientId} imaging table</div>;
 }
 
-function DocumentsSection({ section, patientId }: PatientSectionProps) {
+function DocumentsSection({ patientId }: { patientId: string }) {
 	const documents: unknown[] = [];
 
 	if (documents.length === 0) {
@@ -334,11 +311,7 @@ function DocumentsSection({ section, patientId }: PatientSectionProps) {
 		);
 	}
 
-	return (
-		<div className="px-6 py-3">
-			{section}:{patientId} documents table
-		</div>
-	);
+	return <div className="px-6 py-3">{patientId} documents table</div>;
 }
 
 function renderEmptyState(title: string, description: string, action: string) {

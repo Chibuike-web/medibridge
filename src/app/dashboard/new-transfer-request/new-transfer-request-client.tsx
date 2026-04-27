@@ -68,8 +68,6 @@ export function NewTransferRequestClient({
 	};
 
 	function handleRemovePatient(patient: { patientId: string; name: string }) {
-		const isLastPatient = selectedPatients.length === 1;
-
 		removeSelectedPatient(patient);
 		removePatientData(patient.patientId);
 		removeAttachedRecords(patient.patientId);
@@ -78,7 +76,7 @@ export function NewTransferRequestClient({
 			router.replace("/dashboard/new-transfer-request");
 		}
 
-		if (isLastPatient) {
+		if (selectedPatients.length === 1) {
 			setStep(1);
 			setCurrentId(null);
 		}
@@ -244,7 +242,7 @@ export function NewTransferRequestClient({
 										<p className="text-gray-600 font-medium">
 											Before this transfer request is sent, please review and confirm the following
 										</p>
-										<ul className="mt-6 mb-8 text-gray-600 flex flex-col gap-4">
+										<ul className="mt-6 mb-8 text-gray-600 flex flex-col gap-1">
 											<li className="flex items-center gap-2">
 												<span aria-hidden>
 													<RiCheckLine className="size-5" />

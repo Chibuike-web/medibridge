@@ -9,7 +9,7 @@ export async function DashboardLayout({ children }: { children: ReactNode }) {
 	return (
 		<div className="flex items-start h-dvh">
 			<Sidebar initialWidth={stored} />
-			<div className="flex flex-col flex-1 h-full overflow-x-auto">{children}</div>
+			<div className="flex h-full flex-1 flex-col overflow-x-auto overflow-y-hidden">{children}</div>
 		</div>
 	);
 }

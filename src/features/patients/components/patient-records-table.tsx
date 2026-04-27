@@ -83,7 +83,7 @@ export function PatientRecordsTable() {
 	return (
 		<div className="overflow-x-auto rounded-xl border border-gray-200 text-sm">
 			<Table className="w-full min-w-[62.5rem] border-separate border-spacing-0 bg-gray-50 text-left">
-				<TableHeader className="h-12 text-sm font-semibold text-gray-600">
+				<TableHeader className="h-12 text-sm text-gray-600">
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow key={headerGroup.id} className="h-12">
 							{headerGroup.headers.map((header) => (

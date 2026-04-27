@@ -18,3 +18,8 @@ export type DiagnosisType = {
 	clinicalSummary: string;
 	status: "Active" | "Resolved";
 };
+
+export type PatientSectionProps = {
+	section: string;
+	patientId: string;
+};

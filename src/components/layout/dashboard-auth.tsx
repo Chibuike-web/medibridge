@@ -25,10 +25,10 @@ export async function DashboardAuth({ children }: { children: React.ReactNode })
 }
 
 async function Main({ children }: { children: React.ReactNode }) {
-	const data = await getSessionData();
-	if (!data) {
-		redirect("/sign-in");
-	}
+	// const data = await getSessionData();
+	// if (!data) {
+	// 	redirect("/sign-in");
+	// }
 
 	return <>{children}</>;
 }

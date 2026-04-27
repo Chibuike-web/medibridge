@@ -55,14 +55,8 @@ import { Input } from "@/components/ui/input";
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
-type DiagnosesTableProps = {
-	patientId: string;
-	section: string;
-};
-
-export function DiagnosesTable({ patientId, section }: DiagnosesTableProps) {
+export function DiagnosesTable({ patientId }: { patientId: string }) {
 	void patientId;
-	void section;
 
 	const data = useMemo(() => diagnoses, []);
 	const columns = useMemo(() => getDiagnosesColumns(), []);
