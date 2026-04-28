@@ -110,8 +110,6 @@ export function TransferTable() {
 										}}
 										className={cn(
 											"z-10 h-12 px-3 py-0 whitespace-nowrap text-gray-600 bg-gray-50",
-											// header.column.id === "name" &&
-											// 	"sticky left-0 max-[1100px]:border-r border-gray-200",
 											header.column.getCanSort() ? "cursor-pointer select-none" : "",
 										)}
 									>
@@ -152,8 +150,6 @@ export function TransferTable() {
 										className={cn(
 											"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
 											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
-											// cell.column.id === "name" &&
-											// 	"sticky left-0 z-10 bg-white max-[1100px]:border-r border-gray-200",
 										)}
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}

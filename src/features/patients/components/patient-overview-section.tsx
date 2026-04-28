@@ -8,16 +8,18 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils/cn";
 
 export function PatientOverviewSection({ patientId }: { patientId: string }) {
 	return (
 		<div className="p-8">
-			<div className="mx-auto max-w-[1280px]">
-				<h1 className="text-gray-800 font-semibold text-[20px] mb-6">Patient Overview</h1>
+			<div className="mx-auto max-w-7xl">
+				<h1 className="mb-6 text-xl font-semibold text-gray-800">Patient Overview</h1>
 				<div className="flex flex-col gap-10">
 					<PersonalInformation />
 					<MedicalInformation />
 					<RecentDiagnoses />
+					<RecentAllergies />
 				</div>
 			</div>
 		</div>
@@ -26,13 +28,13 @@ export function PatientOverviewSection({ patientId }: { patientId: string }) {
 
 function PersonalInformation() {
 	return (
-		<div className="bg-gray-50 rounded-[12px] ring ring-gray-200">
+		<div className="rounded-xl bg-gray-50 ring ring-gray-200">
 			<div className="p-4">
-				<h2 className="font-semibold text-gray-600 text-[18px] no-line-height">
+				<h2 className="font-semibold text-lg text-gray-600 no-line-height">
 					Personal Information
 				</h2>
 			</div>
-			<div className="bg-white ring ring-gray-200 grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] p-4 gap-6 rounded-[12px]">
+			<div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6 rounded-xl bg-white p-4 ring ring-gray-200">
 				{personalInfo.map((p) => (
 					<div key={p.label} className="flex flex-col gap-4 w-full">
 						<div className="text-sm font-normal text-gray-400 no-line-height">{p.label}</div>
@@ -46,13 +48,13 @@ function PersonalInformation() {
 
 function MedicalInformation() {
 	return (
-		<div className="bg-gray-50 rounded-[12px] ring ring-gray-200">
+		<div className="rounded-xl bg-gray-50 ring ring-gray-200">
 			<div className="p-4">
-				<h2 className="font-semibold text-gray-600 text-[18px] no-line-height">
+				<h2 className="font-semibold text-lg text-gray-600 no-line-height">
 					Medical Information
 				</h2>
 			</div>
-			<div className="bg-white ring ring-gray-200 grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] p-4 gap-6 rounded-[12px]">
+			<div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6 rounded-xl bg-white p-4 ring ring-gray-200">
 				{medicalInfo.map((p) => (
 					<div key={p.label} className="flex flex-col gap-4 w-full">
 						<div className="text-sm font-normal text-gray-400 no-line-height">{p.label}</div>
@@ -67,9 +69,9 @@ function MedicalInformation() {
 function RecentDiagnoses() {
 	return (
 		<div className="flex flex-col gap-4">
-			<h2 className="font-semibold text-gray-600 text-[18px] no-line-height">Recent Diagnoses</h2>
-			<div className="overflow-hidden rounded-[12px] ring ring-gray-200">
-				<Table className="bg-white">
+			<h2 className="font-semibold text-lg text-gray-600 no-line-height">Recent Diagnoses</h2>
+			<div className="overflow-hidden rounded-xl ring ring-gray-200">
+				<Table className="border-separate border-spacing-0 bg-white">
 					<TableHeader className="bg-gray-50">
 						<TableRow className="hover:bg-transparent">
 							{recentdiagnosisHeaders.map((h) => (
@@ -79,9 +81,12 @@ function RecentDiagnoses() {
 							))}
 						</TableRow>
 					</TableHeader>
-					<TableBody>
-						{recentDiagnoses.map((diagnosis) => (
-							<TableRow key={diagnosis.id} className="hover:bg-transparent">
+					<TableBody className="rounded-xl ring ring-gray-200">
+						{recentDiagnoses.map((diagnosis, index) => (
+							<TableRow
+								key={diagnosis.id}
+								className="[&>td]:border-b [&>td]:border-gray-200 last:[&>td]:border-b-0 hover:bg-transparent"
+							>
 								<TableCell className="px-4 py-4 font-medium text-gray-700">
 									{diagnosis.name}
 								</TableCell>
@@ -91,8 +96,50 @@ function RecentDiagnoses() {
 									<CopyIdButton id={diagnosis.id} />
 								</TableCell>
 								<TableCell className="px-4 py-4 text-gray-500">{diagnosis.createdAt}</TableCell>
-								<TableCell className="px-4 py-4">
+								<TableCell className={cn("px-4 py-4", index === 0 && "rounded-tr-xl")}>
 									<StatusBadge status={diagnosis.status} />
+								</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</div>
+		</div>
+	);
+}
+
+function RecentAllergies() {
+	return (
+		<div className="flex flex-col gap-4">
+			<h2 className="font-semibold text-lg text-gray-600 no-line-height">Recent Allergies</h2>
+			<div className="overflow-hidden rounded-xl ring ring-gray-200">
+				<Table className="border-separate border-spacing-0 bg-white">
+					<TableHeader className="bg-gray-50">
+						<TableRow className="hover:bg-transparent">
+							{recentAllergyHeaders.map((h) => (
+								<TableHead key={h.key} className="h-12 px-4 text-sm font-medium text-gray-600">
+									{h.label}
+								</TableHead>
+							))}
+						</TableRow>
+					</TableHeader>
+					<TableBody className="rounded-xl ring ring-gray-200">
+						{recentAllergies.map((allergy, index) => (
+							<TableRow
+								key={`${allergy.id}-${allergy.allergen}-${index}`}
+								className="[&>td]:border-b [&>td]:border-gray-200 last:[&>td]:border-b-0 hover:bg-transparent"
+							>
+								<TableCell className="px-4 py-4 font-medium text-gray-700">
+									{allergy.allergen}
+								</TableCell>
+								<TableCell className="px-4 py-4 font-medium text-gray-600">
+									<CopyIdButton id={allergy.id} />
+								</TableCell>
+								<TableCell className="px-4 py-4 text-gray-500">{allergy.reaction}</TableCell>
+								<TableCell className="px-4 py-4 text-gray-500">{allergy.createdAt}</TableCell>
+								<TableCell className="px-4 py-4 text-gray-500">{allergy.severity}</TableCell>
+								<TableCell className={cn("px-4 py-4", index === 0 && "rounded-tr-xl")}>
+									<StatusBadge status={allergy.status} />
 								</TableCell>
 							</TableRow>
 						))}
@@ -162,11 +209,55 @@ const recentDiagnoses = [
 	},
 ];
 
+const recentAllergies = [
+	{
+		allergen: "Penicillin",
+		id: "ALG-101",
+		reaction: "Generalized rash",
+		createdAt: "17th Apr 2024, 12:30PM",
+		severity: "Mild",
+		status: "Active",
+	},
+	{
+		allergen: "Sulfonamides",
+		id: "ALG-101",
+		reaction: "Facial swelling",
+		createdAt: "17th Apr 2024, 12:30PM",
+		severity: "Mild",
+		status: "Inactive",
+	},
+	{
+		allergen: "Ibuprofen",
+		id: "ALG-101",
+		reaction: "Nausea, abdominal pain",
+		createdAt: "17th Apr 2024, 12:30PM",
+		severity: "Mild",
+		status: "Active",
+	},
+	{
+		allergen: "Ibuprofen",
+		id: "ALG-101",
+		reaction: "Nausea, abdominal pain",
+		createdAt: "17th Apr 2024, 12:30PM",
+		severity: "Mild",
+		status: "Active",
+	},
+];
+
 export const recentdiagnosisHeaders = [
 	{ label: "Diagnosis name", key: "name" },
 	{ label: "Onset", key: "onset" },
 	{ label: "Last reviewed", key: "lastReviewed" },
 	{ label: "Diagnosis ID", key: "id" },
 	{ label: "Created at", key: "createdAt" },
+	{ label: "Status", key: "status" },
+];
+
+export const recentAllergyHeaders = [
+	{ label: "Allergen", key: "allergen" },
+	{ label: "Allergy ID", key: "id" },
+	{ label: "Reaction", key: "reaction" },
+	{ label: "Created at", key: "createdAt" },
+	{ label: "Severity", key: "severity" },
 	{ label: "Status", key: "status" },
 ];

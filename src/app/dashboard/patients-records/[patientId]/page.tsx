@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
-import { patients } from "@/features/transfers/data";
+import { patientRecords } from "@/features/patients/data";
 import { diagnoses } from "@/features/patients/diagnoses-data";
 import { DiagnosesTable } from "@/features/patients/components/diagnoses-table";
 import Link from "next/link";
@@ -55,7 +55,7 @@ async function BreadCrumb({
 }) {
 	const [{ section }, { patientId }] = await Promise.all([searchParams, params]);
 
-	const patientName = patients.find((p) => p.patientId === patientId)?.name;
+	const patientName = patientRecords.find((patient) => patient.patientId === patientId)?.name;
 
 	return (
 		<>
@@ -68,7 +68,7 @@ async function BreadCrumb({
 
 async function Header({ params }: { params: Promise<{ patientId: string }> }) {
 	const { patientId } = await params;
-	const patientName = patients.find((p) => p.patientId === patientId)?.name;
+	const patientName = patientRecords.find((patient) => patient.patientId === patientId)?.name;
 	return (
 		<div className="flex items-center gap-3 border-b border-gray-200 px-6 py-3.5 text-sm">
 			<Avatar className="size-16 border border-gray-200 bg-gray-100 text-gray-700">
@@ -316,15 +316,15 @@ function DocumentsSection({ patientId }: { patientId: string }) {
 
 function renderEmptyState(title: string, description: string, action: string) {
 	return (
-		<div className="flex min-h-[calc(100vh-220px)] items-center justify-center px-6 py-12">
-			<div className="relative flex w-[500px] max-w-full items-end justify-center">
+		<div className="flex min-h-[calc(100vh-13.75rem)] items-center justify-center px-6 py-12">
+			<div className="relative flex w-[31.25rem] max-w-full items-end justify-center">
 				<Image
 					src="/assets/empty-state.svg"
 					alt=""
 					aria-hidden="true"
 					width={500}
 					height={336}
-					className="h-auto w-[500px] max-w-full"
+					className="h-auto w-[31.25rem] max-w-full"
 				/>
 				<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
 					<h2 className="mb-4 text-2xl font-semibold text-gray-900">{title}</h2>

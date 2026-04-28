@@ -81,8 +81,6 @@ export function RecentTransfersTable() {
 										}}
 										className={cn(
 											"z-10 h-12  px-3 py-0 whitespace-nowrap text-gray-600",
-											// header.column.id === "name" &&
-											// 	"sticky left-0 max-[980px]:border-r border-gray-200",
 											header.column.getCanSort() ? "cursor-pointer select-none" : "",
 										)}
 									>
@@ -126,8 +124,6 @@ export function RecentTransfersTable() {
 											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 											rowPosition === 0 && cell.column.getIsFirstColumn() && "rounded-tl-lg",
 											rowPosition === 0 && cell.column.getIsLastColumn() && "rounded-tr-lg",
-											// cell.column.id === "name" &&
-											// 	"sticky left-0 z-10 bg-white max-[800px]:border-r border-gray-200",
 										)}
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}

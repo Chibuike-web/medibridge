@@ -78,9 +78,6 @@ export function RecentPatientsTable() {
 										}}
 										className={cn(
 											"h-12 px-3 py-0 whitespace-nowrap z-10 text-gray-600 bg-gray-50",
-
-											// header.column.id === "name" &&
-											// 	"left-0 sticky max-[800px]:border-r border-gray-200",
 											header.column.getCanSort() ? "cursor-pointer select-none" : "",
 										)}
 									>
@@ -123,8 +120,6 @@ export function RecentPatientsTable() {
 											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 											rowPosition === 0 && cell.column.getIsFirstColumn() && "rounded-tl-lg",
 											rowPosition === 0 && cell.column.getIsLastColumn() && "rounded-tr-lg",
-											// cell.column.id === "name" &&
-											// 	"sticky left-0 z-10 bg-white max-[800px]:border-r border-gray-200",
 										)}
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}

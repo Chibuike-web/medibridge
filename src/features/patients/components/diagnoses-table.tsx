@@ -82,9 +82,9 @@ export function DiagnosesTable({ patientId }: { patientId: string }) {
 	});
 
 	return (
-		<div className="py-12 px-8 ">
-			<h1 className="font-semibold text-[20px] max-w-[1280px] mx-auto">Diagnoses</h1>
-			<div className="flex items-center gap-2 max-w-[1280px] mx-auto mb-4 mt-[28px]">
+		<div className="p-8">
+			<h1 className="mx-auto max-w-7xl text-xl font-semibold">Diagnoses</h1>
+			<div className="mx-auto mt-7 mb-4 flex max-w-7xl items-center gap-2">
 				<div className="relative w-full">
 					<RiSearchLine className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
@@ -103,7 +103,7 @@ export function DiagnosesTable({ patientId }: { patientId: string }) {
 				</Button>
 				<Button size="lg">Add new diagnosis</Button>
 			</div>
-			<div className="overflow-x-auto rounded-xl border border-gray-200 text-sm  max-w-[1280px] mx-auto">
+			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="w-full min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="h-12 text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
