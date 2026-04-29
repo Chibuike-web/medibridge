@@ -33,7 +33,7 @@ function SelectTrigger({
 		>
 			{children}
 			<SelectPrimitive.Icon asChild>
-				<RiArrowDownSLine className="size-5 opacity-50 transition-transform group-data-[state=open]:rotate-180" />
+				<RiArrowDownSLine className="size-5 text-gray-600 transition-transform group-data-[state=open]:rotate-180" />
 			</SelectPrimitive.Icon>
 		</SelectPrimitive.Trigger>
 	);

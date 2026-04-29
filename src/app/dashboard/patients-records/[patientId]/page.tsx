@@ -13,7 +13,7 @@ import { CopyIdButton } from "@/components/copy-id-button";
 import { SectionTabs } from "../../../../features/patients/components/section-tabs";
 import { PatientSectionProps } from "@/features/patients/types";
 import { PatientOverviewSection } from "@/features/patients/components/patient-overview-section";
-import { PatientDetailsSection } from "@/features/patients/components/patient-details-section";
+import { PatientDetailsSection } from "@/features/patients/components/patient-details-section/patient-details-section";
 
 export default function PatientPage({
 	searchParams,

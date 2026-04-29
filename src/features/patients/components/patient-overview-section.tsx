@@ -30,9 +30,7 @@ function PersonalInformation() {
 	return (
 		<div className="rounded-xl bg-gray-50 ring ring-gray-200">
 			<div className="p-4">
-				<h2 className="font-semibold text-lg text-gray-600 no-line-height">
-					Personal Information
-				</h2>
+				<h2 className="font-semibold text-lg text-gray-600 no-line-height">Personal Information</h2>
 			</div>
 			<div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6 rounded-xl bg-white p-4 ring ring-gray-200">
 				{personalInfo.map((p) => (
@@ -50,9 +48,7 @@ function MedicalInformation() {
 	return (
 		<div className="rounded-xl bg-gray-50 ring ring-gray-200">
 			<div className="p-4">
-				<h2 className="font-semibold text-lg text-gray-600 no-line-height">
-					Medical Information
-				</h2>
+				<h2 className="font-semibold text-lg text-gray-600 no-line-height">Medical Information</h2>
 			</div>
 			<div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6 rounded-xl bg-white p-4 ring ring-gray-200">
 				{medicalInfo.map((p) => (
@@ -87,16 +83,16 @@ function RecentDiagnoses() {
 								key={diagnosis.id}
 								className="[&>td]:border-b [&>td]:border-gray-200 last:[&>td]:border-b-0 hover:bg-transparent"
 							>
-								<TableCell className="px-4 py-4 font-medium text-gray-700">
+								<TableCell className="px-4 h-14 font-medium text-gray-700">
 									{diagnosis.name}
 								</TableCell>
-								<TableCell className="px-4 py-4 text-gray-500">{diagnosis.onset}</TableCell>
-								<TableCell className="px-4 py-4 text-gray-500">{diagnosis.lastReviewed}</TableCell>
-								<TableCell className="px-4 py-4 font-medium text-gray-600">
+								<TableCell className="px-4 h-14 text-gray-500">{diagnosis.onset}</TableCell>
+								<TableCell className="px-4 h-14 text-gray-500">{diagnosis.lastReviewed}</TableCell>
+								<TableCell className="px-4 h-14 font-medium text-gray-600">
 									<CopyIdButton id={diagnosis.id} />
 								</TableCell>
-								<TableCell className="px-4 py-4 text-gray-500">{diagnosis.createdAt}</TableCell>
-								<TableCell className={cn("px-4 py-4", index === 0 && "rounded-tr-xl")}>
+								<TableCell className="px-4 h-14 text-gray-500">{diagnosis.createdAt}</TableCell>
+								<TableCell className={cn("px-4 h-14", index === 0 && "rounded-tr-xl")}>
 									<StatusBadge status={diagnosis.status} />
 								</TableCell>
 							</TableRow>
@@ -129,16 +125,16 @@ function RecentAllergies() {
 								key={`${allergy.id}-${allergy.allergen}-${index}`}
 								className="[&>td]:border-b [&>td]:border-gray-200 last:[&>td]:border-b-0 hover:bg-transparent"
 							>
-								<TableCell className="px-4 py-4 font-medium text-gray-700">
+								<TableCell className="px-4 h-14 font-medium text-gray-700">
 									{allergy.allergen}
 								</TableCell>
-								<TableCell className="px-4 py-4 font-medium text-gray-600">
+								<TableCell className="px-4 h-14 font-medium text-gray-600">
 									<CopyIdButton id={allergy.id} />
 								</TableCell>
-								<TableCell className="px-4 py-4 text-gray-500">{allergy.reaction}</TableCell>
-								<TableCell className="px-4 py-4 text-gray-500">{allergy.createdAt}</TableCell>
-								<TableCell className="px-4 py-4 text-gray-500">{allergy.severity}</TableCell>
-								<TableCell className={cn("px-4 py-4", index === 0 && "rounded-tr-xl")}>
+								<TableCell className="px-4 h-14 text-gray-500">{allergy.reaction}</TableCell>
+								<TableCell className="px-4 h-14 text-gray-500">{allergy.createdAt}</TableCell>
+								<TableCell className="px-4 h-14 text-gray-500">{allergy.severity}</TableCell>
+								<TableCell className={cn("px-4 h-14", index === 0 && "rounded-tr-xl")}>
 									<StatusBadge status={allergy.status} />
 								</TableCell>
 							</TableRow>
