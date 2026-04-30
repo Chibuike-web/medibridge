@@ -1,10 +1,6 @@
-import {
-	Document,
-	Page,
-StyleSheet,
-	Text,
-	View,
-} from "@react-pdf/renderer";
+"use client";
+
+import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { TransferPacket } from "./types";
 
 const styles = StyleSheet.create({
@@ -15,86 +11,65 @@ const styles = StyleSheet.create({
 		color: "#111827",
 		fontFamily: "Helvetica",
 	},
-	header: {
-		marginBottom: 20,
-		paddingBottom: 16,
-		borderBottomWidth: 1,
-		borderBottomColor: "#e5e7eb",
-	},
-	eyebrow: {
-		fontSize: 10,
-		color: "#6b7280",
-		textTransform: "uppercase",
-		marginBottom: 8,
-	},
-	title: {
-		fontSize: 22,
-		fontWeight: 700,
-		marginBottom: 4,
-	},
-	subtitle: {
-		fontSize: 11,
-		color: "#4b5563",
-	},
-	sectionRow: {
-		flexDirection: "row",
-		gap: 16,
+
+	section: {
 		marginBottom: 20,
 	},
-	card: {
-		flex: 1,
+
+	sectionHeader: {
 		backgroundColor: "#f9fafb",
+		borderTopLeftRadius: 10,
+		borderTopRightRadius: 10,
+		padding: 12,
 		borderWidth: 1,
 		borderColor: "#e5e7eb",
-		borderRadius: 12,
-		padding: 14,
+		borderBottomWidth: 0,
 	},
-	cardTitle: {
-		fontSize: 11,
-		fontWeight: 700,
-		marginBottom: 8,
-	},
-	cardLine: {
-		fontSize: 10,
-		color: "#374151",
-		marginBottom: 6,
-	},
+
 	sectionTitle: {
 		fontSize: 12,
 		fontWeight: 700,
-		marginBottom: 10,
+		color: "#4b5563",
 	},
-	table: {
+
+	cardBody: {
 		borderWidth: 1,
 		borderColor: "#e5e7eb",
-		borderRadius: 12,
-		overflow: "hidden",
+		borderBottomLeftRadius: 10,
+		borderBottomRightRadius: 10,
+		backgroundColor: "#ffffff",
+		padding: 12,
 	},
-	tableHeader: {
+
+	grid: {
 		flexDirection: "row",
-		backgroundColor: "#f9fafb",
-		borderBottomWidth: 1,
-		borderBottomColor: "#e5e7eb",
+		flexWrap: "wrap",
+		gap: 16,
 	},
-	tableHeaderCell: {
-		flex: 1,
-		paddingVertical: 10,
-		paddingHorizontal: 12,
+
+	gridItem: {
+		width: "48%", // 2 columns approximation
+		marginBottom: 12,
+	},
+
+	label: {
 		fontSize: 10,
+		color: "#9ca3af",
+		marginBottom: 4,
+	},
+
+	value: {
+		fontSize: 11,
 		fontWeight: 700,
 		color: "#4b5563",
 	},
-	tableRow: {
-		flexDirection: "row",
-		borderBottomWidth: 1,
-		borderBottomColor: "#e5e7eb",
-	},
-	tableCell: {
-		flex: 1,
-		paddingVertical: 10,
-		paddingHorizontal: 12,
-		fontSize: 10,
-		color: "#111827",
+
+	table: {
+		marginTop: 8,
+		borderWidth: 1,
+		borderColor: "#e5e7eb",
+		borderRadius: 10,
+		overflow: "hidden",
 	},
 });
 
@@ -102,40 +77,58 @@ export function TransferPatientDocumentPdf({ packet }: { packet: TransferPacket 
 	return (
 		<Document>
 			<Page size="A4" style={styles.page}>
-				<View style={styles.header}>
-					<Text style={styles.eyebrow}>Patient Transfer Document</Text>
-					<Text style={styles.title}>{packet.patientName}</Text>
-					<Text style={styles.subtitle}>Patient ID: {packet.patientId}</Text>
+				{/* Header */}
+				<View style={{ marginBottom: 20 }}>
+					<Text style={{ fontSize: 18, fontWeight: 700 }}>{packet.patientName}</Text>
+					<Text style={{ fontSize: 10, color: "#6b7280" }}>Patient ID: {packet.patientId}</Text>
 				</View>
 
-				<View style={styles.sectionRow}>
-					<View style={styles.card}>
-						<Text style={styles.cardTitle}>Receiving hospital</Text>
-						<Text style={styles.cardLine}>Name: {packet.receivingHospitalName}</Text>
-						<Text style={styles.cardLine}>Email: {packet.receivingHospitalEmail}</Text>
+				{/* Receiving Hospital */}
+				<View style={styles.section}>
+					<View style={styles.sectionHeader}>
+						<Text style={styles.sectionTitle}>Receiving Hospital</Text>
 					</View>
-
-					<View style={styles.card}>
-						<Text style={styles.cardTitle}>Transfer note</Text>
-						<Text style={styles.cardLine}>{packet.transferNote}</Text>
-					</View>
-				</View>
-
-				<View>
-					<Text style={styles.sectionTitle}>Selected clinical records</Text>
-
-					<View style={styles.table}>
-						<View style={styles.tableHeader}>
-							<Text style={styles.tableHeaderCell}>Record</Text>
-							<Text style={styles.tableHeaderCell}>Status</Text>
-						</View>
-
-						{packet.records.map((record) => (
-							<View key={record.id} style={styles.tableRow}>
-								<Text style={styles.tableCell}>{record.label}</Text>
-								<Text style={styles.tableCell}>{record.status}</Text>
+					<View style={styles.cardBody}>
+						<View style={styles.grid}>
+							<View style={styles.gridItem}>
+								<Text style={styles.label}>Name</Text>
+								<Text style={styles.value}>{packet.receivingHospitalName}</Text>
 							</View>
-						))}
+
+							<View style={styles.gridItem}>
+								<Text style={styles.label}>Email</Text>
+								<Text style={styles.value}>{packet.receivingHospitalEmail}</Text>
+							</View>
+						</View>
+					</View>
+				</View>
+
+				{/* Transfer Note */}
+				<View style={styles.section}>
+					<View style={styles.sectionHeader}>
+						<Text style={styles.sectionTitle}>Transfer Note</Text>
+					</View>
+
+					<View style={styles.cardBody}>
+						<Text style={{ fontSize: 10, color: "#374151" }}>{packet.transferNote}</Text>
+					</View>
+				</View>
+
+				{/* Records */}
+				<View style={styles.section}>
+					<View style={styles.sectionHeader}>
+						<Text style={styles.sectionTitle}>Clinical Records</Text>
+					</View>
+
+					<View style={styles.cardBody}>
+						<View style={styles.grid}>
+							{packet.records.map((record) => (
+								<View key={record.id} style={styles.gridItem}>
+									<Text style={styles.label}>{record.label}</Text>
+									<Text style={styles.value}>{record.status}</Text>
+								</View>
+							))}
+						</View>
 					</View>
 				</View>
 			</Page>

@@ -79,7 +79,7 @@ export function EditPhysicalInformation() {
 				))}
 			</div>
 			<Dialog open={open} onOpenChange={setOpen}>
-				<DialogContent className="max-w-[800px]">
+				<DialogContent className="max-w-[50rem]">
 					<DialogHeader className="h-16 px-6 border-b border-gray-200">
 						<DialogTitle>Edit Physical Information</DialogTitle>
 						<DialogDescription className="sr-only">
@@ -108,7 +108,7 @@ export function EditPhysicalInformation() {
 								<SelectTrigger className="h-11 w-full">
 									<SelectValue placeholder="Select blood group" />
 								</SelectTrigger>
-								<SelectContent className="p-1 rounded-[10px]">
+								<SelectContent className="p-1 rounded-[0.625rem]">
 									<SelectGroup>
 										<SelectItem value="A+">A+</SelectItem>
 										<SelectItem value="A-">A-</SelectItem>
@@ -129,7 +129,7 @@ export function EditPhysicalInformation() {
 								<SelectTrigger className="h-11 w-full">
 									<SelectValue placeholder="Select genotype" />
 								</SelectTrigger>
-								<SelectContent className="p-1 rounded-[10px]">
+								<SelectContent className="p-1 rounded-[0.625rem]">
 									<SelectGroup>
 										<SelectItem value="AA">AA</SelectItem>
 										<SelectItem value="AS">AS</SelectItem>

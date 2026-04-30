@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { diagnoses } from "@/features/patients/diagnoses-data";
+import { allergies } from "@/features/patients/allergies-data";
+import { AllergyType } from "@/features/patients/types";
+import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
 	Select,
 	SelectContent,
@@ -29,7 +32,6 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils/cn";
-import { DiagnosisType } from "@/features/patients/types";
 import {
 	type ColumnDef,
 	flexRender,
@@ -50,17 +52,15 @@ import {
 	RiSearchLine,
 	RiShareForwardBoxLine,
 } from "@remixicon/react";
-import { CopyIdButton } from "@/components/copy-id-button";
-import { Input } from "@/components/ui/input";
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
-export function DiagnosesTable({ patientId }: { patientId: string }) {
+export function AllergiesTable({ patientId }: { patientId: string }) {
 	void patientId;
 
-	const data = useMemo(() => diagnoses, []);
-	const columns = useMemo(() => getDiagnosesColumns(), []);
-	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
+	const data = useMemo(() => allergies, []);
+	const columns = useMemo(() => getAllergiesColumns(), []);
+	const [sorting, setSorting] = useState<SortingState>([]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: 6,
@@ -83,14 +83,14 @@ export function DiagnosesTable({ patientId }: { patientId: string }) {
 
 	return (
 		<div className="p-8">
-			<h1 className="mx-auto max-w-7xl text-xl font-semibold">Diagnoses</h1>
+			<h1 className="mx-auto max-w-7xl text-xl font-semibold">Allergies</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl items-center gap-2">
 				<div className="relative w-full">
 					<RiSearchLine className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
 						className="h-10 w-full pl-8"
-						placeholder="Search by patient name or ID"
+						placeholder="Search by name and allergy id"
 					/>
 				</div>
 				<Button size="lg" variant="outline">
@@ -101,10 +101,10 @@ export function DiagnosesTable({ patientId }: { patientId: string }) {
 					<RiShareForwardBoxLine aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button size="lg">Add new diagnosis</Button>
+				<Button size="lg">Add new allergy</Button>
 			</div>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
-				<Table className="w-full min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<Table className="w-full min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="h-12 text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className="h-12">
@@ -222,7 +222,7 @@ export function DiagnosesTable({ patientId }: { patientId: string }) {
 	);
 }
 
-function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
+function getAllergiesColumns(): ColumnDef<AllergyType>[] {
 	return [
 		{
 			id: "select",
@@ -255,40 +255,33 @@ function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
 			enableSorting: false,
 		},
 		{
-			header: "Diagnosis name",
-			accessorKey: "name",
+			header: "Allergen",
+			accessorKey: "allergen",
 			enableSorting: true,
-			cell: ({ row }) => <span className="font-medium text-gray-800">{row.original.name}</span>,
+			cell: ({ row }) => <span className="font-medium text-gray-800">{row.original.allergen}</span>,
 		},
 		{
-			id: "onset",
-			header: "Onset",
-			accessorFn: (row) => row.onsetSortValue,
-			enableSorting: true,
-			cell: ({ row }) => row.original.onsetLabel,
-		},
-		{
-			id: "lastReviewed",
-			header: "Last reviewed",
-			accessorFn: (row) => row.lastReviewedSortValue,
-			enableSorting: true,
-			cell: ({ row }) => row.original.lastReviewedLabel,
-		},
-		{
-			header: "Diagnosis ID",
-			accessorKey: "diagnosisId",
+			header: "Allergy ID",
+			accessorKey: "allergyId",
 			enableSorting: false,
-			cell: ({ row }) => <CopyIdButton id={row.original.diagnosisId} />,
+			cell: ({ row }) => <CopyIdButton id={row.original.allergyId} />,
 		},
 		{
-			header: "Clinical summary",
-			accessorKey: "clinicalSummary",
+			header: "Reaction",
+			accessorKey: "reaction",
 			enableSorting: false,
-			cell: ({ row }) => (
-				<p className="max-w-[22rem] whitespace-normal text-sm leading-6 text-gray-600">
-					{row.original.clinicalSummary}
-				</p>
-			),
+		},
+		{
+			id: "createdAt",
+			header: "Created at",
+			accessorFn: (row) => row.createdAtSortValue,
+			enableSorting: true,
+			cell: ({ row }) => row.original.createdAtLabel,
+		},
+		{
+			header: "Severity",
+			accessorKey: "severity",
+			enableSorting: true,
 		},
 		{
 			header: "Status",
@@ -306,7 +299,7 @@ function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
 						<DropdownMenuTrigger
 							type="button"
 							className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-							aria-label={`Open actions for ${row.original.name}`}
+							aria-label={`Open actions for ${row.original.allergen}`}
 						>
 							<RiMore2Fill className="size-5" aria-hidden />
 						</DropdownMenuTrigger>

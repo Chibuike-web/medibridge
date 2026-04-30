@@ -74,7 +74,7 @@ export function EditEmergencyContact() {
 
 			{/* Dialog */}
 			<Dialog open={open} onOpenChange={setOpen}>
-				<DialogContent className="max-w-[800px]">
+				<DialogContent className="max-w-[50rem]">
 					<DialogHeader className="h-16 px-6 border-b border-gray-200">
 						<DialogTitle>Edit Emergency Contact</DialogTitle>
 

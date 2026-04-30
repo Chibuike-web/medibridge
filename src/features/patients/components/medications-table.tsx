@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { diagnoses } from "@/features/patients/diagnoses-data";
+import { medications } from "@/features/patients/medications-data";
+import { MedicationType } from "@/features/patients/types";
+import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
 	Select,
 	SelectContent,
@@ -29,7 +32,6 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils/cn";
-import { DiagnosisType } from "@/features/patients/types";
 import {
 	type ColumnDef,
 	flexRender,
@@ -44,23 +46,23 @@ import {
 	RiArchiveLine,
 	RiArrowDownSLine,
 	RiArrowUpSLine,
-	RiEyeLine,
+	RiCheckLine,
+	RiCloseLine,
+	RiErrorWarningLine,
 	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
 	RiShareForwardBoxLine,
 } from "@remixicon/react";
-import { CopyIdButton } from "@/components/copy-id-button";
-import { Input } from "@/components/ui/input";
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
-export function DiagnosesTable({ patientId }: { patientId: string }) {
+export function MedicationsTable({ patientId }: { patientId: string }) {
 	void patientId;
 
-	const data = useMemo(() => diagnoses, []);
-	const columns = useMemo(() => getDiagnosesColumns(), []);
-	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
+	const data = useMemo(() => medications, []);
+	const columns = useMemo(() => getMedicationsColumns(), []);
+	const [sorting, setSorting] = useState<SortingState>([]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: 6,
@@ -83,14 +85,14 @@ export function DiagnosesTable({ patientId }: { patientId: string }) {
 
 	return (
 		<div className="p-8">
-			<h1 className="mx-auto max-w-7xl text-xl font-semibold">Diagnoses</h1>
+			<h1 className="mx-auto max-w-7xl text-xl font-semibold">Medications</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl items-center gap-2">
 				<div className="relative w-full">
 					<RiSearchLine className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
 						className="h-10 w-full pl-8"
-						placeholder="Search by patient name or ID"
+						placeholder="Search by department or physician"
 					/>
 				</div>
 				<Button size="lg" variant="outline">
@@ -101,7 +103,7 @@ export function DiagnosesTable({ patientId }: { patientId: string }) {
 					<RiShareForwardBoxLine aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button size="lg">Add new diagnosis</Button>
+				<Button size="lg">Add new medication</Button>
 			</div>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="w-full min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left">
@@ -222,7 +224,7 @@ export function DiagnosesTable({ patientId }: { patientId: string }) {
 	);
 }
 
-function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
+function getMedicationsColumns(): ColumnDef<MedicationType>[] {
 	return [
 		{
 			id: "select",
@@ -255,40 +257,43 @@ function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
 			enableSorting: false,
 		},
 		{
-			header: "Diagnosis name",
-			accessorKey: "name",
+			header: "Medication",
+			accessorKey: "medication",
 			enableSorting: true,
-			cell: ({ row }) => <span className="font-medium text-gray-800">{row.original.name}</span>,
-		},
-		{
-			id: "onset",
-			header: "Onset",
-			accessorFn: (row) => row.onsetSortValue,
-			enableSorting: true,
-			cell: ({ row }) => row.original.onsetLabel,
-		},
-		{
-			id: "lastReviewed",
-			header: "Last reviewed",
-			accessorFn: (row) => row.lastReviewedSortValue,
-			enableSorting: true,
-			cell: ({ row }) => row.original.lastReviewedLabel,
-		},
-		{
-			header: "Diagnosis ID",
-			accessorKey: "diagnosisId",
-			enableSorting: false,
-			cell: ({ row }) => <CopyIdButton id={row.original.diagnosisId} />,
-		},
-		{
-			header: "Clinical summary",
-			accessorKey: "clinicalSummary",
-			enableSorting: false,
 			cell: ({ row }) => (
-				<p className="max-w-[22rem] whitespace-normal text-sm leading-6 text-gray-600">
-					{row.original.clinicalSummary}
-				</p>
+				<span className="font-medium text-gray-800">{row.original.medication}</span>
 			),
+		},
+		{
+			header: "Dose",
+			accessorKey: "dose",
+			enableSorting: false,
+		},
+		{
+			header: "Route",
+			accessorKey: "route",
+			enableSorting: true,
+		},
+		{
+			header: "Medication ID",
+			accessorKey: "medicationId",
+			enableSorting: false,
+			cell: ({ row }) => <CopyIdButton id={row.original.medicationId} />,
+		},
+		{
+			header: "Indication",
+			accessorKey: "indication",
+			enableSorting: true,
+			cell: ({ row }) => (
+				<span className="block max-w-[18rem] whitespace-normal">{row.original.indication}</span>
+			),
+		},
+		{
+			id: "createdAt",
+			header: "Created at",
+			accessorFn: (row) => row.createdAtSortValue,
+			enableSorting: true,
+			cell: ({ row }) => row.original.createdAtLabel,
 		},
 		{
 			header: "Status",
@@ -306,7 +311,7 @@ function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
 						<DropdownMenuTrigger
 							type="button"
 							className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-							aria-label={`Open actions for ${row.original.name}`}
+							aria-label={`Open actions for ${row.original.medication}`}
 						>
 							<RiMore2Fill className="size-5" aria-hidden />
 						</DropdownMenuTrigger>
@@ -315,8 +320,16 @@ function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
 							className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
 							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
-								<RiEyeLine className="text-white" />
+								<RiErrorWarningLine className="text-white" />
 								<span>View details</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+								<RiCheckLine className="text-white" />
+								<span>Mark as completed</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+								<RiCloseLine className="text-white" />
+								<span>Discontinue medication</span>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator className="bg-white/20" />
 							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">

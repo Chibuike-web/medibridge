@@ -86,7 +86,7 @@ export function EditPersonalInformation() {
 			</div>
 
 			<Dialog open={open} onOpenChange={setOpen}>
-				<DialogContent className="max-w-[800px]">
+				<DialogContent className="max-w-[50rem]">
 					<DialogHeader className="h-16 px-6 border-b border-gray-200">
 						<DialogTitle>Edit Personal Information</DialogTitle>
 						<DialogDescription className="sr-only">
@@ -142,7 +142,7 @@ export function EditPersonalInformation() {
 								<SelectTrigger className="h-11 w-full">
 									<SelectValue placeholder="Select sex" />
 								</SelectTrigger>
-								<SelectContent className="p-1 rounded-[10px]">
+								<SelectContent className="p-1 rounded-[0.625rem]">
 									<SelectGroup>
 										<SelectItem value="male">Male</SelectItem>
 										<SelectItem value="female">Female</SelectItem>
@@ -159,7 +159,7 @@ export function EditPersonalInformation() {
 									<SelectValue placeholder="Select marital status" />
 								</SelectTrigger>
 
-								<SelectContent className="p-1 rounded-[10px]">
+								<SelectContent className="p-1 rounded-[0.625rem]">
 									<SelectGroup>
 										<SelectItem value="single">Single</SelectItem>
 										<SelectItem value="married">Married</SelectItem>
