@@ -38,7 +38,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-export function EditPersonalInformation() {
+export function PersonalInformation() {
 	const [open, setOpen] = useState(false);
 	const [dob, setDob] = useState<Date | undefined>();
 

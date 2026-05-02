@@ -67,7 +67,7 @@ function getOverviewCards(
 export function OverviewClient() {
 	return (
 		<div className="flex h-full flex-col">
-			<header className="border-b border-gray-100 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0">
+			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0">
 				<h1 className="text-xl font-semibold text-balance text-gray-800 tracking-[-0.015em]">
 					Overview
 				</h1>
@@ -101,39 +101,39 @@ function Cards() {
 
 	return (
 		<div className="grid gap-4 xl:grid-cols-3">
-			{cards.map((card) => (
-				<div key={card.label} className="rounded-xl bg-gray-50 ring ring-gray-200">
-					<div className="px-3 h-10 flex items-center">
-						<p className="text-sm text-gray-400">{card.label}</p>
-					</div>
-					<div className="rounded-xl bg-white px-3 pt-6 ring ring-gray-200">
-						<p className="text-4xl font-semibold text-gray-800">{formatStat(card.value)}</p>
-						<div className="mt-4 border-t border-gray-200 py-3.5 text-sm text-pretty text-gray-600">
-							<div className="flex items-center justify-between gap-3 font-medium">
-								<p className="text-gray-400">{card.rangeLabel}</p>
-								<span
-									className={cn(
-										"inline-flex items-center gap-1",
-										card.growth?.difference && card.growth.difference > 0
-											? "text-emerald-600"
-											: card.growth?.difference && card.growth.difference < 0
-												? "text-red-600"
-												: "text-gray-400",
-									)}
-								>
-									{card.growth?.percentChange}%
-									{card.growth?.difference && card.growth.difference > 0 ? (
-										<RiArrowUpLine className="size-4" />
-									) : card.growth?.difference && card.growth.difference < 0 ? (
-										<RiArrowDownLine className="size-4" />
-									) : null}
-									{card.growth?.difference && card.growth.difference >= 0 ? "+" : ""}
-								</span>
+			{cards.map((card) => {
+				const diff = card.growth?.difference ?? 0;
+
+				return (
+					<div key={card.label} className="rounded-xl bg-gray-50 ring ring-gray-200">
+						<div className="px-3 h-10 flex items-center">
+							<p className="text-sm text-gray-400">{card.label}</p>
+						</div>
+						<div className="rounded-xl bg-white px-3 pt-6 ring ring-gray-200">
+							<p className="text-4xl font-semibold text-gray-800">{formatStat(card.value)}</p>
+							<div className="mt-4 border-t border-gray-200 py-3.5 text-sm text-pretty text-gray-600">
+								<div className="flex items-center justify-between gap-3 font-medium">
+									<p className="text-gray-400">{card.rangeLabel}</p>
+									<span
+										className={cn(
+											"inline-flex items-center gap-1",
+											diff > 0 ? "text-emerald-600" : diff < 0 ? "text-red-600" : "text-gray-400",
+										)}
+									>
+										{diff > 0 ? "+" : ""}
+										{card.growth?.percentChange}%
+										{diff > 0 ? (
+											<RiArrowUpLine className="size-4" />
+										) : diff < 0 ? (
+											<RiArrowDownLine className="size-4" />
+										) : null}
+									</span>
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
-			))}
+				);
+			})}
 		</div>
 	);
 }

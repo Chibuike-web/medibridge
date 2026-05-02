@@ -13,12 +13,9 @@ function CardSkeleton() {
 export default function Loading() {
 	return (
 		<div className="flex h-full flex-col">
-			<header className="border-b border-gray-200 bg-white">
-				<div className="mx-auto flex w-full max-w-7xl items-center px-6 py-5 lg:px-10">
-					<div className="space-y-2">
-						<div className="h-8 w-36 animate-pulse rounded bg-gray-100" />
-						<div className="h-4 w-72 animate-pulse rounded bg-gray-100" />
-					</div>
+			<header className="border-b border-gray-100 bg-white sticky top-0 z-20 shrink-0">
+				<div className="flex h-16 items-center px-8">
+					<div className="h-6 w-32 animate-pulse rounded bg-gray-100" />
 				</div>
 			</header>
 

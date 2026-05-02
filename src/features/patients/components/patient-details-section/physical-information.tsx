@@ -16,6 +16,14 @@ import {
 	DialogFooter,
 	DialogClose,
 } from "@/components/ui/dialog";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,19 +33,18 @@ import { RiEditLine, RiMore2Fill, RiShareForwardBoxLine, RiCloseLine } from "@re
 
 import { useState } from "react";
 
-export function EditEmergencyContact() {
+export function PhysicalInformation() {
 	const [open, setOpen] = useState(false);
 
 	return (
 		<section className="rounded-xl bg-gray-50 ring ring-gray-200">
 			<div className="flex h-11 items-center justify-between gap-4 px-4">
-				<h2 className="font-semibold text-lg text-gray-600 no-line-height">Emergency Contact</h2>
-
+				<h2 className="font-semibold text-lg text-gray-600 no-line-height">Physical Information</h2>
 				<DropdownMenu>
 					<DropdownMenuTrigger
 						type="button"
 						className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-						aria-label="Open actions for Contact Information"
+						aria-label="Open actions for Personal Information"
 					>
 						<RiMore2Fill className="size-5" aria-hidden />
 					</DropdownMenuTrigger>
@@ -55,6 +62,7 @@ export function EditEmergencyContact() {
 							<RiEditLine className="text-white" />
 							<span>Edit info</span>
 						</DropdownMenuItem>
+
 						<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
 							<RiShareForwardBoxLine className="text-white" />
 							<span>Export info</span>
@@ -62,26 +70,22 @@ export function EditEmergencyContact() {
 					</DropdownMenuContent>
 				</DropdownMenu>
 			</div>
-
 			<div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6 rounded-xl bg-white p-4 ring ring-gray-200">
-				{emergencyContact.map((item) => (
-					<div key={item.label} className="flex flex-col gap-4">
-						<div className="text-sm text-gray-400 no-line-height">{item.label}</div>
+				{physicalInformation.map((item) => (
+					<div key={item.label} className="flex w-full flex-col gap-4">
+						<div className="text-sm font-normal text-gray-400 no-line-height">{item.label}</div>
 						<div className="text-sm font-semibold text-gray-600 no-line-height">{item.value}</div>
 					</div>
 				))}
 			</div>
-
-			{/* Dialog */}
 			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogContent className="max-w-[50rem]">
 					<DialogHeader className="h-16 px-6 border-b border-gray-200">
-						<DialogTitle>Edit Emergency Contact</DialogTitle>
-
+						<DialogTitle>Edit Physical Information</DialogTitle>
 						<DialogDescription className="sr-only">
-							Form for editing emergency contact details.
+							Form for editing physical information such as height, weight, blood group, and
+							genotype.
 						</DialogDescription>
-
 						<DialogClose>
 							<RiCloseLine className="size-6" />
 						</DialogClose>
@@ -89,28 +93,52 @@ export function EditEmergencyContact() {
 
 					<form className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-gray-800">
 						<div className="flex flex-col gap-2">
-							<Label>First name</Label>
-							<Input placeholder="Enter first name" className="h-11" />
+							<Label>Height</Label>
+							<Input placeholder="Enter height (cm)" type="number" className="h-11" />
 						</div>
 
 						<div className="flex flex-col gap-2">
-							<Label>Middle name</Label>
-							<Input placeholder="Enter middle name" className="h-11" />
+							<Label>Weight</Label>
+							<Input placeholder="Enter weight (kg)" type="number" className="h-11" />
 						</div>
 
 						<div className="flex flex-col gap-2">
-							<Label>Last name</Label>
-							<Input placeholder="Enter last name" className="h-11" />
+							<Label>Blood</Label>
+							<Select>
+								<SelectTrigger className="h-11 w-full">
+									<SelectValue placeholder="Select blood group" />
+								</SelectTrigger>
+								<SelectContent className="p-1 rounded-[0.625rem]">
+									<SelectGroup>
+										<SelectItem value="A+">A+</SelectItem>
+										<SelectItem value="A-">A-</SelectItem>
+										<SelectItem value="B+">B+</SelectItem>
+										<SelectItem value="B-">B-</SelectItem>
+										<SelectItem value="AB+">AB+</SelectItem>
+										<SelectItem value="AB-">AB-</SelectItem>
+										<SelectItem value="O+">O+</SelectItem>
+										<SelectItem value="O-">O-</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
 						</div>
 
 						<div className="flex flex-col gap-2">
-							<Label>Relationship</Label>
-							<Input placeholder="Eg. Brother, Wife" className="h-11" />
-						</div>
-
-						<div className="flex flex-col gap-2">
-							<Label>Phone number</Label>
-							<Input type="tel" placeholder="Enter phone number" className="h-11" />
+							<Label>Genotype</Label>
+							<Select>
+								<SelectTrigger className="h-11 w-full">
+									<SelectValue placeholder="Select genotype" />
+								</SelectTrigger>
+								<SelectContent className="p-1 rounded-[0.625rem]">
+									<SelectGroup>
+										<SelectItem value="AA">AA</SelectItem>
+										<SelectItem value="AS">AS</SelectItem>
+										<SelectItem value="SS">SS</SelectItem>
+										<SelectItem value="AC">AC</SelectItem>
+										<SelectItem value="SC">SC</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
 						</div>
 					</form>
 
@@ -121,7 +149,6 @@ export function EditEmergencyContact() {
 									Cancel
 								</Button>
 							</DialogClose>
-
 							<Button className="h-11">Save</Button>
 						</div>
 					</DialogFooter>
@@ -131,10 +158,9 @@ export function EditEmergencyContact() {
 	);
 }
 
-const emergencyContact = [
-	{ label: "First Name", value: "Emmanuel" },
-	{ label: "Middle Name", value: "Okereke" },
-	{ label: "Last Name", value: "Okafor" },
-	{ label: "Relationship", value: "Wife" },
-	{ label: "Phone", value: "1234567890" },
+const physicalInformation = [
+	{ label: "Height", value: "175cm" },
+	{ label: "Weight", value: "68kg" },
+	{ label: "Blood Group", value: "0+" },
+	{ label: "Genotype", value: "AA" },
 ];

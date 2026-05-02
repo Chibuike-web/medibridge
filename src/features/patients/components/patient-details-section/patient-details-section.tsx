@@ -1,7 +1,7 @@
-import { EditPersonalInformation } from "./edit-personal-information";
-import { EditContactInformation } from "./edit-contact-information";
-import { EditEmergencyContact } from "./edit-emergency-contact";
-import { EditPhysicalInformation } from "./edit-physical-information";
+import { ContactInformation } from "./contact-information";
+import { EmergencyContact } from "./emergency-contact";
+import { PersonalInformation } from "./personal-information";
+import { PhysicalInformation } from "./physical-information";
 
 export function PatientDetailsSection({ patientId }: { patientId: string }) {
 	void patientId;
@@ -11,10 +11,10 @@ export function PatientDetailsSection({ patientId }: { patientId: string }) {
 			<div className="mx-auto max-w-7xl">
 				<h1 className="mb-6 text-xl font-semibold text-gray-800">Patient Details</h1>
 				<div className="flex flex-col gap-10">
-					<EditPersonalInformation />
-					<EditContactInformation />
-					<EditEmergencyContact />
-					<EditPhysicalInformation />
+					<PersonalInformation />
+					<ContactInformation />
+					<EmergencyContact />
+					<PhysicalInformation />
 				</div>
 			</div>
 		</div>

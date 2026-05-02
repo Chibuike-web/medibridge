@@ -9,26 +9,30 @@ import {
 
 import {
 	Dialog,
-	DialogClose,
 	DialogContent,
-	DialogDescription,
-	DialogFooter,
 	DialogHeader,
 	DialogTitle,
+	DialogDescription,
+	DialogFooter,
+	DialogClose,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { RiCloseLine, RiEditLine, RiMore2Fill, RiShareForwardBoxLine } from "@remixicon/react";
 
-export function EditContactInformation() {
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+import { RiEditLine, RiMore2Fill, RiShareForwardBoxLine, RiCloseLine } from "@remixicon/react";
+
+import { useState } from "react";
+
+export function EmergencyContact() {
 	const [open, setOpen] = useState(false);
 
 	return (
 		<section className="rounded-xl bg-gray-50 ring ring-gray-200">
 			<div className="flex h-11 items-center justify-between gap-4 px-4">
-				<h2 className="font-semibold text-lg text-gray-600 no-line-height">Contact Information</h2>
+				<h2 className="font-semibold text-lg text-gray-600 no-line-height">Emergency Contact</h2>
+
 				<DropdownMenu>
 					<DropdownMenuTrigger
 						type="button"
@@ -58,21 +62,24 @@ export function EditContactInformation() {
 					</DropdownMenuContent>
 				</DropdownMenu>
 			</div>
+
 			<div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6 rounded-xl bg-white p-4 ring ring-gray-200">
-				{contactInformation.map((item) => (
-					<div key={item.label} className="flex w-full flex-col gap-4">
-						<div className="text-sm font-normal text-gray-400 no-line-height">{item.label}</div>
+				{emergencyContact.map((item) => (
+					<div key={item.label} className="flex flex-col gap-4">
+						<div className="text-sm text-gray-400 no-line-height">{item.label}</div>
 						<div className="text-sm font-semibold text-gray-600 no-line-height">{item.value}</div>
 					</div>
 				))}
 			</div>
+
+			{/* Dialog */}
 			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogContent className="max-w-[50rem]">
 					<DialogHeader className="h-16 px-6 border-b border-gray-200">
-						<DialogTitle>Edit Contact Information</DialogTitle>
+						<DialogTitle>Edit Emergency Contact</DialogTitle>
 
 						<DialogDescription className="sr-only">
-							Form for editing contact details such as phone number, email, and address.
+							Form for editing emergency contact details.
 						</DialogDescription>
 
 						<DialogClose>
@@ -82,33 +89,28 @@ export function EditContactInformation() {
 
 					<form className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-gray-800">
 						<div className="flex flex-col gap-2">
+							<Label>First name</Label>
+							<Input placeholder="Enter first name" className="h-11" />
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label>Middle name</Label>
+							<Input placeholder="Enter middle name" className="h-11" />
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label>Last name</Label>
+							<Input placeholder="Enter last name" className="h-11" />
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label>Relationship</Label>
+							<Input placeholder="Eg. Brother, Wife" className="h-11" />
+						</div>
+
+						<div className="flex flex-col gap-2">
 							<Label>Phone number</Label>
-							<Input id="phone" placeholder="Enter phone number" type="tel" className="h-11" />
-						</div>
-
-						<div className="flex flex-col gap-2">
-							<Label>Email address</Label>
-							<Input id="email" placeholder="Enter email address" type="email" className="h-11" />
-						</div>
-
-						<div className="flex flex-col gap-2">
-							<Label>Residential address</Label>
-							<Input
-								id="address"
-								placeholder="Enter residential address"
-								type="text"
-								className="h-11"
-							/>
-						</div>
-
-						<div className="flex flex-col gap-2">
-							<Label>State of Origin</Label>
-							<Input id="state" placeholder="Enter state" type="text" className="h-11" />
-						</div>
-
-						<div className="flex flex-col gap-2">
-							<Label>Country of Origin</Label>
-							<Input id="country" placeholder="Enter country" type="text" className="h-11" />
+							<Input type="tel" placeholder="Enter phone number" className="h-11" />
 						</div>
 					</form>
 
@@ -129,10 +131,10 @@ export function EditContactInformation() {
 	);
 }
 
-const contactInformation = [
-	{ label: "Phone number", value: "1234567890" },
-	{ label: "Email Address", value: "chibuikemaduabuchi2023@gmail.com" },
-	{ label: "Residential address", value: "12 Allen Avenue, Ikeja, Lagos, Nigeria" },
-	{ label: "State of Origin", value: "Enugu State" },
-	{ label: "Country of Origin", value: "Nigeria" },
+const emergencyContact = [
+	{ label: "First Name", value: "Emmanuel" },
+	{ label: "Middle Name", value: "Okereke" },
+	{ label: "Last Name", value: "Okafor" },
+	{ label: "Relationship", value: "Wife" },
+	{ label: "Phone", value: "1234567890" },
 ];

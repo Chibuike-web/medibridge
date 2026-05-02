@@ -1,5 +1,11 @@
 import { Suspense } from "react";
-import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
+import {
+	RiArrowLeftLine,
+	RiArrowRightSLine,
+	RiDeleteBin2Line,
+	RiEdit2Line,
+	RiUpload2Line,
+} from "@remixicon/react";
 import { patientRecords } from "@/features/patients/data";
 import { diagnoses } from "@/features/patients/diagnoses-data";
 import { DiagnosesTable } from "@/features/patients/components/diagnoses-table";
@@ -20,6 +26,7 @@ import { ProceduresTable } from "@/features/patients/components/procedures-table
 import { MedicationsTable } from "@/features/patients/components/medications-table";
 import { LabTestsTable } from "@/features/patients/components/lab-tests-table";
 import { ImagingTable } from "@/features/patients/components/imaging-table";
+import { PatientAvatarMenu } from "@/features/patients/components/patient-avatar-menu";
 
 export const metadata = {
 	title: "Patient Record",
@@ -81,11 +88,7 @@ async function Header({ params }: { params: Promise<{ patientId: string }> }) {
 	const patientName = patientRecords.find((patient) => patient.patientId === patientId)?.name;
 	return (
 		<div className="flex items-center gap-3 border-b border-gray-200 px-6 py-3.5 text-sm">
-			<Avatar className="size-16 border border-gray-200 bg-gray-100 text-gray-700">
-				<AvatarFallback className="bg-gray-100 text-2xl font-semibold text-gray-700">
-					{getInitials(patientName ?? "")}
-				</AvatarFallback>
-			</Avatar>
+			<PatientAvatarMenu patientName={patientName ?? ""} />
 
 			<div className="flex flex-col gap-4">
 				<div className="flex items-center gap-2.5">

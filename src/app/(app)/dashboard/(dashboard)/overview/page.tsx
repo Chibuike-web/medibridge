@@ -9,14 +9,16 @@ export const metadata = {
 	title: "Overview",
 };
 
+const baseDate = new Date();
+
 const previewPatientCreatedAt = [
 	...Array.from({ length: 6 }, (_, index) => {
-		const date = new Date("2026-03-18T10:00:00.000Z");
+		const date = new Date(baseDate);
 		date.setDate(date.getDate() - index - 1);
 		return date.toISOString();
 	}),
 	...Array.from({ length: 122 }, (_, index) => {
-		const date = new Date("2026-03-11T10:00:00.000Z");
+		const date = new Date(baseDate);
 		date.setDate(date.getDate() - index * 2);
 		return date.toISOString();
 	}),
@@ -24,12 +26,12 @@ const previewPatientCreatedAt = [
 
 const previewPatientTransferredAt = [
 	...Array.from({ length: 4 }, (_, index) => {
-		const date = new Date("2026-03-20T10:00:00.000Z");
+		const date = new Date(baseDate);
 		date.setDate(date.getDate() - index - 1);
 		return date.toISOString();
 	}),
 	...Array.from({ length: 14 }, (_, index) => {
-		const date = new Date("2026-03-09T10:00:00.000Z");
+		const date = new Date(baseDate);
 		date.setDate(date.getDate() - index * 3);
 		return date.toISOString();
 	}),
@@ -37,12 +39,12 @@ const previewPatientTransferredAt = [
 
 const previewPendingTransferredAt = [
 	...Array.from({ length: 5 }, (_, index) => {
-		const date = new Date("2026-03-22T10:00:00.000Z");
+		const date = new Date(baseDate);
 		date.setDate(date.getDate() - index);
 		return date.toISOString();
 	}),
 	...Array.from({ length: 7 }, (_, index) => {
-		const date = new Date("2026-02-24T10:00:00.000Z");
+		const date = new Date(baseDate);
 		date.setDate(date.getDate() - index * 4);
 		return date.toISOString();
 	}),
