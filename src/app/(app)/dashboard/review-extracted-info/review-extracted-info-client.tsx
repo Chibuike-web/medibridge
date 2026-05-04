@@ -37,7 +37,7 @@ type EditableInfoSectionProps = {
 };
 
 export function ReviewExtractedInfoClient() {
-	const { patientData, setPatientData } = useExtractedPatient();
+	const { patientData, setPatientData, isHydrated } = useExtractedPatient();
 	const router = useRouter();
 	const [isOpen, setIsOpen] = useState(false);
 	const [saveError, setSaveError] = useState("");
@@ -66,7 +66,7 @@ export function ReviewExtractedInfoClient() {
 		});
 	};
 
-	if (patientData === null) {
+	if (!isHydrated) {
 		return (
 			<main className="mx-auto my-10 grid min-h-dvh max-w-[37.5rem] place-items-center">
 				<div className="w-full px-4 md:px-0">
@@ -86,14 +86,13 @@ export function ReviewExtractedInfoClient() {
 		);
 	}
 
-	if (patientData.length === 0) {
+	if (!patientData || patientData.length === 0) {
 		return (
-			<h1 className="grid min-h-dvh place-items-center text-3xl font-semibold text-gray-800">
+			<h1 className="grid min-h-dvh place-items-center text-2xl font-semibold text-gray-800">
 				No patient data extracted
 			</h1>
 		);
 	}
-
 	return (
 		<main className="mx-auto my-10 grid min-h-dvh max-w-[37.5rem] place-items-center">
 			<div className="w-full">
@@ -119,50 +118,48 @@ export function ReviewExtractedInfoClient() {
 									<RiArrowRightSLine className="size-6" aria-hidden="true" />
 								</button>
 							</DialogTrigger>
-							<DialogContent className="flex max-h-[53.125rem] flex-col overflow-hidden p-0">
-								<div className="flex flex-col overflow-y-auto">
-									<DialogHeader className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-3">
-										<div className="flex w-full items-center justify-between gap-4">
-											<DialogTitle className="text-xl font-semibold text-gray-800">
-												{formatPatientLabel(record.personalInfo)}
-											</DialogTitle>
-											<DialogClose asChild>
-												<Button
-													variant="ghost"
-													size="icon"
-													className="size-10 rounded-full"
-													aria-label="Close patient details"
-												>
-													<RiCloseLine className="size-5" aria-hidden="true" />
-												</Button>
-											</DialogClose>
-										</div>
-										<DialogDescription className="sr-only">
-											Review and edit extracted patient information
-										</DialogDescription>
-									</DialogHeader>
-									<div className="flex flex-col gap-6 p-4">
-										<PersonalInfo
-											index={index}
-											personalInfo={record.personalInfo}
-											records={patientData}
-										/>
-										<ContactInfo
-											index={index}
-											contactInfo={record.contactInfo}
-											records={patientData}
-										/>
-										<EmergencyInfo
-											index={index}
-											emergencyInfo={record.emergencyInfo}
-											records={patientData}
-										/>
-										<PhysicalInfo
-											index={index}
-											physicalInfo={record.physicalInfo}
-											records={patientData}
-										/>
+							<DialogContent className="flex flex-col">
+								<DialogHeader className="border-b border-gray-20 px-4 py-3">
+									<div className="flex w-full items-center justify-between gap-4">
+										<DialogTitle className="text-xl font-semibold text-gray-800">
+											{formatPatientLabel(record.personalInfo)}
+										</DialogTitle>
+										<DialogClose asChild>
+											<Button
+												variant="ghost"
+												size="icon"
+												className="size-10 rounded-full"
+												aria-label="Close patient details"
+											>
+												<RiCloseLine className="size-5" aria-hidden="true" />
+											</Button>
+										</DialogClose>
 									</div>
+									<DialogDescription className="sr-only">
+										Review and edit extracted patient information
+									</DialogDescription>
+								</DialogHeader>
+								<div className="flex flex-col gap-6 p-4">
+									<PersonalInfo
+										index={index}
+										personalInfo={record.personalInfo}
+										records={patientData}
+									/>
+									<ContactInfo
+										index={index}
+										contactInfo={record.contactInfo}
+										records={patientData}
+									/>
+									<EmergencyInfo
+										index={index}
+										emergencyInfo={record.emergencyInfo}
+										records={patientData}
+									/>
+									<PhysicalInfo
+										index={index}
+										physicalInfo={record.physicalInfo}
+										records={patientData}
+									/>
 								</div>
 							</DialogContent>
 						</Dialog>

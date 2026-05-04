@@ -22,17 +22,22 @@ function DialogClose({ ...props }: React.ComponentProps<typeof DialogPrimitive.C
 
 function DialogOverlay({
 	className,
+	children,
 	...props
 }: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
 	return (
 		<DialogPrimitive.Overlay
 			data-slot="dialog-overlay"
 			className={cn(
-				"data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+				"fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/50 p-6",
+				"data-[state=open]:animate-in data-[state=closed]:animate-out",
+				"data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
 				className,
 			)}
 			{...props}
-		/>
+		>
+			{children}
+		</DialogPrimitive.Overlay>
 	);
 }
 
@@ -42,27 +47,24 @@ function DialogContent({
 	...props
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
 	return (
-		<>
-			<DialogPortal>
-				<DialogOverlay />
-				<div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-					<DialogPrimitive.Content
-						data-slot="dialog-content"
-						className={cn(
-							"w-full max-w-[37.5rem]",
-							"bg-background rounded-3xl border shadow-[0_2rem_2rem_-1.25rem_rgba(0,0,0,0.25)]",
-							"data-[state=open]:animate-in data-[state=closed]:animate-out",
-							"data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
-							"data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
-							className,
-						)}
-						{...props}
-					>
-						{children}
-					</DialogPrimitive.Content>
-				</div>
-			</DialogPortal>
-		</>
+		<DialogPortal>
+			<DialogOverlay>
+				<DialogPrimitive.Content
+					data-slot="dialog-content"
+					className={cn(
+						"w-full max-w-[37.5rem]",
+						"bg-background rounded-3xl border shadow-[0_2rem_2rem_-1.25rem_rgba(0,0,0,0.25)]",
+						"data-[state=open]:animate-in data-[state=closed]:animate-out",
+						"data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
+						"data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
+						className,
+					)}
+					{...props}
+				>
+					{children}
+				</DialogPrimitive.Content>
+			</DialogOverlay>
+		</DialogPortal>
 	);
 }
 

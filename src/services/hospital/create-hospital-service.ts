@@ -1,7 +1,7 @@
 "use server";
 
 import { HospitalDetailsType } from "@/features/auth/schemas/hospital-details-schema";
-import { hospitalDetails } from "@/db/auth-schema";
+import { hospitalDetails } from "@/db/schemas";
 import { auth, db } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 
