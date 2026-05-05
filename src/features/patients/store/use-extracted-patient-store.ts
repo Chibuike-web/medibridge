@@ -14,6 +14,7 @@ export const useExtractedPatientStore = create<Store>()(
 			patientData: null,
 			isHydrated: false,
 			setPatientData: (data) => set({ patientData: data }),
+			setHydrated: () => set({ isHydrated: true }),
 		}),
 		{
 			name: "extracted-patient-data",

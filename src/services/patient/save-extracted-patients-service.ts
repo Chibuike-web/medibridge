@@ -9,13 +9,13 @@ import {
 } from "@/db/schemas/patient";
 import { auth, db } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
-import { SavePatientRecordsResult } from "./types";
+import { SavePatientsResult } from "./types";
 
 function isBlank(value: string | null | undefined) {
 	return value === null || value === undefined || value.trim() === "";
 }
 
-function validatePatientRecords(records: PatientType) {
+function validatePatients(records: PatientType) {
 	for (const [index, record] of records.entries()) {
 		const label = `Patient ${index + 1}`;
 		const { personalInfo, emergencyInfo } = record;
@@ -34,24 +34,24 @@ function validatePatientRecords(records: PatientType) {
 	return null;
 }
 
-export async function saveExtractedPatientRecordsService(
+export async function saveExtractedPatientsService(
 	input: PatientType,
-): Promise<SavePatientRecordsResult> {
+): Promise<SavePatientsResult> {
 	try {
 		const parsedRecords = PatientSchema.safeParse(input);
 		if (!parsedRecords.success) {
 			return {
 				status: "failed",
-				error: "Invalid patient record payload.",
+					error: "Invalid patient payload.",
 			};
 		}
 
 		const records = parsedRecords.data;
 		if (records.length === 0) {
-			return { status: "failed", error: "No patient records were provided." };
+				return { status: "failed", error: "No patients were provided." };
 		}
 
-		const validationError = validatePatientRecords(records);
+			const validationError = validatePatients(records);
 		if (validationError) {
 			return { status: "failed", error: validationError };
 		}
@@ -60,7 +60,7 @@ export async function saveExtractedPatientRecordsService(
 		const organizationId = session?.session.activeOrganizationId;
 
 		if (!session?.user?.id) {
-			return { status: "failed", error: "You must be signed in to save patient records." };
+				return { status: "failed", error: "You must be signed in to save patients." };
 		}
 
 		if (!organizationId) {
@@ -127,7 +127,7 @@ export async function saveExtractedPatientRecordsService(
 		console.error(error);
 		return {
 			status: "failed",
-			error: error instanceof Error ? error.message : "Failed to save patient records.",
+				error: error instanceof Error ? error.message : "Failed to save patients.",
 		};
 	}
 }

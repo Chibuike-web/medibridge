@@ -1,14 +1,17 @@
 "use client";
 
-import { RiArrowDownSLine } from "@remixicon/react";
+import { RiArrowDownSLine, RiSearchLine } from "@remixicon/react";
 import { useState } from "react";
 import { Tabs } from "radix-ui";
 import { motion } from "motion/react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MultiSelectItem } from "@/components/multi-select-item";
 import { clinicalRecordItemsByType, clinicalRecords } from "@/features/transfers/data";
 import { useAttachClinicalRecords } from "@/features/transfers/stores/use-attach-clinical-records";
 import { cn } from "@/lib/utils/cn";
+import { Label } from "@/components/ui/label";
 
 type AttachClinicalRecordsProps = {
 	activePatient: string;
@@ -17,13 +20,35 @@ type AttachClinicalRecordsProps = {
 export function AttachClinicalRecords({ activePatient }: AttachClinicalRecordsProps) {
 	const { attachedRecords, toggleAttachedRecord } = useAttachClinicalRecords();
 	const [activeRecordType, setActiveRecordType] = useState(clinicalRecords[0].id);
+	const [searchQuery, setSearchQuery] = useState("");
 	const allSelectedRecordsForPatient = attachedRecords[activePatient] ?? [];
 	const activeRecord =
 		clinicalRecords.find((record) => record.id === activeRecordType) ?? clinicalRecords[0];
 	const availableRecordsForType = clinicalRecordItemsByType[activeRecordType] ?? [];
+	const filteredRecordsForType = availableRecordsForType.filter((record) =>
+		record.name.toLowerCase().includes(searchQuery.trim().toLowerCase()),
+	);
 	const selectedRecordsForActiveType = allSelectedRecordsForPatient.filter((record) =>
 		availableRecordsForType.some((r) => r.id === record.id),
 	);
+	const selectedVisibleRecordsCount = filteredRecordsForType.filter((record) =>
+		allSelectedRecordsForPatient.some((item) => item.id === record.id),
+	).length;
+	const areAllVisibleRecordsSelected =
+		filteredRecordsForType.length > 0 &&
+		selectedVisibleRecordsCount === filteredRecordsForType.length;
+	const areSomeVisibleRecordsSelected =
+		selectedVisibleRecordsCount > 0 && selectedVisibleRecordsCount < filteredRecordsForType.length;
+
+	function handleSelectAllVisibleRecords() {
+		filteredRecordsForType.forEach(({ id, name }) => {
+			const isSelected = allSelectedRecordsForPatient.some((item) => item.id === id);
+
+			if (areAllVisibleRecordsSelected ? isSelected : !isSelected) {
+				toggleAttachedRecord(activePatient, { id, label: name });
+			}
+		});
+	}
 
 	return (
 		<div className="mt-8 flex flex-col gap-3.5 items-start">
@@ -78,8 +103,36 @@ export function AttachClinicalRecords({ activePatient }: AttachClinicalRecordsPr
 					<RiArrowDownSLine className="size-5 text-gray-400 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
 				</PopoverTrigger>
 
-				<PopoverContent sideOffset={8} className="flex flex-col gap-1 rounded-2xl p-2 ">
-					{availableRecordsForType.map(({ id, name }) => (
+				<PopoverContent sideOffset={8} className="flex flex-col gap-1 rounded-2xl p-2">
+					<div className="relative">
+						<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
+						<Input
+							type="search"
+							value={searchQuery}
+							onChange={(event) => setSearchQuery(event.target.value)}
+							placeholder={`Search ${activeRecord.label.toLowerCase()} records`}
+							className="h-10 pl-9"
+						/>
+					</div>
+					<div
+						className={cn(
+							"flex h-11 w-full items-center gap-3 rounded-md px-3 text-left text-sm text-gray-600",
+							filteredRecordsForType.length === 0 && "opacity-50",
+						)}
+					>
+						<Label>
+							<Checkbox
+								checked={
+									areAllVisibleRecordsSelected || (areSomeVisibleRecordsSelected && "indeterminate")
+								}
+								aria-label={`Select all ${activeRecord.label.toLowerCase()} records`}
+								disabled={filteredRecordsForType.length === 0}
+								onCheckedChange={handleSelectAllVisibleRecords}
+							/>
+							<span>Select all</span>
+						</Label>
+					</div>
+					{filteredRecordsForType.map(({ id, name }) => (
 						<MultiSelectItem
 							key={id}
 							isSelected={allSelectedRecordsForPatient.some((item) => item.id === id)}
@@ -88,6 +141,9 @@ export function AttachClinicalRecords({ activePatient }: AttachClinicalRecordsPr
 							{name}
 						</MultiSelectItem>
 					))}
+					{filteredRecordsForType.length === 0 && (
+						<div className="px-3 py-2 text-sm text-gray-500">No records found</div>
+					)}
 				</PopoverContent>
 			</Popover>
 		</div>

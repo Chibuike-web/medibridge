@@ -250,7 +250,7 @@ function Footer({
 									Confirm Transfer Request
 								</DialogTitle>
 								<DialogDescription className="sr-only">
-									Confirm that the uploaded patient records are complete before starting
+									Confirm that the uploaded patients are complete before starting
 									extraction.
 								</DialogDescription>
 								<DialogClose>
@@ -259,7 +259,7 @@ function Footer({
 							</DialogHeader>
 							<div className="mt-8 px-6">
 								<p className="text-gray-600 font-medium">
-									Please ensure all required patient records are uploaded and correct. Once
+									Please ensure all required patients are uploaded and correct. Once
 									extraction starts, additional files cannot be added and the process cannot be
 									paused or restarted.
 								</p>

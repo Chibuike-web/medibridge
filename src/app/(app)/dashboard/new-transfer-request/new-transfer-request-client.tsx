@@ -21,9 +21,9 @@ import { useSelectedTransferPatients } from "@/features/transfers/stores/use-sel
 import { useRouter } from "next/navigation";
 import { RiCheckLine, RiCloseLine, RiErrorWarningLine } from "@remixicon/react";
 import { AttachClinicalRecords } from "@/features/transfers/components/attach-clinical-records";
-import { EMPTY_PATIENT_DATA, PatientData } from "@/features/transfers/types";
+import { EMPTY_PATIENT_TRANSFER_DATA, PatientTransferData } from "@/features/transfers/types";
 import { SelectPatient } from "@/features/transfers/components/select-patient";
-import { useTransferPatientData } from "@/features/transfers/stores/use-transfer-patient-data";
+import { usePatientTransferData } from "@/features/transfers/stores/use-patient-transfer-data";
 import { useShowSuccess } from "@/hooks/use-show-success";
 import { SuccessModal } from "@/components/success-modal";
 import { patients } from "@/features/transfers/data";
@@ -36,7 +36,8 @@ export function NewTransferRequestClient({
 }) {
 	const { selectedPatients, removeSelectedPatient, addSelectedPatient } =
 		useSelectedTransferPatients();
-	const { patientData, setPatientData, removePatientData } = useTransferPatientData();
+	const { patientTransferData, setPatientTransferData, removePatientTransferData, isHydrated } =
+		usePatientTransferData();
 	const { attachedRecords, removeAttachedRecords } = useAttachClinicalRecords();
 	const { showSuccess, setShowSuccess } = useShowSuccess();
 	const [currentId, setCurrentId] = useState<string | null>(null);
@@ -52,24 +53,24 @@ export function NewTransferRequestClient({
 	}
 
 	const isComplete = selectedPatients.every((p) => {
-		const data = patientData[p.patientId] ?? EMPTY_PATIENT_DATA;
+		const transferData = patientTransferData[p.patientId] ?? EMPTY_PATIENT_TRANSFER_DATA;
 		const records = attachedRecords[p.patientId] ?? [];
 
-		return data.hospitalEmail && data.hospitalName && records.length > 0;
+		return transferData.hospitalEmail && transferData.hospitalName && records.length > 0;
 	});
 	const activePatient =
 		selectedPatients.find((p) => p.patientId === currentId)?.patientId ??
 		selectedPatients[0]?.patientId ??
 		"";
 
-	const currentData: PatientData = {
-		...EMPTY_PATIENT_DATA,
-		...(patientData[activePatient] ?? {}),
+	const currentPatientTransferData: PatientTransferData = {
+		...EMPTY_PATIENT_TRANSFER_DATA,
+		...(patientTransferData[activePatient] ?? {}),
 	};
 
 	function handleRemovePatient(patient: { patientId: string; name: string }) {
 		removeSelectedPatient(patient);
-		removePatientData(patient.patientId);
+		removePatientTransferData(patient.patientId);
 		removeAttachedRecords(patient.patientId);
 
 		if (patient.patientId === patientId) {
@@ -93,6 +94,10 @@ export function NewTransferRequestClient({
 		},
 		[patientId, patients],
 	);
+
+	if (!isHydrated) {
+		return <div className="w-full" />;
+	}
 
 	return (
 		<>
@@ -151,17 +156,17 @@ export function NewTransferRequestClient({
 								<Input
 									className="h-11"
 									placeholder="e.g., Enugu State Teaching Hospital"
-									defaultValue={currentData.hospitalName ?? ""}
+									defaultValue={currentPatientTransferData.hospitalName ?? ""}
 									onBlur={(e) => {
-										const nextPatientData = {
-											...patientData,
+										const nextPatientTransferData = {
+											...patientTransferData,
 											[activePatient]: {
-												...(patientData[activePatient] ?? EMPTY_PATIENT_DATA),
+												...(patientTransferData[activePatient] ?? EMPTY_PATIENT_TRANSFER_DATA),
 												hospitalName: e.target.value,
 											},
 										};
 
-										setPatientData(nextPatientData);
+										setPatientTransferData(nextPatientTransferData);
 									}}
 								/>
 							</div>
@@ -174,17 +179,17 @@ export function NewTransferRequestClient({
 									<Input
 										className="h-11"
 										placeholder="e.g., Enugu State Teaching Hospital"
-										defaultValue={currentData.hospitalEmail ?? ""}
+										defaultValue={currentPatientTransferData.hospitalEmail ?? ""}
 										onBlur={(e) => {
-											const nextPatientData = {
-												...patientData,
+											const nextPatientTransferData = {
+												...patientTransferData,
 												[activePatient]: {
-													...(patientData[activePatient] ?? EMPTY_PATIENT_DATA),
+													...(patientTransferData[activePatient] ?? EMPTY_PATIENT_TRANSFER_DATA),
 													hospitalEmail: e.target.value,
 												},
 											};
 
-											setPatientData(nextPatientData);
+											setPatientTransferData(nextPatientTransferData);
 										}}
 									/>
 								</div>
@@ -199,17 +204,17 @@ export function NewTransferRequestClient({
 								</Label>
 								<Textarea
 									placeholder="Add context or special instructions"
-									defaultValue={currentData.notes ?? ""}
+									defaultValue={currentPatientTransferData.notes ?? ""}
 									onBlur={(e) => {
-										const nextPatientData = {
-											...patientData,
+										const nextPatientTransferData = {
+											...patientTransferData,
 											[activePatient]: {
-												...(patientData[activePatient] ?? EMPTY_PATIENT_DATA),
+												...(patientTransferData[activePatient] ?? EMPTY_PATIENT_TRANSFER_DATA),
 												notes: e.target.value,
 											},
 										};
 
-										setPatientData(nextPatientData);
+										setPatientTransferData(nextPatientTransferData);
 									}}
 								/>
 							</div>

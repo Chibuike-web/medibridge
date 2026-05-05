@@ -6,7 +6,7 @@ import {
 	RiEdit2Line,
 	RiUpload2Line,
 } from "@remixicon/react";
-import { patientRecords } from "@/features/patients/data";
+import { patients } from "@/features/patients/data";
 import { diagnoses } from "@/features/patients/diagnoses-data";
 import { DiagnosesTable } from "@/features/patients/components/diagnoses-table";
 import Link from "next/link";
@@ -24,12 +24,14 @@ import { AllergiesTable } from "@/features/patients/components/allergies-table";
 import { ImmunizationsTable } from "@/features/patients/components/immunizations-table";
 import { ProceduresTable } from "@/features/patients/components/procedures-table";
 import { MedicationsTable } from "@/features/patients/components/medications-table";
+import { encounters } from "@/features/patients/encounters-data";
+import { EncountersTable } from "@/features/patients/components/encounters-table";
 import { LabTestsTable } from "@/features/patients/components/lab-tests-table";
 import { ImagingTable } from "@/features/patients/components/imaging-table";
 import { PatientAvatarMenu } from "@/features/patients/components/patient-avatar-menu";
 
 export const metadata = {
-	title: "Patient Record",
+	title: "Patient",
 };
 
 export default function PatientPage({
@@ -46,8 +48,8 @@ export default function PatientPage({
 					aria-label="Breadcrumb"
 					className="flex items-center gap-2 border-b border-gray-200 px-6 py-5"
 				>
-					<Link href="/dashboard/patients-records" className="flex items-center gap-2 shrink-0">
-						<RiArrowLeftLine aria-hidden="true" /> <span>Patient Record</span>
+					<Link href="/dashboard/patients" className="flex items-center gap-2 shrink-0">
+						<RiArrowLeftLine aria-hidden="true" /> <span>Patients</span>
 					</Link>
 					<RiArrowRightSLine aria-hidden="true" />
 					<Suspense>
@@ -72,7 +74,7 @@ async function BreadCrumb({
 }) {
 	const [{ section }, { patientId }] = await Promise.all([searchParams, params]);
 
-	const patientName = patientRecords.find((patient) => patient.patientId === patientId)?.name;
+	const patientName = patients.find((patient) => patient.patientId === patientId)?.name;
 
 	return (
 		<>
@@ -85,7 +87,7 @@ async function BreadCrumb({
 
 async function Header({ params }: { params: Promise<{ patientId: string }> }) {
 	const { patientId } = await params;
-	const patientName = patientRecords.find((patient) => patient.patientId === patientId)?.name;
+	const patientName = patients.find((patient) => patient.patientId === patientId)?.name;
 	return (
 		<div className="flex items-center gap-3 border-b border-gray-200 px-6 py-3.5 text-sm">
 			<PatientAvatarMenu patientName={patientName ?? ""} />
@@ -232,8 +234,6 @@ function MedicationsSection({ patientId }: { patientId: string }) {
 }
 
 function EncountersSection({ patientId }: { patientId: string }) {
-	const encounters: unknown[] = [];
-
 	if (encounters.length === 0) {
 		return renderEmptyState(
 			"No Encounters yet",
@@ -242,7 +242,7 @@ function EncountersSection({ patientId }: { patientId: string }) {
 		);
 	}
 
-	return <div className="px-6 py-3">{patientId} encounters table</div>;
+	return <EncountersTable patientId={patientId} />;
 }
 
 function LabTestsSection({ patientId }: { patientId: string }) {

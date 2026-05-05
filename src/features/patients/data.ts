@@ -31,7 +31,7 @@ export const recentPatients: RecentPatientType[] = [
 	},
 ];
 
-const patientRecordSeed: RecentPatientType[] = [
+const patientSeed: RecentPatientType[] = [
 	{
 		name: "James Brown",
 		patientId: "A123456",
@@ -132,4 +132,4 @@ const patientRecordSeed: RecentPatientType[] = [
 	},
 ];
 
-export const patientRecords = Array.from({ length: 7 }, () => patientRecordSeed).flat();
+export const patients = Array.from({ length: 7 }, () => patientSeed).flat();

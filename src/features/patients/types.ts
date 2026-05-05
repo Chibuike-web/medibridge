@@ -6,7 +6,7 @@ export type RecentPatientType = {
 	age: number;
 };
 
-export type PatientRecordType = RecentPatientType;
+export type PatientListItemType = RecentPatientType;
 
 export type DiagnosisType = {
 	name: string;
@@ -57,6 +57,17 @@ export type MedicationType = {
 	createdAtLabel: string;
 	createdAtSortValue: string;
 	status: "Active" | "Completed" | "Discontinued";
+};
+
+export type EncounterType = {
+	encounterDateLabel: string;
+	encounterDateSortValue: string;
+	createdAtLabel: string;
+	createdAtSortValue: string;
+	encounterType: "Emergency Visit" | "Routine Checkup" | "Follow-up Visit" | "Outpatient Visit";
+	encounterId: string;
+	department: string;
+	physician: string;
 };
 
 export type LabTestType = {

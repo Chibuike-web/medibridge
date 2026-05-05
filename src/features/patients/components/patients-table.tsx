@@ -50,16 +50,16 @@ import {
 	RiShare2Line,
 	RiShareBoxLine,
 } from "@remixicon/react";
-import { patientRecords } from "../data";
-import { PatientRecordType } from "../types";
+import { patients } from "../data";
+import { PatientListItemType } from "../types";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
-export function PatientRecordsTable() {
+export function PatientsTable() {
 	const router = useRouter();
-	const data = useMemo(() => patientRecords, []);
-	const columns = useMemo(() => getPatientRecordsColumns(router), [router]);
+	const data = useMemo(() => patients, []);
+	const columns = useMemo(() => getPatientsColumns(router), [router]);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
@@ -135,12 +135,12 @@ export function PatientRecordsTable() {
 							className="h-14 group"
 							role="link"
 							tabIndex={0}
-							onClick={(e) => {
-								e.stopPropagation();
-								router.push(
-									`/dashboard/patients-records/${row.original.patientId}?section=patient-overview`,
-								);
-							}}
+								onClick={(e) => {
+									e.stopPropagation();
+									router.push(
+										`/dashboard/patients/${row.original.patientId}?section=patient-overview`,
+									);
+								}}
 						>
 							{row.getVisibleCells().map((cell) => (
 								<TableCell
@@ -210,9 +210,9 @@ export function PatientRecordsTable() {
 	);
 }
 
-function getPatientRecordsColumns(
+function getPatientsColumns(
 	router: ReturnType<typeof useRouter>,
-): ColumnDef<PatientRecordType>[] {
+): ColumnDef<PatientListItemType>[] {
 	return [
 		{
 			id: "select",
@@ -339,11 +339,11 @@ function getPatientRecordsColumns(
 							className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
 							<DropdownMenuItem
-								onSelect={() =>
-									router.push(
-										`/dashboard/patients-records/${row.original.patientId}?section=patient-overview`,
-									)
-								}
+									onSelect={() =>
+										router.push(
+											`/dashboard/patients/${row.original.patientId}?section=patient-overview`,
+										)
+									}
 								className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
 							>
 								<RiErrorWarningLine className="text-white" />

@@ -1,4 +1,4 @@
-export type SavePatientRecordsResult =
+export type SavePatientsResult =
   | {
       status: "success";
       savedCount: number;

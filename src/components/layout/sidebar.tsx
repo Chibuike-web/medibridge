@@ -167,7 +167,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 										) : (
 											<RiFunctionLine className="size-5 shrink-0" />
 										)
-									) : id === "patients-records" ? (
+									) : id === "patients" ? (
 										isActive ? (
 											<RiFileListFill className="size-5 shrink-0" />
 										) : (
@@ -203,6 +203,6 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 
 const menus = [
 	{ id: "overview", text: "Overview", href: "/dashboard/overview" },
-	{ id: "patients-records", text: "Patients Records", href: "/dashboard/patients-records" },
+	{ id: "patients", text: "Patients", href: "/dashboard/patients" },
 	{ id: "transfers", text: "Transfers", href: "/dashboard/transfers" },
 ] as const;

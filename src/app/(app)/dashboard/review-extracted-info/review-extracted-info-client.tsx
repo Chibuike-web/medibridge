@@ -1,7 +1,7 @@
 "use client";
 
 import { PatientRecord, PatientType } from "@/features/patients/schemas/patient-schema";
-import { savePatientRecordsAction } from "@/features/patients/server/actions";
+import { savePatientsAction } from "@/features/patients/server/actions";
 import { SuccessModal } from "@/components/success-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,7 +53,7 @@ export function ReviewExtractedInfoClient() {
 
 		setSaveError("");
 		startTransition(async () => {
-			const result = await savePatientRecordsAction(patientData);
+			const result = await savePatientsAction(patientData);
 
 			if (result.status === "failed") {
 				setSaveError(result.error);
@@ -170,14 +170,14 @@ export function ReviewExtractedInfoClient() {
 					) : null}
 
 					<Button className="mt-8 h-11 w-full" onClick={handleSave} disabled={isPending}>
-						{isPending ? "Saving..." : "Save Patient Record"}
+						{isPending ? "Saving..." : "Save Patient"}
 					</Button>
 
 					{isOpen ? (
 						<SuccessModal
 							isOpen={isOpen}
 							setIsOpen={setIsOpen}
-							heading="Patient Record Saved Successfully"
+							heading="Patient Saved Successfully"
 							description="The patient's information has been securely saved. You may now proceed with additional documentation or return to the dashboard."
 						>
 							<DialogFooter className="w-full border-t border-gray-200">

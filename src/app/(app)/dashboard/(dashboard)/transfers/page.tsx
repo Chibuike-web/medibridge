@@ -53,7 +53,7 @@ export default function Transfers() {
 				<div className="flex flex-col items-center max-w-[37.5rem]">
 					<h1 className="font-semibold text-2xl text-center mb-6">No transfers yet</h1>
 					<p className="mb-12 text-center">
-						Start by creating your first transfer request to move patient records securely.
+						Start by creating your first transfer request to move patients securely.
 					</p>
 					<Button className="h-11" asChild>
 						<Link href="/dashboard/new-transfer-request">Create transfer request </Link>
