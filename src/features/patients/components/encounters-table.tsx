@@ -116,16 +116,11 @@ export function EncountersTable({ patientId }: { patientId: string }) {
 												header.column.getToggleSortingHandler()?.(event);
 											}
 										}}
-											className={cn(
-												"z-10 h-12 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
-												header.column.id === "select" && "w-12 min-w-12",
-												header.column.id === "actions" && "w-max min-w-0",
-												header.column.id !== "select" &&
-													header.column.id !== "actions" &&
-													"w-[200px] min-w-[200px]",
-												header.column.getCanSort() ? "cursor-pointer select-none" : "",
-											)}
-										>
+										className={cn(
+											"z-10 h-12 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
+											header.column.getCanSort() ? "cursor-pointer select-none" : "",
+										)}
+									>
 										<div className="flex items-center justify-between gap-3">
 											{header.isPlaceholder
 												? null
@@ -160,16 +155,11 @@ export function EncountersTable({ patientId }: { patientId: string }) {
 								{row.getVisibleCells().map((cell) => (
 									<TableCell
 										key={cell.id}
-											className={cn(
-												"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
-												cell.column.id === "select" && "w-12 min-w-12",
-												cell.column.id === "actions" && "w-max min-w-0",
-												cell.column.id !== "select" &&
-													cell.column.id !== "actions" &&
-													"w-[200px] min-w-[200px]",
-												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
-											)}
-										>
+										className={cn(
+											"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
+											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
+										)}
+									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								))}
@@ -236,7 +226,10 @@ function getEncountersColumns(patientId: string): ColumnDef<EncounterType>[] {
 		{
 			id: "select",
 			header: ({ table }) => (
-				<div className="flex items-center justify-center" onClick={(event) => event.stopPropagation()}>
+				<div
+					className="flex items-center justify-center"
+					onClick={(event) => event.stopPropagation()}
+				>
 					<IndeterminateCheckbox
 						checked={table.getIsAllPageRowsSelected()}
 						indeterminate={table.getIsSomePageRowsSelected()}
@@ -265,7 +258,9 @@ function getEncountersColumns(patientId: string): ColumnDef<EncounterType>[] {
 			header: "Encounter date",
 			accessorFn: (row) => row.encounterDateSortValue,
 			enableSorting: true,
-			cell: ({ row }) => <span className="font-medium text-gray-800">{row.original.encounterDateLabel}</span>,
+			cell: ({ row }) => (
+				<span className="font-medium text-gray-800">{row.original.encounterDateLabel}</span>
+			),
 		},
 		{
 			id: "createdAt",
@@ -294,43 +289,43 @@ function getEncountersColumns(patientId: string): ColumnDef<EncounterType>[] {
 			header: "Physician",
 			accessorKey: "physician",
 			enableSorting: true,
-			},
-			{
-				id: "actions",
-				header: "",
-				enableSorting: false,
-				cell: ({ row }) => (
-					<div className="flex w-max justify-end">
-						<DropdownMenu>
-							<DropdownMenuTrigger
-								type="button"
-								className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-								aria-label={`Open actions for ${row.original.encounterId}`}
-							>
-								<RiMore2Fill className="size-5" aria-hidden />
+		},
+		{
+			id: "actions",
+			header: "",
+			enableSorting: false,
+			cell: ({ row }) => (
+				<div className="flex w-max justify-end">
+					<DropdownMenu>
+						<DropdownMenuTrigger
+							type="button"
+							className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+							aria-label={`Open actions for ${row.original.encounterId}`}
+						>
+							<RiMore2Fill className="size-5" aria-hidden />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
-								align="end"
-								className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
-							>
-								<DropdownMenuItem asChild>
-									<Link
-										href={
-											`/dashboard/patients/${patientId}/encounters/${row.original.encounterId}` as Route
-										}
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
-									>
-										<RiErrorWarningLine className="text-white" />
-										<span>View details</span>
-									</Link>
-								</DropdownMenuItem>
-								<DropdownMenuSeparator className="bg-white/20" />
-								<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
-									<RiArchiveLine className="text-white" />
-									<span>Archive</span>
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
+							align="end"
+							className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+						>
+							<DropdownMenuItem asChild>
+								<Link
+									href={
+										`/dashboard/patients/${patientId}/encounters/${row.original.encounterId}` as Route
+									}
+									className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+								>
+									<RiErrorWarningLine className="text-white" />
+									<span>View details</span>
+								</Link>
+							</DropdownMenuItem>
+							<DropdownMenuSeparator className="bg-white/20" />
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+								<RiArchiveLine className="text-white" />
+								<span>Archive</span>
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</div>
 			),
 		},
