@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Shell } from "@/components/layout/shell";
 
 export const metadata: Metadata = {
@@ -79,19 +78,10 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<head>
-				{process.env.NODE_ENV === "development" && (
-					<Script
-						src="//unpkg.com/react-scan/dist/auto.global.js"
-						crossOrigin="anonymous"
-						strategy="beforeInteractive"
-					/>
-				)}
-
 				{/* Structured Data (JSON-LD) */}
-				<Script
+				<script
 					id="medibridge-structured-data"
 					type="application/ld+json"
-					strategy="afterInteractive"
 					dangerouslySetInnerHTML={{
 						__html: JSON.stringify({
 							"@context": "https://schema.org",

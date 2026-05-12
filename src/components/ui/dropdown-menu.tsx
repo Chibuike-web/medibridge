@@ -3,7 +3,7 @@
 import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { cn } from "@/lib/utils/cn";
-import { RiArrowRightLine, RiCheckLine, RiCheckboxBlankCircleLine } from "@remixicon/react";
+import { RiArrowRightSLine, RiCheckLine, RiCheckboxBlankCircleLine } from "@remixicon/react";
 
 function DropdownMenu({ ...props }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
 	return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
@@ -187,7 +187,7 @@ function DropdownMenuSubTrigger({
 			{...props}
 		>
 			{children}
-			<RiArrowRightLine className="ml-auto size-4" />
+			<RiArrowRightSLine className="ml-auto size-[18px]" />
 		</DropdownMenuPrimitive.SubTrigger>
 	);
 }

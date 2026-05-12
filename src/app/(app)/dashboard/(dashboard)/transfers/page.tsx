@@ -4,7 +4,7 @@ import { TransferTable } from "@/features/transfers/components/transfer-table";
 import { RiAddLine, RiSearchLine, RiShareForwardBoxLine } from "@remixicon/react";
 import Link from "next/link";
 import { transferRecords } from "@/features/transfers/data";
-import { FilterButton } from "./filter-button";
+import { FilterButton } from "../../../../../features/transfers/components/filter-button";
 
 export const metadata = {
 	title: "Transfers",
