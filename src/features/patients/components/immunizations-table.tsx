@@ -50,6 +50,7 @@ import {
 	RiArrowDownSLine,
 	RiArrowUpSLine,
 	RiCalendarLine,
+	RiCheckboxCircleLine,
 	RiEyeLine,
 	RiFilter3Line,
 	RiMenLine,
@@ -57,6 +58,8 @@ import {
 	RiSearchLine,
 	RiShareForwardBoxLine,
 } from "@remixicon/react";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
@@ -98,61 +101,112 @@ export function ImmunizationsTable({ patientId }: { patientId: string }) {
 						placeholder="Search by name and immunization id"
 					/>
 				</div>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button size="lg" variant="outline">
-								<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
-								Filter
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent
-							align="end"
-							sideOffset={8}
-							className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button
+							size="lg"
+							variant="outline"
+							className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
 						>
-							<DropdownMenuSub>
-								<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-									<RiMenLine className="size-[18px]" />
-									<span>Status</span>
-								</DropdownMenuSubTrigger>
-								<DropdownMenuSubContent
-									sideOffset={8}
-									className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
+							Filter
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="end"
+						sideOffset={8}
+						className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+					>
+						<DropdownMenuSub>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
+								<RiCheckboxCircleLine className="size-[18px]" />
+								<span>Status</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								sideOffset={8}
+								className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							>
+								<DropdownMenuItem
+									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+									onSelect={(e) => {
+										e.preventDefault();
+									}}
 								>
-									<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
-										Completed
-									</DropdownMenuItem>
-									<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
-										Due
-									</DropdownMenuItem>
-									<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
-										Overdue
-									</DropdownMenuItem>
-								</DropdownMenuSubContent>
-							</DropdownMenuSub>
+									<Label
+										htmlFor="requested-active"
+										className="flex w-full cursor-pointer items-center gap-2"
+									>
+										<Checkbox id="requested-active" className="[&_svg]:!text-current" />
+										<span>Active</span>
+									</Label>
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+									onSelect={(e) => {
+										e.preventDefault();
+									}}
+								>
+									<Label
+										htmlFor="requested-completed"
+										className="flex w-full cursor-pointer items-center gap-2"
+									>
+										<Checkbox id="requested-completed" className="[&_svg]:!text-current" />
+										<span>Completed</span>
+									</Label>
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+									onSelect={(e) => {
+										e.preventDefault();
+									}}
+								>
+									<Label
+										htmlFor="requested-cancelled"
+										className="flex w-full cursor-pointer items-center gap-2"
+									>
+										<Checkbox id="requested-cancelled" className="[&_svg]:!text-current" />
+										<span>Cancelled</span>
+									</Label>
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+									onSelect={(e) => {
+										e.preventDefault();
+									}}
+								>
+									<Label
+										htmlFor="requested-discontinued"
+										className="flex w-full cursor-pointer items-center gap-2"
+									>
+										<Checkbox id="requested-discontinued" className="[&_svg]:!text-current" />
+										<span>Discontinued</span>
+									</Label>
+								</DropdownMenuItem>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
 
-							<DropdownMenuSub>
-								<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-									<RiCalendarLine className="size-[18px]" />
-									<span>Created at</span>
-								</DropdownMenuSubTrigger>
-								<DropdownMenuSubContent
-									sideOffset={8}
-									className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
-								>
-									<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
-										Today
-									</DropdownMenuItem>
-									<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
-										This week
-									</DropdownMenuItem>
-									<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
-										This month
-									</DropdownMenuItem>
-								</DropdownMenuSubContent>
-							</DropdownMenuSub>
-						</DropdownMenuContent>
-					</DropdownMenu>
+						<DropdownMenuSub>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
+								<RiCalendarLine className="size-[18px]" />
+								<span>Created at</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								sideOffset={8}
+								className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							>
+								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+									Today
+								</DropdownMenuItem>
+								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+									This week
+								</DropdownMenuItem>
+								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+									This month
+								</DropdownMenuItem>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
+					</DropdownMenuContent>
+				</DropdownMenu>
 				<Button size="lg" variant="outline">
 					<RiShareForwardBoxLine aria-hidden className="size-5 text-gray-600" />
 					Export

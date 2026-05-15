@@ -170,10 +170,10 @@ export function AllergiesTable({ patientId }: { patientId: string }) {
 									}}
 								>
 									<Label
-										htmlFor="requested-pending"
+										htmlFor="requested-mild"
 										className="flex w-full cursor-pointer items-center gap-2"
 									>
-										<Checkbox id="requested-pending" className="[&_svg]:!text-current" />
+										<Checkbox id="requested-mild" className="[&_svg]:!text-current" />
 										<span>Mild</span>
 									</Label>
 								</DropdownMenuItem>
@@ -184,10 +184,10 @@ export function AllergiesTable({ patientId }: { patientId: string }) {
 									}}
 								>
 									<Label
-										htmlFor="requested-pending"
+										htmlFor="requested-moderate"
 										className="flex w-full cursor-pointer items-center gap-2"
 									>
-										<Checkbox id="requested-pending" className="[&_svg]:!text-current" />
+										<Checkbox id="requested-moderate" className="[&_svg]:!text-current" />
 										<span>Moderate</span>
 									</Label>
 								</DropdownMenuItem>
@@ -198,10 +198,10 @@ export function AllergiesTable({ patientId }: { patientId: string }) {
 									}}
 								>
 									<Label
-										htmlFor="requested-pending"
+										htmlFor="requested-severe"
 										className="flex w-full cursor-pointer items-center gap-2"
 									>
-										<Checkbox id="requested-pending" className="[&_svg]:!text-current" />
+										<Checkbox id="requested-severe" className="[&_svg]:!text-current" />
 										<span>Severe</span>
 									</Label>
 								</DropdownMenuItem>
