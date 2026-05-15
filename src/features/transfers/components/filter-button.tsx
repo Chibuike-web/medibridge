@@ -31,7 +31,8 @@ export function FilterButton() {
 
 			<DropdownMenuContent
 				align="end"
-				sideOffset={8}
+				sideOffset={12}
+				alignOffset={-5}
 				className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 			>
 				<DropdownMenuSub>
@@ -40,16 +41,83 @@ export function FilterButton() {
 					</DropdownMenuSubTrigger>
 
 					<DropdownMenuSubContent
-						sideOffset={12}
+						sideOffset={8}
 						alignOffset={-5}
 						className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 					>
-						<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
-							Male
+						<DropdownMenuItem
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							onSelect={(e) => {
+								e.preventDefault();
+							}}
+						>
+							<Label
+								htmlFor="status-pending"
+								className="flex w-full cursor-pointer items-center gap-2"
+							>
+								<Checkbox id="status-pending" className="[&_svg]:!text-current" />
+								<span>Pending</span>
+							</Label>
 						</DropdownMenuItem>
 
-						<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
-							Female
+						<DropdownMenuItem
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							onSelect={(e) => {
+								e.preventDefault();
+							}}
+						>
+							<Label
+								htmlFor="status-rejected"
+								className="flex w-full cursor-pointer items-center gap-2"
+							>
+								<Checkbox id="status-rejected" className="[&_svg]:!text-current" />
+								<span>Rejected</span>
+							</Label>
+						</DropdownMenuItem>
+
+						<DropdownMenuItem
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							onSelect={(e) => {
+								e.preventDefault();
+							}}
+						>
+							<Label
+								htmlFor="status-completed"
+								className="flex w-full cursor-pointer items-center gap-2"
+							>
+								<Checkbox id="status-completed" className="[&_svg]:!text-current" />
+								<span>Completed</span>
+							</Label>
+						</DropdownMenuItem>
+
+						<DropdownMenuItem
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							onSelect={(e) => {
+								e.preventDefault();
+							}}
+						>
+							<Label
+								htmlFor="status-failed"
+								className="flex w-full cursor-pointer items-center gap-2"
+							>
+								<Checkbox id="status-failed" className="[&_svg]:!text-current" />
+								<span>Failed</span>
+							</Label>
+						</DropdownMenuItem>
+
+						<DropdownMenuItem
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							onSelect={(e) => {
+								e.preventDefault();
+							}}
+						>
+							<Label
+								htmlFor="status-cancelled"
+								className="flex w-full cursor-pointer items-center gap-2"
+							>
+								<Checkbox id="status-cancelled" className="[&_svg]:!text-current" />
+								<span>Cancelled</span>
+							</Label>
 						</DropdownMenuItem>
 					</DropdownMenuSubContent>
 				</DropdownMenuSub>
@@ -61,56 +129,81 @@ export function FilterButton() {
 
 					<DropdownMenuSubContent
 						sideOffset={8}
+						alignOffset={-5}
 						className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 					>
 						<DropdownMenuItem
-							className="rounded-lg"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
 						>
-							<Label className="w-full">
-								<Checkbox /> Pending
+							<Label
+								htmlFor="requested-pending"
+								className="flex w-full cursor-pointer items-center gap-2"
+							>
+								<Checkbox id="requested-pending" className="[&_svg]:!text-current" />
+								<span>Pending</span>
 							</Label>
 						</DropdownMenuItem>
+
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
 						>
-							<Label className="w-full">
-								<Checkbox /> Rejected
+							<Label
+								htmlFor="requested-rejected"
+								className="flex w-full cursor-pointer items-center gap-2"
+							>
+								<Checkbox id="requested-rejected" className="[&_svg]:!text-current" />
+								<span>Rejected</span>
 							</Label>
 						</DropdownMenuItem>
+
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
 						>
-							<Label className="w-full">
-								<Checkbox /> Completed
+							<Label
+								htmlFor="requested-completed"
+								className="flex w-full cursor-pointer items-center gap-2"
+							>
+								<Checkbox id="requested-completed" className="[&_svg]:!text-current" />
+								<span>Completed</span>
 							</Label>
 						</DropdownMenuItem>
+
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
 						>
-							<Label className="w-full">
-								<Checkbox /> Failed
+							<Label
+								htmlFor="requested-failed"
+								className="flex w-full cursor-pointer items-center gap-2"
+							>
+								<Checkbox id="requested-failed" className="[&_svg]:!text-current" />
+								<span>Failed</span>
 							</Label>
 						</DropdownMenuItem>
+
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
 						>
-							<Label className="w-full">
-								<Checkbox /> Cancelled
+							<Label
+								htmlFor="requested-cancelled"
+								className="flex w-full cursor-pointer items-center gap-2"
+							>
+								<Checkbox id="requested-cancelled" className="[&_svg]:!text-current" />
+								<span>Cancelled</span>
 							</Label>
 						</DropdownMenuItem>
 					</DropdownMenuSubContent>

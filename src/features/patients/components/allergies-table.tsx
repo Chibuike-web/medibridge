@@ -12,6 +12,9 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -46,12 +49,19 @@ import {
 	RiArchiveLine,
 	RiArrowDownSLine,
 	RiArrowUpSLine,
+	RiBarChartBoxLine,
+	RiCalendarLine,
+	RiCheckboxCircleLine,
 	RiEyeLine,
 	RiFilter3Line,
+	RiMenLine,
 	RiMore2Fill,
 	RiSearchLine,
 	RiShareForwardBoxLine,
 } from "@remixicon/react";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
@@ -93,10 +103,132 @@ export function AllergiesTable({ patientId }: { patientId: string }) {
 						placeholder="Search by name and allergy id"
 					/>
 				</div>
-				<Button size="lg" variant="outline">
-					<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
-					Filter
-				</Button>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button
+							size="lg"
+							variant="outline"
+							className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+						>
+							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
+							Filter
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="end"
+						sideOffset={12}
+						alignOffset={-5}
+						className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+					>
+						<DropdownMenuSub>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
+								<RiCheckboxCircleLine className="size-[18px]" /> <span>Status</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								sideOffset={8}
+								alignOffset={-5}
+								className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							>
+								<RadioGroup defaultValue="all" className="flex flex-col gap-0">
+									<div className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-100 h-8">
+										<RadioGroupItem value="all" id="all" />
+										<Label htmlFor="all" className="cursor-pointer w-full">
+											All
+										</Label>
+									</div>
+
+									<div className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-100 h-8">
+										<RadioGroupItem value="male" id="male" />
+										<Label htmlFor="male" className="cursor-pointer w-full">
+											Active
+										</Label>
+									</div>
+
+									<div className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-100 h-8">
+										<RadioGroupItem value="female" id="female" />
+										<Label htmlFor="female" className="cursor-pointer w-full">
+											Inactive
+										</Label>
+									</div>
+								</RadioGroup>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
+
+						<DropdownMenuSub>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
+								<RiBarChartBoxLine className="text-[18px]" /> <span>Severity</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								sideOffset={8}
+								alignOffset={-5}
+								className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							>
+								<DropdownMenuItem
+									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+									onSelect={(e) => {
+										e.preventDefault();
+									}}
+								>
+									<Label
+										htmlFor="requested-pending"
+										className="flex w-full cursor-pointer items-center gap-2"
+									>
+										<Checkbox id="requested-pending" className="[&_svg]:!text-current" />
+										<span>Mild</span>
+									</Label>
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="rounded-lg focus:bg-gray-100 focus:text-gray-900"
+									onSelect={(e) => {
+										e.preventDefault();
+									}}
+								>
+									<Label
+										htmlFor="requested-pending"
+										className="flex w-full cursor-pointer items-center gap-2"
+									>
+										<Checkbox id="requested-pending" className="[&_svg]:!text-current" />
+										<span>Moderate</span>
+									</Label>
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="rounded-lg focus:bg-gray-100 focus:text-gray-900"
+									onSelect={(e) => {
+										e.preventDefault();
+									}}
+								>
+									<Label
+										htmlFor="requested-pending"
+										className="flex w-full cursor-pointer items-center gap-2"
+									>
+										<Checkbox id="requested-pending" className="[&_svg]:!text-current" />
+										<span>Severe</span>
+									</Label>
+								</DropdownMenuItem>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
+
+						<DropdownMenuSub>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
+								<RiCalendarLine className="size-[18px]" /> <span>Date recorded</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								sideOffset={8}
+								className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							>
+								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+									Today
+								</DropdownMenuItem>
+								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+									This week
+								</DropdownMenuItem>
+								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+									This month
+								</DropdownMenuItem>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
+					</DropdownMenuContent>
+				</DropdownMenu>
 				<Button size="lg" variant="outline">
 					<RiShareForwardBoxLine aria-hidden className="size-5 text-gray-600" />
 					Export

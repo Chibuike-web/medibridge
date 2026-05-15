@@ -12,6 +12,9 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -46,8 +49,10 @@ import {
 	RiArchiveLine,
 	RiArrowDownSLine,
 	RiArrowUpSLine,
+	RiCalendarLine,
 	RiEyeLine,
 	RiFilter3Line,
+	RiMenLine,
 	RiMore2Fill,
 	RiSearchLine,
 	RiShareForwardBoxLine,
@@ -93,10 +98,61 @@ export function ImmunizationsTable({ patientId }: { patientId: string }) {
 						placeholder="Search by name and immunization id"
 					/>
 				</div>
-				<Button size="lg" variant="outline">
-					<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
-					Filter
-				</Button>
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button size="lg" variant="outline">
+								<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
+								Filter
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align="end"
+							sideOffset={8}
+							className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+						>
+							<DropdownMenuSub>
+								<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
+									<RiMenLine className="size-[18px]" />
+									<span>Status</span>
+								</DropdownMenuSubTrigger>
+								<DropdownMenuSubContent
+									sideOffset={8}
+									className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+								>
+									<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+										Completed
+									</DropdownMenuItem>
+									<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+										Due
+									</DropdownMenuItem>
+									<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+										Overdue
+									</DropdownMenuItem>
+								</DropdownMenuSubContent>
+							</DropdownMenuSub>
+
+							<DropdownMenuSub>
+								<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
+									<RiCalendarLine className="size-[18px]" />
+									<span>Created at</span>
+								</DropdownMenuSubTrigger>
+								<DropdownMenuSubContent
+									sideOffset={8}
+									className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+								>
+									<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+										Today
+									</DropdownMenuItem>
+									<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+										This week
+									</DropdownMenuItem>
+									<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+										This month
+									</DropdownMenuItem>
+								</DropdownMenuSubContent>
+							</DropdownMenuSub>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				<Button size="lg" variant="outline">
 					<RiShareForwardBoxLine aria-hidden className="size-5 text-gray-600" />
 					Export
