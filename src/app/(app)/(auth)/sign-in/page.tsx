@@ -5,7 +5,7 @@ export const metadata = {
 	title: "Sign in",
 };
 
-export default function Login() {
+export default function Signin() {
 	return (
 		<main className="max-w-[37.5rem] min-h-dvh grid place-items-center mx-auto">
 			<div className="w-full px-6 md:px-0">

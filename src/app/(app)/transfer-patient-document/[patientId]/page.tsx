@@ -6,6 +6,29 @@ export const metadata = {
 	title: "Transfer Patient Document",
 };
 
+function Field({ label, value }: { label: string; value: string | number | undefined }) {
+	return (
+		<div className="flex flex-col gap-1">
+			<p className="text-sm text-gray-400">{label}</p>
+			<p className="text-sm font-semibold text-gray-600">{value || "—"}</p>
+		</div>
+	);
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+	return (
+		<section className="rounded-xl bg-gray-50 ring ring-gray-200">
+			<div className="flex h-10 items-center px-4">
+				<h2 className="text-lg font-semibold text-gray-600">{title}</h2>
+			</div>
+
+			<div className="grid gap-6 rounded-xl bg-white p-4 ring ring-gray-200 md:grid-cols-2 xl:grid-cols-3">
+				{children}
+			</div>
+		</section>
+	);
+}
+
 export default async function TransferPatientDocumentPage({
 	params,
 }: {
@@ -14,82 +37,99 @@ export default async function TransferPatientDocumentPage({
 	const { patientId } = await params;
 
 	const patient = patients.find((p) => p.patientId === patientId);
+
 	const patientName = patient?.name ?? "Chibuike";
-	const packet = await getTransferPacket({ patientId, patientName });
+
+	const packet = await getTransferPacket({
+		patientId,
+		patientName,
+	});
 
 	return (
-		<main className="mx-auto my-12 flex w-full max-w-7xl flex-col gap-9 px-6 xl:px-0">
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="mt-2 text-2xl font-semibold text-gray-800">{packet.patientName}</h1>
-					<div className="flex items-center gap-2">
-						<p className="text-sm text-gray-600">Patient ID: {packet.patientId}</p>
-						<p className="text-sm text-gray-600">Patient ID: {packet.patientId}</p>
+		<main className="mx-auto my-12 flex w-full max-w-7xl flex-col gap-8 px-6 xl:px-0">
+			<div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+				<div className="space-y-2">
+					<h1 className="text-2xl font-semibold text-gray-800">{packet.patientName}</h1>
 
-						<p className="text-sm text-gray-600">Patient ID: {packet.patientId}</p>
+					<div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
+						<p>Patient ID: {packet.patientId}</p>
 
-						<p className="text-sm text-gray-600">Patient ID: {packet.patientId}</p>
+						<p>Date of Birth: {packet.personalInformation.dateOfBirth}</p>
 
-						<p className="text-sm text-gray-600">Patient ID: {packet.patientId}</p>
+						<p>Email: {packet.contactInformation.emailAddress}</p>
+
+						<p>Phone: {packet.contactInformation.phoneNumber}</p>
 					</div>
 				</div>
+
 				<DownloadPdfButtonClient packet={packet} />
 			</div>
 
-			<div className="flex gap-6">
-				{/* Receiving Hospital */}
-				<div className="rounded-xl bg-gray-50 ring ring-gray-200 w-full">
-					<div className="p-4">
-						<h2 className="font-semibold text-lg text-gray-600 no-line-height">
-							Receiving Hospital
-						</h2>
-					</div>
+			<Section title="Receiving Hospital">
+				<Field label="Hospital Name" value={packet.receivingHospitalName} />
 
-					<div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6 rounded-xl bg-white p-4 ring ring-gray-200 w-full">
-						{receivingHospitalFields.map((p) => (
-							<div key={p.label} className="flex flex-col gap-1 w-full">
-								<div className="text-sm text-gray-400">{p.label}</div>
-								<div className="text-sm font-semibold text-gray-600">{p.value || "—"}</div>
-							</div>
-						))}
-					</div>
-				</div>
+				<Field label="Hospital Email" value={packet.receivingHospitalEmail} />
+
+				<Field label="Transfer Note" value={packet.transferNote} />
+			</Section>
+
+			<div className="flex flex-col gap-6">
+				<h2 className="text-[20px] font-semibold text-gray-800">Patient Details</h2>
+
+				<Section title="Personal Information">
+					<Field label="First Name" value={packet.personalInformation.firstName} />
+
+					<Field label="Middle Name" value={packet.personalInformation.middleName} />
+
+					<Field label="Last Name" value={packet.personalInformation.lastName} />
+
+					<Field label="Patient ID" value={packet.personalInformation.patientId} />
+
+					<Field label="Age" value={packet.personalInformation.age} />
+
+					<Field label="Date of Birth" value={packet.personalInformation.dateOfBirth} />
+
+					<Field label="Sex" value={packet.personalInformation.sex} />
+
+					<Field label="Marital Status" value={packet.personalInformation.maritalStatus} />
+
+					<Field label="National ID" value={packet.personalInformation.nationalId} />
+				</Section>
+
+				<Section title="Contact Information">
+					<Field label="Phone Number" value={packet.contactInformation.phoneNumber} />
+
+					<Field label="Email Address" value={packet.contactInformation.emailAddress} />
+
+					<Field label="Residential Address" value={packet.contactInformation.residentialAddress} />
+
+					<Field label="State of Origin" value={packet.contactInformation.stateOfOrigin} />
+
+					<Field label="Country of Origin" value={packet.contactInformation.countryOfOrigin} />
+				</Section>
+
+				<Section title="Emergency Contact">
+					<Field label="First Name" value={packet.emergencyContact.firstName} />
+
+					<Field label="Middle Name" value={packet.emergencyContact.middleName} />
+
+					<Field label="Last Name" value={packet.emergencyContact.lastName} />
+
+					<Field label="Relationship" value={packet.emergencyContact.relationship} />
+
+					<Field label="Phone Number" value={packet.emergencyContact.phoneNumber} />
+				</Section>
+
+				<Section title="Physical Information">
+					<Field label="Height" value={packet.physicalInformation.height} />
+
+					<Field label="Weight" value={packet.physicalInformation.weight} />
+
+					<Field label="Blood Group" value={packet.physicalInformation.bloodGroup} />
+
+					<Field label="Genotype" value={packet.physicalInformation.genotype} />
+				</Section>
 			</div>
-
-			{/* Clinical Records */}
-			<section className="rounded-xl bg-gray-50 ring ring-gray-200">
-				<div className="px-4 h-10 flex items-center ">
-					<h2 className="text-lg font-semibold text-gray-600">Clinical Records</h2>
-				</div>
-
-				<div className="grid gap-6 rounded-xl bg-white p-4 ring ring-gray-200 md:grid-cols-2">
-					{packet.records.map((record) => (
-						<div key={record.id} className="space-y-1">
-							<p className="text-sm text-gray-400">{record.label}</p>
-							<p className="text-sm font-semibold text-gray-600">{record.status}</p>
-						</div>
-					))}
-				</div>
-			</section>
 		</main>
 	);
 }
-
-const receivingHospitalFields = [
-	{
-		label: "Hospital name",
-		value: "Enugu State Teaching Hospital",
-	},
-	{
-		label: "Hospital Admin name",
-		value: "Dr. Adebayo",
-	},
-	{
-		label: "Hospital Admin email",
-		value: "referrals@enuguteachinghospital.ng",
-	},
-	{
-		label: "Transfer Note",
-		value: "Urgent referral for specialist care",
-	},
-];

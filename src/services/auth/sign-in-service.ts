@@ -2,6 +2,7 @@
 
 import { SignInType } from "@/features/auth/schemas/sign-in-schema";
 import { auth } from "@/lib/better-auth/auth";
+import { headers } from "next/headers";
 
 export async function signInService(data: SignInType) {
 	try {
@@ -9,7 +10,9 @@ export async function signInService(data: SignInType) {
 			body: {
 				email: data.email,
 				password: data.password,
+				rememberMe: data.rememberMe,
 			},
+			headers: await headers(),
 		});
 
 		const userId = signInRes.user.id;

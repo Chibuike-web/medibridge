@@ -1,16 +1,19 @@
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { patientPersonalIdentification } from "./personal-identification";
+import { patient } from "./patient";
 
 export const patientPhysicalInformation = pgTable("patient_physical_information", {
 	id: text("id").primaryKey(),
-	personalIdentificationId: text("personal_identification_id")
+
+	patientId: text("patient_id")
 		.notNull()
 		.unique()
-		.references(() => patientPersonalIdentification.id, { onDelete: "cascade" }),
+		.references(() => patient.id, { onDelete: "cascade" }),
+
 	height: text("height"),
 	weight: text("weight"),
 	bloodGroup: text("blood_group"),
 	genotype: text("genotype"),
+
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -1,4 +1,3 @@
-import { DashboardAuth } from "@/components/layout/dashboard-auth";
 import { Metadata } from "next";
 import { Shell } from "@/components/layout/shell";
 
@@ -23,9 +22,7 @@ export default function AppLayout({
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body className="antialiased" suppressHydrationWarning>
-				<Shell>
-					<DashboardAuth>{children}</DashboardAuth>
-				</Shell>
+				<Shell>{children}</Shell>
 			</body>
 		</html>
 	);

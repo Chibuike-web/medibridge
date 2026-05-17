@@ -1,22 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PatientsTable } from "@/features/patients/components/patients-table";
+import { getTotalPatient } from "@/lib/api/get-total-patient";
 import { RiAddLine, RiSearchLine, RiShareForwardBoxLine } from "@remixicon/react";
 import Link from "next/link";
-import { patients } from "@/features/patients/data";
 import { FilterButton } from "../../../../../features/patients/components/filter-button";
 
 export const metadata = {
 	title: "Patients",
 };
 
-export default function PatientsPage() {
-	return patients.length > 0 ? (
+export default async function PatientsPage() {
+	const { hasPatients, patients } = await getTotalPatient();
+
+	return hasPatients ? (
 		<div className="flex h-full flex-col">
 			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0">
-					<h1 className="text-xl font-semibold text-balance text-gray-800 tracking-[-0.015em]">
-						Patients
-					</h1>
+				<h1 className="text-xl font-semibold text-balance text-gray-800 tracking-[-0.015em]">
+					Patients
+				</h1>
 				<div className="flex items-center gap-2 flex-1 justify-end">
 					<div className="relative min-w-[12.5rem] max-w-[31.25rem] flex-1">
 						<RiSearchLine className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
@@ -43,17 +45,17 @@ export default function PatientsPage() {
 
 			<div className="min-h-0 flex-1 overflow-y-auto">
 				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
-						<PatientsTable />
+					<PatientsTable patients={patients} />
 				</section>
 			</div>
 		</div>
 	) : (
 		<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">
 			<div className="flex flex-col items-center max-w-[37.5rem]">
-					<h1 className="font-semibold text-2xl text-center text-balance mb-6">No Patients Yet</h1>
-					<p className="mb-12 text-center text-pretty">
-						Patients will appear here once you add them. Start by creating a patient profile.
-					</p>
+				<h1 className="font-semibold text-2xl text-center text-balance mb-6">No Patients Yet</h1>
+				<p className="mb-12 text-center text-pretty">
+					Patients will appear here once you add them. Start by creating a patient profile.
+				</p>
 				<Button className="h-11" asChild>
 					<Link href="/dashboard/add-new-patient">
 						<RiAddLine className="size-6" /> Add New Patient

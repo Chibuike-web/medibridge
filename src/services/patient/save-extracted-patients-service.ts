@@ -2,9 +2,10 @@
 
 import { PatientSchema, PatientType } from "@/features/patients/schemas/patient-schema";
 import {
+	patient,
 	patientContactInformation,
 	patientEmergencyContact,
-	patientPersonalIdentification,
+	patientPersonalInformation,
 	patientPhysicalInformation,
 } from "@/db/schemas/patient";
 import { auth, db } from "@/lib/better-auth/auth";
@@ -42,16 +43,16 @@ export async function saveExtractedPatientsService(
 		if (!parsedRecords.success) {
 			return {
 				status: "failed",
-					error: "Invalid patient payload.",
+				error: "Invalid patient payload.",
 			};
 		}
 
 		const records = parsedRecords.data;
 		if (records.length === 0) {
-				return { status: "failed", error: "No patients were provided." };
+			return { status: "failed", error: "No patients were provided." };
 		}
 
-			const validationError = validatePatients(records);
+		const validationError = validatePatients(records);
 		if (validationError) {
 			return { status: "failed", error: validationError };
 		}
@@ -60,7 +61,7 @@ export async function saveExtractedPatientsService(
 		const organizationId = session?.session.activeOrganizationId;
 
 		if (!session?.user?.id) {
-				return { status: "failed", error: "You must be signed in to save patients." };
+			return { status: "failed", error: "You must be signed in to save patients." };
 		}
 
 		if (!organizationId) {
@@ -69,18 +70,24 @@ export async function saveExtractedPatientsService(
 
 		await db.transaction(async (tx) => {
 			for (const record of records) {
-				const personalIdentificationId = crypto.randomUUID();
+				const patientRowId = crypto.randomUUID();
+				const personalInformationId = crypto.randomUUID();
 				const contactInformationId = crypto.randomUUID();
 				const emergencyContactId = crypto.randomUUID();
 				const physicalInformationId = crypto.randomUUID();
 
-				await tx.insert(patientPersonalIdentification).values({
-					id: personalIdentificationId,
+				await tx.insert(patient).values({
+					id: patientRowId,
 					organizationId,
+					patientId: record.personalInfo.patientId!.trim(),
+				});
+
+				await tx.insert(patientPersonalInformation).values({
+					id: personalInformationId,
+					patientId: patientRowId,
 					firstName: record.personalInfo.firstName!.trim(),
 					middleName: record.personalInfo.middleName,
 					lastName: record.personalInfo.lastName!.trim(),
-					patientId: record.personalInfo.patientId!.trim(),
 					dateOfBirth: record.personalInfo.dateOfBirth,
 					age: record.personalInfo.age,
 					sex: record.personalInfo.sex,
@@ -90,7 +97,7 @@ export async function saveExtractedPatientsService(
 
 				await tx.insert(patientContactInformation).values({
 					id: contactInformationId,
-					personalIdentificationId,
+					patientId: patientRowId,
 					phoneNumber: record.contactInfo.phoneNumber,
 					emailAddress: record.contactInfo.emailAddress,
 					residentialAddress: record.contactInfo.residentialAddress,
@@ -100,7 +107,7 @@ export async function saveExtractedPatientsService(
 
 				await tx.insert(patientEmergencyContact).values({
 					id: emergencyContactId,
-					personalIdentificationId,
+					patientId: patientRowId,
 					firstName: record.emergencyInfo.firstName!.trim(),
 					middleName: record.emergencyInfo.middleName,
 					lastName: record.emergencyInfo.lastName!.trim(),
@@ -110,7 +117,7 @@ export async function saveExtractedPatientsService(
 
 				await tx.insert(patientPhysicalInformation).values({
 					id: physicalInformationId,
-					personalIdentificationId,
+					patientId: patientRowId,
 					height: record.physicalInfo.height,
 					weight: record.physicalInfo.weight,
 					bloodGroup: record.physicalInfo.bloodGroup,
@@ -127,7 +134,7 @@ export async function saveExtractedPatientsService(
 		console.error(error);
 		return {
 			status: "failed",
-				error: error instanceof Error ? error.message : "Failed to save patients.",
+			error: error instanceof Error ? error.message : "Failed to save patients.",
 		};
 	}
 }

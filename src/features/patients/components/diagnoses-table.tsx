@@ -450,12 +450,12 @@ function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
 			cell: ({ row }) => <CopyIdButton id={row.original.diagnosisId} />,
 		},
 		{
-			header: "Clinical summary",
-			accessorKey: "clinicalSummary",
+			header: "Clinical notes",
+			accessorKey: "clinicalNotes",
 			enableSorting: false,
 			cell: ({ row }) => (
 				<p className="max-w-[22rem] whitespace-normal text-sm leading-6 text-gray-600">
-					{row.original.clinicalSummary}
+					{row.original.clinicalNotes}
 				</p>
 			),
 		},

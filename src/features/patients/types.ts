@@ -15,7 +15,7 @@ export type DiagnosisType = {
 	lastReviewedLabel: string;
 	lastReviewedSortValue: string;
 	diagnosisId: string;
-	clinicalSummary: string;
+	clinicalNotes: string;
 	status: "Active" | "Resolved";
 };
 
@@ -64,10 +64,15 @@ export type EncounterType = {
 	encounterDateSortValue: string;
 	createdAtLabel: string;
 	createdAtSortValue: string;
+	updatedAtLabel: string;
+	updatedAtSortValue: string;
+	createdBy: string;
+	updatedBy: string;
 	encounterType: "Emergency Visit" | "Routine Checkup" | "Follow-up Visit" | "Outpatient Visit";
 	encounterId: string;
 	department: string;
 	physician: string;
+	patientId: string;
 };
 
 export type LabTestType = {

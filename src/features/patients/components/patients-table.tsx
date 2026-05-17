@@ -50,15 +50,14 @@ import {
 	RiShare2Line,
 	RiShareBoxLine,
 } from "@remixicon/react";
-import { patients } from "../data";
 import { PatientListItemType } from "../types";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
-export function PatientsTable() {
+export function PatientsTable({ patients }: { patients: PatientListItemType[] }) {
 	const router = useRouter();
-	const data = useMemo(() => patients, []);
+	const data = useMemo(() => patients, [patients]);
 	const columns = useMemo(() => getPatientsColumns(router), [router]);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 	const [pagination, setPagination] = useState<PaginationState>({

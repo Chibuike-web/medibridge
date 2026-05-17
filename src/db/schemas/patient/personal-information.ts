@@ -1,20 +1,25 @@
 import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { organization } from "../auth/organization";
+import { patient } from "./patient";
 
-export const patientPersonalIdentification = pgTable("patient_personal_identification", {
+export const patientPersonalInformation = pgTable("patient_personal_information", {
 	id: text("id").primaryKey(),
-	organizationId: text("organization_id")
+
+	patientId: text("patient_id")
 		.notNull()
-		.references(() => organization.id, { onDelete: "cascade" }),
+		.unique()
+		.references(() => patient.id, { onDelete: "cascade" }),
+
 	firstName: text("first_name").notNull(),
 	middleName: text("middle_name"),
 	lastName: text("last_name").notNull(),
-	patientId: text("patient_id").notNull().unique(),
+
 	dateOfBirth: text("date_of_birth"),
 	age: integer("age"),
+
 	sex: text("sex"),
 	maritalStatus: text("marital_status"),
 	nationalId: text("national_id"),
+
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

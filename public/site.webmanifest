@@ -1,0 +1,19 @@
+{
+	"name": "MediBridge",
+	"short_name": "MediBridge",
+	"icons": [
+		{
+			"src": "/favicon-16x16.png",
+			"sizes": "16x16",
+			"type": "image/png"
+		},
+		{
+			"src": "/apple-touch-icon.png",
+			"sizes": "180x180",
+			"type": "image/png"
+		}
+	],
+	"theme_color": "#0b746e",
+	"background_color": "#ffffff",
+	"display": "standalone"
+}

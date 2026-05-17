@@ -12,6 +12,28 @@ const styles = StyleSheet.create({
 		fontFamily: "Helvetica",
 	},
 
+	header: {
+		marginBottom: 24,
+	},
+
+	patientName: {
+		fontSize: 20,
+		fontWeight: 700,
+		marginBottom: 8,
+		color: "#111827",
+	},
+
+	headerMeta: {
+		flexDirection: "row",
+		flexWrap: "wrap",
+		gap: 12,
+	},
+
+	headerMetaText: {
+		fontSize: 10,
+		color: "#6b7280",
+	},
+
 	section: {
 		marginBottom: 20,
 	},
@@ -20,7 +42,8 @@ const styles = StyleSheet.create({
 		backgroundColor: "#f9fafb",
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		padding: 12,
+		paddingVertical: 10,
+		paddingHorizontal: 12,
 		borderWidth: 1,
 		borderColor: "#e5e7eb",
 		borderBottomWidth: 0,
@@ -44,12 +67,13 @@ const styles = StyleSheet.create({
 	grid: {
 		flexDirection: "row",
 		flexWrap: "wrap",
-		gap: 16,
+		marginHorizontal: -8,
 	},
 
 	gridItem: {
-		width: "48%", // 2 columns approximation
-		marginBottom: 12,
+		width: "50%",
+		paddingHorizontal: 8,
+		marginBottom: 14,
 	},
 
 	label: {
@@ -62,46 +86,66 @@ const styles = StyleSheet.create({
 		fontSize: 11,
 		fontWeight: 700,
 		color: "#4b5563",
+		lineHeight: 1.5,
 	},
 
-	table: {
-		marginTop: 8,
-		borderWidth: 1,
-		borderColor: "#e5e7eb",
-		borderRadius: 10,
-		overflow: "hidden",
+	paragraph: {
+		fontSize: 10,
+		color: "#374151",
+		lineHeight: 1.6,
 	},
 });
+
+function Field({ label, value }: { label: string; value: string | number | undefined }) {
+	return (
+		<View style={styles.gridItem}>
+			<Text style={styles.label}>{label}</Text>
+			<Text style={styles.value}>{value || "—"}</Text>
+		</View>
+	);
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+	return (
+		<View style={styles.section}>
+			<View style={styles.sectionHeader}>
+				<Text style={styles.sectionTitle}>{title}</Text>
+			</View>
+
+			<View style={styles.cardBody}>
+				<View style={styles.grid}>{children}</View>
+			</View>
+		</View>
+	);
+}
 
 export function TransferPatientDocumentPdf({ packet }: { packet: TransferPacket }) {
 	return (
 		<Document>
 			<Page size="A4" style={styles.page}>
 				{/* Header */}
-				<View style={{ marginBottom: 20 }}>
-					<Text style={{ fontSize: 18, fontWeight: 700 }}>{packet.patientName}</Text>
-					<Text style={{ fontSize: 10, color: "#6b7280" }}>Patient ID: {packet.patientId}</Text>
+				<View style={styles.header}>
+					<Text style={styles.patientName}>{packet.patientName}</Text>
+
+					<View style={styles.headerMeta}>
+						<Text style={styles.headerMetaText}>Patient ID: {packet.patientId}</Text>
+
+						<Text style={styles.headerMetaText}>
+							Email: {packet.contactInformation.emailAddress}
+						</Text>
+
+						<Text style={styles.headerMetaText}>
+							Phone: {packet.contactInformation.phoneNumber}
+						</Text>
+					</View>
 				</View>
 
 				{/* Receiving Hospital */}
-				<View style={styles.section}>
-					<View style={styles.sectionHeader}>
-						<Text style={styles.sectionTitle}>Receiving Hospital</Text>
-					</View>
-					<View style={styles.cardBody}>
-						<View style={styles.grid}>
-							<View style={styles.gridItem}>
-								<Text style={styles.label}>Name</Text>
-								<Text style={styles.value}>{packet.receivingHospitalName}</Text>
-							</View>
+				<Section title="Receiving Hospital">
+					<Field label="Hospital Name" value={packet.receivingHospitalName} />
 
-							<View style={styles.gridItem}>
-								<Text style={styles.label}>Email</Text>
-								<Text style={styles.value}>{packet.receivingHospitalEmail}</Text>
-							</View>
-						</View>
-					</View>
-				</View>
+					<Field label="Hospital Email" value={packet.receivingHospitalEmail} />
+				</Section>
 
 				{/* Transfer Note */}
 				<View style={styles.section}>
@@ -110,27 +154,74 @@ export function TransferPatientDocumentPdf({ packet }: { packet: TransferPacket 
 					</View>
 
 					<View style={styles.cardBody}>
-						<Text style={{ fontSize: 10, color: "#374151" }}>{packet.transferNote}</Text>
+						<Text style={styles.paragraph}>{packet.transferNote}</Text>
 					</View>
 				</View>
 
-				{/* Records */}
-				<View style={styles.section}>
-					<View style={styles.sectionHeader}>
-						<Text style={styles.sectionTitle}>Clinical Records</Text>
-					</View>
+				{/* Personal Information */}
+				<Section title="Personal Information">
+					<Field label="First Name" value={packet.personalInformation.firstName} />
 
-					<View style={styles.cardBody}>
-						<View style={styles.grid}>
-							{packet.records.map((record) => (
-								<View key={record.id} style={styles.gridItem}>
-									<Text style={styles.label}>{record.label}</Text>
-									<Text style={styles.value}>{record.status}</Text>
-								</View>
-							))}
-						</View>
-					</View>
-				</View>
+					<Field label="Middle Name" value={packet.personalInformation.middleName} />
+
+					<Field label="Last Name" value={packet.personalInformation.lastName} />
+
+					<Field label="Patient ID" value={packet.personalInformation.patientId} />
+
+					<Field label="Age" value={packet.personalInformation.age} />
+
+					<Field label="Date of Birth" value={packet.personalInformation.dateOfBirth} />
+
+					<Field label="Sex" value={packet.personalInformation.sex} />
+
+					<Field label="Marital Status" value={packet.personalInformation.maritalStatus} />
+
+					<Field label="National ID" value={packet.personalInformation.nationalId} />
+				</Section>
+
+				{/* Contact Information */}
+				<Section title="Contact Information">
+					<Field label="Phone Number" value={packet.contactInformation.phoneNumber} />
+
+					<Field label="Email Address" value={packet.contactInformation.emailAddress} />
+
+					<Field label="Residential Address" value={packet.contactInformation.residentialAddress} />
+
+					<Field label="State of Origin" value={packet.contactInformation.stateOfOrigin} />
+
+					<Field label="Country of Origin" value={packet.contactInformation.countryOfOrigin} />
+				</Section>
+
+				{/* Emergency Contact */}
+				<Section title="Emergency Contact">
+					<Field label="First Name" value={packet.emergencyContact.firstName} />
+
+					<Field label="Middle Name" value={packet.emergencyContact.middleName} />
+
+					<Field label="Last Name" value={packet.emergencyContact.lastName} />
+
+					<Field label="Relationship" value={packet.emergencyContact.relationship} />
+
+					<Field label="Phone Number" value={packet.emergencyContact.phoneNumber} />
+				</Section>
+
+				{/* Physical Information */}
+				<Section title="Physical Information">
+					<Field label="Height" value={packet.physicalInformation.height} />
+
+					<Field label="Weight" value={packet.physicalInformation.weight} />
+
+					<Field label="Blood Group" value={packet.physicalInformation.bloodGroup} />
+
+					<Field label="Genotype" value={packet.physicalInformation.genotype} />
+				</Section>
+
+				{/* Clinical Records */}
+				<Section title="Clinical Records">
+					{packet.records.map((record) => (
+						<Field key={record.id} label={record.label} value={record.status} />
+					))}
+				</Section>
 			</Page>
 		</Document>
 	);

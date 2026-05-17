@@ -1,68 +1,29 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { OverviewStats } from "@/services/patient/types";
 import { OverviewClient } from "./overview-client";
 import { StatContextProvider } from "./stats-context";
 import { RiAddLine } from "@remixicon/react";
+import { getTotalPatient } from "@/lib/api/get-total-patient";
+import { getTotalPendingTransfers } from "@/lib/api/get-total-pending-transfers";
+import { getTotalTransfers } from "@/lib/api/get-total-transfers";
 
 export const metadata = {
 	title: "Overview",
 };
 
-const baseDate = new Date();
+export default async function Overview() {
+	const [patients, transfers, pendingTransfers] = await Promise.all([
+		getTotalPatient(),
+		getTotalTransfers(),
+		getTotalPendingTransfers(),
+	]);
 
-const previewPatientCreatedAt = [
-	...Array.from({ length: 6 }, (_, index) => {
-		const date = new Date(baseDate);
-		date.setDate(date.getDate() - index - 1);
-		return date.toISOString();
-	}),
-	...Array.from({ length: 122 }, (_, index) => {
-		const date = new Date(baseDate);
-		date.setDate(date.getDate() - index * 2);
-		return date.toISOString();
-	}),
-];
+	const stats = {
+		...patients,
+		...transfers,
+		...pendingTransfers,
+	};
 
-const previewPatientTransferredAt = [
-	...Array.from({ length: 4 }, (_, index) => {
-		const date = new Date(baseDate);
-		date.setDate(date.getDate() - index - 1);
-		return date.toISOString();
-	}),
-	...Array.from({ length: 14 }, (_, index) => {
-		const date = new Date(baseDate);
-		date.setDate(date.getDate() - index * 3);
-		return date.toISOString();
-	}),
-];
-
-const previewPendingTransferredAt = [
-	...Array.from({ length: 5 }, (_, index) => {
-		const date = new Date(baseDate);
-		date.setDate(date.getDate() - index);
-		return date.toISOString();
-	}),
-	...Array.from({ length: 7 }, (_, index) => {
-		const date = new Date(baseDate);
-		date.setDate(date.getDate() - index * 4);
-		return date.toISOString();
-	}),
-];
-
-const previewStats: OverviewStats = {
-	totalPatients: previewPatientCreatedAt.length,
-	transferredRecords: previewPatientTransferredAt.length,
-	pendingTransfers: previewPendingTransferredAt.length,
-	patientCreatedAt: previewPatientCreatedAt,
-	patientTransferredAt: previewPatientTransferredAt,
-	pendingTransferredAt: previewPendingTransferredAt,
-	hasPatients: previewPatientCreatedAt.length > 0,
-};
-
-const stats = previewStats;
-
-export default function Overview() {
 	return stats.hasPatients ? (
 		<StatContextProvider stats={stats}>
 			<OverviewClient />
