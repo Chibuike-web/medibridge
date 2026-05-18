@@ -134,12 +134,12 @@ export function PatientsTable({ patients }: { patients: PatientListItemType[] })
 							className="h-14 group"
 							role="link"
 							tabIndex={0}
-								onClick={(e) => {
-									e.stopPropagation();
-									router.push(
-										`/dashboard/patients/${row.original.patientId}?section=patient-overview`,
-									);
-								}}
+							onClick={(e) => {
+								e.stopPropagation();
+								router.push(
+									`/dashboard/patients/${row.original.patientId}?section=patient-overview`,
+								);
+							}}
 						>
 							{row.getVisibleCells().map((cell) => (
 								<TableCell
@@ -248,12 +248,7 @@ function getPatientsColumns(
 			accessorKey: "name",
 			enableSorting: true,
 			cell: ({ row }) => (
-				<div
-					className="flex items-center gap-3 w-max"
-					onClick={(e) => {
-						e.stopPropagation();
-					}}
-				>
+				<div className="flex items-center gap-3 w-max" onClick={(e) => e.stopPropagation()}>
 					<Avatar className="size-9 border border-gray-200 bg-gray-100 text-gray-700">
 						<AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
 							{getInitials(row.original.name)}
@@ -267,19 +262,14 @@ function getPatientsColumns(
 			header: "Patient ID",
 			accessorKey: "patientId",
 			enableSorting: false,
-			cell: ({ row }) => <CopyIdButton id={row.original.patientId} />,
+			cell: ({ row }) => <CopyIdButton id={row.original.patientId} className="min-w-0 w-[100px]" />,
 		},
 		{
 			header: "Gender",
 			accessorKey: "gender",
 			enableSorting: false,
 			cell: ({ row }) => (
-				<div
-					onClick={(e) => {
-						e.stopPropagation();
-					}}
-					className="w-max"
-				>
+				<div onClick={(e) => e.stopPropagation()} className="w-max">
 					{row.original.gender}
 				</div>
 			),
@@ -338,11 +328,11 @@ function getPatientsColumns(
 							className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
 							<DropdownMenuItem
-									onSelect={() =>
-										router.push(
-											`/dashboard/patients/${row.original.patientId}?section=patient-overview`,
-										)
-									}
+								onSelect={() =>
+									router.push(
+										`/dashboard/patients/${row.original.patientId}?section=patient-overview`,
+									)
+								}
 								className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
 							>
 								<RiErrorWarningLine className="text-white" />

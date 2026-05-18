@@ -1,10 +1,10 @@
 import { patientTransfer } from "@/db/schemas";
 import { db } from "../better-auth/auth";
 import { eq } from "drizzle-orm";
-import { getActiveOrganizationId } from "./get-active-organization-id";
+import { getOrganizationId } from "./get-organization-id";
 
 export async function getTotalTransfers() {
-	const organizationId = await getActiveOrganizationId();
+	const organizationId = await getOrganizationId();
 
 	if (!organizationId) {
 		return { transferredRecords: 0, patientTransferredAt: [] };

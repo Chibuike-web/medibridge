@@ -2,10 +2,10 @@ import { unstable_cache } from "next/cache";
 import { db } from "@/lib/better-auth/auth";
 import { patient, patientPersonalInformation } from "@/db/schemas";
 import { count, desc, eq } from "drizzle-orm";
-import { getActiveOrganizationId } from "./get-active-organization-id";
+import { getOrganizationId } from "./get-organization-id";
 
 export async function getTotalPatient() {
-	const organizationId = await getActiveOrganizationId();
+	const organizationId = await getOrganizationId();
 
 	if (!organizationId) {
 		return { totalPatients: 0, patientCreatedAt: [], patients: [], hasPatients: false };
@@ -23,7 +23,7 @@ export async function getTotalPatient() {
 						name: patientPersonalInformation.firstName,
 						lastName: patientPersonalInformation.lastName,
 						createdAt: patient.createdAt,
-						patientId: patient.patientId,
+						patientId: patient.id,
 						gender: patientPersonalInformation.sex,
 						age: patientPersonalInformation.age,
 					})

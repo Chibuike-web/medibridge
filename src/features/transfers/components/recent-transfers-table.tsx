@@ -36,11 +36,10 @@ import {
 } from "@tanstack/react-table";
 import { TransferType } from "../types";
 import { useMemo, useState } from "react";
-import { recentTransfers } from "../data";
 import { getInitials } from "@/lib/utils/get-initials";
 
-export function RecentTransfersTable() {
-	const data = useMemo(() => recentTransfers, []);
+export function RecentTransfersTable({ data }: { data: TransferType[] }) {
+	const tableData = useMemo(() => data, []);
 	const cols = useMemo(() => recentTransfersColumns, []);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 	const [pagination, setPagination] = useState<PaginationState>({
@@ -49,7 +48,7 @@ export function RecentTransfersTable() {
 	});
 
 	const table = useReactTable({
-		data,
+		data: tableData,
 		columns: cols,
 		onSortingChange: setSorting,
 		onPaginationChange: setPagination,
@@ -196,10 +195,12 @@ const recentTransfersColumns: ColumnDef<TransferType>[] = [
 			<div className="flex items-center gap-3">
 				<Avatar className="size-9 border border-gray-200 bg-gray-100 text-gray-700">
 					<AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
-						{getInitials(row.original.name)}
+						{getInitials(`${row.original.patientFirstName} ${row.original.patientLastName}`)}
 					</AvatarFallback>
 				</Avatar>
-				<span className="font-medium text-gray-800">{row.original.name}</span>
+				<span className="font-medium text-gray-800">
+					{row.original.patientFirstName} {row.original.patientLastName}
+				</span>{" "}
 			</div>
 		),
 	},
@@ -207,15 +208,15 @@ const recentTransfersColumns: ColumnDef<TransferType>[] = [
 		header: "Patient ID",
 		accessorKey: "patientId",
 		enableSorting: false,
-		cell: ({ row }) => <CopyIdButton id={row.original.patientId} />,
+		cell: ({ row }) => <CopyIdButton id={row.original.patientId} className="min-w-0 w-[100px]" />,
 	},
 	{
 		header: "Target Hospital",
 		accessorKey: "targetHospital",
-		enableSorting: false,
+		enableSorting: true,
 		cell: ({ row }) => (
 			<span className="block max-w-[17.5rem] whitespace-normal text-pretty">
-				{row.original.targetHospital}
+				{row.original.targetHospitalName}
 			</span>
 		),
 	},

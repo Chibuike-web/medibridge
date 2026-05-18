@@ -7,8 +7,6 @@ export const patient = pgTable("patient", {
 		.notNull()
 		.references(() => organization.id, { onDelete: "cascade" }),
 
-	patientId: text("patient_id").notNull().unique(),
-
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

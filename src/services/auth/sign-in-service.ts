@@ -16,12 +16,6 @@ export async function signInService(data: SignInType) {
 		});
 
 		const userId = signInRes.user.id;
-		if (!userId) {
-			return {
-				status: "failed",
-				error: "User does not exist",
-			};
-		}
 
 		return {
 			status: "success",

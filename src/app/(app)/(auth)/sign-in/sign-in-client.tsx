@@ -27,11 +27,10 @@ export function SignInClient() {
 
 	const {
 		register,
-		reset,
 		handleSubmit,
 		control,
 		formState: { errors, isSubmitting },
-	} = useForm({
+	} = useForm<SignInType>({
 		resolver: zodResolver(signInSchema),
 	});
 
@@ -49,25 +48,7 @@ export function SignInClient() {
 			setError(error instanceof Error ? error.message : "Unknown error");
 			return;
 		}
-		try {
-			const response = await listOrganizationAction();
-			if (response.status === "failed") {
-				console.error(response.error);
-				setError(response.error || "");
-				return;
-			}
-
-			setSuccess("Sign in successful");
-			router.replace("/dashboard/overview");
-
-			setTimeout(() => {
-				reset();
-				setSuccess("");
-			}, 2000);
-		} catch (error) {
-			setError(error instanceof Error ? error.message : "Unknown error");
-			return;
-		}
+		router.replace("/dashboard/overview");
 	};
 
 	return (
@@ -82,7 +63,7 @@ export function SignInClient() {
 				</Label>
 				<Input
 					id="adminEmail"
-					type="text"
+					type="email"
 					placeholder="sarah.thompson@stmaryhospital.org"
 					className="h-11"
 					{...register("email")}

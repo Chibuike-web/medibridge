@@ -1,11 +1,5 @@
 import { Suspense } from "react";
-import {
-	RiArrowLeftLine,
-	RiArrowRightSLine,
-	RiDeleteBin2Line,
-	RiEdit2Line,
-	RiUpload2Line,
-} from "@remixicon/react";
+import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
 import { patients } from "@/features/patients/data";
 import { diagnoses } from "@/features/patients/diagnoses-data";
 import { DiagnosesTable } from "@/features/patients/components/diagnoses-table";
@@ -29,6 +23,7 @@ import { EncountersTable } from "@/features/patients/components/encounters-table
 import { LabTestsTable } from "@/features/patients/components/lab-tests-table";
 import { ImagingTable } from "@/features/patients/components/imaging-table";
 import { PatientAvatarMenu } from "@/features/patients/components/patient-avatar-menu";
+import { getPatientById } from "@/lib/api/get-patient-by-id";
 
 export const metadata = {
 	title: "Patient",
@@ -52,11 +47,11 @@ export default function PatientPage({
 						<RiArrowLeftLine aria-hidden="true" /> <span>Patients</span>
 					</Link>
 					<RiArrowRightSLine aria-hidden="true" />
-					<Suspense>
+					<Suspense fallback={<BreadCrumbSkeleton />}>
 						<BreadCrumb searchParams={searchParams} params={params} />
 					</Suspense>
 				</nav>
-				<Suspense>
+				<Suspense fallback={<HeaderSkeleton />}>
 					<Header params={params} />
 				</Suspense>
 			</div>
@@ -74,11 +69,12 @@ async function BreadCrumb({
 }) {
 	const [{ section }, { patientId }] = await Promise.all([searchParams, params]);
 
-	const patientName = patients.find((patient) => patient.patientId === patientId)?.name;
-
+	const patient = await getPatientById(patientId);
 	return (
 		<>
-			<span className="shrink-0">{patientName}</span>
+			<span className="shrink-0">
+				{patient?.firstName} {patient?.lastName}
+			</span>
 			<RiArrowRightSLine aria-hidden="true" />
 			<span className="font-semibold shrink-0">{formatSectionLabel(section)}</span>
 		</>
@@ -87,7 +83,8 @@ async function BreadCrumb({
 
 async function Header({ params }: { params: Promise<{ patientId: string }> }) {
 	const { patientId } = await params;
-	const patientName = patients.find((patient) => patient.patientId === patientId)?.name;
+	const patient = await getPatientById(patientId);
+	const patientName = `${patient?.firstName} ${patient?.lastName}`;
 	return (
 		<div className="flex items-center gap-3 border-b border-gray-200 px-6 py-3.5 text-sm">
 			<PatientAvatarMenu patientName={patientName ?? ""} />
@@ -104,7 +101,7 @@ async function Header({ params }: { params: Promise<{ patientId: string }> }) {
 					</div>
 					<div className="flex items-center shrink-0 gap-1">
 						<span>Patient ID:</span>
-						<CopyIdButton id="PAT-101" />
+						<CopyIdButton id={patient?.patientId as string} className="min-w-0 w-[100px]" />
 					</div>
 
 					<div className="flex items-center shrink-0 gap-1">
@@ -136,7 +133,7 @@ function Main({
 }) {
 	return (
 		<div className="flex min-h-0 flex-1 flex-col">
-			<Suspense fallback={null}>
+			<Suspense fallback={<SectionTabsSkeleton />}>
 				<SectionTabs />
 			</Suspense>
 			<div className="min-h-0 flex-1 overflow-y-auto">
@@ -297,4 +294,42 @@ function formatSectionLabel(value: string) {
 		.filter(Boolean)
 		.map((word) => word[0].toUpperCase() + word.slice(1))
 		.join(" ");
+}
+
+function BreadCrumbSkeleton() {
+	return (
+		<div className="flex items-center gap-2">
+			<div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
+			<div className="h-4 w-4 animate-pulse rounded bg-gray-200" />
+			<div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+		</div>
+	);
+}
+
+function HeaderSkeleton() {
+	return (
+		<div className="flex items-center gap-3 border-b border-gray-200 px-6 py-3.5">
+			<div className="size-14 animate-pulse rounded-full bg-gray-200" />
+
+			<div className="flex flex-col gap-4 flex-1">
+				<div className="h-7 w-52 animate-pulse rounded bg-gray-200" />
+
+				<div className="flex gap-4">
+					<div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
+					<div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+					<div className="h-4 w-48 animate-pulse rounded bg-gray-200" />
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function SectionTabsSkeleton() {
+	return (
+		<div className="flex gap-3 border-b border-gray-200 px-6 py-3">
+			{Array.from({ length: 6 }).map((_, index) => (
+				<div key={index} className="h-9 w-28 animate-pulse rounded-lg bg-gray-200" />
+			))}
+		</div>
+	);
 }

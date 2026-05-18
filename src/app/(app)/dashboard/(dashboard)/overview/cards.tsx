@@ -7,9 +7,6 @@ import { OverviewStats } from "@/services/patient/types";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils/cn";
 import { RiArrowDownLine, RiArrowUpLine } from "@remixicon/react";
-import { useStats } from "./stats-context";
-import { RecentPatientsTable } from "@/features/patients/components/recent-patients-table";
-import { RecentTransfersTable } from "@/features/transfers/components/recent-transfers-table";
 
 const TOTAL_PATIENTS_LABEL = "Total No. of Patients";
 const TRANSFERRED_RECORDS_LABEL = "Transferred Records";
@@ -64,27 +61,7 @@ function getOverviewCards(
 	];
 }
 
-export function OverviewClient() {
-	return (
-		<div className="flex h-full flex-col">
-			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0">
-				<h1 className="text-xl font-semibold text-balance text-gray-800 tracking-[-0.015em]">
-					Overview
-				</h1>
-			</header>
-			<div className="min-h-0 flex-1 overflow-y-auto">
-				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
-					<Cards />
-					<RecentPatientsTable />
-					<RecentTransfersTable />
-				</section>
-			</div>
-		</div>
-	);
-}
-
-function Cards() {
-	const stats = useStats();
+export function Cards({ stats }: { stats: OverviewStats }) {
 	const [patientCreatedAt] = useState(() =>
 		stats.patientCreatedAt.map((createdAt) => new Date(createdAt)),
 	);

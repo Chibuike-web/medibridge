@@ -3,10 +3,10 @@ import { patient, patientPersonalInformation } from "@/db/schemas/patient";
 import { db } from "@/lib/better-auth/auth";
 import { desc, eq } from "drizzle-orm";
 import { RecentPatientType } from "@/features/patients/types";
-import { getActiveOrganizationId } from "./get-active-organization-id";
+import { getOrganizationId } from "./get-organization-id";
 
 export async function getRecentPatients(): Promise<RecentPatientType[]> {
-	const organizationId = await getActiveOrganizationId();
+	const organizationId = await getOrganizationId();
 
 	if (!organizationId) return [];
 
@@ -17,15 +17,12 @@ export async function getRecentPatients(): Promise<RecentPatientType[]> {
 					name: patientPersonalInformation.firstName,
 					lastName: patientPersonalInformation.lastName,
 					createdAt: patient.createdAt,
-					patientId: patient.patientId,
+					patientId: patient.id,
 					gender: patientPersonalInformation.sex,
 					age: patientPersonalInformation.age,
 				})
 				.from(patient)
-				.leftJoin(
-					patientPersonalInformation,
-					eq(patient.id, patientPersonalInformation.patientId),
-				)
+				.leftJoin(patientPersonalInformation, eq(patient.id, patientPersonalInformation.patientId))
 				.where(eq(patient.organizationId, organizationId))
 				.orderBy(desc(patient.createdAt))
 				.limit(10);

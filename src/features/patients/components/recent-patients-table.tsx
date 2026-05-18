@@ -37,18 +37,21 @@ import { RecentPatientType } from "../types";
 import { getInitials } from "@/lib/utils/get-initials";
 import { formatDate } from "@/lib/utils/format-date";
 
-export function RecentPatientsTable() {
-	const data = useMemo(() => recentPatients, []);
+export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
+	const tableData = useMemo(() => data, [data]);
+
 	const columns = useMemo(() => recentPatientColumns, []);
+
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
+
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: 4,
 	});
 
 	const table = useReactTable({
-		data,
-		columns: columns,
+		data: tableData,
+		columns,
 		onSortingChange: setSorting,
 		onPaginationChange: setPagination,
 		getCoreRowModel: getCoreRowModel(),
@@ -204,7 +207,7 @@ const recentPatientColumns: ColumnDef<RecentPatientType>[] = [
 		header: "Patient ID",
 		accessorKey: "patientId",
 		enableSorting: false,
-		cell: ({ row }) => <CopyIdButton id={row.original.patientId} />,
+		cell: ({ row }) => <CopyIdButton id={row.original.patientId} className="min-w-0 w-[100px]" />,
 	},
 	{
 		header: "Gender",

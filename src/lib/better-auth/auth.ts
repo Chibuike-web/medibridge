@@ -9,7 +9,23 @@ import * as schema from "@/db/schemas/auth";
 import { ENV } from "../utils/env";
 import { sendEmail } from "../utils/send-email";
 
-const sql = postgres(ENV.DATABASE_URL!);
+// const sql = postgres(ENV.DATABASE_URL!);
+const globalForDb = globalThis as unknown as {
+	sql: ReturnType<typeof postgres> | undefined;
+};
+
+export const sql =
+	globalForDb.sql ??
+	postgres(ENV.DATABASE_URL!, {
+		max: 1,
+		idle_timeout: 20,
+		connect_timeout: 10,
+	});
+
+if (process.env.NODE_ENV !== "production") {
+	globalForDb.sql = sql;
+}
+
 export const db = drizzle({ client: sql });
 
 export const auth = betterAuth({
