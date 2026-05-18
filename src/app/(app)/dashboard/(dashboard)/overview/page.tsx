@@ -1,32 +1,20 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { RiAddLine } from "@remixicon/react";
-import { getTotalPatient } from "@/lib/api/get-total-patient";
-import { getTotalPendingTransfers } from "@/lib/api/get-total-pending-transfers";
-import { getTotalTransfers } from "@/lib/api/get-total-transfers";
 import { RecentPatientsTable } from "@/features/patients/components/recent-patients-table";
 import { RecentTransfersTable } from "@/features/transfers/components/recent-transfers-table";
 import { Suspense } from "react";
 import { Cards } from "./cards";
 import { getRecentPatients } from "@/lib/api/get-recent-patients";
 import { getRecentTransfer } from "@/lib/api/get-recent-transfers";
+import { getOverviewStats } from "@/lib/api/get-overview-stats";
 
 export const metadata = {
 	title: "Overview",
 };
 
 export default async function Overview() {
-	const [patients, transfers, pendingTransfers] = await Promise.all([
-		getTotalPatient(),
-		getTotalTransfers(),
-		getTotalPendingTransfers(),
-	]);
-
-	const stats = {
-		...patients,
-		...transfers,
-		...pendingTransfers,
-	};
+	const stats = await getOverviewStats();
 
 	return stats.hasPatients ? (
 		<div className="flex h-full flex-col">
@@ -68,7 +56,6 @@ export default async function Overview() {
 
 async function RecentPatients() {
 	const recentPatients = await getRecentPatients();
-
 	return <RecentPatientsTable data={recentPatients} />;
 }
 

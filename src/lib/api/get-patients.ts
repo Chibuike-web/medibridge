@@ -4,8 +4,9 @@ import { patient, patientPersonalInformation } from "@/db/schemas";
 import { count, desc, eq } from "drizzle-orm";
 import { getOrganizationId } from "./get-organization-id";
 
-export async function getTotalPatient() {
+export async function getPatients(page: number, limit: number) {
 	const organizationId = await getOrganizationId();
+	const offset = (page - 1) * limit;
 
 	if (!organizationId) {
 		return { totalPatients: 0, patientCreatedAt: [], patients: [], hasPatients: false };
@@ -15,7 +16,7 @@ export async function getTotalPatient() {
 		async () => {
 			const [countRows, rows] = await Promise.all([
 				db
-					.select({ count: count() })
+					.select({ value: count() })
 					.from(patient)
 					.where(eq(patient.organizationId, organizationId)),
 				db
@@ -33,10 +34,12 @@ export async function getTotalPatient() {
 						eq(patient.id, patientPersonalInformation.patientId),
 					)
 					.where(eq(patient.organizationId, organizationId))
-					.orderBy(desc(patient.createdAt)),
+					.orderBy(desc(patient.createdAt))
+					.limit(limit)
+					.offset(offset),
 			]);
 
-			const totalPatients = countRows[0]?.count ?? 0;
+			const totalPatients = countRows[0]?.value ?? 0;
 
 			return {
 				totalPatients,
@@ -51,7 +54,7 @@ export async function getTotalPatient() {
 				hasPatients: totalPatients > 0,
 			};
 		},
-		[`patients-${organizationId}`],
+		[`patients-${organizationId}-${page}-${limit}`],
 		{ tags: [`patients-${organizationId}`] },
 	)();
 }

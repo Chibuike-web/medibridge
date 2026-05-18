@@ -4,13 +4,20 @@ import { TransferTable } from "@/features/transfers/components/transfer-table";
 import { RiAddLine, RiSearchLine, RiShareForwardBoxLine } from "@remixicon/react";
 import Link from "next/link";
 import { transferRecords } from "@/features/transfers/data";
-import { FilterButton } from "../../../../../features/transfers/components/filter-button";
+import { FilterButton } from "@/features/transfers/components/filter-button";
 
 export const metadata = {
 	title: "Transfers",
 };
 
-export default function Transfers() {
+export default async function Transfers({
+	searchParams,
+}: {
+	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+	const { page, limit } = await searchParams;
+	const currentPage = typeof page === "string" ? parseInt(page, 10) : 1;
+	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : 10;
 	return transferRecords.length > 0 ? (
 		<div className="flex h-full flex-col">
 			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0">

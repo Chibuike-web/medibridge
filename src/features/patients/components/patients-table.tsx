@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CopyIdButton } from "@/components/copy-id-button";
 import {
@@ -52,32 +52,48 @@ import {
 } from "@remixicon/react";
 import { PatientListItemType } from "../types";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
+import { useSearchParams } from "next/navigation";
+import { Route } from "next";
 
-const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
+const ROWS_PER_PAGE_OPTIONS = [10, 20, 30];
 
-export function PatientsTable({ patients }: { patients: PatientListItemType[] }) {
+export function PatientsTable({
+	patients,
+	page,
+	limit,
+	totalPages,
+}: {
+	patients: PatientListItemType[];
+	page: number;
+	limit: number;
+	totalPages: number;
+}) {
 	const router = useRouter();
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
 	const data = useMemo(() => patients, [patients]);
 	const columns = useMemo(() => getPatientsColumns(router), [router]);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
-	const [pagination, setPagination] = useState<PaginationState>({
-		pageIndex: 0,
-		pageSize: 14,
-	});
 
 	const table = useReactTable({
 		data,
 		columns,
 		onSortingChange: setSorting,
-		onPaginationChange: setPagination,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		state: {
-			sorting,
-			pagination,
-		},
+		state: { sorting },
 	});
+
+	const createQueryString = useCallback(
+		(params: Record<string, string>) => {
+			const newParams = new URLSearchParams(searchParams.toString());
+			Object.entries(params).forEach(([name, value]) => {
+				newParams.set(name, value);
+			});
+			return newParams.toString();
+		},
+		[searchParams],
+	);
 
 	return (
 		<div className="overflow-x-auto rounded-xl border border-gray-200 text-sm">
@@ -160,8 +176,12 @@ export function PatientsTable({ patients }: { patients: PatientListItemType[] })
 				<div className="flex items-center gap-3">
 					<span>Rows per page</span>
 					<Select
-						value={String(table.getState().pagination.pageSize)}
-						onValueChange={(value) => table.setPageSize(Number(value))}
+						value={limit.toString()}
+						onValueChange={(value) => {
+							router.push(
+								(pathname + "?" + createQueryString({ limit: value.toString() })) as Route,
+							);
+						}}
 					>
 						<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 							<SelectValue aria-label="Rows per page" placeholder="Rows" />
@@ -179,15 +199,19 @@ export function PatientsTable({ patients }: { patients: PatientListItemType[] })
 				</div>
 				<div className="flex items-center gap-3">
 					<span>
-						Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+						Page {page} of {totalPages}
 					</span>
 					<div className="flex items-center gap-2">
 						<Button
 							type="button"
 							variant="outline"
 							size="sm"
-							onClick={() => table.previousPage()}
-							disabled={!table.getCanPreviousPage()}
+							onClick={() => {
+								router.push(
+									(pathname + "?" + createQueryString({ page: (page - 1).toString() })) as Route,
+								);
+							}}
+							disabled={page <= 1}
 							className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Previous
@@ -196,8 +220,12 @@ export function PatientsTable({ patients }: { patients: PatientListItemType[] })
 							type="button"
 							variant="outline"
 							size="sm"
-							onClick={() => table.nextPage()}
-							disabled={!table.getCanNextPage()}
+							onClick={() => {
+								router.push(
+									(pathname + "?" + createQueryString({ page: (page + 1).toString() })) as Route,
+								);
+							}}
+							disabled={page >= totalPages}
 							className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Next

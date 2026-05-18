@@ -1,17 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PatientsTable } from "@/features/patients/components/patients-table";
-import { getTotalPatient } from "@/lib/api/get-total-patient";
 import { RiAddLine, RiSearchLine, RiShareForwardBoxLine } from "@remixicon/react";
 import Link from "next/link";
-import { FilterButton } from "../../../../../features/patients/components/filter-button";
+import { FilterButton } from "@/features/patients/components/filter-button";
+import { getPatients } from "@/lib/api/get-patients";
 
 export const metadata = {
 	title: "Patients",
 };
 
-export default async function PatientsPage() {
-	const { hasPatients, patients } = await getTotalPatient();
+export default async function PatientsPage({
+	searchParams,
+}: {
+	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+	const { page, limit } = await searchParams;
+	const currentPage = typeof page === "string" ? parseInt(page, 10) : 1;
+	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : 10;
+	const { hasPatients, patients, totalPatients } = await getPatients(currentPage, currentLimit);
+	const totalPages = Math.ceil(totalPatients / currentLimit) || 1;
 
 	return hasPatients ? (
 		<div className="flex h-full flex-col">
@@ -45,7 +53,12 @@ export default async function PatientsPage() {
 
 			<div className="min-h-0 flex-1 overflow-y-auto">
 				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
-					<PatientsTable patients={patients} />
+					<PatientsTable
+						patients={patients}
+						page={currentPage}
+						limit={currentLimit}
+						totalPages={totalPages}
+					/>
 				</section>
 			</div>
 		</div>

@@ -79,7 +79,6 @@ export async function saveExtractedPatientsService(
 				await tx.insert(patient).values({
 					id: patientRowId,
 					organizationId,
-					patientId: record.personalInfo.patientId!.trim(),
 				});
 
 				await tx.insert(patientPersonalInformation).values({
