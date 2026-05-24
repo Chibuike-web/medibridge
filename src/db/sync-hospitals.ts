@@ -311,6 +311,64 @@ async function seedHospitals() {
 	await db.insert(schema.patientPhysicalInformation).values(seededPhysicalInfo).onConflictDoNothing();
 	console.log(`Inserted ${PATIENTS_PER_HOSPITAL} demo patients per hospital`);
 
+	const encounterTypes = ["Emergency Visit", "Routine Checkup", "Follow-up Visit", "Outpatient Visit"];
+	const departments = [
+		"Emergency Medicine",
+		"General Medicine",
+		"Cardiology",
+		"Endocrinology",
+		"Family Medicine",
+		"Nephrology",
+	];
+	const physicians = [
+		"Dr. Adebayo",
+		"Dr. S. Okonkwo",
+		"Dr. A. Bello",
+		"Dr. T. Adeyemi",
+		"Dr. R. Hassan",
+		"Dr. E. Nwosu",
+		"Dr. M. Ibrahim",
+	];
+	const seededEncounters: (typeof schema.patientEncounter.$inferInsert)[] = [];
+
+	for (let hospitalIndex = 0; hospitalIndex < HOSPITALS.length; hospitalIndex++) {
+		for (let patientIndex = 0; patientIndex < PATIENTS_PER_HOSPITAL; patientIndex++) {
+			const patientRowId = `${hospitalSlug(HOSPITALS[hospitalIndex])}-patient-${patientIndex + 1}`;
+
+			for (let encounterIndex = 0; encounterIndex < 10; encounterIndex++) {
+				const createdAt = new Date("2024-04-17T12:30:00.000Z");
+				const encounterDate = new Date("2026-03-12T12:00:00.000Z");
+				encounterDate.setDate(encounterDate.getDate() - encounterIndex * 3);
+
+				seededEncounters.push({
+					id: `${patientRowId}-encounter-${encounterIndex + 1}`,
+					patientId: patientRowId,
+					encounterId:
+						encounterIndex === 0
+							? "ENC-101"
+							: `ENC-${hospitalIndex + 1}-${patientIndex + 1}-${encounterIndex + 1}`,
+					encounterType: encounterTypes[encounterIndex % encounterTypes.length],
+					department: departments[encounterIndex % departments.length],
+					physician: physicians[encounterIndex % physicians.length],
+					encounterDate,
+					createdBy: physicians[encounterIndex % physicians.length],
+					updatedBy: physicians[encounterIndex % physicians.length],
+					createdAt,
+					updatedAt: createdAt,
+				});
+			}
+		}
+	}
+
+	const ENCOUNTER_INSERT_BATCH_SIZE = 1000;
+	for (let i = 0; i < seededEncounters.length; i += ENCOUNTER_INSERT_BATCH_SIZE) {
+		await db
+			.insert(schema.patientEncounter)
+			.values(seededEncounters.slice(i, i + ENCOUNTER_INSERT_BATCH_SIZE))
+			.onConflictDoNothing();
+	}
+	console.log(`Inserted ${seededEncounters.length} demo patient encounters`);
+
 	const seededTransfers = [];
 
 	for (let hospitalIndex = 0; hospitalIndex < HOSPITALS.length; hospitalIndex++) {

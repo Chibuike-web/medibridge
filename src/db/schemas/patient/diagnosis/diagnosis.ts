@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { patientEncounter } from "../encounter";
 import { patient } from "../patient";
 
 export const patientDiagnosis = pgTable("patient_diagnosis", {
@@ -7,6 +8,9 @@ export const patientDiagnosis = pgTable("patient_diagnosis", {
 	patientId: text("patient_id")
 		.notNull()
 		.references(() => patient.id, { onDelete: "cascade" }),
+	encounterId: text("encounter_id").references(() => patientEncounter.id, {
+		onDelete: "set null",
+	}),
 
 	diagnosisName: text("diagnosis_name").notNull(),
 

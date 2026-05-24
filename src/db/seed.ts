@@ -183,8 +183,48 @@ async function seed() {
 	await batchInsert(schema.patient, patients);
 	console.log("Inserted 500 patients");
 
-	console.log("Seeding patientPersonalInformation...");
+	console.log("Seeding patientEncounter...");
 	const patientRecords = await db.select({ id: schema.patient.id }).from(schema.patient).limit(ROWS);
+	const encounters = [];
+	const encounterTypes = ["Emergency Visit", "Routine Checkup", "Follow-up Visit", "Outpatient Visit"];
+	const departments = [
+		"Emergency Medicine",
+		"General Medicine",
+		"Cardiology",
+		"Endocrinology",
+		"Family Medicine",
+		"Nephrology",
+	];
+	const physicians = [
+		"Dr. Adebayo",
+		"Dr. S. Okonkwo",
+		"Dr. A. Bello",
+		"Dr. T. Adeyemi",
+		"Dr. R. Hassan",
+		"Dr. E. Nwosu",
+		"Dr. M. Ibrahim",
+	];
+
+	for (let i = 0; i < ROWS; i++) {
+		const createdAt = randomDate(new Date(2024, 0, 1), new Date());
+		encounters.push({
+			id: randomString(24),
+			patientId: patientRecords[i]?.id || randomString(24),
+			encounterId: `ENC-${String(i + 101).padStart(5, "0")}`,
+			encounterType: encounterTypes[i % encounterTypes.length],
+			department: departments[i % departments.length],
+			physician: physicians[i % physicians.length],
+			encounterDate: randomDate(new Date(2026, 0, 1), new Date(2026, 2, 12)),
+			createdBy: physicians[i % physicians.length],
+			updatedBy: physicians[i % physicians.length],
+			createdAt,
+			updatedAt: createdAt,
+		});
+	}
+	await batchInsert(schema.patientEncounter, encounters);
+	console.log("Inserted 500 patientEncounter");
+
+	console.log("Seeding patientPersonalInformation...");
 	const personalInfos = [];
 	for (let i = 0; i < ROWS; i++) {
 		const firstNames = ["John", "Jane", "Michael", "Sarah", "David", "Emily", "James", "Mary", "Robert", "Patricia"];
@@ -264,6 +304,10 @@ async function seed() {
 	console.log("Inserted 500 patientPhysicalInformation");
 
 	console.log("Seeding patientDiagnosis...");
+	const encounterRecords = await db
+		.select({ id: schema.patientEncounter.id, patientId: schema.patientEncounter.patientId })
+		.from(schema.patientEncounter)
+		.limit(ROWS);
 	const diagnoses = [];
 	const diagnosisNames = [
 		"Hypertension",
@@ -278,9 +322,16 @@ async function seed() {
 		"Anemia",
 	];
 	for (let i = 0; i < ROWS; i++) {
+		const encounter = Math.random() > 0.35 ? encounterRecords[i % encounterRecords.length] : null;
+		const patientId =
+			encounter?.patientId ??
+			patientRecords[Math.floor(Math.random() * ROWS)]?.id ??
+			randomString(24);
+
 		diagnoses.push({
 			id: randomString(24),
-			patientId: patientRecords[Math.floor(Math.random() * ROWS)]?.id || randomString(24),
+			patientId,
+			encounterId: encounter?.id ?? null,
 			diagnosisName: diagnosisNames[Math.floor(Math.random() * diagnosisNames.length)],
 			status: ["active", "resolved", "chronic"][Math.floor(Math.random() * 3)],
 			severityStage: ["mild", "moderate", "severe"][Math.floor(Math.random() * 3)],
@@ -312,6 +363,42 @@ async function seed() {
 	}
 	await batchInsert(schema.patientDiagnosisHistory, diagnosisHistories);
 	console.log("Inserted 500 patientDiagnosisHistory");
+
+	console.log("Seeding patientMedication...");
+	const medications = [];
+	const medicationNames = ["Amoxicillin", "Metformin", "Amlodipine", "Paracetamol", "Ceftriaxone", "Losartan"];
+	const medicationDoses = ["500 mg", "1000 mg", "5 mg", "50 mg"];
+	const medicationRoutes = ["Oral", "Intravenous", "Intramuscular"];
+	const medicationIndications = [
+		"Urinary tract infection",
+		"Type 2 diabetes mellitus",
+		"Hypertension",
+		"Pain",
+		"Sepsis",
+	];
+	for (let i = 0; i < ROWS; i++) {
+		const encounter = Math.random() > 0.35 ? encounterRecords[i % encounterRecords.length] : null;
+		const patientId =
+			encounter?.patientId ??
+			patientRecords[Math.floor(Math.random() * ROWS)]?.id ??
+			randomString(24);
+
+		medications.push({
+			id: randomString(24),
+			patientId,
+			encounterId: encounter?.id ?? null,
+			medicationName: medicationNames[i % medicationNames.length],
+			dose: medicationDoses[i % medicationDoses.length],
+			route: medicationRoutes[i % medicationRoutes.length],
+			medicationId: `MED-${String(i + 101).padStart(5, "0")}`,
+			indication: medicationIndications[i % medicationIndications.length],
+			status: ["active", "completed", "discontinued"][Math.floor(Math.random() * 3)],
+			createdAt: randomDate(new Date(2024, 0, 1), new Date()),
+			updatedAt: new Date(),
+		});
+	}
+	await batchInsert(schema.patientMedication, medications);
+	console.log("Inserted 500 patientMedication");
 
 	console.log("Seeding patientTransfer...");
 	const transfers = [];

@@ -17,14 +17,12 @@ function Field({ label, value }: { label: string; value: string | number | undef
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
 	return (
-		<section className="rounded-xl bg-gray-50 ring ring-gray-200">
-			<div className="flex h-10 items-center px-4">
+		<section className="rounded-xl flex flex-col gap-2">
+			<div className="flex items-center">
 				<h2 className="text-lg font-semibold text-gray-600">{title}</h2>
 			</div>
 
-			<div className="grid gap-6 rounded-xl bg-white p-4 ring ring-gray-200 md:grid-cols-2 xl:grid-cols-3">
-				{children}
-			</div>
+			<div className="grid gap-4 rounded-xl bg-white md:grid-cols-2 xl:grid-cols-3">{children}</div>
 		</section>
 	);
 }
@@ -52,13 +50,30 @@ export default async function TransferPatientDocumentPage({
 					<h1 className="text-2xl font-semibold text-gray-800">{packet.patientName}</h1>
 
 					<div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
-						<p>Patient ID: {packet.patientId}</p>
+						<p>
+							Patient ID: <span className="font-semibold text-gray-600">{packet.patientId}</span>
+						</p>
 
-						<p>Date of Birth: {packet.personalInformation.dateOfBirth}</p>
+						<p>
+							Date of Birth:
+							<span className="font-semibold text-gray-600">
+								{packet.personalInformation.dateOfBirth}
+							</span>
+						</p>
 
-						<p>Email: {packet.contactInformation.emailAddress}</p>
+						<p>
+							Email:
+							<span className="font-semibold text-gray-600">
+								{packet.contactInformation.emailAddress}
+							</span>
+						</p>
 
-						<p>Phone: {packet.contactInformation.phoneNumber}</p>
+						<p>
+							Phone:
+							<span className="font-semibold text-gray-600">
+								{packet.contactInformation.phoneNumber}
+							</span>
+						</p>
 					</div>
 				</div>
 

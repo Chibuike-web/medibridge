@@ -10,7 +10,7 @@ export default function DownloadPdfButton({ packet }: { packet: TransferPacket }
 			key={JSON.stringify(packet)}
 			document={<TransferPatientDocumentPdf packet={packet} />}
 			fileName={`${packet.patientName.toLowerCase().replace(/\s+/g, "-")}-${packet.patientId}.pdf`}
-			className="inline-flex h-11 items-center justify-center rounded-lg bg-gray-900 px-5 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+			className="inline-flex h-11 items-center shrink-0 justify-center rounded-lg bg-gray-900 px-5 text-sm font-medium text-white transition-colors hover:bg-gray-800"
 		>
 			{({ loading }) => (loading ? "Preparing PDF..." : "Download PDF")}
 		</PDFDownloadLink>
