@@ -11,7 +11,6 @@ import { getInitials } from "@/lib/utils/get-initials";
 import { StatusBadge } from "@/components/status-badge";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { SectionTabs } from "../../../../../../features/patients/components/section-tabs";
-import { PatientSectionProps } from "@/features/patients/types";
 import { PatientOverviewSection } from "@/features/patients/components/patient-overview-section";
 import { PatientDetailsSection } from "@/features/patients/components/patient-details-section/patient-details-section";
 import { AllergiesTable } from "@/features/patients/components/allergies-table";

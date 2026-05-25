@@ -4,25 +4,30 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Tabs } from "radix-ui";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils/cn";
+import { useOptimistic } from "react";
+import { startTransition } from "react";
 
 export function SectionTabs() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 
-	const active = searchParams.get("section") ?? "patient-overview";
+	const currentSection = searchParams.get("section") ?? "patient-overview";
+	const [optimisticSection, setOptimisticSection] = useOptimistic(currentSection);
 
-	function handleChange(value: string) {
+	function handleClick(value: string) {
 		const params = new URLSearchParams(searchParams.toString());
-		params.set("section", value);
-
-		router.push(`?${params.toString()}`);
+		startTransition(() => {
+			setOptimisticSection(value);
+			params.set("section", value);
+			router.push(`?${params.toString()}`);
+		});
 	}
 
 	return (
-		<Tabs.Root value={active} onValueChange={handleChange}>
+		<Tabs.Root value={optimisticSection} onValueChange={handleClick}>
 			<Tabs.List className="no-scrollbar relative flex w-full overflow-x-auto border-b px-6 whitespace-nowrap">
 				{sections.map((section) => {
-					const isActive = active === section.id;
+					const isActive = optimisticSection === section.id;
 
 					return (
 						<Tabs.Trigger

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { startTransition, useCallback, useMemo, useOptimistic, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CopyIdButton } from "@/components/copy-id-button";
@@ -71,12 +71,13 @@ export function PatientsTable({
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
-	const data = useMemo(() => patients, [patients]);
+	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
+	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const columns = useMemo(() => getPatientsColumns(router), [router]);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 
 	const table = useReactTable({
-		data,
+		data: patients,
 		columns,
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
@@ -156,6 +157,11 @@ export function PatientsTable({
 									`/dashboard/patients/${row.original.patientId}?section=patient-overview`,
 								);
 							}}
+							onMouseEnter={() => {
+								router.prefetch(
+									`/dashboard/patients/${row.original.patientId}?section=patient-overview`,
+								);
+							}}
 						>
 							{row.getVisibleCells().map((cell) => (
 								<TableCell
@@ -176,11 +182,14 @@ export function PatientsTable({
 				<div className="flex items-center gap-3">
 					<span>Rows per page</span>
 					<Select
-						value={limit.toString()}
+						value={optimisticLimit.toString()}
 						onValueChange={(value) => {
-							router.push(
-								(pathname + "?" + createQueryString({ limit: value.toString() })) as Route,
-							);
+							startTransition(() => {
+								setOptimisticLimit(Number(value));
+								router.push(
+									(pathname + "?" + createQueryString({ limit: value.toString() })) as Route,
+								);
+							});
 						}}
 					>
 						<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
@@ -199,7 +208,7 @@ export function PatientsTable({
 				</div>
 				<div className="flex items-center gap-3">
 					<span>
-						Page {page} of {totalPages}
+						Page {optimisticPage} of {totalPages}
 					</span>
 					<div className="flex items-center gap-2">
 						<Button
@@ -207,11 +216,16 @@ export function PatientsTable({
 							variant="outline"
 							size="sm"
 							onClick={() => {
-								router.push(
-									(pathname + "?" + createQueryString({ page: (page - 1).toString() })) as Route,
-								);
+								startTransition(() => {
+									setOptimisticPage(page - 1);
+									router.push(
+										(pathname +
+											"?" +
+											createQueryString({ page: (optimisticPage - 1).toString() })) as Route,
+									);
+								});
 							}}
-							disabled={page <= 1}
+							disabled={optimisticPage <= 1}
 							className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Previous
@@ -221,11 +235,16 @@ export function PatientsTable({
 							variant="outline"
 							size="sm"
 							onClick={() => {
-								router.push(
-									(pathname + "?" + createQueryString({ page: (page + 1).toString() })) as Route,
-								);
+								startTransition(() => {
+									setOptimisticPage(page + 1);
+									router.push(
+										(pathname +
+											"?" +
+											createQueryString({ page: (optimisticPage + 1).toString() })) as Route,
+									);
+								});
 							}}
-							disabled={page >= totalPages}
+							disabled={optimisticPage >= totalPages}
 							className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Next

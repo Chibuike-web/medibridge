@@ -154,6 +154,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 						>
 							<Link
 								href={href}
+								prefetch={true}
 								className={cn(
 									"flex w-full items-center gap-2",
 									isCollapsed ? "justify-center" : "justify-start",
