@@ -50,12 +50,12 @@ export function EmergencyContact() {
 								e.preventDefault();
 								setOpen(true);
 							}}
-							className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+							className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 						>
 							<RiEditLine className="text-white" />
 							<span>Edit info</span>
 						</DropdownMenuItem>
-						<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+						<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 							<RiShareForwardBoxLine className="text-white" />
 							<span>Export info</span>
 						</DropdownMenuItem>

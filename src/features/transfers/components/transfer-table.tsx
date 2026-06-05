@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { startTransition, useCallback, useMemo, useOptimistic, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CopyIdButton } from "@/components/copy-id-button";
@@ -37,9 +37,7 @@ import {
 	ColumnDef,
 	flexRender,
 	getCoreRowModel,
-	getPaginationRowModel,
 	getSortedRowModel,
-	type PaginationState,
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
@@ -55,40 +53,58 @@ import {
 	RiMore2Fill,
 	RiSendPlaneLine,
 } from "@remixicon/react";
-import { transferRecords } from "../data";
 import { TransferType } from "../types";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
+import type { Route } from "next";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
-export function TransferTable() {
+export function TransferTable({
+	data,
+	page,
+	limit,
+	totalPages,
+}: {
+	data: TransferType[];
+	page: number;
+	limit: number;
+	totalPages: number;
+}) {
 	const router = useRouter();
-	const data = useMemo(() => transferRecords, []);
-	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
-	const [pagination, setPagination] = useState<PaginationState>({
-		pageIndex: 0,
-		pageSize: 14,
-	});
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
+	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [sorting, setSorting] = useState<SortingState>([{ id: "patientName", desc: false }]);
 	const [selectedTransferId, setSelectedTransferId] = useState<string | null>(null);
 
-	function onViewTransferDetails(transferId: string) {
+	const onViewTransferDetails = useCallback((transferId: string) => {
 		setSelectedTransferId(transferId);
-	}
+	}, []);
+
+	const createQueryString = useCallback(
+		(params: Record<string, string>) => {
+			const newParams = new URLSearchParams(searchParams.toString());
+			Object.entries(params).forEach(([name, value]) => {
+				newParams.set(name, value);
+			});
+			return newParams.toString();
+		},
+		[searchParams],
+	);
+
 	const columns = useMemo(() => {
 		return getTransferColumns(onViewTransferDetails, router);
-	}, [router]);
+	}, [onViewTransferDetails, router]);
 
 	const table = useReactTable({
 		data,
 		columns,
 		onSortingChange: setSorting,
-		onPaginationChange: setPagination,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		state: {
 			sorting,
-			pagination,
 		},
 	});
 
@@ -163,8 +179,16 @@ export function TransferTable() {
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select
-							value={String(table.getState().pagination.pageSize)}
-							onValueChange={(value) => table.setPageSize(Number(value))}
+							value={optimisticLimit.toString()}
+							onValueChange={(value) => {
+								startTransition(() => {
+									setOptimisticLimit(Number(value));
+									router.push(
+										(pathname + "?" + createQueryString({ limit: value.toString() })) as Route,
+										{ scroll: false },
+									);
+								});
+							}}
 						>
 							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
@@ -182,15 +206,25 @@ export function TransferTable() {
 					</div>
 					<div className="flex items-center gap-3">
 						<span>
-							Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+							Page {optimisticPage} of {totalPages}
 						</span>
 						<div className="flex items-center gap-2">
 							<Button
 								type="button"
 								variant="outline"
 								size="sm"
-								onClick={() => table.previousPage()}
-								disabled={!table.getCanPreviousPage()}
+								onClick={() => {
+									startTransition(() => {
+										setOptimisticPage(page - 1);
+										router.push(
+											(pathname +
+												"?" +
+												createQueryString({ page: (optimisticPage - 1).toString() })) as Route,
+											{ scroll: false },
+										);
+									});
+								}}
+								disabled={optimisticPage <= 1}
 								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 							>
 								Previous
@@ -199,8 +233,18 @@ export function TransferTable() {
 								type="button"
 								variant="outline"
 								size="sm"
-								onClick={() => table.nextPage()}
-								disabled={!table.getCanNextPage()}
+								onClick={() => {
+									startTransition(() => {
+										setOptimisticPage(page + 1);
+										router.push(
+											(pathname +
+												"?" +
+												createQueryString({ page: (optimisticPage + 1).toString() })) as Route,
+											{ scroll: false },
+										);
+									});
+								}}
+								disabled={optimisticPage >= totalPages}
 								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 							>
 								Next
@@ -251,32 +295,32 @@ function getTransferColumns(
 		},
 		{
 			header: "Patient Name",
-			accessorKey: "name",
+			accessorKey: "patientName",
 			enableSorting: true,
 			cell: ({ row }) => (
 				<div className="flex items-center gap-3">
 					<Avatar className="size-9 border border-gray-200 bg-gray-100 text-gray-700">
 						<AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
-							{getInitials(row.original.name)}
+							{getInitials(row.original.patientName)}
 						</AvatarFallback>
 					</Avatar>
-					<span className="font-medium text-gray-800">{row.original.name}</span>
+					<span className="font-medium text-gray-800">{row.original.patientName}</span>
 				</div>
 			),
 		},
 		{
 			header: "Transfer ID",
-			accessorKey: "transferId",
+			accessorKey: "id",
 			enableSorting: false,
-			cell: ({ row }) => <CopyIdButton id={row.original.transferId} />,
+			cell: ({ row }) => <CopyIdButton id={row.original.id} />,
 		},
 		{
 			header: "Target Hospital",
-			accessorKey: "targetHospital",
+			accessorKey: "targetHospitalName",
 			enableSorting: true,
 			cell: ({ row }) => (
 				<span className="block max-w-[21.25rem] whitespace-normal text-pretty">
-					{row.original.targetHospital}
+					{row.original.targetHospitalName}
 				</span>
 			),
 		},
@@ -286,12 +330,12 @@ function getTransferColumns(
 			enableSorting: true,
 			cell: ({ row }) => formatDate(row.original.requestedAt),
 		},
-	{
-		header: "Transfer Status",
-		accessorKey: "status",
-		enableSorting: false,
-		cell: ({ row }) => <StatusBadge status={row.original.status} />,
-	},
+		{
+			header: "Transfer Status",
+			accessorKey: "status",
+			enableSorting: false,
+			cell: ({ row }) => <StatusBadge status={row.original.status} />,
+		},
 		{
 			id: "actions",
 			header: "",
@@ -313,24 +357,24 @@ function getTransferColumns(
 							{row.original.status.toLowerCase() === "pending" ? (
 								<>
 									<DropdownMenuItem
-										onSelect={() => onViewTransferDetails(row.original.transferId)}
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+										onSelect={() => onViewTransferDetails(row.original.id)}
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiErrorWarningLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
-									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 										<RiSendPlaneLine className="text-white" /> <span>Resend request</span>
 									</DropdownMenuItem>
-									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 										<RiCloseLine className="text-white" /> <span>Cancel transfer</span>
 									</DropdownMenuItem>
 								</>
 							) : row.original.status.toLowerCase() === "rejected" ? (
 								<>
 									<DropdownMenuItem
-										onSelect={() => onViewTransferDetails(row.original.transferId)}
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+										onSelect={() => onViewTransferDetails(row.original.id)}
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiErrorWarningLine className="text-white" />
 										<span>View transfer details</span>
@@ -341,12 +385,12 @@ function getTransferColumns(
 												`/dashboard/new-transfer-request?patientId=${row.original.patientId}`,
 											)
 										}
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiEdit2Line className="text-white" /> <span>Edit and resend request</span>
 									</DropdownMenuItem>
 									<DropdownMenuSeparator className="bg-white/20" />
-									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 										<RiArchiveLine className="text-white" />
 										<span>Archive</span>
 									</DropdownMenuItem>
@@ -354,14 +398,14 @@ function getTransferColumns(
 							) : row.original.status.toLowerCase() === "completed" ? (
 								<>
 									<DropdownMenuItem
-										onSelect={() => onViewTransferDetails(row.original.transferId)}
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+										onSelect={() => onViewTransferDetails(row.original.id)}
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiErrorWarningLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuSeparator className="bg-white/20" />
-									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 										<RiArchiveLine className="text-white" />
 										<span>Archive</span>
 									</DropdownMenuItem>
@@ -369,17 +413,17 @@ function getTransferColumns(
 							) : row.original.status.toLowerCase() === "failed" ? (
 								<>
 									<DropdownMenuItem
-										onSelect={() => onViewTransferDetails(row.original.transferId)}
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+										onSelect={() => onViewTransferDetails(row.original.id)}
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiErrorWarningLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
-									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 										<RiCornerDownLeftFill className="text-whte" /> <span>Retry transfer</span>
 									</DropdownMenuItem>
 									<DropdownMenuSeparator className="bg-white/20" />
-									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 										<RiArchiveLine className="text-white" />
 										<span>Archive</span>
 									</DropdownMenuItem>
@@ -387,14 +431,14 @@ function getTransferColumns(
 							) : row.original.status.toLowerCase() === "cancelled" ? (
 								<>
 									<DropdownMenuItem
-										onSelect={() => onViewTransferDetails(row.original.transferId)}
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+										onSelect={() => onViewTransferDetails(row.original.id)}
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiErrorWarningLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 										onSelect={() =>
 											router.push(
 												`/dashboard/new-transfer-request?patientId=${row.original.patientId}`,
@@ -404,7 +448,7 @@ function getTransferColumns(
 										<RiAddLine className="text-whte" /> <span>Start new transfer</span>
 									</DropdownMenuItem>
 									<DropdownMenuSeparator className="bg-white/20" />
-									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+									<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 										<RiArchiveLine className="text-white" />
 										<span>Archive</span>
 									</DropdownMenuItem>

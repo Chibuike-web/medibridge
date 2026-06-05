@@ -6,6 +6,7 @@ type Store = {
 	patientData: PatientType | null;
 	isHydrated: boolean;
 	setPatientData: (data: PatientType) => void;
+	setHydrated: () => void;
 };
 
 export const useExtractedPatientStore = create<Store>()(
@@ -19,11 +20,12 @@ export const useExtractedPatientStore = create<Store>()(
 		{
 			name: "extracted-patient-data",
 			storage: createJSONStorage(() => localStorage),
+			partialize: (state) => ({ patientData: state.patientData }),
 			onRehydrateStorage: () => (state) => {
 				if (!state?.patientData) {
 					state?.setPatientData([]);
 				}
-				state && (state.isHydrated = true);
+				state?.setHydrated();
 			},
 		},
 	),

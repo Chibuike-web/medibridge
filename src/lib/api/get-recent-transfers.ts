@@ -2,6 +2,37 @@ import { patientPersonalInformation, patientTransfer } from "@/db/schemas";
 import { db } from "../better-auth/auth";
 import { desc, eq } from "drizzle-orm";
 import { getOrganizationId } from "./get-organization-id";
+import type { TransferType } from "@/features/transfers/types";
+
+function formatPatientName({
+	firstName,
+	middleName,
+	lastName,
+}: {
+	firstName: string;
+	middleName: string | null;
+	lastName: string;
+}) {
+	return [firstName, middleName, lastName].filter(Boolean).join(" ");
+}
+
+function toTransferStatus(status: string): TransferType["status"] {
+	if (status === "approved" || status === "sent") {
+		return "completed";
+	}
+
+	if (
+		status === "pending" ||
+		status === "rejected" ||
+		status === "completed" ||
+		status === "failed" ||
+		status === "cancelled"
+	) {
+		return status;
+	}
+
+	return "pending";
+}
 
 export async function getRecentTransfer() {
 	const organizationId = await getOrganizationId();
@@ -30,18 +61,12 @@ export async function getRecentTransfer() {
 
 	return rows.map((row) => ({
 		id: row.id,
+		patientName: formatPatientName(row),
 		patientFirstName: row.firstName,
 		patientMiddleName: row.middleName,
 		patientLastName: row.lastName,
 		patientId: row.patientId,
-		status: row.status as
-			| "pending"
-			| "approved"
-			| "rejected"
-			| "sent"
-			| "completed"
-			| "failed"
-			| "cancelled",
+		status: toTransferStatus(row.status),
 		requestedAt: row.requestedAt.toISOString(),
 		targetHospitalName: row.targetHospitalName,
 	}));

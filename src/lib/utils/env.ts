@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { config } from "dotenv";
 
-config({ path: ".env.local" });
+const requiredEnv = ["DATABASE_URL", "BETTER_AUTH_SECRET", "BETTER_AUTH_URL"] as const;
+
+if (requiredEnv.some((key) => !process.env[key])) {
+	config({ path: ".env.local", quiet: true });
+}
 
 const envSchema = z.object({
 	DATABASE_URL: z.url(),

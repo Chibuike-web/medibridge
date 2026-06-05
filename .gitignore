@@ -48,5 +48,7 @@ patient-uploads
 hospital-uploads
 .devtools
 eng.traineddata
+seed-test-logins.txt
+src/db/table-seeds/
 # next-agents-md
 .next-docs/

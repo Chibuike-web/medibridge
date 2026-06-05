@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils/cn";
+import { formatLabel } from "@/lib/utils/format-label";
 import { statusStyles } from "@/lib/utils/status-styles";
 
 type StatusBadgeProps = {
@@ -19,7 +20,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
 			)}
 		>
 			<span className="size-1 shrink-0 rounded-full bg-current" aria-hidden="true" />
-			{status}
+			{formatLabel(status)}
 		</span>
 	);
 }

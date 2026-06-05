@@ -55,7 +55,7 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { useSearchParams } from "next/navigation";
 import { Route } from "next";
 
-const ROWS_PER_PAGE_OPTIONS = [10, 20, 30];
+const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
 export function PatientsTable({
 	patients,
@@ -188,6 +188,7 @@ export function PatientsTable({
 								setOptimisticLimit(Number(value));
 								router.push(
 									(pathname + "?" + createQueryString({ limit: value.toString() })) as Route,
+									{ scroll: false },
 								);
 							});
 						}}
@@ -222,6 +223,7 @@ export function PatientsTable({
 										(pathname +
 											"?" +
 											createQueryString({ page: (optimisticPage - 1).toString() })) as Route,
+										{ scroll: false },
 									);
 								});
 							}}
@@ -241,6 +243,7 @@ export function PatientsTable({
 										(pathname +
 											"?" +
 											createQueryString({ page: (optimisticPage + 1).toString() })) as Route,
+										{ scroll: false },
 									);
 								});
 							}}
@@ -309,7 +312,7 @@ function getPatientsColumns(
 			header: "Patient ID",
 			accessorKey: "patientId",
 			enableSorting: false,
-			cell: ({ row }) => <CopyIdButton id={row.original.patientId} className="min-w-0 w-[100px]" />,
+			cell: ({ row }) => <CopyIdButton id={row.original.patientId} className="min-w-0" />,
 		},
 		{
 			header: "Gender",
@@ -380,19 +383,19 @@ function getPatientsColumns(
 										`/dashboard/patients/${row.original.patientId}?section=patient-overview`,
 									)
 								}
-								className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white"
+								className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 							>
 								<RiErrorWarningLine className="text-white" />
 								<span> View patient</span>
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiShareBoxLine className="text-white" /> <span> Transfer patient</span>
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiShare2Line className="text-white" /> <span> Export record</span>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator className="bg-white/20" />
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiArchiveLine className="text-white" />
 								<span>Archive</span>
 							</DropdownMenuItem>

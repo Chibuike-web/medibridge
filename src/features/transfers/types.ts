@@ -26,11 +26,12 @@ export const EMPTY_PATIENT_TRANSFER_DATA: PatientTransferData = {
 
 export type TransferType = {
 	id: string;
+	patientName: string;
 	patientFirstName: string;
 	patientMiddleName: string | null;
 	patientLastName: string;
 	patientId: string;
-	status: "pending" | "approved" | "rejected" | "sent" | "completed" | "failed" | "cancelled";
+	status: "pending" | "rejected" | "completed" | "failed" | "cancelled";
 	requestedAt: string;
 	targetHospitalName: string;
 };

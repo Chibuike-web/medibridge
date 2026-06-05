@@ -52,7 +52,7 @@ import {
 	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
-	RiShareForwardBoxLine,
+	RiShare2Line,
 } from "@remixicon/react";
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
@@ -95,12 +95,16 @@ export function LabTestsTable({ patientId }: { patientId: string }) {
 						placeholder="Search by test name and lab ID"
 					/>
 				</div>
-				<Button size="lg" variant="outline">
+				<Button
+					size="lg"
+					variant="outline"
+					className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+				>
 					<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 					Filter
 				</Button>
 				<Button size="lg" variant="outline">
-					<RiShareForwardBoxLine aria-hidden className="size-5 text-gray-600" />
+					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
 				<Button size="lg">Add new lab result</Button>
@@ -229,7 +233,10 @@ function getLabTestsColumns(): ColumnDef<LabTestType>[] {
 		{
 			id: "select",
 			header: ({ table }) => (
-				<div className="flex items-center justify-center" onClick={(event) => event.stopPropagation()}>
+				<div
+					className="flex items-center justify-center"
+					onClick={(event) => event.stopPropagation()}
+				>
 					<IndeterminateCheckbox
 						checked={table.getIsAllPageRowsSelected()}
 						indeterminate={table.getIsSomePageRowsSelected()}
@@ -306,20 +313,20 @@ function getLabTestsColumns(): ColumnDef<LabTestType>[] {
 							align="end"
 							className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiErrorWarningLine className="text-white" />
 								<span>View details</span>
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiCheckLine className="text-white" />
 								<span>Mark as completed</span>
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiCloseLine className="text-white" />
 								<span>Cancel lab test</span>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator className="bg-white/20" />
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiArchiveLine className="text-white" />
 								<span>Archive</span>
 							</DropdownMenuItem>

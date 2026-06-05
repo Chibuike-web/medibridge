@@ -17,7 +17,7 @@ const globalForDb = globalThis as unknown as {
 export const sql =
 	globalForDb.sql ??
 	postgres(ENV.DATABASE_URL!, {
-		max: 1,
+		max: Number(process.env.POSTGRES_POOL_MAX ?? 5),
 		idle_timeout: 20,
 		connect_timeout: 10,
 	});

@@ -54,7 +54,7 @@ export default async function EncounterDetailsPage({
 					<div className="flex flex-wrap gap-x-6 gap-y-3">
 						<div className="flex items-center gap-2 whitespace-nowrap">
 							<span className="text-gray-500 text-sm">Patient ID</span>
-							<CopyIdButton id={encounter.patientId} className="text-sm w-[100px]" />
+							<CopyIdButton id={encounter.patientId} className="text-sm" />
 						</div>
 						<div className="flex items-center gap-2 whitespace-nowrap">
 							<span className="text-gray-500 text-sm">Encounter ID: </span>

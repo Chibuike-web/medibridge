@@ -35,17 +35,42 @@ const PASSWORD = "12345678";
 const PATIENTS_PER_HOSPITAL = 100;
 const TRANSFERS_PER_HOSPITAL = 100;
 const PENDING_TRANSFERS_PER_HOSPITAL = 50;
+const PATIENT_ID_PATTERN =
+	"^[A-Z0-9]+-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
 
 function randomString(length: number): string {
-	return Math.random().toString(36).substring(2, 2 + length);
+	return Math.random()
+		.toString(36)
+		.substring(2, 2 + length);
+}
+
+function prefixedId(prefix: string): string {
+	return `${prefix}-${crypto.randomUUID()}`;
+}
+
+function hospitalAbbreviation(name: string, fallbackIndex: number): string {
+	const abbreviation = name
+		.split(/[^a-zA-Z0-9]+/)
+		.filter(Boolean)
+		.map((word) => word[0])
+		.join("")
+		.toUpperCase();
+
+	return abbreviation || `H${fallbackIndex + 1}`;
 }
 
 function hospitalSlug(name: string): string {
-	return name.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
+	return name
+		.toLowerCase()
+		.replace(/[^a-z0-9]/g, "-")
+		.replace(/-+/g, "-");
 }
 
 function hospitalEmail(name: string): string {
-	return `admin@${name.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/-+/g, "")}.org`;
+	return `admin@${name
+		.toLowerCase()
+		.replace(/[^a-z0-9]/g, "")
+		.replace(/-+/g, "")}.org`;
 }
 
 async function seedHospitals() {
@@ -56,7 +81,7 @@ async function seedHospitals() {
 	const hospitalOrgs = [];
 	for (let i = 0; i < 20; i++) {
 		hospitalOrgs.push({
-			id: randomString(24),
+			id: prefixedId("ORG"),
 			name: HOSPITALS[i],
 			slug: hospitalSlug(HOSPITALS[i]),
 			logo: null,
@@ -65,7 +90,10 @@ async function seedHospitals() {
 			isVerified: true,
 		});
 	}
-	await db.insert(schema.organization).values(hospitalOrgs).onConflictDoNothing();
+	await db
+		.insert(schema.organization)
+		.values(hospitalOrgs)
+		.onConflictDoNothing();
 	console.log("Inserted 20 organizations");
 
 	const allOrgs = await db
@@ -77,12 +105,25 @@ async function seedHospitals() {
 				HOSPITALS.map((hospital) => hospitalSlug(hospital)),
 			),
 		);
-	const orgsBySlug = new Map(allOrgs.map((organization) => [organization.slug, organization.id]));
+	const orgsBySlug = new Map(
+		allOrgs.map((organization) => [organization.slug, organization.id]),
+	);
+	const demoOrganizationIds = allOrgs.map((organization) => organization.id);
+
+	const [legacyCleanup] = await sql<{ count: number }[]>`
+		with deleted as (
+			delete from patient
+			where id !~ ${PATIENT_ID_PATTERN}
+			returning id
+		)
+		select count(*)::int as count from deleted
+	`;
+	console.log(`Cleared ${legacyCleanup?.count ?? 0} legacy patient rows`);
 
 	const hospitalUsers = [];
 	for (let i = 0; i < 20; i++) {
 		hospitalUsers.push({
-			id: randomString(24),
+			id: prefixedId("USR"),
 			name: `Admin ${i + 1}`,
 			email: hospitalEmail(HOSPITALS[i]),
 			emailVerified: true,
@@ -114,19 +155,28 @@ async function seedHospitals() {
 		const existingCredential = await db
 			.select({ id: schema.account.id })
 			.from(schema.account)
-			.where(and(eq(schema.account.userId, userId), eq(schema.account.providerId, "credential")))
+			.where(
+				and(
+					eq(schema.account.userId, userId),
+					eq(schema.account.providerId, "credential"),
+				),
+			)
 			.limit(1);
 
 		if (existingCredential[0]) {
 			await db
 				.update(schema.account)
-				.set({ accountId: userId, password: hashedPassword, updatedAt: new Date() })
+				.set({
+					accountId: userId,
+					password: hashedPassword,
+					updatedAt: new Date(),
+				})
 				.where(eq(schema.account.id, existingCredential[0].id));
 			continue;
 		}
 
 		await db.insert(schema.account).values({
-			id: randomString(24),
+			id: prefixedId("ACC"),
 			accountId: userId,
 			providerId: "credential",
 			userId,
@@ -145,7 +195,7 @@ async function seedHospitals() {
 	const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 	for (let i = 0; i < 20; i++) {
 		sessions.push({
-			id: randomString(24),
+			id: prefixedId("SES"),
 			expiresAt,
 			token: randomString(64),
 			createdAt: new Date(),
@@ -154,7 +204,8 @@ async function seedHospitals() {
 			userAgent: "Mozilla/5.0",
 			userId: usersByEmail.get(hospitalEmail(HOSPITALS[i])) || randomString(24),
 			impersonatedBy: null,
-			activeOrganizationId: orgsBySlug.get(hospitalSlug(HOSPITALS[i])) || randomString(24),
+			activeOrganizationId:
+				orgsBySlug.get(hospitalSlug(HOSPITALS[i])) || randomString(24),
 		});
 	}
 	await db.insert(schema.session).values(sessions).onConflictDoNothing();
@@ -168,7 +219,12 @@ async function seedHospitals() {
 		const existingMember = await db
 			.select({ id: schema.member.id })
 			.from(schema.member)
-			.where(and(eq(schema.member.organizationId, organizationId), eq(schema.member.userId, userId)))
+			.where(
+				and(
+					eq(schema.member.organizationId, organizationId),
+					eq(schema.member.userId, userId),
+				),
+			)
 			.limit(1);
 
 		if (existingMember[0]) {
@@ -180,7 +236,7 @@ async function seedHospitals() {
 		}
 
 		await db.insert(schema.member).values({
-			id: randomString(24),
+			id: prefixedId("MEM"),
 			organizationId,
 			userId,
 			role: "owner",
@@ -188,6 +244,18 @@ async function seedHospitals() {
 		});
 	}
 	console.log("Inserted 20 members");
+
+	if (demoOrganizationIds.length > 0) {
+		await db
+			.delete(schema.patient)
+			.where(inArray(schema.patient.organizationId, demoOrganizationIds));
+		await db
+			.delete(schema.hospitalDetails)
+			.where(
+				inArray(schema.hospitalDetails.organizationId, demoOrganizationIds),
+			);
+		console.log("Cleared existing demo patients and hospital details");
+	}
 
 	const hospitalDetails = [];
 	const addresses = [
@@ -214,8 +282,9 @@ async function seedHospitals() {
 	];
 	for (let i = 0; i < 20; i++) {
 		hospitalDetails.push({
-			id: randomString(24),
-			organizationId: orgsBySlug.get(hospitalSlug(HOSPITALS[i])) || randomString(24),
+			id: prefixedId("HOS"),
+			organizationId:
+				orgsBySlug.get(hospitalSlug(HOSPITALS[i])) || randomString(24),
 			hospitalName: HOSPITALS[i],
 			hospitalAddress: addresses[i],
 			hospitalOwnerName: `Admin ${i + 1}`,
@@ -224,38 +293,77 @@ async function seedHospitals() {
 			createdAt: new Date(),
 		});
 	}
-	await db.insert(schema.hospitalDetails).values(hospitalDetails).onConflictDoNothing();
+	await db
+		.insert(schema.hospitalDetails)
+		.values(hospitalDetails)
+		.onConflictDoNothing();
 	console.log("Inserted 20 hospitalDetails");
 
-	const firstNames = ["Amina", "Tunde", "Chidera", "Fatima", "Kunle", "Ngozi", "Musa", "Ifeoma"];
-	const lastNames = ["Okafor", "Adeyemi", "Bello", "Eze", "Nwosu", "Ibrahim", "Balogun", "Okoro"];
+	const firstNames = [
+		"Amina",
+		"Tunde",
+		"Chidera",
+		"Fatima",
+		"Kunle",
+		"Ngozi",
+		"Musa",
+		"Ifeoma",
+	];
+	const lastNames = [
+		"Okafor",
+		"Adeyemi",
+		"Bello",
+		"Eze",
+		"Nwosu",
+		"Ibrahim",
+		"Balogun",
+		"Okoro",
+	];
 	const seededPatients = [];
 	const seededPersonalInfo = [];
 	const seededContactInfo = [];
 	const seededEmergencyContacts = [];
 	const seededPhysicalInfo = [];
+	const patientIdsByHospitalAndIndex = new Map<string, string>();
 
-	for (let hospitalIndex = 0; hospitalIndex < HOSPITALS.length; hospitalIndex++) {
-		const organizationId = orgsBySlug.get(hospitalSlug(HOSPITALS[hospitalIndex]));
+	for (
+		let hospitalIndex = 0;
+		hospitalIndex < HOSPITALS.length;
+		hospitalIndex++
+	) {
+		const organizationId = orgsBySlug.get(
+			hospitalSlug(HOSPITALS[hospitalIndex]),
+		);
 		if (!organizationId) continue;
 
-		for (let patientIndex = 0; patientIndex < PATIENTS_PER_HOSPITAL; patientIndex++) {
-			const patientRowId = `${hospitalSlug(HOSPITALS[hospitalIndex])}-patient-${patientIndex + 1}`;
+		for (
+			let patientIndex = 0;
+			patientIndex < PATIENTS_PER_HOSPITAL;
+			patientIndex++
+		) {
+			const patientRowId = prefixedId(
+				hospitalAbbreviation(HOSPITALS[hospitalIndex], hospitalIndex),
+			);
+			patientIdsByHospitalAndIndex.set(
+				`${hospitalIndex}:${patientIndex}`,
+				patientRowId,
+			);
 			const createdAt = new Date();
 			createdAt.setDate(createdAt.getDate() - patientIndex * 3);
 
 			seededPatients.push({
 				id: patientRowId,
 				organizationId,
-				patientId: `PAT-${String(hospitalIndex + 1).padStart(2, "0")}-${String(patientIndex + 1).padStart(4, "0")}`,
+				patientId: patientRowId,
 				createdAt,
 				updatedAt: createdAt,
 			});
 
 			seededPersonalInfo.push({
-				id: `${patientRowId}-personal`,
+				id: prefixedId("PPI"),
 				patientId: patientRowId,
-				firstName: firstNames[(hospitalIndex + patientIndex) % firstNames.length],
+				firstName:
+					firstNames[(hospitalIndex + patientIndex) % firstNames.length],
 				middleName: null,
 				lastName: lastNames[(hospitalIndex + patientIndex) % lastNames.length],
 				dateOfBirth: `19${80 + (patientIndex % 15)}-0${(patientIndex % 9) + 1}-15`,
@@ -268,35 +376,43 @@ async function seedHospitals() {
 			});
 
 			seededContactInfo.push({
-				id: `${patientRowId}-contact`,
+				id: prefixedId("PCI"),
 				patientId: patientRowId,
 				phoneNumber: `+23480${String(hospitalIndex + 1).padStart(2, "0")}${String(patientIndex + 1).padStart(6, "0")}`,
 				emailAddress: `patient${hospitalIndex + 1}-${patientIndex + 1}@example.com`,
 				residentialAddress: `${patientIndex + 10} Care Street, Lagos`,
-				stateOfOrigin: ["Lagos", "Abuja", "Kano", "Oyo", "Rivers"][patientIndex % 5],
+				stateOfOrigin: ["Lagos", "Abuja", "Kano", "Oyo", "Rivers"][
+					patientIndex % 5
+				],
 				countryOfOrigin: "Nigeria",
 				createdAt,
 				updatedAt: createdAt,
 			});
 
 			seededEmergencyContacts.push({
-				id: `${patientRowId}-emergency`,
+				id: prefixedId("PEC"),
 				patientId: patientRowId,
-				firstName: firstNames[(hospitalIndex + patientIndex + 1) % firstNames.length],
+				firstName:
+					firstNames[(hospitalIndex + patientIndex + 1) % firstNames.length],
 				middleName: null,
-				lastName: lastNames[(hospitalIndex + patientIndex + 1) % lastNames.length],
-				relationship: ["spouse", "parent", "sibling", "child", "friend"][patientIndex % 5],
+				lastName:
+					lastNames[(hospitalIndex + patientIndex + 1) % lastNames.length],
+				relationship: ["spouse", "parent", "sibling", "child", "friend"][
+					patientIndex % 5
+				],
 				phoneNumber: `+23481${String(hospitalIndex + 1).padStart(2, "0")}${String(patientIndex + 1).padStart(6, "0")}`,
 				createdAt,
 				updatedAt: createdAt,
 			});
 
 			seededPhysicalInfo.push({
-				id: `${patientRowId}-physical`,
+				id: prefixedId("PPH"),
 				patientId: patientRowId,
 				height: `${160 + (patientIndex % 35)}cm`,
 				weight: `${55 + (patientIndex % 45)}kg`,
-				bloodGroup: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"][patientIndex % 8],
+				bloodGroup: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"][
+					patientIndex % 8
+				],
 				genotype: ["AA", "AS", "SS", "AC"][patientIndex % 4],
 				createdAt,
 				updatedAt: createdAt,
@@ -305,13 +421,30 @@ async function seedHospitals() {
 	}
 
 	await db.insert(schema.patient).values(seededPatients).onConflictDoNothing();
-	await db.insert(schema.patientPersonalInformation).values(seededPersonalInfo).onConflictDoNothing();
-	await db.insert(schema.patientContactInformation).values(seededContactInfo).onConflictDoNothing();
-	await db.insert(schema.patientEmergencyContact).values(seededEmergencyContacts).onConflictDoNothing();
-	await db.insert(schema.patientPhysicalInformation).values(seededPhysicalInfo).onConflictDoNothing();
+	await db
+		.insert(schema.patientPersonalInformation)
+		.values(seededPersonalInfo)
+		.onConflictDoNothing();
+	await db
+		.insert(schema.patientContactInformation)
+		.values(seededContactInfo)
+		.onConflictDoNothing();
+	await db
+		.insert(schema.patientEmergencyContact)
+		.values(seededEmergencyContacts)
+		.onConflictDoNothing();
+	await db
+		.insert(schema.patientPhysicalInformation)
+		.values(seededPhysicalInfo)
+		.onConflictDoNothing();
 	console.log(`Inserted ${PATIENTS_PER_HOSPITAL} demo patients per hospital`);
 
-	const encounterTypes = ["Emergency Visit", "Routine Checkup", "Follow-up Visit", "Outpatient Visit"];
+	const encounterTypes = [
+		"Emergency Visit",
+		"Routine Checkup",
+		"Follow-up Visit",
+		"Outpatient Visit",
+	];
 	const departments = [
 		"Emergency Medicine",
 		"General Medicine",
@@ -331,22 +464,31 @@ async function seedHospitals() {
 	];
 	const seededEncounters: (typeof schema.patientEncounter.$inferInsert)[] = [];
 
-	for (let hospitalIndex = 0; hospitalIndex < HOSPITALS.length; hospitalIndex++) {
-		for (let patientIndex = 0; patientIndex < PATIENTS_PER_HOSPITAL; patientIndex++) {
-			const patientRowId = `${hospitalSlug(HOSPITALS[hospitalIndex])}-patient-${patientIndex + 1}`;
+	for (
+		let hospitalIndex = 0;
+		hospitalIndex < HOSPITALS.length;
+		hospitalIndex++
+	) {
+		for (
+			let patientIndex = 0;
+			patientIndex < PATIENTS_PER_HOSPITAL;
+			patientIndex++
+		) {
+			const patientRowId = patientIdsByHospitalAndIndex.get(
+				`${hospitalIndex}:${patientIndex}`,
+			);
+			if (!patientRowId) continue;
 
 			for (let encounterIndex = 0; encounterIndex < 10; encounterIndex++) {
 				const createdAt = new Date("2024-04-17T12:30:00.000Z");
 				const encounterDate = new Date("2026-03-12T12:00:00.000Z");
 				encounterDate.setDate(encounterDate.getDate() - encounterIndex * 3);
+				const encounterId = prefixedId("ENC");
 
 				seededEncounters.push({
-					id: `${patientRowId}-encounter-${encounterIndex + 1}`,
+					id: encounterId,
 					patientId: patientRowId,
-					encounterId:
-						encounterIndex === 0
-							? "ENC-101"
-							: `ENC-${hospitalIndex + 1}-${patientIndex + 1}-${encounterIndex + 1}`,
+					encounterId,
 					encounterType: encounterTypes[encounterIndex % encounterTypes.length],
 					department: departments[encounterIndex % departments.length],
 					physician: physicians[encounterIndex % physicians.length],
@@ -361,7 +503,11 @@ async function seedHospitals() {
 	}
 
 	const ENCOUNTER_INSERT_BATCH_SIZE = 1000;
-	for (let i = 0; i < seededEncounters.length; i += ENCOUNTER_INSERT_BATCH_SIZE) {
+	for (
+		let i = 0;
+		i < seededEncounters.length;
+		i += ENCOUNTER_INSERT_BATCH_SIZE
+	) {
 		await db
 			.insert(schema.patientEncounter)
 			.values(seededEncounters.slice(i, i + ENCOUNTER_INSERT_BATCH_SIZE))
@@ -371,49 +517,78 @@ async function seedHospitals() {
 
 	const seededTransfers = [];
 
-	for (let hospitalIndex = 0; hospitalIndex < HOSPITALS.length; hospitalIndex++) {
-		const sourceOrganizationId = orgsBySlug.get(hospitalSlug(HOSPITALS[hospitalIndex]));
-		const targetOrganizationId = orgsBySlug.get(hospitalSlug(HOSPITALS[(hospitalIndex + 1) % HOSPITALS.length]));
+	for (
+		let hospitalIndex = 0;
+		hospitalIndex < HOSPITALS.length;
+		hospitalIndex++
+	) {
+		const sourceOrganizationId = orgsBySlug.get(
+			hospitalSlug(HOSPITALS[hospitalIndex]),
+		);
+		const targetOrganizationId = orgsBySlug.get(
+			hospitalSlug(HOSPITALS[(hospitalIndex + 1) % HOSPITALS.length]),
+		);
 		if (!sourceOrganizationId || !targetOrganizationId) continue;
 
-		for (let transferIndex = 0; transferIndex < TRANSFERS_PER_HOSPITAL; transferIndex++) {
+		for (
+			let transferIndex = 0;
+			transferIndex < TRANSFERS_PER_HOSPITAL;
+			transferIndex++
+		) {
+			const patientRowId = patientIdsByHospitalAndIndex.get(
+				`${hospitalIndex}:${transferIndex}`,
+			);
+			if (!patientRowId) continue;
+
 			const requestedAt = new Date();
 			requestedAt.setDate(requestedAt.getDate() - transferIndex * 4);
 			const status =
 				transferIndex < PENDING_TRANSFERS_PER_HOSPITAL
 					? "pending"
-					: ["approved", "sent", "completed", "rejected", "cancelled"][transferIndex % 5];
+					: ["completed", "rejected", "failed", "cancelled"][
+							transferIndex % 4
+						];
+
+			const transferId = prefixedId("TRF");
 
 			seededTransfers.push({
-				id: `${hospitalSlug(HOSPITALS[hospitalIndex])}-transfer-${transferIndex + 1}`,
-				transferId: `TRF-${String(hospitalIndex + 1).padStart(2, "0")}-${String(transferIndex + 1).padStart(4, "0")}`,
-				patientId: `${hospitalSlug(HOSPITALS[hospitalIndex])}-patient-${transferIndex + 1}`,
+				id: transferId,
+				transferId,
+				patientId: patientRowId,
 				sourceOrganizationId,
 				targetOrganizationId,
 				targetHospitalName: HOSPITALS[(hospitalIndex + 1) % HOSPITALS.length],
 				targetHospitalAdminName: `Admin ${((hospitalIndex + 1) % HOSPITALS.length) + 1}`,
-				targetHospitalAdminEmail: hospitalEmail(HOSPITALS[(hospitalIndex + 1) % HOSPITALS.length]),
+				targetHospitalAdminEmail: hospitalEmail(
+					HOSPITALS[(hospitalIndex + 1) % HOSPITALS.length],
+				),
 				status,
 				patientApprovalStatus: transferIndex % 2 === 0 ? "waiting" : "approved",
 				patientRejectionReason: null,
-				deliveryStatus: transferIndex < 2 ? "not_started" : "sent",
+				deliveryStatus:
+					status === "completed" ? "sent" : status === "failed" ? "failed" : "not_started",
 				clinicalPayloadFileName: `clinical-${hospitalIndex + 1}-${transferIndex + 1}.pdf`,
 				clinicalPayloadFileUrl: null,
 				clinicalPayloadFileType: "pdf",
 				clinicalPayloadFileSize: "120KB",
-				requestedBy: usersByEmail.get(hospitalEmail(HOSPITALS[hospitalIndex])) ?? null,
+				requestedBy:
+					usersByEmail.get(hospitalEmail(HOSPITALS[hospitalIndex])) ?? null,
 				requestedAt,
-				sentAt: status === "sent" || status === "completed" ? requestedAt : null,
+				sentAt:
+					status === "completed" ? requestedAt : null,
 				completedAt: status === "completed" ? requestedAt : null,
 				cancelledAt: status === "cancelled" ? requestedAt : null,
-				failedAt: null,
+				failedAt: status === "failed" ? requestedAt : null,
 				createdAt: requestedAt,
 				updatedAt: requestedAt,
 			});
 		}
 	}
 
-	await db.insert(schema.patientTransfer).values(seededTransfers).onConflictDoNothing();
+	await db
+		.insert(schema.patientTransfer)
+		.values(seededTransfers)
+		.onConflictDoNothing();
 
 	for (const transfer of seededTransfers) {
 		await sql`

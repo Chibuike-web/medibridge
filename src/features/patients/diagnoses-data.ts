@@ -7,7 +7,7 @@ const diagnosisSeed: Omit<DiagnosisType, "diagnosisId">[] = [
 		onsetSortValue: "2019-03-01",
 		lastReviewedLabel: "December 2025",
 		lastReviewedSortValue: "2025-12-01",
-		clinicalSummary: "Poor control despite dual therapy. Patient intermittently non-adherent",
+		clinicalNotes: "Poor control despite dual therapy. Patient intermittently non-adherent",
 		status: "Active",
 	},
 	{
@@ -16,7 +16,7 @@ const diagnosisSeed: Omit<DiagnosisType, "diagnosisId">[] = [
 		onsetSortValue: "2020-01-01",
 		lastReviewedLabel: "November 2025",
 		lastReviewedSortValue: "2025-11-01",
-		clinicalSummary: "HbA1c persistently above target. Dietary counseling repeated.",
+		clinicalNotes: "HbA1c persistently above target. Dietary counseling repeated.",
 		status: "Resolved",
 	},
 	{
@@ -25,7 +25,7 @@ const diagnosisSeed: Omit<DiagnosisType, "diagnosisId">[] = [
 		onsetSortValue: "2022-06-01",
 		lastReviewedLabel: "October 2025",
 		lastReviewedSortValue: "2025-10-01",
-		clinicalSummary: "Suspected hypertensive nephropathy",
+		clinicalNotes: "Suspected hypertensive nephropathy",
 		status: "Active",
 	},
 	{
@@ -34,7 +34,7 @@ const diagnosisSeed: Omit<DiagnosisType, "diagnosisId">[] = [
 		onsetSortValue: "2015-04-01",
 		lastReviewedLabel: "January 2026",
 		lastReviewedSortValue: "2026-01-01",
-		clinicalSummary: "Frequent exacerbations with poor inhaler adherence",
+		clinicalNotes: "Frequent exacerbations with poor inhaler adherence",
 		status: "Active",
 	},
 	{
@@ -43,7 +43,7 @@ const diagnosisSeed: Omit<DiagnosisType, "diagnosisId">[] = [
 		onsetSortValue: "2023-08-01",
 		lastReviewedLabel: "December 2025",
 		lastReviewedSortValue: "2025-12-01",
-		clinicalSummary: "Resolved following iron supplementation",
+		clinicalNotes: "Resolved following iron supplementation",
 		status: "Active",
 	},
 	{
@@ -52,7 +52,7 @@ const diagnosisSeed: Omit<DiagnosisType, "diagnosisId">[] = [
 		onsetSortValue: "2021-02-01",
 		lastReviewedLabel: "November 2025",
 		lastReviewedSortValue: "2025-11-01",
-		clinicalSummary: "Stable symptoms on medical therapy, no recent chest pain episodes",
+		clinicalNotes: "Stable symptoms on medical therapy, no recent chest pain episodes",
 		status: "Active",
 	},
 ];

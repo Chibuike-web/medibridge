@@ -31,22 +31,21 @@ export function FilterButton() {
 
 			<DropdownMenuContent
 				align="end"
-				sideOffset={12}
-				alignOffset={-5}
+				sideOffset={8}
 				className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 			>
 				<DropdownMenuSub>
-					<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-						<RiMenLine className="size-[18px]" /> <span>Status</span>
+					<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+						<RiMenLine className="size-[18px]" /> <span className="block">Status</span>
 					</DropdownMenuSubTrigger>
 
 					<DropdownMenuSubContent
-						sideOffset={8}
+						sideOffset={12}
 						alignOffset={-5}
 						className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 					>
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
@@ -61,7 +60,7 @@ export function FilterButton() {
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
@@ -76,7 +75,7 @@ export function FilterButton() {
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
@@ -91,7 +90,7 @@ export function FilterButton() {
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
@@ -106,7 +105,7 @@ export function FilterButton() {
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
@@ -123,8 +122,8 @@ export function FilterButton() {
 				</DropdownMenuSub>
 
 				<DropdownMenuSub>
-					<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-						<RiCalendarLine className="size-[18px]" /> <span>Requested at</span>
+					<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+						<RiCalendarLine className="size-[18px]" /> <span className="block">Requested at</span>
 					</DropdownMenuSubTrigger>
 
 					<DropdownMenuSubContent
@@ -133,7 +132,7 @@ export function FilterButton() {
 						className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 					>
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
@@ -148,7 +147,7 @@ export function FilterButton() {
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
@@ -163,7 +162,7 @@ export function FilterButton() {
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
@@ -178,7 +177,7 @@ export function FilterButton() {
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}
@@ -193,7 +192,7 @@ export function FilterButton() {
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
-							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+							className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
 							onSelect={(e) => {
 								e.preventDefault();
 							}}

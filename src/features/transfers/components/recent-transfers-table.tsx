@@ -41,7 +41,7 @@ import { getInitials } from "@/lib/utils/get-initials";
 export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 	const tableData = useMemo(() => data, []);
 	const cols = useMemo(() => recentTransfersColumns, []);
-	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
+	const [sorting, setSorting] = useState<SortingState>([{ id: "patientName", desc: false }]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: 4,
@@ -189,18 +189,16 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 const recentTransfersColumns: ColumnDef<TransferType>[] = [
 	{
 		header: "Patient Name",
-		accessorKey: "name",
+		accessorKey: "patientName",
 		enableSorting: true,
 		cell: ({ row }) => (
 			<div className="flex items-center gap-3">
 				<Avatar className="size-9 border border-gray-200 bg-gray-100 text-gray-700">
 					<AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
-						{getInitials(`${row.original.patientFirstName} ${row.original.patientLastName}`)}
+						{getInitials(row.original.patientName)}
 					</AvatarFallback>
 				</Avatar>
-				<span className="font-medium text-gray-800">
-					{row.original.patientFirstName} {row.original.patientLastName}
-				</span>{" "}
+				<span className="font-medium text-gray-800">{row.original.patientName}</span>
 			</div>
 		),
 	},
@@ -208,11 +206,11 @@ const recentTransfersColumns: ColumnDef<TransferType>[] = [
 		header: "Patient ID",
 		accessorKey: "patientId",
 		enableSorting: false,
-		cell: ({ row }) => <CopyIdButton id={row.original.patientId} className="min-w-0 w-[100px]" />,
+		cell: ({ row }) => <CopyIdButton id={row.original.patientId} className="min-w-0" />,
 	},
 	{
 		header: "Target Hospital",
-		accessorKey: "targetHospital",
+		accessorKey: "targetHospitalName",
 		enableSorting: true,
 		cell: ({ row }) => (
 			<span className="block max-w-[17.5rem] whitespace-normal text-pretty">

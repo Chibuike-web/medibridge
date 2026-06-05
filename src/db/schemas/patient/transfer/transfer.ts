@@ -26,7 +26,7 @@ export const patientTransfer = pgTable("patient_transfer", {
 	targetHospitalAdminEmail: text("target_hospital_admin_email"),
 
 	status: text("status").notNull(),
-	// pending | approved | rejected | sent | completed | failed | cancelled
+	// pending | rejected | completed | failed | cancelled
 
 	patientApprovalStatus: text("patient_approval_status"),
 	// waiting | approved | rejected

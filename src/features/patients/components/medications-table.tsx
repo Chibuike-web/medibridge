@@ -52,7 +52,7 @@ import {
 	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
-	RiShareForwardBoxLine,
+	RiShare2Line,
 } from "@remixicon/react";
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
@@ -100,7 +100,7 @@ export function MedicationsTable({ patientId }: { patientId: string }) {
 					Filter
 				</Button>
 				<Button size="lg" variant="outline">
-					<RiShareForwardBoxLine aria-hidden className="size-5 text-gray-600" />
+					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
 				<Button size="lg">Add new medication</Button>
@@ -319,20 +319,20 @@ function getMedicationsColumns(): ColumnDef<MedicationType>[] {
 							align="end"
 							className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiErrorWarningLine className="text-white" />
 								<span>View details</span>
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiCheckLine className="text-white" />
 								<span>Mark as completed</span>
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiCloseLine className="text-white" />
 								<span>Discontinue medication</span>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator className="bg-white/20" />
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiArchiveLine className="text-white" />
 								<span>Archive</span>
 							</DropdownMenuItem>

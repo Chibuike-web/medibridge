@@ -5,9 +5,7 @@ import { diagnoses } from "@/features/patients/diagnoses-data";
 import { DiagnosesTable } from "@/features/patients/components/diagnoses-table";
 import Link from "next/link";
 import Image from "next/image";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { getInitials } from "@/lib/utils/get-initials";
 import { StatusBadge } from "@/components/status-badge";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { SectionTabs } from "../../../../../../features/patients/components/section-tabs";
@@ -17,12 +15,12 @@ import { AllergiesTable } from "@/features/patients/components/allergies-table";
 import { ImmunizationsTable } from "@/features/patients/components/immunizations-table";
 import { ProceduresTable } from "@/features/patients/components/procedures-table";
 import { MedicationsTable } from "@/features/patients/components/medications-table";
-import { encounters } from "@/features/patients/encounters-data";
 import { EncountersTable } from "@/features/patients/components/encounters-table";
 import { LabTestsTable } from "@/features/patients/components/lab-tests-table";
 import { ImagingTable } from "@/features/patients/components/imaging-table";
 import { PatientAvatarMenu } from "@/features/patients/components/patient-avatar-menu";
 import { getPatientById } from "@/lib/api/get-patient-by-id";
+import { getPatientEncounters } from "@/lib/api/get-patient-encounters";
 
 export const metadata = {
 	title: "Patient",
@@ -75,7 +73,7 @@ async function BreadCrumb({
 				{patient?.firstName} {patient?.lastName}
 			</span>
 			<RiArrowRightSLine aria-hidden="true" />
-			<span className="font-semibold shrink-0">{formatSectionLabel(section)}</span>
+			<span className="font-semibold shrink-0">{formatPatientSectionLabel(section)}</span>
 		</>
 	);
 }
@@ -100,7 +98,7 @@ async function Header({ params }: { params: Promise<{ patientId: string }> }) {
 					</div>
 					<div className="flex items-center shrink-0 gap-1">
 						<span>Patient ID:</span>
-						<CopyIdButton id={patient?.patientId as string} className="min-w-0 w-[100px]" />
+						<CopyIdButton id={patient?.patientId as string} className="min-w-0" />
 					</div>
 
 					<div className="flex items-center shrink-0 gap-1">
@@ -156,7 +154,7 @@ async function SectionContent({
 	return renderSectionContent(section, patientId);
 }
 
-function renderSectionContent(section: string, patientId: string) {
+async function renderSectionContent(section: string, patientId: string) {
 	if (section === "patient-overview") {
 		return <PatientOverviewSection patientId={patientId} />;
 	}
@@ -229,7 +227,9 @@ function MedicationsSection({ patientId }: { patientId: string }) {
 	return <MedicationsTable patientId={patientId} />;
 }
 
-function EncountersSection({ patientId }: { patientId: string }) {
+async function EncountersSection({ patientId }: { patientId: string }) {
+	const encounters = await getPatientEncounters(patientId);
+
 	if (encounters.length === 0) {
 		return renderEmptyState(
 			"No Encounters yet",
@@ -238,7 +238,7 @@ function EncountersSection({ patientId }: { patientId: string }) {
 		);
 	}
 
-	return <EncountersTable patientId={patientId} />;
+	return <EncountersTable patientId={patientId} encounters={encounters} />;
 }
 
 function LabTestsSection({ patientId }: { patientId: string }) {
@@ -287,11 +287,11 @@ function renderEmptyState(title: string, description: string, action: string) {
 	);
 }
 
-function formatSectionLabel(value: string) {
+function formatPatientSectionLabel(value: string) {
 	return value
 		.split("-")
 		.filter(Boolean)
-		.map((word) => word[0].toUpperCase() + word.slice(1))
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 		.join(" ");
 }
 

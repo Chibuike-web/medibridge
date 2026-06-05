@@ -30,11 +30,11 @@ export function PatientAvatarMenu({ patientName }: { patientName: string }) {
 				sideOffset={16}
 				className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
-				<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+				<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 					<RiUpload2Line className="text-white" />
 					<span>Upload image</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+				<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 					<RiDeleteBin2Line className="text-white" />
 					<span>Remove image</span>
 				</DropdownMenuItem>

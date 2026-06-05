@@ -21,8 +21,12 @@ const MAX_WIDTH = 272;
 const COLLAPSE_THRESHOLD = 200;
 
 export function Sidebar({ initialWidth }: { initialWidth?: string }) {
-	const parsed = initialWidth ? JSON.parse(initialWidth) : MAX_WIDTH;
-	const [width, setWidth] = useState<number>(parsed);
+	const parsedWidth = Number(initialWidth ?? MAX_WIDTH);
+	const [width, setWidth] = useState(
+		parsedWidth >= MIN_WIDTH && parsedWidth <= MAX_WIDTH
+			? parsedWidth
+			: MAX_WIDTH,
+	);
 	const pathname = usePathname();
 	const [isResizing, setIsResizing] = useState(false);
 	const [isHovered, setIsHovered] = useState(false);
@@ -32,8 +36,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 
 	useEffect(
 		function saveSidebarWidth() {
-			const value = JSON.stringify(width);
-			document.cookie = `sidebarWidth=${value}; path=/; max-age=31536000`;
+			document.cookie = `sidebarWidth=${width}; path=/; max-age=31536000`;
 		},
 		[width],
 	);
@@ -53,7 +56,10 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 		const handleMouseMove = (e: MouseEvent) => {
 			setIsHovered(false);
 			const delta = e.clientX - startXRef.current;
-			const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidthRef.current + delta));
+			const newWidth = Math.min(
+				MAX_WIDTH,
+				Math.max(MIN_WIDTH, startWidthRef.current + delta),
+			);
 			setWidth(newWidth);
 		};
 		const handleMouseUp = () => {
@@ -137,7 +143,9 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 						aria-label="Search chats"
 					>
 						<RiSearchLine className="size-5 shrink-0" aria-hidden />
-						{!isCollapsed ? <span className="whitespace-nowrap">Search...</span> : null}
+						{!isCollapsed ? (
+							<span className="whitespace-nowrap">Search...</span>
+						) : null}
 					</button>
 				</li>
 				{menus.map(({ id, href, text }) => {
@@ -182,7 +190,9 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 										)
 									) : null}
 								</span>
-								{!isCollapsed ? <span className="whitespace-nowrap">{text}</span> : null}
+								{!isCollapsed ? (
+									<span className="whitespace-nowrap">{text}</span>
+								) : null}
 							</Link>
 						</li>
 					);

@@ -19,6 +19,7 @@ export const patientDiagnosis = pgTable("patient_diagnosis", {
 	severityStage: text("severity_stage"),
 
 	onsetDate: text("onset_date"),
+	lastReviewedAt: text("last_reviewed_at"),
 
 	clinicalNote: text("clinical_note"),
 

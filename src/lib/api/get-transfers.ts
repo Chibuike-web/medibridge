@@ -1,79 +1,95 @@
-import { eq } from "drizzle-orm";
-
+import { count, desc, eq } from "drizzle-orm";
 import { patient, patientPersonalInformation, patientTransfer } from "@/db/schemas";
-
 import { db } from "../better-auth/auth";
 import { getOrganizationId } from "./get-organization-id";
+import type { TransferType } from "@/features/transfers/types";
 
-export async function getTotalTransfers() {
-	const organizationId = await getOrganizationId();
+function formatPatientName({
+	firstName,
+	middleName,
+	lastName,
+}: {
+	firstName: string;
+	middleName: string | null;
+	lastName: string;
+}) {
+	return [firstName, middleName, lastName].filter(Boolean).join(" ");
+}
 
-	if (!organizationId) {
-		return [];
+type GetTransfersResult = {
+	transfers: TransferType[];
+	totalTransfers: number;
+};
+
+const transferStatuses = [
+	"pending",
+	"rejected",
+	"completed",
+	"failed",
+	"cancelled",
+] as const satisfies readonly TransferType["status"][];
+
+function toTransferStatus(status: string): TransferType["status"] {
+	if (status === "approved" || status === "sent") {
+		return "completed";
 	}
 
-	const rows = await db
-		.select({
-			transferId: patientTransfer.id,
-			transferStatus: patientTransfer.status,
+	return transferStatuses.includes(status as TransferType["status"])
+		? (status as TransferType["status"])
+		: "pending";
+}
 
-			requestedAt: patientTransfer.createdAt,
-			updatedAt: patientTransfer.updatedAt,
+export async function getTransfers(page: number, limit: number): Promise<GetTransfersResult> {
+	const organizationId = await getOrganizationId();
+	const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
+	const currentLimit = Number.isFinite(limit) && limit > 0 ? limit : 14;
+	const offset = (currentPage - 1) * currentLimit;
 
-			patientId: patient.id,
-			firstName: patientPersonalInformation.firstName,
-			lastName: patientPersonalInformation.lastName,
+	if (!organizationId) {
+		return { transfers: [], totalTransfers: 0 };
+	}
 
-			targetHospital: patientTransfer.targetHospitalName,
+	const [countRows, rows] = await Promise.all([
+		db
+			.select({ value: count() })
+			.from(patientTransfer)
+			.where(eq(patientTransfer.sourceOrganizationId, organizationId)),
+		db
+			.select({
+				id: patientTransfer.id,
+				status: patientTransfer.status,
+				patientId: patientTransfer.patientId,
+				requestedAt: patientTransfer.requestedAt,
+				targetHospitalName: patientTransfer.targetHospitalName,
+				firstName: patientPersonalInformation.firstName,
+				middleName: patientPersonalInformation.middleName,
+				lastName: patientPersonalInformation.lastName,
+			})
+			.from(patientTransfer)
+			.innerJoin(patient, eq(patientTransfer.patientId, patient.id))
+			.innerJoin(
+				patientPersonalInformation,
+				eq(patient.id, patientPersonalInformation.patientId),
+			)
+			.where(eq(patientTransfer.sourceOrganizationId, organizationId))
+			.orderBy(desc(patientTransfer.createdAt))
+			.limit(currentLimit)
+			.offset(offset),
+	]);
+	const totalTransfers = countRows[0]?.value ?? 0;
 
-			targetHospitalAdminName: patientTransfer.targetHospitalAdminName,
-
-			targetHospitalAdminEmail: patientTransfer.targetHospitalAdminEmail,
-
-			patientApprovalStatus: patientTransfer.patientApprovalStatus,
-
-			sentAt: patientTransfer.sentAt,
-		})
-		.from(patientTransfer)
-		.leftJoin(patient, eq(patientTransfer.patientId, patient.id))
-		.leftJoin(patientPersonalInformation, eq(patient.id, patientPersonalInformation.patientId))
-		.where(eq(patientTransfer.sourceOrganizationId, organizationId));
-
-	return rows.map((row) => ({
-		transferStatus: row.transferStatus,
-
-		patientId: row.patientId,
-
-		transferId: row.transferId,
-
-		patientName: `${row.firstName ?? ""} ${row.lastName ?? ""}`.trim(),
-
-		targetHospital: row.targetHospital,
-
-		targetHospitalAdminName: row.targetHospitalAdminName,
-
-		targetHospitalAdminEmail: row.targetHospitalAdminEmail,
-
-		requestedAt: row.requestedAt.toISOString(),
-
-		transferProgress: {
-			requested: {
-				status: "completed",
-				date: row.requestedAt.toISOString(),
-			},
-
-			patientApproval: {
-				status: row.patientApprovalStatus,
-				description:
-					row.patientApprovalStatus === "approved"
-						? "Patient approved transfer"
-						: "Waiting for patient response",
-			},
-
-			sent: {
-				status: row.sentAt ? "completed" : "not_started",
-				date: row.sentAt?.toISOString() ?? null,
-			},
-		},
-	}));
+	return {
+		totalTransfers,
+		transfers: rows.map((row) => ({
+			id: row.id,
+			patientName: formatPatientName(row),
+			patientFirstName: row.firstName,
+			patientMiddleName: row.middleName,
+			patientLastName: row.lastName,
+			patientId: row.patientId,
+			status: toTransferStatus(row.status),
+			requestedAt: row.requestedAt.toISOString(),
+			targetHospitalName: row.targetHospitalName,
+		})),
+	};
 }

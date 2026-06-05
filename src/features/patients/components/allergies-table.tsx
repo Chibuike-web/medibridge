@@ -54,10 +54,9 @@ import {
 	RiCheckboxCircleLine,
 	RiEyeLine,
 	RiFilter3Line,
-	RiMenLine,
 	RiMore2Fill,
 	RiSearchLine,
-	RiShareForwardBoxLine,
+	RiShare2Line,
 } from "@remixicon/react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -116,37 +115,46 @@ export function AllergiesTable({ patientId }: { patientId: string }) {
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
 						align="end"
-						sideOffset={12}
-						alignOffset={-5}
+						sideOffset={8}
 						className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 					>
 						<DropdownMenuSub>
-							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-								<RiCheckboxCircleLine className="size-[18px]" /> <span>Status</span>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+								<RiCheckboxCircleLine className="size-[18px]" />{" "}
+								<span className="block">Status</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
-								sideOffset={8}
+								sideOffset={12}
 								alignOffset={-5}
 								className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
 								<RadioGroup defaultValue="all" className="flex flex-col gap-0">
-									<div className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-100 h-8">
+									<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
 										<RadioGroupItem value="all" id="all" />
-										<Label htmlFor="all" className="cursor-pointer w-full">
+										<Label
+											htmlFor="all"
+											className="cursor-pointer w-full leading-normal font-normal"
+										>
 											All
 										</Label>
 									</div>
 
-									<div className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-100 h-8">
+									<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
 										<RadioGroupItem value="male" id="male" />
-										<Label htmlFor="male" className="cursor-pointer w-full">
+										<Label
+											htmlFor="male"
+											className="cursor-pointer w-full leading-normal font-normal"
+										>
 											Active
 										</Label>
 									</div>
 
-									<div className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-100 h-8">
+									<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
 										<RadioGroupItem value="female" id="female" />
-										<Label htmlFor="female" className="cursor-pointer w-full">
+										<Label
+											htmlFor="female"
+											className="cursor-pointer w-full leading-normal font-normal"
+										>
 											Inactive
 										</Label>
 									</div>
@@ -155,8 +163,9 @@ export function AllergiesTable({ patientId }: { patientId: string }) {
 						</DropdownMenuSub>
 
 						<DropdownMenuSub>
-							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-								<RiBarChartBoxLine className="text-[18px]" /> <span>Severity</span>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+								<RiBarChartBoxLine className="text-[18px]" />{" "}
+								<span className="block">Severity</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={8}
@@ -164,42 +173,42 @@ export function AllergiesTable({ patientId }: { patientId: string }) {
 								className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
 								<DropdownMenuItem
-									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 h-8"
+									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
 									onSelect={(e) => {
 										e.preventDefault();
 									}}
 								>
 									<Label
 										htmlFor="requested-mild"
-										className="flex w-full cursor-pointer items-center gap-2"
+										className="flex w-full cursor-pointer items-center gap-2 leading-normal font-normal"
 									>
 										<Checkbox id="requested-mild" className="[&_svg]:!text-current" />
 										<span>Mild</span>
 									</Label>
 								</DropdownMenuItem>
 								<DropdownMenuItem
-									className="rounded-lg focus:bg-gray-100 focus:text-gray-900"
+									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
 									onSelect={(e) => {
 										e.preventDefault();
 									}}
 								>
 									<Label
 										htmlFor="requested-moderate"
-										className="flex w-full cursor-pointer items-center gap-2"
+										className="flex w-full cursor-pointer items-center gap-2 leading-normal font-normal"
 									>
 										<Checkbox id="requested-moderate" className="[&_svg]:!text-current" />
 										<span>Moderate</span>
 									</Label>
 								</DropdownMenuItem>
 								<DropdownMenuItem
-									className="rounded-lg focus:bg-gray-100 focus:text-gray-900"
+									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
 									onSelect={(e) => {
 										e.preventDefault();
 									}}
 								>
 									<Label
 										htmlFor="requested-severe"
-										className="flex w-full cursor-pointer items-center gap-2"
+										className="flex w-full cursor-pointer items-center gap-2 leading-normal font-normal"
 									>
 										<Checkbox id="requested-severe" className="[&_svg]:!text-current" />
 										<span>Severe</span>
@@ -209,20 +218,21 @@ export function AllergiesTable({ patientId }: { patientId: string }) {
 						</DropdownMenuSub>
 
 						<DropdownMenuSub>
-							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-								<RiCalendarLine className="size-[18px]" /> <span>Date recorded</span>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+								<RiCalendarLine className="size-[18px]" />{" "}
+								<span className="block">Date recorded</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={8}
 								className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
-								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2">
 									Today
 								</DropdownMenuItem>
-								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2">
 									This week
 								</DropdownMenuItem>
-								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900">
+								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2">
 									This month
 								</DropdownMenuItem>
 							</DropdownMenuSubContent>
@@ -230,10 +240,10 @@ export function AllergiesTable({ patientId }: { patientId: string }) {
 					</DropdownMenuContent>
 				</DropdownMenu>
 				<Button size="lg" variant="outline">
-					<RiShareForwardBoxLine aria-hidden className="size-5 text-gray-600" />
+					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button size="lg">Add new allergy</Button>
+				<Button size="lg">Add allergy</Button>
 			</div>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="w-full min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left">
@@ -439,12 +449,12 @@ function getAllergiesColumns(): ColumnDef<AllergyType>[] {
 							align="end"
 							className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiEyeLine className="text-white" />
 								<span>View details</span>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator className="bg-white/20" />
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiArchiveLine className="text-white" />
 								<span>Archive</span>
 							</DropdownMenuItem>

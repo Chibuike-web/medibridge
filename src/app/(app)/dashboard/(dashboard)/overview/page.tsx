@@ -8,6 +8,7 @@ import { Cards } from "./cards";
 import { getRecentPatients } from "@/lib/api/get-recent-patients";
 import { getRecentTransfer } from "@/lib/api/get-recent-transfers";
 import { getOverviewStats } from "@/lib/api/get-overview-stats";
+import Image from "next/image";
 
 export const metadata = {
 	title: "Overview",
@@ -35,20 +36,25 @@ export default async function Overview() {
 			</div>
 		</div>
 	) : (
-		<div className="mx-auto flex h-full w-full max-w-7xl items-center justify-center p-10">
-			<div className="flex max-w-xl flex-col items-center">
-				<h1 className="mb-6 text-center text-2xl font-semibold text-gray-800">No Patients Yet</h1>
-
-				<p className="mb-12 text-center text-gray-600">
-					You have not added any patients to your list yet. Start by creating a new patient profile.
-				</p>
-
-				<Button className="h-11" asChild>
-					<Link href="/dashboard/add-new-patient">
-						<RiAddLine className="size-6" />
-						Add New Patient
-					</Link>
-				</Button>
+		<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">
+			<div className="relative flex w-[31.25rem] max-w-full items-end justify-center">
+				<Image
+					src="/assets/empty-state.svg"
+					alt=""
+					aria-hidden="true"
+					width={500}
+					height={336}
+					className="h-auto w-[31.25rem] max-w-full"
+				/>
+				<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
+					<h1 className="font-semibold text-2xl text-center mb-6">No patient records available</h1>
+					<p className="mb-12 text-center">
+						You haven’t added any patient records yet. Create a new patient profile to get started.
+					</p>
+					<Button className="h-11" asChild>
+						<Link href="/dashboard/add-new-patient">Add patient </Link>
+					</Button>
+				</div>
 			</div>
 		</div>
 	);

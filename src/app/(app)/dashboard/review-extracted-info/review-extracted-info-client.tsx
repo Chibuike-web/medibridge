@@ -20,7 +20,7 @@ import { useExtractedPatient } from "@/features/patients/store/use-extracted-pat
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { formatPatientLabel } from "../../../../features/patients/utils/format-patient-label";
+import { formatPatientLabel } from "@/features/patients/utils/format-patient-label";
 import { cn } from "@/lib/utils/cn";
 import { RiArrowRightSLine, RiCloseLine, RiEditLine } from "@remixicon/react";
 
@@ -68,7 +68,7 @@ export function ReviewExtractedInfoClient() {
 
 	if (!isHydrated) {
 		return (
-			<main className="mx-auto my-10 grid min-h-dvh max-w-[37.5rem] place-items-center">
+			<main className="mx-auto my-30 max-w-[37.5rem]">
 				<div className="w-full px-4 md:px-0">
 					<div className="mx-auto h-9 w-72 animate-pulse rounded-md bg-gray-200" />
 					<div className="mt-4 mx-auto h-5 w-full max-w-md animate-pulse rounded-md bg-gray-100" />
@@ -94,7 +94,7 @@ export function ReviewExtractedInfoClient() {
 		);
 	}
 	return (
-		<main className="mx-auto my-10 grid min-h-dvh max-w-[37.5rem] place-items-center">
+		<main className="mx-auto my-30 max-w-[37.5rem]">
 			<div className="w-full">
 				<h1 className="mt-10 mb-5 text-center text-[1.8rem] font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
 					Review Patient Information

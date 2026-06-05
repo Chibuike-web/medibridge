@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { Route } from "next";
-import { encounters } from "@/features/patients/encounters-data";
 import { EncounterType } from "@/features/patients/types";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
@@ -51,13 +50,18 @@ import {
 	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
-	RiShareForwardBoxLine,
+	RiShare2Line,
 } from "@remixicon/react";
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
-export function EncountersTable({ patientId }: { patientId: string }) {
-	const data = useMemo(() => encounters, []);
+export function EncountersTable({
+	patientId,
+	encounters,
+}: {
+	patientId: string;
+	encounters: EncounterType[];
+}) {
 	const columns = useMemo(() => getEncountersColumns(patientId), [patientId]);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [pagination, setPagination] = useState<PaginationState>({
@@ -66,7 +70,7 @@ export function EncountersTable({ patientId }: { patientId: string }) {
 	});
 
 	const table = useReactTable({
-		data,
+		data: encounters,
 		columns,
 		enableRowSelection: true,
 		onSortingChange: setSorting,
@@ -74,10 +78,7 @@ export function EncountersTable({ patientId }: { patientId: string }) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
-		state: {
-			pagination,
-			sorting,
-		},
+		state: { pagination, sorting },
 	});
 
 	return (
@@ -92,15 +93,19 @@ export function EncountersTable({ patientId }: { patientId: string }) {
 						placeholder="Search by department or physician"
 					/>
 				</div>
-				<Button size="lg" variant="outline">
+				<Button
+					size="lg"
+					variant="outline"
+					className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+				>
 					<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 					Filter
 				</Button>
 				<Button size="lg" variant="outline">
-					<RiShareForwardBoxLine aria-hidden className="size-5 text-gray-600" />
+					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button size="lg">Create new encounter</Button>
+				<Button size="lg">Create encounter</Button>
 			</div>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="w-full min-w-[82rem] border-separate border-spacing-0 bg-gray-50 text-left">
@@ -308,7 +313,7 @@ function getEncountersColumns(patientId: string): ColumnDef<EncounterType>[] {
 							align="end"
 							className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
-							<DropdownMenuItem asChild>
+							<DropdownMenuItem asChild className="py-2">
 								<Link
 									href={
 										`/dashboard/patients/${patientId}/encounters/${row.original.encounterId}` as Route
@@ -320,7 +325,7 @@ function getEncountersColumns(patientId: string): ColumnDef<EncounterType>[] {
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator className="bg-white/20" />
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiArchiveLine className="text-white" />
 								<span>Archive</span>
 							</DropdownMenuItem>

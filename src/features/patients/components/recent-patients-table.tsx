@@ -207,7 +207,7 @@ const recentPatientColumns: ColumnDef<RecentPatientType>[] = [
 		header: "Patient ID",
 		accessorKey: "patientId",
 		enableSorting: false,
-		cell: ({ row }) => <CopyIdButton id={row.original.patientId} className="min-w-0 w-[100px]" />,
+		cell: ({ row }) => <CopyIdButton id={row.original.patientId} className="min-w-0" />,
 	},
 	{
 		header: "Gender",
