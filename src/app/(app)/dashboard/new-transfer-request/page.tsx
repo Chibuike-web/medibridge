@@ -17,7 +17,7 @@ export default async function NewTransferRequest({
 
 	return (
 		<>
-			<nav className="w-full h-16 flex items-center sticky z-[100] top-0 bg-white border-b border-gray-300 px-8">
+			<nav className="w-full h-16 flex items-center sticky z-[20] top-0 bg-white border-b border-gray-300 px-8">
 				<Link href="/dashboard/transfers" className="flex gap-2 w-max items-center text-foreground">
 					<RiArrowLeftLine className="size-5" /> <span className="sr-only">Back</span>
 				</Link>

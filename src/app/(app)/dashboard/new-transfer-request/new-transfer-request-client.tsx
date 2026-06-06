@@ -2,7 +2,7 @@
 
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils/cn";
-import { Fragment, use, useEffect, useState } from "react";
+import { Fragment, startTransition, use, useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -26,8 +26,8 @@ import { SelectPatient } from "@/features/transfers/components/select-patient";
 import { usePatientTransferData } from "@/features/transfers/stores/use-patient-transfer-data";
 import { useShowSuccess } from "@/hooks/use-show-success";
 import { SuccessModal } from "@/components/success-modal";
-import { patients } from "@/features/transfers/data";
 import { useAttachClinicalRecords } from "@/features/transfers/stores/use-attach-clinical-records";
+import { getPatientById } from "@/features/patients/server/actions";
 
 export function NewTransferRequestClient({
 	searchParams,
@@ -45,12 +45,6 @@ export function NewTransferRequestClient({
 	const [step, setStep] = useState(1);
 	const params = use(searchParams);
 	const patientId = params.patientId;
-
-	function handleStep() {
-		if (selectedPatients.length > 0) {
-			setStep(2);
-		}
-	}
 
 	const isComplete = selectedPatients.every((p) => {
 		const transferData = patientTransferData[p.patientId] ?? EMPTY_PATIENT_TRANSFER_DATA;
@@ -98,13 +92,22 @@ export function NewTransferRequestClient({
 	useEffect(
 		function initializePatientFromParams() {
 			if (!patientId) return;
+			const exists = selectedPatients.some((p) => p.patientId === patientId);
 
-			const patient = patients.find((p) => p.patientId === patientId);
-			if (!patient) return;
+			if (exists) return;
 
-			addSelectedPatient(patient);
+			startTransition(async () => {
+				const patient = await getPatientById(patientId);
+
+				if (patient) {
+					addSelectedPatient({
+						name: `${patient.firstName} ${patient.lastName}`,
+						patientId: patient.patientId,
+					});
+				}
+			});
 		},
-		[patientId, patients],
+		[patientId],
 	);
 
 	if (!isHydrated) {
@@ -122,7 +125,11 @@ export function NewTransferRequestClient({
 						<Button
 							className="h-11 w-full mt-16"
 							type="button"
-							onClick={handleStep}
+							onClick={() => {
+								if (selectedPatients.length > 0) {
+									setStep(2);
+								}
+							}}
 							disabled={selectedPatients.length === 0}
 						>
 							Continue
@@ -162,11 +169,14 @@ export function NewTransferRequestClient({
 							<AttachClinicalRecords activePatient={activePatient} />
 							<div className="flex flex-col gap-4 mt-4 text-gray-600">
 								{recordCountsArray.length > 0 && (
-									<p className="font-semibold ">{recordCountsArray.length} records selected</p>
+									<p className="font-semibold ">
+										{recordCountsArray.length} record{recordCountsArray.length > 1 ? "s" : null}{" "}
+										selected
+									</p>
 								)}
 								<div className="flex flex-col gap-[10px]">
 									{recordCountsArray.map((r) => (
-										<div className="flex gap-3 font-medium">
+										<div key={r[0][1]} className="flex gap-3 font-medium">
 											<RiCheckLine />
 											<div>
 												<span>{r[0]}: </span>
@@ -206,7 +216,7 @@ export function NewTransferRequestClient({
 									</Label>
 									<Input
 										className="h-11"
-										placeholder="e.g., admin@esut.org"
+										placeholder="e.g., admin@enuguhospital.gov.ng"
 										defaultValue={currentPatientTransferData.hospitalEmail ?? ""}
 										onBlur={(e) => {
 											const nextPatientTransferData = {
@@ -305,14 +315,11 @@ export function NewTransferRequestClient({
 									</div>
 									<DialogFooter className="mt-16 border-t border-gray-200">
 										<div className="flex gap-4 ml-auto">
-											<Button
-												variant="outline"
-												className="h-11"
-												type="button"
-												onClick={() => router.push("/dashboard/transfers")}
-											>
-												Cancel
-											</Button>
+											<DialogClose asChild>
+												<Button variant="outline" className="h-11" type="button">
+													Cancel
+												</Button>
+											</DialogClose>
 											<Button
 												className="h-11"
 												type="button"

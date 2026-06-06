@@ -7,9 +7,12 @@ import { patients } from "@/features/transfers/data";
 import { RiArrowDownSLine, RiCheckLine, RiCloseLine, RiSearchLine } from "@remixicon/react";
 import { cn } from "@/lib/utils/cn";
 import { useRouter } from "next/navigation";
+import { useAttachClinicalRecords } from "../stores/use-attach-clinical-records";
 
 export function SelectPatient({ patientId }: { patientId?: string }) {
 	const [searchTerm, setSearchTerm] = useState("");
+	const { removeAttachedRecords } = useAttachClinicalRecords();
+
 	const router = useRouter();
 	const { selectedPatients, toggleSelectedPatient, removeSelectedPatient } =
 		useSelectedTransferPatients();
@@ -110,6 +113,7 @@ export function SelectPatient({ patientId }: { patientId?: string }) {
 								if (s.patientId === patientId) {
 									router.replace("/dashboard/new-transfer-request");
 								}
+								removeAttachedRecords(s.patientId);
 							}}
 						>
 							<RiCloseLine size={16} />

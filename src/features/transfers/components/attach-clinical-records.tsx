@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { Tabs } from "radix-ui";
 import { motion, useReducedMotion } from "motion/react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MultiSelectItem } from "@/components/multi-select-item";
 import { clinicalRecordItemsByType, clinicalRecords } from "@/features/transfers/data";
@@ -125,23 +124,24 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 				</PopoverTrigger>
 
 				<PopoverContent sideOffset={8} className="flex flex-col gap-1 rounded-2xl p-2">
-					<div className="relative">
-						<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
-						<Input
+					<div className="flex items-center gap-2 text-gray-400 pl-2">
+						<RiSearchLine className="size-5" />
+						<input
+							className="h-10 placeholder:text-base focus:outline-0 w-full"
 							type="search"
 							value={searchQuery}
 							onChange={(event) => setSearchQuery(event.target.value)}
 							placeholder={`Search ${activeTab.label.toLowerCase()} records`}
-							className="h-10 pl-9"
 						/>
 					</div>
+
 					<div
 						className={cn(
 							"flex h-11 w-full items-center gap-3 rounded-md px-3 text-left text-sm text-gray-600",
 							filteredRecordsForActiveTab.length === 0 && "opacity-50",
 						)}
 					>
-						<Label>
+						<Label className="w-full h-full">
 							<Checkbox
 								checked={
 									areAllVisibleRecordsSelected || (areSomeVisibleRecordsSelected && "indeterminate")
