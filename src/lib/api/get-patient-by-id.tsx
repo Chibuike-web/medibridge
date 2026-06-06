@@ -1,5 +1,5 @@
 import { db } from "@/lib/better-auth/auth";
-import { patientPersonalInformation } from "@/db/schemas";
+import { patientContactInformation, patientPersonalInformation } from "@/db/schemas";
 import { getOrganizationId } from "./get-organization-id";
 import { eq } from "drizzle-orm";
 
@@ -15,8 +15,15 @@ export async function getPatientById(patientId: string) {
 			patientId: patientPersonalInformation.patientId,
 			firstName: patientPersonalInformation.firstName,
 			lastName: patientPersonalInformation.lastName,
+			email: patientContactInformation.emailAddress,
+			phoneNumber: patientContactInformation.phoneNumber,
+			address: patientContactInformation.residentialAddress,
 		})
 		.from(patientPersonalInformation)
+		.leftJoin(
+			patientContactInformation,
+			eq(patientPersonalInformation.patientId, patientContactInformation.patientId),
+		)
 		.where(eq(patientPersonalInformation.patientId, patientId));
 
 	return rows[0] || null;

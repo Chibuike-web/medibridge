@@ -21,18 +21,21 @@ import { ImagingTable } from "@/features/patients/components/imaging-table";
 import { PatientAvatarMenu } from "@/features/patients/components/patient-avatar-menu";
 import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatientEncounters } from "@/lib/api/get-patient-encounters";
+import { verifySession } from "@/lib/api/verify-session";
 
 export const metadata = {
 	title: "Patient",
 };
 
-export default function PatientPage({
+export default async function PatientPage({
 	searchParams,
 	params,
 }: {
 	searchParams: Promise<{ section: string }>;
 	params: Promise<{ patientId: string }>;
 }) {
+	await verifySession();
+
 	return (
 		<div className="flex h-full min-h-0 flex-col overflow-hidden">
 			<div className="shrink-0">
@@ -103,17 +106,15 @@ async function Header({ params }: { params: Promise<{ patientId: string }> }) {
 
 					<div className="flex items-center shrink-0 gap-1">
 						<span className="text-gray-400">Email:</span>
-						<span className="font-semibold text-gray-600">chibuikemaduabuchi2023@gmail.com</span>
+						<span className="font-semibold text-gray-600">{patient?.email}</span>
 					</div>
 					<div className="flex items-center shrink-0 gap-1">
 						<span className="text-gray-400">Phone Number:</span>
-						<span className="font-semibold text-gray-600">1234567890</span>
+						<span className="font-semibold text-gray-600">{patient?.phoneNumber}</span>
 					</div>
 					<div className="flex items-center shrink-0 gap-1">
 						<span className="text-gray-400">Address:</span>
-						<span className="font-semibold text-gray-600">
-							12 Allen Avenue, Ikeja, Lagos, Nigeria
-						</span>
+						<span className="font-semibold text-gray-600">{patient?.address} </span>
 					</div>
 				</div>
 			</div>

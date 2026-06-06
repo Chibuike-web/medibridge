@@ -31,7 +31,7 @@ function DialogOverlay({
 			className={cn(
 				"fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/50 p-6",
 				"data-[state=open]:animate-in data-[state=closed]:animate-out",
-				"data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
+				"animation-duration-200 data-[state=closed]:animation-duration-100 ease-[cubic-bezier(0.23,1,0.32,1)] data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 motion-reduce:animate-none",
 				className,
 			)}
 			{...props}
@@ -55,7 +55,7 @@ function DialogContent({
 						"w-full max-w-[37.5rem]",
 						"bg-background rounded-3xl border shadow-[0_2rem_2rem_-1.25rem_rgba(0,0,0,0.25)]",
 						"data-[state=open]:animate-in data-[state=closed]:animate-out",
-						"data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
+						"animation-duration-200 data-[state=closed]:animation-duration-100 ease-[cubic-bezier(0.23,1,0.32,1)] data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 motion-reduce:animate-none",
 						"data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
 						className,
 					)}

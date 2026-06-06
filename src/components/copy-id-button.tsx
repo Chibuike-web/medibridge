@@ -32,7 +32,7 @@ export function CopyIdButton({ id, className }: CopyIdButtonProps) {
 				handleCopy();
 			}}
 			className={cn(
-				"flex w-[100px] shrink-0 items-center gap-1.5 rounded-md border border-gray-200 bg-gray-100 p-1 text-left text-gray-600 transition-transform duration-150 ease-out active:scale-90",
+				"flex w-[100px] shrink-0 items-center gap-1.5 rounded-md border border-gray-200 bg-gray-100 p-1 text-left text-gray-600 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
 				className,
 			)}
 			aria-label={copied ? `${id} copied` : `Copy ${id}`}

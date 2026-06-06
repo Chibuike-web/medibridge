@@ -6,7 +6,8 @@ export type ClinicalRecord = {
 export type ClinicalRecordItem = {
 	id: string;
 	name: string;
-	createdAt: string;
+	type?: string;
+	createdAt?: string;
 };
 
 export type PatientTransferData = {
@@ -16,7 +17,7 @@ export type PatientTransferData = {
 };
 
 export type PatientTransferDataByPatientId = Record<string, PatientTransferData>;
-export type AttachedClinicalRecordsType = Record<string, ClinicalRecord[]>;
+export type AttachedClinicalRecordsType = Record<string, ClinicalRecordItem[]>;
 
 export const EMPTY_PATIENT_TRANSFER_DATA: PatientTransferData = {
 	hospitalName: "",

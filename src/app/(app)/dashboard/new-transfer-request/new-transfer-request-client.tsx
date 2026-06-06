@@ -83,6 +83,18 @@ export function NewTransferRequestClient({
 		}
 	}
 
+	const recordCounts = (attachedRecords[activePatient] ?? []).reduce(
+		(acc, record) => {
+			const type = record.type;
+			if (!type) return acc;
+			acc[type] = (acc[type] || 0) + 1;
+
+			return acc;
+		},
+		{} as Record<string, number>,
+	);
+	const recordCountsArray = Object.entries(recordCounts);
+
 	useEffect(
 		function initializePatientFromParams() {
 			if (!patientId) return;
@@ -148,6 +160,22 @@ export function NewTransferRequestClient({
 						</div>
 						<Fragment key={activePatient}>
 							<AttachClinicalRecords activePatient={activePatient} />
+							<div className="flex flex-col gap-4 mt-4 text-gray-600">
+								{recordCountsArray.length > 0 && (
+									<p className="font-semibold ">{recordCountsArray.length} records selected</p>
+								)}
+								<div className="flex flex-col gap-[10px]">
+									{recordCountsArray.map((r) => (
+										<div className="flex gap-3 font-medium">
+											<RiCheckLine />
+											<div>
+												<span>{r[0]}: </span>
+												<span>{r[1]}</span>
+											</div>
+										</div>
+									))}
+								</div>
+							</div>
 
 							<div className="flex flex-col gap-3.5 mt-8">
 								<Label className="text-gray-600 font-medium">
@@ -178,7 +206,7 @@ export function NewTransferRequestClient({
 									</Label>
 									<Input
 										className="h-11"
-										placeholder="e.g., Enugu State Teaching Hospital"
+										placeholder="e.g., admin@esut.org"
 										defaultValue={currentPatientTransferData.hospitalEmail ?? ""}
 										onBlur={(e) => {
 											const nextPatientTransferData = {

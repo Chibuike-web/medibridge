@@ -3,7 +3,7 @@
 import { RiArrowDownSLine, RiSearchLine } from "@remixicon/react";
 import { useMemo, useState } from "react";
 import { Tabs } from "radix-ui";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -13,14 +13,11 @@ import { useAttachClinicalRecords } from "@/features/transfers/stores/use-attach
 import { cn } from "@/lib/utils/cn";
 import { Label } from "@/components/ui/label";
 
-type AttachClinicalRecordsProps = {
-	activePatient: string;
-};
-
-export function AttachClinicalRecords({ activePatient }: AttachClinicalRecordsProps) {
+export function AttachClinicalRecords({ activePatient }: { activePatient: string }) {
 	const { attachedRecords, toggleAttachedRecord } = useAttachClinicalRecords();
 	const [activeTabId, setActiveTabId] = useState(clinicalRecords[0].id);
 	const [searchQuery, setSearchQuery] = useState("");
+	const shouldReduceMotion = useReducedMotion();
 
 	const allSelectedRecordsForPatient = attachedRecords[activePatient] ?? [];
 
@@ -65,7 +62,7 @@ export function AttachClinicalRecords({ activePatient }: AttachClinicalRecordsPr
 			const isSelected = selectedRecordsIds.has(id);
 
 			if (areAllVisibleRecordsSelected ? isSelected : !isSelected) {
-				toggleAttachedRecord(activePatient, { id, label: name });
+				toggleAttachedRecord(activePatient, { id, name, type: activeTab.label });
 			}
 		});
 	}
@@ -94,7 +91,11 @@ export function AttachClinicalRecords({ activePatient }: AttachClinicalRecordsPr
 									<motion.span
 										layoutId="attach-record-tab"
 										className="absolute inset-0 rounded-full bg-gray-800"
-										transition={{ type: "spring", stiffness: 400, damping: 30 }}
+										transition={
+											shouldReduceMotion
+												? { duration: 0 }
+												: { type: "spring", duration: 0.24, bounce: 0.05 }
+										}
 									/>
 								)}
 								<span className="relative z-10">{record.label}</span>
@@ -114,7 +115,7 @@ export function AttachClinicalRecords({ activePatient }: AttachClinicalRecordsPr
 						</div>
 					) : (
 						<div className="flex gap-1.5 items-center text-sm text-foreground">
-							<span className="flex items-center">{selectedRecordsForActiveTab[0].label}</span>
+							<span className="flex items-center">{selectedRecordsForActiveTab[0].name}</span>
 							{selectedRecordsForActiveTab.length - 1 > 0 && (
 								<span> +{selectedRecordsForActiveTab.length - 1} more</span>
 							)}
@@ -156,7 +157,9 @@ export function AttachClinicalRecords({ activePatient }: AttachClinicalRecordsPr
 						<MultiSelectItem
 							key={id}
 							isSelected={selectedRecordsIds.has(id)}
-							onClick={() => toggleAttachedRecord(activePatient, { id, label: name })}
+							onClick={() =>
+								toggleAttachedRecord(activePatient, { id, name, type: activeTab.label })
+							}
 						>
 							{name}
 						</MultiSelectItem>

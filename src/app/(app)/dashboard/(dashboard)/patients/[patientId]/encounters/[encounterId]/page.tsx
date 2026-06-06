@@ -5,6 +5,7 @@ import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatientEncounter } from "@/lib/api/get-patient-encounter";
+import { verifySession } from "@/lib/api/verify-session";
 
 export const metadata = {
 	title: "Encounter Details",
@@ -16,6 +17,8 @@ export default async function EncounterDetailsPage({
 	params: Promise<{ patientId: string; encounterId: string }>;
 }) {
 	const { patientId, encounterId } = await params;
+	await verifySession();
+
 	const [patient, encounter] = await Promise.all([
 		getPatientById(patientId),
 		getPatientEncounter(patientId, encounterId),

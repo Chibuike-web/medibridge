@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { RiAddLine } from "@remixicon/react";
 import { RecentPatientsTable } from "@/features/patients/components/recent-patients-table";
 import { RecentTransfersTable } from "@/features/transfers/components/recent-transfers-table";
 import { Suspense } from "react";

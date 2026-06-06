@@ -1,12 +1,15 @@
 import { AddNewPatientClient } from "@/app/(app)/dashboard/add-new-patient/add-new-patient-client";
 import Link from "next/link";
 import { RiArrowLeftLine } from "@remixicon/react";
+import { verifySession } from "@/lib/api/verify-session";
 
 export const metadata = {
 	title: "Add New Patient",
 };
 
-export default function AddNewPatient() {
+export default async function AddNewPatient() {
+	await verifySession();
+
 	return (
 		<>
 			<nav className="w-full h-16 flex items-center sticky z-1 top-0 bg-white border-b border-gray-300 px-8">

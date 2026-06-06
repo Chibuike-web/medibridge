@@ -24,6 +24,7 @@ import { useId, useState } from "react";
 import pdfFileFormat from "@/assets/file-formats/pdf.svg";
 import Image from "next/image";
 import { formatFileSize } from "@/lib/utils/format-file-size";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 type TransferDetailsDrawerProps = {
 	open: boolean;
@@ -120,12 +121,13 @@ export function TransferDetailsDrawer({
 
 function ClinicalPayload() {
 	const [isExpanded, setIsExpanded] = useState(false);
+	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
 
 	return (
-		<div className="mt-6 flex flex-col gap-4 rounded-2xl border border-gray-200 p-5">
+		<div className="mt-6 flex flex-col rounded-2xl border border-gray-200 p-5">
 			<button
 				type="button"
 				onClick={() => setIsExpanded((prev) => !prev)}
@@ -140,50 +142,71 @@ function ClinicalPayload() {
 					<span className="text-sm text-muted-foreground text-left">22 January 2026 at 14:10</span>
 				</div>
 				<RiArrowDownSLine
-					className={cn("transition-transform", isExpanded ? "rotate-180" : "")}
+					className={cn(
+						"transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						isExpanded ? "rotate-180" : "",
+					)}
 					aria-hidden="true"
 				/>
 			</button>
 
-			{isExpanded && (
-				<div
-					id={panelId}
-					aria-labelledby={titleId}
-					className="flex flex-col gap-4 rounded-2xl border border-gray-200 px-4 py-4 lg:flex-row lg:items-center lg:justify-between"
-				>
-					{/* File Info */}
-					<div className="flex items-start gap-3 min-w-0">
-						<Image src={pdfFileFormat} alt="" width={40} height={40} />
+			<AnimatePresence>
+				{isExpanded && (
+					<motion.div
+						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+						transition={
+							shouldReduceMotion
+								? { duration: 0.12 }
+								: {
+										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
+										opacity: { duration: 0.16, ease: "easeOut" },
+									}
+						}
+						className="overflow-hidden"
+					>
+						<div
+							id={panelId}
+							aria-labelledby={titleId}
+							className="flex flex-col gap-4 mt-4 rounded-2xl border border-gray-200 p-4 lg:flex-row lg:items-center lg:justify-between"
+						>
+							{/* File Info */}
+							<div className="flex items-start gap-3 min-w-0">
+								<Image src={pdfFileFormat} alt="" width={40} height={40} />
 
-						<div className="flex flex-col min-w-0">
-							<p className="text-sm font-semibold text-gray-800 truncate">
-								Patient_Record_A123456.pdf
-							</p>
-							<p className="text-sm text-gray-400">{formatFileSize(10000)}</p>
+								<div className="flex flex-col min-w-0">
+									<p className="text-sm font-semibold text-gray-800 truncate">
+										Patient_Record_A123456.pdf
+									</p>
+									<p className="text-sm text-gray-400">{formatFileSize(10000)}</p>
+								</div>
+							</div>
+
+							{/* Actions */}
+							<div className="flex flex-col gap-2 w-full lg:w-auto lg:flex-row">
+								<Button className="h-11 w-full lg:w-auto" variant="outline">
+									Download Record
+								</Button>
+								<Button className="h-11 w-full lg:w-auto">View Record</Button>
+							</div>
 						</div>
-					</div>
-
-					{/* Actions */}
-					<div className="flex flex-col gap-2 w-full lg:w-auto lg:flex-row">
-						<Button className="h-11 w-full lg:w-auto" variant="outline">
-							Download Record
-						</Button>
-						<Button className="h-11 w-full lg:w-auto">View Record</Button>
-					</div>
-				</div>
-			)}
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</div>
 	);
 }
 
 function TransferProgress() {
 	const [isExpanded, setIsExpanded] = useState(false);
+	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
 
 	return (
-		<div className="mt-6 flex flex-col gap-4 rounded-2xl border border-gray-200 p-5">
+		<div className="mt-6 flex flex-col rounded-2xl border border-gray-200 p-5">
 			<button
 				type="button"
 				onClick={() => setIsExpanded((prev) => !prev)}
@@ -198,57 +221,76 @@ function TransferProgress() {
 					<span className="text-sm text-muted-foreground text-left">22 January 2026 at 14:10</span>
 				</div>
 				<RiArrowDownSLine
-					className={cn("transition-transform", isExpanded ? "rotate-180" : "")}
+					className={cn(
+						"transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						isExpanded ? "rotate-180" : "",
+					)}
 					aria-hidden="true"
 				/>
 			</button>
+			<AnimatePresence>
+				{isExpanded && (
+					<motion.div
+						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+						transition={
+							shouldReduceMotion
+								? { duration: 0.12 }
+								: {
+										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
+										opacity: { duration: 0.16, ease: "easeOut" },
+									}
+						}
+						className="overflow-hidden"
+					>
+						<div aria-labelledby={titleId} className="flex flex-col px-2 gap-1 mt-4">
+							{/* Item */}
+							<div className="grid grid-cols-[auto_1fr] gap-3">
+								{/* Left column */}
+								<div className="flex flex-col items-center gap-1">
+									<RiCheckboxCircleFill aria-hidden="true" className="text-green-500" />
+									<div className="h-[2.375rem] w-0.5 bg-gray-800" />
+								</div>
 
-			{isExpanded && (
-				<div aria-labelledby={titleId} className="flex flex-col px-2 gap-1">
-					{/* Item */}
-					<div className="grid grid-cols-[auto_1fr] gap-3">
-						{/* Left column */}
-						<div className="flex flex-col items-center gap-1">
-							<RiCheckboxCircleFill aria-hidden="true" className="text-green-500" />
-							<div className="h-[2.375rem] w-0.5 bg-gray-800" />
-						</div>
-
-						{/* Right column */}
-						<div>
-							<span className="font-semibold text-gray-600">Requested</span>
-							<p className="text-gray-400">Initiated by Dr. Adebayo</p>
-						</div>
-					</div>
-
-					{/* Item */}
-					<div className="grid grid-cols-[auto_1fr] gap-3">
-						<div className="flex flex-col items-center gap-1">
-							<div className="relative">
-								<RiCheckboxBlankCircleLine aria-hidden="true" />
-								<RiCheckboxBlankCircleFill
-									aria-hidden="true"
-									className="size-3 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2"
-								/>
+								{/* Right column */}
+								<div>
+									<span className="font-semibold text-gray-600">Requested</span>
+									<p className="text-gray-400">Initiated by Dr. Adebayo</p>
+								</div>
 							</div>
-							<div className="h-[2.375rem] w-0.5 bg-gray-400" />
-						</div>
 
-						<div>
-							<span className="font-semibold text-gray-600">Patient Approval</span>
-							<p className="text-gray-400">Waiting for patient response</p>
-						</div>
-					</div>
+							{/* Item */}
+							<div className="grid grid-cols-[auto_1fr] gap-3">
+								<div className="flex flex-col items-center gap-1">
+									<div className="relative">
+										<RiCheckboxBlankCircleLine aria-hidden="true" />
+										<RiCheckboxBlankCircleFill
+											aria-hidden="true"
+											className="size-3 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2"
+										/>
+									</div>
+									<div className="h-[2.375rem] w-0.5 bg-gray-400" />
+								</div>
 
-					{/* Last item (no line) */}
-					<div className="grid grid-cols-[auto_1fr] gap-3">
-						<RiCheckboxBlankCircleLine aria-hidden="true" className="text-gray-400" />
-						<div>
-							<span className="font-semibold text-gray-600">Sent</span>
-							<p className="text-gray-400">Not started</p>
+								<div>
+									<span className="font-semibold text-gray-600">Patient Approval</span>
+									<p className="text-gray-400">Waiting for patient response</p>
+								</div>
+							</div>
+
+							{/* Last item (no line) */}
+							<div className="grid grid-cols-[auto_1fr] gap-3">
+								<RiCheckboxBlankCircleLine aria-hidden="true" className="text-gray-400" />
+								<div>
+									<span className="font-semibold text-gray-600">Sent</span>
+									<p className="text-gray-400">Not started</p>
+								</div>
+							</div>
 						</div>
-					</div>
-				</div>
-			)}
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</div>
 	);
 }

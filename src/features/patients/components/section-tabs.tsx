@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { Tabs } from "radix-ui";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils/cn";
 import { useOptimistic } from "react";
 import { startTransition } from "react";
@@ -10,6 +10,7 @@ import { startTransition } from "react";
 export function SectionTabs() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
+	const shouldReduceMotion = useReducedMotion();
 
 	const currentSection = searchParams.get("section") ?? "patient-overview";
 	const [optimisticSection, setOptimisticSection] = useOptimistic(currentSection);
@@ -43,7 +44,11 @@ export function SectionTabs() {
 								<motion.div
 									layoutId="tab-indicator"
 									className="absolute right-0 bottom-0 left-0 h-0.5 bg-black"
-									transition={{ type: "spring", stiffness: 400, damping: 30 }}
+									transition={
+										shouldReduceMotion
+											? { duration: 0 }
+											: { type: "spring", duration: 0.22, bounce: 0 }
+									}
 								/>
 							)}
 						</Tabs.Trigger>

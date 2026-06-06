@@ -1,10 +1,10 @@
-import { AttachedClinicalRecordsType, ClinicalRecord } from "@/features/transfers/types";
+import { AttachedClinicalRecordsType, ClinicalRecordItem } from "@/features/transfers/types";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 type AttachClinicalRecordsStore = {
 	attachedRecords: AttachedClinicalRecordsType;
-	toggleAttachedRecord: (patientId: string, record: ClinicalRecord) => void;
+	toggleAttachedRecord: (patientId: string, record: ClinicalRecordItem) => void;
 	removeAttachedRecords: (patientId: string) => void;
 	clearAttachedRecords: () => void;
 };
@@ -46,7 +46,9 @@ const useAttachClinicalRecordsStore = create<AttachClinicalRecordsStore>()(
 export const useAttachClinicalRecords = () => {
 	const attachedRecords = useAttachClinicalRecordsStore((state) => state.attachedRecords);
 	const toggleAttachedRecord = useAttachClinicalRecordsStore((state) => state.toggleAttachedRecord);
-	const removeAttachedRecords = useAttachClinicalRecordsStore((state) => state.removeAttachedRecords);
+	const removeAttachedRecords = useAttachClinicalRecordsStore(
+		(state) => state.removeAttachedRecords,
+	);
 	const clearAttachedRecords = useAttachClinicalRecordsStore((state) => state.clearAttachedRecords);
 
 	return {
