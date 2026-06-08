@@ -7,7 +7,8 @@ const diagnosisSeed: Omit<DiagnosisType, "diagnosisId">[] = [
 		onsetSortValue: "2019-03-01",
 		lastReviewedLabel: "December 2025",
 		lastReviewedSortValue: "2025-12-01",
-		clinicalNotes: "Poor control despite dual therapy. Patient intermittently non-adherent",
+		createdAtLabel: "17th Apr 2025, 12:30PM",
+		createdAtSortValue: "2025-04-17T12:30:00",
 		status: "Active",
 	},
 	{
@@ -16,7 +17,8 @@ const diagnosisSeed: Omit<DiagnosisType, "diagnosisId">[] = [
 		onsetSortValue: "2020-01-01",
 		lastReviewedLabel: "November 2025",
 		lastReviewedSortValue: "2025-11-01",
-		clinicalNotes: "HbA1c persistently above target. Dietary counseling repeated.",
+		createdAtLabel: "18th Apr 2025, 9:15AM",
+		createdAtSortValue: "2025-04-18T09:15:00",
 		status: "Resolved",
 	},
 	{
@@ -25,7 +27,8 @@ const diagnosisSeed: Omit<DiagnosisType, "diagnosisId">[] = [
 		onsetSortValue: "2022-06-01",
 		lastReviewedLabel: "October 2025",
 		lastReviewedSortValue: "2025-10-01",
-		clinicalNotes: "Suspected hypertensive nephropathy",
+		createdAtLabel: "18th Apr 2025, 10:40AM",
+		createdAtSortValue: "2025-04-18T10:40:00",
 		status: "Active",
 	},
 	{
@@ -34,7 +37,8 @@ const diagnosisSeed: Omit<DiagnosisType, "diagnosisId">[] = [
 		onsetSortValue: "2015-04-01",
 		lastReviewedLabel: "January 2026",
 		lastReviewedSortValue: "2026-01-01",
-		clinicalNotes: "Frequent exacerbations with poor inhaler adherence",
+		createdAtLabel: "19th Apr 2025, 8:25AM",
+		createdAtSortValue: "2025-04-19T08:25:00",
 		status: "Active",
 	},
 	{
@@ -43,7 +47,8 @@ const diagnosisSeed: Omit<DiagnosisType, "diagnosisId">[] = [
 		onsetSortValue: "2023-08-01",
 		lastReviewedLabel: "December 2025",
 		lastReviewedSortValue: "2025-12-01",
-		clinicalNotes: "Resolved following iron supplementation",
+		createdAtLabel: "19th Apr 2025, 11:05AM",
+		createdAtSortValue: "2025-04-19T11:05:00",
 		status: "Active",
 	},
 	{
@@ -52,7 +57,8 @@ const diagnosisSeed: Omit<DiagnosisType, "diagnosisId">[] = [
 		onsetSortValue: "2021-02-01",
 		lastReviewedLabel: "November 2025",
 		lastReviewedSortValue: "2025-11-01",
-		clinicalNotes: "Stable symptoms on medical therapy, no recent chest pain episodes",
+		createdAtLabel: "20th Apr 2025, 1:30PM",
+		createdAtSortValue: "2025-04-20T13:30:00",
 		status: "Active",
 	},
 ];

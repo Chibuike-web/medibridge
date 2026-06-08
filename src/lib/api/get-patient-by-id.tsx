@@ -1,7 +1,7 @@
 import { db } from "@/lib/better-auth/auth";
-import { patientContactInformation, patientPersonalInformation } from "@/db/schemas";
+import { patient, patientContactInformation, patientPersonalInformation } from "@/db/schemas";
 import { getOrganizationId } from "./get-organization-id";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export async function getPatientById(patientId: string) {
 	const organizationId = await getOrganizationId();
@@ -12,19 +12,19 @@ export async function getPatientById(patientId: string) {
 
 	const rows = await db
 		.select({
-			patientId: patientPersonalInformation.patientId,
+			patientId: patient.patientId,
 			firstName: patientPersonalInformation.firstName,
 			lastName: patientPersonalInformation.lastName,
+			sex: patientPersonalInformation.sex,
 			email: patientContactInformation.emailAddress,
 			phoneNumber: patientContactInformation.phoneNumber,
 			address: patientContactInformation.residentialAddress,
 		})
-		.from(patientPersonalInformation)
-		.leftJoin(
-			patientContactInformation,
-			eq(patientPersonalInformation.patientId, patientContactInformation.patientId),
-		)
-		.where(eq(patientPersonalInformation.patientId, patientId));
+		.from(patient)
+		.innerJoin(patientPersonalInformation, eq(patient.id, patientPersonalInformation.patientId))
+		.leftJoin(patientContactInformation, eq(patient.id, patientContactInformation.patientId))
+		.where(and(eq(patient.id, patientId), eq(patient.organizationId, organizationId)))
+		.limit(1);
 
 	return rows[0] || null;
 }

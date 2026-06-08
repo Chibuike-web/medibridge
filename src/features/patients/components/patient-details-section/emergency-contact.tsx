@@ -25,7 +25,16 @@ import { RiEditLine, RiMore2Fill, RiShareForwardBoxLine, RiCloseLine } from "@re
 
 import { useState } from "react";
 
-export function EmergencyContact() {
+type EmergencyContactItem = {
+	label: string;
+	value: string | number;
+};
+
+export function EmergencyContact({
+	emergencyContact,
+}: {
+	emergencyContact: EmergencyContactItem[];
+}) {
 	const [open, setOpen] = useState(false);
 
 	return (
@@ -131,10 +140,3 @@ export function EmergencyContact() {
 	);
 }
 
-const emergencyContact = [
-	{ label: "First Name", value: "Emmanuel" },
-	{ label: "Middle Name", value: "Okereke" },
-	{ label: "Last Name", value: "Okafor" },
-	{ label: "Relationship", value: "Wife" },
-	{ label: "Phone", value: "1234567890" },
-];

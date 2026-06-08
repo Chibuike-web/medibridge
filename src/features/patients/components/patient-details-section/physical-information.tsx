@@ -33,7 +33,16 @@ import { RiEditLine, RiMore2Fill, RiShareForwardBoxLine, RiCloseLine } from "@re
 
 import { useState } from "react";
 
-export function PhysicalInformation() {
+type PhysicalInformationItem = {
+	label: string;
+	value: string | number;
+};
+
+export function PhysicalInformation({
+	physicalInformation,
+}: {
+	physicalInformation: PhysicalInformationItem[];
+}) {
 	const [open, setOpen] = useState(false);
 
 	return (
@@ -158,9 +167,3 @@ export function PhysicalInformation() {
 	);
 }
 
-const physicalInformation = [
-	{ label: "Height", value: "175cm" },
-	{ label: "Weight", value: "68kg" },
-	{ label: "Blood Group", value: "0+" },
-	{ label: "Genotype", value: "AA" },
-];

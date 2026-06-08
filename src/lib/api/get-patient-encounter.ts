@@ -1,16 +1,8 @@
 import { patientEncounter } from "@/db/schemas";
 import { db } from "@/lib/better-auth/auth";
+import { formatDateTime } from "@/lib/utils/format-date-time";
+import { toSortValue } from "@/lib/utils/to-sort-value";
 import { and, eq } from "drizzle-orm";
-
-function formatDateTime(date: Date) {
-	return new Intl.DateTimeFormat("en-US", {
-		day: "numeric",
-		month: "long",
-		year: "numeric",
-		hour: "numeric",
-		minute: "2-digit",
-	}).format(date);
-}
 
 export async function getPatientEncounter(patientId: string, encounterId: string) {
 	const [encounter] = await db
@@ -37,10 +29,10 @@ export async function getPatientEncounter(patientId: string, encounterId: string
 	return {
 		...encounter,
 		encounterDateLabel: formatDateTime(encounter.encounterDate),
-		encounterDateSortValue: encounter.encounterDate.toISOString(),
+		encounterDateSortValue: toSortValue(encounter.encounterDate),
 		createdAtLabel: formatDateTime(encounter.createdAt),
-		createdAtSortValue: encounter.createdAt.toISOString(),
+		createdAtSortValue: toSortValue(encounter.createdAt),
 		updatedAtLabel: formatDateTime(encounter.updatedAt),
-		updatedAtSortValue: encounter.updatedAt.toISOString(),
+		updatedAtSortValue: toSortValue(encounter.updatedAt),
 	};
 }

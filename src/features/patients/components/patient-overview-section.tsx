@@ -8,25 +8,56 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { getPatientProfile } from "@/lib/api/get-patient-profile";
 import { cn } from "@/lib/utils/cn";
+import { notFound } from "next/navigation";
 
-export function PatientOverviewSection({ patientId }: { patientId: string }) {
+type OverviewItem = {
+	label: string;
+	value: string | number;
+};
+
+type RecentDiagnosis = {
+	name: string;
+	onset: string;
+	lastReviewed: string;
+	id: string;
+	createdAt: string;
+	status: "Active" | "Resolved";
+};
+
+type RecentAllergy = {
+	allergen: string;
+	id: string;
+	reaction: string;
+	createdAt: string;
+	severity: string;
+	status: "Active" | "Inactive";
+};
+
+export async function PatientOverviewSection({ patientId }: { patientId: string }) {
+	const profile = await getPatientProfile(patientId);
+
+	if (!profile) {
+		notFound();
+	}
+
 	return (
 		<div className="p-8">
 			<div className="mx-auto max-w-7xl">
 				<h1 className="mb-6 text-xl font-semibold text-gray-800">Patient Overview</h1>
 				<div className="flex flex-col gap-10">
-					<PersonalInformation />
-					<MedicalInformation />
-					<RecentDiagnoses />
-					<RecentAllergies />
+					<PersonalInformation personalInfo={profile.overviewPersonalInformation} />
+					<MedicalInformation medicalInfo={profile.overviewMedicalInformation} />
+					<RecentDiagnoses recentDiagnoses={profile.recentDiagnoses} />
+					<RecentAllergies recentAllergies={profile.recentAllergies} />
 				</div>
 			</div>
 		</div>
 	);
 }
 
-function PersonalInformation() {
+function PersonalInformation({ personalInfo }: { personalInfo: OverviewItem[] }) {
 	return (
 		<div className="rounded-xl bg-gray-50 ring ring-gray-200">
 			<div className="p-4">
@@ -44,7 +75,7 @@ function PersonalInformation() {
 	);
 }
 
-function MedicalInformation() {
+function MedicalInformation({ medicalInfo }: { medicalInfo: OverviewItem[] }) {
 	return (
 		<div className="rounded-xl bg-gray-50 ring ring-gray-200">
 			<div className="p-4">
@@ -62,7 +93,7 @@ function MedicalInformation() {
 	);
 }
 
-function RecentDiagnoses() {
+function RecentDiagnoses({ recentDiagnoses }: { recentDiagnoses: RecentDiagnosis[] }) {
 	return (
 		<div className="flex flex-col gap-4">
 			<h2 className="font-semibold text-lg text-gray-600 no-line-height">Recent Diagnoses</h2>
@@ -70,7 +101,7 @@ function RecentDiagnoses() {
 				<Table className="border-separate border-spacing-0 bg-white">
 					<TableHeader className="bg-gray-50">
 						<TableRow className="hover:bg-transparent">
-							{recentdiagnosisHeaders.map((h) => (
+							{recentDiagnosisHeaders.map((h) => (
 								<TableHead key={h.key} className="h-12 px-4 text-sm font-medium text-gray-600">
 									{h.label}
 								</TableHead>
@@ -104,7 +135,7 @@ function RecentDiagnoses() {
 	);
 }
 
-function RecentAllergies() {
+function RecentAllergies({ recentAllergies }: { recentAllergies: RecentAllergy[] }) {
 	return (
 		<div className="flex flex-col gap-4">
 			<h2 className="font-semibold text-lg text-gray-600 no-line-height">Recent Allergies</h2>
@@ -146,110 +177,16 @@ function RecentAllergies() {
 	);
 }
 
-const personalInfo = [
-	{ label: "Full Name", value: "Timothy Chibuike Maduabuchi" },
-	{ label: "Age", value: 100 },
-	{ label: "Sex", value: "Male" },
-	{ label: "Patient ID", value: "ABC29495" },
-	{ label: "Blood Group", value: "O+" },
-	{ label: "Date of Birth", value: "1926-02-10" },
-	{ label: "Phone Number", value: "07083369340" },
-	{ label: "Email Address", value: "chibuikemaduabuchi2023@gmail.com" },
-	{ label: "Residential Address", value: "12 Allen Avenue, Ikeja, Lagos, Nigeria" },
-];
-
-const medicalInfo = [
-	{ label: "Height", value: "175 cm" },
-	{ label: "Weight", value: "68 kg" },
-	{ label: "Genotype", value: "AA" },
-	{ label: "Blood Pressure", value: "124/80 mmHg" },
-	{ label: "Body Mass Index", value: "22.4" },
-	{
-		label: "Primary Care Physician",
-		value: "Dr. A. Adeyemi (Internal Medicine), Dr. S. Okonkwo (Cardiology – co-managing)",
-	},
-];
-
-const recentDiagnoses = [
-	{
-		name: "Hypertension",
-		onset: "March 2019",
-		lastReviewed: "December 2025",
-		id: "DIA-101",
-		createdAt: "17th Apr 2024, 12:30PM",
-		status: "Active",
-	},
-	{
-		name: "Type 2 Diabetes Mellitus",
-		onset: "January 2020",
-		lastReviewed: "November 2025",
-		id: "DIA-102",
-		createdAt: "17th Apr 2024, 12:30PM",
-		status: "Resolved",
-	},
-	{
-		name: "Chronic Kidney Disease",
-		onset: "June 2022",
-		lastReviewed: "October 2025",
-		id: "DIA-103",
-		createdAt: "17th Apr 2024, 12:30PM",
-		status: "Active",
-	},
-	{
-		name: "Asthma",
-		onset: "April 2015",
-		lastReviewed: "January 2026",
-		id: "DIA-104",
-		createdAt: "17th Apr 2024, 12:30PM",
-		status: "Active",
-	},
-];
-
-const recentAllergies = [
-	{
-		allergen: "Penicillin",
-		id: "ALG-101",
-		reaction: "Generalized rash",
-		createdAt: "17th Apr 2024, 12:30PM",
-		severity: "Mild",
-		status: "Active",
-	},
-	{
-		allergen: "Sulfonamides",
-		id: "ALG-101",
-		reaction: "Facial swelling",
-		createdAt: "17th Apr 2024, 12:30PM",
-		severity: "Mild",
-		status: "Inactive",
-	},
-	{
-		allergen: "Ibuprofen",
-		id: "ALG-101",
-		reaction: "Nausea, abdominal pain",
-		createdAt: "17th Apr 2024, 12:30PM",
-		severity: "Mild",
-		status: "Active",
-	},
-	{
-		allergen: "Ibuprofen",
-		id: "ALG-101",
-		reaction: "Nausea, abdominal pain",
-		createdAt: "17th Apr 2024, 12:30PM",
-		severity: "Mild",
-		status: "Active",
-	},
-];
-
-export const recentdiagnosisHeaders = [
+const recentDiagnosisHeaders = [
 	{ label: "Diagnosis name", key: "name" },
-	{ label: "Onset", key: "onset" },
-	{ label: "Last reviewed", key: "lastReviewed" },
+	{ label: "Diagnosed At", key: "onset" },
+	{ label: "Last Reviewed", key: "lastReviewed" },
 	{ label: "Diagnosis ID", key: "id" },
-	{ label: "Created at", key: "createdAt" },
+	{ label: "Created At", key: "createdAt" },
 	{ label: "Status", key: "status" },
 ];
 
-export const recentAllergyHeaders = [
+const recentAllergyHeaders = [
 	{ label: "Allergen", key: "allergen" },
 	{ label: "Allergy ID", key: "id" },
 	{ label: "Reaction", key: "reaction" },

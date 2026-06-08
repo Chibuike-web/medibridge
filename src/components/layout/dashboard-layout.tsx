@@ -25,28 +25,33 @@ async function DashboardSidebar() {
 
 function DashboardSidebarFallback() {
 	return (
-		<aside className="h-dvh w-72 shrink-0 border-r border-border bg-background/95 px-3 py-4">
-			<div className="mb-6 flex items-center gap-3 px-2">
-				<div className="size-9 animate-pulse rounded-md bg-muted" />
-				<div className="space-y-2">
-					<div className="h-3 w-24 animate-pulse rounded bg-muted" />
-					<div className="h-2.5 w-16 animate-pulse rounded bg-muted/70" />
-				</div>
+		<aside className="flex h-full w-[272px] shrink-0 flex-col overflow-hidden border-r border-gray-200">
+			<div className="relative flex h-16 items-center justify-between pl-5 pr-2">
+				<div className="h-5 w-28 animate-pulse rounded bg-muted" />
+				<div className="size-10 animate-pulse rounded-lg bg-muted/80" />
 			</div>
 
-			<div className="space-y-1">
-				{Array.from({ length: 6 }).map((_, index) => (
-					<div key={index} className="flex items-center gap-3 rounded-md px-2 py-2">
-						<div className="size-4 animate-pulse rounded bg-muted" />
-						<div className="h-3 flex-1 animate-pulse rounded bg-muted/80" />
-					</div>
+			<ul className="flex flex-col gap-px p-2 text-sm">
+				{Array.from({ length: 4 }).map((_, index) => (
+					<li key={index}>
+						<div className="flex h-8 w-full items-center gap-2 rounded-lg px-2.5">
+							<div className="size-5 shrink-0 animate-pulse rounded bg-muted" />
+							<div className="h-3 w-24 animate-pulse rounded bg-muted/80" />
+						</div>
+					</li>
 				))}
-			</div>
+			</ul>
 
-			<div className="mt-auto pt-8">
-				<div className="rounded-md border border-border p-3">
-					<div className="mb-2 h-3 w-20 animate-pulse rounded bg-muted" />
-					<div className="h-2.5 w-full animate-pulse rounded bg-muted/70" />
+			<div className="mt-auto flex w-full justify-center p-2">
+				<div className="flex w-full min-w-0 items-center gap-2 rounded-lg p-3">
+					<div className="size-8 shrink-0 animate-pulse rounded-full bg-muted" />
+					<div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+						<div className="flex min-w-0 flex-1 flex-col gap-2">
+							<div className="h-3 w-24 animate-pulse rounded bg-muted" />
+							<div className="h-2.5 w-36 animate-pulse rounded bg-muted/70" />
+						</div>
+						<div className="size-5 shrink-0 animate-pulse rounded bg-muted/80" />
+					</div>
 				</div>
 			</div>
 		</aside>

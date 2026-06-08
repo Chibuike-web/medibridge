@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
-import { patients } from "@/features/patients/data";
-import { diagnoses } from "@/features/patients/diagnoses-data";
+import { notFound } from "next/navigation";
 import { DiagnosesTable } from "@/features/patients/components/diagnoses-table";
 import Link from "next/link";
 import Image from "next/image";
@@ -20,7 +19,10 @@ import { LabTestsTable } from "@/features/patients/components/lab-tests-table";
 import { ImagingTable } from "@/features/patients/components/imaging-table";
 import { PatientAvatarMenu } from "@/features/patients/components/patient-avatar-menu";
 import { getPatientById } from "@/lib/api/get-patient-by-id";
+import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
+import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
 import { getPatientEncounters } from "@/lib/api/get-patient-encounters";
+import { getPatientMedications } from "@/lib/api/get-patient-medications";
 import { verifySession } from "@/lib/api/verify-session";
 
 export const metadata = {
@@ -70,10 +72,15 @@ async function BreadCrumb({
 	const [{ section }, { patientId }] = await Promise.all([searchParams, params]);
 
 	const patient = await getPatientById(patientId);
+
+	if (!patient) {
+		notFound();
+	}
+
 	return (
 		<>
 			<span className="shrink-0">
-				{patient?.firstName} {patient?.lastName}
+				{patient.firstName} {patient.lastName}
 			</span>
 			<RiArrowRightSLine aria-hidden="true" />
 			<span className="font-semibold shrink-0">{formatPatientSectionLabel(section)}</span>
@@ -84,7 +91,12 @@ async function BreadCrumb({
 async function Header({ params }: { params: Promise<{ patientId: string }> }) {
 	const { patientId } = await params;
 	const patient = await getPatientById(patientId);
-	const patientName = `${patient?.firstName} ${patient?.lastName}`;
+
+	if (!patient) {
+		notFound();
+	}
+
+	const patientName = `${patient.firstName} ${patient.lastName}`;
 	return (
 		<div className="flex items-center gap-3 border-b border-gray-200 px-6 py-3.5 text-sm">
 			<PatientAvatarMenu patientName={patientName ?? ""} />
@@ -97,11 +109,11 @@ async function Header({ params }: { params: Promise<{ patientId: string }> }) {
 				<div className="flex items-center gap-4">
 					<div className="flex items-center shrink-0 gap-1">
 						<span className="text-gray-400">Sex:</span>
-						<span className="font-semibold text-gray-600">Male</span>
+						<span className="font-semibold text-gray-600">{patient.sex ?? "-"}</span>
 					</div>
 					<div className="flex items-center shrink-0 gap-1">
 						<span>Patient ID:</span>
-						<CopyIdButton id={patient?.patientId as string} className="min-w-0" />
+						<CopyIdButton id={patient.patientId} className="min-w-0" />
 					</div>
 
 					<div className="flex items-center shrink-0 gap-1">
@@ -122,20 +134,22 @@ async function Header({ params }: { params: Promise<{ patientId: string }> }) {
 	);
 }
 
-function Main({
+async function Main({
 	searchParams,
 	params,
 }: {
 	searchParams: Promise<{ section: string }>;
 	params: Promise<{ patientId: string }>;
 }) {
+	const { section } = await searchParams;
+
 	return (
 		<div className="flex min-h-0 flex-1 flex-col">
 			<Suspense fallback={<SectionTabsSkeleton />}>
 				<SectionTabs />
 			</Suspense>
 			<div className="min-h-0 flex-1 overflow-y-auto">
-				<Suspense fallback={null}>
+				<Suspense fallback={<SectionContentSkeleton section={section} />}>
 					<SectionContent searchParams={searchParams} params={params} />
 				</Suspense>
 			</div>
@@ -200,7 +214,9 @@ async function renderSectionContent(section: string, patientId: string) {
 	}
 }
 
-function DiagnosesSection({ patientId }: { patientId: string }) {
+async function DiagnosesSection({ patientId }: { patientId: string }) {
+	const diagnoses = await getPatientDiagnoses(patientId);
+
 	if (diagnoses.length === 0) {
 		return renderEmptyState(
 			"No Diagnoses yet",
@@ -209,11 +225,21 @@ function DiagnosesSection({ patientId }: { patientId: string }) {
 		);
 	}
 
-	return <DiagnosesTable patientId={patientId} />;
+	return <DiagnosesTable diagnoses={diagnoses} />;
 }
 
-function AllergiesSection({ patientId }: { patientId: string }) {
-	return <AllergiesTable patientId={patientId} />;
+async function AllergiesSection({ patientId }: { patientId: string }) {
+	const allergies = await getPatientAllergies(patientId);
+
+	if (allergies.length === 0) {
+		return renderEmptyState(
+			"No Allergies yet",
+			"No allergies have been recorded for this patient.",
+			"Add allergy",
+		);
+	}
+
+	return <AllergiesTable allergies={allergies} />;
 }
 
 function ImmunizationSection({ patientId }: { patientId: string }) {
@@ -224,8 +250,18 @@ function ProceduresSection({ patientId }: { patientId: string }) {
 	return <ProceduresTable patientId={patientId} />;
 }
 
-function MedicationsSection({ patientId }: { patientId: string }) {
-	return <MedicationsTable patientId={patientId} />;
+async function MedicationsSection({ patientId }: { patientId: string }) {
+	const medications = await getPatientMedications(patientId);
+
+	if (medications.length === 0) {
+		return renderEmptyState(
+			"No Medications yet",
+			"No medications have been recorded for this patient.",
+			"Add medication",
+		);
+	}
+
+	return <MedicationsTable medications={medications} />;
 }
 
 async function EncountersSection({ patientId }: { patientId: string }) {
@@ -330,6 +366,79 @@ function SectionTabsSkeleton() {
 			{Array.from({ length: 6 }).map((_, index) => (
 				<div key={index} className="h-9 w-28 animate-pulse rounded-lg bg-gray-200" />
 			))}
+		</div>
+	);
+}
+
+function SectionContentSkeleton({ section }: { section: string }) {
+	if (section === "patient-overview" || section === "patient-details") {
+		return <CardSectionSkeleton />;
+	}
+
+	return <TableSectionSkeleton />;
+}
+
+function CardSectionSkeleton() {
+	return (
+		<div className="p-8">
+			<div className="mx-auto max-w-7xl">
+				<div className="mb-6 h-7 w-48 animate-pulse rounded bg-gray-200" />
+				<div className="flex flex-col gap-10">
+					{Array.from({ length: 4 }).map((_, sectionIndex) => (
+						<div
+							key={sectionIndex}
+							className="overflow-hidden rounded-xl bg-gray-50 ring ring-gray-200"
+						>
+							<div className="p-4">
+								<div className="h-5 w-44 animate-pulse rounded bg-gray-200" />
+							</div>
+							<div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6 rounded-xl bg-white p-4 ring ring-gray-200">
+								{Array.from({ length: sectionIndex < 2 ? 6 : 4 }).map((_, itemIndex) => (
+									<div key={itemIndex} className="flex flex-col gap-4">
+										<div className="h-4 w-28 animate-pulse rounded bg-gray-100" />
+										<div className="h-4 w-44 animate-pulse rounded bg-gray-200" />
+									</div>
+								))}
+							</div>
+						</div>
+					))}
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function TableSectionSkeleton() {
+	return (
+		<div className="p-8">
+			<div className="mx-auto max-w-7xl">
+				<div className="mb-6 h-7 w-48 animate-pulse rounded bg-gray-200" />
+				<div className="mb-4 flex items-center gap-2">
+					<div className="h-10 flex-1 animate-pulse rounded-md bg-gray-200" />
+					<div className="h-10 w-24 animate-pulse rounded-md bg-gray-200" />
+					<div className="h-10 w-24 animate-pulse rounded-md bg-gray-200" />
+					<div className="h-10 w-32 animate-pulse rounded-md bg-gray-200" />
+				</div>
+				<div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+					<div className="grid grid-cols-6 gap-3 border-b border-gray-200 bg-gray-50 p-4">
+						{Array.from({ length: 6 }).map((_, index) => (
+							<div key={index} className="h-4 animate-pulse rounded bg-gray-200" />
+						))}
+					</div>
+					<div className="divide-y divide-gray-200">
+						{Array.from({ length: 6 }).map((_, rowIndex) => (
+							<div key={rowIndex} className="grid grid-cols-6 gap-3 p-4">
+								{Array.from({ length: 6 }).map((_, cellIndex) => (
+									<div
+										key={cellIndex}
+										className="h-4 animate-pulse rounded bg-gray-100"
+									/>
+								))}
+							</div>
+						))}
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }

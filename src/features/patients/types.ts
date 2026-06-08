@@ -15,7 +15,8 @@ export type DiagnosisType = {
 	lastReviewedLabel: string;
 	lastReviewedSortValue: string;
 	diagnosisId: string;
-	clinicalNotes: string;
+	createdAtLabel: string;
+	createdAtSortValue: string;
 	status: "Active" | "Resolved";
 };
 

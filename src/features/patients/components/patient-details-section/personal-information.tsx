@@ -38,7 +38,16 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-export function PersonalInformation() {
+type PersonalInformationItem = {
+	label: string;
+	value: string | number;
+};
+
+export function PersonalInformation({
+	personalInformation,
+}: {
+	personalInformation: PersonalInformationItem[];
+}) {
 	const [open, setOpen] = useState(false);
 	const [dob, setDob] = useState<Date | undefined>();
 
@@ -196,14 +205,3 @@ export function PersonalInformation() {
 	);
 }
 
-const personalInformation = [
-	{ label: "First name", value: "Timothy" },
-	{ label: "Middle name", value: "Chibuike" },
-	{ label: "Last name", value: "Maduabuchi" },
-	{ label: "Patient ID", value: "1234567890" },
-	{ label: "Age", value: "100" },
-	{ label: "Date Of Birth", value: "10-02-1926" },
-	{ label: "Sex", value: "Male" },
-	{ label: "Marital Status", value: "Single" },
-	{ label: "National ID", value: "1234567890" },
-];

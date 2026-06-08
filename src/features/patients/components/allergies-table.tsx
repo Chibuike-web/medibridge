@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { allergies } from "@/features/patients/allergies-data";
 import { AllergyType } from "@/features/patients/types";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
@@ -64,10 +63,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
-export function AllergiesTable({ patientId }: { patientId: string }) {
-	void patientId;
-
-	const data = useMemo(() => allergies, []);
+export function AllergiesTable({ allergies }: { allergies: AllergyType[] }) {
 	const columns = useMemo(() => getAllergiesColumns(), []);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [pagination, setPagination] = useState<PaginationState>({
@@ -76,7 +72,7 @@ export function AllergiesTable({ patientId }: { patientId: string }) {
 	});
 
 	const table = useReactTable({
-		data,
+		data: allergies,
 		columns,
 		enableRowSelection: true,
 		onSortingChange: setSorting,

@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { medications } from "@/features/patients/medications-data";
 import { MedicationType } from "@/features/patients/types";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
@@ -57,10 +56,7 @@ import {
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
-export function MedicationsTable({ patientId }: { patientId: string }) {
-	void patientId;
-
-	const data = useMemo(() => medications, []);
+export function MedicationsTable({ medications }: { medications: MedicationType[] }) {
 	const columns = useMemo(() => getMedicationsColumns(), []);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [pagination, setPagination] = useState<PaginationState>({
@@ -69,7 +65,7 @@ export function MedicationsTable({ patientId }: { patientId: string }) {
 	});
 
 	const table = useReactTable({
-		data,
+		data: medications,
 		columns,
 		enableRowSelection: true,
 		onSortingChange: setSorting,

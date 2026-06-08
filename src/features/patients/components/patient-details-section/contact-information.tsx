@@ -22,7 +22,16 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { RiCloseLine, RiEditLine, RiMore2Fill, RiShareForwardBoxLine } from "@remixicon/react";
 
-export function ContactInformation() {
+type ContactInformationItem = {
+	label: string;
+	value: string | number;
+};
+
+export function ContactInformation({
+	contactInformation,
+}: {
+	contactInformation: ContactInformationItem[];
+}) {
 	const [open, setOpen] = useState(false);
 
 	return (
@@ -129,10 +138,3 @@ export function ContactInformation() {
 	);
 }
 
-const contactInformation = [
-	{ label: "Phone number", value: "1234567890" },
-	{ label: "Email Address", value: "chibuikemaduabuchi2023@gmail.com" },
-	{ label: "Residential address", value: "12 Allen Avenue, Ikeja, Lagos, Nigeria" },
-	{ label: "State of Origin", value: "Enugu State" },
-	{ label: "Country of Origin", value: "Nigeria" },
-];

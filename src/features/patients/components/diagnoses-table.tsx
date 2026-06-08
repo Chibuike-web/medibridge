@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { diagnoses } from "@/features/patients/diagnoses-data";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
@@ -64,10 +63,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
-export function DiagnosesTable({ patientId }: { patientId: string }) {
-	void patientId;
-
-	const data = useMemo(() => diagnoses, []);
+export function DiagnosesTable({ diagnoses }: { diagnoses: DiagnosisType[] }) {
 	const columns = useMemo(() => getDiagnosesColumns(), []);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 	const [pagination, setPagination] = useState<PaginationState>({
@@ -76,7 +72,7 @@ export function DiagnosesTable({ patientId }: { patientId: string }) {
 	});
 
 	const table = useReactTable({
-		data,
+		data: diagnoses,
 		columns,
 		enableRowSelection: true,
 		onSortingChange: setSorting,
@@ -229,7 +225,8 @@ export function DiagnosesTable({ patientId }: { patientId: string }) {
 
 						<DropdownMenuSub>
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiPulseLine className="size-[18px]" /> <span className="block">Onset</span>
+								<RiPulseLine className="size-[18px]" />{" "}
+								<span className="block">Diagnosed At</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={8}
@@ -432,14 +429,14 @@ function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
 		},
 		{
 			id: "onset",
-			header: "Onset",
+			header: "Diagnosed At",
 			accessorFn: (row) => row.onsetSortValue,
 			enableSorting: true,
 			cell: ({ row }) => row.original.onsetLabel,
 		},
 		{
 			id: "lastReviewed",
-			header: "Last reviewed",
+			header: "Last Reviewed",
 			accessorFn: (row) => row.lastReviewedSortValue,
 			enableSorting: true,
 			cell: ({ row }) => row.original.lastReviewedLabel,
@@ -451,14 +448,11 @@ function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
 			cell: ({ row }) => <CopyIdButton id={row.original.diagnosisId} />,
 		},
 		{
-			header: "Clinical notes",
-			accessorKey: "clinicalNotes",
-			enableSorting: false,
-			cell: ({ row }) => (
-				<p className="max-w-[22rem] whitespace-normal text-sm leading-6 text-gray-600">
-					{row.original.clinicalNotes}
-				</p>
-			),
+			id: "createdAt",
+			header: "Created At",
+			accessorFn: (row) => row.createdAtSortValue,
+			enableSorting: true,
+			cell: ({ row }) => row.original.createdAtLabel,
 		},
 		{
 			header: "Status",
