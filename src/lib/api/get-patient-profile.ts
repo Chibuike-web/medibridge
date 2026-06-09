@@ -211,7 +211,7 @@ export async function getPatientProfile(patientId: string) {
 				],
 				recentDiagnoses: diagnoses.map((diagnosis) => ({
 					name: diagnosis.name,
-					onset: formatMonthYear(diagnosis.onsetDate),
+					diagnosedAt: formatMonthYear(diagnosis.onsetDate),
 					lastReviewed: formatDateTime(diagnosis.updatedAt),
 					id: diagnosis.id,
 					createdAt: formatDateTime(diagnosis.createdAt),

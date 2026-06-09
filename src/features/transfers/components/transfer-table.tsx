@@ -77,6 +77,10 @@ export function TransferTable({
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "patientName", desc: false }]);
 	const [selectedTransferId, setSelectedTransferId] = useState<string | null>(null);
+	const selectedTransfer = useMemo(
+		() => data.find((transfer) => transfer.id === selectedTransferId) ?? null,
+		[data, selectedTransferId],
+	);
 
 	const onViewTransferDetails = useCallback((transferId: string) => {
 		setSelectedTransferId(transferId);
@@ -260,7 +264,7 @@ export function TransferTable({
 						setSelectedTransferId(null);
 					}
 				}}
-				transferId={selectedTransferId}
+				transfer={selectedTransfer}
 			/>
 		</>
 	);

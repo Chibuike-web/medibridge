@@ -1,6 +1,11 @@
 import { unstable_cache } from "next/cache";
-import { count, desc, eq } from "drizzle-orm";
-import { patient, patientPersonalInformation, patientTransfer } from "@/db/schemas";
+import { count, desc, eq, inArray } from "drizzle-orm";
+import {
+	patient,
+	patientPersonalInformation,
+	patientTransfer,
+	patientTransferContent,
+} from "@/db/schemas";
 import { db } from "../better-auth/auth";
 import { getOrganizationId } from "./get-organization-id";
 import type { TransferType } from "@/features/transfers/types";
@@ -40,6 +45,14 @@ function toTransferStatus(status: string): TransferType["status"] {
 		: "pending";
 }
 
+function formatContentType(value: string) {
+	return value
+		.split(/[-_\s]+/)
+		.filter(Boolean)
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.join(" ");
+}
+
 export async function getTransfers(page: number, limit: number): Promise<GetTransfersResult> {
 	const organizationId = await getOrganizationId();
 	const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
@@ -64,6 +77,8 @@ export async function getTransfers(page: number, limit: number): Promise<GetTran
 						patientId: patientTransfer.patientId,
 						requestedAt: patientTransfer.requestedAt,
 						targetHospitalName: patientTransfer.targetHospitalName,
+						targetHospitalAdminName: patientTransfer.targetHospitalAdminName,
+						targetHospitalAdminEmail: patientTransfer.targetHospitalAdminEmail,
 						firstName: patientPersonalInformation.firstName,
 						middleName: patientPersonalInformation.middleName,
 						lastName: patientPersonalInformation.lastName,
@@ -80,6 +95,27 @@ export async function getTransfers(page: number, limit: number): Promise<GetTran
 					.offset(offset),
 			]);
 			const totalTransfers = countRows[0]?.value ?? 0;
+			const transferIds = rows.map((row) => row.id);
+			const transferContentRows =
+				transferIds.length > 0
+					? await db
+							.select({
+								transferId: patientTransferContent.transferId,
+								contentType: patientTransferContent.contentType,
+							})
+							.from(patientTransferContent)
+							.where(inArray(patientTransferContent.transferId, transferIds))
+					: [];
+			const transferContentByTransferId = transferContentRows.reduce<Record<string, string[]>>(
+				(acc, row) => {
+					acc[row.transferId] = [
+						...(acc[row.transferId] ?? []),
+						formatContentType(row.contentType),
+					];
+					return acc;
+				},
+				{},
+			);
 
 			return {
 				totalTransfers,
@@ -93,6 +129,9 @@ export async function getTransfers(page: number, limit: number): Promise<GetTran
 					status: toTransferStatus(row.status),
 					requestedAt: row.requestedAt.toISOString(),
 					targetHospitalName: row.targetHospitalName,
+					targetHospitalAdminName: row.targetHospitalAdminName,
+					targetHospitalAdminEmail: row.targetHospitalAdminEmail,
+					transferContent: transferContentByTransferId[row.id] ?? [],
 				})),
 			};
 		},

@@ -25,17 +25,21 @@ import pdfFileFormat from "@/assets/file-formats/pdf.svg";
 import Image from "next/image";
 import { formatFileSize } from "@/lib/utils/format-file-size";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type { TransferType } from "@/features/transfers/types";
+import { formatDate } from "@/lib/utils/format-date";
 
 type TransferDetailsDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	transferId: string | null;
+	transfer: TransferType | null;
 };
+
+const EMPTY_VALUE = "-";
 
 export function TransferDetailsDrawer({
 	open,
 	onOpenChange,
-	transferId,
+	transfer,
 }: TransferDetailsDrawerProps) {
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
@@ -48,7 +52,7 @@ export function TransferDetailsDrawer({
 						<RiCloseLine className="size-6" aria-hidden="true" />
 					</DrawerClose>
 					<DrawerDescription className="sr-only">
-						Showing the ID for the transfer you selected.
+						Showing details for the transfer you selected.
 					</DrawerDescription>
 				</DrawerHeader>
 
@@ -57,47 +61,55 @@ export function TransferDetailsDrawer({
 						<div className="flex items-center gap-x-6 gap-y-2 flex-wrap text-nowrap">
 							<div className="flex items-center gap-2 shrink-0">
 								<span className="text-gray-400">Transfer Status:</span>
-								<StatusBadge status="Pending" className="text-sm" />
+								{transfer ? (
+									<StatusBadge status={transfer.status} className="text-sm" />
+								) : (
+									<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
+								)}
 							</div>
 							<div className="flex items-center gap-2 shrink-0">
 								<span className="text-gray-400">Patient ID:</span>
-								<CopyIdButton id="DIA-101" className="text-sm" />
+								{transfer ? (
+									<CopyIdButton id={transfer.patientId} className="text-sm" />
+								) : (
+									<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
+								)}
 							</div>
 							<div className="flex items-center gap-2 shrink-0">
 								<span className="text-gray-400">Transfer ID:</span>
-								<CopyIdButton id="DIA-101" className="text-sm" />
+								{transfer ? (
+									<CopyIdButton id={transfer.id} className="text-sm" />
+								) : (
+									<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
+								)}
 							</div>
 						</div>
 						<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-							<div className="flex flex-col gap-2 shrink-0">
-								<span className="text-gray-400">Patient Name:</span>
-								<span className="text-gray-600 font-semibold">Lena Muller</span>
-							</div>
-							<div className="flex flex-col gap-2 shrink-0">
-								<span className="text-gray-400">Target Hospital:</span>
-								<span className="text-gray-600 font-semibold">
-									University College Hospital (UCH), Ibadan
-								</span>
-							</div>
-							<div className="flex flex-col gap-2 shrink-0">
-								<span className="text-gray-400">Target Hospital Admin Name</span>
-								<span className="text-gray-600 font-semibold">Dr. Adebayo</span>
-							</div>
-							<div className="flex flex-col gap-2 shrink-0">
-								<span className="text-gray-400">Target Hospital Admin Email</span>
-								<span className="text-gray-600 font-semibold">adebayo@luth.org</span>
-							</div>
-							<div className="flex flex-col gap-2 shrink-0">
-								<span className="text-gray-400">Requested At</span>
-								<span className="text-gray-600 font-semibold">17th Apr 2024, 12:30PM</span>
-							</div>
+							<DetailItem label="Patient Name:" value={transfer?.patientName} />
+							<DetailItem label="Target Hospital:" value={transfer?.targetHospitalName} />
+							<DetailItem
+								label="Target Hospital Admin Name"
+								value={transfer?.targetHospitalAdminName}
+							/>
+							<DetailItem
+								label="Target Hospital Admin Email"
+								value={transfer?.targetHospitalAdminEmail}
+							/>
+							<DetailItem
+								label="Requested At"
+								value={transfer ? formatDate(transfer.requestedAt) : null}
+							/>
 							<div className="flex flex-col gap-2 shrink-0">
 								<span className="text-gray-400">Transfer content</span>
-								<ul className="list-disc ml-6 text-gray-600 font-semibold">
-									<li>Medications</li>
-									<li>Medical History</li>
-									<li>Labs</li>
-								</ul>
+								{transfer && transfer.transferContent.length > 0 ? (
+									<ul className="list-disc ml-6 text-gray-600 font-semibold">
+										{transfer.transferContent.map((content) => (
+											<li key={content}>{content}</li>
+										))}
+									</ul>
+								) : (
+									<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
+								)}
 							</div>
 						</div>
 					</div>
@@ -116,6 +128,15 @@ export function TransferDetailsDrawer({
 				</DrawerFooter>
 			</DrawerContent>
 		</Drawer>
+	);
+}
+
+function DetailItem({ label, value }: { label: string; value?: string | null }) {
+	return (
+		<div className="flex flex-col gap-2 shrink-0">
+			<span className="text-gray-400">{label}</span>
+			<span className="text-gray-600 font-semibold">{value || EMPTY_VALUE}</span>
+		</div>
 	);
 }
 

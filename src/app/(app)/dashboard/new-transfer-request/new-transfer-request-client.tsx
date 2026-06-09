@@ -28,11 +28,18 @@ import { useShowSuccess } from "@/hooks/use-show-success";
 import { SuccessModal } from "@/components/success-modal";
 import { useAttachClinicalRecords } from "@/features/transfers/stores/use-attach-clinical-records";
 import { getPatientById } from "@/features/patients/server/actions";
+import type { SelectedTransferPatient } from "@/features/transfers/stores/use-selected-transfer-patients";
 
 export function NewTransferRequestClient({
 	searchParams,
+	patients,
+	patientOptionsLimit,
+	totalPatientPages,
 }: {
 	searchParams: Promise<{ patientId?: string }>;
+	patients: SelectedTransferPatient[];
+	patientOptionsLimit: number;
+	totalPatientPages: number;
 }) {
 	const { selectedPatients, removeSelectedPatient, addSelectedPatient } =
 		useSelectedTransferPatients();
@@ -121,7 +128,13 @@ export function NewTransferRequestClient({
 
 				{step === 1 ? (
 					<>
-						<SelectPatient patientId={patientId} />
+						<SelectPatient
+							patientId={patientId}
+							patients={patients}
+							page={1}
+							limit={patientOptionsLimit}
+							totalPages={totalPatientPages}
+						/>
 						<Button
 							className="h-11 w-full mt-16"
 							type="button"

@@ -1,16 +1,42 @@
 "use client";
 
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { useSelectedTransferPatients } from "@/features/transfers/stores/use-selected-transfer-patients";
-import { useMemo, useState } from "react";
-import { patients } from "@/features/transfers/data";
+import { Button } from "@/components/ui/button";
+import {
+	type SelectedTransferPatient,
+	useSelectedTransferPatients,
+} from "@/features/transfers/stores/use-selected-transfer-patients";
 import { RiArrowDownSLine, RiCheckLine, RiCloseLine, RiSearchLine } from "@remixicon/react";
 import { cn } from "@/lib/utils/cn";
 import { useRouter } from "next/navigation";
 import { useAttachClinicalRecords } from "../stores/use-attach-clinical-records";
+import { useState, useTransition } from "react";
+import { getTransferPatientOptionsAction } from "@/features/transfers/server/actions";
 
-export function SelectPatient({ patientId }: { patientId?: string }) {
+function truncatePatientId(id: string) {
+	if (id.length <= 13) return id;
+
+	return `${id.slice(0, 8)}...${id.slice(-4)}`;
+}
+
+export function SelectPatient({
+	patientId,
+	patients,
+	page,
+	limit,
+	totalPages,
+}: {
+	patientId?: string;
+	patients: SelectedTransferPatient[];
+	page: number;
+	limit: number;
+	totalPages: number;
+}) {
 	const [searchTerm, setSearchTerm] = useState("");
+	const [patientOptions, setPatientOptions] = useState(patients);
+	const [currentPage, setCurrentPage] = useState(page);
+	const [currentTotalPages, setCurrentTotalPages] = useState(totalPages);
+	const [isPending, startTransition] = useTransition();
 	const { removeAttachedRecords } = useAttachClinicalRecords();
 
 	const router = useRouter();
@@ -24,23 +50,28 @@ export function SelectPatient({ patientId }: { patientId?: string }) {
 		) : selectedCount === 1 ? (
 			<div className="flex items-center gap-2">
 				<span>{selectedPatients[0].name}</span>
-				<span className="p-1 rounded bg-white text-xs border">{selectedPatients[0].patientId}</span>
+				<span className="p-1 rounded bg-white text-xs border" title={selectedPatients[0].patientId}>
+					{truncatePatientId(selectedPatients[0].patientId)}
+				</span>
 			</div>
 		) : (
 			`${selectedPatients[0].name} +${selectedCount - 1} more`
 		);
 
-	const filteredPatients = useMemo(() => {
-		const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-		if (!normalizedSearchTerm) return patients;
+	function handlePageChange(nextPage: number) {
+		if (nextPage < 1 || nextPage > currentTotalPages || isPending) return;
 
-		return patients.filter((patient) => {
-			return (
-				patient.name.toLowerCase().includes(normalizedSearchTerm) ||
-				patient.patientId.toLowerCase().includes(normalizedSearchTerm)
-			);
+		startTransition(async () => {
+			const result = await getTransferPatientOptionsAction({
+				page: nextPage,
+				limit,
+			});
+
+			setPatientOptions(result.patients);
+			setCurrentPage(result.page);
+			setCurrentTotalPages(result.totalPages);
 		});
-	}, [searchTerm]);
+	}
 
 	return (
 		<div className="flex flex-col gap-3.5 items-start">
@@ -51,22 +82,22 @@ export function SelectPatient({ patientId }: { patientId?: string }) {
 					<RiArrowDownSLine className="size-5 text-gray-400 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
 				</PopoverTrigger>
 
-				<PopoverContent sideOffset={8} className="rounded-2xl h-[18.75rem] flex flex-col p-1.5">
-					<div className="flex items-center gap-2 mb-2 text-gray-400 pl-2">
-						<RiSearchLine className="size-5" />
+				<PopoverContent sideOffset={8} className="rounded-2xl h-[24rem] flex flex-col p-0">
+					<div className="flex items-center gap-2 px-4 py-4 text-gray-400">
+						<RiSearchLine className="size-5 shrink-0" />
 						<input
-							className="h-10 placeholder:text-base focus:outline-0 w-full"
+							className="h-10 min-w-0 flex-1 bg-transparent text-base text-gray-700 placeholder:text-gray-400 focus:outline-0"
 							type="search"
 							placeholder="Search by name and patient ID"
 							value={searchTerm}
 							onChange={(event) => setSearchTerm(event.target.value)}
 						/>
 					</div>
-					<div className="flex flex-col gap-1 overflow-y-auto">
-						{filteredPatients.length === 0 ? (
-							<p className="px-3 py-4 text-sm text-gray-500">No patients match your search.</p>
+					<div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-4 pb-3">
+						{patientOptions.length === 0 ? (
+							<p className="px-3 py-4 text-sm text-gray-500">No patients available.</p>
 						) : (
-							filteredPatients.map((patient) => {
+							patientOptions.map((patient) => {
 								const isSelected = selectedPatients.some(
 									(item) => item.patientId === patient.patientId,
 								);
@@ -85,8 +116,8 @@ export function SelectPatient({ patientId }: { patientId?: string }) {
 									>
 										<div className="flex items-center gap-3">
 											<span className="font-medium">{patient.name}</span>
-											<span className="p-1 rounded bg-white text-xs border">
-												{patient.patientId}
+											<span className="p-1 rounded bg-white text-xs border" title={patient.patientId}>
+												{truncatePatientId(patient.patientId)}
 											</span>
 										</div>
 										{isSelected ? <RiCheckLine className="size-4" /> : null}
@@ -94,6 +125,31 @@ export function SelectPatient({ patientId }: { patientId?: string }) {
 								);
 							})
 						)}
+					</div>
+					<div className="grid grid-cols-3 items-center border-t border-gray-200 px-6 py-4">
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() => handlePageChange(currentPage - 1)}
+							disabled={currentPage <= 1 || isPending}
+							className="justify-self-start border-gray-200 px-3 text-gray-700 shadow-none transition"
+						>
+							Previous
+						</Button>
+						<span className="justify-self-center text-sm font-medium text-gray-600">
+							Page {currentPage} of {currentTotalPages}
+						</span>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() => handlePageChange(currentPage + 1)}
+							disabled={currentPage >= currentTotalPages || isPending}
+							className="justify-self-end border-gray-200 px-3 text-gray-700 shadow-none transition"
+						>
+							Next
+						</Button>
 					</div>
 				</PopoverContent>
 			</Popover>
@@ -103,7 +159,7 @@ export function SelectPatient({ patientId }: { patientId?: string }) {
 						key={s.patientId}
 						className="text-sm bg-gray-200 text-gray-600 flex items-center gap-2 py-1.5 pl-3 pr-1.5 rounded-full"
 					>
-						{s.name} - {s.patientId}
+						{s.name} - <span title={s.patientId}>{truncatePatientId(s.patientId)}</span>
 						<button
 							type="button"
 							className="bg-gray-800 size-5 flex items-center justify-center text-white rounded-full active:scale-[0.90] transition-transform"

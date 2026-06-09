@@ -19,7 +19,7 @@ type OverviewItem = {
 
 type RecentDiagnosis = {
 	name: string;
-	onset: string;
+	diagnosedAt: string;
 	lastReviewed: string;
 	id: string;
 	createdAt: string;
@@ -117,7 +117,7 @@ function RecentDiagnoses({ recentDiagnoses }: { recentDiagnoses: RecentDiagnosis
 								<TableCell className="px-4 h-14 font-medium text-gray-700">
 									{diagnosis.name}
 								</TableCell>
-								<TableCell className="px-4 h-14 text-gray-500">{diagnosis.onset}</TableCell>
+								<TableCell className="px-4 h-14 text-gray-500">{diagnosis.diagnosedAt}</TableCell>
 								<TableCell className="px-4 h-14 text-gray-500">{diagnosis.lastReviewed}</TableCell>
 								<TableCell className="px-4 h-14 font-medium text-gray-600">
 									<CopyIdButton id={diagnosis.id} />
@@ -179,7 +179,7 @@ function RecentAllergies({ recentAllergies }: { recentAllergies: RecentAllergy[]
 
 const recentDiagnosisHeaders = [
 	{ label: "Diagnosis name", key: "name" },
-	{ label: "Diagnosed At", key: "onset" },
+	{ label: "Diagnosed At", key: "diagnosedAt" },
 	{ label: "Last Reviewed", key: "lastReviewed" },
 	{ label: "Diagnosis ID", key: "id" },
 	{ label: "Created At", key: "createdAt" },

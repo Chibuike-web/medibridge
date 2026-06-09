@@ -49,6 +49,8 @@ export async function getRecentTransfer() {
 					patientId: patientTransfer.patientId,
 					requestedAt: patientTransfer.requestedAt,
 					targetHospitalName: patientTransfer.targetHospitalName,
+					targetHospitalAdminName: patientTransfer.targetHospitalAdminName,
+					targetHospitalAdminEmail: patientTransfer.targetHospitalAdminEmail,
 					firstName: patientPersonalInformation.firstName,
 					middleName: patientPersonalInformation.middleName,
 					lastName: patientPersonalInformation.lastName,
@@ -72,6 +74,9 @@ export async function getRecentTransfer() {
 				status: toTransferStatus(row.status),
 				requestedAt: row.requestedAt.toISOString(),
 				targetHospitalName: row.targetHospitalName,
+				targetHospitalAdminName: row.targetHospitalAdminName,
+				targetHospitalAdminEmail: row.targetHospitalAdminEmail,
+				transferContent: [],
 			}));
 		},
 		[`recent-transfers-${organizationId}`],
