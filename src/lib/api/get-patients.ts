@@ -55,6 +55,6 @@ export async function getPatients(page: number, limit: number) {
 			};
 		},
 		[`patients-${organizationId}-${page}-${limit}`],
-		{ tags: [`patients-${organizationId}`] },
+		{ tags: [`patients-list-${organizationId}`] },
 	)();
 }

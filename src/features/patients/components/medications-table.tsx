@@ -99,7 +99,7 @@ export function MedicationsTable({ medications }: { medications: MedicationType[
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button size="lg">Add new medication</Button>
+				<Button size="lg">Add medication</Button>
 			</div>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="w-full min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left">

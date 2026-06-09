@@ -35,12 +35,10 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import { TransferType } from "../types";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { getInitials } from "@/lib/utils/get-initials";
 
 export function RecentTransfersTable({ data }: { data: TransferType[] }) {
-	const tableData = useMemo(() => data, []);
-	const cols = useMemo(() => recentTransfersColumns, []);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "patientName", desc: false }]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
@@ -48,8 +46,8 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 	});
 
 	const table = useReactTable({
-		data: tableData,
-		columns: cols,
+		data,
+		columns: recentTransfersColumns,
 		onSortingChange: setSorting,
 		onPaginationChange: setPagination,
 		getCoreRowModel: getCoreRowModel(),

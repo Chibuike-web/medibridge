@@ -15,6 +15,27 @@
       "when": 1780607481459,
       "tag": "0001_orange_thunderbolt_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780992526960,
+      "tag": "0002_chief_vindicator",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780994692750,
+      "tag": "0003_chubby_skrulls",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780998643553,
+      "tag": "0004_mixed_tattoo",
+      "breakpoints": true
     }
   ]
 }

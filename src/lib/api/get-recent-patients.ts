@@ -35,8 +35,8 @@ export async function getRecentPatients(): Promise<RecentPatientType[]> {
 				age: row.age ?? 0,
 			}));
 		},
-		[`patients-${organizationId}`],
-		{ tags: [`patients-${organizationId}`] },
+		[`recent-patients-${organizationId}`],
+		{ tags: [`recent-patients-${organizationId}`] },
 	)();
 	return patients;
 }

@@ -12,7 +12,6 @@ import {
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
-import { recentPatients } from "../data";
 import {
 	Table,
 	TableBody,
@@ -38,8 +37,6 @@ import { getInitials } from "@/lib/utils/get-initials";
 import { formatDate } from "@/lib/utils/format-date";
 
 export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
-	const tableData = useMemo(() => data, [data]);
-
 	const columns = useMemo(() => recentPatientColumns, []);
 
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
@@ -50,7 +47,7 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 	});
 
 	const table = useReactTable({
-		data: tableData,
+		data,
 		columns,
 		onSortingChange: setSorting,
 		onPaginationChange: setPagination,

@@ -22,7 +22,10 @@ import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
 import { getPatientEncounters } from "@/lib/api/get-patient-encounters";
+import { getPatientImaging } from "@/lib/api/get-patient-imaging";
+import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
 import { getPatientMedications } from "@/lib/api/get-patient-medications";
+import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
 import { verifySession } from "@/lib/api/verify-session";
 
 export const metadata = {
@@ -242,12 +245,32 @@ async function AllergiesSection({ patientId }: { patientId: string }) {
 	return <AllergiesTable allergies={allergies} />;
 }
 
-function ImmunizationSection({ patientId }: { patientId: string }) {
-	return <ImmunizationsTable patientId={patientId} />;
+async function ImmunizationSection({ patientId }: { patientId: string }) {
+	const immunizations = await getPatientImmunizations(patientId);
+
+	if (immunizations.length === 0) {
+		return renderEmptyState(
+			"No Immunizations yet",
+			"No immunizations have been recorded for this patient.",
+			"Add immunization",
+		);
+	}
+
+	return <ImmunizationsTable immunizations={immunizations} />;
 }
 
-function ProceduresSection({ patientId }: { patientId: string }) {
-	return <ProceduresTable patientId={patientId} />;
+async function ProceduresSection({ patientId }: { patientId: string }) {
+	const procedures = await getPatientProcedures(patientId);
+
+	if (procedures.length === 0) {
+		return renderEmptyState(
+			"No Procedures yet",
+			"No procedures have been recorded for this patient.",
+			"Add procedure",
+		);
+	}
+
+	return <ProceduresTable procedures={procedures} />;
 }
 
 async function MedicationsSection({ patientId }: { patientId: string }) {
@@ -282,8 +305,18 @@ function LabTestsSection({ patientId }: { patientId: string }) {
 	return <LabTestsTable patientId={patientId} />;
 }
 
-function ImagingSection({ patientId }: { patientId: string }) {
-	return <ImagingTable patientId={patientId} />;
+async function ImagingSection({ patientId }: { patientId: string }) {
+	const imagingStudies = await getPatientImaging(patientId);
+
+	if (imagingStudies.length === 0) {
+		return renderEmptyState(
+			"No Imaging yet",
+			"No imaging studies have been recorded for this patient.",
+			"Add imaging",
+		);
+	}
+
+	return <ImagingTable imagingStudies={imagingStudies} />;
 }
 
 function DocumentsSection({ patientId }: { patientId: string }) {

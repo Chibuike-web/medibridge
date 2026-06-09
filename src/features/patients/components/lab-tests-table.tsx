@@ -60,7 +60,6 @@ const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 export function LabTestsTable({ patientId }: { patientId: string }) {
 	void patientId;
 
-	const data = useMemo(() => labTests, []);
 	const columns = useMemo(() => getLabTestsColumns(), []);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [pagination, setPagination] = useState<PaginationState>({
@@ -69,7 +68,7 @@ export function LabTestsTable({ patientId }: { patientId: string }) {
 	});
 
 	const table = useReactTable({
-		data,
+		data: labTests,
 		columns,
 		enableRowSelection: true,
 		onSortingChange: setSorting,

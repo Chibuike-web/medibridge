@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { immunizations } from "@/features/patients/immunizations-data";
 import { ImmunizationType } from "@/features/patients/types";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
@@ -62,10 +61,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
-export function ImmunizationsTable({ patientId }: { patientId: string }) {
-	void patientId;
-
-	const data = useMemo(() => immunizations, []);
+export function ImmunizationsTable({
+	immunizations,
+}: {
+	immunizations: ImmunizationType[];
+}) {
 	const columns = useMemo(() => getImmunizationsColumns(), []);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [pagination, setPagination] = useState<PaginationState>({
@@ -74,7 +74,7 @@ export function ImmunizationsTable({ patientId }: { patientId: string }) {
 	});
 
 	const table = useReactTable({
-		data,
+		data: immunizations,
 		columns,
 		enableRowSelection: true,
 		onSortingChange: setSorting,
@@ -160,20 +160,6 @@ export function ImmunizationsTable({ patientId }: { patientId: string }) {
 									}}
 								>
 									<Label
-										htmlFor="requested-cancelled"
-										className="flex w-full cursor-pointer items-center gap-2"
-									>
-										<Checkbox id="requested-cancelled" className="[&_svg]:!text-current" />
-										<span>Cancelled</span>
-									</Label>
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
-									onSelect={(e) => {
-										e.preventDefault();
-									}}
-								>
-									<Label
 										htmlFor="requested-discontinued"
 										className="flex w-full cursor-pointer items-center gap-2"
 									>
@@ -210,7 +196,7 @@ export function ImmunizationsTable({ patientId }: { patientId: string }) {
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button size="lg">Add new immunization</Button>
+				<Button size="lg">Add immunization</Button>
 			</div>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="w-full min-w-[64rem] border-separate border-spacing-0 bg-gray-50 text-left">
@@ -384,7 +370,7 @@ function getImmunizationsColumns(): ColumnDef<ImmunizationType>[] {
 		},
 		{
 			id: "createdAt",
-			header: "Created at",
+			header: "Created At",
 			accessorFn: (row) => row.createdAtSortValue,
 			enableSorting: true,
 			cell: ({ row }) => row.original.createdAtLabel,

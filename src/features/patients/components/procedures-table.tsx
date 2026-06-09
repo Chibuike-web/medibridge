@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { procedures } from "@/features/patients/procedures-data";
 import { ProcedureType } from "@/features/patients/types";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
@@ -57,10 +56,7 @@ import {
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
-export function ProceduresTable({ patientId }: { patientId: string }) {
-	void patientId;
-
-	const data = useMemo(() => procedures, []);
+export function ProceduresTable({ procedures }: { procedures: ProcedureType[] }) {
 	const columns = useMemo(() => getProceduresColumns(), []);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [pagination, setPagination] = useState<PaginationState>({
@@ -69,7 +65,7 @@ export function ProceduresTable({ patientId }: { patientId: string }) {
 	});
 
 	const table = useReactTable({
-		data,
+		data: procedures,
 		columns,
 		enableRowSelection: true,
 		onSortingChange: setSorting,
@@ -103,7 +99,7 @@ export function ProceduresTable({ patientId }: { patientId: string }) {
 					<RiShareForwardBoxLine aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button size="lg">Add new procedure</Button>
+				<Button size="lg">Add procedure</Button>
 			</div>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="w-full min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left">
@@ -270,7 +266,7 @@ function getProceduresColumns(): ColumnDef<ProcedureType>[] {
 		},
 		{
 			id: "createdAt",
-			header: "Created at",
+			header: "Created At",
 			accessorFn: (row) => row.createdAtSortValue,
 			enableSorting: true,
 			cell: ({ row }) => row.original.createdAtLabel,

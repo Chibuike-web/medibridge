@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { db } from "@/lib/better-auth/auth";
 import { patient, patientContactInformation, patientPersonalInformation } from "@/db/schemas";
 import { getOrganizationId } from "./get-organization-id";
@@ -10,21 +11,33 @@ export async function getPatientById(patientId: string) {
 		return null;
 	}
 
-	const rows = await db
-		.select({
-			patientId: patient.patientId,
-			firstName: patientPersonalInformation.firstName,
-			lastName: patientPersonalInformation.lastName,
-			sex: patientPersonalInformation.sex,
-			email: patientContactInformation.emailAddress,
-			phoneNumber: patientContactInformation.phoneNumber,
-			address: patientContactInformation.residentialAddress,
-		})
-		.from(patient)
-		.innerJoin(patientPersonalInformation, eq(patient.id, patientPersonalInformation.patientId))
-		.leftJoin(patientContactInformation, eq(patient.id, patientContactInformation.patientId))
-		.where(and(eq(patient.id, patientId), eq(patient.organizationId, organizationId)))
-		.limit(1);
+	return unstable_cache(
+		async () => {
+			const rows = await db
+				.select({
+					patientId: patient.patientId,
+					firstName: patientPersonalInformation.firstName,
+					lastName: patientPersonalInformation.lastName,
+					sex: patientPersonalInformation.sex,
+					email: patientContactInformation.emailAddress,
+					phoneNumber: patientContactInformation.phoneNumber,
+					address: patientContactInformation.residentialAddress,
+				})
+				.from(patient)
+				.innerJoin(
+					patientPersonalInformation,
+					eq(patient.id, patientPersonalInformation.patientId),
+				)
+				.leftJoin(
+					patientContactInformation,
+					eq(patient.id, patientContactInformation.patientId),
+				)
+				.where(and(eq(patient.id, patientId), eq(patient.organizationId, organizationId)))
+				.limit(1);
 
-	return rows[0] || null;
+			return rows[0] || null;
+		},
+		[`patient-header-${organizationId}-${patientId}`],
+		{ tags: [`patient-header-${organizationId}-${patientId}`] },
+	)();
 }

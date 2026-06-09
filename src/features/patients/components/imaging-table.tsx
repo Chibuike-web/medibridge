@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { imagingStudies } from "@/features/patients/imaging-data";
 import { ImagingType } from "@/features/patients/types";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
@@ -57,10 +56,7 @@ import {
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
-export function ImagingTable({ patientId }: { patientId: string }) {
-	void patientId;
-
-	const data = useMemo(() => imagingStudies, []);
+export function ImagingTable({ imagingStudies }: { imagingStudies: ImagingType[] }) {
 	const columns = useMemo(() => getImagingColumns(), []);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [pagination, setPagination] = useState<PaginationState>({
@@ -69,7 +65,7 @@ export function ImagingTable({ patientId }: { patientId: string }) {
 	});
 
 	const table = useReactTable({
-		data,
+		data: imagingStudies,
 		columns,
 		enableRowSelection: true,
 		onSortingChange: setSorting,
@@ -92,7 +88,7 @@ export function ImagingTable({ patientId }: { patientId: string }) {
 					<Input
 						type="search"
 						className="h-10 w-full pl-8"
-						placeholder="Search by study or imaging ID"
+						placeholder="Search by study, impression and imaging id"
 					/>
 				</div>
 				<Button
@@ -107,7 +103,7 @@ export function ImagingTable({ patientId }: { patientId: string }) {
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button size="lg">Add new imaging</Button>
+				<Button size="lg">Add imaging</Button>
 			</div>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="w-full min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left">
@@ -292,7 +288,7 @@ function getImagingColumns(): ColumnDef<ImagingType>[] {
 		},
 		{
 			id: "orderedAt",
-			header: "Ordered at",
+			header: "Ordered At",
 			accessorFn: (row) => row.orderedAtSortValue,
 			enableSorting: true,
 			cell: ({ row }) => row.original.orderedAtLabel,

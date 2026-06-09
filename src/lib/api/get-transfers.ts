@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { count, desc, eq } from "drizzle-orm";
 import { patient, patientPersonalInformation, patientTransfer } from "@/db/schemas";
 import { db } from "../better-auth/auth";
@@ -49,47 +50,53 @@ export async function getTransfers(page: number, limit: number): Promise<GetTran
 		return { transfers: [], totalTransfers: 0 };
 	}
 
-	const [countRows, rows] = await Promise.all([
-		db
-			.select({ value: count() })
-			.from(patientTransfer)
-			.where(eq(patientTransfer.sourceOrganizationId, organizationId)),
-		db
-			.select({
-				id: patientTransfer.id,
-				status: patientTransfer.status,
-				patientId: patientTransfer.patientId,
-				requestedAt: patientTransfer.requestedAt,
-				targetHospitalName: patientTransfer.targetHospitalName,
-				firstName: patientPersonalInformation.firstName,
-				middleName: patientPersonalInformation.middleName,
-				lastName: patientPersonalInformation.lastName,
-			})
-			.from(patientTransfer)
-			.innerJoin(patient, eq(patientTransfer.patientId, patient.id))
-			.innerJoin(
-				patientPersonalInformation,
-				eq(patient.id, patientPersonalInformation.patientId),
-			)
-			.where(eq(patientTransfer.sourceOrganizationId, organizationId))
-			.orderBy(desc(patientTransfer.createdAt))
-			.limit(currentLimit)
-			.offset(offset),
-	]);
-	const totalTransfers = countRows[0]?.value ?? 0;
+	return unstable_cache(
+		async () => {
+			const [countRows, rows] = await Promise.all([
+				db
+					.select({ value: count() })
+					.from(patientTransfer)
+					.where(eq(patientTransfer.sourceOrganizationId, organizationId)),
+				db
+					.select({
+						id: patientTransfer.id,
+						status: patientTransfer.status,
+						patientId: patientTransfer.patientId,
+						requestedAt: patientTransfer.requestedAt,
+						targetHospitalName: patientTransfer.targetHospitalName,
+						firstName: patientPersonalInformation.firstName,
+						middleName: patientPersonalInformation.middleName,
+						lastName: patientPersonalInformation.lastName,
+					})
+					.from(patientTransfer)
+					.innerJoin(patient, eq(patientTransfer.patientId, patient.id))
+					.innerJoin(
+						patientPersonalInformation,
+						eq(patient.id, patientPersonalInformation.patientId),
+					)
+					.where(eq(patientTransfer.sourceOrganizationId, organizationId))
+					.orderBy(desc(patientTransfer.createdAt))
+					.limit(currentLimit)
+					.offset(offset),
+			]);
+			const totalTransfers = countRows[0]?.value ?? 0;
 
-	return {
-		totalTransfers,
-		transfers: rows.map((row) => ({
-			id: row.id,
-			patientName: formatPatientName(row),
-			patientFirstName: row.firstName,
-			patientMiddleName: row.middleName,
-			patientLastName: row.lastName,
-			patientId: row.patientId,
-			status: toTransferStatus(row.status),
-			requestedAt: row.requestedAt.toISOString(),
-			targetHospitalName: row.targetHospitalName,
-		})),
-	};
+			return {
+				totalTransfers,
+				transfers: rows.map((row) => ({
+					id: row.id,
+					patientName: formatPatientName(row),
+					patientFirstName: row.firstName,
+					patientMiddleName: row.middleName,
+					patientLastName: row.lastName,
+					patientId: row.patientId,
+					status: toTransferStatus(row.status),
+					requestedAt: row.requestedAt.toISOString(),
+					targetHospitalName: row.targetHospitalName,
+				})),
+			};
+		},
+		[`transfers-${organizationId}-${currentPage}-${currentLimit}`],
+		{ tags: [`transfers-list-${organizationId}`] },
+	)();
 }
