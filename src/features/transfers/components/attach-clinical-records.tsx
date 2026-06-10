@@ -130,7 +130,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 					<div className="flex items-center gap-2 px-4 py-2 text-gray-400 border-b border-gray-200">
 						<RiSearchLine className="size-5" />
 						<input
-							className="h-10 placeholder:text-base focus:outline-0 w-full"
+							className="h-10 placeholder:text-base placeholder:text-gray-400 focus:outline-0 w-full"
 							type="search"
 							value={searchQuery}
 							onChange={(event) => setSearchQuery(event.target.value)}

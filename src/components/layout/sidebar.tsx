@@ -5,6 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserProfile } from "@/components/layout/user-profile";
 import {
+	RiAddLine,
+	RiArrowRightLine,
+	RiCloseLine,
 	RiContractLeftLine,
 	RiFileListFill,
 	RiFileListLine,
@@ -15,6 +18,16 @@ import {
 	RiSearchLine,
 } from "@remixicon/react";
 import { useEffect, useRef, useState } from "react";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "../ui/dialog";
+import { Route } from "next";
 
 const MIN_WIDTH = 56;
 const MAX_WIDTH = 272;
@@ -23,9 +36,7 @@ const COLLAPSE_THRESHOLD = 200;
 export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 	const parsedWidth = Number(initialWidth ?? MAX_WIDTH);
 	const [width, setWidth] = useState(
-		parsedWidth >= MIN_WIDTH && parsedWidth <= MAX_WIDTH
-			? parsedWidth
-			: MAX_WIDTH,
+		parsedWidth >= MIN_WIDTH && parsedWidth <= MAX_WIDTH ? parsedWidth : MAX_WIDTH,
 	);
 	const pathname = usePathname();
 	const [isResizing, setIsResizing] = useState(false);
@@ -56,10 +67,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 		const handleMouseMove = (e: MouseEvent) => {
 			setIsHovered(false);
 			const delta = e.clientX - startXRef.current;
-			const newWidth = Math.min(
-				MAX_WIDTH,
-				Math.max(MIN_WIDTH, startWidthRef.current + delta),
-			);
+			const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidthRef.current + delta));
 			setWidth(newWidth);
 		};
 		const handleMouseUp = () => {
@@ -134,19 +142,78 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 
 			<ul className="flex flex-col gap-px p-2 text-sm">
 				<li>
-					<button
-						type="button"
-						className={cn(
-							"flex w-full items-center gap-2 rounded-lg hover:bg-gray-100 px-2.5 h-8",
-							isCollapsed ? "justify-center" : "",
-						)}
-						aria-label="Search chats"
-					>
-						<RiSearchLine className="size-5 shrink-0" aria-hidden />
-						{!isCollapsed ? (
-							<span className="whitespace-nowrap">Search...</span>
-						) : null}
-					</button>
+					<Dialog>
+						<DialogTrigger asChild>
+							<button
+								type="button"
+								className={cn(
+									"flex w-full items-center gap-2 rounded-lg hover:bg-gray-100 px-2.5 h-8",
+									isCollapsed ? "justify-center" : "",
+								)}
+								aria-label="Search chats"
+							>
+								<RiSearchLine className="size-5 shrink-0" aria-hidden />
+								{!isCollapsed ? <span className="whitespace-nowrap">Search...</span> : null}
+							</button>
+						</DialogTrigger>
+						<DialogContent className="max-w-[800px]">
+							<DialogHeader className="h-16 px-6 border-b border-gray-200">
+								<DialogTitle className="sr-only">Search chats</DialogTitle>
+								<DialogDescription className="sr-only">
+									Search patients, IDs, diagnoses, and other patient records.
+								</DialogDescription>
+								<input
+									className="h-10 placeholder:text-base placeholder:text-gray-400 focus:outline-0 w-full"
+									type="text"
+									placeholder="Search patients, IDs, diagnoses..."
+								/>
+								<DialogDescription className="sr-only">Search dialog </DialogDescription>
+								<DialogClose>
+									<RiCloseLine className="size-6" />
+								</DialogClose>
+							</DialogHeader>
+							<div className="my-12 w-full px-6">
+								<p className="text-center w-full text-gray-600">No recent activity</p>
+								<p className="text-center w-full text-gray-400">
+									Search by patient name, record ID,diagnosis, or transfer.
+								</p>
+							</div>
+							<div className="px-4">
+								{searchSections.map((section) => {
+									const isNavigation = section.label === "Go to";
+
+									return (
+										<div key={section.label} className="mb-6">
+											<p className="text-sm font-medium text-gray-400 mb-2">{section.label}</p>
+
+											<div>
+												{section.items.map((entry) => {
+													const Icon = isNavigation ? RiArrowRightLine : RiAddLine;
+
+													return (
+														<DialogClose asChild key={entry.id}>
+															<Link
+																href={(entry.href as Route) ?? "#"}
+																className="flex items-center gap-3 rounded-lg px-3 py-3 hover:bg-gray-100 transition-colors"
+															>
+																<Icon className="shrink-0 text-gray-600 size-4" />
+
+																<div className="min-w-0">
+																	<p className="font-medium text-gray-700">{entry.title}</p>
+
+																	<p className="text-sm text-gray-400">{entry.description}</p>
+																</div>
+															</Link>
+														</DialogClose>
+													);
+												})}
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						</DialogContent>
+					</Dialog>
 				</li>
 				{menus.map(({ id, href, text }) => {
 					const isActive = pathname.startsWith(href);
@@ -190,9 +257,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 										)
 									) : null}
 								</span>
-								{!isCollapsed ? (
-									<span className="whitespace-nowrap">{text}</span>
-								) : null}
+								{!isCollapsed ? <span className="whitespace-nowrap">{text}</span> : null}
 							</Link>
 						</li>
 					);
@@ -217,3 +282,51 @@ const menus = [
 	{ id: "patients", text: "Patients", href: "/dashboard/patients" },
 	{ id: "transfers", text: "Transfers", href: "/dashboard/transfers" },
 ] as const;
+
+type SearchSection = {
+	label: string;
+	items: {
+		id: string;
+		title: string;
+		description: string;
+		href: string;
+	}[];
+};
+
+export const searchSections: SearchSection[] = [
+	{
+		label: "Go to",
+		items: [
+			{
+				id: "patients",
+				title: "Patients",
+				description: "View and manage patient records",
+				href: "/dashboard/patients",
+			},
+			{
+				id: "transfers",
+				title: "Transfers",
+				description: "Manage patient transfer requests",
+				href: "/dashboard/transfers",
+			},
+		],
+	},
+	{
+		label: "Quick actions",
+		items: [
+			{
+				id: "add-patient",
+				title: "Add patient",
+				description: "Create a new patient record",
+				href: "/dashboard/add-new-patient",
+			},
+
+			{
+				id: "create-transfer-request",
+				title: "Crate transfer request",
+				description: "Create a patient transfer request",
+				href: "/dashboard/new-transfer-request",
+			},
+		],
+	},
+];

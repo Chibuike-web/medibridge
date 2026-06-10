@@ -31,7 +31,7 @@ function DialogOverlay({
 			className={cn(
 				"fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/50 p-6",
 				"data-[state=open]:animate-in data-[state=closed]:animate-out",
-				"animation-duration-200 data-[state=closed]:animation-duration-100 ease-[cubic-bezier(0.23,1,0.32,1)] data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 motion-reduce:animate-none",
+				"animation-duration-200 data-[state=closed]:animation-duration-100 ease-[cubic-bezier(0.23,1,0.32,1)] data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 motion-reduce:animate-none backdrop-blur-[4px]",
 				className,
 			)}
 			{...props}
