@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { patient } from "../patient";
-import { organization } from "../../auth/organization";
+import { organization } from "@/db/schemas/auth/organization";
 
 export const patientTransfer = pgTable("patient_transfer", {
 	id: text("id").primaryKey(),

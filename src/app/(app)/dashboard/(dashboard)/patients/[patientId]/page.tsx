@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/status-badge";
 import { CopyIdButton } from "@/components/copy-id-button";
-import { SectionTabs } from "../../../../../../features/patients/components/section-tabs";
+import { SectionTabs } from "@/features/patients/components/section-tabs";
 import { PatientOverviewSection } from "@/features/patients/components/patient-overview-section";
 import { PatientDetailsSection } from "@/features/patients/components/patient-details-section/patient-details-section";
 import { PatientAvatarMenu } from "@/features/patients/components/patient-avatar-menu";
