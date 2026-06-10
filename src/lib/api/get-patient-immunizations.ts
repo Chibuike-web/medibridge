@@ -4,7 +4,7 @@ import type { ImmunizationType } from "@/features/patients/types";
 import { db } from "@/lib/better-auth/auth";
 import { formatDateTime } from "@/lib/utils/format-date-time";
 import { toSortValue } from "@/lib/utils/to-sort-value";
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or } from "drizzle-orm";
 import { getOrganizationId } from "./get-organization-id";
 
 function normalizeStatus(value: string): ImmunizationType["status"] {
@@ -23,41 +23,74 @@ function normalizeStatus(value: string): ImmunizationType["status"] {
 
 export async function getPatientImmunizations(
 	patientId: string,
-): Promise<ImmunizationType[]> {
+	page = 1,
+	limit = 6,
+	query = "",
+): Promise<{ immunizations: ImmunizationType[]; totalImmunizations: number }> {
 	const organizationId = await getOrganizationId();
+	const offset = (page - 1) * limit;
+	const normalizedQuery = query.trim();
+	const searchPattern = `%${normalizedQuery}%`;
 
-	if (!organizationId) return [];
+	if (!organizationId) return { immunizations: [], totalImmunizations: 0 };
 
 	return unstable_cache(
 		async () => {
-			const rows = await db
-				.select({
-					vaccineName: patientImmunization.vaccineName,
-					immunizationId: patientImmunization.immunizationId,
-					currentDose: patientImmunization.currentDose,
-					createdAt: patientImmunization.createdAt,
-					status: patientImmunization.status,
-				})
-				.from(patientImmunization)
-				.innerJoin(patient, eq(patientImmunization.patientId, patient.id))
-				.where(
-					and(
-						eq(patientImmunization.patientId, patientId),
-						eq(patient.organizationId, organizationId),
+			const [countRows, rows] = await Promise.all([
+				db
+					.select({ value: count() })
+					.from(patientImmunization)
+					.innerJoin(patient, eq(patientImmunization.patientId, patient.id))
+					.where(
+						and(
+							eq(patientImmunization.patientId, patientId),
+							eq(patient.organizationId, organizationId),
+							or(
+								ilike(patientImmunization.vaccineName, searchPattern),
+								ilike(patientImmunization.immunizationId, searchPattern),
+								ilike(patientImmunization.status, searchPattern),
+							),
+						),
 					),
-				)
-				.orderBy(desc(patientImmunization.createdAt));
+				db
+					.select({
+						vaccineName: patientImmunization.vaccineName,
+						immunizationId: patientImmunization.immunizationId,
+						currentDose: patientImmunization.currentDose,
+						createdAt: patientImmunization.createdAt,
+						status: patientImmunization.status,
+					})
+					.from(patientImmunization)
+					.innerJoin(patient, eq(patientImmunization.patientId, patient.id))
+					.where(
+						and(
+							eq(patientImmunization.patientId, patientId),
+							eq(patient.organizationId, organizationId),
+							or(
+								ilike(patientImmunization.vaccineName, searchPattern),
+								ilike(patientImmunization.immunizationId, searchPattern),
+								ilike(patientImmunization.status, searchPattern),
+							),
+						),
+					)
+					.orderBy(desc(patientImmunization.createdAt))
+					.limit(limit)
+					.offset(offset),
+			]);
 
-			return rows.map((immunization) => ({
-				vaccineName: immunization.vaccineName,
-				immunizationId: immunization.immunizationId,
-				dose: immunization.currentDose ?? "-",
-				createdAtLabel: formatDateTime(immunization.createdAt),
-				createdAtSortValue: toSortValue(immunization.createdAt),
-				status: normalizeStatus(immunization.status),
-			}));
+			return {
+				totalImmunizations: countRows[0]?.value ?? 0,
+				immunizations: rows.map((immunization) => ({
+					vaccineName: immunization.vaccineName,
+					immunizationId: immunization.immunizationId,
+					dose: immunization.currentDose ?? "-",
+					createdAtLabel: formatDateTime(immunization.createdAt),
+					createdAtSortValue: toSortValue(immunization.createdAt),
+					status: normalizeStatus(immunization.status),
+				})),
+			};
 		},
-		[`patient-immunizations-${organizationId}-${patientId}`],
+		[`patient-immunizations-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
 		{ tags: [`patient-immunizations-${organizationId}-${patientId}`] },
 	)();
 }

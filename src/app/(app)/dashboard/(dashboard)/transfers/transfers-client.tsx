@@ -6,12 +6,12 @@ import { FilterButton } from "@/features/transfers/components/filter-button";
 import { TransferTable } from "@/features/transfers/components/transfer-table";
 import { getTransfersTableAction } from "@/features/transfers/server/actions";
 import type { TransferType } from "@/features/transfers/types";
-import { useDebounced } from "@/hooks/use-debounced";
+import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useOptimistic, useRef, useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 
 type TransfersClientProps = {
 	transfers: TransferType[];
@@ -36,9 +36,23 @@ export function TransfersClient({
 	const [optimisticPage, setOptimisticPage] = useOptimistic(currentPage);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(currentLimit);
 	const [query, setQuery] = useState("");
-	const debouncedQuery = useDebounced(query, 300);
 	const [isPending, startTransition] = useTransition();
-	const hasMountedRef = useRef(false);
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		startTransition(async () => {
+			setOptimisticPage(1);
+
+			const result = await getTransfersTableAction({
+				page: 1,
+				limit: currentLimit,
+				query: nextQuery,
+			});
+
+			setTableData(result.transfers);
+			setCurrentPage(result.page);
+			setCurrentLimit(result.limit);
+			setCurrentTotalPages(result.totalPages);
+		});
+	}, 300);
 
 	function createQueryString(params: Record<string, string>) {
 		const newParams = new URLSearchParams(searchParams.toString());
@@ -48,27 +62,10 @@ export function TransfersClient({
 		return newParams.toString();
 	}
 
-	useEffect(() => {
-		if (!hasMountedRef.current) {
-			hasMountedRef.current = true;
-			return;
-		}
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-
-			const result = await getTransfersTableAction({
-				page: 1,
-				limit: currentLimit,
-				query: debouncedQuery,
-			});
-
-			setTableData(result.transfers);
-			setCurrentPage(result.page);
-			setCurrentLimit(result.limit);
-			setCurrentTotalPages(result.totalPages);
-		});
-	}, [debouncedQuery]);
+	function handleQueryChange(nextQuery: string) {
+		setQuery(nextQuery);
+		debouncedSearch(nextQuery);
+	}
 
 	function handlePreviousPage() {
 		startTransition(async () => {
@@ -77,7 +74,7 @@ export function TransfersClient({
 			const result = await getTransfersTableAction({
 				page: currentPage - 1,
 				limit: currentLimit,
-				query: debouncedQuery,
+				query,
 			});
 
 			setTableData(result.transfers);
@@ -100,7 +97,7 @@ export function TransfersClient({
 			const result = await getTransfersTableAction({
 				page: currentPage + 1,
 				limit: currentLimit,
-				query: debouncedQuery,
+				query,
 			});
 
 			setTableData(result.transfers);
@@ -124,7 +121,7 @@ export function TransfersClient({
 			const result = await getTransfersTableAction({
 				page: 1,
 				limit: value,
-				query: debouncedQuery,
+				query,
 			});
 
 			setTableData(result.transfers);
@@ -154,7 +151,7 @@ export function TransfersClient({
 							className="h-10 w-full pl-8"
 							placeholder="Search by patient name or ID"
 							value={query}
-							onChange={(event) => setQuery(event.target.value)}
+							onChange={(event) => handleQueryChange(event.target.value)}
 						/>
 					</div>
 

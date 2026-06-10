@@ -38,9 +38,7 @@ import {
 	type ColumnDef,
 	flexRender,
 	getCoreRowModel,
-	getPaginationRowModel,
 	getSortedRowModel,
-	type PaginationState,
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
@@ -63,25 +61,42 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
-export function AllergiesTable({ allergies }: { allergies: AllergyType[] }) {
+type AllergiesTableProps = {
+	allergies: AllergyType[];
+	page: number;
+	limit: number;
+	totalPages: number;
+	query: string;
+	isPending: boolean;
+	onQueryChange: (query: string) => void;
+	onPreviousPage: () => void;
+	onNextPage: () => void;
+	onLimitChange: (limit: number) => void;
+};
+
+export function AllergiesTable({
+	allergies,
+	page,
+	limit,
+	totalPages,
+	query,
+	isPending,
+	onQueryChange,
+	onPreviousPage,
+	onNextPage,
+	onLimitChange,
+}: AllergiesTableProps) {
 	const columns = useMemo(() => getAllergiesColumns(), []);
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [pagination, setPagination] = useState<PaginationState>({
-		pageIndex: 0,
-		pageSize: 6,
-	});
 
 	const table = useReactTable({
 		data: allergies,
 		columns,
 		enableRowSelection: true,
 		onSortingChange: setSorting,
-		onPaginationChange: setPagination,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		state: {
-			pagination,
 			sorting,
 		},
 	});
@@ -96,6 +111,8 @@ export function AllergiesTable({ allergies }: { allergies: AllergyType[] }) {
 						type="search"
 						className="h-10 w-full pl-8"
 						placeholder="Search by name and allergy id"
+						value={query}
+						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
 				<DropdownMenu>
@@ -310,8 +327,9 @@ export function AllergiesTable({ allergies }: { allergies: AllergyType[] }) {
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select
-							value={String(table.getState().pagination.pageSize)}
-							onValueChange={(value) => table.setPageSize(Number(value))}
+							value={String(limit)}
+							onValueChange={(value) => onLimitChange(Number(value))}
+							disabled={isPending}
 						>
 							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
@@ -329,15 +347,15 @@ export function AllergiesTable({ allergies }: { allergies: AllergyType[] }) {
 					</div>
 					<div className="flex items-center gap-3">
 						<span>
-							Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+							Page {page} of {totalPages}
 						</span>
 						<div className="flex items-center gap-2">
 							<Button
 								type="button"
 								variant="outline"
 								size="sm"
-								onClick={() => table.previousPage()}
-								disabled={!table.getCanPreviousPage()}
+								onClick={onPreviousPage}
+								disabled={page <= 1 || isPending}
 								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 							>
 								Previous
@@ -346,8 +364,8 @@ export function AllergiesTable({ allergies }: { allergies: AllergyType[] }) {
 								type="button"
 								variant="outline"
 								size="sm"
-								onClick={() => table.nextPage()}
-								disabled={!table.getCanNextPage()}
+								onClick={onNextPage}
+								disabled={page >= totalPages || isPending}
 								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 							>
 								Next

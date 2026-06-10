@@ -6,12 +6,12 @@ import { FilterButton } from "@/features/patients/components/filter-button";
 import { PatientsTable } from "@/features/patients/components/patients-table";
 import { getPatientsTableAction } from "@/features/patients/server/actions";
 import type { PatientListItemType } from "@/features/patients/types";
-import { useDebounced } from "@/hooks/use-debounced";
+import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useOptimistic, useRef, useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 
 type PatientsClientProps = {
 	patients: PatientListItemType[];
@@ -36,9 +36,23 @@ export function PatientsClient({
 	const [optimisticPage, setOptimisticPage] = useOptimistic(currentPage);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(currentLimit);
 	const [query, setQuery] = useState("");
-	const debouncedQuery = useDebounced(query, 300);
 	const [isPending, startTransition] = useTransition();
-	const hasMountedRef = useRef(false);
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		startTransition(async () => {
+			setOptimisticPage(1);
+
+			const result = await getPatientsTableAction({
+				page: 1,
+				limit: currentLimit,
+				query: nextQuery,
+			});
+
+			setTableData(result.patients);
+			setCurrentPage(result.page);
+			setCurrentLimit(result.limit);
+			setCurrentTotalPages(result.totalPages);
+		});
+	}, 300);
 
 	function createQueryString(params: Record<string, string>) {
 		const newParams = new URLSearchParams(searchParams.toString());
@@ -48,27 +62,10 @@ export function PatientsClient({
 		return newParams.toString();
 	}
 
-	useEffect(() => {
-		if (!hasMountedRef.current) {
-			hasMountedRef.current = true;
-			return;
-		}
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-
-			const result = await getPatientsTableAction({
-				page: 1,
-				limit: currentLimit,
-				query: debouncedQuery,
-			});
-
-			setTableData(result.patients);
-			setCurrentPage(result.page);
-			setCurrentLimit(result.limit);
-			setCurrentTotalPages(result.totalPages);
-		});
-	}, [debouncedQuery]);
+	function handleQueryChange(nextQuery: string) {
+		setQuery(nextQuery);
+		debouncedSearch(nextQuery);
+	}
 
 	function handlePreviousPage() {
 		startTransition(async () => {
@@ -77,7 +74,7 @@ export function PatientsClient({
 			const result = await getPatientsTableAction({
 				page: currentPage - 1,
 				limit: currentLimit,
-				query: debouncedQuery,
+				query,
 			});
 
 			setTableData(result.patients);
@@ -100,7 +97,7 @@ export function PatientsClient({
 			const result = await getPatientsTableAction({
 				page: currentPage + 1,
 				limit: currentLimit,
-				query: debouncedQuery,
+				query,
 			});
 
 			setTableData(result.patients);
@@ -124,7 +121,7 @@ export function PatientsClient({
 			const result = await getPatientsTableAction({
 				page: 1,
 				limit: value,
-				query: debouncedQuery,
+				query,
 			});
 
 			setTableData(result.patients);
@@ -154,7 +151,7 @@ export function PatientsClient({
 							className="h-10 w-full pl-8"
 							placeholder="Search by patient name or ID"
 							value={query}
-							onChange={(event) => setQuery(event.target.value)}
+							onChange={(event) => handleQueryChange(event.target.value)}
 						/>
 					</div>
 

@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
 import { notFound } from "next/navigation";
-import { DiagnosesTable } from "@/features/patients/components/diagnoses-table";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -10,8 +9,6 @@ import { CopyIdButton } from "@/components/copy-id-button";
 import { SectionTabs } from "../../../../../../features/patients/components/section-tabs";
 import { PatientOverviewSection } from "@/features/patients/components/patient-overview-section";
 import { PatientDetailsSection } from "@/features/patients/components/patient-details-section/patient-details-section";
-import { AllergiesTable } from "@/features/patients/components/allergies-table";
-import { ImmunizationsTable } from "@/features/patients/components/immunizations-table";
 import { ProceduresTable } from "@/features/patients/components/procedures-table";
 import { MedicationsTable } from "@/features/patients/components/medications-table";
 import { EncountersTable } from "@/features/patients/components/encounters-table";
@@ -28,6 +25,11 @@ import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
 import { getPatientMedications } from "@/lib/api/get-patient-medications";
 import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
 import { verifySession } from "@/lib/api/verify-session";
+import {
+	AllergiesClient,
+	DiagnosesClient,
+	ImmunizationsClient,
+} from "./patient-section-table-clients";
 
 export const metadata = {
 	title: "Patient",
@@ -219,7 +221,7 @@ async function renderSectionContent(section: string, patientId: string) {
 }
 
 async function DiagnosesSection({ patientId }: { patientId: string }) {
-	const diagnoses = await getPatientDiagnoses(patientId);
+	const { diagnoses, totalDiagnoses } = await getPatientDiagnoses(patientId);
 
 	if (diagnoses.length === 0) {
 		return renderEmptyState(
@@ -229,11 +231,19 @@ async function DiagnosesSection({ patientId }: { patientId: string }) {
 		);
 	}
 
-	return <DiagnosesTable diagnoses={diagnoses} />;
+	return (
+		<DiagnosesClient
+			patientId={patientId}
+			diagnoses={diagnoses}
+			page={1}
+			limit={6}
+			totalPages={Math.ceil(totalDiagnoses / 6) || 1}
+		/>
+	);
 }
 
 async function AllergiesSection({ patientId }: { patientId: string }) {
-	const allergies = await getPatientAllergies(patientId);
+	const { allergies, totalAllergies } = await getPatientAllergies(patientId);
 
 	if (allergies.length === 0) {
 		return renderEmptyState(
@@ -243,11 +253,19 @@ async function AllergiesSection({ patientId }: { patientId: string }) {
 		);
 	}
 
-	return <AllergiesTable allergies={allergies} />;
+	return (
+		<AllergiesClient
+			patientId={patientId}
+			allergies={allergies}
+			page={1}
+			limit={6}
+			totalPages={Math.ceil(totalAllergies / 6) || 1}
+		/>
+	);
 }
 
 async function ImmunizationSection({ patientId }: { patientId: string }) {
-	const immunizations = await getPatientImmunizations(patientId);
+	const { immunizations, totalImmunizations } = await getPatientImmunizations(patientId);
 
 	if (immunizations.length === 0) {
 		return renderEmptyState(
@@ -257,7 +275,15 @@ async function ImmunizationSection({ patientId }: { patientId: string }) {
 		);
 	}
 
-	return <ImmunizationsTable immunizations={immunizations} />;
+	return (
+		<ImmunizationsClient
+			patientId={patientId}
+			immunizations={immunizations}
+			page={1}
+			limit={6}
+			totalPages={Math.ceil(totalImmunizations / 6) || 1}
+		/>
+	);
 }
 
 async function ProceduresSection({ patientId }: { patientId: string }) {
