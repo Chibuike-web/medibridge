@@ -11,6 +11,7 @@ import { clinicalRecordItemsByType, clinicalRecords } from "@/features/transfers
 import { useAttachClinicalRecords } from "@/features/transfers/stores/use-attach-clinical-records";
 import { cn } from "@/lib/utils/cn";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 export function AttachClinicalRecords({ activePatient }: { activePatient: string }) {
 	const { attachedRecords, toggleAttachedRecord } = useAttachClinicalRecords();
@@ -114,7 +115,9 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 						</div>
 					) : (
 						<div className="flex gap-1.5 items-center text-sm text-foreground">
-							<span className="flex items-center">{selectedRecordsForActiveTab[0].name}</span>
+							<span className="flex items-center text-[1rem]">
+								{selectedRecordsForActiveTab[0].name}
+							</span>
 							{selectedRecordsForActiveTab.length - 1 > 0 && (
 								<span> +{selectedRecordsForActiveTab.length - 1} more</span>
 							)}
@@ -123,8 +126,8 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 					<RiArrowDownSLine className="size-5 text-gray-400 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
 				</PopoverTrigger>
 
-				<PopoverContent sideOffset={8} className="flex flex-col gap-1 rounded-2xl p-2">
-					<div className="flex items-center gap-2 text-gray-400 pl-2">
+				<PopoverContent sideOffset={8} className="rounded-2xl h-[24rem] flex flex-col p-0">
+					<div className="flex items-center gap-2 px-4 py-2 text-gray-400 border-b border-gray-200">
 						<RiSearchLine className="size-5" />
 						<input
 							className="h-10 placeholder:text-base focus:outline-0 w-full"
@@ -137,7 +140,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 
 					<div
 						className={cn(
-							"flex h-11 w-full items-center gap-3 rounded-md px-3 text-left text-sm text-gray-600",
+							"flex h-11 w-full items-center gap-3 rounded-md px-6 text-left text-sm text-gray-600",
 							filteredRecordsForActiveTab.length === 0 && "opacity-50",
 						)}
 					>
@@ -153,20 +156,41 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 							<span>Select all</span>
 						</Label>
 					</div>
-					{filteredRecordsForActiveTab.map(({ id, name }) => (
-						<MultiSelectItem
-							key={id}
-							isSelected={selectedRecordsIds.has(id)}
-							onClick={() =>
-								toggleAttachedRecord(activePatient, { id, name, type: activeTab.label })
-							}
+					<div className="flex flex-col gap-1 overflow-y-auto px-4 pb-3">
+						{filteredRecordsForActiveTab.map(({ id, name }) => (
+							<MultiSelectItem
+								key={id}
+								isSelected={selectedRecordsIds.has(id)}
+								onClick={() =>
+									toggleAttachedRecord(activePatient, { id, name, type: activeTab.label })
+								}
+							>
+								{name}
+							</MultiSelectItem>
+						))}
+						{filteredRecordsForActiveTab.length === 0 && (
+							<div className="px-3 py-2 text-sm text-gray-500">No records found</div>
+						)}
+					</div>
+					<div className="grid grid-cols-3 items-center border-t border-gray-200 px-6 py-4">
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							className="justify-self-start border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
-							{name}
-						</MultiSelectItem>
-					))}
-					{filteredRecordsForActiveTab.length === 0 && (
-						<div className="px-3 py-2 text-sm text-gray-500">No records found</div>
-					)}
+							Previous
+						</Button>
+						<span className="justify-self-center text-sm font-medium text-gray-600"></span>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							className="justify-self-end border-gray-200 px-3 text-gray-700 shadow-none transition"
+						>
+							Next
+						</Button>
+					</div>
 				</PopoverContent>
 			</Popover>
 		</div>

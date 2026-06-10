@@ -11,7 +11,12 @@ import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getPatients } from "@/lib/api/get-patients";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
+import { getPatientEncounters } from "@/lib/api/get-patient-encounters";
+import { getPatientImaging } from "@/lib/api/get-patient-imaging";
 import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
+import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
+import { getPatientMedications } from "@/lib/api/get-patient-medications";
+import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
 
 export async function deletePatientUploadAction(relativePath: string) {
 	return deletePatientUploadService(relativePath);
@@ -149,5 +154,145 @@ export async function getPatientImmunizationsTableAction({
 		page: currentPage,
 		limit: currentLimit,
 		totalPages: Math.ceil(totalImmunizations / currentLimit) || 1,
+	};
+}
+
+export async function getPatientProceduresTableAction({
+	patientId,
+	page,
+	limit,
+	query = "",
+}: {
+	patientId: string;
+	page: number | string;
+	limit: number | string;
+	query?: string;
+}) {
+	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
+	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
+	const { procedures, totalProcedures } = await getPatientProcedures(
+		patientId,
+		currentPage,
+		currentLimit,
+		query,
+	);
+
+	return {
+		procedures,
+		page: currentPage,
+		limit: currentLimit,
+		totalPages: Math.ceil(totalProcedures / currentLimit) || 1,
+	};
+}
+
+export async function getPatientMedicationsTableAction({
+	patientId,
+	page,
+	limit,
+	query = "",
+}: {
+	patientId: string;
+	page: number | string;
+	limit: number | string;
+	query?: string;
+}) {
+	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
+	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
+	const { medications, totalMedications } = await getPatientMedications(
+		patientId,
+		currentPage,
+		currentLimit,
+		query,
+	);
+
+	return {
+		medications,
+		page: currentPage,
+		limit: currentLimit,
+		totalPages: Math.ceil(totalMedications / currentLimit) || 1,
+	};
+}
+
+export async function getPatientEncountersTableAction({
+	patientId,
+	page,
+	limit,
+	query = "",
+}: {
+	patientId: string;
+	page: number | string;
+	limit: number | string;
+	query?: string;
+}) {
+	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
+	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
+	const { encounters, totalEncounters } = await getPatientEncounters(
+		patientId,
+		currentPage,
+		currentLimit,
+		query,
+	);
+
+	return {
+		encounters,
+		page: currentPage,
+		limit: currentLimit,
+		totalPages: Math.ceil(totalEncounters / currentLimit) || 1,
+	};
+}
+
+export async function getPatientLabTestsTableAction({
+	patientId,
+	page,
+	limit,
+	query = "",
+}: {
+	patientId: string;
+	page: number | string;
+	limit: number | string;
+	query?: string;
+}) {
+	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
+	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
+	const { labTests, totalLabTests } = await getPatientLabTests(
+		patientId,
+		currentPage,
+		currentLimit,
+		query,
+	);
+
+	return {
+		labTests,
+		page: currentPage,
+		limit: currentLimit,
+		totalPages: Math.ceil(totalLabTests / currentLimit) || 1,
+	};
+}
+
+export async function getPatientImagingTableAction({
+	patientId,
+	page,
+	limit,
+	query = "",
+}: {
+	patientId: string;
+	page: number | string;
+	limit: number | string;
+	query?: string;
+}) {
+	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
+	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
+	const { imagingStudies, totalImagingStudies } = await getPatientImaging(
+		patientId,
+		currentPage,
+		currentLimit,
+		query,
+	);
+
+	return {
+		imagingStudies,
+		page: currentPage,
+		limit: currentLimit,
+		totalPages: Math.ceil(totalImagingStudies / currentLimit) || 1,
 	};
 }

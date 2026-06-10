@@ -22,7 +22,7 @@ function normalizeStatus(value: string): AllergyType["status"] {
 export async function getPatientAllergies(
 	patientId: string,
 	page = 1,
-	limit = 6,
+	limit = 14,
 	query = "",
 ): Promise<{ allergies: AllergyType[]; totalAllergies: number }> {
 	const organizationId = await getOrganizationId();

@@ -36,9 +36,7 @@ import {
 	type ColumnDef,
 	flexRender,
 	getCoreRowModel,
-	getPaginationRowModel,
 	getSortedRowModel,
-	type PaginationState,
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
@@ -53,32 +51,46 @@ import {
 	RiShare2Line,
 } from "@remixicon/react";
 
-const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
+const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
+
+type EncountersTableProps = {
+	patientId: string;
+	encounters: EncounterType[];
+	page: number;
+	limit: number;
+	totalPages: number;
+	query: string;
+	isPending: boolean;
+	onQueryChange: (query: string) => void;
+	onPreviousPage: () => void;
+	onNextPage: () => void;
+	onLimitChange: (limit: number) => void;
+};
 
 export function EncountersTable({
 	patientId,
 	encounters,
-}: {
-	patientId: string;
-	encounters: EncounterType[];
-}) {
+	page,
+	limit,
+	totalPages,
+	query,
+	isPending,
+	onQueryChange,
+	onPreviousPage,
+	onNextPage,
+	onLimitChange,
+}: EncountersTableProps) {
 	const columns = useMemo(() => getEncountersColumns(patientId), [patientId]);
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [pagination, setPagination] = useState<PaginationState>({
-		pageIndex: 0,
-		pageSize: 6,
-	});
 
 	const table = useReactTable({
 		data: encounters,
 		columns,
 		enableRowSelection: true,
 		onSortingChange: setSorting,
-		onPaginationChange: setPagination,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		state: { pagination, sorting },
+		state: { sorting },
 	});
 
 	return (
@@ -91,6 +103,8 @@ export function EncountersTable({
 						type="search"
 						className="h-10 w-full pl-8"
 						placeholder="Search by department or physician"
+						value={query}
+						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
 				<Button
@@ -176,8 +190,9 @@ export function EncountersTable({
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select
-							value={String(table.getState().pagination.pageSize)}
-							onValueChange={(value) => table.setPageSize(Number(value))}
+							value={String(limit)}
+							onValueChange={(value) => onLimitChange(Number(value))}
+							disabled={isPending}
 						>
 							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
@@ -195,15 +210,15 @@ export function EncountersTable({
 					</div>
 					<div className="flex items-center gap-3">
 						<span>
-							Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+							Page {page} of {totalPages}
 						</span>
 						<div className="flex items-center gap-2">
 							<Button
 								type="button"
 								variant="outline"
 								size="sm"
-								onClick={() => table.previousPage()}
-								disabled={!table.getCanPreviousPage()}
+								onClick={onPreviousPage}
+								disabled={page <= 1 || isPending}
 								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 							>
 								Previous
@@ -212,8 +227,8 @@ export function EncountersTable({
 								type="button"
 								variant="outline"
 								size="sm"
-								onClick={() => table.nextPage()}
-								disabled={!table.getCanNextPage()}
+								onClick={onNextPage}
+								disabled={page >= totalPages || isPending}
 								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 							>
 								Next

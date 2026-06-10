@@ -9,11 +9,6 @@ import { CopyIdButton } from "@/components/copy-id-button";
 import { SectionTabs } from "../../../../../../features/patients/components/section-tabs";
 import { PatientOverviewSection } from "@/features/patients/components/patient-overview-section";
 import { PatientDetailsSection } from "@/features/patients/components/patient-details-section/patient-details-section";
-import { ProceduresTable } from "@/features/patients/components/procedures-table";
-import { MedicationsTable } from "@/features/patients/components/medications-table";
-import { EncountersTable } from "@/features/patients/components/encounters-table";
-import { LabTestsTable } from "@/features/patients/components/lab-tests-table";
-import { ImagingTable } from "@/features/patients/components/imaging-table";
 import { PatientAvatarMenu } from "@/features/patients/components/patient-avatar-menu";
 import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
@@ -28,7 +23,12 @@ import { verifySession } from "@/lib/api/verify-session";
 import {
 	AllergiesClient,
 	DiagnosesClient,
+	EncountersClient,
+	ImagingClient,
 	ImmunizationsClient,
+	LabTestsClient,
+	MedicationsClient,
+	ProceduresClient,
 } from "./patient-section-table-clients";
 
 export const metadata = {
@@ -236,8 +236,8 @@ async function DiagnosesSection({ patientId }: { patientId: string }) {
 			patientId={patientId}
 			diagnoses={diagnoses}
 			page={1}
-			limit={6}
-			totalPages={Math.ceil(totalDiagnoses / 6) || 1}
+			limit={14}
+			totalPages={Math.ceil(totalDiagnoses / 14) || 1}
 		/>
 	);
 }
@@ -258,8 +258,8 @@ async function AllergiesSection({ patientId }: { patientId: string }) {
 			patientId={patientId}
 			allergies={allergies}
 			page={1}
-			limit={6}
-			totalPages={Math.ceil(totalAllergies / 6) || 1}
+			limit={14}
+			totalPages={Math.ceil(totalAllergies / 14) || 1}
 		/>
 	);
 }
@@ -280,14 +280,14 @@ async function ImmunizationSection({ patientId }: { patientId: string }) {
 			patientId={patientId}
 			immunizations={immunizations}
 			page={1}
-			limit={6}
-			totalPages={Math.ceil(totalImmunizations / 6) || 1}
+			limit={14}
+			totalPages={Math.ceil(totalImmunizations / 14) || 1}
 		/>
 	);
 }
 
 async function ProceduresSection({ patientId }: { patientId: string }) {
-	const procedures = await getPatientProcedures(patientId);
+	const { procedures, totalProcedures } = await getPatientProcedures(patientId);
 
 	if (procedures.length === 0) {
 		return renderEmptyState(
@@ -297,11 +297,19 @@ async function ProceduresSection({ patientId }: { patientId: string }) {
 		);
 	}
 
-	return <ProceduresTable procedures={procedures} />;
+	return (
+		<ProceduresClient
+			patientId={patientId}
+			procedures={procedures}
+			page={1}
+			limit={14}
+			totalPages={Math.ceil(totalProcedures / 14) || 1}
+		/>
+	);
 }
 
 async function MedicationsSection({ patientId }: { patientId: string }) {
-	const medications = await getPatientMedications(patientId);
+	const { medications, totalMedications } = await getPatientMedications(patientId);
 
 	if (medications.length === 0) {
 		return renderEmptyState(
@@ -311,11 +319,19 @@ async function MedicationsSection({ patientId }: { patientId: string }) {
 		);
 	}
 
-	return <MedicationsTable medications={medications} />;
+	return (
+		<MedicationsClient
+			patientId={patientId}
+			medications={medications}
+			page={1}
+			limit={14}
+			totalPages={Math.ceil(totalMedications / 14) || 1}
+		/>
+	);
 }
 
 async function EncountersSection({ patientId }: { patientId: string }) {
-	const encounters = await getPatientEncounters(patientId);
+	const { encounters, totalEncounters } = await getPatientEncounters(patientId);
 
 	if (encounters.length === 0) {
 		return renderEmptyState(
@@ -325,11 +341,19 @@ async function EncountersSection({ patientId }: { patientId: string }) {
 		);
 	}
 
-	return <EncountersTable patientId={patientId} encounters={encounters} />;
+	return (
+		<EncountersClient
+			patientId={patientId}
+			encounters={encounters}
+			page={1}
+			limit={14}
+			totalPages={Math.ceil(totalEncounters / 14) || 1}
+		/>
+	);
 }
 
 async function LabTestsSection({ patientId }: { patientId: string }) {
-	const labTests = await getPatientLabTests(patientId);
+	const { labTests, totalLabTests } = await getPatientLabTests(patientId);
 
 	if (labTests.length === 0) {
 		return renderEmptyState(
@@ -339,11 +363,19 @@ async function LabTestsSection({ patientId }: { patientId: string }) {
 		);
 	}
 
-	return <LabTestsTable patientId={patientId} labTests={labTests} />;
+	return (
+		<LabTestsClient
+			patientId={patientId}
+			labTests={labTests}
+			page={1}
+			limit={14}
+			totalPages={Math.ceil(totalLabTests / 14) || 1}
+		/>
+	);
 }
 
 async function ImagingSection({ patientId }: { patientId: string }) {
-	const imagingStudies = await getPatientImaging(patientId);
+	const { imagingStudies, totalImagingStudies } = await getPatientImaging(patientId);
 
 	if (imagingStudies.length === 0) {
 		return renderEmptyState(
@@ -353,7 +385,15 @@ async function ImagingSection({ patientId }: { patientId: string }) {
 		);
 	}
 
-	return <ImagingTable imagingStudies={imagingStudies} />;
+	return (
+		<ImagingClient
+			patientId={patientId}
+			imagingStudies={imagingStudies}
+			page={1}
+			limit={14}
+			totalPages={Math.ceil(totalImagingStudies / 14) || 1}
+		/>
+	);
 }
 
 function DocumentsSection({ patientId }: { patientId: string }) {

@@ -29,6 +29,7 @@ import { SuccessModal } from "@/components/success-modal";
 import { useAttachClinicalRecords } from "@/features/transfers/stores/use-attach-clinical-records";
 import { getPatientById } from "@/features/patients/server/actions";
 import type { SelectedTransferPatient } from "@/features/transfers/stores/use-selected-transfer-patients";
+import { truncateId } from "@/lib/utils/truncate-id";
 
 export function NewTransferRequestClient({
 	searchParams,
@@ -161,7 +162,7 @@ export function NewTransferRequestClient({
 										"bg-gray-200 text-gray-600": activePatient !== s.patientId,
 									})}
 								>
-									{s.name} - {s.patientId}
+									{s.name} - {truncateId(s.patientId)}
 									<span
 										role="button"
 										className={cn("size-5 flex items-center justify-center rounded-full", {

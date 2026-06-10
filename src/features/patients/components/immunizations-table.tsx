@@ -57,7 +57,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 
-const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
+const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
 type ImmunizationsTableProps = {
 	immunizations: ImmunizationType[];

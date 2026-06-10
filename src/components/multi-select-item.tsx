@@ -17,7 +17,7 @@ export function MultiSelectItem({ children, isSelected, onClick }: MultiSelectIt
 			onClick={onClick}
 			className={cn(
 				"flex w-full text-left items-center justify-between rounded-md px-3 h-11 text-sm",
-				isSelected ? "bg-foreground/5 text-foreground" : "text-gray-600 hover:bg-gray-50",
+				isSelected ? "bg-gray-200 text-foreground" : "text-gray-600 hover:bg-gray-50",
 			)}
 		>
 			<span>{children}</span>

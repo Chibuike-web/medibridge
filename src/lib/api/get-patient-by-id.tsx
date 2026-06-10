@@ -4,6 +4,17 @@ import { patient, patientContactInformation, patientPersonalInformation } from "
 import { getOrganizationId } from "./get-organization-id";
 import { and, eq } from "drizzle-orm";
 
+function formatSex(value: string | null) {
+	if (!value) return "-";
+
+	const normalizedValue = value.toLowerCase();
+
+	if (normalizedValue === "female") return "Female";
+	if (normalizedValue === "male") return "Male";
+
+	return value;
+}
+
 export async function getPatientById(patientId: string) {
 	const organizationId = await getOrganizationId();
 
@@ -35,7 +46,14 @@ export async function getPatientById(patientId: string) {
 				.where(and(eq(patient.id, patientId), eq(patient.organizationId, organizationId)))
 				.limit(1);
 
-			return rows[0] || null;
+			const row = rows[0];
+
+			if (!row) return null;
+
+			return {
+				...row,
+				sex: formatSex(row.sex),
+			};
 		},
 		[`patient-header-${organizationId}-${patientId}`],
 		{ tags: [`patient-header-${organizationId}-${patientId}`] },

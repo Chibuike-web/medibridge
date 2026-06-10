@@ -10,14 +10,9 @@ import { RiArrowDownSLine, RiCheckLine, RiCloseLine, RiSearchLine } from "@remix
 import { cn } from "@/lib/utils/cn";
 import { useRouter } from "next/navigation";
 import { useAttachClinicalRecords } from "../stores/use-attach-clinical-records";
-import { useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { getTransferPatientOptionsAction } from "@/features/transfers/server/actions";
-
-function truncatePatientId(id: string) {
-	if (id.length <= 13) return id;
-
-	return `${id.slice(0, 8)}...${id.slice(-4)}`;
-}
+import { truncateId } from "@/lib/utils/truncate-id";
 
 export function SelectPatient({
 	patientId,
@@ -36,6 +31,7 @@ export function SelectPatient({
 	const [patientOptions, setPatientOptions] = useState(patients);
 	const [currentPage, setCurrentPage] = useState(page);
 	const [currentTotalPages, setCurrentTotalPages] = useState(totalPages);
+	const [optimisticPage, setOptimisticPage] = useOptimistic(currentPage);
 	const [isPending, startTransition] = useTransition();
 	const { removeAttachedRecords } = useAttachClinicalRecords();
 
@@ -51,7 +47,7 @@ export function SelectPatient({
 			<div className="flex items-center gap-2">
 				<span>{selectedPatients[0].name}</span>
 				<span className="p-1 rounded bg-white text-xs border" title={selectedPatients[0].patientId}>
-					{truncatePatientId(selectedPatients[0].patientId)}
+					{truncateId(selectedPatients[0].patientId)}
 				</span>
 			</div>
 		) : (
@@ -62,6 +58,8 @@ export function SelectPatient({
 		if (nextPage < 1 || nextPage > currentTotalPages || isPending) return;
 
 		startTransition(async () => {
+			setOptimisticPage(nextPage);
+
 			const result = await getTransferPatientOptionsAction({
 				page: nextPage,
 				limit,
@@ -83,7 +81,7 @@ export function SelectPatient({
 				</PopoverTrigger>
 
 				<PopoverContent sideOffset={8} className="rounded-2xl h-[24rem] flex flex-col p-0">
-					<div className="flex items-center gap-2 px-4 py-4 text-gray-400">
+					<div className="flex items-center gap-2 px-4 py-2 text-gray-400 border-b border-gray-200">
 						<RiSearchLine className="size-5 shrink-0" />
 						<input
 							className="h-10 min-w-0 flex-1 bg-transparent text-base text-gray-700 placeholder:text-gray-400 focus:outline-0"
@@ -93,7 +91,7 @@ export function SelectPatient({
 							onChange={(event) => setSearchTerm(event.target.value)}
 						/>
 					</div>
-					<div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-4 pb-3">
+					<div className="flex flex-col gap-1 overflow-y-auto px-4 pb-3">
 						{patientOptions.length === 0 ? (
 							<p className="px-3 py-4 text-sm text-gray-500">No patients available.</p>
 						) : (
@@ -108,16 +106,17 @@ export function SelectPatient({
 										type="button"
 										onClick={() => toggleSelectedPatient(patient)}
 										className={cn(
-											"px-3 py-2 rounded-lg text-base w-full text-left flex items-center justify-between",
-											isSelected
-												? "bg-foreground/5 text-foreground"
-												: "text-gray-600 hover:bg-gray-50",
+											"flex w-full text-left items-center justify-between rounded-md px-3 h-11 text-sm shrink-0",
+											isSelected ? "bg-gray-200 text-foreground" : "text-gray-600 hover:bg-gray-50",
 										)}
 									>
 										<div className="flex items-center gap-3">
 											<span className="font-medium">{patient.name}</span>
-											<span className="p-1 rounded bg-white text-xs border" title={patient.patientId}>
-												{truncatePatientId(patient.patientId)}
+											<span
+												className="p-1 rounded-sm bg-white text-xs border"
+												title={patient.patientId}
+											>
+												{truncateId(patient.patientId)}
 											</span>
 										</div>
 										{isSelected ? <RiCheckLine className="size-4" /> : null}
@@ -132,20 +131,20 @@ export function SelectPatient({
 							variant="outline"
 							size="sm"
 							onClick={() => handlePageChange(currentPage - 1)}
-							disabled={currentPage <= 1 || isPending}
+							disabled={optimisticPage <= 1 || isPending}
 							className="justify-self-start border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Previous
 						</Button>
 						<span className="justify-self-center text-sm font-medium text-gray-600">
-							Page {currentPage} of {currentTotalPages}
+							Page {optimisticPage} of {currentTotalPages}
 						</span>
 						<Button
 							type="button"
 							variant="outline"
 							size="sm"
 							onClick={() => handlePageChange(currentPage + 1)}
-							disabled={currentPage >= currentTotalPages || isPending}
+							disabled={optimisticPage >= currentTotalPages || isPending}
 							className="justify-self-end border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Next
@@ -159,7 +158,7 @@ export function SelectPatient({
 						key={s.patientId}
 						className="text-sm bg-gray-200 text-gray-600 flex items-center gap-2 py-1.5 pl-3 pr-1.5 rounded-full"
 					>
-						{s.name} - <span title={s.patientId}>{truncatePatientId(s.patientId)}</span>
+						{s.name} - <span title={s.patientId}>{truncateId(s.patientId)}</span>
 						<button
 							type="button"
 							className="bg-gray-800 size-5 flex items-center justify-center text-white rounded-full active:scale-[0.90] transition-transform"

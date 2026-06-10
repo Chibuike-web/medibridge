@@ -4,7 +4,7 @@ import type { MedicationType } from "@/features/patients/types";
 import { db } from "@/lib/better-auth/auth";
 import { formatDateTime } from "@/lib/utils/format-date-time";
 import { toSortValue } from "@/lib/utils/to-sort-value";
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or } from "drizzle-orm";
 import { getOrganizationId } from "./get-organization-id";
 
 function normalizeStatus(value: string): MedicationType["status"] {
@@ -21,45 +21,86 @@ function normalizeStatus(value: string): MedicationType["status"] {
 	return "Active";
 }
 
-export async function getPatientMedications(patientId: string): Promise<MedicationType[]> {
+export async function getPatientMedications(
+	patientId: string,
+	page = 1,
+	limit = 14,
+	query = "",
+): Promise<{ medications: MedicationType[]; totalMedications: number }> {
 	const organizationId = await getOrganizationId();
+	const offset = (page - 1) * limit;
+	const normalizedQuery = query.trim();
+	const searchPattern = `%${normalizedQuery}%`;
 
-	if (!organizationId) return [];
+	if (!organizationId) return { medications: [], totalMedications: 0 };
 
 	return unstable_cache(
 		async () => {
-			const rows = await db
-				.select({
-					medication: patientMedication.medicationName,
-					dose: patientMedication.dose,
-					route: patientMedication.route,
-					medicationId: patientMedication.medicationId,
-					indication: patientMedication.indication,
-					createdAt: patientMedication.createdAt,
-					status: patientMedication.status,
-				})
-				.from(patientMedication)
-				.innerJoin(patient, eq(patientMedication.patientId, patient.id))
-				.where(
-					and(
-						eq(patientMedication.patientId, patientId),
-						eq(patient.organizationId, organizationId),
+			const [countRows, rows] = await Promise.all([
+				db
+					.select({ value: count() })
+					.from(patientMedication)
+					.innerJoin(patient, eq(patientMedication.patientId, patient.id))
+					.where(
+						and(
+							eq(patientMedication.patientId, patientId),
+							eq(patient.organizationId, organizationId),
+							or(
+								ilike(patientMedication.medicationName, searchPattern),
+								ilike(patientMedication.medicationId, searchPattern),
+								ilike(patientMedication.dose, searchPattern),
+								ilike(patientMedication.route, searchPattern),
+								ilike(patientMedication.indication, searchPattern),
+								ilike(patientMedication.status, searchPattern),
+							),
+						),
 					),
-				)
-				.orderBy(desc(patientMedication.createdAt));
+				db
+					.select({
+						medication: patientMedication.medicationName,
+						dose: patientMedication.dose,
+						route: patientMedication.route,
+						medicationId: patientMedication.medicationId,
+						indication: patientMedication.indication,
+						createdAt: patientMedication.createdAt,
+						status: patientMedication.status,
+					})
+					.from(patientMedication)
+					.innerJoin(patient, eq(patientMedication.patientId, patient.id))
+					.where(
+						and(
+							eq(patientMedication.patientId, patientId),
+							eq(patient.organizationId, organizationId),
+							or(
+								ilike(patientMedication.medicationName, searchPattern),
+								ilike(patientMedication.medicationId, searchPattern),
+								ilike(patientMedication.dose, searchPattern),
+								ilike(patientMedication.route, searchPattern),
+								ilike(patientMedication.indication, searchPattern),
+								ilike(patientMedication.status, searchPattern),
+							),
+						),
+					)
+					.orderBy(desc(patientMedication.createdAt))
+					.limit(limit)
+					.offset(offset),
+			]);
 
-			return rows.map((medication) => ({
-				medication: medication.medication,
-				dose: medication.dose ?? "-",
-				route: medication.route ?? "-",
-				medicationId: medication.medicationId,
-				indication: medication.indication ?? "-",
-				createdAtLabel: formatDateTime(medication.createdAt),
-				createdAtSortValue: toSortValue(medication.createdAt),
-				status: normalizeStatus(medication.status),
-			}));
+			return {
+				totalMedications: countRows[0]?.value ?? 0,
+				medications: rows.map((medication) => ({
+					medication: medication.medication,
+					dose: medication.dose ?? "-",
+					route: medication.route ?? "-",
+					medicationId: medication.medicationId,
+					indication: medication.indication ?? "-",
+					createdAtLabel: formatDateTime(medication.createdAt),
+					createdAtSortValue: toSortValue(medication.createdAt),
+					status: normalizeStatus(medication.status),
+				})),
+			};
 		},
-		[`patient-medications-${organizationId}-${patientId}`],
+		[`patient-medications-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
 		{ tags: [`patient-medications-${organizationId}-${patientId}`] },
 	)();
 }

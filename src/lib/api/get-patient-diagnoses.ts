@@ -29,7 +29,7 @@ function normalizeStatus(value: string): DiagnosisType["status"] {
 export async function getPatientDiagnoses(
 	patientId: string,
 	page = 1,
-	limit = 6,
+	limit = 14,
 	query = "",
 ): Promise<{ diagnoses: DiagnosisType[]; totalDiagnoses: number }> {
 	const organizationId = await getOrganizationId();

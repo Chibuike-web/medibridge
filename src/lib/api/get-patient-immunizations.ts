@@ -24,7 +24,7 @@ function normalizeStatus(value: string): ImmunizationType["status"] {
 export async function getPatientImmunizations(
 	patientId: string,
 	page = 1,
-	limit = 6,
+	limit = 14,
 	query = "",
 ): Promise<{ immunizations: ImmunizationType[]; totalImmunizations: number }> {
 	const organizationId = await getOrganizationId();

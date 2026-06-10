@@ -42,7 +42,7 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 	const [sorting, setSorting] = useState<SortingState>([{ id: "patientName", desc: false }]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
-		pageSize: 4,
+		pageSize: 14,
 	});
 
 	const table = useReactTable({
