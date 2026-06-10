@@ -1,12 +1,14 @@
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/better-auth/auth";
 import { patient, patientPersonalInformation } from "@/db/schemas";
-import { count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or } from "drizzle-orm";
 import { getOrganizationId } from "./get-organization-id";
 
-export async function getPatients(page: number, limit: number) {
+export async function getPatients(page: number, limit: number, query = "") {
 	const organizationId = await getOrganizationId();
 	const offset = (page - 1) * limit;
+	const normalizedQuery = query.trim();
+	const searchPattern = `%${normalizedQuery}%`;
 
 	if (!organizationId) {
 		return { totalPatients: 0, patientCreatedAt: [], patients: [], hasPatients: false };
@@ -18,7 +20,21 @@ export async function getPatients(page: number, limit: number) {
 				db
 					.select({ value: count() })
 					.from(patient)
-					.where(eq(patient.organizationId, organizationId)),
+					.leftJoin(
+						patientPersonalInformation,
+						eq(patient.id, patientPersonalInformation.patientId),
+					)
+					.where(
+						and(
+							eq(patient.organizationId, organizationId),
+							or(
+								ilike(patient.id, searchPattern),
+								ilike(patient.patientId, searchPattern),
+								ilike(patientPersonalInformation.firstName, searchPattern),
+								ilike(patientPersonalInformation.lastName, searchPattern),
+							),
+						),
+					),
 				db
 					.select({
 						name: patientPersonalInformation.firstName,
@@ -33,7 +49,17 @@ export async function getPatients(page: number, limit: number) {
 						patientPersonalInformation,
 						eq(patient.id, patientPersonalInformation.patientId),
 					)
-					.where(eq(patient.organizationId, organizationId))
+					.where(
+						and(
+							eq(patient.organizationId, organizationId),
+							or(
+								ilike(patient.id, searchPattern),
+								ilike(patient.patientId, searchPattern),
+								ilike(patientPersonalInformation.firstName, searchPattern),
+								ilike(patientPersonalInformation.lastName, searchPattern),
+							),
+						),
+					)
 					.orderBy(desc(patient.createdAt))
 					.limit(limit)
 					.offset(offset),
@@ -54,7 +80,7 @@ export async function getPatients(page: number, limit: number) {
 				hasPatients: totalPatients > 0,
 			};
 		},
-		[`patients-${organizationId}-${page}-${limit}`],
+		[`patients-${organizationId}-${page}-${limit}-${normalizedQuery}`],
 		{ tags: [`patients-list-${organizationId}`] },
 	)();
 }

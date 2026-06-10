@@ -87,6 +87,16 @@ const seedSteps: SeedStep[] = [
 		file: "patient-medication-history.ts",
 	},
 	{
+		name: "patientLabTest",
+		table: schema.patientLabTest,
+		file: "patient-lab-test.ts",
+	},
+	{
+		name: "patientLabTestHistory",
+		table: schema.patientLabTestHistory,
+		file: "patient-lab-test-history.ts",
+	},
+	{
 		name: "patientTransfer",
 		table: schema.patientTransfer,
 		file: "patient-transfer.ts",

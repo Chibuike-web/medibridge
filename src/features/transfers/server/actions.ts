@@ -1,6 +1,7 @@
 "use server";
 
 import { getPatients } from "@/lib/api/get-patients";
+import { getTransfers } from "@/lib/api/get-transfers";
 import { verifySession } from "@/lib/api/verify-session";
 
 type GetTransferPatientOptionsParams = {
@@ -22,5 +23,28 @@ export async function getTransferPatientOptionsAction({
 		patients,
 		page: currentPage,
 		totalPages: Math.ceil(totalPatients / currentLimit) || 1,
+	};
+}
+
+export async function getTransfersTableAction({
+	page,
+	limit,
+	query = "",
+}: {
+	page: number | string;
+	limit: number | string;
+	query?: string;
+}) {
+	await verifySession();
+
+	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
+	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
+	const { transfers, totalTransfers } = await getTransfers(currentPage, currentLimit, query);
+
+	return {
+		transfers,
+		page: currentPage,
+		limit: currentLimit,
+		totalPages: Math.ceil(totalTransfers / currentLimit) || 1,
 	};
 }

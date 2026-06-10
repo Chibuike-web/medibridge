@@ -24,6 +24,7 @@ import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
 import { getPatientEncounters } from "@/lib/api/get-patient-encounters";
 import { getPatientImaging } from "@/lib/api/get-patient-imaging";
 import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
+import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
 import { getPatientMedications } from "@/lib/api/get-patient-medications";
 import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
 import { verifySession } from "@/lib/api/verify-session";
@@ -301,8 +302,18 @@ async function EncountersSection({ patientId }: { patientId: string }) {
 	return <EncountersTable patientId={patientId} encounters={encounters} />;
 }
 
-function LabTestsSection({ patientId }: { patientId: string }) {
-	return <LabTestsTable patientId={patientId} />;
+async function LabTestsSection({ patientId }: { patientId: string }) {
+	const labTests = await getPatientLabTests(patientId);
+
+	if (labTests.length === 0) {
+		return renderEmptyState(
+			"No Lab Tests yet",
+			"No lab tests have been recorded for this patient.",
+			"Add lab test",
+		);
+	}
+
+	return <LabTestsTable patientId={patientId} labTests={labTests} />;
 }
 
 async function ImagingSection({ patientId }: { patientId: string }) {

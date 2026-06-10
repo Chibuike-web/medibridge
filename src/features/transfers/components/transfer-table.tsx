@@ -1,7 +1,7 @@
 "use client";
 
-import { startTransition, useCallback, useMemo, useOptimistic, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CopyIdButton } from "@/components/copy-id-button";
@@ -55,7 +55,6 @@ import {
 } from "@remixicon/react";
 import { TransferType } from "../types";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
-import type { Route } from "next";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
@@ -64,17 +63,21 @@ export function TransferTable({
 	page,
 	limit,
 	totalPages,
+	isPending,
+	onPreviousPage,
+	onNextPage,
+	onLimitChange,
 }: {
 	data: TransferType[];
 	page: number;
 	limit: number;
 	totalPages: number;
+	isPending: boolean;
+	onPreviousPage: () => void;
+	onNextPage: () => void;
+	onLimitChange: (value: string) => void;
 }) {
 	const router = useRouter();
-	const pathname = usePathname();
-	const searchParams = useSearchParams();
-	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
-	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "patientName", desc: false }]);
 	const [selectedTransferId, setSelectedTransferId] = useState<string | null>(null);
 	const selectedTransfer = useMemo(
@@ -85,17 +88,6 @@ export function TransferTable({
 	const onViewTransferDetails = useCallback((transferId: string) => {
 		setSelectedTransferId(transferId);
 	}, []);
-
-	const createQueryString = useCallback(
-		(params: Record<string, string>) => {
-			const newParams = new URLSearchParams(searchParams.toString());
-			Object.entries(params).forEach(([name, value]) => {
-				newParams.set(name, value);
-			});
-			return newParams.toString();
-		},
-		[searchParams],
-	);
 
 	const columns = useMemo(() => {
 		return getTransferColumns(onViewTransferDetails, router);
@@ -183,16 +175,9 @@ export function TransferTable({
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select
-							value={optimisticLimit.toString()}
-							onValueChange={(value) => {
-								startTransition(() => {
-									setOptimisticLimit(Number(value));
-									router.push(
-										(pathname + "?" + createQueryString({ limit: value.toString() })) as Route,
-										{ scroll: false },
-									);
-								});
-							}}
+							value={limit.toString()}
+							onValueChange={onLimitChange}
+							disabled={isPending}
 						>
 							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
@@ -210,25 +195,15 @@ export function TransferTable({
 					</div>
 					<div className="flex items-center gap-3">
 						<span>
-							Page {optimisticPage} of {totalPages}
+							Page {page} of {totalPages}
 						</span>
 						<div className="flex items-center gap-2">
 							<Button
 								type="button"
 								variant="outline"
 								size="sm"
-								onClick={() => {
-									startTransition(() => {
-										setOptimisticPage(page - 1);
-										router.push(
-											(pathname +
-												"?" +
-												createQueryString({ page: (optimisticPage - 1).toString() })) as Route,
-											{ scroll: false },
-										);
-									});
-								}}
-								disabled={optimisticPage <= 1}
+								onClick={onPreviousPage}
+								disabled={page <= 1 || isPending}
 								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 							>
 								Previous
@@ -237,18 +212,8 @@ export function TransferTable({
 								type="button"
 								variant="outline"
 								size="sm"
-								onClick={() => {
-									startTransition(() => {
-										setOptimisticPage(page + 1);
-										router.push(
-											(pathname +
-												"?" +
-												createQueryString({ page: (optimisticPage + 1).toString() })) as Route,
-											{ scroll: false },
-										);
-									});
-								}}
-								disabled={optimisticPage >= totalPages}
+								onClick={onNextPage}
+								disabled={page >= totalPages || isPending}
 								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 							>
 								Next

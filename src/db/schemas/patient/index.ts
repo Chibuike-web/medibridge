@@ -10,4 +10,5 @@ export * from "./medication";
 export * from "./immunization";
 export * from "./procedure";
 export * from "./imaging";
+export * from "./lab-test";
 export * from "./transfer";

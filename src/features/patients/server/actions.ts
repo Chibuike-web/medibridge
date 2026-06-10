@@ -8,6 +8,7 @@ import { patientContactInformation, patientPersonalInformation } from "@/db/sche
 
 import { PatientType } from "../schemas/patient-schema";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
+import { getPatients } from "@/lib/api/get-patients";
 
 export async function deletePatientUploadAction(relativePath: string) {
 	return deletePatientUploadService(relativePath);
@@ -41,4 +42,25 @@ export async function getPatientById(patientId: string) {
 		.where(eq(patientPersonalInformation.patientId, patientId));
 
 	return rows[0] ?? null;
+}
+
+export async function getPatientsTableAction({
+	page,
+	limit,
+	query = "",
+}: {
+	page: number | string;
+	limit: number | string;
+	query?: string;
+}) {
+	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
+	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
+	const { patients, totalPatients } = await getPatients(currentPage, currentLimit, query);
+
+	return {
+		patients,
+		page: currentPage,
+		limit: currentLimit,
+		totalPages: Math.ceil(totalPatients / currentLimit) || 1,
+	};
 }

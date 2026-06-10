@@ -1,5 +1,5 @@
 import { unstable_cache } from "next/cache";
-import { count, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import {
 	patient,
 	patientPersonalInformation,
@@ -53,11 +53,17 @@ function formatContentType(value: string) {
 		.join(" ");
 }
 
-export async function getTransfers(page: number, limit: number): Promise<GetTransfersResult> {
+export async function getTransfers(
+	page: number,
+	limit: number,
+	query = "",
+): Promise<GetTransfersResult> {
 	const organizationId = await getOrganizationId();
 	const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
 	const currentLimit = Number.isFinite(limit) && limit > 0 ? limit : 14;
 	const offset = (currentPage - 1) * currentLimit;
+	const normalizedQuery = query.trim();
+	const searchPattern = `%${normalizedQuery}%`;
 
 	if (!organizationId) {
 		return { transfers: [], totalTransfers: 0 };
@@ -69,7 +75,24 @@ export async function getTransfers(page: number, limit: number): Promise<GetTran
 				db
 					.select({ value: count() })
 					.from(patientTransfer)
-					.where(eq(patientTransfer.sourceOrganizationId, organizationId)),
+					.innerJoin(patient, eq(patientTransfer.patientId, patient.id))
+					.innerJoin(
+						patientPersonalInformation,
+						eq(patient.id, patientPersonalInformation.patientId),
+					)
+					.where(
+						and(
+							eq(patientTransfer.sourceOrganizationId, organizationId),
+							or(
+								ilike(patientTransfer.id, searchPattern),
+								ilike(patientTransfer.transferId, searchPattern),
+								ilike(patientTransfer.patientId, searchPattern),
+								ilike(patientTransfer.targetHospitalName, searchPattern),
+								ilike(patientPersonalInformation.firstName, searchPattern),
+								ilike(patientPersonalInformation.lastName, searchPattern),
+							),
+						),
+					),
 				db
 					.select({
 						id: patientTransfer.id,
@@ -89,7 +112,19 @@ export async function getTransfers(page: number, limit: number): Promise<GetTran
 						patientPersonalInformation,
 						eq(patient.id, patientPersonalInformation.patientId),
 					)
-					.where(eq(patientTransfer.sourceOrganizationId, organizationId))
+					.where(
+						and(
+							eq(patientTransfer.sourceOrganizationId, organizationId),
+							or(
+								ilike(patientTransfer.id, searchPattern),
+								ilike(patientTransfer.transferId, searchPattern),
+								ilike(patientTransfer.patientId, searchPattern),
+								ilike(patientTransfer.targetHospitalName, searchPattern),
+								ilike(patientPersonalInformation.firstName, searchPattern),
+								ilike(patientPersonalInformation.lastName, searchPattern),
+							),
+						),
+					)
 					.orderBy(desc(patientTransfer.createdAt))
 					.limit(currentLimit)
 					.offset(offset),
@@ -135,7 +170,7 @@ export async function getTransfers(page: number, limit: number): Promise<GetTran
 				})),
 			};
 		},
-		[`transfers-${organizationId}-${currentPage}-${currentLimit}`],
+		[`transfers-${organizationId}-${currentPage}-${currentLimit}-${normalizedQuery}`],
 		{ tags: [`transfers-list-${organizationId}`] },
 	)();
 }

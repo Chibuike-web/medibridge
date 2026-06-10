@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { labTests } from "@/features/patients/lab-tests-data";
 import { LabTestType } from "@/features/patients/types";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
@@ -57,7 +56,12 @@ import {
 
 const ROWS_PER_PAGE_OPTIONS = [6, 12, 24];
 
-export function LabTestsTable({ patientId }: { patientId: string }) {
+type LabTestsTableProps = {
+	patientId: string;
+	labTests: LabTestType[];
+};
+
+export function LabTestsTable({ patientId, labTests }: LabTestsTableProps) {
 	void patientId;
 
 	const columns = useMemo(() => getLabTestsColumns(), []);
@@ -106,7 +110,7 @@ export function LabTestsTable({ patientId }: { patientId: string }) {
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button size="lg">Add new lab result</Button>
+				<Button size="lg">Add lab test</Button>
 			</div>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="w-full min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left">
