@@ -43,7 +43,7 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
-		pageSize: 14,
+		pageSize: 4,
 	});
 
 	const table = useReactTable({

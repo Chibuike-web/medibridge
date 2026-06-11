@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { RiEditLine, RiMore2Fill, RiShareForwardBoxLine, RiCloseLine } from "@remixicon/react";
 
 import { useState } from "react";
+import { DetailItem, DetailsSection } from "./detail-fields";
 
 type EmergencyContactItem = {
 	label: string;
@@ -37,12 +38,8 @@ export function EmergencyContact({
 }) {
 	const [open, setOpen] = useState(false);
 
-	return (
-		<section className="rounded-xl bg-gray-50 ring ring-gray-200">
-			<div className="flex h-11 items-center justify-between gap-4 px-4">
-				<h2 className="font-semibold text-lg text-gray-600 no-line-height">Emergency Contact</h2>
-
-				<DropdownMenu>
+	const action = (
+		<DropdownMenu>
 					<DropdownMenuTrigger
 						type="button"
 						className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
@@ -70,16 +67,15 @@ export function EmergencyContact({
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
-			</div>
+	);
 
-			<div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6 rounded-xl bg-white p-4 ring ring-gray-200">
+	return (
+		<>
+			<DetailsSection title="Emergency Contact" action={action}>
 				{emergencyContact.map((item) => (
-					<div key={item.label} className="flex flex-col gap-4">
-						<div className="text-sm text-gray-400 no-line-height">{item.label}</div>
-						<div className="text-sm font-semibold text-gray-600 no-line-height">{item.value}</div>
-					</div>
+					<DetailItem key={item.label} label={item.label} value={item.value} />
 				))}
-			</div>
+			</DetailsSection>
 
 			{/* Dialog */}
 			<Dialog open={open} onOpenChange={setOpen}>
@@ -136,7 +132,7 @@ export function EmergencyContact({
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
-		</section>
+		</>
 	);
 }
 

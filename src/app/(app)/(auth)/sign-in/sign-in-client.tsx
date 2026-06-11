@@ -9,8 +9,9 @@ import { signInSchema, SignInType } from "@/features/auth/schemas/sign-in-schema
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
+
 import {
 	RiCheckboxCircleFill,
 	RiErrorWarningFill,
@@ -24,10 +25,12 @@ export function SignInClient() {
 	const [isVisible, setIsVisible] = useState(false);
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
+	const [isPending, startTransition] = useTransition();
 
 	const {
 		register,
 		handleSubmit,
+		reset,
 		control,
 		formState: { errors, isSubmitting },
 	} = useForm<SignInType>({
@@ -48,7 +51,9 @@ export function SignInClient() {
 			setError(error instanceof Error ? error.message : "Unknown error");
 			return;
 		}
-		router.replace("/dashboard/overview");
+		startTransition(() => {
+			router.replace("/dashboard/overview");
+		});
 	};
 
 	return (
@@ -156,7 +161,7 @@ export function SignInClient() {
 					<span>{success}</span>
 				</div>
 			)}
-			<Button className="w-full h-11 mt-16" type="submit" disabled={isSubmitting}>
+			<Button className="w-full h-11 mt-16" type="submit" disabled={isSubmitting || isPending}>
 				{isSubmitting ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

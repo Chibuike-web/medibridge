@@ -7,19 +7,32 @@ import { cn } from "@/lib/utils/cn";
 import { useOptimistic } from "react";
 import { startTransition } from "react";
 
-export function SectionTabs() {
+export type PatientSection =
+	| "patient-overview"
+	| "patient-details"
+	| "diagnoses"
+	| "allergies"
+	| "immunization"
+	| "procedures"
+	| "medications"
+	| "encounters"
+	| "lab-tests"
+	| "imaging"
+	| "documents";
+
+export function SectionTabs({ activeSection }: { activeSection: PatientSection }) {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const shouldReduceMotion = useReducedMotion();
 
-	const currentSection = searchParams.get("section") ?? "patient-overview";
-	const [optimisticSection, setOptimisticSection] = useOptimistic(currentSection);
+	const [optimisticSection, setOptimisticSection] = useOptimistic(activeSection);
 
 	function handleClick(value: string) {
+		const section = value as PatientSection;
 		const params = new URLSearchParams(searchParams.toString());
 		startTransition(() => {
-			setOptimisticSection(value);
-			params.set("section", value);
+			setOptimisticSection(section);
+			params.set("section", section);
 			router.push(`?${params.toString()}`);
 		});
 	}

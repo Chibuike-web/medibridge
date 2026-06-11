@@ -11,6 +11,7 @@ import {
 import { getPatientProfile } from "@/lib/api/get-patient-profile";
 import { cn } from "@/lib/utils/cn";
 import { notFound } from "next/navigation";
+import { DetailItem, DetailsSection } from "./patient-details-section/detail-fields";
 
 type OverviewItem = {
 	label: string;
@@ -47,47 +48,19 @@ export async function PatientOverviewSection({ patientId }: { patientId: string 
 			<div className="mx-auto max-w-7xl">
 				<h1 className="mb-6 text-xl font-semibold text-gray-800">Patient Overview</h1>
 				<div className="flex flex-col gap-10">
-					<PersonalInformation personalInfo={profile.overviewPersonalInformation} />
-					<MedicalInformation medicalInfo={profile.overviewMedicalInformation} />
+					<DetailsSection title="Personal Information">
+						{profile.overviewPersonalInformation.map((p) => (
+							<DetailItem key={p.label} label={p.label} value={p.value} />
+						))}
+					</DetailsSection>
+					<DetailsSection title="Medical Information">
+						{profile.overviewMedicalInformation.map((p) => (
+							<DetailItem key={p.label} label={p.label} value={p.value} />
+						))}
+					</DetailsSection>
 					<RecentDiagnoses recentDiagnoses={profile.recentDiagnoses} />
 					<RecentAllergies recentAllergies={profile.recentAllergies} />
 				</div>
-			</div>
-		</div>
-	);
-}
-
-function PersonalInformation({ personalInfo }: { personalInfo: OverviewItem[] }) {
-	return (
-		<div className="rounded-xl bg-gray-50 ring ring-gray-200">
-			<div className="p-4">
-				<h2 className="font-semibold text-lg text-gray-600 no-line-height">Personal Information</h2>
-			</div>
-			<div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6 rounded-xl bg-white p-4 ring ring-gray-200">
-				{personalInfo.map((p) => (
-					<div key={p.label} className="flex flex-col gap-4 w-full">
-						<div className="text-sm font-normal text-gray-400 no-line-height">{p.label}</div>
-						<div className="text-sm font-semibold text-gray-600 no-line-height">{p.value}</div>
-					</div>
-				))}
-			</div>
-		</div>
-	);
-}
-
-function MedicalInformation({ medicalInfo }: { medicalInfo: OverviewItem[] }) {
-	return (
-		<div className="rounded-xl bg-gray-50 ring ring-gray-200">
-			<div className="p-4">
-				<h2 className="font-semibold text-lg text-gray-600 no-line-height">Medical Information</h2>
-			</div>
-			<div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6 rounded-xl bg-white p-4 ring ring-gray-200">
-				{medicalInfo.map((p) => (
-					<div key={p.label} className="flex flex-col gap-4 w-full">
-						<div className="text-sm font-normal text-gray-400 no-line-height">{p.label}</div>
-						<div className="text-sm font-semibold text-gray-600 no-line-height">{p.value}</div>
-					</div>
-				))}
 			</div>
 		</div>
 	);

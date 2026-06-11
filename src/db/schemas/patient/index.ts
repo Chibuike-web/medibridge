@@ -12,3 +12,4 @@ export * from "./procedure";
 export * from "./imaging";
 export * from "./lab-test";
 export * from "./transfer";
+export * from "./record-access";

@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { RiCloseLine, RiEditLine, RiMore2Fill, RiShareForwardBoxLine } from "@remixicon/react";
+import { DetailItem, DetailsSection } from "./detail-fields";
 
 type ContactInformationItem = {
 	label: string;
@@ -34,11 +35,8 @@ export function ContactInformation({
 }) {
 	const [open, setOpen] = useState(false);
 
-	return (
-		<section className="rounded-xl bg-gray-50 ring ring-gray-200">
-			<div className="flex h-11 items-center justify-between gap-4 px-4">
-				<h2 className="font-semibold text-lg text-gray-600 no-line-height">Contact Information</h2>
-				<DropdownMenu>
+	const action = (
+		<DropdownMenu>
 					<DropdownMenuTrigger
 						type="button"
 						className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
@@ -66,15 +64,15 @@ export function ContactInformation({
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
-			</div>
-			<div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6 rounded-xl bg-white p-4 ring ring-gray-200">
+	);
+
+	return (
+		<>
+			<DetailsSection title="Contact Information" action={action}>
 				{contactInformation.map((item) => (
-					<div key={item.label} className="flex w-full flex-col gap-4">
-						<div className="text-sm font-normal text-gray-400 no-line-height">{item.label}</div>
-						<div className="text-sm font-semibold text-gray-600 no-line-height">{item.value}</div>
-					</div>
+					<DetailItem key={item.label} label={item.label} value={item.value} />
 				))}
-			</div>
+			</DetailsSection>
 			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogContent className="max-w-[50rem]">
 					<DialogHeader className="h-16 px-6 border-b border-gray-200">
@@ -134,7 +132,7 @@ export function ContactInformation({
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
-		</section>
+		</>
 	);
 }
 

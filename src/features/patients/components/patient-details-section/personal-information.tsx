@@ -37,6 +37,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { DetailItem, DetailsSection } from "./detail-fields";
 
 type PersonalInformationItem = {
 	label: string;
@@ -51,11 +52,8 @@ export function PersonalInformation({
 	const [open, setOpen] = useState(false);
 	const [dob, setDob] = useState<Date | undefined>();
 
-	return (
-		<section className="rounded-xl bg-gray-50 ring ring-gray-200">
-			<div className="flex h-11 items-center justify-between gap-4 px-4">
-				<h2 className="font-semibold text-lg text-gray-600 no-line-height">Personal Information</h2>
-				<DropdownMenu>
+	const action = (
+		<DropdownMenu>
 					<DropdownMenuTrigger
 						type="button"
 						className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
@@ -84,15 +82,15 @@ export function PersonalInformation({
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
-			</div>
-			<div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-6 rounded-xl bg-white p-4 ring ring-gray-200">
+	);
+
+	return (
+		<>
+			<DetailsSection title="Personal Information" action={action}>
 				{personalInformation.map((item) => (
-					<div key={item.label} className="flex w-full flex-col gap-4">
-						<div className="text-sm font-normal text-gray-400 no-line-height">{item.label}</div>
-						<div className="text-sm font-semibold text-gray-600 no-line-height">{item.value}</div>
-					</div>
+					<DetailItem key={item.label} label={item.label} value={item.value} />
 				))}
-			</div>
+			</DetailsSection>
 
 			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogContent className="max-w-[50rem]">
@@ -201,7 +199,7 @@ export function PersonalInformation({
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
-		</section>
+		</>
 	);
 }
 

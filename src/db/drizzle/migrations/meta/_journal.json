@@ -43,6 +43,13 @@
       "when": 1781034216503,
       "tag": "0005_robust_clint_barton",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781170886970,
+      "tag": "0006_nifty_vector",
+      "breakpoints": true
     }
   ]
 }

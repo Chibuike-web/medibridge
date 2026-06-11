@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/status-badge";
 import { CopyIdButton } from "@/components/copy-id-button";
-import { SectionTabs } from "@/features/patients/components/section-tabs";
+import { SectionTabs, type PatientSection } from "@/features/patients/components/section-tabs";
 import { PatientOverviewSection } from "@/features/patients/components/patient-overview-section";
 import { PatientDetailsSection } from "@/features/patients/components/patient-details-section/patient-details-section";
 import { PatientAvatarMenu } from "@/features/patients/components/patient-avatar-menu";
@@ -152,7 +152,7 @@ async function Main({
 	return (
 		<div className="flex min-h-0 flex-1 flex-col">
 			<Suspense fallback={<SectionTabsSkeleton />}>
-				<SectionTabs />
+				<SectionTabs activeSection={section as PatientSection} />
 			</Suspense>
 			<div className="min-h-0 flex-1 overflow-y-auto">
 				<Suspense fallback={<SectionContentSkeleton section={section} />}>
@@ -539,10 +539,7 @@ function TableSectionSkeleton() {
 						{Array.from({ length: 6 }).map((_, rowIndex) => (
 							<div key={rowIndex} className="grid grid-cols-6 gap-3 p-4">
 								{Array.from({ length: 6 }).map((_, cellIndex) => (
-									<div
-										key={cellIndex}
-										className="h-4 animate-pulse rounded bg-gray-100"
-									/>
+									<div key={cellIndex} className="h-4 animate-pulse rounded bg-gray-100" />
 								))}
 							</div>
 						))}
