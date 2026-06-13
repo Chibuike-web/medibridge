@@ -12,56 +12,67 @@ type TransferApprovalClientProps = {
 };
 
 export function TransferApprovalClient({ transfer }: TransferApprovalClientProps) {
-	const [reason, setReason] = useState(transfer.patientRejectionReason ?? "");
-	const [approveError, setApproveError] = useState<string | null>(null);
-	const [rejectError, setRejectError] = useState<string | null>(null);
-	const [currentApprovalStatus, setCurrentApprovalStatus] = useState(
+	const [rejectionReason, setRejectionReason] = useState(
+		transfer.patientRejectionReason ?? "",
+	);
+	const [approvalSubmissionError, setApprovalSubmissionError] = useState<string | null>(
+		null,
+	);
+	const [rejectionSubmissionError, setRejectionSubmissionError] = useState<
+		string | null
+	>(null);
+	const [currentPatientApprovalStatus, setCurrentPatientApprovalStatus] = useState(
 		transfer.patientApprovalStatus,
 	);
-	const [isRejecting, setIsRejecting] = useState(false);
-	const [isPending, startTransition] = useTransition();
-	const isApproved = currentApprovalStatus === "approved";
-	const isRejected = currentApprovalStatus === "rejected";
+	const [isRejectionReasonFormOpen, setIsRejectionReasonFormOpen] = useState(false);
+	const [isSubmittingApprovalOrRejection, startApprovalOrRejectionSubmission] =
+		useTransition();
+	const hasPatientApprovedTransfer = currentPatientApprovalStatus === "approved";
+	const hasPatientRejectedTransfer = currentPatientApprovalStatus === "rejected";
+	const canPatientStillApproveOrRejectTransfer =
+		!hasPatientApprovedTransfer && !hasPatientRejectedTransfer;
 
 	function handleApprove() {
-		setApproveError(null);
-		setRejectError(null);
+		setApprovalSubmissionError(null);
+		setRejectionSubmissionError(null);
 
-		startTransition(async () => {
+		startApprovalOrRejectionSubmission(async () => {
 			const result = await approvePatientTransferAction(transfer.transferId);
 
 			if (result.success) {
-				setCurrentApprovalStatus("approved");
-				setIsRejecting(false);
+				setCurrentPatientApprovalStatus("approved");
+				setIsRejectionReasonFormOpen(false);
 				return;
 			}
 
-			setApproveError("Approval failed. Please try again.");
+			setApprovalSubmissionError("Approval failed. Please try again.");
 		});
 	}
 
 	function handleReject() {
-		setApproveError(null);
-		setRejectError(null);
+		setApprovalSubmissionError(null);
+		setRejectionSubmissionError(null);
 
-		if (!reason.trim()) {
-			setRejectError("Please enter a reason for rejecting the transfer request.");
+		if (!rejectionReason.trim()) {
+			setRejectionSubmissionError(
+				"Please enter a reason for rejecting the transfer request.",
+			);
 			return;
 		}
 
-		startTransition(async () => {
+		startApprovalOrRejectionSubmission(async () => {
 			const result = await rejectPatientTransferAction({
 				transferId: transfer.transferId,
-				reason,
+				reason: rejectionReason,
 			});
 
 			if (result.success) {
-				setCurrentApprovalStatus("rejected");
-				setIsRejecting(false);
+				setCurrentPatientApprovalStatus("rejected");
+				setIsRejectionReasonFormOpen(false);
 				return;
 			}
 
-			setRejectError("Rejection failed. Please try again.");
+			setRejectionSubmissionError("Rejection failed. Please try again.");
 		});
 	}
 
@@ -107,40 +118,40 @@ export function TransferApprovalClient({ transfer }: TransferApprovalClientProps
 					</div>
 				</div>
 
-				{isApproved ? (
+				{hasPatientApprovedTransfer ? (
 					<StatusMessage tone="success" message="You approved this transfer request." />
 				) : null}
 
-				{isRejected ? (
+				{hasPatientRejectedTransfer ? (
 					<StatusMessage
 						tone="danger"
 						message={
-							reason
-								? `You rejected this transfer request. Reason: ${reason}`
+							rejectionReason
+								? `You rejected this transfer request. Reason: ${rejectionReason}`
 								: "You rejected this transfer request."
 						}
 					/>
 				) : null}
 
-				{approveError && !isApproved && !isRejected ? (
-					<p className="text-sm text-red-600">{approveError}</p>
+				{approvalSubmissionError && canPatientStillApproveOrRejectTransfer ? (
+					<p className="text-sm text-red-600">{approvalSubmissionError}</p>
 				) : null}
 
-				{rejectError && !isApproved && !isRejected ? (
-					<p className="text-sm text-red-600">{rejectError}</p>
+				{rejectionSubmissionError && canPatientStillApproveOrRejectTransfer ? (
+					<p className="text-sm text-red-600">{rejectionSubmissionError}</p>
 				) : null}
 
-				{isRejecting && !isApproved && !isRejected ? (
+				{isRejectionReasonFormOpen && canPatientStillApproveOrRejectTransfer ? (
 					<div className="grid gap-3">
 						<label htmlFor="rejection-reason" className="text-sm font-medium text-gray-700">
 							Reason for rejection
 						</label>
 						<Textarea
 							id="rejection-reason"
-							value={reason}
+							value={rejectionReason}
 							onChange={(event) => {
-								setReason(event.target.value);
-								setRejectError(null);
+								setRejectionReason(event.target.value);
+								setRejectionSubmissionError(null);
 							}}
 							placeholder="Tell the requesting hospital why you are rejecting this transfer."
 							className="min-h-28"
@@ -148,18 +159,18 @@ export function TransferApprovalClient({ transfer }: TransferApprovalClientProps
 					</div>
 				) : null}
 
-				{!isApproved && !isRejected ? (
+				{canPatientStillApproveOrRejectTransfer ? (
 					<div className="flex flex-wrap items-center justify-end gap-3">
-						{isRejecting ? (
+						{isRejectionReasonFormOpen ? (
 							<Button
 								type="button"
 								variant="outline"
 								className="h-auto px-6 py-3"
-								disabled={isPending}
+								disabled={isSubmittingApprovalOrRejection}
 								onClick={() => {
-									setIsRejecting(false);
-									setApproveError(null);
-									setRejectError(null);
+									setIsRejectionReasonFormOpen(false);
+									setApprovalSubmissionError(null);
+									setRejectionSubmissionError(null);
 								}}
 							>
 								Cancel
@@ -167,29 +178,35 @@ export function TransferApprovalClient({ transfer }: TransferApprovalClientProps
 						) : null}
 						<Button
 							type="button"
-							variant={isRejecting ? "destructive" : "outline"}
+							variant={isRejectionReasonFormOpen ? "destructive" : "outline"}
 							className="h-auto px-6 py-3"
-							disabled={isPending}
+							disabled={isSubmittingApprovalOrRejection}
 							onClick={() => {
-								if (!isRejecting) {
-									setIsRejecting(true);
-									setApproveError(null);
-									setRejectError(null);
+								if (!isRejectionReasonFormOpen) {
+									setIsRejectionReasonFormOpen(true);
+									setApprovalSubmissionError(null);
+									setRejectionSubmissionError(null);
 									return;
 								}
 
 								handleReject();
 							}}
 						>
-							{isPending && isRejecting ? "Rejecting..." : "Reject"}
+							{isSubmittingApprovalOrRejection && isRejectionReasonFormOpen
+								? "Rejecting..."
+								: "Reject"}
 						</Button>
 						<Button
 							type="button"
 							className="h-auto px-6 py-3"
-							disabled={isPending || isRejecting}
+							disabled={
+								isSubmittingApprovalOrRejection || isRejectionReasonFormOpen
+							}
 							onClick={handleApprove}
 						>
-							{isPending && !isRejecting ? "Approving..." : "Approve"}
+							{isSubmittingApprovalOrRejection && !isRejectionReasonFormOpen
+								? "Approving..."
+								: "Approve"}
 						</Button>
 					</div>
 				) : null}

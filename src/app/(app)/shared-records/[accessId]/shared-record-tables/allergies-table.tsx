@@ -42,19 +42,19 @@ export type SharedAllergyRow = {
 };
 
 export function SharedAllergiesTable({ rows }: { rows: SharedAllergyRow[] }) {
-	const [query, setQuery] = useState("");
+	const [recordSearchQuery, setRecordSearchQuery] = useState("");
 	const [sorting, setSorting] = useState<SortingState>([{ id: "allergen", desc: false }]);
 	const filteredRows = useMemo(() => {
-		const normalizedQuery = query.trim().toLowerCase();
+		const normalizedRecordSearchQuery = recordSearchQuery.trim().toLowerCase();
 
-		if (!normalizedQuery) return rows;
+		if (!normalizedRecordSearchQuery) return rows;
 
 		return rows.filter(
 			(row) =>
-				row.allergen.toLowerCase().includes(normalizedQuery) ||
-				row.allergyId.toLowerCase().includes(normalizedQuery),
+				row.allergen.toLowerCase().includes(normalizedRecordSearchQuery) ||
+				row.allergyId.toLowerCase().includes(normalizedRecordSearchQuery),
 		);
-	}, [query, rows]);
+	}, [recordSearchQuery, rows]);
 	const columns = useMemo<ColumnDef<SharedAllergyRow>[]>(
 		() => [
 			{
@@ -112,8 +112,8 @@ export function SharedAllergiesTable({ rows }: { rows: SharedAllergyRow[] }) {
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
 					<Input
 						type="search"
-						value={query}
-						onChange={(event) => setQuery(event.target.value)}
+						value={recordSearchQuery}
+						onChange={(event) => setRecordSearchQuery(event.target.value)}
 						placeholder="Search by allergen and allergy id"
 						className="h-10 pl-10"
 					/>

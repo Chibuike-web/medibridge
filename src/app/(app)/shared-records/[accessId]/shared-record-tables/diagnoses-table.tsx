@@ -49,19 +49,19 @@ export type SharedDiagnosisRow = {
 };
 
 export function SharedDiagnosesTable({ rows }: { rows: SharedDiagnosisRow[] }) {
-	const [query, setQuery] = useState("");
+	const [recordSearchQuery, setRecordSearchQuery] = useState("");
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 	const filteredRows = useMemo(() => {
-		const normalizedQuery = query.trim().toLowerCase();
+		const normalizedRecordSearchQuery = recordSearchQuery.trim().toLowerCase();
 
-		if (!normalizedQuery) return rows;
+		if (!normalizedRecordSearchQuery) return rows;
 
 		return rows.filter(
 			(row) =>
-				row.name.toLowerCase().includes(normalizedQuery) ||
-				row.diagnosisId.toLowerCase().includes(normalizedQuery),
+				row.name.toLowerCase().includes(normalizedRecordSearchQuery) ||
+				row.diagnosisId.toLowerCase().includes(normalizedRecordSearchQuery),
 		);
-	}, [query, rows]);
+	}, [recordSearchQuery, rows]);
 	const columns = useMemo<ColumnDef<SharedDiagnosisRow>[]>(
 		() => [
 			{
@@ -119,8 +119,8 @@ export function SharedDiagnosesTable({ rows }: { rows: SharedDiagnosisRow[] }) {
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
 					<Input
 						type="search"
-						value={query}
-						onChange={(event) => setQuery(event.target.value)}
+						value={recordSearchQuery}
+						onChange={(event) => setRecordSearchQuery(event.target.value)}
 						placeholder="Search by name and diagnosis id"
 						className="h-10 pl-10"
 					/>

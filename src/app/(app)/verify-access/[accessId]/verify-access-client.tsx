@@ -3,10 +3,9 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import Link from "next/link";
 import type { AccessVerificationState } from "@/lib/api/get-access-verification-state";
 import { useRouter } from "next/navigation";
-import { requestAccessCodeAction } from "./actions";
+import { requestAccessCodeAction, verifyAccessCodeAction } from "./actions";
 
 type VerifyAccessClientProps = {
 	accessId: string;
@@ -15,9 +14,13 @@ type VerifyAccessClientProps = {
 
 export function VerifyAccessClient({ accessId, verificationState }: VerifyAccessClientProps) {
 	const router = useRouter();
-	const [code, setCode] = useState("");
-	const [message, setMessage] = useState("");
-	const [isRequestingCode, startTransition] = useTransition();
+	const [enteredVerificationCode, setEnteredVerificationCode] = useState("");
+	const [requestAccessCodeError, setRequestAccessCodeError] = useState("");
+	const [verifyAccessCodeError, setVerifyAccessCodeError] = useState("");
+	const [isRequestingNewAccessCode, startRequestNewAccessCodeTransition] =
+		useTransition();
+	const [isVerifyingEnteredAccessCode, startVerifyEnteredAccessCodeTransition] =
+		useTransition();
 
 	if (verificationState.status === "invalid") {
 		return (
@@ -59,18 +62,20 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 						? `The verification code sent to ${verificationState.recipientEmail} has expired. Request a new code to continue.`
 						: `No active verification code was found for ${verificationState.recipientEmail}. Request a code to continue.`}
 				</p>
-				{message ? <p className="mt-4 text-sm text-red-600">{message}</p> : null}
+				{requestAccessCodeError ? (
+					<p className="mt-4 text-sm text-red-600">{requestAccessCodeError}</p>
+				) : null}
 				<Button
 					type="button"
 					className="mt-16 h-auto px-6 py-3"
-					disabled={isRequestingCode}
+					disabled={isRequestingNewAccessCode}
 					onClick={() => {
-						setMessage("");
-						startTransition(async () => {
+						setRequestAccessCodeError("");
+						startRequestNewAccessCodeTransition(async () => {
 							const result = await requestAccessCodeAction(accessId);
 
 							if (!result.success) {
-								setMessage(result.message);
+								setRequestAccessCodeError(result.message);
 								return;
 							}
 
@@ -78,7 +83,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 						});
 					}}
 				>
-					{isRequestingCode
+					{isRequestingNewAccessCode
 						? "Sending..."
 						: verificationState.status === "code-expired"
 							? "Request new code"
@@ -98,8 +103,11 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 
 			<InputOTP
 				maxLength={6}
-				value={code}
-				onChange={setCode}
+				value={enteredVerificationCode}
+				onChange={(nextEnteredVerificationCode) => {
+					setEnteredVerificationCode(nextEnteredVerificationCode);
+					setVerifyAccessCodeError("");
+				}}
 				containerClassName="mt-6 justify-center"
 			>
 				<InputOTPGroup className="gap-6">
@@ -113,8 +121,32 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 				</InputOTPGroup>
 			</InputOTP>
 
-			<Button type="button" className="mt-16 h-auto px-6 py-3">
-				<Link href={`/shared-records/${accessId}`}>Continue</Link>
+			{verifyAccessCodeError ? (
+				<p className="mt-4 text-sm text-red-600">{verifyAccessCodeError}</p>
+			) : null}
+
+			<Button
+				type="button"
+				className="mt-16 h-auto px-6 py-3"
+				disabled={isVerifyingEnteredAccessCode || enteredVerificationCode.length < 6}
+				onClick={() => {
+					setVerifyAccessCodeError("");
+					startVerifyEnteredAccessCodeTransition(async () => {
+						const result = await verifyAccessCodeAction({
+							accessId,
+							verificationCode: enteredVerificationCode,
+						});
+
+						if (!result.success) {
+							setVerifyAccessCodeError(result.message);
+							return;
+						}
+
+						router.push(`/shared-records/${accessId}`);
+					});
+				}}
+			>
+				{isVerifyingEnteredAccessCode ? "Verifying..." : "Continue"}
 			</Button>
 		</section>
 	);

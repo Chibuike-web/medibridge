@@ -16,23 +16,24 @@ export function SharedTabs({ activeSection }: SharedTabsClientProps) {
 	const router = useRouter();
 	const shouldReduceMotion = useReducedMotion();
 
-	const [optimisticSection, setOptimisticSection] = useOptimistic(activeSection);
+	const [optimisticSelectedSharedRecordSection, setOptimisticSelectedSharedRecordSection] =
+		useOptimistic(activeSection);
 
 	function handleClick(value: string) {
 		const section = value as SharedSection;
 		const params = new URLSearchParams(searchParams.toString());
 		startTransition(() => {
-			setOptimisticSection(section);
+			setOptimisticSelectedSharedRecordSection(section);
 			params.set("section", section);
 			router.push(`?${params.toString()}`);
 		});
 	}
 
 	return (
-		<Tabs.Root value={optimisticSection} onValueChange={handleClick}>
+		<Tabs.Root value={optimisticSelectedSharedRecordSection} onValueChange={handleClick}>
 			<Tabs.List className="no-scrollbar relative  mx-auto flex w-full max-w-7xl overflow-x-auto border-b px-6 whitespace-nowrap">
 				{sharedSections.map((section) => {
-					const isActive = optimisticSection === section.id;
+					const isActive = optimisticSelectedSharedRecordSection === section.id;
 
 					return (
 						<Tabs.Trigger

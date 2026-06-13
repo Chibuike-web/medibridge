@@ -8,7 +8,9 @@ import {
 } from "./shared-record-sections";
 import { SharedTabs } from "./shared-tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { hasVerifiedExternalAccessSession } from "@/lib/api/external-access-session";
 import { getInitials } from "@/lib/utils/get-initials";
+import { redirect } from "next/navigation";
 
 export const metadata = {
 	title: "Shared Patient Record",
@@ -22,6 +24,12 @@ export default async function SharedRecordsPage({
 	searchParams: Promise<{ section?: string }>;
 }) {
 	const [{ accessId }, { section }] = await Promise.all([params, searchParams]);
+	const hasVerifiedAccessSession = await hasVerifiedExternalAccessSession(accessId);
+
+	if (!hasVerifiedAccessSession) {
+		redirect(`/verify-access/${accessId}`);
+	}
+
 	const activeSection = getSharedSection(section);
 	const sharedRecord = await getSharedRecord(accessId);
 

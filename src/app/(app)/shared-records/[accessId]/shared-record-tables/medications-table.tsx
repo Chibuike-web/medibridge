@@ -15,13 +15,13 @@ import { cn } from "@/lib/utils/cn";
 export type SharedMedicationRow = { medication: string; dose: string; route: string; indication: string; medicationId: string; createdAt: string; status: "Active" | "Completed" };
 
 export function SharedMedicationsTable({ rows }: { rows: SharedMedicationRow[] }) {
-	const [query, setQuery] = useState("");
+	const [recordSearchQuery, setRecordSearchQuery] = useState("");
 	const [sorting, setSorting] = useState<SortingState>([{ id: "medication", desc: false }]);
 	const filteredRows = useMemo(() => {
-		const normalizedQuery = query.trim().toLowerCase();
-		if (!normalizedQuery) return rows;
-		return rows.filter((row) => row.medication.toLowerCase().includes(normalizedQuery) || row.medicationId.toLowerCase().includes(normalizedQuery));
-	}, [query, rows]);
+		const normalizedRecordSearchQuery = recordSearchQuery.trim().toLowerCase();
+		if (!normalizedRecordSearchQuery) return rows;
+		return rows.filter((row) => row.medication.toLowerCase().includes(normalizedRecordSearchQuery) || row.medicationId.toLowerCase().includes(normalizedRecordSearchQuery));
+	}, [recordSearchQuery, rows]);
 	const columns = useMemo<ColumnDef<SharedMedicationRow>[]>(() => [
 		{ id: "select", header: () => <Checkbox aria-label="Select all medications" disabled />, cell: ({ row }) => <Checkbox aria-label={`Select ${row.original.medication}`} disabled />, enableSorting: false, size: 40 },
 		{ header: "Medication", accessorKey: "medication", enableSorting: true, cell: ({ row }) => <span className="font-medium">{row.original.medication}</span> },
@@ -41,7 +41,7 @@ export function SharedMedicationsTable({ rows }: { rows: SharedMedicationRow[] }
 			<div className="mt-7 mb-4 flex items-center gap-2">
 				<div className="relative min-w-0 flex-1">
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
-					<Input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by medication and medication id" className="h-10 pl-10" />
+					<Input type="search" value={recordSearchQuery} onChange={(event) => setRecordSearchQuery(event.target.value)} placeholder="Search by medication and medication id" className="h-10 pl-10" />
 				</div>
 				<Button type="button" size="lg" variant="outline" className="gap-2 border-gray-200 bg-white text-gray-600"><RiFilter3Line aria-hidden="true" />Filter</Button>
 				<Button type="button" size="lg" variant="outline" className="gap-2 border-gray-200 bg-white text-gray-600"><RiShare2Line aria-hidden="true" />Export</Button>
