@@ -6,6 +6,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import Link from "next/link";
 import type { AccessVerificationState } from "@/lib/api/get-access-verification-state";
 import { useRouter } from "next/navigation";
+import { requestAccessCodeAction } from "./actions";
 
 type VerifyAccessClientProps = {
 	accessId: string;
@@ -15,7 +16,8 @@ type VerifyAccessClientProps = {
 export function VerifyAccessClient({ accessId, verificationState }: VerifyAccessClientProps) {
 	const router = useRouter();
 	const [code, setCode] = useState("");
-	const [isRefreshing, startTransition] = useTransition();
+	const [message, setMessage] = useState("");
+	const [isRequestingCode, startTransition] = useTransition();
 
 	if (verificationState.status === "invalid") {
 		return (
@@ -54,20 +56,33 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 				</h1>
 				<p className="mt-4 text-base leading-6 text-gray-600">
 					{verificationState.status === "code-expired"
-						? `The verification code sent to ${verificationState.recipientEmail} has expired. Refresh this page after a new code is sent.`
-						: `No active verification code was found for ${verificationState.recipientEmail}. Refresh this page after a new code is sent.`}
+						? `The verification code sent to ${verificationState.recipientEmail} has expired. Request a new code to continue.`
+						: `No active verification code was found for ${verificationState.recipientEmail}. Request a code to continue.`}
 				</p>
+				{message ? <p className="mt-4 text-sm text-red-600">{message}</p> : null}
 				<Button
 					type="button"
 					className="mt-16 h-auto px-6 py-3"
-					disabled={isRefreshing}
+					disabled={isRequestingCode}
 					onClick={() => {
-						startTransition(() => {
+						setMessage("");
+						startTransition(async () => {
+							const result = await requestAccessCodeAction(accessId);
+
+							if (!result.success) {
+								setMessage(result.message);
+								return;
+							}
+
 							router.refresh();
 						});
 					}}
 				>
-					{isRefreshing ? "Refreshing..." : "Refresh status"}
+					{isRequestingCode
+						? "Sending..."
+						: verificationState.status === "code-expired"
+							? "Request new code"
+							: "Request code"}
 				</Button>
 			</section>
 		);
