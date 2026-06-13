@@ -1,6 +1,7 @@
 "use server";
 
 import { getPatients } from "@/lib/api/get-patients";
+import { getTransferDetails } from "@/lib/api/get-transfer-details";
 import { getTransfers } from "@/lib/api/get-transfers";
 import { verifySession } from "@/lib/api/verify-session";
 
@@ -47,4 +48,12 @@ export async function getTransfersTableAction({
 		limit: currentLimit,
 		totalPages: Math.ceil(totalTransfers / currentLimit) || 1,
 	};
+}
+
+export async function getTransferDetailsAction(transferId: string) {
+	await verifySession();
+
+	const transfer = await getTransferDetails(transferId);
+
+	return { transfer };
 }

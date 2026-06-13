@@ -20,7 +20,7 @@ export type PatientRecordAccessSelectedRecord = {
 	recordId: string;
 };
 
-export const patientRecordAccessGrant = pgTable("patient_record_access_grant", {
+export const patientRecordAccess = pgTable("patient_record_access", {
 	id: text("id").primaryKey(),
 
 	patientTransferId: text("patient_transfer_id").references(() => patientTransfer.id, {

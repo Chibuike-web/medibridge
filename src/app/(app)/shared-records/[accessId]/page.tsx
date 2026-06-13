@@ -18,12 +18,12 @@ export default async function SharedRecordsPage({
 	params,
 	searchParams,
 }: {
-	params: Promise<{ transferId: string }>;
+	params: Promise<{ accessId: string }>;
 	searchParams: Promise<{ section?: string }>;
 }) {
-	const [{ transferId }, { section }] = await Promise.all([params, searchParams]);
+	const [{ accessId }, { section }] = await Promise.all([params, searchParams]);
 	const activeSection = getSharedSection(section);
-	const sharedRecord = await getSharedRecord(transferId);
+	const sharedRecord = await getSharedRecord(accessId);
 
 	return (
 		<div className="min-h-dvh bg-white text-gray-800">
@@ -40,7 +40,7 @@ export default async function SharedRecordsPage({
 	);
 }
 
-async function getSharedRecord(transferId: string): Promise<{
+async function getSharedRecord(accessId: string): Promise<{
 	patient: SharedPatient;
 	patientDetailsSections: SharedPatientDetailSection[];
 }> {
@@ -59,7 +59,7 @@ async function getSharedRecord(transferId: string): Promise<{
 					{ label: "First Name", value: "Chibuike" },
 					{ label: "Middle Name", value: "T." },
 					{ label: "Last Name", value: "Maduabuchi" },
-					{ label: "Patient ID", value: transferId },
+					{ label: "Access ID", value: accessId },
 					{ label: "Age", value: 32 },
 					{ label: "Date of Birth", value: "1994-02-10" },
 					{ label: "Sex", value: "Male" },

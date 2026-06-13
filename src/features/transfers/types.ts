@@ -18,6 +18,10 @@ export type PatientTransferData = {
 
 export type PatientTransferDataByPatientId = Record<string, PatientTransferData>;
 export type AttachedClinicalRecordsType = Record<string, ClinicalRecordItem[]>;
+export type TransferContent = {
+	contentType: string;
+	recordId: string;
+};
 
 export const EMPTY_PATIENT_TRANSFER_DATA: PatientTransferData = {
 	hospitalName: "",
@@ -37,5 +41,11 @@ export type TransferType = {
 	targetHospitalName: string;
 	targetHospitalAdminName: string | null;
 	targetHospitalAdminEmail: string | null;
-	transferContent: string[];
+};
+
+export type TransferDetailsType = TransferType & {
+	requestedBy: string | null;
+	createdBy: string | null;
+	updatedBy: string | null;
+	transferContent: TransferContent[];
 };

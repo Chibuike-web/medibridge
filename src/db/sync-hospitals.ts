@@ -567,11 +567,11 @@ async function seedHospitals() {
 				patientRejectionReason: null,
 				deliveryStatus:
 					status === "completed" ? "sent" : status === "failed" ? "failed" : "not_started",
-				clinicalPayloadFileName: `clinical-${hospitalIndex + 1}-${transferIndex + 1}.pdf`,
-				clinicalPayloadFileUrl: null,
-				clinicalPayloadFileType: "pdf",
-				clinicalPayloadFileSize: "120KB",
 				requestedBy:
+					usersByEmail.get(hospitalEmail(HOSPITALS[hospitalIndex])) ?? null,
+				createdBy:
+					usersByEmail.get(hospitalEmail(HOSPITALS[hospitalIndex])) ?? null,
+				updatedBy:
 					usersByEmail.get(hospitalEmail(HOSPITALS[hospitalIndex])) ?? null,
 				requestedAt,
 				sentAt:

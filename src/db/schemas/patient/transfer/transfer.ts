@@ -36,17 +36,11 @@ export const patientTransfer = pgTable("patient_transfer", {
 	deliveryStatus: text("delivery_status"),
 	// not_started | sent | delivered | failed
 
-	clinicalPayloadFileName: text("clinical_payload_file_name"),
-
-	clinicalPayloadFileUrl: text("clinical_payload_file_url"),
-
-	clinicalPayloadFileType: text("clinical_payload_file_type"),
-	// pdf
-
-	clinicalPayloadFileSize: text("clinical_payload_file_size"),
-	// 120KB
-
 	requestedBy: text("requested_by"),
+
+	createdBy: text("created_by"),
+
+	updatedBy: text("updated_by"),
 
 	requestedAt: timestamp("requested_at").defaultNow().notNull(),
 

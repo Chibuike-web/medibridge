@@ -1,1 +1,2 @@
-export * from "./access-grant";
+export * from "./access";
+export * from "./access-verification";

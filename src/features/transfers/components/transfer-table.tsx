@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -53,7 +53,8 @@ import {
 	RiMore2Fill,
 	RiSendPlaneLine,
 } from "@remixicon/react";
-import { TransferType } from "../types";
+import { getTransferDetailsAction } from "@/features/transfers/server/actions";
+import type { TransferDetailsType, TransferType } from "../types";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
@@ -80,13 +81,24 @@ export function TransferTable({
 	const router = useRouter();
 	const [sorting, setSorting] = useState<SortingState>([{ id: "patientName", desc: false }]);
 	const [selectedTransferId, setSelectedTransferId] = useState<string | null>(null);
-	const selectedTransfer = useMemo(
-		() => data.find((transfer) => transfer.id === selectedTransferId) ?? null,
-		[data, selectedTransferId],
-	);
+	const selectedTransferIdRef = useRef<string | null>(null);
+	const [selectedTransfer, setSelectedTransfer] = useState<TransferDetailsType | null>(null);
+	const [isDetailsPending, startDetailsTransition] = useTransition();
 
 	const onViewTransferDetails = useCallback((transferId: string) => {
+		selectedTransferIdRef.current = transferId;
 		setSelectedTransferId(transferId);
+		setSelectedTransfer(null);
+
+		startDetailsTransition(async () => {
+			const result = await getTransferDetailsAction(transferId);
+
+			if (!result.transfer) return;
+			if (selectedTransferIdRef.current !== transferId) return;
+			const transfer = result.transfer;
+
+			setSelectedTransfer(transfer);
+		});
 	}, []);
 
 	const columns = useMemo(() => {
@@ -226,10 +238,13 @@ export function TransferTable({
 				open={selectedTransferId !== null}
 				onOpenChange={(open) => {
 					if (!open) {
+						selectedTransferIdRef.current = null;
 						setSelectedTransferId(null);
+						setSelectedTransfer(null);
 					}
 				}}
 				transfer={selectedTransfer}
+				isLoading={isDetailsPending && selectedTransfer === null}
 			/>
 		</>
 	);

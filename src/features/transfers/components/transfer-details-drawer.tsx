@@ -21,17 +21,15 @@ import {
 import { CopyIdButton } from "@/components/copy-id-button";
 import { cn } from "@/lib/utils/cn";
 import { useId, useState } from "react";
-import pdfFileFormat from "@/assets/file-formats/pdf.svg";
-import Image from "next/image";
-import { formatFileSize } from "@/lib/utils/format-file-size";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import type { TransferType } from "@/features/transfers/types";
+import type { TransferDetailsType } from "@/features/transfers/types";
 import { formatDate } from "@/lib/utils/format-date";
 
 type TransferDetailsDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	transfer: TransferType | null;
+	transfer: TransferDetailsType | null;
+	isLoading: boolean;
 };
 
 const EMPTY_VALUE = "-";
@@ -40,6 +38,7 @@ export function TransferDetailsDrawer({
 	open,
 	onOpenChange,
 	transfer,
+	isLoading,
 }: TransferDetailsDrawerProps) {
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
@@ -57,64 +56,79 @@ export function TransferDetailsDrawer({
 				</DrawerHeader>
 
 				<div className="px-6 py-8 overflow-y-auto">
-					<div className="flex flex-col gap-6">
-						<div className="flex items-center gap-x-6 gap-y-2 flex-wrap text-nowrap">
-							<div className="flex items-center gap-2 shrink-0">
-								<span className="text-gray-400">Transfer Status:</span>
-								{transfer ? (
-									<StatusBadge status={transfer.status} className="text-sm" />
-								) : (
-									<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
-								)}
+					{isLoading ? (
+						<TransferDetailsFallback />
+					) : (
+						<>
+							<div className="flex flex-col gap-6">
+								<div className="flex items-center gap-x-6 gap-y-2 flex-wrap text-nowrap">
+									<div className="flex items-center gap-2 shrink-0">
+										<span className="text-gray-400">Transfer Status:</span>
+										{transfer ? (
+											<StatusBadge status={transfer.status} className="text-sm" />
+										) : (
+											<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
+										)}
+									</div>
+									<div className="flex items-center gap-2 shrink-0">
+										<span className="text-gray-400">Patient ID:</span>
+										{transfer ? (
+											<CopyIdButton id={transfer.patientId} className="text-sm" />
+										) : (
+											<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
+										)}
+									</div>
+									<div className="flex items-center gap-2 shrink-0">
+										<span className="text-gray-400">Transfer ID:</span>
+										{transfer ? (
+											<CopyIdButton id={transfer.id} className="text-sm" />
+										) : (
+											<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
+										)}
+									</div>
+								</div>
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+									<DetailItem label="Patient Name:" value={transfer?.patientName} />
+									<DetailItem label="Target Hospital:" value={transfer?.targetHospitalName} />
+									<DetailItem
+										label="Target Hospital Admin Name"
+										value={transfer?.targetHospitalAdminName}
+									/>
+									<DetailItem
+										label="Target Hospital Admin Email"
+										value={transfer?.targetHospitalAdminEmail}
+									/>
+									<DetailItem
+										label="Requested At"
+										value={transfer ? formatDate(transfer.requestedAt) : null}
+									/>
+									<DetailItem label="Requested By" value={transfer?.requestedBy} />
+									<DetailItem label="Created By" value={transfer?.createdBy} />
+									<div className="flex flex-col gap-2 sm:col-span-2">
+										<span className="text-gray-400">Selected Records</span>
+										{transfer && transfer.transferContent.length > 0 ? (
+											<div className="flex flex-col gap-3 rounded-2xl border border-gray-200 p-4">
+												{transfer.transferContent.map((content) => (
+													<div
+														key={`${content.contentType}-${content.recordId}`}
+														className="flex flex-wrap items-center justify-between gap-3"
+													>
+														<span className="font-semibold text-gray-600">
+															{content.contentType}
+														</span>
+														<CopyIdButton id={content.recordId} className="text-sm" />
+													</div>
+												))}
+											</div>
+										) : (
+											<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
+										)}
+									</div>
+								</div>
 							</div>
-							<div className="flex items-center gap-2 shrink-0">
-								<span className="text-gray-400">Patient ID:</span>
-								{transfer ? (
-									<CopyIdButton id={transfer.patientId} className="text-sm" />
-								) : (
-									<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
-								)}
-							</div>
-							<div className="flex items-center gap-2 shrink-0">
-								<span className="text-gray-400">Transfer ID:</span>
-								{transfer ? (
-									<CopyIdButton id={transfer.id} className="text-sm" />
-								) : (
-									<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
-								)}
-							</div>
-						</div>
-						<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-							<DetailItem label="Patient Name:" value={transfer?.patientName} />
-							<DetailItem label="Target Hospital:" value={transfer?.targetHospitalName} />
-							<DetailItem
-								label="Target Hospital Admin Name"
-								value={transfer?.targetHospitalAdminName}
-							/>
-							<DetailItem
-								label="Target Hospital Admin Email"
-								value={transfer?.targetHospitalAdminEmail}
-							/>
-							<DetailItem
-								label="Requested At"
-								value={transfer ? formatDate(transfer.requestedAt) : null}
-							/>
-							<div className="flex flex-col gap-2 shrink-0">
-								<span className="text-gray-400">Transfer content</span>
-								{transfer && transfer.transferContent.length > 0 ? (
-									<ul className="list-disc ml-6 text-gray-600 font-semibold">
-										{transfer.transferContent.map((content) => (
-											<li key={content}>{content}</li>
-										))}
-									</ul>
-								) : (
-									<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
-								)}
-							</div>
-						</div>
-					</div>
-					<ClinicalPayload />
-					<TransferProgress />
+							<TransferProgress />
+						</>
+					)}
 				</div>
 				<DrawerFooter className="border-t border-gray-200 px-6 py-5">
 					<div className="flex flex-col lg:flex-row gap-x-4 gap-y-2 lg:self-end">
@@ -140,81 +154,28 @@ function DetailItem({ label, value }: { label: string; value?: string | null }) 
 	);
 }
 
-function ClinicalPayload() {
-	const [isExpanded, setIsExpanded] = useState(false);
-	const shouldReduceMotion = useReducedMotion();
-	const sectionId = useId();
-	const titleId = `${sectionId}-title`;
-	const panelId = `${sectionId}-panel`;
-
+function TransferDetailsFallback() {
 	return (
-		<div className="mt-6 flex flex-col rounded-2xl border border-gray-200 p-5">
-			<button
-				type="button"
-				onClick={() => setIsExpanded((prev) => !prev)}
-				aria-expanded={isExpanded}
-				aria-controls={panelId}
-				className="flex w-full items-center justify-between"
-			>
-				<div className="flex flex-col lg:flex-row lg:items-center gap-x-2 gap-y-1">
-					<span id={titleId} className="text-left text-lg font-semibold text-gray-800">
-						Clinical Payload
-					</span>
-					<span className="text-sm text-muted-foreground text-left">22 January 2026 at 14:10</span>
-				</div>
-				<RiArrowDownSLine
-					className={cn(
-						"transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-						isExpanded ? "rotate-180" : "",
-					)}
-					aria-hidden="true"
-				/>
-			</button>
-
-			<AnimatePresence>
-				{isExpanded && (
-					<motion.div
-						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						transition={
-							shouldReduceMotion
-								? { duration: 0.12 }
-								: {
-										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-										opacity: { duration: 0.16, ease: "easeOut" },
-									}
-						}
-						className="overflow-hidden"
-					>
-						<div
-							id={panelId}
-							aria-labelledby={titleId}
-							className="flex flex-col gap-4 mt-4 rounded-2xl border border-gray-200 p-4 lg:flex-row lg:items-center lg:justify-between"
-						>
-							{/* File Info */}
-							<div className="flex items-start gap-3 min-w-0">
-								<Image src={pdfFileFormat} alt="" width={40} height={40} />
-
-								<div className="flex flex-col min-w-0">
-									<p className="text-sm font-semibold text-gray-800 truncate">
-										Patient_Record_A123456.pdf
-									</p>
-									<p className="text-sm text-gray-400">{formatFileSize(10000)}</p>
-								</div>
-							</div>
-
-							{/* Actions */}
-							<div className="flex flex-col gap-2 w-full lg:w-auto lg:flex-row">
-								<Button className="h-11 w-full lg:w-auto" variant="outline">
-									Download Record
-								</Button>
-								<Button className="h-11 w-full lg:w-auto">View Record</Button>
-							</div>
-						</div>
-					</motion.div>
-				)}
-			</AnimatePresence>
+		<div className="flex flex-col gap-6" aria-busy="true" aria-live="polite">
+			<div className="flex flex-wrap gap-4">
+				<div className="h-6 w-36 animate-pulse rounded-md bg-gray-100" />
+				<div className="h-6 w-40 animate-pulse rounded-md bg-gray-100" />
+				<div className="h-6 w-44 animate-pulse rounded-md bg-gray-100" />
+			</div>
+			<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+				{Array.from({ length: 6 }).map((_, index) => (
+					<div key={index} className="flex flex-col gap-2">
+						<div className="h-4 w-28 animate-pulse rounded bg-gray-100" />
+						<div className="h-5 w-44 animate-pulse rounded bg-gray-100" />
+					</div>
+				))}
+			</div>
+			<div className="flex flex-col gap-3 rounded-2xl border border-gray-200 p-4">
+				<div className="h-4 w-32 animate-pulse rounded bg-gray-100" />
+				<div className="h-5 w-full animate-pulse rounded bg-gray-100" />
+				<div className="h-5 w-4/5 animate-pulse rounded bg-gray-100" />
+				<div className="h-5 w-3/5 animate-pulse rounded bg-gray-100" />
+			</div>
 		</div>
 	);
 }
