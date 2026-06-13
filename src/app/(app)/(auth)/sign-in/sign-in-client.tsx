@@ -30,7 +30,6 @@ export function SignInClient() {
 	const {
 		register,
 		handleSubmit,
-		reset,
 		control,
 		formState: { errors, isSubmitting },
 	} = useForm<SignInType>({

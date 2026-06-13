@@ -33,13 +33,16 @@ export function PatientsClient({
 	const [currentPage, setCurrentPage] = useState(page);
 	const [currentLimit, setCurrentLimit] = useState(limit);
 	const [currentTotalPages, setCurrentTotalPages] = useState(totalPages);
-	const [optimisticPage, setOptimisticPage] = useOptimistic(currentPage);
-	const [optimisticLimit, setOptimisticLimit] = useOptimistic(currentLimit);
+	const [optimisticPatientsPage, setOptimisticPatientsPage] =
+		useOptimistic(currentPage);
+	const [optimisticPatientsLimit, setOptimisticPatientsLimit] =
+		useOptimistic(currentLimit);
 	const [query, setQuery] = useState("");
-	const [isPending, startTransition] = useTransition();
+	const [isUpdatingPatientsTable, startPatientsTableUpdateTransition] =
+		useTransition();
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		startTransition(async () => {
-			setOptimisticPage(1);
+		startPatientsTableUpdateTransition(async () => {
+			setOptimisticPatientsPage(1);
 
 			const result = await getPatientsTableAction({
 				page: 1,
@@ -68,8 +71,8 @@ export function PatientsClient({
 	}
 
 	function handlePreviousPage() {
-		startTransition(async () => {
-			setOptimisticPage(currentPage - 1);
+		startPatientsTableUpdateTransition(async () => {
+			setOptimisticPatientsPage(currentPage - 1);
 
 			const result = await getPatientsTableAction({
 				page: currentPage - 1,
@@ -91,8 +94,8 @@ export function PatientsClient({
 	}
 
 	function handleNextPage() {
-		startTransition(async () => {
-			setOptimisticPage(currentPage + 1);
+		startPatientsTableUpdateTransition(async () => {
+			setOptimisticPatientsPage(currentPage + 1);
 
 			const result = await getPatientsTableAction({
 				page: currentPage + 1,
@@ -114,9 +117,9 @@ export function PatientsClient({
 	}
 
 	function handleLimitChange(value: string) {
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticLimit(Number(value));
+		startPatientsTableUpdateTransition(async () => {
+			setOptimisticPatientsPage(1);
+			setOptimisticPatientsLimit(Number(value));
 
 			const result = await getPatientsTableAction({
 				page: 1,
@@ -170,10 +173,10 @@ export function PatientsClient({
 				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
 					<PatientsTable
 						patients={tableData}
-						page={optimisticPage}
-						limit={optimisticLimit}
+						page={optimisticPatientsPage}
+						limit={optimisticPatientsLimit}
 						totalPages={currentTotalPages}
-						isPending={isPending}
+						isPending={isUpdatingPatientsTable}
 						onPreviousPage={handlePreviousPage}
 						onNextPage={handleNextPage}
 						onLimitChange={handleLimitChange}
