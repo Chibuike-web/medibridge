@@ -16,7 +16,7 @@ export async function getPatientEncounter(patientId: string, encounterId: string
 			const [encounter] = await db
 				.select({
 					patientId: patientEncounter.patientId,
-					encounterId: patientEncounter.encounterId,
+					encounterId: patientEncounter.id,
 					encounterType: patientEncounter.encounterType,
 					department: patientEncounter.department,
 					physician: patientEncounter.physician,
@@ -31,7 +31,7 @@ export async function getPatientEncounter(patientId: string, encounterId: string
 				.where(
 					and(
 						eq(patientEncounter.patientId, patientId),
-						eq(patientEncounter.encounterId, encounterId),
+						eq(patientEncounter.id, encounterId),
 						eq(patient.organizationId, organizationId),
 					),
 				)
@@ -49,7 +49,7 @@ export async function getPatientEncounter(patientId: string, encounterId: string
 				updatedAtSortValue: toSortValue(encounter.updatedAt),
 			};
 		},
-		[`patient-encounter-${organizationId}-${patientId}-${encounterId}`],
+		[`patient-encounter-record-primary-ids-${organizationId}-${patientId}-${encounterId}`],
 		{
 			tags: [
 				`patient-encounter-${organizationId}-${patientId}-${encounterId}`,

@@ -5,8 +5,6 @@ import { organization } from "@/db/schemas/auth/organization";
 export const patientTransfer = pgTable("patient_transfer", {
 	id: text("id").primaryKey(),
 
-	transferId: text("transfer_id").notNull().unique(),
-
 	patientId: text("patient_id")
 		.notNull()
 		.references(() => patient.id, { onDelete: "cascade" }),

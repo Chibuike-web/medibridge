@@ -47,7 +47,7 @@ export async function getPatientImmunizations(
 							eq(patient.organizationId, organizationId),
 							or(
 								ilike(patientImmunization.vaccineName, searchPattern),
-								ilike(patientImmunization.immunizationId, searchPattern),
+								ilike(patientImmunization.id, searchPattern),
 								ilike(patientImmunization.status, searchPattern),
 							),
 						),
@@ -55,7 +55,7 @@ export async function getPatientImmunizations(
 				db
 					.select({
 						vaccineName: patientImmunization.vaccineName,
-						immunizationId: patientImmunization.immunizationId,
+						immunizationId: patientImmunization.id,
 						currentDose: patientImmunization.currentDose,
 						createdAt: patientImmunization.createdAt,
 						status: patientImmunization.status,
@@ -68,7 +68,7 @@ export async function getPatientImmunizations(
 							eq(patient.organizationId, organizationId),
 							or(
 								ilike(patientImmunization.vaccineName, searchPattern),
-								ilike(patientImmunization.immunizationId, searchPattern),
+								ilike(patientImmunization.id, searchPattern),
 								ilike(patientImmunization.status, searchPattern),
 							),
 						),
@@ -90,7 +90,7 @@ export async function getPatientImmunizations(
 				})),
 			};
 		},
-		[`patient-immunizations-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
+		[`patient-immunizations-record-primary-ids-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
 		{ tags: [`patient-immunizations-${organizationId}-${patientId}`] },
 	)();
 }

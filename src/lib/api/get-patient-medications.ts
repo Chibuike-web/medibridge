@@ -47,7 +47,7 @@ export async function getPatientMedications(
 							eq(patient.organizationId, organizationId),
 							or(
 								ilike(patientMedication.medicationName, searchPattern),
-								ilike(patientMedication.medicationId, searchPattern),
+								ilike(patientMedication.id, searchPattern),
 								ilike(patientMedication.dose, searchPattern),
 								ilike(patientMedication.route, searchPattern),
 								ilike(patientMedication.indication, searchPattern),
@@ -60,7 +60,7 @@ export async function getPatientMedications(
 						medication: patientMedication.medicationName,
 						dose: patientMedication.dose,
 						route: patientMedication.route,
-						medicationId: patientMedication.medicationId,
+						medicationId: patientMedication.id,
 						indication: patientMedication.indication,
 						createdAt: patientMedication.createdAt,
 						status: patientMedication.status,
@@ -73,7 +73,7 @@ export async function getPatientMedications(
 							eq(patient.organizationId, organizationId),
 							or(
 								ilike(patientMedication.medicationName, searchPattern),
-								ilike(patientMedication.medicationId, searchPattern),
+								ilike(patientMedication.id, searchPattern),
 								ilike(patientMedication.dose, searchPattern),
 								ilike(patientMedication.route, searchPattern),
 								ilike(patientMedication.indication, searchPattern),
@@ -100,7 +100,7 @@ export async function getPatientMedications(
 				})),
 			};
 		},
-		[`patient-medications-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
+		[`patient-medications-record-primary-ids-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
 		{ tags: [`patient-medications-${organizationId}-${patientId}`] },
 	)();
 }

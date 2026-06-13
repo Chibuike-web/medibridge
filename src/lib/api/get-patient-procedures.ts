@@ -47,7 +47,7 @@ export async function getPatientProcedures(
 							eq(patient.organizationId, organizationId),
 							or(
 								ilike(patientProcedure.procedureName, searchPattern),
-								ilike(patientProcedure.procedureId, searchPattern),
+								ilike(patientProcedure.id, searchPattern),
 								ilike(patientProcedure.indication, searchPattern),
 								ilike(patientProcedure.facility, searchPattern),
 								ilike(patientProcedure.status, searchPattern),
@@ -57,7 +57,7 @@ export async function getPatientProcedures(
 				db
 					.select({
 						procedure: patientProcedure.procedureName,
-						procedureId: patientProcedure.procedureId,
+						procedureId: patientProcedure.id,
 						createdAt: patientProcedure.createdAt,
 						indication: patientProcedure.indication,
 						facility: patientProcedure.facility,
@@ -71,7 +71,7 @@ export async function getPatientProcedures(
 							eq(patient.organizationId, organizationId),
 							or(
 								ilike(patientProcedure.procedureName, searchPattern),
-								ilike(patientProcedure.procedureId, searchPattern),
+								ilike(patientProcedure.id, searchPattern),
 								ilike(patientProcedure.indication, searchPattern),
 								ilike(patientProcedure.facility, searchPattern),
 								ilike(patientProcedure.status, searchPattern),
@@ -96,7 +96,7 @@ export async function getPatientProcedures(
 				})),
 			};
 		},
-		[`patient-procedures-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
+		[`patient-procedures-record-primary-ids-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
 		{ tags: [`patient-procedures-${organizationId}-${patientId}`] },
 	)();
 }

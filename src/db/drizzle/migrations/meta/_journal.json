@@ -78,6 +78,27 @@
       "when": 1781339000000,
       "tag": "0010_access_rename",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1781378941769,
+      "tag": "0011_far_klaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1781379610759,
+      "tag": "0012_bouncy_tarantula",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1781380500000,
+      "tag": "0013_rename_diagnosed_at",
+      "breakpoints": true
     }
   ]
 }

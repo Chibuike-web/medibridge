@@ -6,7 +6,6 @@ export const patientEncounter = pgTable("patient_encounter", {
 	patientId: text("patient_id")
 		.notNull()
 		.references(() => patient.id, { onDelete: "cascade" }),
-	encounterId: text("encounter_id").notNull(),
 	encounterType: text("encounter_type").notNull(),
 	department: text("department").notNull(),
 	physician: text("physician").notNull(),

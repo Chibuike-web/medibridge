@@ -13,7 +13,6 @@ export const patientMedication = pgTable("patient_medication", {
 	medicationName: text("medication_name").notNull(),
 	dose: text("dose"),
 	route: text("route"),
-	medicationId: text("medication_id").notNull().unique(),
 	indication: text("indication"),
 	status: text("status").notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),

@@ -45,7 +45,7 @@ export async function getPatientAllergies(
 							eq(patient.organizationId, organizationId),
 							or(
 								ilike(patientAllergy.allergen, searchPattern),
-								ilike(patientAllergy.allergyId, searchPattern),
+								ilike(patientAllergy.id, searchPattern),
 								ilike(patientAllergy.reaction, searchPattern),
 								ilike(patientAllergy.severity, searchPattern),
 								ilike(patientAllergy.status, searchPattern),
@@ -55,7 +55,7 @@ export async function getPatientAllergies(
 				db
 					.select({
 						allergen: patientAllergy.allergen,
-						allergyId: patientAllergy.allergyId,
+						allergyId: patientAllergy.id,
 						reaction: patientAllergy.reaction,
 						createdAt: patientAllergy.createdAt,
 						severity: patientAllergy.severity,
@@ -69,7 +69,7 @@ export async function getPatientAllergies(
 							eq(patient.organizationId, organizationId),
 							or(
 								ilike(patientAllergy.allergen, searchPattern),
-								ilike(patientAllergy.allergyId, searchPattern),
+								ilike(patientAllergy.id, searchPattern),
 								ilike(patientAllergy.reaction, searchPattern),
 								ilike(patientAllergy.severity, searchPattern),
 								ilike(patientAllergy.status, searchPattern),
@@ -94,7 +94,7 @@ export async function getPatientAllergies(
 				})),
 			};
 		},
-		[`patient-allergies-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
+		[`patient-allergies-record-primary-ids-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
 		{ tags: [`patient-allergies-${organizationId}-${patientId}`] },
 	)();
 }

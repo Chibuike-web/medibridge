@@ -120,7 +120,7 @@ export async function getPatientProfile(patientId: string) {
 					.select({
 						id: patientDiagnosis.id,
 						name: patientDiagnosis.diagnosisName,
-						onsetDate: patientDiagnosis.onsetDate,
+						diagnosedAt: patientDiagnosis.diagnosedAt,
 						updatedAt: patientDiagnosis.updatedAt,
 						createdAt: patientDiagnosis.createdAt,
 						status: patientDiagnosis.status,
@@ -131,7 +131,7 @@ export async function getPatientProfile(patientId: string) {
 					.limit(4),
 				db
 					.select({
-						id: patientAllergy.allergyId,
+						id: patientAllergy.id,
 						allergen: patientAllergy.allergen,
 						reaction: patientAllergy.reaction,
 						createdAt: patientAllergy.createdAt,
@@ -211,7 +211,7 @@ export async function getPatientProfile(patientId: string) {
 				],
 				recentDiagnoses: diagnoses.map((diagnosis) => ({
 					name: diagnosis.name,
-					diagnosedAt: formatMonthYear(diagnosis.onsetDate),
+					diagnosedAt: formatMonthYear(diagnosis.diagnosedAt),
 					lastReviewed: formatDateTime(diagnosis.updatedAt),
 					id: diagnosis.id,
 					createdAt: formatDateTime(diagnosis.createdAt),
@@ -227,7 +227,7 @@ export async function getPatientProfile(patientId: string) {
 				})),
 			};
 		},
-		[`patient-profile-${organizationId}-${patientId}`],
+		[`patient-profile-diagnosed-at-record-primary-ids-${organizationId}-${patientId}`],
 		{ tags: [`patient-profile-${organizationId}-${patientId}`] },
 	)();
 }

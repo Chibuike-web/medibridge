@@ -59,7 +59,7 @@ export async function getTransferDetails(
 		async () => {
 			const [transfer] = await db
 				.select({
-					id: patientTransfer.id,
+					transferId: patientTransfer.id,
 					status: patientTransfer.status,
 					patientId: patientTransfer.patientId,
 					requestedAt: patientTransfer.requestedAt,
@@ -94,10 +94,10 @@ export async function getTransferDetails(
 					recordId: patientTransferContent.recordId,
 				})
 				.from(patientTransferContent)
-				.where(eq(patientTransferContent.transferId, transfer.id));
+				.where(eq(patientTransferContent.transferId, transfer.transferId));
 
 			return {
-				id: transfer.id,
+				id: transfer.transferId,
 				patientName: formatPatientName(transfer),
 				patientFirstName: transfer.firstName,
 				patientMiddleName: transfer.middleName,
@@ -117,7 +117,7 @@ export async function getTransferDetails(
 				})),
 			};
 		},
-		[`transfer-details-${organizationId}-${transferId}`],
+		[`transfer-details-record-primary-ids-${organizationId}-${transferId}`],
 		{ tags: [`transfer-details-${organizationId}-${transferId}`] },
 	)();
 }

@@ -61,7 +61,7 @@ export async function getPatientDiagnoses(
 					.select({
 						id: patientDiagnosis.id,
 						name: patientDiagnosis.diagnosisName,
-						onsetDate: patientDiagnosis.onsetDate,
+						diagnosedAt: patientDiagnosis.diagnosedAt,
 						updatedAt: patientDiagnosis.updatedAt,
 						status: patientDiagnosis.status,
 						createdAt: patientDiagnosis.createdAt,
@@ -88,8 +88,8 @@ export async function getPatientDiagnoses(
 				totalDiagnoses: countRows[0]?.value ?? 0,
 				diagnoses: rows.map((diagnosis) => ({
 					name: diagnosis.name,
-					onsetLabel: formatDate(diagnosis.onsetDate),
-					onsetSortValue: toSortValue(diagnosis.onsetDate),
+					diagnosedAtLabel: formatDate(diagnosis.diagnosedAt),
+					diagnosedAtSortValue: toSortValue(diagnosis.diagnosedAt),
 					lastReviewedLabel: formatDateTime(diagnosis.updatedAt),
 					lastReviewedSortValue: toSortValue(diagnosis.updatedAt),
 					diagnosisId: diagnosis.id,
@@ -99,7 +99,7 @@ export async function getPatientDiagnoses(
 				})),
 			};
 		},
-		[`patient-diagnoses-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
+		[`patient-diagnoses-diagnosed-at-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
 		{ tags: [`patient-diagnoses-${organizationId}-${patientId}`] },
 	)();
 }

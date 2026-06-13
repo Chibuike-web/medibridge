@@ -12,7 +12,6 @@ export const patientImmunization = pgTable("patient_immunization", {
 		onDelete: "set null",
 	}),
 
-	immunizationId: text("immunization_id").notNull().unique(),
 	vaccineName: text("vaccine_name").notNull(),
 
 	currentDose: text("current_dose"),

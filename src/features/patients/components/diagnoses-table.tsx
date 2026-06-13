@@ -446,11 +446,11 @@ function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
 			cell: ({ row }) => <span className="font-medium text-gray-800">{row.original.name}</span>,
 		},
 		{
-			id: "onset",
+			id: "diagnosedAt",
 			header: "Diagnosed At",
-			accessorFn: (row) => row.onsetSortValue,
+			accessorFn: (row) => row.diagnosedAtSortValue,
 			enableSorting: true,
-			cell: ({ row }) => row.original.onsetLabel,
+			cell: ({ row }) => row.original.diagnosedAtLabel,
 		},
 		{
 			id: "lastReviewed",

@@ -12,7 +12,6 @@ export const patientLabTest = pgTable("patient_lab_test", {
 		onDelete: "set null",
 	}),
 
-	labId: text("lab_id").notNull().unique(),
 	testName: text("test_name").notNull(),
 	result: text("result"),
 	specimen: text("specimen"),

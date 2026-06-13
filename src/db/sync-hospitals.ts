@@ -488,7 +488,6 @@ async function seedHospitals() {
 				seededEncounters.push({
 					id: encounterId,
 					patientId: patientRowId,
-					encounterId,
 					encounterType: encounterTypes[encounterIndex % encounterTypes.length],
 					department: departments[encounterIndex % departments.length],
 					physician: physicians[encounterIndex % physicians.length],
@@ -553,7 +552,6 @@ async function seedHospitals() {
 
 			seededTransfers.push({
 				id: transferId,
-				transferId,
 				patientId: patientRowId,
 				sourceOrganizationId,
 				targetOrganizationId,

@@ -1,4 +1,4 @@
-import { eq, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
 	organization,
 	patient,
@@ -9,7 +9,6 @@ import {
 import { db } from "@/lib/better-auth/auth";
 
 export type TransferApprovalRecord = {
-	id: string;
 	transferId: string;
 	patientName: string;
 	patientId: string;
@@ -51,8 +50,7 @@ export async function getTransferApproval(
 ): Promise<TransferApprovalRecord | null> {
 	const [transfer] = await db
 		.select({
-			id: patientTransfer.id,
-			transferId: patientTransfer.transferId,
+			transferId: patientTransfer.id,
 			patientId: patientTransfer.patientId,
 			status: patientTransfer.status,
 			patientApprovalStatus: patientTransfer.patientApprovalStatus,
@@ -72,7 +70,7 @@ export async function getTransferApproval(
 			eq(patient.id, patientPersonalInformation.patientId),
 		)
 		.innerJoin(organization, eq(patientTransfer.sourceOrganizationId, organization.id))
-		.where(or(eq(patientTransfer.transferId, transferId), eq(patientTransfer.id, transferId)));
+		.where(eq(patientTransfer.id, transferId));
 
 	if (!transfer) return null;
 
@@ -82,10 +80,9 @@ export async function getTransferApproval(
 			recordId: patientTransferContent.recordId,
 		})
 		.from(patientTransferContent)
-		.where(eq(patientTransferContent.transferId, transfer.id));
+		.where(eq(patientTransferContent.transferId, transfer.transferId));
 
 	return {
-		id: transfer.id,
 		transferId: transfer.transferId,
 		patientName: formatPatientName(transfer),
 		patientId: transfer.patientId,

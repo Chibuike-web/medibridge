@@ -12,7 +12,6 @@ export const patientImaging = pgTable("patient_imaging", {
 		onDelete: "set null",
 	}),
 
-	imagingId: text("imaging_id").notNull().unique(),
 	study: text("study").notNull(),
 	modality: text("modality").notNull(),
 	region: text("region").notNull(),

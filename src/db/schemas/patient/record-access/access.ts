@@ -3,12 +3,21 @@ import { organization, user } from "@/db/schemas/auth";
 import { patient } from "../patient";
 import { patientTransfer } from "../transfer";
 
+export type PatientRecordAccessSection =
+	| "diagnoses"
+	| "allergies"
+	| "immunizations"
+	| "procedures"
+	| "medications"
+	| "lab-tests"
+	| "encounters"
+	| "imaging";
+
 export type PatientRecordAccessPermissions = {
 	medications?: boolean;
 	allergies?: boolean;
 	diagnoses?: boolean;
-	labResults?: boolean;
-	documents?: boolean;
+	labTests?: boolean;
 	procedures?: boolean;
 	immunizations?: boolean;
 	encounters?: boolean;
@@ -16,7 +25,7 @@ export type PatientRecordAccessPermissions = {
 };
 
 export type PatientRecordAccessSelectedRecord = {
-	section: string;
+	section: PatientRecordAccessSection;
 	recordId: string;
 };
 

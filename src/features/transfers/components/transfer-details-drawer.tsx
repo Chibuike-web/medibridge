@@ -105,7 +105,7 @@ export function TransferDetailsDrawer({
 									<DetailItem label="Requested By" value={transfer?.requestedBy} />
 									<DetailItem label="Created By" value={transfer?.createdBy} />
 									<div className="flex flex-col gap-2 sm:col-span-2">
-										<span className="text-gray-400">Selected Records</span>
+										<span className="text-gray-400">Transfer Content</span>
 										{transfer && transfer.transferContent.length > 0 ? (
 											<div className="flex flex-col gap-3 rounded-2xl border border-gray-200 p-4">
 												{transfer.transferContent.map((content) => (

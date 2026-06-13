@@ -10,8 +10,8 @@ export type PatientListItemType = RecentPatientType;
 
 export type DiagnosisType = {
 	name: string;
-	onsetLabel: string;
-	onsetSortValue: string;
+	diagnosedAtLabel: string;
+	diagnosedAtSortValue: string;
 	lastReviewedLabel: string;
 	lastReviewedSortValue: string;
 	diagnosisId: string;

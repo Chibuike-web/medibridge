@@ -65,7 +65,7 @@ export async function getPatientImaging(
 							eq(patient.organizationId, organizationId),
 							or(
 								ilike(patientImaging.study, searchPattern),
-								ilike(patientImaging.imagingId, searchPattern),
+								ilike(patientImaging.id, searchPattern),
 								ilike(patientImaging.modality, searchPattern),
 								ilike(patientImaging.region, searchPattern),
 								ilike(patientImaging.impression, searchPattern),
@@ -76,7 +76,7 @@ export async function getPatientImaging(
 				db
 					.select({
 						study: patientImaging.study,
-						imagingId: patientImaging.imagingId,
+						imagingId: patientImaging.id,
 						modality: patientImaging.modality,
 						region: patientImaging.region,
 						impression: patientImaging.impression,
@@ -91,7 +91,7 @@ export async function getPatientImaging(
 							eq(patient.organizationId, organizationId),
 							or(
 								ilike(patientImaging.study, searchPattern),
-								ilike(patientImaging.imagingId, searchPattern),
+								ilike(patientImaging.id, searchPattern),
 								ilike(patientImaging.modality, searchPattern),
 								ilike(patientImaging.region, searchPattern),
 								ilike(patientImaging.impression, searchPattern),
@@ -120,7 +120,7 @@ export async function getPatientImaging(
 				})),
 			};
 		},
-		[`patient-imaging-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
+		[`patient-imaging-record-primary-ids-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
 		{ tags: [`patient-imaging-${organizationId}-${patientId}`] },
 	)();
 }

@@ -45,7 +45,7 @@ export async function getPatientEncounters(
 							eq(patientEncounter.patientId, patientId),
 							eq(patient.organizationId, organizationId),
 							or(
-								ilike(patientEncounter.encounterId, searchPattern),
+								ilike(patientEncounter.id, searchPattern),
 								ilike(patientEncounter.encounterType, searchPattern),
 								ilike(patientEncounter.department, searchPattern),
 								ilike(patientEncounter.physician, searchPattern),
@@ -55,7 +55,7 @@ export async function getPatientEncounters(
 				db
 					.select({
 						patientId: patientEncounter.patientId,
-						encounterId: patientEncounter.encounterId,
+						encounterId: patientEncounter.id,
 						encounterType: patientEncounter.encounterType,
 						department: patientEncounter.department,
 						physician: patientEncounter.physician,
@@ -72,7 +72,7 @@ export async function getPatientEncounters(
 							eq(patientEncounter.patientId, patientId),
 							eq(patient.organizationId, organizationId),
 							or(
-								ilike(patientEncounter.encounterId, searchPattern),
+								ilike(patientEncounter.id, searchPattern),
 								ilike(patientEncounter.encounterType, searchPattern),
 								ilike(patientEncounter.department, searchPattern),
 								ilike(patientEncounter.physician, searchPattern),
@@ -103,7 +103,7 @@ export async function getPatientEncounters(
 				})),
 			};
 		},
-		[`patient-encounters-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
+		[`patient-encounters-record-primary-ids-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
 		{ tags: [`patient-encounters-${organizationId}-${patientId}`] },
 	)();
 }

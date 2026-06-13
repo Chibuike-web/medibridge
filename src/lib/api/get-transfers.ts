@@ -72,7 +72,6 @@ export async function getTransfers(
 							eq(patientTransfer.sourceOrganizationId, organizationId),
 							or(
 								ilike(patientTransfer.id, searchPattern),
-								ilike(patientTransfer.transferId, searchPattern),
 								ilike(patientTransfer.patientId, searchPattern),
 								ilike(patientTransfer.targetHospitalName, searchPattern),
 								ilike(patientPersonalInformation.firstName, searchPattern),
@@ -104,7 +103,6 @@ export async function getTransfers(
 							eq(patientTransfer.sourceOrganizationId, organizationId),
 							or(
 								ilike(patientTransfer.id, searchPattern),
-								ilike(patientTransfer.transferId, searchPattern),
 								ilike(patientTransfer.patientId, searchPattern),
 								ilike(patientTransfer.targetHospitalName, searchPattern),
 								ilike(patientPersonalInformation.firstName, searchPattern),

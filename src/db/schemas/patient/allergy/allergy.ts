@@ -12,7 +12,6 @@ export const patientAllergy = pgTable("patient_allergy", {
 		onDelete: "set null",
 	}),
 
-	allergyId: text("allergy_id").notNull().unique(),
 	allergen: text("allergen").notNull(),
 	reaction: text("reaction").notNull(),
 	severity: text("severity").notNull(),

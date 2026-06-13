@@ -12,7 +12,6 @@ export const patientProcedure = pgTable("patient_procedure", {
 		onDelete: "set null",
 	}),
 
-	procedureId: text("procedure_id").notNull().unique(),
 	procedureName: text("procedure_name").notNull(),
 
 	indication: text("indication"),

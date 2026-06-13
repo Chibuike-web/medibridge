@@ -52,7 +52,7 @@ export async function getPatientLabTests(
 							or(
 								ilike(patientLabTest.testName, searchPattern),
 								ilike(patientLabTest.result, searchPattern),
-								ilike(patientLabTest.labId, searchPattern),
+								ilike(patientLabTest.id, searchPattern),
 								ilike(patientLabTest.referenceRange, searchPattern),
 								ilike(patientLabTest.interpretation, searchPattern),
 								ilike(patientLabTest.status, searchPattern),
@@ -63,7 +63,7 @@ export async function getPatientLabTests(
 					.select({
 						testName: patientLabTest.testName,
 						result: patientLabTest.result,
-						labId: patientLabTest.labId,
+						labId: patientLabTest.id,
 						referenceRange: patientLabTest.referenceRange,
 						interpretation: patientLabTest.interpretation,
 						createdAt: patientLabTest.createdAt,
@@ -78,7 +78,7 @@ export async function getPatientLabTests(
 							or(
 								ilike(patientLabTest.testName, searchPattern),
 								ilike(patientLabTest.result, searchPattern),
-								ilike(patientLabTest.labId, searchPattern),
+								ilike(patientLabTest.id, searchPattern),
 								ilike(patientLabTest.referenceRange, searchPattern),
 								ilike(patientLabTest.interpretation, searchPattern),
 								ilike(patientLabTest.status, searchPattern),
@@ -103,7 +103,7 @@ export async function getPatientLabTests(
 				})),
 			};
 		},
-		[`patient-lab-tests-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
+		[`patient-lab-tests-record-primary-ids-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
 		{ tags: [`patient-lab-tests-${organizationId}-${patientId}`] },
 	)();
 }
