@@ -4,7 +4,7 @@ import { AllergiesTable } from "@/features/patients/components/allergies-table";
 import { getPatientAllergiesTableAction } from "@/features/patients/server/actions";
 import type { AllergyType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useRef, useState, useTransition } from "react";
 
 type SectionTableState<T> = {
 	rows: T[];
@@ -36,7 +36,11 @@ export function AllergiesClient({
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
 	const [query, setQuery] = useState("");
 	const [isPending, startTransition] = useTransition();
+	const latestSectionTableRequestIdRef = useRef(0);
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
+		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(1);
 
@@ -46,6 +50,10 @@ export function AllergiesClient({
 				limit: tableData.limit,
 				query: nextQuery,
 			});
+
+			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
+				return;
+			}
 
 			setTableData({
 				rows: result.allergies,
@@ -63,6 +71,9 @@ export function AllergiesClient({
 
 	function handlePreviousPage() {
 		const nextPage = Math.max(tableData.page - 1, 1);
+		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
+		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(nextPage);
 			const result = await getPatientAllergiesTableAction({
@@ -71,6 +82,10 @@ export function AllergiesClient({
 				limit: tableData.limit,
 				query,
 			});
+
+			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
+				return;
+			}
 
 			setTableData({
 				rows: result.allergies,
@@ -83,6 +98,9 @@ export function AllergiesClient({
 
 	function handleNextPage() {
 		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
+		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
+		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(nextPage);
 			const result = await getPatientAllergiesTableAction({
@@ -91,6 +109,10 @@ export function AllergiesClient({
 				limit: tableData.limit,
 				query,
 			});
+
+			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
+				return;
+			}
 
 			setTableData({
 				rows: result.allergies,
@@ -102,6 +124,9 @@ export function AllergiesClient({
 	}
 
 	function handleLimitChange(nextLimit: number) {
+		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
+		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(1);
 			setOptimisticLimit(nextLimit);
@@ -111,6 +136,10 @@ export function AllergiesClient({
 				limit: nextLimit,
 				query,
 			});
+
+			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
+				return;
+			}
 
 			setTableData({
 				rows: result.allergies,

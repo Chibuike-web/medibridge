@@ -11,7 +11,7 @@ import { RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useRef, useState, useTransition } from "react";
 
 type PatientsClientProps = {
 	patients: PatientListItemType[];
@@ -40,7 +40,11 @@ export function PatientsClient({
 	const [query, setQuery] = useState("");
 	const [isUpdatingPatientsTable, startPatientsTableUpdateTransition] =
 		useTransition();
+	const latestPatientsTableRequestIdRef = useRef(0);
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		const patientsTableRequestId = latestPatientsTableRequestIdRef.current + 1;
+		latestPatientsTableRequestIdRef.current = patientsTableRequestId;
+
 		startPatientsTableUpdateTransition(async () => {
 			setOptimisticPatientsPage(1);
 
@@ -49,6 +53,10 @@ export function PatientsClient({
 				limit: currentLimit,
 				query: nextQuery,
 			});
+
+			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
+				return;
+			}
 
 			setTableData(result.patients);
 			setCurrentPage(result.page);
@@ -71,6 +79,9 @@ export function PatientsClient({
 	}
 
 	function handlePreviousPage() {
+		const patientsTableRequestId = latestPatientsTableRequestIdRef.current + 1;
+		latestPatientsTableRequestIdRef.current = patientsTableRequestId;
+
 		startPatientsTableUpdateTransition(async () => {
 			setOptimisticPatientsPage(currentPage - 1);
 
@@ -80,6 +91,10 @@ export function PatientsClient({
 				query,
 			});
 
+			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
+				return;
+			}
+
 			setTableData(result.patients);
 			setCurrentPage(result.page);
 			setCurrentLimit(result.limit);
@@ -88,12 +103,14 @@ export function PatientsClient({
 				(pathname +
 					"?" +
 					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
-				{ scroll: false },
 			);
 		});
 	}
 
 	function handleNextPage() {
+		const patientsTableRequestId = latestPatientsTableRequestIdRef.current + 1;
+		latestPatientsTableRequestIdRef.current = patientsTableRequestId;
+
 		startPatientsTableUpdateTransition(async () => {
 			setOptimisticPatientsPage(currentPage + 1);
 
@@ -103,6 +120,10 @@ export function PatientsClient({
 				query,
 			});
 
+			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
+				return;
+			}
+
 			setTableData(result.patients);
 			setCurrentPage(result.page);
 			setCurrentLimit(result.limit);
@@ -111,12 +132,14 @@ export function PatientsClient({
 				(pathname +
 					"?" +
 					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
-				{ scroll: false },
 			);
 		});
 	}
 
 	function handleLimitChange(value: string) {
+		const patientsTableRequestId = latestPatientsTableRequestIdRef.current + 1;
+		latestPatientsTableRequestIdRef.current = patientsTableRequestId;
+
 		startPatientsTableUpdateTransition(async () => {
 			setOptimisticPatientsPage(1);
 			setOptimisticPatientsLimit(Number(value));
@@ -127,6 +150,10 @@ export function PatientsClient({
 				query,
 			});
 
+			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
+				return;
+			}
+
 			setTableData(result.patients);
 			setCurrentPage(result.page);
 			setCurrentLimit(result.limit);
@@ -135,7 +162,6 @@ export function PatientsClient({
 				(pathname +
 					"?" +
 					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
-				{ scroll: false },
 			);
 		});
 	}

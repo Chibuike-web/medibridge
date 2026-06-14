@@ -4,7 +4,7 @@ import { ImagingTable } from "@/features/patients/components/imaging-table";
 import { getPatientImagingTableAction } from "@/features/patients/server/actions";
 import type { ImagingType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useRef, useState, useTransition } from "react";
 
 type SectionTableState<T> = {
 	rows: T[];
@@ -36,7 +36,11 @@ export function ImagingClient({
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
 	const [query, setQuery] = useState("");
 	const [isPending, startTransition] = useTransition();
+	const latestSectionTableRequestIdRef = useRef(0);
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
+		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(1);
 
@@ -46,6 +50,10 @@ export function ImagingClient({
 				limit: tableData.limit,
 				query: nextQuery,
 			});
+
+			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
+				return;
+			}
 
 			setTableData({
 				rows: result.imagingStudies,
@@ -63,6 +71,9 @@ export function ImagingClient({
 
 	function handlePreviousPage() {
 		const nextPage = Math.max(tableData.page - 1, 1);
+		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
+		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(nextPage);
 			const result = await getPatientImagingTableAction({
@@ -71,6 +82,10 @@ export function ImagingClient({
 				limit: tableData.limit,
 				query,
 			});
+
+			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
+				return;
+			}
 
 			setTableData({
 				rows: result.imagingStudies,
@@ -83,6 +98,9 @@ export function ImagingClient({
 
 	function handleNextPage() {
 		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
+		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
+		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(nextPage);
 			const result = await getPatientImagingTableAction({
@@ -91,6 +109,10 @@ export function ImagingClient({
 				limit: tableData.limit,
 				query,
 			});
+
+			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
+				return;
+			}
 
 			setTableData({
 				rows: result.imagingStudies,
@@ -102,6 +124,9 @@ export function ImagingClient({
 	}
 
 	function handleLimitChange(nextLimit: number) {
+		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
+		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(1);
 			setOptimisticLimit(nextLimit);
@@ -111,6 +136,10 @@ export function ImagingClient({
 				limit: nextLimit,
 				query,
 			});
+
+			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
+				return;
+			}
 
 			setTableData({
 				rows: result.imagingStudies,

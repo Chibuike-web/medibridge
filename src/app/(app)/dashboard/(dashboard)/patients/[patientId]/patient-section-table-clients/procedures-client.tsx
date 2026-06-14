@@ -4,7 +4,7 @@ import { ProceduresTable } from "@/features/patients/components/procedures-table
 import { getPatientProceduresTableAction } from "@/features/patients/server/actions";
 import type { ProcedureType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useRef, useState, useTransition } from "react";
 
 type SectionTableState<T> = {
 	rows: T[];
@@ -36,7 +36,11 @@ export function ProceduresClient({
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
 	const [query, setQuery] = useState("");
 	const [isPending, startTransition] = useTransition();
+	const latestSectionTableRequestIdRef = useRef(0);
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
+		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(1);
 
@@ -46,6 +50,10 @@ export function ProceduresClient({
 				limit: tableData.limit,
 				query: nextQuery,
 			});
+
+			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
+				return;
+			}
 
 			setTableData({
 				rows: result.procedures,
@@ -63,6 +71,9 @@ export function ProceduresClient({
 
 	function handlePreviousPage() {
 		const nextPage = Math.max(tableData.page - 1, 1);
+		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
+		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(nextPage);
 			const result = await getPatientProceduresTableAction({
@@ -71,6 +82,10 @@ export function ProceduresClient({
 				limit: tableData.limit,
 				query,
 			});
+
+			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
+				return;
+			}
 
 			setTableData({
 				rows: result.procedures,
@@ -83,6 +98,9 @@ export function ProceduresClient({
 
 	function handleNextPage() {
 		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
+		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
+		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(nextPage);
 			const result = await getPatientProceduresTableAction({
@@ -91,6 +109,10 @@ export function ProceduresClient({
 				limit: tableData.limit,
 				query,
 			});
+
+			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
+				return;
+			}
 
 			setTableData({
 				rows: result.procedures,
@@ -102,6 +124,9 @@ export function ProceduresClient({
 	}
 
 	function handleLimitChange(nextLimit: number) {
+		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
+		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(1);
 			setOptimisticLimit(nextLimit);
@@ -111,6 +136,10 @@ export function ProceduresClient({
 				limit: nextLimit,
 				query,
 			});
+
+			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
+				return;
+			}
 
 			setTableData({
 				rows: result.procedures,

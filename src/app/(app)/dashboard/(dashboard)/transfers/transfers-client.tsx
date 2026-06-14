@@ -11,7 +11,7 @@ import { RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useRef, useState, useTransition } from "react";
 
 type TransfersClientProps = {
 	transfers: TransferType[];
@@ -37,7 +37,11 @@ export function TransfersClient({
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(currentLimit);
 	const [query, setQuery] = useState("");
 	const [isPending, startTransition] = useTransition();
+	const latestTransfersTableRequestIdRef = useRef(0);
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		const transfersTableRequestId = latestTransfersTableRequestIdRef.current + 1;
+		latestTransfersTableRequestIdRef.current = transfersTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(1);
 
@@ -46,6 +50,10 @@ export function TransfersClient({
 				limit: currentLimit,
 				query: nextQuery,
 			});
+
+			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
+				return;
+			}
 
 			setTableData(result.transfers);
 			setCurrentPage(result.page);
@@ -68,6 +76,9 @@ export function TransfersClient({
 	}
 
 	function handlePreviousPage() {
+		const transfersTableRequestId = latestTransfersTableRequestIdRef.current + 1;
+		latestTransfersTableRequestIdRef.current = transfersTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(currentPage - 1);
 
@@ -77,6 +88,10 @@ export function TransfersClient({
 				query,
 			});
 
+			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
+				return;
+			}
+
 			setTableData(result.transfers);
 			setCurrentPage(result.page);
 			setCurrentLimit(result.limit);
@@ -85,12 +100,14 @@ export function TransfersClient({
 				(pathname +
 					"?" +
 					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
-				{ scroll: false },
 			);
 		});
 	}
 
 	function handleNextPage() {
+		const transfersTableRequestId = latestTransfersTableRequestIdRef.current + 1;
+		latestTransfersTableRequestIdRef.current = transfersTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(currentPage + 1);
 
@@ -100,6 +117,10 @@ export function TransfersClient({
 				query,
 			});
 
+			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
+				return;
+			}
+
 			setTableData(result.transfers);
 			setCurrentPage(result.page);
 			setCurrentLimit(result.limit);
@@ -108,12 +129,14 @@ export function TransfersClient({
 				(pathname +
 					"?" +
 					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
-				{ scroll: false },
 			);
 		});
 	}
 
 	function handleLimitChange(value: string) {
+		const transfersTableRequestId = latestTransfersTableRequestIdRef.current + 1;
+		latestTransfersTableRequestIdRef.current = transfersTableRequestId;
+
 		startTransition(async () => {
 			setOptimisticPage(1);
 			setOptimisticLimit(Number(value));
@@ -124,6 +147,10 @@ export function TransfersClient({
 				query,
 			});
 
+			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
+				return;
+			}
+
 			setTableData(result.transfers);
 			setCurrentPage(result.page);
 			setCurrentLimit(result.limit);
@@ -132,7 +159,6 @@ export function TransfersClient({
 				(pathname +
 					"?" +
 					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
-				{ scroll: false },
 			);
 		});
 	}
