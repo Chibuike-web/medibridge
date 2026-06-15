@@ -13,10 +13,15 @@ export default async function PatientsPage({
 }: {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-	const { page, limit } = await searchParams;
+	const { page, limit, query } = await searchParams;
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : 1;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : 14;
-	const { hasPatients, patients, totalPatients } = await getPatients(currentPage, currentLimit);
+	const currentQuery = typeof query === "string" ? query : "";
+	const { hasPatients, patients, totalPatients } = await getPatients(
+		currentPage,
+		currentLimit,
+		currentQuery,
+	);
 	const totalPages = Math.ceil(totalPatients / currentLimit) || 1;
 
 	return hasPatients ? (
@@ -25,6 +30,7 @@ export default async function PatientsPage({
 			page={currentPage}
 			limit={currentLimit}
 			totalPages={totalPages}
+			searchQuery={currentQuery}
 		/>
 	) : (
 		<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">

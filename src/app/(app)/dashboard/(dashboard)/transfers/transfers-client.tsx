@@ -4,20 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FilterButton } from "@/features/transfers/components/filter-button";
 import { TransferTable } from "@/features/transfers/components/transfer-table";
-import { getTransfersTableAction } from "@/features/transfers/server/actions";
 import type { TransferType } from "@/features/transfers/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useOptimistic, useRef, useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 
 type TransfersClientProps = {
 	transfers: TransferType[];
 	page: number;
 	limit: number;
 	totalPages: number;
+	searchQuery: string;
 };
 
 export function TransfersClient({
@@ -25,140 +25,91 @@ export function TransfersClient({
 	page,
 	limit,
 	totalPages,
+	searchQuery,
 }: TransfersClientProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
-	const [tableData, setTableData] = useState(transfers);
-	const [currentPage, setCurrentPage] = useState(page);
-	const [currentLimit, setCurrentLimit] = useState(limit);
-	const [currentTotalPages, setCurrentTotalPages] = useState(totalPages);
-	const [optimisticPage, setOptimisticPage] = useOptimistic(currentPage);
-	const [optimisticLimit, setOptimisticLimit] = useOptimistic(currentLimit);
-	const [query, setQuery] = useState("");
-	const [isPending, startTransition] = useTransition();
-	const latestTransfersTableRequestIdRef = useRef(0);
+	const [transferSearchQuery, setTransferSearchQuery] = useState(searchQuery);
+	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
+	const [optimisticTransfersPage, setOptimisticTransfersPage] = useOptimistic(page);
+	const [optimisticTransfersLimit, setOptimisticTransfersLimit] = useOptimistic(limit);
+	const [isUpdatingTransfersTable, startTransfersTableUpdateTransition] = useTransition();
+
+	if (searchQuery !== previousSearchQuery) {
+		setPreviousSearchQuery(searchQuery);
+		setTransferSearchQuery(searchQuery);
+	}
+
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		const transfersTableRequestId = latestTransfersTableRequestIdRef.current + 1;
-		latestTransfersTableRequestIdRef.current = transfersTableRequestId;
+		startTransfersTableUpdateTransition(async () => {
+			setOptimisticTransfersPage(1);
 
-		startTransition(async () => {
-			setOptimisticPage(1);
-
-			const result = await getTransfersTableAction({
-				page: 1,
-				limit: currentLimit,
-				query: nextQuery,
-			});
-
-			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
-				return;
-			}
-
-			setTableData(result.transfers);
-			setCurrentPage(result.page);
-			setCurrentLimit(result.limit);
-			setCurrentTotalPages(result.totalPages);
+			router.push(
+				(pathname +
+					"?" +
+					createQueryString({
+						page: "1",
+						limit: String(limit),
+						query: nextQuery,
+					})) as Route,
+			);
 		});
 	}, 300);
 
 	function createQueryString(params: Record<string, string>) {
 		const newParams = new URLSearchParams(searchParams.toString());
 		Object.entries(params).forEach(([name, value]) => {
-			newParams.set(name, value);
+			const trimmedValue = value.trim();
+
+			if (trimmedValue === "") {
+				newParams.delete(name);
+				return;
+			}
+
+			newParams.set(name, trimmedValue);
 		});
 		return newParams.toString();
 	}
 
 	function handleQueryChange(nextQuery: string) {
-		setQuery(nextQuery);
+		setTransferSearchQuery(nextQuery);
 		debouncedSearch(nextQuery);
 	}
 
 	function handlePreviousPage() {
-		const transfersTableRequestId = latestTransfersTableRequestIdRef.current + 1;
-		latestTransfersTableRequestIdRef.current = transfersTableRequestId;
+		startTransfersTableUpdateTransition(async () => {
+			setOptimisticTransfersPage(page - 1);
 
-		startTransition(async () => {
-			setOptimisticPage(currentPage - 1);
-
-			const result = await getTransfersTableAction({
-				page: currentPage - 1,
-				limit: currentLimit,
-				query,
-			});
-
-			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
-				return;
-			}
-
-			setTableData(result.transfers);
-			setCurrentPage(result.page);
-			setCurrentLimit(result.limit);
-			setCurrentTotalPages(result.totalPages);
 			router.push(
 				(pathname +
 					"?" +
-					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
+					createQueryString({ page: String(page - 1), limit: String(limit) })) as Route,
 			);
 		});
 	}
 
 	function handleNextPage() {
-		const transfersTableRequestId = latestTransfersTableRequestIdRef.current + 1;
-		latestTransfersTableRequestIdRef.current = transfersTableRequestId;
+		startTransfersTableUpdateTransition(async () => {
+			setOptimisticTransfersPage(page + 1);
 
-		startTransition(async () => {
-			setOptimisticPage(currentPage + 1);
-
-			const result = await getTransfersTableAction({
-				page: currentPage + 1,
-				limit: currentLimit,
-				query,
-			});
-
-			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
-				return;
-			}
-
-			setTableData(result.transfers);
-			setCurrentPage(result.page);
-			setCurrentLimit(result.limit);
-			setCurrentTotalPages(result.totalPages);
 			router.push(
 				(pathname +
 					"?" +
-					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
+					createQueryString({ page: String(page + 1), limit: String(limit) })) as Route,
 			);
 		});
 	}
 
 	function handleLimitChange(value: string) {
-		const transfersTableRequestId = latestTransfersTableRequestIdRef.current + 1;
-		latestTransfersTableRequestIdRef.current = transfersTableRequestId;
+		startTransfersTableUpdateTransition(async () => {
+			setOptimisticTransfersPage(1);
+			setOptimisticTransfersLimit(Number(value));
 
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticLimit(Number(value));
-
-			const result = await getTransfersTableAction({
-				page: 1,
-				limit: value,
-				query,
-			});
-
-			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
-				return;
-			}
-
-			setTableData(result.transfers);
-			setCurrentPage(result.page);
-			setCurrentLimit(result.limit);
-			setCurrentTotalPages(result.totalPages);
 			router.push(
 				(pathname +
 					"?" +
-					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
+					createQueryString({ page: "1", limit: value })) as Route,
 			);
 		});
 	}
@@ -176,7 +127,7 @@ export function TransfersClient({
 							type="search"
 							className="h-10 w-full pl-8"
 							placeholder="Search by patient name or ID"
-							value={query}
+							value={transferSearchQuery}
 							onChange={(event) => handleQueryChange(event.target.value)}
 						/>
 					</div>
@@ -195,11 +146,11 @@ export function TransfersClient({
 			<div className="min-h-0 flex-1 overflow-y-auto">
 				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
 					<TransferTable
-						data={tableData}
-						page={optimisticPage}
-						limit={optimisticLimit}
-						totalPages={currentTotalPages}
-						isPending={isPending}
+						data={transfers}
+						page={optimisticTransfersPage}
+						limit={optimisticTransfersLimit}
+						totalPages={totalPages}
+						isPending={isUpdatingTransfersTable}
 						onPreviousPage={handlePreviousPage}
 						onNextPage={handleNextPage}
 						onLimitChange={handleLimitChange}

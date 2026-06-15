@@ -16,7 +16,11 @@ export async function getPatients(page: number, limit: number, query = "") {
 
 	return unstable_cache(
 		async () => {
-			const [countRows, rows] = await Promise.all([
+			const [allPatientCountRows, filteredPatientCountRows, rows] = await Promise.all([
+				db
+					.select({ value: count() })
+					.from(patient)
+					.where(eq(patient.organizationId, organizationId)),
 				db
 					.select({ value: count() })
 					.from(patient)
@@ -65,7 +69,8 @@ export async function getPatients(page: number, limit: number, query = "") {
 					.offset(offset),
 			]);
 
-			const totalPatients = countRows[0]?.value ?? 0;
+			const totalPatients = filteredPatientCountRows[0]?.value ?? 0;
+			const allPatientCount = allPatientCountRows[0]?.value ?? 0;
 
 			return {
 				totalPatients,
@@ -77,10 +82,10 @@ export async function getPatients(page: number, limit: number, query = "") {
 					gender: row.gender === "female" ? ("Female" as const) : ("Male" as const),
 					age: row.age ?? 0,
 				})),
-				hasPatients: totalPatients > 0,
+				hasPatients: allPatientCount > 0,
 			};
 		},
-		[`patients-${organizationId}-${page}-${limit}-${normalizedQuery}`],
+		[`patients-v2-${organizationId}-${page}-${limit}-${normalizedQuery}`],
 		{ tags: [`patients-list-${organizationId}`] },
 	)();
 }

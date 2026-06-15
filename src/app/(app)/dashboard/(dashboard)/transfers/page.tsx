@@ -13,18 +13,24 @@ export default async function Transfers({
 }: {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-	const { page, limit } = await searchParams;
+	const { page, limit, query } = await searchParams;
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : 1;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : 14;
-	const { transfers, totalTransfers } = await getTransfers(currentPage, currentLimit);
+	const currentQuery = typeof query === "string" ? query : "";
+	const { hasTransfers, transfers, totalTransfers } = await getTransfers(
+		currentPage,
+		currentLimit,
+		currentQuery,
+	);
 	const totalPages = Math.max(1, Math.ceil(totalTransfers / currentLimit));
 
-	return totalTransfers > 0 ? (
+	return hasTransfers ? (
 		<TransfersClient
 			transfers={transfers}
 			page={currentPage}
 			limit={currentLimit}
 			totalPages={totalPages}
+			searchQuery={currentQuery}
 		/>
 	) : (
 		<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">

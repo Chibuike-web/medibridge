@@ -166,21 +166,32 @@ export function TransferTable({
 						))}
 					</TableHeader>
 					<TableBody className="rounded-t-xl outline outline-gray-200">
-						{table.getRowModel().rows.map((row, rowPosition) => (
-							<TableRow key={row.id} className="h-14 hover:bg-gray-100 transition-colors">
-								{row.getVisibleCells().map((cell) => (
-									<TableCell
-										key={cell.id}
-										className={cn(
-											"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
-											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
-										)}
-									>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
-									</TableCell>
-								))}
+						{table.getRowModel().rows.length > 0 ? (
+							table.getRowModel().rows.map((row, rowPosition) => (
+								<TableRow key={row.id} className="h-14 hover:bg-gray-100 transition-colors">
+									{row.getVisibleCells().map((cell) => (
+										<TableCell
+											key={cell.id}
+											className={cn(
+												"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
+												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
+											)}
+										>
+											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+										</TableCell>
+									))}
+								</TableRow>
+							))
+						) : (
+							<TableRow>
+								<TableCell
+									colSpan={columns.length}
+									className="h-32 bg-white px-3 py-0 text-center text-sm text-gray-500"
+								>
+									No transfers found.
+								</TableCell>
 							</TableRow>
-						))}
+						)}
 					</TableBody>
 				</Table>
 				<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">

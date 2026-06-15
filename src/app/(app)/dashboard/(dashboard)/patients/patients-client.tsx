@@ -4,20 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FilterButton } from "@/features/patients/components/filter-button";
 import { PatientsTable } from "@/features/patients/components/patients-table";
-import { getPatientsTableAction } from "@/features/patients/server/actions";
 import type { PatientListItemType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useOptimistic, useRef, useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 
 type PatientsClientProps = {
 	patients: PatientListItemType[];
 	page: number;
 	limit: number;
 	totalPages: number;
+	searchQuery: string;
 };
 
 export function PatientsClient({
@@ -25,143 +25,89 @@ export function PatientsClient({
 	page,
 	limit,
 	totalPages,
+	searchQuery,
 }: PatientsClientProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
-	const [tableData, setTableData] = useState(patients);
-	const [currentPage, setCurrentPage] = useState(page);
-	const [currentLimit, setCurrentLimit] = useState(limit);
-	const [currentTotalPages, setCurrentTotalPages] = useState(totalPages);
-	const [optimisticPatientsPage, setOptimisticPatientsPage] =
-		useOptimistic(currentPage);
-	const [optimisticPatientsLimit, setOptimisticPatientsLimit] =
-		useOptimistic(currentLimit);
-	const [query, setQuery] = useState("");
-	const [isUpdatingPatientsTable, startPatientsTableUpdateTransition] =
-		useTransition();
-	const latestPatientsTableRequestIdRef = useRef(0);
-	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		const patientsTableRequestId = latestPatientsTableRequestIdRef.current + 1;
-		latestPatientsTableRequestIdRef.current = patientsTableRequestId;
+	const [patientSearchQuery, setPatientSearchQuery] = useState(searchQuery);
+	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
+	const [optimisticPatientsPage, setOptimisticPatientsPage] = useOptimistic(page);
+	const [optimisticPatientsLimit, setOptimisticPatientsLimit] = useOptimistic(limit);
+	const [isUpdatingPatientsTable, startPatientsTableUpdateTransition] = useTransition();
 
+	if (searchQuery !== previousSearchQuery) {
+		setPreviousSearchQuery(searchQuery);
+		setPatientSearchQuery(searchQuery);
+	}
+
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
 		startPatientsTableUpdateTransition(async () => {
 			setOptimisticPatientsPage(1);
 
-			const result = await getPatientsTableAction({
-				page: 1,
-				limit: currentLimit,
-				query: nextQuery,
-			});
-
-			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
-				return;
-			}
-
-			setTableData(result.patients);
-			setCurrentPage(result.page);
-			setCurrentLimit(result.limit);
-			setCurrentTotalPages(result.totalPages);
+			router.push(
+				(pathname +
+					"?" +
+					createQueryString({
+						page: "1",
+						limit: String(limit),
+						query: nextQuery,
+					})) as Route,
+			);
 		});
 	}, 300);
 
 	function createQueryString(params: Record<string, string>) {
 		const newParams = new URLSearchParams(searchParams.toString());
 		Object.entries(params).forEach(([name, value]) => {
-			newParams.set(name, value);
+			if (value.trim() === "") {
+				newParams.delete(name);
+			} else {
+				newParams.set(name, value);
+			}
 		});
+
 		return newParams.toString();
 	}
 
 	function handleQueryChange(nextQuery: string) {
-		setQuery(nextQuery);
+		setPatientSearchQuery(nextQuery);
 		debouncedSearch(nextQuery);
 	}
 
 	function handlePreviousPage() {
-		const patientsTableRequestId = latestPatientsTableRequestIdRef.current + 1;
-		latestPatientsTableRequestIdRef.current = patientsTableRequestId;
-
 		startPatientsTableUpdateTransition(async () => {
-			setOptimisticPatientsPage(currentPage - 1);
+			setOptimisticPatientsPage(page - 1);
 
-			const result = await getPatientsTableAction({
-				page: currentPage - 1,
-				limit: currentLimit,
-				query,
-			});
-
-			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
-				return;
-			}
-
-			setTableData(result.patients);
-			setCurrentPage(result.page);
-			setCurrentLimit(result.limit);
-			setCurrentTotalPages(result.totalPages);
 			router.push(
 				(pathname +
 					"?" +
-					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
+					createQueryString({ page: String(page - 1), limit: String(limit) })) as Route,
 			);
 		});
 	}
 
 	function handleNextPage() {
-		const patientsTableRequestId = latestPatientsTableRequestIdRef.current + 1;
-		latestPatientsTableRequestIdRef.current = patientsTableRequestId;
-
 		startPatientsTableUpdateTransition(async () => {
-			setOptimisticPatientsPage(currentPage + 1);
+			setOptimisticPatientsPage(page + 1);
 
-			const result = await getPatientsTableAction({
-				page: currentPage + 1,
-				limit: currentLimit,
-				query,
-			});
-
-			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
-				return;
-			}
-
-			setTableData(result.patients);
-			setCurrentPage(result.page);
-			setCurrentLimit(result.limit);
-			setCurrentTotalPages(result.totalPages);
 			router.push(
 				(pathname +
 					"?" +
-					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
+					createQueryString({ page: String(page + 1), limit: String(limit) })) as Route,
 			);
 		});
 	}
 
 	function handleLimitChange(value: string) {
-		const patientsTableRequestId = latestPatientsTableRequestIdRef.current + 1;
-		latestPatientsTableRequestIdRef.current = patientsTableRequestId;
-
 		startPatientsTableUpdateTransition(async () => {
 			setOptimisticPatientsPage(1);
 			setOptimisticPatientsLimit(Number(value));
 
-			const result = await getPatientsTableAction({
-				page: 1,
-				limit: value,
-				query,
-			});
-
-			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
-				return;
-			}
-
-			setTableData(result.patients);
-			setCurrentPage(result.page);
-			setCurrentLimit(result.limit);
-			setCurrentTotalPages(result.totalPages);
 			router.push(
 				(pathname +
 					"?" +
-					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
+					createQueryString({ page: "1", limit: value })) as Route,
 			);
 		});
 	}
@@ -179,7 +125,7 @@ export function PatientsClient({
 							type="search"
 							className="h-10 w-full pl-8"
 							placeholder="Search by patient name or ID"
-							value={query}
+							value={patientSearchQuery}
 							onChange={(event) => handleQueryChange(event.target.value)}
 						/>
 					</div>
@@ -198,10 +144,10 @@ export function PatientsClient({
 			<div className="min-h-0 flex-1 overflow-y-auto">
 				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
 					<PatientsTable
-						patients={tableData}
+						patients={patients}
 						page={optimisticPatientsPage}
 						limit={optimisticPatientsLimit}
-						totalPages={currentTotalPages}
+						totalPages={totalPages}
 						isPending={isUpdatingPatientsTable}
 						onPreviousPage={handlePreviousPage}
 						onNextPage={handleNextPage}

@@ -20,6 +20,7 @@ function formatPatientName({
 type GetTransfersResult = {
 	transfers: TransferType[];
 	totalTransfers: number;
+	hasTransfers: boolean;
 };
 
 const transferStatuses = [
@@ -53,12 +54,16 @@ export async function getTransfers(
 	const searchPattern = `%${normalizedQuery}%`;
 
 	if (!organizationId) {
-		return { transfers: [], totalTransfers: 0 };
+		return { transfers: [], totalTransfers: 0, hasTransfers: false };
 	}
 
 	return unstable_cache(
 		async () => {
-			const [countRows, rows] = await Promise.all([
+			const [allTransferCountRows, filteredTransferCountRows, rows] = await Promise.all([
+				db
+					.select({ value: count() })
+					.from(patientTransfer)
+					.where(eq(patientTransfer.sourceOrganizationId, organizationId)),
 				db
 					.select({ value: count() })
 					.from(patientTransfer)
@@ -114,10 +119,12 @@ export async function getTransfers(
 					.limit(currentLimit)
 					.offset(offset),
 			]);
-			const totalTransfers = countRows[0]?.value ?? 0;
+			const totalTransfers = filteredTransferCountRows[0]?.value ?? 0;
+			const allTransferCount = allTransferCountRows[0]?.value ?? 0;
 
 			return {
 				totalTransfers,
+				hasTransfers: allTransferCount > 0,
 				transfers: rows.map((row) => ({
 					id: row.id,
 					patientName: formatPatientName(row),
@@ -133,7 +140,7 @@ export async function getTransfers(
 				})),
 			};
 		},
-		[`transfers-${organizationId}-${currentPage}-${currentLimit}-${normalizedQuery}`],
+		[`transfers-v2-${organizationId}-${currentPage}-${currentLimit}-${normalizedQuery}`],
 		{ tags: [`transfers-list-${organizationId}`] },
 	)();
 }
