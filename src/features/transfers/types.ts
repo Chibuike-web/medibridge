@@ -21,6 +21,8 @@ export type AttachedClinicalRecordsType = Record<string, ClinicalRecordItem[]>;
 export type TransferContent = {
 	contentType: string;
 	recordId: string;
+	recordName: string | null;
+	status: string | null;
 };
 
 export const EMPTY_PATIENT_TRANSFER_DATA: PatientTransferData = {

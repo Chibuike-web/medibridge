@@ -463,6 +463,7 @@ async function seedHospitals() {
 		"Dr. M. Ibrahim",
 	];
 	const seededEncounters: (typeof schema.patientEncounter.$inferInsert)[] = [];
+	const firstEncounterIdByPatientId = new Map<string, string>();
 
 	for (
 		let hospitalIndex = 0;
@@ -484,6 +485,9 @@ async function seedHospitals() {
 				const encounterDate = new Date("2026-03-12T12:00:00.000Z");
 				encounterDate.setDate(encounterDate.getDate() - encounterIndex * 3);
 				const encounterId = prefixedId("ENC");
+				if (encounterIndex === 0) {
+					firstEncounterIdByPatientId.set(patientRowId, encounterId);
+				}
 
 				seededEncounters.push({
 					id: encounterId,
@@ -514,7 +518,111 @@ async function seedHospitals() {
 	}
 	console.log(`Inserted ${seededEncounters.length} demo patient encounters`);
 
+	const diagnosisNames = [
+		"Hypertension",
+		"Type 2 Diabetes Mellitus",
+		"Asthma",
+		"Iron Deficiency Anemia",
+		"Chronic Kidney Disease",
+	];
+	const medicationNames = [
+		"Metformin 500 mg",
+		"Lisinopril 10 mg",
+		"Salbutamol inhaler",
+		"Ferrous sulfate 325 mg",
+		"Atorvastatin 20 mg",
+	];
+	const seededDiagnoses: (typeof schema.patientDiagnosis.$inferInsert)[] = [];
+	const seededMedications: (typeof schema.patientMedication.$inferInsert)[] = [];
+	const diagnosisIdByPatientId = new Map<string, string>();
+	const medicationIdByPatientId = new Map<string, string>();
+
+	for (
+		let hospitalIndex = 0;
+		hospitalIndex < HOSPITALS.length;
+		hospitalIndex++
+	) {
+		for (
+			let patientIndex = 0;
+			patientIndex < PATIENTS_PER_HOSPITAL;
+			patientIndex++
+		) {
+			const patientRowId = patientIdsByHospitalAndIndex.get(
+				`${hospitalIndex}:${patientIndex}`,
+			);
+			if (!patientRowId) continue;
+
+			const createdAt = new Date("2026-03-13T09:00:00.000Z");
+			createdAt.setDate(createdAt.getDate() - (patientIndex % 14));
+			const physician = physicians[patientIndex % physicians.length];
+			const encounterId = firstEncounterIdByPatientId.get(patientRowId) ?? null;
+			const diagnosisId = prefixedId("DIA");
+			const medicationId = prefixedId("MED");
+			const diagnosisName = diagnosisNames[patientIndex % diagnosisNames.length];
+			const medicationName = medicationNames[patientIndex % medicationNames.length];
+
+			diagnosisIdByPatientId.set(patientRowId, diagnosisId);
+			medicationIdByPatientId.set(patientRowId, medicationId);
+
+			seededDiagnoses.push({
+				id: diagnosisId,
+				patientId: patientRowId,
+				encounterId,
+				diagnosisName,
+				status: patientIndex % 3 === 0 ? "Resolved" : "Active",
+				severityStage: patientIndex % 4 === 0 ? "moderate" : "mild",
+				diagnosedAt: "2026-03-01",
+				lastReviewedAt: "2026-03-13",
+				clinicalNote: `${diagnosisName} seeded for transfer content previews.`,
+				diagnosedBy: physician,
+				createdBy: physician,
+				updatedBy: physician,
+				createdAt,
+				updatedAt: createdAt,
+			});
+
+			seededMedications.push({
+				id: medicationId,
+				patientId: patientRowId,
+				encounterId,
+				medicationName,
+				dose: medicationName.match(/\d/) ? medicationName.replace(/^\D+/, "").trim() : null,
+				route: medicationName.includes("inhaler") ? "inhalation" : "oral",
+				indication: diagnosisName,
+				status: patientIndex % 5 === 0 ? "completed" : "active",
+				createdAt,
+				updatedAt: createdAt,
+			});
+		}
+	}
+
+	const CLINICAL_INSERT_BATCH_SIZE = 1000;
+	for (
+		let i = 0;
+		i < seededDiagnoses.length;
+		i += CLINICAL_INSERT_BATCH_SIZE
+	) {
+		await db
+			.insert(schema.patientDiagnosis)
+			.values(seededDiagnoses.slice(i, i + CLINICAL_INSERT_BATCH_SIZE))
+			.onConflictDoNothing();
+	}
+	for (
+		let i = 0;
+		i < seededMedications.length;
+		i += CLINICAL_INSERT_BATCH_SIZE
+	) {
+		await db
+			.insert(schema.patientMedication)
+			.values(seededMedications.slice(i, i + CLINICAL_INSERT_BATCH_SIZE))
+			.onConflictDoNothing();
+	}
+	console.log(
+		`Inserted ${seededDiagnoses.length} demo diagnoses and ${seededMedications.length} demo medications`,
+	);
+
 	const seededTransfers = [];
+	const seededTransferContent: (typeof schema.patientTransferContent.$inferInsert)[] = [];
 
 	for (
 		let hospitalIndex = 0;
@@ -549,6 +657,9 @@ async function seedHospitals() {
 						];
 
 			const transferId = prefixedId("TRF");
+			const diagnosisId = diagnosisIdByPatientId.get(patientRowId);
+			const medicationId = medicationIdByPatientId.get(patientRowId);
+			const encounterId = firstEncounterIdByPatientId.get(patientRowId);
 
 			seededTransfers.push({
 				id: transferId,
@@ -580,6 +691,25 @@ async function seedHospitals() {
 				createdAt: requestedAt,
 				updatedAt: requestedAt,
 			});
+
+			const transferContent = [
+				{ contentType: "diagnoses", recordId: diagnosisId },
+				{ contentType: "medications", recordId: medicationId },
+				{ contentType: "encounters", recordId: encounterId },
+			].filter(
+				(content): content is { contentType: string; recordId: string } =>
+					typeof content.recordId === "string",
+			);
+
+			seededTransferContent.push(
+				...transferContent.map(({ contentType, recordId }) => ({
+					id: prefixedId("TCO"),
+					transferId,
+					contentType,
+					recordId,
+					createdAt: requestedAt,
+				})),
+			);
 		}
 	}
 
@@ -605,6 +735,19 @@ async function seedHospitals() {
 	console.log(
 		`Inserted ${TRANSFERS_PER_HOSPITAL} demo transfers per hospital (${PENDING_TRANSFERS_PER_HOSPITAL} pending)`,
 	);
+
+	const TRANSFER_CONTENT_INSERT_BATCH_SIZE = 1000;
+	for (
+		let i = 0;
+		i < seededTransferContent.length;
+		i += TRANSFER_CONTENT_INSERT_BATCH_SIZE
+	) {
+		await db
+			.insert(schema.patientTransferContent)
+			.values(seededTransferContent.slice(i, i + TRANSFER_CONTENT_INSERT_BATCH_SIZE))
+			.onConflictDoNothing();
+	}
+	console.log(`Inserted ${seededTransferContent.length} demo transfer content rows`);
 
 	console.log("Hospital seeding completed!");
 	console.log(`\nYou can login with:`);

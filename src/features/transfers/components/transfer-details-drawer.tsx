@@ -104,27 +104,11 @@ export function TransferDetailsDrawer({
 									/>
 									<DetailItem label="Requested By" value={transfer?.requestedBy} />
 									<DetailItem label="Created By" value={transfer?.createdBy} />
-									<div className="flex flex-col gap-2 sm:col-span-2">
-										<span className="text-gray-400">Transfer Content</span>
-										{transfer && transfer.transferContent.length > 0 ? (
-											<div className="flex flex-col gap-3 rounded-2xl border border-gray-200 p-4">
-												{transfer.transferContent.map((content) => (
-													<div
-														key={`${content.contentType}-${content.recordId}`}
-														className="flex flex-wrap items-center justify-between gap-3"
-													>
-														<span className="font-semibold text-gray-600">
-															{content.contentType}
-														</span>
-														<CopyIdButton id={content.recordId} className="text-sm" />
-													</div>
-												))}
-											</div>
-										) : (
-											<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
-										)}
-									</div>
+									<TransferContentSummary transferContent={transfer?.transferContent} />
 								</div>
+								{transfer && transfer.transferContent.length > 0 ? (
+									<TransferContentSections transferContent={transfer.transferContent} />
+								) : null}
 							</div>
 							<TransferProgress />
 						</>
@@ -142,6 +126,139 @@ export function TransferDetailsDrawer({
 				</DrawerFooter>
 			</DrawerContent>
 		</Drawer>
+	);
+}
+
+function TransferContentSummary({
+	transferContent,
+}: {
+	transferContent?: TransferDetailsType["transferContent"];
+}) {
+	const transferContentGroups = transferContent ? groupTransferContentByType(transferContent) : [];
+
+	return (
+		<div className="flex flex-col gap-2 sm:col-span-2">
+			<span className="text-gray-400">Transfer Content</span>
+			{transferContentGroups.length > 0 ? (
+				<ul className="ml-5 list-disc space-y-2 text-gray-600 marker:text-gray-600">
+					{transferContentGroups.map((contentGroup) => (
+						<li key={contentGroup.contentType} className="pl-1 font-semibold">
+							{contentGroup.contentType}
+						</li>
+					))}
+				</ul>
+			) : (
+				<span className="text-gray-600 font-semibold">{EMPTY_VALUE}</span>
+			)}
+		</div>
+	);
+}
+
+function TransferContentSections({
+	transferContent,
+}: {
+	transferContent: TransferDetailsType["transferContent"];
+}) {
+	const transferContentGroups = groupTransferContentByType(transferContent);
+
+	return (
+		<div className="flex flex-col gap-4">
+			{transferContentGroups.map((contentGroup) => (
+				<TransferContentGroup key={contentGroup.contentType} contentGroup={contentGroup} />
+			))}
+		</div>
+	);
+}
+
+type TransferContentGroupType = {
+	contentType: string;
+	transferContent: TransferDetailsType["transferContent"];
+};
+
+function groupTransferContentByType(
+	transferContent: TransferDetailsType["transferContent"],
+): TransferContentGroupType[] {
+	const transferContentByContentType = new Map<string, TransferDetailsType["transferContent"]>();
+
+	for (const content of transferContent) {
+		const contentType = content.contentType;
+		const existingContentGroup = transferContentByContentType.get(contentType) ?? [];
+		existingContentGroup.push(content);
+		transferContentByContentType.set(contentType, existingContentGroup);
+	}
+
+	return Array.from(transferContentByContentType, ([contentType, groupedTransferContent]) => ({
+		contentType,
+		transferContent: groupedTransferContent,
+	}));
+}
+
+function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentGroupType }) {
+	const [isTransferContentGroupExpanded, setIsTransferContentGroupExpanded] = useState(false);
+	const shouldReduceMotion = useReducedMotion();
+	const sectionId = useId();
+	const titleId = `${sectionId}-title`;
+	const panelId = `${sectionId}-panel`;
+
+	return (
+		<div className="flex flex-col rounded-2xl border border-gray-200 p-5">
+			<button
+				type="button"
+				onClick={() => setIsTransferContentGroupExpanded((prev) => !prev)}
+				aria-expanded={isTransferContentGroupExpanded}
+				aria-controls={panelId}
+				className="flex w-full items-center justify-between gap-4 text-left"
+			>
+				<span id={titleId} className="text-lg font-semibold text-gray-800">
+					{contentGroup.contentType}
+				</span>
+				<RiArrowDownSLine
+					className={cn(
+						"transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						isTransferContentGroupExpanded ? "rotate-180" : "",
+					)}
+					aria-hidden="true"
+				/>
+			</button>
+			<AnimatePresence>
+				{isTransferContentGroupExpanded && (
+					<motion.div
+						id={panelId}
+						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+						transition={
+							shouldReduceMotion
+								? { duration: 0.12 }
+								: {
+										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
+										opacity: { duration: 0.16, ease: "easeOut" },
+									}
+						}
+						className="overflow-hidden"
+					>
+						<div aria-labelledby={titleId} className="mt-4 flex flex-col gap-3">
+							{contentGroup.transferContent.map((content) => (
+								<div
+									key={`${content.contentType}-${content.recordId}`}
+									className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+								>
+									<div className="flex min-w-0 flex-wrap items-center gap-2">
+										<span className="min-w-0 truncate font-semibold text-gray-600">
+											{content.recordName ?? content.recordId}
+										</span>
+										{content.status ? (
+											<StatusBadge status={content.status} className="shrink-0" />
+										) : null}
+									</div>
+									<CopyIdButton id={content.recordId} className="text-sm" />
+								</div>
+							))}
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+		</div>
 	);
 }
 
@@ -181,7 +298,7 @@ function TransferDetailsFallback() {
 }
 
 function TransferProgress() {
-	const [isExpanded, setIsExpanded] = useState(false);
+	const [isTransferProgressExpanded, setIsTransferProgressExpanded] = useState(false);
 	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
@@ -191,12 +308,12 @@ function TransferProgress() {
 		<div className="mt-6 flex flex-col rounded-2xl border border-gray-200 p-5">
 			<button
 				type="button"
-				onClick={() => setIsExpanded((prev) => !prev)}
-				aria-expanded={isExpanded}
+				onClick={() => setIsTransferProgressExpanded((prev) => !prev)}
+				aria-expanded={isTransferProgressExpanded}
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between"
 			>
-				<div className="flex flex-col lg:flex-row lg:items-center gap-x-2 gap-y-1">
+				<div className="flex items-center gap-2">
 					<span id={titleId} className="text-left text-lg font-semibold text-gray-800">
 						Transfer Progress{" "}
 					</span>
@@ -205,13 +322,13 @@ function TransferProgress() {
 				<RiArrowDownSLine
 					className={cn(
 						"transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-						isExpanded ? "rotate-180" : "",
+						isTransferProgressExpanded ? "rotate-180" : "",
 					)}
 					aria-hidden="true"
 				/>
 			</button>
 			<AnimatePresence>
-				{isExpanded && (
+				{isTransferProgressExpanded && (
 					<motion.div
 						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
 						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
