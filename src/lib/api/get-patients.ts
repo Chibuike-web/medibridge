@@ -1,14 +1,28 @@
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/better-auth/auth";
 import { patient, patientPersonalInformation } from "@/db/schemas";
-import { and, count, desc, eq, ilike, or } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
 import { getOrganizationId } from "./get-organization-id";
 
-export async function getPatients(page: number, limit: number, query = "") {
+export type PatientCreatedAtFilter = {
+	from?: Date;
+	to?: Date;
+};
+
+export async function getPatients(
+	page: number,
+	limit: number,
+	query = "",
+	createdAtFilter: PatientCreatedAtFilter = {},
+) {
 	const organizationId = await getOrganizationId();
 	const offset = (page - 1) * limit;
 	const normalizedQuery = query.trim();
 	const searchPattern = `%${normalizedQuery}%`;
+	const createdAtConditions = [
+		createdAtFilter.from ? gte(patient.createdAt, createdAtFilter.from) : undefined,
+		createdAtFilter.to ? lte(patient.createdAt, createdAtFilter.to) : undefined,
+	].filter((condition) => condition !== undefined);
 
 	if (!organizationId) {
 		return { totalPatients: 0, patientCreatedAt: [], patients: [], hasPatients: false };
@@ -16,6 +30,17 @@ export async function getPatients(page: number, limit: number, query = "") {
 
 	return unstable_cache(
 		async () => {
+			const patientFilter = and(
+				eq(patient.organizationId, organizationId),
+				...createdAtConditions,
+				or(
+					ilike(patient.id, searchPattern),
+					ilike(patient.patientId, searchPattern),
+					ilike(patientPersonalInformation.firstName, searchPattern),
+					ilike(patientPersonalInformation.lastName, searchPattern),
+				),
+			);
+
 			const [allPatientCountRows, filteredPatientCountRows, rows] = await Promise.all([
 				db
 					.select({ value: count() })
@@ -28,17 +53,7 @@ export async function getPatients(page: number, limit: number, query = "") {
 						patientPersonalInformation,
 						eq(patient.id, patientPersonalInformation.patientId),
 					)
-					.where(
-						and(
-							eq(patient.organizationId, organizationId),
-							or(
-								ilike(patient.id, searchPattern),
-								ilike(patient.patientId, searchPattern),
-								ilike(patientPersonalInformation.firstName, searchPattern),
-								ilike(patientPersonalInformation.lastName, searchPattern),
-							),
-						),
-					),
+					.where(patientFilter),
 				db
 					.select({
 						name: patientPersonalInformation.firstName,
@@ -53,17 +68,7 @@ export async function getPatients(page: number, limit: number, query = "") {
 						patientPersonalInformation,
 						eq(patient.id, patientPersonalInformation.patientId),
 					)
-					.where(
-						and(
-							eq(patient.organizationId, organizationId),
-							or(
-								ilike(patient.id, searchPattern),
-								ilike(patient.patientId, searchPattern),
-								ilike(patientPersonalInformation.firstName, searchPattern),
-								ilike(patientPersonalInformation.lastName, searchPattern),
-							),
-						),
-					)
+					.where(patientFilter)
 					.orderBy(desc(patient.createdAt))
 					.limit(limit)
 					.offset(offset),
@@ -85,7 +90,9 @@ export async function getPatients(page: number, limit: number, query = "") {
 				hasPatients: allPatientCount > 0,
 			};
 		},
-		[`patients-v2-${organizationId}-${page}-${limit}-${normalizedQuery}`],
+		[
+			`patients-v2-${organizationId}-${page}-${limit}-${normalizedQuery}-${createdAtFilter.from?.toISOString() ?? ""}-${createdAtFilter.to?.toISOString() ?? ""}`,
+		],
 		{ tags: [`patients-list-${organizationId}`] },
 	)();
 }

@@ -18,7 +18,7 @@ export async function sendAccessCodeEmail({
 		html: `
 			<div>
 				<p>Your verification code is:</p>
-				<p style="font-size: 24px; font-weight: 700; letter-spacing: 4px;">${code}</p>
+				<p style="font-size: 1.5rem; font-weight: 700; letter-spacing: 0.25rem;">${code}</p>
 				${accessUrl ? `<p>Open the shared patient record link: <a href="${accessUrl}">${accessUrl}</a></p>` : ""}
 				<p>This code expires in 10 minutes.</p>
 			</div>

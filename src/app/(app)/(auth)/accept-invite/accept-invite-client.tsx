@@ -17,7 +17,7 @@ export function AcceptInviteClient() {
 	const [isVisible, setIsVisible] = useState(false);
 	const [error] = useState("");
 	const [success] = useState("");
-	const { showSuccess, setShowSuccess } = useShowSuccess();
+	const { isSuccessModalOpen, setIsSuccessModalOpen } = useShowSuccess();
 	const router = useRouter();
 	const {
 		register,
@@ -107,10 +107,10 @@ export function AcceptInviteClient() {
 				</Button>
 			</form>
 
-			{showSuccess && (
+			{isSuccessModalOpen && (
 				<SuccessModal
-					isOpen={showSuccess}
-					setIsOpen={setShowSuccess}
+					isOpen={isSuccessModalOpen}
+					setIsOpen={setIsSuccessModalOpen}
 					heading="Account Set up Completed"
 					description="You have successfully setup your account. Your designated role is administrator  for this organization"
 				>

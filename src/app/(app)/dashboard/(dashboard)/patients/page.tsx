@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getPatients } from "@/lib/api/get-patients";
 import Image from "next/image";
 import { PatientsClient } from "./patients-client";
+import { endOfDay, startOfDay } from "date-fns";
+import { parseDateParam } from "@/lib/utils/parse-date-param";
 
 export const metadata = {
 	title: "Patients",
@@ -13,14 +15,21 @@ export default async function PatientsPage({
 }: {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-	const { page, limit, query } = await searchParams;
+	const { page, limit, query, createdFrom, createdTo } = await searchParams;
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : 1;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : 14;
 	const currentQuery = typeof query === "string" ? query : "";
+	const currentCreatedFrom = typeof createdFrom === "string" ? createdFrom : "";
+	const currentCreatedTo = typeof createdTo === "string" ? createdTo : "";
+	const createdAtFilter = {
+		from: parseCreatedAtDateParam(currentCreatedFrom, "start"),
+		to: parseCreatedAtDateParam(currentCreatedTo, "end"),
+	};
 	const { hasPatients, patients, totalPatients } = await getPatients(
 		currentPage,
 		currentLimit,
 		currentQuery,
+		createdAtFilter,
 	);
 	const totalPages = Math.ceil(totalPatients / currentLimit) || 1;
 
@@ -31,6 +40,8 @@ export default async function PatientsPage({
 			limit={currentLimit}
 			totalPages={totalPages}
 			searchQuery={currentQuery}
+			createdFrom={currentCreatedFrom}
+			createdTo={currentCreatedTo}
 		/>
 	) : (
 		<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">
@@ -55,4 +66,11 @@ export default async function PatientsPage({
 			</div>
 		</div>
 	);
+}
+
+function parseCreatedAtDateParam(value: string, boundary: "start" | "end") {
+	const date = parseDateParam(value);
+	if (!date) return undefined;
+
+	return boundary === "start" ? startOfDay(date) : endOfDay(date);
 }

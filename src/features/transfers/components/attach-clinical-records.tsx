@@ -14,12 +14,13 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 export function AttachClinicalRecords({ activePatient }: { activePatient: string }) {
-	const { attachedRecords, toggleAttachedRecord } = useAttachClinicalRecords();
+	const { attachedClinicalRecordsByPatientId, toggleAttachedClinicalRecordForPatient } =
+		useAttachClinicalRecords();
 	const [activeTabId, setActiveTabId] = useState(clinicalRecords[0].id);
 	const [searchQuery, setSearchQuery] = useState("");
 	const shouldReduceMotion = useReducedMotion();
 
-	const allSelectedRecordsForPatient = attachedRecords[activePatient] ?? [];
+	const allSelectedRecordsForPatient = attachedClinicalRecordsByPatientId[activePatient] ?? [];
 
 	const activeTab =
 		clinicalRecords.find((record) => record.id === activeTabId) ?? clinicalRecords[0];
@@ -62,7 +63,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 			const isSelected = selectedRecordsIds.has(id);
 
 			if (areAllVisibleRecordsSelected ? isSelected : !isSelected) {
-				toggleAttachedRecord(activePatient, { id, name, type: activeTab.label });
+				toggleAttachedClinicalRecordForPatient(activePatient, { id, name, type: activeTab.label });
 			}
 		});
 	}
@@ -162,7 +163,11 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 								key={id}
 								isSelected={selectedRecordsIds.has(id)}
 								onClick={() =>
-									toggleAttachedRecord(activePatient, { id, name, type: activeTab.label })
+									toggleAttachedClinicalRecordForPatient(activePatient, {
+										id,
+										name,
+										type: activeTab.label,
+									})
 								}
 							>
 								{name}

@@ -1,5 +1,5 @@
 import { unstable_cache } from "next/cache";
-import { and, count, desc, eq, ilike, or } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
 import { patient, patientPersonalInformation, patientTransfer } from "@/db/schemas";
 import { db } from "../better-auth/auth";
 import { getOrganizationId } from "./get-organization-id";
@@ -21,6 +21,11 @@ type GetTransfersResult = {
 	transfers: TransferType[];
 	totalTransfers: number;
 	hasTransfers: boolean;
+};
+
+export type TransferRequestedAtFilter = {
+	from?: Date;
+	to?: Date;
 };
 
 const transferStatuses = [
@@ -45,6 +50,7 @@ export async function getTransfers(
 	page: number,
 	limit: number,
 	query = "",
+	requestedAtFilter: TransferRequestedAtFilter = {},
 ): Promise<GetTransfersResult> {
 	const organizationId = await getOrganizationId();
 	const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
@@ -52,6 +58,10 @@ export async function getTransfers(
 	const offset = (currentPage - 1) * currentLimit;
 	const normalizedQuery = query.trim();
 	const searchPattern = `%${normalizedQuery}%`;
+	const requestedAtConditions = [
+		requestedAtFilter.from ? gte(patientTransfer.requestedAt, requestedAtFilter.from) : undefined,
+		requestedAtFilter.to ? lte(patientTransfer.requestedAt, requestedAtFilter.to) : undefined,
+	].filter((condition) => condition !== undefined);
 
 	if (!organizationId) {
 		return { transfers: [], totalTransfers: 0, hasTransfers: false };
@@ -59,6 +69,18 @@ export async function getTransfers(
 
 	return unstable_cache(
 		async () => {
+			const transferFilter = and(
+				eq(patientTransfer.sourceOrganizationId, organizationId),
+				...requestedAtConditions,
+				or(
+					ilike(patientTransfer.id, searchPattern),
+					ilike(patientTransfer.patientId, searchPattern),
+					ilike(patientTransfer.targetHospitalName, searchPattern),
+					ilike(patientPersonalInformation.firstName, searchPattern),
+					ilike(patientPersonalInformation.lastName, searchPattern),
+				),
+			);
+
 			const [allTransferCountRows, filteredTransferCountRows, rows] = await Promise.all([
 				db
 					.select({ value: count() })
@@ -72,18 +94,7 @@ export async function getTransfers(
 						patientPersonalInformation,
 						eq(patient.id, patientPersonalInformation.patientId),
 					)
-					.where(
-						and(
-							eq(patientTransfer.sourceOrganizationId, organizationId),
-							or(
-								ilike(patientTransfer.id, searchPattern),
-								ilike(patientTransfer.patientId, searchPattern),
-								ilike(patientTransfer.targetHospitalName, searchPattern),
-								ilike(patientPersonalInformation.firstName, searchPattern),
-								ilike(patientPersonalInformation.lastName, searchPattern),
-							),
-						),
-					),
+					.where(transferFilter),
 				db
 					.select({
 						id: patientTransfer.id,
@@ -103,18 +114,7 @@ export async function getTransfers(
 						patientPersonalInformation,
 						eq(patient.id, patientPersonalInformation.patientId),
 					)
-					.where(
-						and(
-							eq(patientTransfer.sourceOrganizationId, organizationId),
-							or(
-								ilike(patientTransfer.id, searchPattern),
-								ilike(patientTransfer.patientId, searchPattern),
-								ilike(patientTransfer.targetHospitalName, searchPattern),
-								ilike(patientPersonalInformation.firstName, searchPattern),
-								ilike(patientPersonalInformation.lastName, searchPattern),
-							),
-						),
-					)
+					.where(transferFilter)
 					.orderBy(desc(patientTransfer.createdAt))
 					.limit(currentLimit)
 					.offset(offset),
@@ -140,7 +140,9 @@ export async function getTransfers(
 				})),
 			};
 		},
-		[`transfers-v2-${organizationId}-${currentPage}-${currentLimit}-${normalizedQuery}`],
+		[
+			`transfers-v2-${organizationId}-${currentPage}-${currentLimit}-${normalizedQuery}-${requestedAtFilter.from?.toISOString() ?? ""}-${requestedAtFilter.to?.toISOString() ?? ""}`,
+		],
 		{ tags: [`transfers-list-${organizationId}`] },
 	)();
 }

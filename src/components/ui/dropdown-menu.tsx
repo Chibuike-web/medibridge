@@ -187,7 +187,7 @@ function DropdownMenuSubTrigger({
 			{...props}
 		>
 			{children}
-			<RiArrowRightSLine className="ml-auto size-[18px]" />
+			<RiArrowRightSLine className="ml-auto size-4.5" />
 		</DropdownMenuPrimitive.SubTrigger>
 	);
 }

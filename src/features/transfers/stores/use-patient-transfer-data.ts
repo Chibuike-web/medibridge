@@ -3,35 +3,40 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 type PatientTransferDataStore = {
-	patientTransferData: PatientTransferDataByPatientId;
-	setPatientTransferData: (patientTransferData: PatientTransferDataByPatientId) => void;
-	removePatientTransferData: (patientId: string) => void;
-	clearPatientTransferData: () => void;
+	patientTransferDataByPatientId: PatientTransferDataByPatientId;
+	setPatientTransferDataByPatientId: (
+		patientTransferDataByPatientId: PatientTransferDataByPatientId,
+	) => void;
+	removePatientTransferDataByPatientId: (patientId: string) => void;
+	clearPatientTransferDataByPatientId: () => void;
 	setHydrated: () => void;
-	isHydrated: boolean;
+	isPatientTransferDataHydrated: boolean;
 };
 
 const usePatientTransferDataStore = create<PatientTransferDataStore>()(
 	persist(
 		(set) => ({
-			patientTransferData: {},
-			isHydrated: false,
-			setPatientTransferData: (patientTransferData) => set({ patientTransferData }),
-			removePatientTransferData: (patientId) =>
+			patientTransferDataByPatientId: {},
+			isPatientTransferDataHydrated: false,
+			setPatientTransferDataByPatientId: (patientTransferDataByPatientId) =>
+				set({ patientTransferDataByPatientId }),
+			removePatientTransferDataByPatientId: (patientId) =>
 				set((state) => {
-					const nextPatientTransferData = { ...state.patientTransferData };
-					delete nextPatientTransferData[patientId];
-					return { patientTransferData: nextPatientTransferData };
+					const nextPatientTransferDataByPatientId = {
+						...state.patientTransferDataByPatientId,
+					};
+					delete nextPatientTransferDataByPatientId[patientId];
+					return { patientTransferDataByPatientId: nextPatientTransferDataByPatientId };
 				}),
-			clearPatientTransferData: () => set({ patientTransferData: {} }),
-			setHydrated: () => set({ isHydrated: true }),
+			clearPatientTransferDataByPatientId: () => set({ patientTransferDataByPatientId: {} }),
+			setHydrated: () => set({ isPatientTransferDataHydrated: true }),
 		}),
 		{
 			name: "patient-transfer-data",
 			storage: createJSONStorage(() => localStorage),
 			onRehydrateStorage: () => (state) => {
-				if (!state?.patientTransferData) {
-					state?.setPatientTransferData({});
+				if (!state?.patientTransferDataByPatientId) {
+					state?.setPatientTransferDataByPatientId({});
 				}
 				state?.setHydrated();
 			},
@@ -40,23 +45,27 @@ const usePatientTransferDataStore = create<PatientTransferDataStore>()(
 );
 
 export const usePatientTransferData = () => {
-	const patientTransferData = usePatientTransferDataStore((state) => state.patientTransferData);
-	const setPatientTransferData = usePatientTransferDataStore(
-		(state) => state.setPatientTransferData,
+	const patientTransferDataByPatientId = usePatientTransferDataStore(
+		(state) => state.patientTransferDataByPatientId,
 	);
-	const removePatientTransferData = usePatientTransferDataStore(
-		(state) => state.removePatientTransferData,
+	const setPatientTransferDataByPatientId = usePatientTransferDataStore(
+		(state) => state.setPatientTransferDataByPatientId,
 	);
-	const clearPatientTransferData = usePatientTransferDataStore(
-		(state) => state.clearPatientTransferData,
+	const removePatientTransferDataByPatientId = usePatientTransferDataStore(
+		(state) => state.removePatientTransferDataByPatientId,
 	);
-	const isHydrated = usePatientTransferDataStore((state) => state.isHydrated);
+	const clearPatientTransferDataByPatientId = usePatientTransferDataStore(
+		(state) => state.clearPatientTransferDataByPatientId,
+	);
+	const isPatientTransferDataHydrated = usePatientTransferDataStore(
+		(state) => state.isPatientTransferDataHydrated,
+	);
 
 	return {
-		patientTransferData,
-		setPatientTransferData,
-		removePatientTransferData,
-		clearPatientTransferData,
-		isHydrated,
+		patientTransferDataByPatientId,
+		setPatientTransferDataByPatientId,
+		removePatientTransferDataByPatientId,
+		clearPatientTransferDataByPatientId,
+		isPatientTransferDataHydrated,
 	};
 };

@@ -3,38 +3,40 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 type AttachClinicalRecordsStore = {
-	attachedRecords: AttachedClinicalRecordsType;
-	toggleAttachedRecord: (patientId: string, record: ClinicalRecordItem) => void;
-	removeAttachedRecords: (patientId: string) => void;
-	clearAttachedRecords: () => void;
+	attachedClinicalRecordsByPatientId: AttachedClinicalRecordsType;
+	toggleAttachedClinicalRecordForPatient: (patientId: string, record: ClinicalRecordItem) => void;
+	removeAttachedClinicalRecordsForPatient: (patientId: string) => void;
+	clearAttachedClinicalRecords: () => void;
 };
 
 const useAttachClinicalRecordsStore = create<AttachClinicalRecordsStore>()(
 	persist(
 		(set) => ({
-			attachedRecords: {},
-			toggleAttachedRecord: (patientId, record) =>
+			attachedClinicalRecordsByPatientId: {},
+			toggleAttachedClinicalRecordForPatient: (patientId, record) =>
 				set((state) => {
-					const currentRecords = state.attachedRecords[patientId] ?? [];
+					const currentRecords = state.attachedClinicalRecordsByPatientId[patientId] ?? [];
 					const isAttached = currentRecords.some((item) => item.id === record.id);
 					const nextRecords = isAttached
 						? currentRecords.filter((item) => item.id !== record.id)
 						: [...currentRecords, record];
 
 					return {
-						attachedRecords: {
-							...state.attachedRecords,
+						attachedClinicalRecordsByPatientId: {
+							...state.attachedClinicalRecordsByPatientId,
 							[patientId]: nextRecords,
 						},
 					};
 				}),
-			removeAttachedRecords: (patientId) =>
+			removeAttachedClinicalRecordsForPatient: (patientId) =>
 				set((state) => {
-					const updated = { ...state.attachedRecords };
-					delete updated[patientId];
-					return { attachedRecords: updated };
+					const nextAttachedClinicalRecordsByPatientId = {
+						...state.attachedClinicalRecordsByPatientId,
+					};
+					delete nextAttachedClinicalRecordsByPatientId[patientId];
+					return { attachedClinicalRecordsByPatientId: nextAttachedClinicalRecordsByPatientId };
 				}),
-			clearAttachedRecords: () => set({ attachedRecords: {} }),
+			clearAttachedClinicalRecords: () => set({ attachedClinicalRecordsByPatientId: {} }),
 		}),
 		{
 			name: "attached-clinical-records",
@@ -44,17 +46,23 @@ const useAttachClinicalRecordsStore = create<AttachClinicalRecordsStore>()(
 );
 
 export const useAttachClinicalRecords = () => {
-	const attachedRecords = useAttachClinicalRecordsStore((state) => state.attachedRecords);
-	const toggleAttachedRecord = useAttachClinicalRecordsStore((state) => state.toggleAttachedRecord);
-	const removeAttachedRecords = useAttachClinicalRecordsStore(
-		(state) => state.removeAttachedRecords,
+	const attachedClinicalRecordsByPatientId = useAttachClinicalRecordsStore(
+		(state) => state.attachedClinicalRecordsByPatientId,
 	);
-	const clearAttachedRecords = useAttachClinicalRecordsStore((state) => state.clearAttachedRecords);
+	const toggleAttachedClinicalRecordForPatient = useAttachClinicalRecordsStore(
+		(state) => state.toggleAttachedClinicalRecordForPatient,
+	);
+	const removeAttachedClinicalRecordsForPatient = useAttachClinicalRecordsStore(
+		(state) => state.removeAttachedClinicalRecordsForPatient,
+	);
+	const clearAttachedClinicalRecords = useAttachClinicalRecordsStore(
+		(state) => state.clearAttachedClinicalRecords,
+	);
 
 	return {
-		attachedRecords,
-		toggleAttachedRecord,
-		removeAttachedRecords,
-		clearAttachedRecords,
+		attachedClinicalRecordsByPatientId,
+		toggleAttachedClinicalRecordForPatient,
+		removeAttachedClinicalRecordsForPatient,
+		clearAttachedClinicalRecords,
 	};
 };

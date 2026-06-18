@@ -7,47 +7,51 @@ export type SelectedTransferPatient = {
 };
 
 type SelectedTransferPatientsStore = {
-	selectedPatients: SelectedTransferPatient[];
-	addSelectedPatient: (patient: SelectedTransferPatient) => void;
-	removeSelectedPatient: (patient: SelectedTransferPatient) => void;
-	toggleSelectedPatient: (patient: SelectedTransferPatient) => void;
-	clearSelectedPatients: () => void;
+	selectedTransferPatients: SelectedTransferPatient[];
+	addSelectedTransferPatient: (patient: SelectedTransferPatient) => void;
+	removeSelectedTransferPatient: (patient: SelectedTransferPatient) => void;
+	toggleSelectedTransferPatient: (patient: SelectedTransferPatient) => void;
+	clearSelectedTransferPatients: () => void;
 };
 
 const useSelectedTransferPatientsStore = create<SelectedTransferPatientsStore>()(
 	persist(
 		(set, get) => ({
-			selectedPatients: [],
-			addSelectedPatient: (patient) =>
+			selectedTransferPatients: [],
+			addSelectedTransferPatient: (patient) =>
 				set((state) => {
-					const isSelected = state.selectedPatients.some(
+					const isSelected = state.selectedTransferPatients.some(
 						(item) => item.patientId === patient.patientId && item.name === patient.name,
 					);
 
 					if (isSelected) return state;
 
-					return { selectedPatients: [...state.selectedPatients, patient] };
+					return { selectedTransferPatients: [...state.selectedTransferPatients, patient] };
 				}),
-			removeSelectedPatient: (patient) =>
+			removeSelectedTransferPatient: (patient) =>
 				set((state) => ({
-					selectedPatients: state.selectedPatients.filter(
+					selectedTransferPatients: state.selectedTransferPatients.filter(
 						(item) => !(item.patientId === patient.patientId && item.name === patient.name),
 					),
 				})),
-			toggleSelectedPatient: (patient) => {
-				const { selectedPatients, addSelectedPatient, removeSelectedPatient } = get();
-				const isSelected = selectedPatients.some(
+			toggleSelectedTransferPatient: (patient) => {
+				const {
+					selectedTransferPatients,
+					addSelectedTransferPatient,
+					removeSelectedTransferPatient,
+				} = get();
+				const isSelected = selectedTransferPatients.some(
 					(item) => item.patientId === patient.patientId && item.name === patient.name,
 				);
 
 				if (isSelected) {
-					removeSelectedPatient(patient);
+					removeSelectedTransferPatient(patient);
 					return;
 				}
 
-				addSelectedPatient(patient);
+				addSelectedTransferPatient(patient);
 			},
-			clearSelectedPatients: () => set({ selectedPatients: [] }),
+			clearSelectedTransferPatients: () => set({ selectedTransferPatients: [] }),
 		}),
 		{
 			name: "selected-transfer-patients",
@@ -57,23 +61,27 @@ const useSelectedTransferPatientsStore = create<SelectedTransferPatientsStore>()
 );
 
 export const useSelectedTransferPatients = () => {
-	const selectedPatients = useSelectedTransferPatientsStore((state) => state.selectedPatients);
-	const addSelectedPatient = useSelectedTransferPatientsStore((state) => state.addSelectedPatient);
-	const removeSelectedPatient = useSelectedTransferPatientsStore(
-		(state) => state.removeSelectedPatient,
+	const selectedTransferPatients = useSelectedTransferPatientsStore(
+		(state) => state.selectedTransferPatients,
 	);
-	const toggleSelectedPatient = useSelectedTransferPatientsStore(
-		(state) => state.toggleSelectedPatient,
+	const addSelectedTransferPatient = useSelectedTransferPatientsStore(
+		(state) => state.addSelectedTransferPatient,
 	);
-	const clearSelectedPatients = useSelectedTransferPatientsStore(
-		(state) => state.clearSelectedPatients,
+	const removeSelectedTransferPatient = useSelectedTransferPatientsStore(
+		(state) => state.removeSelectedTransferPatient,
+	);
+	const toggleSelectedTransferPatient = useSelectedTransferPatientsStore(
+		(state) => state.toggleSelectedTransferPatient,
+	);
+	const clearSelectedTransferPatients = useSelectedTransferPatientsStore(
+		(state) => state.clearSelectedTransferPatients,
 	);
 
 	return {
-		selectedPatients,
-		addSelectedPatient,
-		removeSelectedPatient,
-		toggleSelectedPatient,
-		clearSelectedPatients,
+		selectedTransferPatients,
+		addSelectedTransferPatient,
+		removeSelectedTransferPatient,
+		toggleSelectedTransferPatient,
+		clearSelectedTransferPatients,
 	};
 };

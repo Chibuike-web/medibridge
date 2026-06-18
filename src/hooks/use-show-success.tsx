@@ -1,10 +1,10 @@
 import { useState } from "react";
 
 export function useShowSuccess() {
-	const [showSuccess, setShowSuccess] = useState(false);
+	const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
 	return {
-		showSuccess,
-		setShowSuccess,
+		isSuccessModalOpen,
+		setIsSuccessModalOpen,
 	};
 }

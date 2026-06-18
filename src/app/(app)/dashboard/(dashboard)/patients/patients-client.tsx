@@ -18,6 +18,8 @@ type PatientsClientProps = {
 	limit: number;
 	totalPages: number;
 	searchQuery: string;
+	createdFrom: string;
+	createdTo: string;
 };
 
 export function PatientsClient({
@@ -26,6 +28,8 @@ export function PatientsClient({
 	limit,
 	totalPages,
 	searchQuery,
+	createdFrom,
+	createdTo,
 }: PatientsClientProps) {
 	const router = useRouter();
 	const pathname = usePathname();
@@ -34,6 +38,10 @@ export function PatientsClient({
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
 	const [optimisticPatientsPage, setOptimisticPatientsPage] = useOptimistic(page);
 	const [optimisticPatientsLimit, setOptimisticPatientsLimit] = useOptimistic(limit);
+	const [optimisticCreatedAtRange, setOptimisticCreatedAtRange] = useOptimistic({
+		createdFrom,
+		createdTo,
+	});
 	const [isUpdatingPatientsTable, startPatientsTableUpdateTransition] = useTransition();
 
 	if (searchQuery !== previousSearchQuery) {
@@ -70,6 +78,27 @@ export function PatientsClient({
 		return newParams.toString();
 	}
 
+	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
+		startPatientsTableUpdateTransition(async () => {
+			setOptimisticPatientsPage(1);
+			setOptimisticCreatedAtRange({
+				createdFrom: nextCreatedFrom,
+				createdTo: nextCreatedTo,
+			});
+
+			router.push(
+				(pathname +
+					"?" +
+					createQueryString({
+						page: "1",
+						limit: String(limit),
+						createdFrom: nextCreatedFrom,
+						createdTo: nextCreatedTo,
+					})) as Route,
+			);
+		});
+	}
+
 	function handleQueryChange(nextQuery: string) {
 		setPatientSearchQuery(nextQuery);
 		debouncedSearch(nextQuery);
@@ -104,11 +133,7 @@ export function PatientsClient({
 			setOptimisticPatientsPage(1);
 			setOptimisticPatientsLimit(Number(value));
 
-			router.push(
-				(pathname +
-					"?" +
-					createQueryString({ page: "1", limit: value })) as Route,
-			);
+			router.push((pathname + "?" + createQueryString({ page: "1", limit: value })) as Route);
 		});
 	}
 
@@ -130,7 +155,12 @@ export function PatientsClient({
 						/>
 					</div>
 
-					<FilterButton />
+					<FilterButton
+						createdFrom={optimisticCreatedAtRange.createdFrom}
+						createdTo={optimisticCreatedAtRange.createdTo}
+						isPending={isUpdatingPatientsTable}
+						onCreatedAtRangeApply={handleCreatedAtRangeApply}
+					/>
 					<Button size="lg" variant="outline">
 						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 						Export

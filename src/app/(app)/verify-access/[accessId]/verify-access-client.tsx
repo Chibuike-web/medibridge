@@ -51,7 +51,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 
 	if (verificationState.status === "code-expired" || verificationState.status === "no-code") {
 		return (
-			<section className="flex w-full max-w-[500px] flex-col items-center text-center">
+			<section className="flex w-full max-w-[31.25rem] flex-col items-center text-center">
 				<h1 className="text-2xl font-semibold leading-[1.2] text-gray-800">
 					{verificationState.status === "code-expired"
 						? "Verification code expired"
@@ -94,7 +94,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 	}
 
 	return (
-		<section className="flex w-full max-w-[500px] flex-col items-center text-center">
+		<section className="flex w-full max-w-[31.25rem] flex-col items-center text-center">
 			<h1 className="text-2xl font-semibold leading-[1.2] text-gray-800">Verify Access</h1>
 			<p className="mt-4 text-base leading-6 text-gray-600">
 				Enter the verification code sent to {verificationState.recipientEmail} to access the
@@ -160,7 +160,7 @@ function VerifyAccessMessage({
 	description: string;
 }) {
 	return (
-		<section className="flex w-full max-w-[500px] flex-col items-center text-center">
+		<section className="flex w-full max-w-[31.25rem] flex-col items-center text-center">
 			<h1 className="text-2xl font-semibold leading-[1.2] text-gray-800">{title}</h1>
 			<p className="mt-4 text-base leading-6 text-gray-600">{description}</p>
 		</section>

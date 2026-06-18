@@ -156,7 +156,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								{!isCollapsed ? <span className="whitespace-nowrap">Search...</span> : null}
 							</button>
 						</DialogTrigger>
-						<DialogContent className="max-w-[800px]">
+						<DialogContent className="max-w-[50rem]">
 							<DialogHeader className="h-16 px-6 border-b border-gray-200">
 								<DialogTitle className="sr-only">Search chats</DialogTitle>
 								<DialogDescription className="sr-only">

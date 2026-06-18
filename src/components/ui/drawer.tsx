@@ -52,8 +52,8 @@ function DrawerContent({
 					"data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:max-h-[80vh] data-[vaul-drawer-direction=bottom]:rounded-t-lg data-[vaul-drawer-direction=bottom]:border-t",
 					"data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:w-[50rem] data-[vaul-drawer-direction=right]:border-l",
 					"data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0 data-[vaul-drawer-direction=left]:w-[50rem] data-[vaul-drawer-direction=left]:border-r",
-					"max-[899px]:data-[vaul-drawer-direction=right]:!w-[37.5rem] max-[599px]:data-[vaul-drawer-direction=right]:!inset-x-4 max-[599px]:data-[vaul-drawer-direction=right]:!w-auto",
-					"max-[899px]:data-[vaul-drawer-direction=left]:!w-[37.5rem] max-[599px]:data-[vaul-drawer-direction=left]:!inset-x-4 max-[599px]:data-[vaul-drawer-direction=left]:!w-auto",
+					"max-[56.1875rem]:data-[vaul-drawer-direction=right]:!w-[37.5rem] max-[37.4375rem]:data-[vaul-drawer-direction=right]:!inset-x-4 max-[37.4375rem]:data-[vaul-drawer-direction=right]:!w-auto",
+					"max-[56.1875rem]:data-[vaul-drawer-direction=left]:!w-[37.5rem] max-[37.4375rem]:data-[vaul-drawer-direction=left]:!inset-x-4 max-[37.4375rem]:data-[vaul-drawer-direction=left]:!w-auto",
 					className,
 				)}
 				{...props}

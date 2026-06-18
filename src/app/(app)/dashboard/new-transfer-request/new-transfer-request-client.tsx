@@ -42,50 +42,56 @@ export function NewTransferRequestClient({
 	patientOptionsLimit: number;
 	totalPatientPages: number;
 }) {
-	const { selectedPatients, removeSelectedPatient, addSelectedPatient } =
+	const { selectedTransferPatients, removeSelectedTransferPatient, addSelectedTransferPatient } =
 		useSelectedTransferPatients();
-	const { patientTransferData, setPatientTransferData, removePatientTransferData, isHydrated } =
-		usePatientTransferData();
-	const { attachedRecords, removeAttachedRecords } = useAttachClinicalRecords();
-	const { showSuccess, setShowSuccess } = useShowSuccess();
-	const [currentId, setCurrentId] = useState<string | null>(null);
+	const {
+		patientTransferDataByPatientId,
+		setPatientTransferDataByPatientId,
+		removePatientTransferDataByPatientId,
+		isPatientTransferDataHydrated,
+	} = usePatientTransferData();
+	const { attachedClinicalRecordsByPatientId, removeAttachedClinicalRecordsForPatient } =
+		useAttachClinicalRecords();
+	const { isSuccessModalOpen, setIsSuccessModalOpen } = useShowSuccess();
+	const [activeTransferPatientId, setActiveTransferPatientId] = useState<string | null>(null);
 	const router = useRouter();
-	const [step, setStep] = useState(1);
+	const [currentTransferRequestStep, setCurrentTransferRequestStep] = useState(1);
 	const params = use(searchParams);
 	const patientId = params.patientId;
 
-	const isComplete = selectedPatients.every((p) => {
-		const transferData = patientTransferData[p.patientId] ?? EMPTY_PATIENT_TRANSFER_DATA;
-		const records = attachedRecords[p.patientId] ?? [];
+	const isComplete = selectedTransferPatients.every((p) => {
+		const transferData =
+			patientTransferDataByPatientId[p.patientId] ?? EMPTY_PATIENT_TRANSFER_DATA;
+		const records = attachedClinicalRecordsByPatientId[p.patientId] ?? [];
 
 		return transferData.hospitalEmail && transferData.hospitalName && records.length > 0;
 	});
 	const activePatient =
-		selectedPatients.find((p) => p.patientId === currentId)?.patientId ??
-		selectedPatients[0]?.patientId ??
+		selectedTransferPatients.find((p) => p.patientId === activeTransferPatientId)?.patientId ??
+		selectedTransferPatients[0]?.patientId ??
 		"";
 
 	const currentPatientTransferData: PatientTransferData = {
 		...EMPTY_PATIENT_TRANSFER_DATA,
-		...(patientTransferData[activePatient] ?? {}),
+		...(patientTransferDataByPatientId[activePatient] ?? {}),
 	};
 
 	function handleRemovePatient(patient: { patientId: string; name: string }) {
-		removeSelectedPatient(patient);
-		removePatientTransferData(patient.patientId);
-		removeAttachedRecords(patient.patientId);
+		removeSelectedTransferPatient(patient);
+		removePatientTransferDataByPatientId(patient.patientId);
+		removeAttachedClinicalRecordsForPatient(patient.patientId);
 
 		if (patient.patientId === patientId) {
 			router.replace("/dashboard/new-transfer-request");
 		}
 
-		if (selectedPatients.length === 1) {
-			setStep(1);
-			setCurrentId(null);
+		if (selectedTransferPatients.length === 1) {
+			setCurrentTransferRequestStep(1);
+			setActiveTransferPatientId(null);
 		}
 	}
 
-	const recordCounts = (attachedRecords[activePatient] ?? []).reduce(
+	const recordCounts = (attachedClinicalRecordsByPatientId[activePatient] ?? []).reduce(
 		(acc, record) => {
 			const type = record.type;
 			if (!type) return acc;
@@ -100,7 +106,7 @@ export function NewTransferRequestClient({
 	useEffect(
 		function initializePatientFromParams() {
 			if (!patientId) return;
-			const exists = selectedPatients.some((p) => p.patientId === patientId);
+			const exists = selectedTransferPatients.some((p) => p.patientId === patientId);
 
 			if (exists) return;
 
@@ -108,7 +114,7 @@ export function NewTransferRequestClient({
 				const patient = await getPatientById(patientId);
 
 				if (patient) {
-					addSelectedPatient({
+					addSelectedTransferPatient({
 						name: `${patient.firstName} ${patient.lastName}`,
 						patientId: patient.patientId,
 					});
@@ -118,16 +124,18 @@ export function NewTransferRequestClient({
 		[patientId],
 	);
 
-	if (!isHydrated) {
+	if (!isPatientTransferDataHydrated) {
 		return <div className="w-full" />;
 	}
 
 	return (
 		<>
 			<form className="w-full">
-				<p className="mb-10 w-full text-center text-xl font-medium text-gray-600">Step {step}/2</p>
+				<p className="mb-10 w-full text-center text-xl font-medium text-gray-600">
+					Step {currentTransferRequestStep}/2
+				</p>
 
-				{step === 1 ? (
+				{currentTransferRequestStep === 1 ? (
 					<>
 						<SelectPatient
 							patientId={patientId}
@@ -140,11 +148,11 @@ export function NewTransferRequestClient({
 							className="h-11 w-full mt-16"
 							type="button"
 							onClick={() => {
-								if (selectedPatients.length > 0) {
-									setStep(2);
+								if (selectedTransferPatients.length > 0) {
+									setCurrentTransferRequestStep(2);
 								}
 							}}
-							disabled={selectedPatients.length === 0}
+							disabled={selectedTransferPatients.length === 0}
 						>
 							Continue
 						</Button>
@@ -152,11 +160,11 @@ export function NewTransferRequestClient({
 				) : (
 					<div>
 						<div className="flex flex-wrap gap-2">
-							{selectedPatients.map((s) => (
+							{selectedTransferPatients.map((s) => (
 								<button
 									key={s.patientId}
 									type="button"
-									onClick={() => setCurrentId(s.patientId)}
+									onClick={() => setActiveTransferPatientId(s.patientId)}
 									className={cn("text-sm flex items-center gap-2 py-1.5 pl-3 pr-1.5 rounded-full", {
 										"bg-gray-800 text-white": activePatient === s.patientId,
 										"bg-gray-200 text-gray-600": activePatient !== s.patientId,
@@ -211,14 +219,15 @@ export function NewTransferRequestClient({
 									defaultValue={currentPatientTransferData.hospitalName ?? ""}
 									onBlur={(e) => {
 										const nextPatientTransferData = {
-											...patientTransferData,
+											...patientTransferDataByPatientId,
 											[activePatient]: {
-												...(patientTransferData[activePatient] ?? EMPTY_PATIENT_TRANSFER_DATA),
+												...(patientTransferDataByPatientId[activePatient] ??
+													EMPTY_PATIENT_TRANSFER_DATA),
 												hospitalName: e.target.value,
 											},
 										};
 
-										setPatientTransferData(nextPatientTransferData);
+										setPatientTransferDataByPatientId(nextPatientTransferData);
 									}}
 								/>
 							</div>
@@ -234,14 +243,15 @@ export function NewTransferRequestClient({
 										defaultValue={currentPatientTransferData.hospitalEmail ?? ""}
 										onBlur={(e) => {
 											const nextPatientTransferData = {
-												...patientTransferData,
+												...patientTransferDataByPatientId,
 												[activePatient]: {
-													...(patientTransferData[activePatient] ?? EMPTY_PATIENT_TRANSFER_DATA),
+													...(patientTransferDataByPatientId[activePatient] ??
+														EMPTY_PATIENT_TRANSFER_DATA),
 													hospitalEmail: e.target.value,
 												},
 											};
 
-											setPatientTransferData(nextPatientTransferData);
+											setPatientTransferDataByPatientId(nextPatientTransferData);
 										}}
 									/>
 								</div>
@@ -259,21 +269,27 @@ export function NewTransferRequestClient({
 									defaultValue={currentPatientTransferData.notes ?? ""}
 									onBlur={(e) => {
 										const nextPatientTransferData = {
-											...patientTransferData,
+											...patientTransferDataByPatientId,
 											[activePatient]: {
-												...(patientTransferData[activePatient] ?? EMPTY_PATIENT_TRANSFER_DATA),
+												...(patientTransferDataByPatientId[activePatient] ??
+													EMPTY_PATIENT_TRANSFER_DATA),
 												notes: e.target.value,
 											},
 										};
 
-										setPatientTransferData(nextPatientTransferData);
+										setPatientTransferDataByPatientId(nextPatientTransferData);
 									}}
 								/>
 							</div>
 						</Fragment>
 
 						<div className="flex items-center mt-16 justify-between">
-							<Button className="h-11" variant="outline" type="button" onClick={() => setStep(1)}>
+							<Button
+								className="h-11"
+								variant="outline"
+								type="button"
+								onClick={() => setCurrentTransferRequestStep(1)}
+							>
 								Back
 							</Button>
 							<Dialog>
@@ -349,10 +365,10 @@ export function NewTransferRequestClient({
 					</div>
 				)}
 			</form>
-			{showSuccess && (
+			{isSuccessModalOpen && (
 				<SuccessModal
-					isOpen={showSuccess}
-					setIsOpen={setShowSuccess}
+					isOpen={isSuccessModalOpen}
+					setIsOpen={setIsSuccessModalOpen}
 					heading="Transfer Request Sent"
 					description="Your transfer request has been successfully submitted. 
 The patient will review and approve this transfer before it is sent to the target hospital. You can track the status of this request in the Transfers section."

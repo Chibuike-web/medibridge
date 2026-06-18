@@ -18,6 +18,8 @@ type TransfersClientProps = {
 	limit: number;
 	totalPages: number;
 	searchQuery: string;
+	requestedFrom: string;
+	requestedTo: string;
 };
 
 export function TransfersClient({
@@ -26,6 +28,8 @@ export function TransfersClient({
 	limit,
 	totalPages,
 	searchQuery,
+	requestedFrom,
+	requestedTo,
 }: TransfersClientProps) {
 	const router = useRouter();
 	const pathname = usePathname();
@@ -35,6 +39,10 @@ export function TransfersClient({
 	const [optimisticTransfersPage, setOptimisticTransfersPage] = useOptimistic(page);
 	const [optimisticTransfersLimit, setOptimisticTransfersLimit] = useOptimistic(limit);
 	const [isUpdatingTransfersTable, startTransfersTableUpdateTransition] = useTransition();
+	const [optimistiRequestedAtRange, setOptimistiRequestedAtRange] = useOptimistic({
+		requestedFrom,
+		requestedTo,
+	});
 
 	if (searchQuery !== previousSearchQuery) {
 		setPreviousSearchQuery(searchQuery);
@@ -77,6 +85,26 @@ export function TransfersClient({
 		debouncedSearch(nextQuery);
 	}
 
+	function handleRequestedAtRangeApply(nextRequestedFrom: string, nextRequestedTo: string) {
+		startTransfersTableUpdateTransition(async () => {
+			setOptimisticTransfersPage(1);
+			setOptimistiRequestedAtRange({
+				requestedFrom: nextRequestedFrom,
+				requestedTo: nextRequestedTo,
+			});
+			router.push(
+				(pathname +
+					"?" +
+					createQueryString({
+						page: "1",
+						limit: String(limit),
+						requestedFrom: nextRequestedFrom,
+						requestedTo: nextRequestedTo,
+					})) as Route,
+			);
+		});
+	}
+
 	function handlePreviousPage() {
 		startTransfersTableUpdateTransition(async () => {
 			setOptimisticTransfersPage(page - 1);
@@ -106,11 +134,7 @@ export function TransfersClient({
 			setOptimisticTransfersPage(1);
 			setOptimisticTransfersLimit(Number(value));
 
-			router.push(
-				(pathname +
-					"?" +
-					createQueryString({ page: "1", limit: value })) as Route,
-			);
+			router.push((pathname + "?" + createQueryString({ page: "1", limit: value })) as Route);
 		});
 	}
 
@@ -132,7 +156,12 @@ export function TransfersClient({
 						/>
 					</div>
 
-					<FilterButton />
+					<FilterButton
+						requestedFrom={optimistiRequestedAtRange.requestedFrom}
+						requestedTo={optimistiRequestedAtRange.requestedTo}
+						isPending={isUpdatingTransfersTable}
+						onRequestedAtRangeApply={handleRequestedAtRangeApply}
+					/>
 					<Button size="lg" variant="outline">
 						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 						Export

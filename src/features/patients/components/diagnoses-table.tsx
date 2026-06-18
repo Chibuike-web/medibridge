@@ -133,7 +133,7 @@ export function DiagnosesTable({
 					>
 						<DropdownMenuSub>
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiCheckboxCircleLine className="size-[18px]" />{" "}
+								<RiCheckboxCircleLine className="size-4.5" />{" "}
 								<span className="block">Status</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
@@ -220,7 +220,7 @@ export function DiagnosesTable({
 
 						<DropdownMenuSub>
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiHistoryLine className="text-[18px]" />{" "}
+								<RiHistoryLine className="text-lg" />{" "}
 								<span className="block">Last updated</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
@@ -242,7 +242,7 @@ export function DiagnosesTable({
 
 						<DropdownMenuSub>
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiPulseLine className="size-[18px]" />{" "}
+								<RiPulseLine className="size-4.5" />{" "}
 								<span className="block">Diagnosed At</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
@@ -262,7 +262,7 @@ export function DiagnosesTable({
 						</DropdownMenuSub>
 						<DropdownMenuSub>
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiCalendarLine className="size-[18px]" /> <span className="block">Created at</span>
+								<RiCalendarLine className="size-4.5" /> <span className="block">Created at</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={8}

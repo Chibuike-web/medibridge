@@ -20,8 +20,8 @@ export function PatientAvatarMenu({ patientName }: { patientName: string }) {
 							{getInitials(patientName ?? "")}
 						</AvatarFallback>
 					</Avatar>
-					<div className="absolute right-0 bottom-0 size-[18px] border border-white/20 text-white bg-gray-800 flex items-center justify-center rounded-full ring ring-gray-800">
-						<RiEdit2Line className="size-[12px]" />
+					<div className="absolute right-0 bottom-0 size-4.5 border border-white/20 text-white bg-gray-800 flex items-center justify-center rounded-full ring ring-gray-800">
+						<RiEdit2Line className="size-3" />
 					</div>
 				</button>
 			</DropdownMenuTrigger>

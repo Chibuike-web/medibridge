@@ -33,25 +33,32 @@ export function SelectPatient({
 	const [currentTotalPages, setCurrentTotalPages] = useState(totalPages);
 	const [optimisticPage, setOptimisticPage] = useOptimistic(currentPage);
 	const [isPending, startTransition] = useTransition();
-	const { removeAttachedRecords } = useAttachClinicalRecords();
+	const { removeAttachedClinicalRecordsForPatient } = useAttachClinicalRecords();
 
 	const router = useRouter();
-	const { selectedPatients, toggleSelectedPatient, removeSelectedPatient } =
+	const {
+		selectedTransferPatients,
+		toggleSelectedTransferPatient,
+		removeSelectedTransferPatient,
+	} =
 		useSelectedTransferPatients();
 
-	const selectedCount = selectedPatients.length;
+	const selectedCount = selectedTransferPatients.length;
 	const selectedSummary =
 		selectedCount === 0 ? (
 			"Select patient"
 		) : selectedCount === 1 ? (
 			<div className="flex items-center gap-2">
-				<span>{selectedPatients[0].name}</span>
-				<span className="p-1 rounded bg-white text-xs border" title={selectedPatients[0].patientId}>
-					{truncateId(selectedPatients[0].patientId)}
+				<span>{selectedTransferPatients[0].name}</span>
+				<span
+					className="p-1 rounded bg-white text-xs border"
+					title={selectedTransferPatients[0].patientId}
+				>
+					{truncateId(selectedTransferPatients[0].patientId)}
 				</span>
 			</div>
 		) : (
-			`${selectedPatients[0].name} +${selectedCount - 1} more`
+			`${selectedTransferPatients[0].name} +${selectedCount - 1} more`
 		);
 
 	function handlePageChange(nextPage: number) {
@@ -96,7 +103,7 @@ export function SelectPatient({
 							<p className="px-3 py-4 text-sm text-gray-500">No patients available.</p>
 						) : (
 							patientOptions.map((patient) => {
-								const isSelected = selectedPatients.some(
+								const isSelected = selectedTransferPatients.some(
 									(item) => item.patientId === patient.patientId,
 								);
 
@@ -104,7 +111,7 @@ export function SelectPatient({
 									<button
 										key={patient.patientId + patient.name}
 										type="button"
-										onClick={() => toggleSelectedPatient(patient)}
+										onClick={() => toggleSelectedTransferPatient(patient)}
 										className={cn(
 											"flex w-full text-left items-center justify-between rounded-md px-3 h-11 text-sm shrink-0",
 											isSelected ? "bg-gray-200 text-foreground" : "text-gray-600 hover:bg-gray-50",
@@ -153,7 +160,7 @@ export function SelectPatient({
 				</PopoverContent>
 			</Popover>
 			<div className="flex items-center gap-3 flex-wrap">
-				{selectedPatients.map((s) => (
+				{selectedTransferPatients.map((s) => (
 					<div
 						key={s.patientId}
 						className="text-sm bg-gray-200 text-gray-600 flex items-center gap-2 py-1.5 pl-3 pr-1.5 rounded-full"
@@ -163,12 +170,12 @@ export function SelectPatient({
 							type="button"
 							className="bg-gray-800 size-5 flex items-center justify-center text-white rounded-full active:scale-[0.90] transition-transform"
 							onClick={() => {
-								removeSelectedPatient(s);
+								removeSelectedTransferPatient(s);
 
 								if (s.patientId === patientId) {
 									router.replace("/dashboard/new-transfer-request");
 								}
-								removeAttachedRecords(s.patientId);
+								removeAttachedClinicalRecordsForPatient(s.patientId);
 							}}
 						>
 							<RiCloseLine size={16} />

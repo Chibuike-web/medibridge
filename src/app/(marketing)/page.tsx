@@ -17,7 +17,7 @@ export default function Home() {
 						className="w-full h-full object-cover"
 						loading="lazy"
 						placeholder="blur"
-						sizes="(max-width: 1280px) 100vw, 50vw"
+						sizes="(max-width: 80rem) 100vw, 50vw"
 					/>
 				</div>
 			<div className="w-full sm:w-[31.25rem] flex shrink-0 flex-col items-center mx-6 xl:mx-40">

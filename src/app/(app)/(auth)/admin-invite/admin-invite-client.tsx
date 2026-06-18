@@ -14,7 +14,7 @@ import { RiInformationLine } from "@remixicon/react";
 
 export function AdminInviteClient() {
 	const router = useRouter();
-	const { showSuccess, setShowSuccess } = useShowSuccess();
+	const { isSuccessModalOpen, setIsSuccessModalOpen } = useShowSuccess();
 	const {
 		register,
 		formState: { errors, isSubmitting },
@@ -82,10 +82,10 @@ export function AdminInviteClient() {
 					)}
 				</Button>
 			</form>
-			{showSuccess && (
+			{isSuccessModalOpen && (
 				<SuccessModal
-					isOpen={showSuccess}
-					setIsOpen={setShowSuccess}
+					isOpen={isSuccessModalOpen}
+					setIsOpen={setIsSuccessModalOpen}
 					heading="Admin Invitation Sent"
 					description="The administrator has been successfully invited. They will receive an email to set up their account and start managing members."
 				>
