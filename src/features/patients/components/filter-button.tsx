@@ -20,7 +20,6 @@ import type { DateRange } from "react-day-picker";
 
 import {
 	RiArrowRightLine,
-	RiArrowRightSLine,
 	RiCalendarLine,
 	RiCalendarView,
 	RiCheckLine,
@@ -274,14 +273,6 @@ function CreatedAtPresetList({
 					/>
 				);
 			})}
-
-			<DropdownMenuItem
-				onSelect={(event) => event.preventDefault()}
-				className="flex h-10 w-full items-center justify-between rounded-lg hover:bg-gray-100 px-3 text-left font-medium text-gray-700 focus:bg-gray-100"
-			>
-				<span>Custom range</span>
-				<RiArrowRightSLine className="size-5 text-gray-400" aria-hidden="true" />
-			</DropdownMenuItem>
 		</>
 	);
 }
