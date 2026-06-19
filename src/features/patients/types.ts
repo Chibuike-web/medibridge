@@ -8,6 +8,16 @@ export type RecentPatientType = {
 
 export type PatientListItemType = RecentPatientType;
 
+export type PatientGenderFilter = "" | "male" | "female";
+
+export type PatientAgeGroupFilter =
+	| ""
+	| "children"
+	| "teenagers"
+	| "young-adults"
+	| "adults"
+	| "seniors";
+
 export type DiagnosisType = {
 	name: string;
 	diagnosedAtLabel: string;

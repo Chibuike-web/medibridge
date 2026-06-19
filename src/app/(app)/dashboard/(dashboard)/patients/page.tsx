@@ -5,6 +5,7 @@ import Image from "next/image";
 import { PatientsClient } from "./patients-client";
 import { endOfDay, startOfDay } from "date-fns";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
+import type { PatientAgeGroupFilter, PatientGenderFilter } from "@/features/patients/types";
 
 export const metadata = {
 	title: "Patients",
@@ -15,21 +16,44 @@ export default async function PatientsPage({
 }: {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-	const { page, limit, query, createdFrom, createdTo } = await searchParams;
+	const { page, limit, query, createdFrom, createdTo, gender, ageGroup } = await searchParams;
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : 1;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : 14;
 	const currentQuery = typeof query === "string" ? query : "";
 	const currentCreatedFrom = typeof createdFrom === "string" ? createdFrom : "";
 	const currentCreatedTo = typeof createdTo === "string" ? createdTo : "";
+	const currentGenderFilter: PatientGenderFilter =
+		gender === "male" || gender === "female" ? gender : "";
+	const currentAgeGroupFilter: PatientAgeGroupFilter =
+		ageGroup === "children" ||
+		ageGroup === "teenagers" ||
+		ageGroup === "young-adults" ||
+		ageGroup === "adults" ||
+		ageGroup === "seniors"
+			? ageGroup
+			: "";
 	const createdAtFilter = {
 		from: parseCreatedAtDateParam(currentCreatedFrom, "start"),
 		to: parseCreatedAtDateParam(currentCreatedTo, "end"),
 	};
+	const ageRangeFilter =
+		currentAgeGroupFilter === "children"
+			? { min: 0, max: 12 }
+			: currentAgeGroupFilter === "teenagers"
+				? { min: 13, max: 17 }
+				: currentAgeGroupFilter === "young-adults"
+					? { min: 18, max: 35 }
+					: currentAgeGroupFilter === "adults"
+						? { min: 36, max: 59 }
+						: currentAgeGroupFilter === "seniors"
+							? { min: 60 }
+							: undefined;
 	const { hasPatients, patients, totalPatients } = await getPatients(
 		currentPage,
 		currentLimit,
 		currentQuery,
 		createdAtFilter,
+		{ gender: currentGenderFilter || undefined, ageRange: ageRangeFilter },
 	);
 	const totalPages = Math.ceil(totalPatients / currentLimit) || 1;
 
@@ -42,6 +66,8 @@ export default async function PatientsPage({
 			searchQuery={currentQuery}
 			createdFrom={currentCreatedFrom}
 			createdTo={currentCreatedTo}
+			genderFilter={currentGenderFilter}
+			ageGroupFilter={currentAgeGroupFilter}
 		/>
 	) : (
 		<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">

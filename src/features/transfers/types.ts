@@ -45,6 +45,8 @@ export type TransferType = {
 	targetHospitalAdminEmail: string | null;
 };
 
+export type TransferStatusFilter = TransferType["status"];
+
 export type TransferDetailsType = TransferType & {
 	requestedBy: string | null;
 	createdBy: string | null;

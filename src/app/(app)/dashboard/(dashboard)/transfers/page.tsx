@@ -5,22 +5,42 @@ import { getTransfers } from "@/lib/api/get-transfers";
 import { TransfersClient } from "./transfers-client";
 import { endOfDay, startOfDay } from "date-fns";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
+import type { TransferStatusFilter } from "@/features/transfers/types";
 
 export const metadata = {
 	title: "Transfers",
 };
+
+const TRANSFER_STATUS_FILTERS = [
+	"pending",
+	"rejected",
+	"completed",
+	"failed",
+	"cancelled",
+] as const;
+
+const transferStatusFilterSet = new Set<string>(TRANSFER_STATUS_FILTERS);
+
+function parseTransferStatusFilters(status: string | string[] | undefined) {
+	if (typeof status !== "string") return [];
+
+	return status
+		.split(",")
+		.filter((value): value is TransferStatusFilter => transferStatusFilterSet.has(value));
+}
 
 export default async function Transfers({
 	searchParams,
 }: {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-	const { page, limit, query, requestedFrom, requestedTo } = await searchParams;
+	const { page, limit, query, requestedFrom, requestedTo, status } = await searchParams;
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : 1;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : 14;
 	const currentQuery = typeof query === "string" ? query : "";
 	const currentRequestedFrom = typeof requestedFrom === "string" ? requestedFrom : "";
 	const currentRequestedTo = typeof requestedTo === "string" ? requestedTo : "";
+	const currentStatusFilters = parseTransferStatusFilters(status);
 	const requestedAtFilter = {
 		from: parseRequestedAtDateParam(currentRequestedFrom, "start"),
 		to: parseRequestedAtDateParam(currentRequestedTo, "end"),
@@ -30,6 +50,7 @@ export default async function Transfers({
 		currentLimit,
 		currentQuery,
 		requestedAtFilter,
+		currentStatusFilters,
 	);
 	const totalPages = Math.max(1, Math.ceil(totalTransfers / currentLimit));
 
@@ -42,6 +63,7 @@ export default async function Transfers({
 			searchQuery={currentQuery}
 			requestedFrom={currentRequestedFrom}
 			requestedTo={currentRequestedTo}
+			statusFilters={currentStatusFilters}
 		/>
 	) : (
 		<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">

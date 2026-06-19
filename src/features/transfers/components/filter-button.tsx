@@ -17,6 +17,7 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { endOfDay, format, isSameDay, startOfDay, subDays, subYears } from "date-fns";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
+import type { TransferStatusFilter } from "../types";
 
 import {
 	RiArrowRightLine,
@@ -35,6 +36,16 @@ type RequestedAtCompleteRange = {
 	from: Date;
 	to: Date;
 };
+
+type TransferFilterSubmenu = "status" | "requested-at";
+
+const transferStatusFilterOptions: { label: string; value: TransferStatusFilter }[] = [
+	{ label: "Pending", value: "pending" },
+	{ label: "Rejected", value: "rejected" },
+	{ label: "Completed", value: "completed" },
+	{ label: "Failed", value: "failed" },
+	{ label: "Cancelled", value: "cancelled" },
+];
 
 const requestedAtFilterPresets: RequestedAtFilterPreset[] = [
 	{
@@ -64,14 +75,27 @@ export function FilterButton({
 	requestedTo,
 	isPending,
 	onRequestedAtRangeApply,
+	onStatusFiltersChange,
+	statusFilters,
 }: {
 	requestedFrom: string;
 	requestedTo: string;
 	isPending: boolean;
 	onRequestedAtRangeApply: (requestedFrom: string, requestedTo: string) => void;
+	onStatusFiltersChange: (statusFilters: TransferStatusFilter[]) => void;
+	statusFilters: TransferStatusFilter[];
 }) {
+	const [activeTransferFilterSubmenu, setActiveTransferFilterSubmenu] =
+		useState<TransferFilterSubmenu | null>(null);
+
 	return (
-		<DropdownMenu>
+		<DropdownMenu
+			onOpenChange={(isTransferFilterMenuOpen) => {
+				if (!isTransferFilterMenuOpen) {
+					setActiveTransferFilterSubmenu(null);
+				}
+			}}
+		>
 			<DropdownMenuTrigger asChild>
 				<Button
 					size="lg"
@@ -88,7 +112,18 @@ export function FilterButton({
 				sideOffset={8}
 				className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 			>
-				<DropdownMenuSub>
+				<DropdownMenuSub
+					open={activeTransferFilterSubmenu === "status"}
+					onOpenChange={(isStatusSubmenuOpen) => {
+						setActiveTransferFilterSubmenu((currentActiveTransferFilterSubmenu) =>
+							isStatusSubmenuOpen
+								? "status"
+								: currentActiveTransferFilterSubmenu === "status"
+									? null
+									: currentActiveTransferFilterSubmenu,
+						);
+					}}
+				>
 					<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 						<RiMenLine className="size-4.5" /> <span className="block">Status</span>
 					</DropdownMenuSubTrigger>
@@ -98,84 +133,57 @@ export function FilterButton({
 						alignOffset={-5}
 						className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 					>
-						<DropdownMenuItem
-							className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
-							onSelect={(event) => {
-								event.preventDefault();
-							}}
-						>
-							<Label
-								htmlFor="status-pending"
-								className="flex w-full cursor-pointer items-center gap-2 px-2 py-2 leading-normal font-normal"
-							>
-								<Checkbox id="status-pending" className="[&_svg]:!text-current" />
-								<span>Pending</span>
-							</Label>
-						</DropdownMenuItem>
+						{transferStatusFilterOptions.map((statusOption) => {
+							const isStatusSelected = statusFilters.includes(statusOption.value);
+							const statusOptionId = `status-${statusOption.value}`;
 
-						<DropdownMenuItem
-							className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
-							onSelect={(event) => {
-								event.preventDefault();
-							}}
-						>
-							<Label
-								htmlFor="status-rejected"
-								className="flex w-full cursor-pointer items-center gap-2 px-2 py-2 leading-normal font-normal"
-							>
-								<Checkbox id="status-rejected" className="[&_svg]:!text-current" />
-								<span>Rejected</span>
-							</Label>
-						</DropdownMenuItem>
-
-						<DropdownMenuItem
-							className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
-							onSelect={(event) => {
-								event.preventDefault();
-							}}
-						>
-							<Label
-								htmlFor="status-completed"
-								className="flex w-full cursor-pointer items-center gap-2 px-2 py-2 leading-normal font-normal"
-							>
-								<Checkbox id="status-completed" className="[&_svg]:!text-current" />
-								<span>Completed</span>
-							</Label>
-						</DropdownMenuItem>
-
-						<DropdownMenuItem
-							className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
-							onSelect={(event) => {
-								event.preventDefault();
-							}}
-						>
-							<Label
-								htmlFor="status-failed"
-								className="flex w-full cursor-pointer items-center gap-2 px-2 py-2 leading-normal font-normal"
-							>
-								<Checkbox id="status-failed" className="[&_svg]:!text-current" />
-								<span>Failed</span>
-							</Label>
-						</DropdownMenuItem>
-
-						<DropdownMenuItem
-							className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
-							onSelect={(event) => {
-								event.preventDefault();
-							}}
-						>
-							<Label
-								htmlFor="status-cancelled"
-								className="flex w-full cursor-pointer items-center gap-2 px-2 py-2 leading-normal font-normal"
-							>
-								<Checkbox id="status-cancelled" className="[&_svg]:!text-current" />
-								<span>Cancelled</span>
-							</Label>
-						</DropdownMenuItem>
+							return (
+								<DropdownMenuItem
+									key={statusOption.value}
+									className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
+									onSelect={(event) => {
+										event.preventDefault();
+									}}
+								>
+									<Label
+										htmlFor={statusOptionId}
+										className="flex w-full cursor-pointer items-center gap-2 px-2 py-2 leading-normal font-normal"
+									>
+										<Checkbox
+											id={statusOptionId}
+											checked={isStatusSelected}
+											disabled={isPending}
+											onCheckedChange={(checked) => {
+												onStatusFiltersChange(
+													checked === true
+														? [...statusFilters, statusOption.value]
+														: statusFilters.filter(
+																(statusFilter) => statusFilter !== statusOption.value,
+															),
+												);
+											}}
+											className="[&_svg]:!text-current"
+										/>
+										<span>{statusOption.label}</span>
+									</Label>
+								</DropdownMenuItem>
+							);
+						})}
 					</DropdownMenuSubContent>
 				</DropdownMenuSub>
 
-				<DropdownMenuSub>
+				<DropdownMenuSub
+					open={activeTransferFilterSubmenu === "requested-at"}
+					onOpenChange={(isRequestedAtSubmenuOpen) => {
+						setActiveTransferFilterSubmenu((currentActiveTransferFilterSubmenu) =>
+							isRequestedAtSubmenuOpen
+								? "requested-at"
+								: currentActiveTransferFilterSubmenu === "requested-at"
+									? null
+									: currentActiveTransferFilterSubmenu,
+						);
+					}}
+				>
 					<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 						<RiCalendarLine className="size-4.5" /> <span className="block">Requested at</span>
 					</DropdownMenuSubTrigger>
@@ -360,7 +368,7 @@ function DatePresetButton({
 
 function DateFieldPlaceholder({ label, value }: { label: string; value?: Date }) {
 	return (
-		<div className="flex h-11 min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 text-left font-medium text-gray-500">
+		<div className="flex h-11 min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left font-medium text-gray-500">
 			<RiCalendarLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
 			<span className="sr-only">{label}</span>
 			<span className="truncate">{value ? format(value, "dd/MM/yyyy") : "DD/MM/YYYY"}</span>

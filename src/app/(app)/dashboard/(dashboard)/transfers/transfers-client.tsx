@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FilterButton } from "@/features/transfers/components/filter-button";
 import { TransferTable } from "@/features/transfers/components/transfer-table";
-import type { TransferType } from "@/features/transfers/types";
+import type { TransferStatusFilter, TransferType } from "@/features/transfers/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
@@ -20,6 +20,7 @@ type TransfersClientProps = {
 	searchQuery: string;
 	requestedFrom: string;
 	requestedTo: string;
+	statusFilters: TransferStatusFilter[];
 };
 
 export function TransfersClient({
@@ -30,6 +31,7 @@ export function TransfersClient({
 	searchQuery,
 	requestedFrom,
 	requestedTo,
+	statusFilters,
 }: TransfersClientProps) {
 	const router = useRouter();
 	const pathname = usePathname();
@@ -43,6 +45,8 @@ export function TransfersClient({
 		requestedFrom,
 		requestedTo,
 	});
+	const [optimisticTransferStatusFilters, setOptimisticTransferStatusFilters] =
+		useOptimistic(statusFilters);
 
 	if (searchQuery !== previousSearchQuery) {
 		setPreviousSearchQuery(searchQuery);
@@ -105,6 +109,23 @@ export function TransfersClient({
 		});
 	}
 
+	function handleStatusFiltersChange(nextStatusFilters: TransferStatusFilter[]) {
+		startTransfersTableUpdateTransition(async () => {
+			setOptimisticTransfersPage(1);
+			setOptimisticTransferStatusFilters(nextStatusFilters);
+
+			router.push(
+				(pathname +
+					"?" +
+					createQueryString({
+						page: "1",
+						limit: String(limit),
+						status: nextStatusFilters.join(","),
+					})) as Route,
+			);
+		});
+	}
+
 	function handlePreviousPage() {
 		startTransfersTableUpdateTransition(async () => {
 			setOptimisticTransfersPage(page - 1);
@@ -161,6 +182,8 @@ export function TransfersClient({
 						requestedTo={optimistiRequestedAtRange.requestedTo}
 						isPending={isUpdatingTransfersTable}
 						onRequestedAtRangeApply={handleRequestedAtRangeApply}
+						onStatusFiltersChange={handleStatusFiltersChange}
+						statusFilters={optimisticTransferStatusFilters}
 					/>
 					<Button size="lg" variant="outline">
 						<RiShare2Line aria-hidden className="size-5 text-gray-600" />

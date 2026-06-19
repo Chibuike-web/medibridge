@@ -3,10 +3,19 @@ import { db } from "@/lib/better-auth/auth";
 import { patient, patientPersonalInformation } from "@/db/schemas";
 import { and, count, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
 import { getOrganizationId } from "./get-organization-id";
+import type { PatientGenderFilter } from "@/features/patients/types";
 
 export type PatientCreatedAtFilter = {
 	from?: Date;
 	to?: Date;
+};
+
+export type PatientFilterOptions = {
+	gender?: Exclude<PatientGenderFilter, "">;
+	ageRange?: {
+		min?: number;
+		max?: number;
+	};
 };
 
 export async function getPatients(
@@ -14,6 +23,7 @@ export async function getPatients(
 	limit: number,
 	query = "",
 	createdAtFilter: PatientCreatedAtFilter = {},
+	patientFilterOptions: PatientFilterOptions = {},
 ) {
 	const organizationId = await getOrganizationId();
 	const offset = (page - 1) * limit;
@@ -22,6 +32,17 @@ export async function getPatients(
 	const createdAtConditions = [
 		createdAtFilter.from ? gte(patient.createdAt, createdAtFilter.from) : undefined,
 		createdAtFilter.to ? lte(patient.createdAt, createdAtFilter.to) : undefined,
+	].filter((condition) => condition !== undefined);
+	const patientInformationConditions = [
+		patientFilterOptions.gender
+			? eq(patientPersonalInformation.sex, patientFilterOptions.gender)
+			: undefined,
+		patientFilterOptions.ageRange?.min !== undefined
+			? gte(patientPersonalInformation.age, patientFilterOptions.ageRange.min)
+			: undefined,
+		patientFilterOptions.ageRange?.max !== undefined
+			? lte(patientPersonalInformation.age, patientFilterOptions.ageRange.max)
+			: undefined,
 	].filter((condition) => condition !== undefined);
 
 	if (!organizationId) {
@@ -33,6 +54,7 @@ export async function getPatients(
 			const patientFilter = and(
 				eq(patient.organizationId, organizationId),
 				...createdAtConditions,
+				...patientInformationConditions,
 				or(
 					ilike(patient.id, searchPattern),
 					ilike(patient.patientId, searchPattern),
@@ -92,6 +114,7 @@ export async function getPatients(
 		},
 		[
 			`patients-v2-${organizationId}-${page}-${limit}-${normalizedQuery}-${createdAtFilter.from?.toISOString() ?? ""}-${createdAtFilter.to?.toISOString() ?? ""}`,
+			`patients-filter-${patientFilterOptions.gender ?? ""}-${patientFilterOptions.ageRange?.min ?? ""}-${patientFilterOptions.ageRange?.max ?? ""}`,
 		],
 		{ tags: [`patients-list-${organizationId}`] },
 	)();

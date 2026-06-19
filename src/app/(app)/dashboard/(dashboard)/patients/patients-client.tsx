@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FilterButton } from "@/features/patients/components/filter-button";
 import { PatientsTable } from "@/features/patients/components/patients-table";
-import type { PatientListItemType } from "@/features/patients/types";
+import type {
+	PatientAgeGroupFilter,
+	PatientGenderFilter,
+	PatientListItemType,
+} from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
@@ -20,9 +24,12 @@ type PatientsClientProps = {
 	searchQuery: string;
 	createdFrom: string;
 	createdTo: string;
+	genderFilter: PatientGenderFilter;
+	ageGroupFilter: PatientAgeGroupFilter;
 };
 
 export function PatientsClient({
+	ageGroupFilter,
 	patients,
 	page,
 	limit,
@@ -30,6 +37,7 @@ export function PatientsClient({
 	searchQuery,
 	createdFrom,
 	createdTo,
+	genderFilter,
 }: PatientsClientProps) {
 	const router = useRouter();
 	const pathname = usePathname();
@@ -42,6 +50,10 @@ export function PatientsClient({
 		createdFrom,
 		createdTo,
 	});
+	const [optimisticPatientAgeGroupFilter, setOptimisticPatientAgeGroupFilter] =
+		useOptimistic(ageGroupFilter);
+	const [optimisticPatientGenderFilter, setOptimisticPatientGenderFilter] =
+		useOptimistic(genderFilter);
 	const [isUpdatingPatientsTable, startPatientsTableUpdateTransition] = useTransition();
 
 	if (searchQuery !== previousSearchQuery) {
@@ -94,6 +106,40 @@ export function PatientsClient({
 						limit: String(limit),
 						createdFrom: nextCreatedFrom,
 						createdTo: nextCreatedTo,
+					})) as Route,
+			);
+		});
+	}
+
+	function handleGenderFilterChange(nextGenderFilter: PatientGenderFilter) {
+		startPatientsTableUpdateTransition(async () => {
+			setOptimisticPatientsPage(1);
+			setOptimisticPatientGenderFilter(nextGenderFilter);
+
+			router.push(
+				(pathname +
+					"?" +
+					createQueryString({
+						page: "1",
+						limit: String(limit),
+						gender: nextGenderFilter,
+					})) as Route,
+			);
+		});
+	}
+
+	function handleAgeGroupFilterChange(nextAgeGroupFilter: PatientAgeGroupFilter) {
+		startPatientsTableUpdateTransition(async () => {
+			setOptimisticPatientsPage(1);
+			setOptimisticPatientAgeGroupFilter(nextAgeGroupFilter);
+
+			router.push(
+				(pathname +
+					"?" +
+					createQueryString({
+						page: "1",
+						limit: String(limit),
+						ageGroup: nextAgeGroupFilter,
 					})) as Route,
 			);
 		});
@@ -156,10 +202,14 @@ export function PatientsClient({
 					</div>
 
 					<FilterButton
+						ageGroupFilter={optimisticPatientAgeGroupFilter}
 						createdFrom={optimisticCreatedAtRange.createdFrom}
 						createdTo={optimisticCreatedAtRange.createdTo}
+						genderFilter={optimisticPatientGenderFilter}
 						isPending={isUpdatingPatientsTable}
+						onAgeGroupFilterChange={handleAgeGroupFilterChange}
 						onCreatedAtRangeApply={handleCreatedAtRangeApply}
+						onGenderFilterChange={handleGenderFilterChange}
 					/>
 					<Button size="lg" variant="outline">
 						<RiShare2Line aria-hidden className="size-5 text-gray-600" />

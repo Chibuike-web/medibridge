@@ -1,9 +1,9 @@
 import { unstable_cache } from "next/cache";
-import { and, count, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { patient, patientPersonalInformation, patientTransfer } from "@/db/schemas";
 import { db } from "../better-auth/auth";
 import { getOrganizationId } from "./get-organization-id";
-import type { TransferType } from "@/features/transfers/types";
+import type { TransferStatusFilter, TransferType } from "@/features/transfers/types";
 
 function formatPatientName({
 	firstName,
@@ -51,6 +51,7 @@ export async function getTransfers(
 	limit: number,
 	query = "",
 	requestedAtFilter: TransferRequestedAtFilter = {},
+	statusFilters: TransferStatusFilter[] = [],
 ): Promise<GetTransfersResult> {
 	const organizationId = await getOrganizationId();
 	const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
@@ -62,6 +63,9 @@ export async function getTransfers(
 		requestedAtFilter.from ? gte(patientTransfer.requestedAt, requestedAtFilter.from) : undefined,
 		requestedAtFilter.to ? lte(patientTransfer.requestedAt, requestedAtFilter.to) : undefined,
 	].filter((condition) => condition !== undefined);
+	const databaseStatusFilters = statusFilters.flatMap((statusFilter) =>
+		statusFilter === "completed" ? ["completed", "approved", "sent"] : [statusFilter],
+	);
 
 	if (!organizationId) {
 		return { transfers: [], totalTransfers: 0, hasTransfers: false };
@@ -72,6 +76,9 @@ export async function getTransfers(
 			const transferFilter = and(
 				eq(patientTransfer.sourceOrganizationId, organizationId),
 				...requestedAtConditions,
+				databaseStatusFilters.length > 0
+					? inArray(patientTransfer.status, databaseStatusFilters)
+					: undefined,
 				or(
 					ilike(patientTransfer.id, searchPattern),
 					ilike(patientTransfer.patientId, searchPattern),
@@ -142,6 +149,7 @@ export async function getTransfers(
 		},
 		[
 			`transfers-v2-${organizationId}-${currentPage}-${currentLimit}-${normalizedQuery}-${requestedAtFilter.from?.toISOString() ?? ""}-${requestedAtFilter.to?.toISOString() ?? ""}`,
+			`transfers-status-${statusFilters.join(",")}`,
 		],
 		{ tags: [`transfers-list-${organizationId}`] },
 	)();

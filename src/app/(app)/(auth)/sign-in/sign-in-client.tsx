@@ -1,6 +1,6 @@
 "use client";
 
-import { listOrganizationAction, signInAction } from "@/features/auth/server/actions";
+import { signInAction } from "@/features/auth/server/actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -22,10 +22,10 @@ import {
 
 export function SignInClient() {
 	const router = useRouter();
-	const [isVisible, setIsVisible] = useState(false);
-	const [error, setError] = useState("");
-	const [success, setSuccess] = useState("");
-	const [isPending, startTransition] = useTransition();
+	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+	const [signInError, setSignInError] = useState("");
+	const [signInSuccess, setSignInSuccess] = useState("");
+	const [isRedirectPending, startRedirectTransition] = useTransition();
 
 	const {
 		register,
@@ -37,20 +37,20 @@ export function SignInClient() {
 	});
 
 	const onSubmit = async (data: SignInType) => {
-		setError("");
-		setSuccess("");
+		setSignInError("");
+		setSignInSuccess("");
 		try {
 			const response = await signInAction(data);
 			if (response.status === "failed") {
 				console.error(response.error);
-				setError(response.error || "");
+				setSignInError(response.error || "");
 				return;
 			}
-		} catch (error) {
-			setError(error instanceof Error ? error.message : "Unknown error");
+		} catch (signInActionError) {
+			setSignInError(signInActionError instanceof Error ? signInActionError.message : "Unknown error");
 			return;
 		}
-		startTransition(() => {
+		startRedirectTransition(() => {
 			router.replace("/dashboard/overview");
 		});
 	};
@@ -93,7 +93,7 @@ export function SignInClient() {
 				<div className="relative">
 					<Input
 						id="password"
-						type={isVisible ? "text" : "password"}
+						type={isPasswordVisible ? "text" : "password"}
 						placeholder="Enter new password"
 						className="h-11"
 						{...register("password")}
@@ -102,12 +102,12 @@ export function SignInClient() {
 					/>
 					<button
 						type="button"
-						aria-label={isVisible ? "Hide password" : "Show password"}
+						aria-label={isPasswordVisible ? "Hide password" : "Show password"}
 						className="absolute right-4 top-1/2 -translate-y-1/2"
-						onClick={() => setIsVisible(!isVisible)}
+						onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 					>
 						<span aria-hidden="true">
-							{isVisible ? (
+							{isPasswordVisible ? (
 								<RiEyeOffLine className="size-5 text-gray-600" />
 							) : (
 								<RiEyeLine className="size-5 text-gray-600" />
@@ -143,24 +143,24 @@ export function SignInClient() {
 				Use your verified hospital credentials. Access is monitored for compliance and security.
 			</p>
 
-			{error && (
-				<div className="text-red-500 flex items-center mt-4 gap-2 px-6 py-4 border border-red-500 rounded-xl">
-					<span>
-						<RiErrorWarningFill className="size-4" />
+			{signInError && (
+				<div className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+					<span className="shrink-0">
+						<RiErrorWarningFill className="size-4" aria-hidden="true" />
 					</span>
-					<span>{error}</span>
+					<span>{signInError}</span>
 				</div>
 			)}
 
-			{success && (
+			{signInSuccess && (
 				<div className="flex items-center gap-2 px-4 py-4 mt-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200">
 					<span>
 						<RiCheckboxCircleFill className="size-5" />
 					</span>
-					<span>{success}</span>
+					<span>{signInSuccess}</span>
 				</div>
 			)}
-			<Button className="w-full h-11 mt-16" type="submit" disabled={isSubmitting || isPending}>
+			<Button className="w-full h-11 mt-16" type="submit" disabled={isSubmitting || isRedirectPending}>
 				{isSubmitting ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
