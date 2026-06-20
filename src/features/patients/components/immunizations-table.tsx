@@ -136,7 +136,7 @@ export function ImmunizationsTable({
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={12}
-								className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
 								<DropdownMenuItem
 									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
@@ -190,7 +190,7 @@ export function ImmunizationsTable({
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={8}
-								className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
 								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2">
 									Today

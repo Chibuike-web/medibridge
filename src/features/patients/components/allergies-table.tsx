@@ -139,7 +139,7 @@ export function AllergiesTable({
 							<DropdownMenuSubContent
 								sideOffset={12}
 								alignOffset={-5}
-								className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
 								<RadioGroup defaultValue="all" className="flex flex-col gap-0">
 									<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
@@ -183,7 +183,7 @@ export function AllergiesTable({
 							<DropdownMenuSubContent
 								sideOffset={8}
 								alignOffset={-5}
-								className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
 								<DropdownMenuItem
 									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
@@ -237,7 +237,7 @@ export function AllergiesTable({
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={8}
-								className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
 								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2">
 									Today

@@ -6,12 +6,25 @@ import { PatientsClient } from "./patients-client";
 import { endOfDay, startOfDay } from "date-fns";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import type { PatientAgeGroupFilter, PatientGenderFilter } from "@/features/patients/types";
+import { Suspense } from "react";
 
 export const metadata = {
 	title: "Patients",
 };
 
-export default async function PatientsPage({
+export default function PatientsPage({
+	searchParams,
+}: {
+	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+	return (
+		<Suspense fallback={<PatientsPageSkeleton />}>
+			<PatientsPageContent searchParams={searchParams} />
+		</Suspense>
+	);
+}
+
+async function PatientsPageContent({
 	searchParams,
 }: {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -99,4 +112,20 @@ function parseCreatedAtDateParam(value: string, boundary: "start" | "end") {
 	if (!date) return undefined;
 
 	return boundary === "start" ? startOfDay(date) : endOfDay(date);
+}
+
+function PatientsPageSkeleton() {
+	return (
+		<div className="flex h-full flex-col">
+			<header className="sticky top-0 z-20 flex h-16 shrink-0 items-center border-b border-gray-200 bg-white px-8">
+				<div className="h-6 w-40 animate-pulse rounded bg-gray-100" />
+				<div className="ml-auto flex items-center gap-2">
+					<div className="h-10 w-[18rem] animate-pulse rounded bg-gray-100" />
+					<div className="h-10 w-10 animate-pulse rounded bg-gray-100" />
+					<div className="h-10 w-24 animate-pulse rounded bg-gray-100" />
+					<div className="h-10 w-40 animate-pulse rounded bg-gray-100" />
+				</div>
+			</header>
+		</div>
+	);
 }

@@ -129,7 +129,7 @@ export function FilterButton({
 					<DropdownMenuSubContent
 						sideOffset={12}
 						alignOffset={-5}
-						className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+						className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 					>
 						<RadioGroup
 							value={genderFilter || "all"}
@@ -193,7 +193,7 @@ export function FilterButton({
 					<DropdownMenuSubContent
 						sideOffset={8}
 						alignOffset={-5}
-						className="w-48 rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+						className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 					>
 						<RadioGroup
 							value={ageGroupFilter || "any-age"}
