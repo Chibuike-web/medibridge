@@ -113,14 +113,14 @@ function Calendar({
 				},
 				Chevron: ({ className, orientation, ...props }) => {
 					if (orientation === "left") {
-						return <RiArrowLeftSLine className={cn("size-4", className)} {...props} />;
+						return <RiArrowLeftSLine className={cn("size-5", className)} {...props} />;
 					}
 
 					if (orientation === "right") {
-						return <RiArrowRightSLine className={cn("size-4", className)} {...props} />;
+						return <RiArrowRightSLine className={cn("size-5", className)} {...props} />;
 					}
 
-					return <RiArrowDownSLine className={cn("size-4", className)} {...props} />;
+					return <RiArrowDownSLine className={cn("size-5", className)} {...props} />;
 				},
 				DayButton: CalendarDayButton,
 				WeekNumber: ({ children, ...props }) => {

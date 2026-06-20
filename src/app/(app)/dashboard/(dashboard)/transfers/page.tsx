@@ -3,9 +3,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { getTransfers } from "@/lib/api/get-transfers";
 import { TransfersClient } from "./transfers-client";
-import { endOfDay, startOfDay } from "date-fns";
-import { parseDateParam } from "@/lib/utils/parse-date-param";
 import type { TransferStatusFilter } from "@/features/transfers/types";
+import {
+	getNumberParam,
+	getStringParam,
+	parseDateBoundaryParam,
+} from "@/lib/utils/search-params";
 
 export const metadata = {
 	title: "Transfers",
@@ -35,15 +38,15 @@ export default async function Transfers({
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
 	const { page, limit, query, requestedFrom, requestedTo, status } = await searchParams;
-	const currentPage = typeof page === "string" ? parseInt(page, 10) : 1;
-	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : 14;
-	const currentQuery = typeof query === "string" ? query : "";
-	const currentRequestedFrom = typeof requestedFrom === "string" ? requestedFrom : "";
-	const currentRequestedTo = typeof requestedTo === "string" ? requestedTo : "";
+	const currentPage = getNumberParam(page, 1, { min: 1 });
+	const currentLimit = getNumberParam(limit, 14, { min: 1, max: 100 });
+	const currentQuery = getStringParam(query);
+	const currentRequestedFrom = getStringParam(requestedFrom);
+	const currentRequestedTo = getStringParam(requestedTo);
 	const currentStatusFilters = parseTransferStatusFilters(status);
 	const requestedAtFilter = {
-		from: parseRequestedAtDateParam(currentRequestedFrom, "start"),
-		to: parseRequestedAtDateParam(currentRequestedTo, "end"),
+		from: parseDateBoundaryParam(currentRequestedFrom, "start"),
+		to: parseDateBoundaryParam(currentRequestedTo, "end"),
 	};
 	const { hasTransfers, transfers, totalTransfers } = await getTransfers(
 		currentPage,
@@ -88,11 +91,4 @@ export default async function Transfers({
 			</div>
 		</div>
 	);
-}
-
-function parseRequestedAtDateParam(value: string, boundary: "start" | "end") {
-	const date = parseDateParam(value);
-	if (!date) return undefined;
-
-	return boundary === "start" ? startOfDay(date) : endOfDay(date);
 }

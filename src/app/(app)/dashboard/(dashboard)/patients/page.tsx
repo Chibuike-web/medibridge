@@ -3,10 +3,13 @@ import Link from "next/link";
 import { getPatients } from "@/lib/api/get-patients";
 import Image from "next/image";
 import { PatientsClient } from "./patients-client";
-import { endOfDay, startOfDay } from "date-fns";
-import { parseDateParam } from "@/lib/utils/parse-date-param";
 import type { PatientAgeGroupFilter, PatientGenderFilter } from "@/features/patients/types";
 import { Suspense } from "react";
+import {
+	getNumberParam,
+	getStringParam,
+	parseDateBoundaryParam,
+} from "@/lib/utils/search-params";
 
 export const metadata = {
 	title: "Patients",
@@ -30,37 +33,18 @@ async function PatientsPageContent({
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
 	const { page, limit, query, createdFrom, createdTo, gender, ageGroup } = await searchParams;
-	const currentPage = typeof page === "string" ? parseInt(page, 10) : 1;
-	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : 14;
-	const currentQuery = typeof query === "string" ? query : "";
-	const currentCreatedFrom = typeof createdFrom === "string" ? createdFrom : "";
-	const currentCreatedTo = typeof createdTo === "string" ? createdTo : "";
-	const currentGenderFilter: PatientGenderFilter =
-		gender === "male" || gender === "female" ? gender : "";
-	const currentAgeGroupFilter: PatientAgeGroupFilter =
-		ageGroup === "children" ||
-		ageGroup === "teenagers" ||
-		ageGroup === "young-adults" ||
-		ageGroup === "adults" ||
-		ageGroup === "seniors"
-			? ageGroup
-			: "";
+	const currentPage = getNumberParam(page, 1, { min: 1 });
+	const currentLimit = getNumberParam(limit, 14, { min: 1, max: 100 });
+	const currentQuery = getStringParam(query);
+	const currentCreatedFrom = getStringParam(createdFrom);
+	const currentCreatedTo = getStringParam(createdTo);
+	const currentGenderFilter = getGender(gender);
+	const currentAgeGroupFilter = getAgeGroupFilter(ageGroup);
 	const createdAtFilter = {
-		from: parseCreatedAtDateParam(currentCreatedFrom, "start"),
-		to: parseCreatedAtDateParam(currentCreatedTo, "end"),
+		from: parseDateBoundaryParam(currentCreatedFrom, "start"),
+		to: parseDateBoundaryParam(currentCreatedTo, "end"),
 	};
-	const ageRangeFilter =
-		currentAgeGroupFilter === "children"
-			? { min: 0, max: 12 }
-			: currentAgeGroupFilter === "teenagers"
-				? { min: 13, max: 17 }
-				: currentAgeGroupFilter === "young-adults"
-					? { min: 18, max: 35 }
-					: currentAgeGroupFilter === "adults"
-						? { min: 36, max: 59 }
-						: currentAgeGroupFilter === "seniors"
-							? { min: 60 }
-							: undefined;
+	const ageRangeFilter = getAgeRangeFilter(currentAgeGroupFilter);
 	const { hasPatients, patients, totalPatients } = await getPatients(
 		currentPage,
 		currentLimit,
@@ -107,11 +91,38 @@ async function PatientsPageContent({
 	);
 }
 
-function parseCreatedAtDateParam(value: string, boundary: "start" | "end") {
-	const date = parseDateParam(value);
-	if (!date) return undefined;
+function getAgeRangeFilter(ageGroup: PatientAgeGroupFilter) {
+	switch (ageGroup) {
+		case "children":
+			return { min: 0, max: 12 };
 
-	return boundary === "start" ? startOfDay(date) : endOfDay(date);
+		case "teenagers":
+			return { min: 13, max: 17 };
+
+		case "young-adults":
+			return { min: 18, max: 35 };
+
+		case "adults":
+			return { min: 36, max: 59 };
+
+		case "seniors":
+			return { min: 60 };
+
+		default:
+			return undefined;
+	}
+}
+
+const patientAgeGroups = new Set(["children", "teenagers", "young-adults", "adults", "seniors"]);
+
+function getAgeGroupFilter(value: unknown): PatientAgeGroupFilter {
+	if (typeof value !== "string") return "";
+
+	return patientAgeGroups.has(value) ? (value as PatientAgeGroupFilter) : "";
+}
+
+function getGender(gender: unknown): PatientGenderFilter {
+	return gender === "male" || gender === "female" ? gender : "";
 }
 
 function PatientsPageSkeleton() {
