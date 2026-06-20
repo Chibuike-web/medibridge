@@ -2,7 +2,7 @@
 
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils/cn";
-import { Fragment, startTransition, use, useEffect, useState } from "react";
+import { Fragment, startTransition, use, useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,12 @@ import { useAttachClinicalRecords } from "@/features/transfers/stores/use-attach
 import { getPatientById } from "@/features/patients/server/actions";
 import type { SelectedTransferPatient } from "@/features/transfers/stores/use-selected-transfer-patients";
 import { truncateId } from "@/lib/utils/truncate-id";
+import type { Route } from "next";
+
+type NewTransferRequestSearchParams = {
+	patientId?: string | string[];
+	returnTo?: string;
+};
 
 export function NewTransferRequestClient({
 	searchParams,
@@ -37,7 +43,7 @@ export function NewTransferRequestClient({
 	patientOptionsLimit,
 	totalPatientPages,
 }: {
-	searchParams: Promise<{ patientId?: string }>;
+	searchParams: Promise<NewTransferRequestSearchParams>;
 	patients: SelectedTransferPatient[];
 	patientOptionsLimit: number;
 	totalPatientPages: number;
@@ -57,11 +63,14 @@ export function NewTransferRequestClient({
 	const router = useRouter();
 	const [currentTransferRequestStep, setCurrentTransferRequestStep] = useState(1);
 	const params = use(searchParams);
-	const patientId = params.patientId;
+	const patientIds = useMemo(() => normalizePatientIds(params.patientId), [params.patientId]);
+	const primaryPatientId = patientIds[0];
+	const transferRequestHrefWithoutPatientIds = getTransferRequestHrefWithoutPatientIds(
+		params.returnTo,
+	);
 
 	const isComplete = selectedTransferPatients.every((p) => {
-		const transferData =
-			patientTransferDataByPatientId[p.patientId] ?? EMPTY_PATIENT_TRANSFER_DATA;
+		const transferData = patientTransferDataByPatientId[p.patientId] ?? EMPTY_PATIENT_TRANSFER_DATA;
 		const records = attachedClinicalRecordsByPatientId[p.patientId] ?? [];
 
 		return transferData.hospitalEmail && transferData.hospitalName && records.length > 0;
@@ -81,8 +90,8 @@ export function NewTransferRequestClient({
 		removePatientTransferDataByPatientId(patient.patientId);
 		removeAttachedClinicalRecordsForPatient(patient.patientId);
 
-		if (patient.patientId === patientId) {
-			router.replace("/dashboard/new-transfer-request");
+		if (patientIds.includes(patient.patientId)) {
+			router.replace(transferRequestHrefWithoutPatientIds);
 		}
 
 		if (selectedTransferPatients.length === 1) {
@@ -102,26 +111,31 @@ export function NewTransferRequestClient({
 		{} as Record<string, number>,
 	);
 	const recordCountsArray = Object.entries(recordCounts);
+	const selectedPatientIds = new Set(selectedTransferPatients.map((patient) => patient.patientId));
 
 	useEffect(
-		function initializePatientFromParams() {
-			if (!patientId) return;
-			const exists = selectedTransferPatients.some((p) => p.patientId === patientId);
+		function initializePatientsFromParams() {
+			if (patientIds.length === 0) return;
 
-			if (exists) return;
+			const patientIdsToAdd = patientIds.filter((patientId) => !selectedPatientIds.has(patientId));
+
+			if (patientIdsToAdd.length === 0) return;
 
 			startTransition(async () => {
-				const patient = await getPatientById(patientId);
+				const patientsToAdd = await Promise.all(
+					patientIdsToAdd.map((patientIdToAdd) => getPatientById(patientIdToAdd)),
+				);
 
-				if (patient) {
+				patientsToAdd.forEach((patient) => {
+					if (!patient) return;
 					addSelectedTransferPatient({
 						name: `${patient.firstName} ${patient.lastName}`,
 						patientId: patient.patientId,
 					});
-				}
+				});
 			});
 		},
-		[patientId],
+		[addSelectedTransferPatient, patientIds],
 	);
 
 	if (!isPatientTransferDataHydrated) {
@@ -138,7 +152,8 @@ export function NewTransferRequestClient({
 				{currentTransferRequestStep === 1 ? (
 					<>
 						<SelectPatient
-							patientId={patientId}
+							patientId={primaryPatientId}
+							clearPatientIdHref={transferRequestHrefWithoutPatientIds}
 							patients={patients}
 							page={1}
 							limit={patientOptionsLimit}
@@ -383,4 +398,21 @@ The patient will review and approve this transfer before it is sent to the targe
 			)}
 		</>
 	);
+}
+
+function normalizePatientIds(value: string | string[] | undefined) {
+	if (!value) return [];
+
+	const patientIds = Array.isArray(value) ? value : [value];
+
+	return [...new Set(patientIds.map((patientId) => patientId.trim()).filter(Boolean))];
+}
+
+function getTransferRequestHrefWithoutPatientIds(returnTo: string | undefined): Route {
+	if (!returnTo) return "/dashboard/new-transfer-request";
+
+	const nextParams = new URLSearchParams();
+	nextParams.set("returnTo", returnTo);
+
+	return `/dashboard/new-transfer-request?${nextParams.toString()}` as Route;
 }

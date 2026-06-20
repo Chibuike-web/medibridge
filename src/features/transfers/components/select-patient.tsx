@@ -13,15 +13,18 @@ import { useAttachClinicalRecords } from "../stores/use-attach-clinical-records"
 import { useOptimistic, useState, useTransition } from "react";
 import { getTransferPatientOptionsAction } from "@/features/transfers/server/actions";
 import { truncateId } from "@/lib/utils/truncate-id";
+import type { Route } from "next";
 
 export function SelectPatient({
 	patientId,
+	clearPatientIdHref,
 	patients,
 	page,
 	limit,
 	totalPages,
 }: {
 	patientId?: string;
+	clearPatientIdHref?: Route;
 	patients: SelectedTransferPatient[];
 	page: number;
 	limit: number;
@@ -32,15 +35,11 @@ export function SelectPatient({
 	const [currentPage, setCurrentPage] = useState(page);
 	const [currentTotalPages, setCurrentTotalPages] = useState(totalPages);
 	const [optimisticPage, setOptimisticPage] = useOptimistic(currentPage);
-	const [isPending, startTransition] = useTransition();
+	const [isUpdatingPatientOptionsPage, startPatientOptionsPageTransition] = useTransition();
 	const { removeAttachedClinicalRecordsForPatient } = useAttachClinicalRecords();
 
 	const router = useRouter();
-	const {
-		selectedTransferPatients,
-		toggleSelectedTransferPatient,
-		removeSelectedTransferPatient,
-	} =
+	const { selectedTransferPatients, toggleSelectedTransferPatient, removeSelectedTransferPatient } =
 		useSelectedTransferPatients();
 
 	const selectedCount = selectedTransferPatients.length;
@@ -62,9 +61,9 @@ export function SelectPatient({
 		);
 
 	function handlePageChange(nextPage: number) {
-		if (nextPage < 1 || nextPage > currentTotalPages || isPending) return;
+		if (nextPage < 1 || nextPage > currentTotalPages || isUpdatingPatientOptionsPage) return;
 
-		startTransition(async () => {
+		startPatientOptionsPageTransition(async () => {
 			setOptimisticPage(nextPage);
 
 			const result = await getTransferPatientOptionsAction({
@@ -98,7 +97,7 @@ export function SelectPatient({
 							onChange={(event) => setSearchTerm(event.target.value)}
 						/>
 					</div>
-					<div className="flex flex-col gap-1 overflow-y-auto px-4 pb-3">
+					<div className="flex flex-col gap-1 overflow-y-auto px-4 py-3">
 						{patientOptions.length === 0 ? (
 							<p className="px-3 py-4 text-sm text-gray-500">No patients available.</p>
 						) : (
@@ -138,7 +137,7 @@ export function SelectPatient({
 							variant="outline"
 							size="sm"
 							onClick={() => handlePageChange(currentPage - 1)}
-							disabled={optimisticPage <= 1 || isPending}
+							disabled={optimisticPage <= 1 || isUpdatingPatientOptionsPage}
 							className="justify-self-start border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Previous
@@ -151,7 +150,7 @@ export function SelectPatient({
 							variant="outline"
 							size="sm"
 							onClick={() => handlePageChange(currentPage + 1)}
-							disabled={optimisticPage >= currentTotalPages || isPending}
+							disabled={optimisticPage >= currentTotalPages || isUpdatingPatientOptionsPage}
 							className="justify-self-end border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Next
@@ -173,7 +172,7 @@ export function SelectPatient({
 								removeSelectedTransferPatient(s);
 
 								if (s.patientId === patientId) {
-									router.replace("/dashboard/new-transfer-request");
+									router.replace(clearPatientIdHref ?? "/dashboard/new-transfer-request");
 								}
 								removeAttachedClinicalRecordsForPatient(s.patientId);
 							}}

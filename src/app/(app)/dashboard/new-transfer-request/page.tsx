@@ -12,10 +12,15 @@ export const metadata = {
 
 const PATIENT_OPTIONS_LIMIT = 20;
 
+type NewTransferRequestSearchParams = {
+	patientId?: string | string[];
+	returnTo?: string;
+};
+
 export default async function NewTransferRequest({
 	searchParams,
 }: {
-	searchParams: Promise<{ patientId?: string; returnTo?: string }>;
+	searchParams: Promise<NewTransferRequestSearchParams>;
 }) {
 	return (
 		<Suspense>
@@ -27,7 +32,7 @@ export default async function NewTransferRequest({
 async function NewTransferRequestContent({
 	searchParams,
 }: {
-	searchParams: Promise<{ patientId?: string; returnTo?: string }>;
+	searchParams: Promise<NewTransferRequestSearchParams>;
 }) {
 	await verifySession();
 	const { returnTo } = await searchParams;

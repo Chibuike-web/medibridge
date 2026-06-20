@@ -27,7 +27,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "../ui/dialog";
-import { Route } from "next";
+import type { Route } from "next";
 
 const MIN_WIDTH = 56;
 const MAX_WIDTH = 272;
@@ -193,7 +193,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 													return (
 														<DialogClose asChild key={entry.id}>
 															<Link
-																href={(entry.href as Route) ?? "#"}
+																href={entry.href}
 																className="flex items-center gap-3 rounded-lg px-3 py-3 hover:bg-gray-100 transition-colors"
 															>
 																<Icon className="shrink-0 text-gray-600 size-4" />
@@ -289,7 +289,7 @@ type SearchSection = {
 		id: string;
 		title: string;
 		description: string;
-		href: string;
+		href: Route;
 	}[];
 };
 
@@ -323,7 +323,7 @@ export const searchSections: SearchSection[] = [
 
 			{
 				id: "create-transfer-request",
-				title: "Crate transfer request",
+				title: "Create transfer request",
 				description: "Create a patient transfer request",
 				href: "/dashboard/new-transfer-request",
 			},
