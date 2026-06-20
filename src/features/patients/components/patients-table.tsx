@@ -36,6 +36,7 @@ import {
 	flexRender,
 	getCoreRowModel,
 	getSortedRowModel,
+	type RowSelectionState,
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
@@ -43,7 +44,9 @@ import {
 	RiArchiveLine,
 	RiArrowDownSLine,
 	RiArrowUpSLine,
+	RiCloseLine,
 	RiErrorWarningLine,
+	RiEyeLine,
 	RiMore2Fill,
 	RiShare2Line,
 	RiShareBoxLine,
@@ -78,15 +81,37 @@ export function PatientsTable({
 	const returnTo = getCurrentRoute(pathname, searchParams);
 	const columns = useMemo(() => getPatientsColumns(router, returnTo), [router, returnTo]);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
+	const [selectedPatientRows, setSelectedPatientRows] = useState<RowSelectionState>({});
 
 	const table = useReactTable({
 		data: patients,
 		columns,
+		enableRowSelection: true,
+		getRowId: (row) => row.patientId,
 		onSortingChange: setSorting,
+		onRowSelectionChange: setSelectedPatientRows,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		state: { sorting },
+		state: { sorting, rowSelection: selectedPatientRows },
 	});
+
+	const selectedPatients = table.getSelectedRowModel().rows.map((row) => row.original);
+
+	function handleViewSelectedPatient(patient: PatientListItemType) {
+		router.push(`/dashboard/patients/${patient.patientId}?section=patient-overview`);
+	}
+
+	function handleTransferSelectedPatients(patientsToTransfer: PatientListItemType[]) {
+		const transferRequestSearchParams = new URLSearchParams();
+
+		for (const patient of patientsToTransfer) {
+			transferRequestSearchParams.append("patientId", patient.patientId);
+		}
+
+		transferRequestSearchParams.set("returnTo", returnTo);
+
+		router.push(`/dashboard/new-transfer-request?${transferRequestSearchParams.toString()}`);
+	}
 
 	return (
 		<div className="overflow-x-auto rounded-xl border border-gray-200 text-sm">
@@ -184,11 +209,7 @@ export function PatientsTable({
 			<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex items-center gap-3">
 					<span>Rows per page</span>
-					<Select
-						value={limit.toString()}
-						onValueChange={onLimitChange}
-						disabled={isPending}
-					>
+					<Select value={limit.toString()} onValueChange={onLimitChange} disabled={isPending}>
 						<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 							<SelectValue aria-label="Rows per page" placeholder="Rows" />
 						</SelectTrigger>
@@ -231,8 +252,90 @@ export function PatientsTable({
 					</div>
 				</div>
 			</div>
+			<PatientBulkActionBar
+				selectedPatients={selectedPatients}
+				onClearSelection={() => table.resetRowSelection()}
+				onViewPatient={handleViewSelectedPatient}
+				onTransferPatients={handleTransferSelectedPatients}
+			/>
 		</div>
 	);
+}
+
+function PatientBulkActionBar({
+	selectedPatients,
+	onClearSelection,
+	onViewPatient,
+	onTransferPatients,
+}: {
+	selectedPatients: PatientListItemType[];
+	onClearSelection: () => void;
+	onViewPatient: (patient: PatientListItemType) => void;
+	onTransferPatients: (patients: PatientListItemType[]) => void;
+}) {
+	const selectedPatientCount = selectedPatients.length;
+	const singleSelectedPatient = selectedPatientCount === 1 ? selectedPatients[0] : undefined;
+
+	if (selectedPatientCount === 0) {
+		return null;
+	}
+
+	return (
+		<div className="no-scrollbar fixed bottom-6 left-1/2 z-50 flex w-[calc(100vw-0.5rem)] -translate-x-1/2 items-center gap-4 overflow-x-auto rounded-xl border border-white/20 bg-gray-800 px-4 py-2 text-white shadow-[0_1rem_2.5rem_rgba(15,23,42,0.35)] ring ring-gray-800 sm:w-max sm:max-w-[calc(100vw-2rem)]">
+			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
+				{selectedPatientCount} {selectedPatientCount === 1 ? "item" : "items"} selected
+			</span>
+			<PatientBulkActionSeparator />
+			{singleSelectedPatient ? (
+				<>
+					<button
+						type="button"
+						onClick={() => onViewPatient(singleSelectedPatient)}
+						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+					>
+						<RiEyeLine className="size-5" aria-hidden={true} />
+						<span>View patient</span>
+					</button>
+					<PatientBulkActionSeparator />
+				</>
+			) : null}
+			<button
+				type="button"
+				className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+			>
+				<RiShare2Line className="size-5" aria-hidden={true} />
+				<span>Export</span>
+			</button>
+			<button
+				type="button"
+				onClick={() => onTransferPatients(selectedPatients)}
+				className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+			>
+				<RiShareBoxLine className="size-5" aria-hidden={true} />
+				<span>Transfer {selectedPatientCount === 1 ? "patient" : "patients"}</span>
+			</button>
+			<PatientBulkActionSeparator />
+			<button
+				type="button"
+				className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+			>
+				<RiArchiveLine className="size-5" aria-hidden={true} />
+				<span>Archive</span>
+			</button>
+			<button
+				type="button"
+				onClick={onClearSelection}
+				className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				aria-label="Clear selected patients"
+			>
+				<RiCloseLine className="size-5" aria-hidden={true} />
+			</button>
+		</div>
+	);
+}
+
+function PatientBulkActionSeparator() {
+	return <span className="h-4 w-px shrink-0 bg-white/70" aria-hidden={true} />;
 }
 
 function getPatientsColumns(
