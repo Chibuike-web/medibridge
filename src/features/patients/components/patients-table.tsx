@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CopyIdButton } from "@/components/copy-id-button";
 import {
@@ -73,7 +73,10 @@ export function PatientsTable({
 	onLimitChange: (value: string) => void;
 }) {
 	const router = useRouter();
-	const columns = useMemo(() => getPatientsColumns(router), [router]);
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	const returnTo = getCurrentRoute(pathname, searchParams);
+	const columns = useMemo(() => getPatientsColumns(router, returnTo), [router, returnTo]);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 
 	const table = useReactTable({
@@ -234,6 +237,7 @@ export function PatientsTable({
 
 function getPatientsColumns(
 	router: ReturnType<typeof useRouter>,
+	returnTo: string,
 ): ColumnDef<PatientListItemType>[] {
 	return [
 		{
@@ -361,7 +365,14 @@ function getPatientsColumns(
 								<RiErrorWarningLine className="text-white" />
 								<span> View patient</span>
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+							<DropdownMenuItem
+								onSelect={() =>
+									router.push(
+										`/dashboard/new-transfer-request?patientId=${row.original.patientId}&returnTo=${encodeURIComponent(returnTo)}`,
+									)
+								}
+								className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+							>
 								<RiShareBoxLine className="text-white" /> <span> Transfer patient</span>
 							</DropdownMenuItem>
 							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
@@ -378,4 +389,10 @@ function getPatientsColumns(
 			),
 		},
 	];
+}
+
+function getCurrentRoute(pathname: string, searchParams: URLSearchParams) {
+	const queryString = searchParams.toString();
+
+	return queryString ? `${pathname}?${queryString}` : pathname;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CopyIdButton } from "@/components/copy-id-button";
@@ -79,6 +79,9 @@ export function TransferTable({
 	onLimitChange: (value: string) => void;
 }) {
 	const router = useRouter();
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	const returnTo = getCurrentRoute(pathname, searchParams);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "patientName", desc: false }]);
 	const [selectedTransferId, setSelectedTransferId] = useState<string | null>(null);
 	const selectedTransferIdRef = useRef<string | null>(null);
@@ -102,8 +105,8 @@ export function TransferTable({
 	}, []);
 
 	const columns = useMemo(() => {
-		return getTransferColumns(onViewTransferDetails, router);
-	}, [onViewTransferDetails, router]);
+		return getTransferColumns(onViewTransferDetails, router, returnTo);
+	}, [onViewTransferDetails, router, returnTo]);
 
 	const table = useReactTable({
 		data,
@@ -264,6 +267,7 @@ export function TransferTable({
 function getTransferColumns(
 	onViewTransferDetails: (transferId: string) => void,
 	router: ReturnType<typeof useRouter>,
+	returnTo: string,
 ): ColumnDef<TransferType>[] {
 	return [
 		{
@@ -377,7 +381,7 @@ function getTransferColumns(
 									<DropdownMenuItem
 										onSelect={() =>
 											router.push(
-												`/dashboard/new-transfer-request?patientId=${row.original.patientId}`,
+												`/dashboard/new-transfer-request?patientId=${row.original.patientId}&returnTo=${encodeURIComponent(returnTo)}`,
 											)
 										}
 										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
@@ -436,7 +440,7 @@ function getTransferColumns(
 										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 										onSelect={() =>
 											router.push(
-												`/dashboard/new-transfer-request?patientId=${row.original.patientId}`,
+												`/dashboard/new-transfer-request?patientId=${row.original.patientId}&returnTo=${encodeURIComponent(returnTo)}`,
 											)
 										}
 									>
@@ -455,4 +459,10 @@ function getTransferColumns(
 			),
 		},
 	];
+}
+
+function getCurrentRoute(pathname: string, searchParams: URLSearchParams) {
+	const queryString = searchParams.toString();
+
+	return queryString ? `${pathname}?${queryString}` : pathname;
 }

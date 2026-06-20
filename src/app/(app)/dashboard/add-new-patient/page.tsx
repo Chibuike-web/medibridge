@@ -2,12 +2,21 @@ import { AddNewPatientClient } from "@/app/(app)/dashboard/add-new-patient/add-n
 import Link from "next/link";
 import { RiArrowLeftLine } from "@remixicon/react";
 import { verifySession } from "@/lib/api/verify-session";
+import { Suspense } from "react";
 
 export const metadata = {
 	title: "Add New Patient",
 };
 
 export default async function AddNewPatient() {
+	return (
+		<Suspense>
+			<AddNewPatientContent />
+		</Suspense>
+	);
+}
+
+async function AddNewPatientContent() {
 	await verifySession();
 
 	return (

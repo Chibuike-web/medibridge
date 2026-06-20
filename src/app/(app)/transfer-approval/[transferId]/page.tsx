@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { TransferApprovalClient } from "./transfer-approval-client";
 import { getTransferApproval } from "@/lib/api/get-transfer-approval";
 
@@ -9,7 +10,15 @@ type TransferApprovalPageProps = {
 	params: Promise<{ transferId: string }>;
 };
 
-export default async function TransferApprovalPage({ params }: TransferApprovalPageProps) {
+export default function TransferApprovalPage({ params }: TransferApprovalPageProps) {
+	return (
+		<Suspense fallback={<TransferApprovalPageSkeleton />}>
+			<TransferApprovalContent params={params} />
+		</Suspense>
+	);
+}
+
+async function TransferApprovalContent({ params }: TransferApprovalPageProps) {
 	const { transferId } = await params;
 	const transfer = await getTransferApproval(transferId);
 
@@ -30,6 +39,22 @@ export default async function TransferApprovalPage({ params }: TransferApprovalP
 					</div>
 				</section>
 			)}
+		</main>
+	);
+}
+
+function TransferApprovalPageSkeleton() {
+	return (
+		<main className="bg-white px-6 py-10">
+			<div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+				<div className="h-8 w-64 rounded bg-gray-100" />
+				<div className="h-48 rounded-lg border border-gray-200 bg-gray-50" />
+				<div className="grid gap-3">
+					<div className="h-12 rounded bg-gray-100" />
+					<div className="h-12 rounded bg-gray-100" />
+					<div className="h-12 rounded bg-gray-100" />
+				</div>
+			</div>
 		</main>
 	);
 }

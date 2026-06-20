@@ -159,6 +159,10 @@ export function TransfersClient({
 		});
 	}
 
+	const returnTo = getCurrentRoute(pathname, searchParams);
+	const newTransferRequestHref =
+		`/dashboard/new-transfer-request?returnTo=${encodeURIComponent(returnTo)}` as Route;
+
 	return (
 		<div className="flex h-full flex-col">
 			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0">
@@ -190,7 +194,7 @@ export function TransfersClient({
 						Export
 					</Button>
 					<Button size="lg" asChild>
-						<Link href="/dashboard/new-transfer-request">New transfer request </Link>
+						<Link href={newTransferRequestHref}>New transfer request </Link>
 					</Button>
 				</div>
 			</header>
@@ -211,4 +215,10 @@ export function TransfersClient({
 			</div>
 		</div>
 	);
+}
+
+function getCurrentRoute(pathname: string, searchParams: URLSearchParams) {
+	const queryString = searchParams.toString();
+
+	return queryString ? `${pathname}?${queryString}` : pathname;
 }

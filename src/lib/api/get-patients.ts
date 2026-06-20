@@ -29,10 +29,12 @@ export async function getPatients(
 	const offset = (page - 1) * limit;
 	const normalizedQuery = query.trim();
 	const searchPattern = `%${normalizedQuery}%`;
+
 	const createdAtConditions = [
 		createdAtFilter.from ? gte(patient.createdAt, createdAtFilter.from) : undefined,
 		createdAtFilter.to ? lte(patient.createdAt, createdAtFilter.to) : undefined,
 	].filter((condition) => condition !== undefined);
+
 	const patientInformationConditions = [
 		patientFilterOptions.gender
 			? eq(patientPersonalInformation.sex, patientFilterOptions.gender)

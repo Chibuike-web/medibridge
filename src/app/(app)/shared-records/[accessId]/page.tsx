@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { RiInformationLine } from "@remixicon/react";
 import { SharedRecordsClient } from "./shared-records-client";
 import {
@@ -23,6 +24,22 @@ export default async function SharedRecordsPage({
 	params: Promise<{ accessId: string }>;
 	searchParams: Promise<{ section?: string }>;
 }) {
+	return (
+		<div className="min-h-dvh bg-white text-gray-800">
+			<Suspense fallback={<SharedRecordsPageSkeleton />}>
+				<SharedRecordsContent params={params} searchParams={searchParams} />
+			</Suspense>
+		</div>
+	);
+}
+
+async function SharedRecordsContent({
+	params,
+	searchParams,
+}: {
+	params: Promise<{ accessId: string }>;
+	searchParams: Promise<{ section?: string }>;
+}) {
 	const [{ accessId }, { section }] = await Promise.all([params, searchParams]);
 	const hasVerifiedAccessSession = await hasVerifiedExternalAccessSession(accessId);
 
@@ -34,7 +51,7 @@ export default async function SharedRecordsPage({
 	const sharedRecord = await getSharedRecord(accessId);
 
 	return (
-		<div className="min-h-dvh bg-white text-gray-800">
+		<>
 			<SharedAccessBanner />
 			<PatientHeader patient={sharedRecord.patient} />
 			<nav className="border-b border-gray-200" aria-label="Shared record sections">
@@ -44,7 +61,7 @@ export default async function SharedRecordsPage({
 				patientDetailsSections={sharedRecord.patientDetailsSections}
 				activeSection={activeSection}
 			/>
-		</div>
+		</>
 	);
 }
 
@@ -155,5 +172,51 @@ function HeaderMeta({ label, value }: { label: string; value: string }) {
 			<span className="text-gray-400">{label}:</span>
 			<span className="font-semibold text-gray-600">{value}</span>
 		</p>
+	);
+}
+
+function SharedRecordsPageSkeleton() {
+	return (
+		<div aria-busy="true">
+			<div className="bg-[#fff3c4]">
+				<div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-6 py-4">
+					<div className="size-6 shrink-0 rounded-full bg-[#f6d878]" />
+					<div className="flex flex-1 flex-col gap-2">
+						<div className="h-4 w-44 rounded bg-[#f6d878]" />
+						<div className="h-4 w-full max-w-3xl rounded bg-[#f6d878]" />
+					</div>
+				</div>
+			</div>
+			<header className="border-b border-gray-200">
+				<div className="mx-auto flex w-full max-w-7xl items-center gap-5 px-6 py-3.5">
+					<div className="size-16 rounded-full bg-gray-100" />
+					<div className="min-w-0 flex-1">
+						<div className="h-5 w-64 rounded bg-gray-100" />
+						<div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+							<div className="h-4 w-20 rounded bg-gray-100" />
+							<div className="h-4 w-56 rounded bg-gray-100" />
+							<div className="h-4 w-36 rounded bg-gray-100" />
+							<div className="h-4 w-72 rounded bg-gray-100" />
+						</div>
+					</div>
+				</div>
+			</header>
+			<div className="border-b border-gray-200">
+				<div className="mx-auto flex w-full max-w-7xl gap-4 px-6 py-3">
+					<div className="h-4 w-28 rounded bg-gray-100" />
+					<div className="h-4 w-24 rounded bg-gray-100" />
+					<div className="h-4 w-24 rounded bg-gray-100" />
+					<div className="h-4 w-32 rounded bg-gray-100" />
+				</div>
+			</div>
+			<main className="mx-auto w-full max-w-7xl px-6 py-9">
+				<div className="h-6 w-40 rounded bg-gray-100" />
+				<div className="mt-6 grid gap-3">
+					<div className="h-12 rounded bg-gray-100" />
+					<div className="h-12 rounded bg-gray-100" />
+					<div className="h-12 rounded bg-gray-100" />
+				</div>
+			</main>
+		</div>
 	);
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
 import { CopyIdButton } from "@/components/copy-id-button";
@@ -12,6 +13,18 @@ export const metadata = {
 };
 
 export default async function EncounterDetailsPage({
+	params,
+}: {
+	params: Promise<{ patientId: string; encounterId: string }>;
+}) {
+	return (
+		<Suspense fallback={<EncounterDetailsPageSkeleton />}>
+			<EncounterDetailsContent params={params} />
+		</Suspense>
+	);
+}
+
+async function EncounterDetailsContent({
 	params,
 }: {
 	params: Promise<{ patientId: string; encounterId: string }>;
@@ -91,6 +104,38 @@ export default async function EncounterDetailsPage({
 							<span className="text-gray-500 text-sm">Updated By</span>
 							<span className="font-medium text-sm">{encounter.updatedBy}</span>
 						</div>
+					</div>
+				</div>
+			</main>
+		</div>
+	);
+}
+
+function EncounterDetailsPageSkeleton() {
+	return (
+		<div className="flex h-full min-h-0 flex-col overflow-hidden">
+			<nav
+				aria-label="Breadcrumb"
+				className="flex items-center gap-2 border-b border-gray-200 px-6 py-5"
+			>
+				<Link href="/dashboard/patients" className="flex shrink-0 items-center gap-2">
+					<RiArrowLeftLine aria-hidden="true" />
+					<span>Patients</span>
+				</Link>
+				<RiArrowRightSLine aria-hidden="true" />
+				<div className="h-4 w-32 shrink-0 rounded bg-gray-100" />
+				<RiArrowRightSLine aria-hidden="true" />
+				<div className="h-4 w-24 shrink-0 rounded bg-gray-100" />
+				<RiArrowRightSLine aria-hidden="true" />
+				<div className="h-4 w-36 shrink-0 rounded bg-gray-100" />
+			</nav>
+
+			<main className="min-h-0 flex-1 overflow-y-auto px-6 py-8 lg:px-10">
+				<div className="mx-auto max-w-7xl">
+					<div className="flex flex-wrap gap-x-6 gap-y-3">
+						{Array.from({ length: 9 }).map((_, index) => (
+							<div key={index} className="h-5 w-40 rounded bg-gray-100" />
+						))}
 					</div>
 				</div>
 			</main>

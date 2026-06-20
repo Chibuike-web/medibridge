@@ -42,6 +42,20 @@ export default async function PatientPage({
 	searchParams: Promise<{ section: string }>;
 	params: Promise<{ patientId: string }>;
 }) {
+	return (
+		<Suspense fallback={<PatientPageSkeleton />}>
+			<PatientPageContent searchParams={searchParams} params={params} />
+		</Suspense>
+	);
+}
+
+async function PatientPageContent({
+	searchParams,
+	params,
+}: {
+	searchParams: Promise<{ section: string }>;
+	params: Promise<{ patientId: string }>;
+}) {
 	await verifySession();
 
 	return (
@@ -440,6 +454,32 @@ function formatPatientSectionLabel(value: string) {
 		.filter(Boolean)
 		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 		.join(" ");
+}
+
+function PatientPageSkeleton() {
+	return (
+		<div className="flex h-full min-h-0 flex-col overflow-hidden">
+			<div className="shrink-0">
+				<nav
+					aria-label="Breadcrumb"
+					className="flex items-center gap-2 border-b border-gray-200 px-6 py-5"
+				>
+					<Link href="/dashboard/patients" className="flex items-center gap-2 shrink-0">
+						<RiArrowLeftLine aria-hidden="true" /> <span>Patients</span>
+					</Link>
+					<RiArrowRightSLine aria-hidden="true" />
+					<BreadCrumbSkeleton />
+				</nav>
+				<HeaderSkeleton />
+			</div>
+			<div className="flex min-h-0 flex-1 flex-col">
+				<SectionTabsSkeleton />
+				<div className="min-h-0 flex-1 overflow-y-auto">
+					<TableSectionSkeleton />
+				</div>
+			</div>
+		</div>
+	);
 }
 
 function BreadCrumbSkeleton() {
