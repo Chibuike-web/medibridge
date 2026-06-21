@@ -1,7 +1,13 @@
 "use server";
 
+import { patient, patientPersonalInformation } from "@/db/schemas";
+import { db } from "@/lib/better-auth/auth";
+import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { deletePatientUploadService } from "@/services/patient/delete-patient-upload-service";
 import { saveExtractedPatientsService } from "@/services/patient/save-extracted-patients-service";
+import { updateTag } from "next/cache";
+import { and, eq } from "drizzle-orm";
+import { z } from "zod";
 
 import { PatientType } from "../schemas/patient-schema";
 import type { DiagnosisStatusFilter } from "../types";
@@ -16,12 +22,99 @@ import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
 import { getPatientMedications } from "@/lib/api/get-patient-medications";
 import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
 
+const updatePatientPersonalInformationSchema = z.object({
+	firstName: z.string().trim().min(1, "First name is required."),
+	middleName: z.string().trim().optional(),
+	lastName: z.string().trim().min(1, "Last name is required."),
+	age: z.preprocess(
+		(value) => (value === "" || value === null ? undefined : value),
+		z.coerce.number().int().min(0).max(150).optional(),
+	),
+	dateOfBirth: z.string().trim().optional(),
+	sex: z.string().trim().optional(),
+	maritalStatus: z.string().trim().optional(),
+	nationalId: z.string().trim().optional(),
+});
+
 export async function deletePatientUploadAction(relativePath: string) {
 	return deletePatientUploadService(relativePath);
 }
 
 export async function savePatientsAction(records: PatientType) {
 	return saveExtractedPatientsService(records);
+}
+
+export async function updatePatientPersonalInformationAction(
+	patientId: string,
+	formData: FormData,
+) {
+	const organizationId = await getOrganizationId();
+
+	if (!organizationId) {
+		return { ok: false, message: "Unable to verify your hospital." };
+	}
+
+	const parsedPersonalInformation =
+		updatePatientPersonalInformationSchema.safeParse({
+			firstName: formData.get("firstName"),
+			middleName: formData.get("middleName"),
+			lastName: formData.get("lastName"),
+			age: formData.get("age"),
+			dateOfBirth: formData.get("dateOfBirth"),
+			sex: formData.get("sex"),
+			maritalStatus: formData.get("maritalStatus"),
+			nationalId: formData.get("nationalId"),
+		});
+
+	if (!parsedPersonalInformation.success) {
+		return {
+			ok: false,
+			message:
+				parsedPersonalInformation.error.issues[0]?.message ??
+				"Please check the personal information fields.",
+		};
+	}
+
+	const [patientRow] = await db
+		.select({ id: patient.id })
+		.from(patient)
+		.where(
+			and(
+				eq(patient.id, patientId),
+				eq(patient.organizationId, organizationId),
+			),
+		)
+		.limit(1);
+
+	if (!patientRow) {
+		return { ok: false, message: "Patient record was not found." };
+	}
+
+	const personalInformation = parsedPersonalInformation.data;
+	const normalizedAge = personalInformation.age ?? null;
+
+	await db
+		.update(patientPersonalInformation)
+		.set({
+			firstName: personalInformation.firstName,
+			middleName: personalInformation.middleName || null,
+			lastName: personalInformation.lastName,
+			age: normalizedAge,
+			dateOfBirth: personalInformation.dateOfBirth || null,
+			sex: personalInformation.sex || null,
+			maritalStatus: personalInformation.maritalStatus || null,
+			nationalId: personalInformation.nationalId || null,
+			updatedAt: new Date(),
+		})
+		.where(eq(patientPersonalInformation.patientId, patientId));
+
+	updateTag(`patient-profile-${organizationId}-${patientId}`);
+	updateTag(`patient-header-${organizationId}-${patientId}`);
+	updateTag(`patients-list-${organizationId}`);
+	updateTag(`recent-patients-${organizationId}`);
+	updateTag(`recent-transfers-${organizationId}`);
+
+	return { ok: true, message: "" };
 }
 
 export async function getPatientById(patientId: string) {

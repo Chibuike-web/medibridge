@@ -90,19 +90,19 @@ export function ContactInformation({
 					<form className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-gray-800">
 						<div className="flex flex-col gap-2">
 							<Label>Phone number</Label>
-							<Input id="phone" placeholder="Enter phone number" type="tel" className="h-11" />
+							<Input id="phone" placeholder="e.g. +234 801 234 5678" type="tel" className="h-11" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Email address</Label>
-							<Input id="email" placeholder="Enter email address" type="email" className="h-11" />
+							<Input id="email" placeholder="e.g. chinenye.okafor@example.com" type="email" className="h-11" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Residential address</Label>
 							<Input
 								id="address"
-								placeholder="Enter residential address"
+								placeholder="e.g. 14 Hospital Road, Enugu"
 								type="text"
 								className="h-11"
 							/>
@@ -110,12 +110,12 @@ export function ContactInformation({
 
 						<div className="flex flex-col gap-2">
 							<Label>State of Origin</Label>
-							<Input id="state" placeholder="Enter state" type="text" className="h-11" />
+							<Input id="state" placeholder="e.g. Enugu" type="text" className="h-11" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Country of Origin</Label>
-							<Input id="country" placeholder="Enter country" type="text" className="h-11" />
+							<Input id="country" placeholder="e.g. Nigeria" type="text" className="h-11" />
 						</div>
 					</form>
 

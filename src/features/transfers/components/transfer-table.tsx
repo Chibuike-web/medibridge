@@ -90,6 +90,9 @@ export function TransferTable({
 	]);
 	const [selectedTransferRows, setSelectedTransferRows] =
 		useState<RowSelectionState>({});
+	const visibleTransferRowIds = data.map((transfer) => transfer.id).join(",");
+	const [previousVisibleTransferRowIds, setPreviousVisibleTransferRowIds] =
+		useState(visibleTransferRowIds);
 	const [selectedTransferId, setSelectedTransferId] = useState<string | null>(
 		null,
 	);
@@ -97,6 +100,11 @@ export function TransferTable({
 	const [selectedTransfer, setSelectedTransfer] =
 		useState<TransferDetailsType | null>(null);
 	const [isDetailsPending, startDetailsTransition] = useTransition();
+
+	if (visibleTransferRowIds !== previousVisibleTransferRowIds) {
+		setPreviousVisibleTransferRowIds(visibleTransferRowIds);
+		setSelectedTransferRows({});
+	}
 
 	const onViewTransferDetails = useCallback((transferId: string) => {
 		selectedTransferIdRef.current = transferId;

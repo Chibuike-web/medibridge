@@ -101,12 +101,12 @@ export function PhysicalInformation({
 					<form className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-gray-800">
 						<div className="flex flex-col gap-2">
 							<Label>Height</Label>
-							<Input placeholder="Enter height (cm)" type="number" className="h-11" />
+							<Input placeholder="e.g. 172 cm" type="number" className="h-11" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Weight</Label>
-							<Input placeholder="Enter weight (kg)" type="number" className="h-11" />
+							<Input placeholder="e.g. 68 kg" type="number" className="h-11" />
 						</div>
 
 						<div className="flex flex-col gap-2">

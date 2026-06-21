@@ -95,27 +95,27 @@ export function EmergencyContact({
 					<form className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-gray-800">
 						<div className="flex flex-col gap-2">
 							<Label>First name</Label>
-							<Input placeholder="Enter first name" className="h-11" />
+							<Input placeholder="e.g. Ifeoma" className="h-11" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Middle name</Label>
-							<Input placeholder="Enter middle name" className="h-11" />
+							<Input placeholder="e.g. Nneka" className="h-11" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Last name</Label>
-							<Input placeholder="Enter last name" className="h-11" />
+							<Input placeholder="e.g. Okafor" className="h-11" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Relationship</Label>
-							<Input placeholder="Eg. Brother, Wife" className="h-11" />
+							<Input placeholder="e.g. Sister, spouse, guardian" className="h-11" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Phone number</Label>
-							<Input type="tel" placeholder="Enter phone number" className="h-11" />
+							<Input type="tel" placeholder="e.g. +234 803 456 7890" className="h-11" />
 						</div>
 					</form>
 

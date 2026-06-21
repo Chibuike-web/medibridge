@@ -89,6 +89,16 @@ export function PatientsTable({
 	]);
 	const [selectedPatientRows, setSelectedPatientRows] =
 		useState<RowSelectionState>({});
+	const visiblePatientRowIds = patients
+		.map((patient) => patient.patientId)
+		.join(",");
+	const [previousVisiblePatientRowIds, setPreviousVisiblePatientRowIds] =
+		useState(visiblePatientRowIds);
+
+	if (visiblePatientRowIds !== previousVisiblePatientRowIds) {
+		setPreviousVisiblePatientRowIds(visiblePatientRowIds);
+		setSelectedPatientRows({});
+	}
 
 	const table = useReactTable({
 		data: patients,
