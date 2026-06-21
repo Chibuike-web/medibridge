@@ -10,7 +10,9 @@ import type {
 	PatientListItemType,
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { RiSearchLine, RiShare2Line } from "@remixicon/react";
+import { parseDateParam } from "@/lib/utils/parse-date-param";
+import { format } from "date-fns";
+import { RiCloseLine, RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -26,6 +28,25 @@ type PatientsClientProps = {
 	createdTo: string;
 	genderFilter: PatientGenderFilter;
 	ageGroupFilter: PatientAgeGroupFilter;
+};
+
+const patientAgeGroupFilterLabels: Record<
+	Exclude<PatientAgeGroupFilter, "">,
+	string
+> = {
+	children: "0-12 (Children)",
+	teenagers: "13-17 (Teenagers)",
+	"young-adults": "18-35 (Young adults)",
+	adults: "36-59 (Adults)",
+	seniors: "60+ (Seniors)",
+};
+
+const patientGenderFilterLabels: Record<
+	Exclude<PatientGenderFilter, "">,
+	string
+> = {
+	male: "Male",
+	female: "Female",
 };
 
 export function PatientsClient({
@@ -44,17 +65,22 @@ export function PatientsClient({
 	const searchParams = useSearchParams();
 	const [patientSearchQuery, setPatientSearchQuery] = useState(searchQuery);
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [optimisticPatientsPage, setOptimisticPatientsPage] = useOptimistic(page);
-	const [optimisticPatientsLimit, setOptimisticPatientsLimit] = useOptimistic(limit);
-	const [optimisticCreatedAtRange, setOptimisticCreatedAtRange] = useOptimistic({
-		createdFrom,
-		createdTo,
-	});
+	const [optimisticPatientsPage, setOptimisticPatientsPage] =
+		useOptimistic(page);
+	const [optimisticPatientsLimit, setOptimisticPatientsLimit] =
+		useOptimistic(limit);
+	const [optimisticCreatedAtRange, setOptimisticCreatedAtRange] = useOptimistic(
+		{
+			createdFrom,
+			createdTo,
+		},
+	);
 	const [optimisticPatientAgeGroupFilter, setOptimisticPatientAgeGroupFilter] =
 		useOptimistic(ageGroupFilter);
 	const [optimisticPatientGenderFilter, setOptimisticPatientGenderFilter] =
 		useOptimistic(genderFilter);
-	const [isUpdatingPatientsTable, startPatientsTableUpdateTransition] = useTransition();
+	const [isUpdatingPatientsTable, startPatientsTableUpdateTransition] =
+		useTransition();
 
 	if (searchQuery !== previousSearchQuery) {
 		setPreviousSearchQuery(searchQuery);
@@ -90,7 +116,10 @@ export function PatientsClient({
 		return newParams.toString();
 	}
 
-	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
+	function handleCreatedAtRangeApply(
+		nextCreatedFrom: string,
+		nextCreatedTo: string,
+	) {
 		startPatientsTableUpdateTransition(async () => {
 			setOptimisticPatientsPage(1);
 			setOptimisticCreatedAtRange({
@@ -128,7 +157,9 @@ export function PatientsClient({
 		});
 	}
 
-	function handleAgeGroupFilterChange(nextAgeGroupFilter: PatientAgeGroupFilter) {
+	function handleAgeGroupFilterChange(
+		nextAgeGroupFilter: PatientAgeGroupFilter,
+	) {
 		startPatientsTableUpdateTransition(async () => {
 			setOptimisticPatientsPage(1);
 			setOptimisticPatientAgeGroupFilter(nextAgeGroupFilter);
@@ -157,7 +188,10 @@ export function PatientsClient({
 			router.push(
 				(pathname +
 					"?" +
-					createQueryString({ page: String(page - 1), limit: String(limit) })) as Route,
+					createQueryString({
+						page: String(page - 1),
+						limit: String(limit),
+					})) as Route,
 			);
 		});
 	}
@@ -169,7 +203,10 @@ export function PatientsClient({
 			router.push(
 				(pathname +
 					"?" +
-					createQueryString({ page: String(page + 1), limit: String(limit) })) as Route,
+					createQueryString({
+						page: String(page + 1),
+						limit: String(limit),
+					})) as Route,
 			);
 		});
 	}
@@ -179,7 +216,11 @@ export function PatientsClient({
 			setOptimisticPatientsPage(1);
 			setOptimisticPatientsLimit(Number(value));
 
-			router.push((pathname + "?" + createQueryString({ page: "1", limit: value })) as Route);
+			router.push(
+				(pathname +
+					"?" +
+					createQueryString({ page: "1", limit: value })) as Route,
+			);
 		});
 	}
 
@@ -223,6 +264,15 @@ export function PatientsClient({
 
 			<div className="min-h-0 flex-1 overflow-y-auto">
 				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
+					<PatientActiveFilterPills
+						ageGroupFilter={optimisticPatientAgeGroupFilter}
+						createdFrom={optimisticCreatedAtRange.createdFrom}
+						createdTo={optimisticCreatedAtRange.createdTo}
+						genderFilter={optimisticPatientGenderFilter}
+						onAgeGroupFilterChange={handleAgeGroupFilterChange}
+						onCreatedAtRangeApply={handleCreatedAtRangeApply}
+						onGenderFilterChange={handleGenderFilterChange}
+					/>
 					<PatientsTable
 						patients={patients}
 						page={optimisticPatientsPage}
@@ -237,4 +287,92 @@ export function PatientsClient({
 			</div>
 		</div>
 	);
+}
+
+function PatientActiveFilterPills({
+	ageGroupFilter,
+	createdFrom,
+	createdTo,
+	genderFilter,
+	onAgeGroupFilterChange,
+	onCreatedAtRangeApply,
+	onGenderFilterChange,
+}: {
+	ageGroupFilter: PatientAgeGroupFilter;
+	createdFrom: string;
+	createdTo: string;
+	genderFilter: PatientGenderFilter;
+	onAgeGroupFilterChange: (ageGroupFilter: PatientAgeGroupFilter) => void;
+	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
+	onGenderFilterChange: (genderFilter: PatientGenderFilter) => void;
+}) {
+	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
+
+	if (!ageGroupFilter && !genderFilter && !hasCreatedAtFilter) {
+		return null;
+	}
+
+	return (
+		<div className="mb-4 flex flex-wrap gap-2">
+			{genderFilter ? (
+				<PatientFilterPill
+					label={`Gender: ${patientGenderFilterLabels[genderFilter]}`}
+					onRemove={() => onGenderFilterChange("")}
+				/>
+			) : null}
+			{ageGroupFilter ? (
+				<PatientFilterPill
+					label={`Age: ${patientAgeGroupFilterLabels[ageGroupFilter]}`}
+					onRemove={() => onAgeGroupFilterChange("")}
+				/>
+			) : null}
+			{hasCreatedAtFilter ? (
+				<PatientFilterPill
+					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
+		</div>
+	);
+}
+
+function PatientFilterPill({
+	label,
+	onRemove,
+}: {
+	label: string;
+	onRemove: () => void;
+}) {
+	return (
+		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
+			<span>{label}</span>
+			<button
+				type="button"
+				onClick={onRemove}
+				className="flex size-5 items-center justify-center rounded-full bg-gray-800 text-white transition hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+				aria-label={`Remove ${label} filter`}
+			>
+				<RiCloseLine className="size-4" aria-hidden={true} />
+			</button>
+		</span>
+	);
+}
+
+function formatDateRangeFilterLabel(from: string, to: string) {
+	const parsedFromDate = parseDateParam(from);
+	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate) {
+		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedFromDate) {
+		return `From ${format(parsedFromDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedToDate) {
+		return `Until ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	return "Any date";
 }

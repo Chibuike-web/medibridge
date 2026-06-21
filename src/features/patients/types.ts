@@ -30,6 +30,8 @@ export type DiagnosisType = {
 	status: "Active" | "Resolved";
 };
 
+export type DiagnosisStatusFilter = "active" | "resolved";
+
 export type AllergyType = {
 	allergen: string;
 	allergyId: string;
@@ -79,7 +81,11 @@ export type EncounterType = {
 	updatedAtSortValue: string;
 	createdBy: string;
 	updatedBy: string;
-	encounterType: "Emergency Visit" | "Routine Checkup" | "Follow-up Visit" | "Outpatient Visit";
+	encounterType:
+		| "Emergency Visit"
+		| "Routine Checkup"
+		| "Follow-up Visit"
+		| "Outpatient Visit";
 	encounterId: string;
 	department: string;
 	physician: string;

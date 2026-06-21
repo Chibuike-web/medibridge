@@ -4,9 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FilterButton } from "@/features/transfers/components/filter-button";
 import { TransferTable } from "@/features/transfers/components/transfer-table";
-import type { TransferStatusFilter, TransferType } from "@/features/transfers/types";
+import type {
+	TransferStatusFilter,
+	TransferType,
+} from "@/features/transfers/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { RiSearchLine, RiShare2Line } from "@remixicon/react";
+import { parseDateParam } from "@/lib/utils/parse-date-param";
+import { format } from "date-fns";
+import { RiCloseLine, RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -21,6 +26,14 @@ type TransfersClientProps = {
 	requestedFrom: string;
 	requestedTo: string;
 	statusFilters: TransferStatusFilter[];
+};
+
+const transferStatusFilterLabels: Record<TransferStatusFilter, string> = {
+	pending: "Pending",
+	rejected: "Rejected",
+	completed: "Completed",
+	failed: "Failed",
+	cancelled: "Cancelled",
 };
 
 export function TransfersClient({
@@ -38,13 +51,17 @@ export function TransfersClient({
 	const searchParams = useSearchParams();
 	const [transferSearchQuery, setTransferSearchQuery] = useState(searchQuery);
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [optimisticTransfersPage, setOptimisticTransfersPage] = useOptimistic(page);
-	const [optimisticTransfersLimit, setOptimisticTransfersLimit] = useOptimistic(limit);
-	const [isUpdatingTransfersTable, startTransfersTableUpdateTransition] = useTransition();
-	const [optimistiRequestedAtRange, setOptimistiRequestedAtRange] = useOptimistic({
-		requestedFrom,
-		requestedTo,
-	});
+	const [optimisticTransfersPage, setOptimisticTransfersPage] =
+		useOptimistic(page);
+	const [optimisticTransfersLimit, setOptimisticTransfersLimit] =
+		useOptimistic(limit);
+	const [isUpdatingTransfersTable, startTransfersTableUpdateTransition] =
+		useTransition();
+	const [optimistiRequestedAtRange, setOptimistiRequestedAtRange] =
+		useOptimistic({
+			requestedFrom,
+			requestedTo,
+		});
 	const [optimisticTransferStatusFilters, setOptimisticTransferStatusFilters] =
 		useOptimistic(statusFilters);
 
@@ -89,7 +106,10 @@ export function TransfersClient({
 		debouncedSearch(nextQuery);
 	}
 
-	function handleRequestedAtRangeApply(nextRequestedFrom: string, nextRequestedTo: string) {
+	function handleRequestedAtRangeApply(
+		nextRequestedFrom: string,
+		nextRequestedTo: string,
+	) {
 		startTransfersTableUpdateTransition(async () => {
 			setOptimisticTransfersPage(1);
 			setOptimistiRequestedAtRange({
@@ -109,7 +129,9 @@ export function TransfersClient({
 		});
 	}
 
-	function handleStatusFiltersChange(nextStatusFilters: TransferStatusFilter[]) {
+	function handleStatusFiltersChange(
+		nextStatusFilters: TransferStatusFilter[],
+	) {
 		startTransfersTableUpdateTransition(async () => {
 			setOptimisticTransfersPage(1);
 			setOptimisticTransferStatusFilters(nextStatusFilters);
@@ -133,7 +155,10 @@ export function TransfersClient({
 			router.push(
 				(pathname +
 					"?" +
-					createQueryString({ page: String(page - 1), limit: String(limit) })) as Route,
+					createQueryString({
+						page: String(page - 1),
+						limit: String(limit),
+					})) as Route,
 			);
 		});
 	}
@@ -145,7 +170,10 @@ export function TransfersClient({
 			router.push(
 				(pathname +
 					"?" +
-					createQueryString({ page: String(page + 1), limit: String(limit) })) as Route,
+					createQueryString({
+						page: String(page + 1),
+						limit: String(limit),
+					})) as Route,
 			);
 		});
 	}
@@ -155,7 +183,11 @@ export function TransfersClient({
 			setOptimisticTransfersPage(1);
 			setOptimisticTransfersLimit(Number(value));
 
-			router.push((pathname + "?" + createQueryString({ page: "1", limit: value })) as Route);
+			router.push(
+				(pathname +
+					"?" +
+					createQueryString({ page: "1", limit: value })) as Route,
+			);
 		});
 	}
 
@@ -201,6 +233,13 @@ export function TransfersClient({
 
 			<div className="min-h-0 flex-1 overflow-y-auto">
 				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
+					<TransferActiveFilterPills
+						requestedFrom={optimistiRequestedAtRange.requestedFrom}
+						requestedTo={optimistiRequestedAtRange.requestedTo}
+						statusFilters={optimisticTransferStatusFilters}
+						onRequestedAtRangeApply={handleRequestedAtRangeApply}
+						onStatusFiltersChange={handleStatusFiltersChange}
+					/>
 					<TransferTable
 						data={transfers}
 						page={optimisticTransfersPage}
@@ -215,6 +254,92 @@ export function TransfersClient({
 			</div>
 		</div>
 	);
+}
+
+function TransferActiveFilterPills({
+	requestedFrom,
+	requestedTo,
+	statusFilters,
+	onRequestedAtRangeApply,
+	onStatusFiltersChange,
+}: {
+	requestedFrom: string;
+	requestedTo: string;
+	statusFilters: TransferStatusFilter[];
+	onRequestedAtRangeApply: (requestedFrom: string, requestedTo: string) => void;
+	onStatusFiltersChange: (statusFilters: TransferStatusFilter[]) => void;
+}) {
+	const hasRequestedAtFilter = Boolean(requestedFrom || requestedTo);
+	const hasStatusFilters = statusFilters.length > 0;
+
+	if (!hasRequestedAtFilter && !hasStatusFilters) {
+		return null;
+	}
+
+	return (
+		<div className="mb-4 flex flex-wrap gap-2">
+			{statusFilters.map((statusFilter) => (
+				<TransferFilterPill
+					key={statusFilter}
+					label={`Status: ${transferStatusFilterLabels[statusFilter]}`}
+					onRemove={() => {
+						onStatusFiltersChange(
+							statusFilters.filter(
+								(currentStatusFilter) => currentStatusFilter !== statusFilter,
+							),
+						);
+					}}
+				/>
+			))}
+			{hasRequestedAtFilter ? (
+				<TransferFilterPill
+					label={`Requested: ${formatDateRangeFilterLabel(requestedFrom, requestedTo)}`}
+					onRemove={() => onRequestedAtRangeApply("", "")}
+				/>
+			) : null}
+		</div>
+	);
+}
+
+function TransferFilterPill({
+	label,
+	onRemove,
+}: {
+	label: string;
+	onRemove: () => void;
+}) {
+	return (
+		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
+			<span>{label}</span>
+			<button
+				type="button"
+				onClick={onRemove}
+				className="flex size-5 items-center justify-center rounded-full bg-gray-800 text-white transition hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+				aria-label={`Remove ${label} filter`}
+			>
+				<RiCloseLine className="size-4" aria-hidden={true} />
+			</button>
+		</span>
+	);
+}
+
+function formatDateRangeFilterLabel(from: string, to: string) {
+	const parsedFromDate = parseDateParam(from);
+	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate) {
+		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedFromDate) {
+		return `From ${format(parsedFromDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedToDate) {
+		return `Until ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	return "Any date";
 }
 
 function getCurrentRoute(pathname: string, searchParams: URLSearchParams) {

@@ -4,6 +4,7 @@ import { deletePatientUploadService } from "@/services/patient/delete-patient-up
 import { saveExtractedPatientsService } from "@/services/patient/save-extracted-patients-service";
 
 import { PatientType } from "../schemas/patient-schema";
+import type { DiagnosisStatusFilter } from "../types";
 import { getPatientById as getCachedPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatients } from "@/lib/api/get-patients";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
@@ -45,7 +46,11 @@ export async function getPatientsTableAction({
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
-	const { patients, totalPatients } = await getPatients(currentPage, currentLimit, query);
+	const { patients, totalPatients } = await getPatients(
+		currentPage,
+		currentLimit,
+		query,
+	);
 
 	return {
 		patients,
@@ -60,11 +65,25 @@ export async function getPatientDiagnosesTableAction({
 	page,
 	limit,
 	query = "",
+	createdFrom = "",
+	createdTo = "",
+	diagnosedFrom = "",
+	diagnosedTo = "",
+	lastReviewedFrom = "",
+	lastReviewedTo = "",
+	statusFilters = [],
 }: {
 	patientId: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	diagnosedFrom?: string;
+	diagnosedTo?: string;
+	lastReviewedFrom?: string;
+	lastReviewedTo?: string;
+	statusFilters?: DiagnosisStatusFilter[];
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
@@ -73,6 +92,15 @@ export async function getPatientDiagnosesTableAction({
 		currentPage,
 		currentLimit,
 		query,
+		{
+			createdFrom,
+			createdTo,
+			diagnosedFrom,
+			diagnosedTo,
+			lastReviewedFrom,
+			lastReviewedTo,
+		},
+		statusFilters,
 	);
 
 	return {
