@@ -52,6 +52,7 @@ import {
 	flexRender,
 	getCoreRowModel,
 	getSortedRowModel,
+	type OnChangeFn,
 	type RowSelectionState,
 	type SortingState,
 	useReactTable,
@@ -191,44 +192,17 @@ export function DiagnosesTable({
 	onStatusFiltersChange,
 }: DiagnosesTableProps) {
 	const columns = useMemo(() => getDiagnosesColumns(), []);
+	const visibleDiagnosisRowIds = useMemo(
+		() => diagnoses.map((diagnosis) => diagnosis.diagnosisId).join(","),
+		[diagnoses],
+	);
 	const [sorting, setSorting] = useState<SortingState>([
 		{ id: "name", desc: false },
 	]);
-	const [selectedDiagnosisRows, setSelectedDiagnosisRows] =
-		useState<RowSelectionState>({});
-	const visibleDiagnosisRowIds = diagnoses
-		.map((diagnosis) => diagnosis.diagnosisId)
-		.join(",");
-	const [previousVisibleDiagnosisRowIds, setPreviousVisibleDiagnosisRowIds] =
-		useState(visibleDiagnosisRowIds);
 	const [activeDiagnosisFilterSubmenu, setActiveDiagnosisFilterSubmenu] =
 		useState<DiagnosisFilterSubmenu | null>(null);
 	const [isCreateDiagnosisDrawerOpen, setIsCreateDiagnosisDrawerOpen] =
 		useState(false);
-
-	if (visibleDiagnosisRowIds !== previousVisibleDiagnosisRowIds) {
-		setPreviousVisibleDiagnosisRowIds(visibleDiagnosisRowIds);
-		setSelectedDiagnosisRows({});
-	}
-
-	const table = useReactTable({
-		data: diagnoses,
-		columns,
-		enableRowSelection: true,
-		getRowId: (row) => row.diagnosisId,
-		onSortingChange: setSorting,
-		onRowSelectionChange: setSelectedDiagnosisRows,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		state: {
-			sorting,
-			rowSelection: selectedDiagnosisRows,
-		},
-	});
-
-	const selectedDiagnoses = table
-		.getSelectedRowModel()
-		.rows.map((row) => row.original);
 
 	return (
 		<div className="p-8">
@@ -448,6 +422,75 @@ export function DiagnosesTable({
 				onLastReviewedRangeApply={onLastReviewedRangeApply}
 				onStatusFiltersChange={onStatusFiltersChange}
 			/>
+			<DiagnosesTableContent
+				key={visibleDiagnosisRowIds}
+				diagnoses={diagnoses}
+				columns={columns}
+				sorting={sorting}
+				onSortingChange={setSorting}
+				page={page}
+				limit={limit}
+				totalPages={totalPages}
+				isPending={isPending}
+				onPreviousPage={onPreviousPage}
+				onNextPage={onNextPage}
+				onLimitChange={onLimitChange}
+			/>
+			<CreateDiagnosisDrawer
+				open={isCreateDiagnosisDrawerOpen}
+				onOpenChange={setIsCreateDiagnosisDrawerOpen}
+			/>
+		</div>
+	);
+}
+
+function DiagnosesTableContent({
+	diagnoses,
+	columns,
+	sorting,
+	onSortingChange,
+	page,
+	limit,
+	totalPages,
+	isPending,
+	onPreviousPage,
+	onNextPage,
+	onLimitChange,
+}: {
+	diagnoses: DiagnosisType[];
+	columns: ColumnDef<DiagnosisType>[];
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
+	page: number;
+	limit: number;
+	totalPages: number;
+	isPending: boolean;
+	onPreviousPage: () => void;
+	onNextPage: () => void;
+	onLimitChange: (limit: number) => void;
+}) {
+	const [selectedDiagnosisRows, setSelectedDiagnosisRows] =
+		useState<RowSelectionState>({});
+	const table = useReactTable({
+		data: diagnoses,
+		columns,
+		enableRowSelection: true,
+		getRowId: (row) => row.diagnosisId,
+		onSortingChange,
+		onRowSelectionChange: setSelectedDiagnosisRows,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		state: {
+			sorting,
+			rowSelection: selectedDiagnosisRows,
+		},
+	});
+	const selectedDiagnoses = table
+		.getSelectedRowModel()
+		.rows.map((row) => row.original);
+
+	return (
+		<>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="w-full min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="h-12 text-sm font-semibold text-gray-600">
@@ -593,11 +636,7 @@ export function DiagnosesTable({
 				selectedDiagnoses={selectedDiagnoses}
 				onClearSelection={() => table.resetRowSelection()}
 			/>
-			<CreateDiagnosisDrawer
-				open={isCreateDiagnosisDrawerOpen}
-				onOpenChange={setIsCreateDiagnosisDrawerOpen}
-			/>
-		</div>
+		</>
 	);
 }
 

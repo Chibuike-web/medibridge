@@ -39,6 +39,7 @@ import {
 	flexRender,
 	getCoreRowModel,
 	getSortedRowModel,
+	type OnChangeFn,
 	type RowSelectionState,
 	type SortingState,
 	useReactTable,
@@ -85,14 +86,13 @@ export function TransferTable({
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const returnTo = getCurrentRoute(pathname, searchParams);
+	const visibleTransferRowIds = useMemo(
+		() => data.map((transfer) => transfer.id).join(","),
+		[data],
+	);
 	const [sorting, setSorting] = useState<SortingState>([
 		{ id: "patientName", desc: false },
 	]);
-	const [selectedTransferRows, setSelectedTransferRows] =
-		useState<RowSelectionState>({});
-	const visibleTransferRowIds = data.map((transfer) => transfer.id).join(",");
-	const [previousVisibleTransferRowIds, setPreviousVisibleTransferRowIds] =
-		useState(visibleTransferRowIds);
 	const [selectedTransferId, setSelectedTransferId] = useState<string | null>(
 		null,
 	);
@@ -100,11 +100,6 @@ export function TransferTable({
 	const [selectedTransfer, setSelectedTransfer] =
 		useState<TransferDetailsType | null>(null);
 	const [isDetailsPending, startDetailsTransition] = useTransition();
-
-	if (visibleTransferRowIds !== previousVisibleTransferRowIds) {
-		setPreviousVisibleTransferRowIds(visibleTransferRowIds);
-		setSelectedTransferRows({});
-	}
 
 	const onViewTransferDetails = useCallback((transferId: string) => {
 		selectedTransferIdRef.current = transferId;
@@ -126,12 +121,74 @@ export function TransferTable({
 		return getTransferColumns(onViewTransferDetails, router, returnTo);
 	}, [onViewTransferDetails, router, returnTo]);
 
+	return (
+		<>
+			<TransferTableContent
+				key={visibleTransferRowIds}
+				data={data}
+				columns={columns}
+				sorting={sorting}
+				onSortingChange={setSorting}
+				page={page}
+				limit={limit}
+				totalPages={totalPages}
+				isPending={isPending}
+				onPreviousPage={onPreviousPage}
+				onNextPage={onNextPage}
+				onLimitChange={onLimitChange}
+				onViewTransferDetails={onViewTransferDetails}
+			/>
+			<TransferDetailsDrawer
+				open={selectedTransferId !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						selectedTransferIdRef.current = null;
+						setSelectedTransferId(null);
+						setSelectedTransfer(null);
+					}
+				}}
+				transfer={selectedTransfer}
+				isLoading={isDetailsPending && selectedTransfer === null}
+			/>
+		</>
+	);
+}
+
+function TransferTableContent({
+	data,
+	columns,
+	sorting,
+	onSortingChange,
+	page,
+	limit,
+	totalPages,
+	isPending,
+	onPreviousPage,
+	onNextPage,
+	onLimitChange,
+	onViewTransferDetails,
+}: {
+	data: TransferType[];
+	columns: ColumnDef<TransferType>[];
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
+	page: number;
+	limit: number;
+	totalPages: number;
+	isPending: boolean;
+	onPreviousPage: () => void;
+	onNextPage: () => void;
+	onLimitChange: (value: string) => void;
+	onViewTransferDetails: (transferId: string) => void;
+}) {
+	const [selectedTransferRows, setSelectedTransferRows] =
+		useState<RowSelectionState>({});
 	const table = useReactTable({
 		data,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.id,
-		onSortingChange: setSorting,
+		onSortingChange,
 		onRowSelectionChange: setSelectedTransferRows,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
@@ -292,18 +349,6 @@ export function TransferTable({
 				selectedTransfers={selectedTransfers}
 				onClearSelection={() => table.resetRowSelection()}
 				onViewTransferDetails={onViewTransferDetails}
-			/>
-			<TransferDetailsDrawer
-				open={selectedTransferId !== null}
-				onOpenChange={(open) => {
-					if (!open) {
-						selectedTransferIdRef.current = null;
-						setSelectedTransferId(null);
-						setSelectedTransfer(null);
-					}
-				}}
-				transfer={selectedTransfer}
-				isLoading={isDetailsPending && selectedTransfer === null}
 			/>
 		</>
 	);

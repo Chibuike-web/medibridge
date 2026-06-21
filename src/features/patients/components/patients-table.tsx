@@ -37,6 +37,7 @@ import {
 	flexRender,
 	getCoreRowModel,
 	getSortedRowModel,
+	type OnChangeFn,
 	type RowSelectionState,
 	type SortingState,
 	useReactTable,
@@ -57,16 +58,7 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
-export function PatientsTable({
-	patients,
-	page,
-	limit,
-	totalPages,
-	isPending,
-	onPreviousPage,
-	onNextPage,
-	onLimitChange,
-}: {
+type PatientsTableProps = {
 	patients: PatientListItemType[];
 	page: number;
 	limit: number;
@@ -75,6 +67,42 @@ export function PatientsTable({
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (value: string) => void;
+};
+
+export function PatientsTable(props: PatientsTableProps) {
+	const { patients } = props;
+	const visiblePatientRowIds = useMemo(
+		() => patients.map((patient) => patient.patientId).join(","),
+		[patients],
+	);
+	const [sorting, setSorting] = useState<SortingState>([
+		{ id: "name", desc: false },
+	]);
+
+	return (
+		<PatientsTableContent
+			key={visiblePatientRowIds}
+			{...props}
+			sorting={sorting}
+			onSortingChange={setSorting}
+		/>
+	);
+}
+
+function PatientsTableContent({
+	patients,
+	page,
+	limit,
+	totalPages,
+	isPending,
+	onPreviousPage,
+	onNextPage,
+	onLimitChange,
+	sorting,
+	onSortingChange,
+}: PatientsTableProps & {
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
 }) {
 	const router = useRouter();
 	const pathname = usePathname();
@@ -84,28 +112,15 @@ export function PatientsTable({
 		() => getPatientsColumns(router, returnTo),
 		[router, returnTo],
 	);
-	const [sorting, setSorting] = useState<SortingState>([
-		{ id: "name", desc: false },
-	]);
 	const [selectedPatientRows, setSelectedPatientRows] =
 		useState<RowSelectionState>({});
-	const visiblePatientRowIds = patients
-		.map((patient) => patient.patientId)
-		.join(",");
-	const [previousVisiblePatientRowIds, setPreviousVisiblePatientRowIds] =
-		useState(visiblePatientRowIds);
-
-	if (visiblePatientRowIds !== previousVisiblePatientRowIds) {
-		setPreviousVisiblePatientRowIds(visiblePatientRowIds);
-		setSelectedPatientRows({});
-	}
 
 	const table = useReactTable({
 		data: patients,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.patientId,
-		onSortingChange: setSorting,
+		onSortingChange,
 		onRowSelectionChange: setSelectedPatientRows,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),

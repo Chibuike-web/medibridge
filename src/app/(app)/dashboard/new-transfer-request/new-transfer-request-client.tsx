@@ -27,7 +27,7 @@ import { usePatientTransferData } from "@/features/transfers/stores/use-patient-
 import { useShowSuccess } from "@/hooks/use-show-success";
 import { SuccessModal } from "@/components/success-modal";
 import { useAttachClinicalRecords } from "@/features/transfers/stores/use-attach-clinical-records";
-import { getPatientById } from "@/features/patients/server/actions";
+import { getPatientByIdAction } from "@/features/patients/server/actions";
 import type { SelectedTransferPatient } from "@/features/transfers/stores/use-selected-transfer-patients";
 import { truncateId } from "@/lib/utils/truncate-id";
 import type { Route } from "next";
@@ -123,7 +123,7 @@ export function NewTransferRequestClient({
 
 			startTransition(async () => {
 				const patientsToAdd = await Promise.all(
-					patientIdsToAdd.map((patientIdToAdd) => getPatientById(patientIdToAdd)),
+					patientIdsToAdd.map((patientIdToAdd) => getPatientByIdAction(patientIdToAdd)),
 				);
 
 				patientsToAdd.forEach((patient) => {

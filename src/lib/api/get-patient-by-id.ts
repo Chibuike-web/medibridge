@@ -55,7 +55,7 @@ export async function getPatientById(patientId: string) {
 				sex: formatSex(row.sex),
 			};
 		},
-		[`patient-header-${organizationId}-${patientId}`],
-		{ tags: [`patient-header-${organizationId}-${patientId}`] },
+		[`patient-by-id-${organizationId}-${patientId}`],
+		{ tags: [`patient-by-id-${organizationId}-${patientId}`] },
 	)();
 }

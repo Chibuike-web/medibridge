@@ -7,11 +7,11 @@ import { deletePatientUploadService } from "@/services/patient/delete-patient-up
 import { saveExtractedPatientsService } from "@/services/patient/save-extracted-patients-service";
 import { updateTag } from "next/cache";
 import { and, eq } from "drizzle-orm";
-import { z } from "zod";
 
 import { PatientType } from "../schemas/patient-schema";
 import type { DiagnosisStatusFilter } from "../types";
-import { getPatientById as getCachedPatientById } from "@/lib/api/get-patient-by-id";
+import { updatePatientPersonalInformationSchema } from "./schemas";
+import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatients } from "@/lib/api/get-patients";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
@@ -21,20 +21,6 @@ import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
 import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
 import { getPatientMedications } from "@/lib/api/get-patient-medications";
 import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
-
-const updatePatientPersonalInformationSchema = z.object({
-	firstName: z.string().trim().min(1, "First name is required."),
-	middleName: z.string().trim().optional(),
-	lastName: z.string().trim().min(1, "Last name is required."),
-	age: z.preprocess(
-		(value) => (value === "" || value === null ? undefined : value),
-		z.coerce.number().int().min(0).max(150).optional(),
-	),
-	dateOfBirth: z.string().trim().optional(),
-	sex: z.string().trim().optional(),
-	maritalStatus: z.string().trim().optional(),
-	nationalId: z.string().trim().optional(),
-});
 
 export async function deletePatientUploadAction(relativePath: string) {
 	return deletePatientUploadService(relativePath);
@@ -54,17 +40,16 @@ export async function updatePatientPersonalInformationAction(
 		return { ok: false, message: "Unable to verify your hospital." };
 	}
 
-	const parsedPersonalInformation =
-		updatePatientPersonalInformationSchema.safeParse({
-			firstName: formData.get("firstName"),
-			middleName: formData.get("middleName"),
-			lastName: formData.get("lastName"),
-			age: formData.get("age"),
-			dateOfBirth: formData.get("dateOfBirth"),
-			sex: formData.get("sex"),
-			maritalStatus: formData.get("maritalStatus"),
-			nationalId: formData.get("nationalId"),
-		});
+	const parsedPersonalInformation = updatePatientPersonalInformationSchema.safeParse({
+		firstName: formData.get("firstName"),
+		middleName: formData.get("middleName"),
+		lastName: formData.get("lastName"),
+		age: formData.get("age"),
+		dateOfBirth: formData.get("dateOfBirth"),
+		sex: formData.get("sex"),
+		maritalStatus: formData.get("maritalStatus"),
+		nationalId: formData.get("nationalId"),
+	});
 
 	if (!parsedPersonalInformation.success) {
 		return {
@@ -78,12 +63,7 @@ export async function updatePatientPersonalInformationAction(
 	const [patientRow] = await db
 		.select({ id: patient.id })
 		.from(patient)
-		.where(
-			and(
-				eq(patient.id, patientId),
-				eq(patient.organizationId, organizationId),
-			),
-		)
+		.where(and(eq(patient.id, patientId), eq(patient.organizationId, organizationId)))
 		.limit(1);
 
 	if (!patientRow) {
@@ -109,7 +89,7 @@ export async function updatePatientPersonalInformationAction(
 		.where(eq(patientPersonalInformation.patientId, patientId));
 
 	updateTag(`patient-profile-${organizationId}-${patientId}`);
-	updateTag(`patient-header-${organizationId}-${patientId}`);
+	updateTag(`patient-by-id-${organizationId}-${patientId}`);
 	updateTag(`patients-list-${organizationId}`);
 	updateTag(`recent-patients-${organizationId}`);
 	updateTag(`recent-transfers-${organizationId}`);
@@ -117,8 +97,8 @@ export async function updatePatientPersonalInformationAction(
 	return { ok: true, message: "" };
 }
 
-export async function getPatientById(patientId: string) {
-	const patient = await getCachedPatientById(patientId);
+export async function getPatientByIdAction(patientId: string) {
+	const patient = await getPatientById(patientId);
 
 	if (!patient) return null;
 
@@ -139,11 +119,7 @@ export async function getPatientsTableAction({
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
-	const { patients, totalPatients } = await getPatients(
-		currentPage,
-		currentLimit,
-		query,
-	);
+	const { patients, totalPatients } = await getPatients(currentPage, currentLimit, query);
 
 	return {
 		patients,
