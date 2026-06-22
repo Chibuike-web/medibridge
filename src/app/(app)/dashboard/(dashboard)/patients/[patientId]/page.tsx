@@ -63,7 +63,7 @@ async function PatientPageContent({
 			<div className="shrink-0">
 				<nav
 					aria-label="Breadcrumb"
-					className="flex items-center gap-2 border-b border-gray-200 px-6 py-5"
+					className="flex items-center gap-2 border-b border-gray-200 px-6 py-5 text-sm"
 				>
 					<Link href="/dashboard/patients" className="flex items-center gap-2 shrink-0">
 						<RiArrowLeftLine aria-hidden="true" /> <span>Patients</span>
@@ -462,7 +462,7 @@ function PatientPageSkeleton() {
 			<div className="shrink-0">
 				<nav
 					aria-label="Breadcrumb"
-					className="flex items-center gap-2 border-b border-gray-200 px-6 py-5"
+					className="flex items-center gap-2 border-b border-gray-200 px-6 py-5 text-sm"
 				>
 					<Link href="/dashboard/patients" className="flex items-center gap-2 shrink-0">
 						<RiArrowLeftLine aria-hidden="true" /> <span>Patients</span>

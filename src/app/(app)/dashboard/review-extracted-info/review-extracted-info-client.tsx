@@ -169,7 +169,7 @@ export function ReviewExtractedInfoClient() {
 						<p className="text-sm font-medium text-red-600 text-pretty">{saveError}</p>
 					) : null}
 
-					<Button className="mt-8 h-11 w-full" onClick={handleSave} disabled={isPending}>
+					<Button className="mt-8 h-9 w-full" onClick={handleSave} disabled={isPending}>
 						{isPending ? "Saving..." : "Save Patient"}
 					</Button>
 
@@ -180,11 +180,11 @@ export function ReviewExtractedInfoClient() {
 							heading="Patient Saved Successfully"
 							description="The patient's information has been securely saved. You may now proceed with additional documentation or return to the dashboard."
 						>
-							<DialogFooter className="w-full border-t border-gray-200">
-								<Button className="h-11" variant="outline" onClick={closeModal}>
+							<DialogFooter className="w-full border-t border-gray-200 text-sm">
+								<Button className="h-10 text-sm" variant="outline" onClick={closeModal}>
 									Return to Dashboard
 								</Button>
-								<Button className="h-11" asChild>
+								<Button className="h-10 text-sm" asChild>
 									<Link href="/dashboard/add-new-patient">Add Another Record</Link>
 								</Button>
 							</DialogFooter>
@@ -238,7 +238,7 @@ function EditableInfoSection({
 
 	return (
 		<div className="flex flex-col gap-4">
-			<h2 className="text-base font-semibold tracking-[-0.02em]">{title}</h2>
+			<h2 className="text-sm font-semibold tracking-[-0.02em]">{title}</h2>
 			<div className="flex flex-col gap-6">
 				{Object.entries(sectionInfo).map(([key, value]) => {
 					const isEditing = edit === key;

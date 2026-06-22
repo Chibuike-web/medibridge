@@ -226,7 +226,7 @@ export function PatientsClient({
 
 	return (
 		<div className="flex h-full flex-col">
-			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0">
+			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0 text-sm">
 				<h1 className="text-xl font-semibold text-balance text-gray-800 tracking-[-0.015em]">
 					Patients
 				</h1>
@@ -252,7 +252,11 @@ export function PatientsClient({
 						onCreatedAtRangeApply={handleCreatedAtRangeApply}
 						onGenderFilterChange={handleGenderFilterChange}
 					/>
-					<Button size="lg" variant="outline">
+					<Button
+						size="lg"
+						variant="outline"
+						className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+					>
 						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 						Export
 					</Button>

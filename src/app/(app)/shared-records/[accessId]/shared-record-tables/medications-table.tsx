@@ -43,8 +43,8 @@ export function SharedMedicationsTable({ rows }: { rows: SharedMedicationRow[] }
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
 					<Input type="search" value={recordSearchQuery} onChange={(event) => setRecordSearchQuery(event.target.value)} placeholder="Search by medication and medication id" className="h-10 pl-10" />
 				</div>
-				<Button type="button" size="lg" variant="outline" className="gap-2 border-gray-200 bg-white text-gray-600"><RiFilter3Line aria-hidden="true" />Filter</Button>
-				<Button type="button" size="lg" variant="outline" className="gap-2 border-gray-200 bg-white text-gray-600"><RiShare2Line aria-hidden="true" />Export</Button>
+				<Button type="button" size="lg" variant="outline" className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"><RiFilter3Line aria-hidden="true" />Filter</Button>
+				<Button type="button" size="lg" variant="outline" className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"><RiShare2Line aria-hidden="true" />Export</Button>
 			</div>
 			<div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
 				<Table>

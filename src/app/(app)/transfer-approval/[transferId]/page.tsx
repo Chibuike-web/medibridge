@@ -32,7 +32,7 @@ async function TransferApprovalContent({ params }: TransferApprovalPageProps) {
 				<section className="mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-3xl items-center justify-center text-center">
 					<div>
 						<h1 className="text-2xl font-semibold text-gray-800">Invalid transfer link</h1>
-						<p className="mt-4 text-base text-gray-600">
+						<p className="mt-4 text-sm text-gray-600">
 							This patient transfer approval link is invalid. Contact the requesting hospital for a
 							new link.
 						</p>

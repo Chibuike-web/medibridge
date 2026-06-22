@@ -43,7 +43,7 @@ type AttachmentRow = {
 const fieldLabelClassName = "text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
-	"h-11 border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400";
+	"h-9 border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400";
 
 export function CreateDiagnosisDrawer({
 	open,
@@ -66,9 +66,9 @@ export function CreateDiagnosisDrawer({
 
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
-			<DrawerContent className="overflow-hidden rounded-3xl data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
 				<DrawerHeader className="flex flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
-					<DrawerTitle className="text-xl leading-[1.2] text-gray-800">
+					<DrawerTitle className="text-lg leading-[1.2] text-gray-800">
 						Add diagnosis
 					</DrawerTitle>
 					<DrawerClose aria-label="Close add diagnosis drawer">
@@ -79,7 +79,7 @@ export function CreateDiagnosisDrawer({
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<form className="min-h-0 flex-1 overflow-y-auto px-6 py-8">
+				<form className="min-h-0 flex-1 overflow-y-auto px-6 py-8 text-sm">
 					<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label
@@ -247,7 +247,7 @@ export function CreateDiagnosisDrawer({
 										<Button
 											type="button"
 											variant="outline"
-											className="h-11 gap-2 border-gray-200 bg-white px-4 text-gray-600 shadow-xs"
+											className="h-9 gap-2 border-gray-200 bg-white px-4 text-gray-600 shadow-xs"
 											onClick={handleAddAttachmentRow}
 										>
 											<RiAddLine className="size-5" aria-hidden="true" />
@@ -260,14 +260,14 @@ export function CreateDiagnosisDrawer({
 					</div>
 				</form>
 
-				<DrawerFooter className="border-t border-gray-200 px-6 py-5">
+				<DrawerFooter className="border-t border-gray-200 px-6 py-5 text-sm">
 					<div className="ml-auto flex gap-4">
 						<DrawerClose asChild>
-							<Button type="button" variant="outline" className="h-11 min-w-32">
+							<Button type="button" variant="outline" className="h-10 min-w-32 text-sm">
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="button" className="h-11 min-w-44">
+						<Button type="button" className="h-10 min-w-44 text-sm">
 							Add diagnosis
 						</Button>
 					</div>

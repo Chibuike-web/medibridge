@@ -298,12 +298,12 @@ function CustomRangeCalendarPanel({
 					setDraftRequestedAtRange(nextDraftRequestedAtRange);
 				}}
 				numberOfMonths={1}
-				className="mt-4 p-0 [--cell-size:--spacing(9)]"
+				className="mt-4 p-0"
 				classNames={{
-					month_caption: "flex h-10 w-full items-center justify-center px-10",
-					caption_label: "text-base font-semibold text-gray-800",
+					month_caption: "flex h-9 w-full items-center justify-center px-9",
+					caption_label: "text-sm font-semibold text-gray-800",
 					weekday: "flex-1 rounded-md text-sm font-medium text-gray-700 select-none",
-					day_button: "rounded-lg",
+					day_button: "rounded-lg text-sm",
 				}}
 				disabled={isPending}
 			/>
@@ -368,7 +368,7 @@ function DatePresetButton({
 
 function DateFieldPlaceholder({ label, value }: { label: string; value?: Date }) {
 	return (
-		<div className="flex h-11 min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left font-medium text-gray-500">
+		<div className="flex h-9 min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left font-medium text-gray-500">
 			<RiCalendarLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
 			<span className="sr-only">{label}</span>
 			<span className="truncate">{value ? format(value, "dd/MM/yyyy") : "DD/MM/YYYY"}</span>

@@ -69,7 +69,7 @@ export function SignInClient() {
 					id="adminEmail"
 					type="email"
 					placeholder="sarah.thompson@stmaryhospital.org"
-					className="h-11"
+					className="h-9"
 					{...register("email")}
 					aria-invalid={!!errors.email}
 					aria-describedby={errors.email ? "email-error" : "email-info"}
@@ -95,7 +95,7 @@ export function SignInClient() {
 						id="password"
 						type={isPasswordVisible ? "text" : "password"}
 						placeholder="Enter new password"
-						className="h-11"
+						className="h-9"
 						{...register("password")}
 						aria-describedby={errors.password ? "admin-password-error" : undefined}
 						aria-invalid={!!errors.password}
@@ -160,7 +160,7 @@ export function SignInClient() {
 					<span>{signInSuccess}</span>
 				</div>
 			)}
-			<Button className="w-full h-11 mt-16" type="submit" disabled={isSubmitting || isRedirectPending}>
+			<Button className="w-full h-9 mt-16" type="submit" disabled={isSubmitting || isRedirectPending}>
 				{isSubmitting ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

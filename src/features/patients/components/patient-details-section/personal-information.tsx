@@ -11,7 +11,7 @@ import {
 	RiCloseLine,
 	RiEditLine,
 	RiMore2Fill,
-	RiShareForwardBoxLine,
+	RiShare2Line,
 } from "@remixicon/react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -143,7 +143,7 @@ export function PersonalInformation({
 				</DropdownMenuItem>
 
 				<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-					<RiShareForwardBoxLine className="text-white" />
+					<RiShare2Line className="text-white" />
 					<span>Export info</span>
 				</DropdownMenuItem>
 			</DropdownMenuContent>
@@ -177,7 +177,7 @@ export function PersonalInformation({
 					<form
 						id={personalInformationFormId}
 						onSubmit={handlePersonalInformationSubmit}
-						className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-gray-800"
+						className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-sm text-gray-800"
 					>
 						<input
 							type="hidden"
@@ -199,7 +199,7 @@ export function PersonalInformation({
 								name="firstName"
 								placeholder="e.g. Chinenye"
 								type="text"
-								className="h-11"
+								className="h-9"
 								defaultValue={getPersonalInformationValue(
 									optimisticPersonalInformation,
 									"First name",
@@ -213,7 +213,7 @@ export function PersonalInformation({
 								name="middleName"
 								placeholder="e.g. Ada"
 								type="text"
-								className="h-11"
+								className="h-9"
 								defaultValue={getPersonalInformationValue(
 									optimisticPersonalInformation,
 									"Middle name",
@@ -227,7 +227,7 @@ export function PersonalInformation({
 								name="lastName"
 								placeholder="e.g. Okafor"
 								type="text"
-								className="h-11"
+								className="h-9"
 								defaultValue={getPersonalInformationValue(
 									optimisticPersonalInformation,
 									"Last name",
@@ -241,7 +241,7 @@ export function PersonalInformation({
 								name="age"
 								placeholder="e.g. 32"
 								type="number"
-								className="h-11"
+								className="h-9"
 								defaultValue={getPersonalInformationValue(
 									optimisticPersonalInformation,
 									"Age",
@@ -261,7 +261,7 @@ export function PersonalInformation({
 									<Button
 										variant="outline"
 										data-empty={!dob}
-										className="h-11 w-full flex items-center justify-between font-normal data-[empty=true]:text-muted-foreground active:scale-100 hover:bg-transparent"
+										className="h-9 w-full flex items-center justify-between font-normal data-[empty=true]:text-muted-foreground active:scale-100 hover:bg-transparent"
 									>
 										{dob ? (
 											format(dob, "PPP")
@@ -275,6 +275,7 @@ export function PersonalInformation({
 								<PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
 									<Calendar
 										mode="single"
+										defaultMonth={dob}
 										selected={dob}
 										onSelect={setDob}
 										autoFocus
@@ -288,18 +289,18 @@ export function PersonalInformation({
 							<input type="hidden" name="sex" value={selectedSex} />
 
 							<Select value={selectedSex} onValueChange={setSelectedSex}>
-								<SelectTrigger className="h-11 w-full">
+								<SelectTrigger className="h-9 w-full">
 									<SelectValue placeholder="Select sex" />
 								</SelectTrigger>
 								<SelectContent className="p-1 rounded-[0.625rem]">
 									<SelectGroup>
-										<SelectItem value="male" className="rounded-md px-3 h-11">
+										<SelectItem value="male" className="rounded-md px-3 h-9">
 											Male
 										</SelectItem>
-										<SelectItem value="female" className="rounded-md px-3 h-11">
+										<SelectItem value="female" className="rounded-md px-3 h-9">
 											Female
 										</SelectItem>
-										<SelectItem value="other" className="rounded-md px-3 h-11">
+										<SelectItem value="other" className="rounded-md px-3 h-9">
 											Other
 										</SelectItem>
 									</SelectGroup>
@@ -318,30 +319,30 @@ export function PersonalInformation({
 								value={selectedMaritalStatus}
 								onValueChange={setSelectedMaritalStatus}
 							>
-								<SelectTrigger className="w-full h-11">
+								<SelectTrigger className="w-full h-9">
 									<SelectValue placeholder="Select marital status" />
 								</SelectTrigger>
 
 								<SelectContent className="p-1 rounded-[0.625rem]">
 									<SelectGroup>
-										<SelectItem value="single" className="rounded-md px-3 h-11">
+										<SelectItem value="single" className="rounded-md px-3 h-9">
 											Single
 										</SelectItem>
 										<SelectItem
 											value="married"
-											className="rounded-md px-3 h-11"
+											className="rounded-md px-3 h-9"
 										>
 											Married
 										</SelectItem>
 										<SelectItem
 											value="divorced"
-											className="rounded-md px-3 h-11"
+											className="rounded-md px-3 h-9"
 										>
 											Divorced
 										</SelectItem>
 										<SelectItem
 											value="widowed"
-											className="rounded-md px-3 h-11"
+											className="rounded-md px-3 h-9"
 										>
 											Widowed
 										</SelectItem>
@@ -357,7 +358,7 @@ export function PersonalInformation({
 								name="nationalId"
 								placeholder="e.g. NIN-12345678901"
 								type="text"
-								className="h-11"
+								className="h-9"
 								defaultValue={getPersonalInformationValue(
 									optimisticPersonalInformation,
 									"National ID",
@@ -365,15 +366,15 @@ export function PersonalInformation({
 							/>
 						</div>
 					</form>
-					<DialogFooter className="mt-16 border-t border-gray-200">
+					<DialogFooter className="mt-16 border-t border-gray-200 text-sm">
 						<div className="flex gap-4 ml-auto">
 							<DialogClose asChild>
-								<Button variant="outline" className="h-11">
+								<Button variant="outline" className="h-10">
 									Cancel
 								</Button>
 							</DialogClose>
 							<Button
-								className="h-11"
+								className="h-10"
 								type="submit"
 								form={personalInformationFormId}
 								disabled={isUpdatingPersonalInformation}

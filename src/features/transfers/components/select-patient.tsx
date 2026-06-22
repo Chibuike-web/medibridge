@@ -79,10 +79,10 @@ export function SelectPatient({
 
 	return (
 		<div className="flex flex-col gap-3.5 items-start">
-			<span className="text-gray-800 text-base block">Select Patient</span>
+			<span className="text-gray-800 text-sm block">Select Patient</span>
 			<Popover>
-				<PopoverTrigger className="group flex h-11 items-center justify-between gap-4 w-full border border-input px-4 py-2 text-left outline-0 rounded-md focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50">
-					<span className="text-base truncate">{selectedSummary}</span>
+				<PopoverTrigger className="group flex h-9 items-center justify-between gap-4 w-full border border-input px-4 py-2 text-left outline-0 rounded-md focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50">
+					<span className="text-sm truncate">{selectedSummary}</span>
 					<RiArrowDownSLine className="size-5 text-gray-400 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
 				</PopoverTrigger>
 
@@ -90,7 +90,7 @@ export function SelectPatient({
 					<div className="flex items-center gap-2 px-4 py-2 text-gray-400 border-b border-gray-200">
 						<RiSearchLine className="size-5 shrink-0" />
 						<input
-							className="h-10 min-w-0 flex-1 bg-transparent text-base text-gray-700 placeholder:text-gray-400 focus:outline-0"
+							className="h-10 min-w-0 flex-1 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-0"
 							type="search"
 							placeholder="Search by name and patient ID"
 							value={searchTerm}
@@ -112,7 +112,7 @@ export function SelectPatient({
 										type="button"
 										onClick={() => toggleSelectedTransferPatient(patient)}
 										className={cn(
-											"flex w-full text-left items-center justify-between rounded-md px-3 h-11 text-sm shrink-0",
+											"flex w-full text-left items-center justify-between rounded-md px-3 h-9 text-sm shrink-0",
 											isSelected ? "bg-gray-200 text-foreground" : "text-gray-600 hover:bg-gray-50",
 										)}
 									>

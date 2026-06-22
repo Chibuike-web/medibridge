@@ -57,7 +57,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 						? "Verification code expired"
 						: "No active verification code"}
 				</h1>
-				<p className="mt-4 text-base leading-6 text-gray-600">
+				<p className="mt-4 text-sm leading-6 text-gray-600">
 					{verificationState.status === "code-expired"
 						? `The verification code sent to ${verificationState.recipientEmail} has expired. Request a new code to continue.`
 						: `No active verification code was found for ${verificationState.recipientEmail}. Request a code to continue.`}
@@ -96,7 +96,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 	return (
 		<section className="flex w-full max-w-[31.25rem] flex-col items-center text-center">
 			<h1 className="text-2xl font-semibold leading-[1.2] text-gray-800">Verify Access</h1>
-			<p className="mt-4 text-base leading-6 text-gray-600">
+			<p className="mt-4 text-sm leading-6 text-gray-600">
 				Enter the verification code sent to {verificationState.recipientEmail} to access the
 				shared patient record.
 			</p>
@@ -115,7 +115,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 						<InputOTPSlot
 							key={index}
 							index={index}
-							className="size-12 rounded-md border border-gray-300 bg-white text-base font-medium text-gray-800 first:rounded-md first:border last:rounded-md"
+							className="size-12 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-800 first:rounded-md first:border last:rounded-md"
 						/>
 					))}
 				</InputOTPGroup>
@@ -162,7 +162,7 @@ function VerifyAccessMessage({
 	return (
 		<section className="flex w-full max-w-[31.25rem] flex-col items-center text-center">
 			<h1 className="text-2xl font-semibold leading-[1.2] text-gray-800">{title}</h1>
-			<p className="mt-4 text-base leading-6 text-gray-600">{description}</p>
+			<p className="mt-4 text-sm leading-6 text-gray-600">{description}</p>
 		</section>
 	);
 }

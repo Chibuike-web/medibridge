@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { RiEditLine, RiMore2Fill, RiShareForwardBoxLine, RiCloseLine } from "@remixicon/react";
+import { RiEditLine, RiMore2Fill, RiShare2Line, RiCloseLine } from "@remixicon/react";
 
 import { useState } from "react";
 import { DetailItem, DetailsSection } from "./detail-fields";
@@ -62,7 +62,7 @@ export function EmergencyContact({
 							<span>Edit info</span>
 						</DropdownMenuItem>
 						<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-							<RiShareForwardBoxLine className="text-white" />
+							<RiShare2Line className="text-white" />
 							<span>Export info</span>
 						</DropdownMenuItem>
 					</DropdownMenuContent>
@@ -92,42 +92,42 @@ export function EmergencyContact({
 						</DialogClose>
 					</DialogHeader>
 
-					<form className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-gray-800">
+					<form className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-sm text-gray-800">
 						<div className="flex flex-col gap-2">
 							<Label>First name</Label>
-							<Input placeholder="e.g. Ifeoma" className="h-11" />
+							<Input placeholder="e.g. Ifeoma" className="h-9" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Middle name</Label>
-							<Input placeholder="e.g. Nneka" className="h-11" />
+							<Input placeholder="e.g. Nneka" className="h-9" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Last name</Label>
-							<Input placeholder="e.g. Okafor" className="h-11" />
+							<Input placeholder="e.g. Okafor" className="h-9" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Relationship</Label>
-							<Input placeholder="e.g. Sister, spouse, guardian" className="h-11" />
+							<Input placeholder="e.g. Sister, spouse, guardian" className="h-9" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Phone number</Label>
-							<Input type="tel" placeholder="e.g. +234 803 456 7890" className="h-11" />
+							<Input type="tel" placeholder="e.g. +234 803 456 7890" className="h-9" />
 						</div>
 					</form>
 
-					<DialogFooter className="mt-16 border-t border-gray-200">
+					<DialogFooter className="mt-16 border-t border-gray-200 text-sm">
 						<div className="flex gap-4 ml-auto">
 							<DialogClose asChild>
-								<Button variant="outline" className="h-11">
+								<Button variant="outline" className="h-10">
 									Cancel
 								</Button>
 							</DialogClose>
 
-							<Button className="h-11">Save</Button>
+							<Button className="h-10">Save</Button>
 						</div>
 					</DialogFooter>
 				</DialogContent>

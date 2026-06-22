@@ -55,7 +55,7 @@ export function OwnerClient() {
 					id="name"
 					type="text"
 					placeholder="eg., John Doe"
-					className="h-11"
+					className="h-9"
 					{...register("name")}
 					aria-labelledby={errors.name ? "name-error" : undefined}
 					aria-invalid={!!errors.name}
@@ -74,7 +74,7 @@ export function OwnerClient() {
 					id="email"
 					placeholder="eg., john.doe@stmaryhospital.org"
 					type="email"
-					className="h-11"
+					className="h-9"
 					{...register("email")}
 					aria-labelledby={errors.email ? "email-error" : "email-info"}
 					aria-invalid={!!errors.email}
@@ -101,7 +101,7 @@ export function OwnerClient() {
 					id="password"
 					type={isVisible ? "text" : "password"}
 					placeholder="Enter a secure password"
-					className="h-11"
+					className="h-9"
 					{...register("password")}
 					aria-describedby={errors.password ? "password-error" : undefined}
 					aria-invalid={!!errors.password}
@@ -128,7 +128,7 @@ export function OwnerClient() {
 				</p>
 			)}
 
-			<Button className="w-full h-11 mt-16" type="submit">
+			<Button className="w-full h-9 mt-16" type="submit">
 				Continue
 			</Button>
 		</form>

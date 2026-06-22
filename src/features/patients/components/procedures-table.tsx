@@ -49,7 +49,7 @@ import {
 	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
-	RiShareForwardBoxLine,
+	RiShare2Line,
 } from "@remixicon/react";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
@@ -95,7 +95,7 @@ export function ProceduresTable({
 	});
 
 	return (
-		<div className="p-8">
+		<div className="p-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-xl font-semibold">Procedures</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl items-center gap-2">
 				<div className="relative w-full">
@@ -108,12 +108,15 @@ export function ProceduresTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<Button size="lg" variant="outline">
+				<Button size="lg" variant="outline"
+					className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+				>
 					<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 					Filter
 				</Button>
-				<Button size="lg" variant="outline">
-					<RiShareForwardBoxLine aria-hidden className="size-5 text-gray-600" />
+				<Button size="lg" variant="outline"
+					className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200">
+					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
 				<Button size="lg">Add procedure</Button>
@@ -195,7 +198,7 @@ export function ProceduresTable({
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectGroup>
+								<SelectGroup className="p-1">
 									{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
 										<SelectItem key={pageSize} value={String(pageSize)}>
 											{pageSize}

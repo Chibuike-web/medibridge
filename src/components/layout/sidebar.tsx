@@ -163,7 +163,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 									Search patients, IDs, diagnoses, and other patient records.
 								</DialogDescription>
 								<input
-									className="h-10 placeholder:text-base placeholder:text-gray-400 focus:outline-0 w-full"
+									className="h-10 placeholder:text-sm placeholder:text-gray-400 focus:outline-0 w-full"
 									type="text"
 									placeholder="Search patients, IDs, diagnoses..."
 								/>

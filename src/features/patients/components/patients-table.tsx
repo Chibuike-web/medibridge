@@ -273,7 +273,7 @@ function PatientsTableContent({
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectGroup>
+								<SelectGroup className="p-1">
 									{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
 										<SelectItem key={pageSize} value={String(pageSize)}>
 											{pageSize}

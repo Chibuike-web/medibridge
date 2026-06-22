@@ -47,7 +47,7 @@ async function EncounterDetailsContent({
 		<div className="flex h-full min-h-0 flex-col overflow-hidden">
 			<nav
 				aria-label="Breadcrumb"
-				className="flex items-center gap-2 border-b border-gray-200 px-6 py-5"
+				className="flex items-center gap-2 border-b border-gray-200 px-6 py-5 text-sm"
 			>
 				<Link href="/dashboard/patients" className="flex shrink-0 items-center gap-2">
 					<RiArrowLeftLine aria-hidden="true" />
@@ -116,7 +116,7 @@ function EncounterDetailsPageSkeleton() {
 		<div className="flex h-full min-h-0 flex-col overflow-hidden">
 			<nav
 				aria-label="Breadcrumb"
-				className="flex items-center gap-2 border-b border-gray-200 px-6 py-5"
+				className="flex items-center gap-2 border-b border-gray-200 px-6 py-5 text-sm"
 			>
 				<Link href="/dashboard/patients" className="flex shrink-0 items-center gap-2">
 					<RiArrowLeftLine aria-hidden="true" />

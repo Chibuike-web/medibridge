@@ -109,7 +109,7 @@ export function HospitalDetailsClient() {
 					id="hospitalName"
 					type="text"
 					placeholder="eg., St. Mary's General Hospital"
-					className="h-11"
+					className="h-9"
 					{...register("hospitalName")}
 					aria-labelledby={errors.hospitalName ? "hospital-name-error" : undefined}
 					aria-invalid={!!errors.hospitalName}
@@ -128,7 +128,7 @@ export function HospitalDetailsClient() {
 					id="hospitalAddress"
 					type="text"
 					placeholder="eg., 123 Healthway Blvd, Springfield, IL"
-					className="h-11"
+					className="h-9"
 					{...register("hospitalAddress")}
 					aria-labelledby={errors.hospitalAddress ? "hospital-address-error" : undefined}
 					aria-invalid={!!errors.hospitalAddress}
@@ -181,7 +181,7 @@ export function HospitalDetailsClient() {
 					<span>{success}</span>
 				</div>
 			)}
-			<Button className="w-full h-11 mt-16" type="submit" disabled={isPending}>
+			<Button className="w-full h-9 mt-16" type="submit" disabled={isPending}>
 				{isPending ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

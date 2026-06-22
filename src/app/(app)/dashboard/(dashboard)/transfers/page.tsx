@@ -84,7 +84,7 @@ export default async function Transfers({
 					<p className="mb-12 text-center">
 						Start by creating your first transfer request to move patients securely.
 					</p>
-					<Button className="h-11" asChild>
+					<Button className="h-9" asChild>
 						<Link href="/dashboard/new-transfer-request">Create transfer request </Link>
 					</Button>
 				</div>

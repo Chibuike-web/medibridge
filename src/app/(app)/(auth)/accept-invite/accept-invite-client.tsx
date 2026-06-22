@@ -39,7 +39,7 @@ export function AcceptInviteClient() {
 						id="email"
 						placeholder="eg., john.doe@stmaryhospital.org"
 						type="email"
-						className="h-11"
+						className="h-9"
 					/>
 				</div>
 
@@ -51,7 +51,7 @@ export function AcceptInviteClient() {
 						id="password"
 						type={isVisible ? "text" : "password"}
 						placeholder="Enter a secure password"
-						className="h-11"
+						className="h-9"
 						{...register("password")}
 						aria-describedby={errors.password ? "password-error" : undefined}
 						aria-invalid={!!errors.password}
@@ -95,7 +95,7 @@ export function AcceptInviteClient() {
 						<span>{error}</span>
 					</div>
 				)}
-				<Button className="w-full h-11 mt-16" type="submit" disabled={isSubmitting}>
+				<Button className="w-full h-9 mt-16" type="submit" disabled={isSubmitting}>
 					{isSubmitting ? (
 						<span className="flex items-center gap-2">
 							<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -114,9 +114,9 @@ export function AcceptInviteClient() {
 					heading="Account Set up Completed"
 					description="You have successfully setup your account. Your designated role is administrator  for this organization"
 				>
-					<DialogFooter className="border-t border-gray-200 w-full">
+					<DialogFooter className="border-t border-gray-200 w-full text-sm">
 						<Button
-							className="h-11 w-full cursor-pointer"
+							className="h-10 w-full cursor-pointer text-sm"
 							onClick={() => router.push("/dashboard")}
 						>
 							Continue to Dashboard

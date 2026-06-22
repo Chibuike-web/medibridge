@@ -107,7 +107,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 			</Tabs.Root>
 
 			<Popover>
-				<PopoverTrigger className="group flex h-11 items-center justify-between gap-4 w-full border border-input px-4 py-2 text-left outline-0 rounded-md focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50">
+				<PopoverTrigger className="group flex h-9 items-center justify-between gap-4 w-full border border-input px-4 py-2 text-left outline-0 rounded-md focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50">
 					{selectedRecordsForActiveTab.length === 0 ? (
 						<div className="text-gray-500 whitespace-nowrap overflow-hidden gap-2 ">
 							<span className="w-full shrink-0">
@@ -116,7 +116,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 						</div>
 					) : (
 						<div className="flex gap-1.5 items-center text-sm text-foreground">
-							<span className="flex items-center text-[1rem]">
+							<span className="flex items-center text-sm">
 								{selectedRecordsForActiveTab[0].name}
 							</span>
 							{selectedRecordsForActiveTab.length - 1 > 0 && (
@@ -131,7 +131,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 					<div className="flex items-center gap-2 px-4 py-2 text-gray-400 border-b border-gray-200">
 						<RiSearchLine className="size-5" />
 						<input
-							className="h-10 placeholder:text-base placeholder:text-gray-400 focus:outline-0 w-full"
+							className="h-10 placeholder:text-sm placeholder:text-gray-400 focus:outline-0 w-full"
 							type="search"
 							value={searchQuery}
 							onChange={(event) => setSearchQuery(event.target.value)}
@@ -141,7 +141,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 
 					<div
 						className={cn(
-							"flex h-11 w-full items-center gap-3 rounded-md px-6 text-left text-sm text-gray-600",
+							"flex h-9 w-full items-center gap-3 rounded-md px-6 text-left text-sm text-gray-600",
 							filteredRecordsForActiveTab.length === 0 && "opacity-50",
 						)}
 					>

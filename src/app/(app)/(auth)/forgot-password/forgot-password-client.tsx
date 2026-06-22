@@ -20,9 +20,9 @@ export function ForgotPasswordClient() {
 				<Label htmlFor="email" className="block mb-3.5">
 					Email Address
 				</Label>
-				<Input id="email" className="h-11" placeholder="eg., john.doe@stmaryhospital.org" />
+				<Input id="email" className="h-9" placeholder="eg., john.doe@stmaryhospital.org" />
 			</div>
-			<Button className="w-full h-11 mt-16" type="submit">
+			<Button className="w-full h-9 mt-16" type="submit">
 				Send Reset Link
 			</Button>
 		</form>

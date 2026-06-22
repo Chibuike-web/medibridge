@@ -33,7 +33,7 @@ export function AdminInviteClient() {
 						id="name"
 						type="text"
 						placeholder="e.g., Sarah Thompson"
-						className="h-11"
+						className="h-9"
 						{...register("name")}
 						aria-invalid={!!errors.email}
 						aria-describedby={errors.email ? "name-error" : undefined}
@@ -52,7 +52,7 @@ export function AdminInviteClient() {
 					id="email"
 					type="email"
 					placeholder="sarah.thompson@stmaryhospital.org"
-					className="h-11"
+					className="h-9"
 					{...register("email")}
 					aria-invalid={!!errors.email}
 					aria-describedby={errors.email ? "email-error" : "email-info"}
@@ -71,7 +71,7 @@ export function AdminInviteClient() {
 					</p>
 				)}
 
-				<Button className="w-full h-11 mt-16" type="submit" disabled={isSubmitting}>
+				<Button className="w-full h-9 mt-16" type="submit" disabled={isSubmitting}>
 					{isSubmitting ? (
 						<span className="flex items-center gap-2">
 							<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -89,9 +89,9 @@ export function AdminInviteClient() {
 					heading="Admin Invitation Sent"
 					description="The administrator has been successfully invited. They will receive an email to set up their account and start managing members."
 				>
-					<DialogFooter className="border-t border-gray-200 w-full">
+					<DialogFooter className="border-t border-gray-200 w-full text-sm">
 						<Button
-							className="h-11 w-full cursor-pointer"
+							className="h-10 w-full cursor-pointer text-sm"
 							onClick={() => router.push("/dashboard/overview")}
 						>
 							Continue to Dashboard

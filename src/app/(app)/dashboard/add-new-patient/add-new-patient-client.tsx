@@ -81,7 +81,7 @@ export function AddNewPatientClient() {
 			>
 				<div className="px-5 py-4 text-center">
 					<p className="text-2xl font-medium text-gray-800">Drop files here</p>
-					<p className="mt-1 text-base text-gray-500">PDF, PNG, JPG, DOC, DOCX up to 50MB</p>
+					<p className="mt-1 text-sm text-gray-500">PDF, PNG, JPG, DOC, DOCX up to 50MB</p>
 				</div>
 			</div>
 			<div>
@@ -214,7 +214,7 @@ function Footer({
 		<footer className="fixed z-50 bottom-0 left-0 right-0 flex items-center justify-center border-t h-20 border-gray-200 bg-white px-4 md:px-0">
 			{!isExtracting && !extractionComplete ? (
 				<div className="flex w-full justify-between items-center max-w-[37.5rem]">
-					<Button type="button" variant="outline" className="h-11" disabled={!uploadComplete}>
+					<Button type="button" variant="outline" className="h-9" disabled={!uploadComplete}>
 						<label htmlFor="file-input">
 							<input
 								type="file"
@@ -240,7 +240,7 @@ function Footer({
 
 					<Dialog>
 						<DialogTrigger asChild>
-							<Button disabled={!uploadComplete || isExtracting} className="h-11">
+							<Button disabled={!uploadComplete || isExtracting} className="h-9">
 								Extract Information
 							</Button>
 						</DialogTrigger>
@@ -264,16 +264,16 @@ function Footer({
 									paused or restarted.
 								</p>
 							</div>
-							<DialogFooter className="mt-16 border-t border-gray-200">
+							<DialogFooter className="mt-16 border-t border-gray-200 text-sm">
 								<div className="flex gap-4 ml-auto">
 									<DialogClose asChild>
-										<Button variant="outline" className="h-11">
+										<Button variant="outline" className="h-10 text-sm">
 											Cancel
 										</Button>
 									</DialogClose>
 									<DialogClose asChild>
 										<Button
-											className="h-11"
+											className="h-10 text-sm"
 											onClick={async () => {
 												await extractInfo();
 											}}
@@ -295,7 +295,7 @@ function Footer({
 			) : null}
 
 			{extractionComplete && !isFailedExtract && (
-				<Button className="h-11 w-xl" asChild>
+				<Button className="h-9 w-xl" asChild>
 					<Link href="/dashboard/review-extracted-info">Continue</Link>
 				</Button>
 			)}

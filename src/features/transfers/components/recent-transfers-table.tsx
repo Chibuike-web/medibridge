@@ -141,7 +141,7 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectGroup>
+								<SelectGroup className="p-1">
 									{[4, 8, 12].map((pageSize) => (
 										<SelectItem key={pageSize} value={String(pageSize)}>
 											{pageSize}

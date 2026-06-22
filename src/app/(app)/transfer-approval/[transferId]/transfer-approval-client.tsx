@@ -81,7 +81,7 @@ export function TransferApprovalClient({ transfer }: TransferApprovalClientProps
 			<div className="border-b border-gray-200 p-6">
 				<p className="text-sm font-medium text-gray-500">Patient transfer request</p>
 				<h1 className="mt-2 text-2xl font-semibold text-gray-900">Review shared record request</h1>
-				<p className="mt-3 max-w-2xl text-base leading-6 text-gray-600">
+				<p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
 					{transfer.sourceHospitalName} wants to share selected patient records with{" "}
 					{transfer.targetHospitalName}. Please review the request before approving.
 				</p>
@@ -98,7 +98,7 @@ export function TransferApprovalClient({ transfer }: TransferApprovalClientProps
 				</div>
 
 				<div>
-					<h2 className="text-base font-semibold text-gray-800">Selected records</h2>
+					<h2 className="text-sm font-semibold text-gray-800">Selected records</h2>
 					<div className="mt-3 overflow-hidden rounded-xl border border-gray-200">
 						{transfer.selectedRecords.length > 0 ? (
 							transfer.selectedRecords.map((record) => (

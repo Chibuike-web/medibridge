@@ -30,7 +30,7 @@ export function CreateNewPasswordClient() {
 						id="newPassword"
 						type={isPasswordVisible ? "text" : "password"}
 						placeholder="Enter new password"
-						className="h-11"
+						className="h-9"
 					/>
 					<button
 						type="button"
@@ -55,7 +55,7 @@ export function CreateNewPasswordClient() {
 						id="confirmNewPassword"
 						type={isConfirmPasswordVisible ? "text" : "password"}
 						placeholder="Confirm New password"
-						className="h-11"
+						className="h-9"
 					/>
 					<button
 						type="button"
@@ -71,7 +71,7 @@ export function CreateNewPasswordClient() {
 					</button>
 				</div>
 			</div>
-			<Button className="w-full h-11 mt-16" type="submit">
+			<Button className="w-full h-9 mt-16" type="submit">
 				Reset Password
 			</Button>
 		</form>

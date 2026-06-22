@@ -82,7 +82,7 @@ async function PatientsPageContent({
 					<p className="mb-12 text-center">
 						Patient records will appear here once patients have been added to the system.
 					</p>
-					<Button className="h-11" asChild>
+					<Button className="h-9" asChild>
 						<Link href="/dashboard/add-new-patient">Add patient </Link>
 					</Button>
 				</div>

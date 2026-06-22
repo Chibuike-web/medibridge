@@ -205,7 +205,7 @@ export function DiagnosesTable({
 		useState(false);
 
 	return (
-		<div className="p-8">
+		<div className="p-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-xl font-semibold">Diagnoses</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl items-center gap-2">
 				<div className="relative w-full">
@@ -397,7 +397,8 @@ export function DiagnosesTable({
 						</DropdownMenuSub>
 					</DropdownMenuContent>
 				</DropdownMenu>
-				<Button size="lg" variant="outline">
+				<Button size="lg" variant="outline"
+					className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200">
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
@@ -593,7 +594,7 @@ function DiagnosesTableContent({
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectGroup>
+								<SelectGroup className="p-1">
 									{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
 										<SelectItem key={pageSize} value={String(pageSize)}>
 											{pageSize}
@@ -930,13 +931,13 @@ function DiagnosisCustomRangeCalendarPanel({
 					setDraftDiagnosisDateRange(nextDraftDiagnosisDateRange);
 				}}
 				numberOfMonths={1}
-				className="mt-4 p-0 [--cell-size:--spacing(9)]"
+				className="mt-4 p-0"
 				classNames={{
-					month_caption: "flex h-10 w-full items-center justify-center px-10",
-					caption_label: "text-base font-semibold text-gray-800",
+					month_caption: "flex h-9 w-full items-center justify-center px-9",
+					caption_label: "text-sm font-semibold text-gray-800",
 					weekday:
 						"flex-1 rounded-md text-sm font-medium text-gray-700 select-none",
-					day_button: "rounded-lg",
+					day_button: "rounded-lg text-sm",
 				}}
 				disabled={isPending}
 			/>
@@ -1014,7 +1015,7 @@ function DiagnosisDateFieldPlaceholder({
 	value?: Date;
 }) {
 	return (
-		<div className="flex h-11 min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left font-medium text-gray-500">
+		<div className="flex h-9 min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left font-medium text-gray-500">
 			<RiCalendarLine
 				className="size-5 shrink-0 text-gray-400"
 				aria-hidden="true"

@@ -42,9 +42,9 @@ export function TransferDetailsDrawer({
 }: TransferDetailsDrawerProps) {
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
-			<DrawerContent className="overflow-hidden rounded-3xl data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
 				<DrawerHeader className="border-b border-gray-200 px-6 py-5 text-left flex flex-row justify-between items-center">
-					<DrawerTitle className="text-xl text-gray-800 leading-[1.2]">
+					<DrawerTitle className="text-lg text-gray-800 leading-[1.2]">
 						Transfer details
 					</DrawerTitle>
 					<DrawerClose aria-label="Close transfer details">
@@ -55,7 +55,7 @@ export function TransferDetailsDrawer({
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<div className="px-6 py-8 overflow-y-auto">
+				<div className="px-6 py-8 overflow-y-auto text-sm">
 					{isLoading ? (
 						<TransferDetailsFallback />
 					) : (
@@ -114,14 +114,14 @@ export function TransferDetailsDrawer({
 						</>
 					)}
 				</div>
-				<DrawerFooter className="border-t border-gray-200 px-6 py-5">
+				<DrawerFooter className="border-t border-gray-200 px-6 py-5 text-sm">
 					<div className="flex flex-col lg:flex-row gap-x-4 gap-y-2 lg:self-end">
 						<DrawerClose asChild>
-							<Button className="h-11 bg-[#FB3748]" variant="destructive">
+							<Button className="h-10 bg-[#FB3748] text-sm" variant="destructive">
 								Cancel transfer
 							</Button>
 						</DrawerClose>
-						<Button className="h-11">Resend approval request</Button>
+						<Button className="h-10 text-sm">Resend approval request</Button>
 					</div>
 				</DrawerFooter>
 			</DrawerContent>

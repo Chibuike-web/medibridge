@@ -50,7 +50,7 @@ export default async function Overview() {
 					<p className="mb-12 text-center">
 						You haven’t added any patient records yet. Create a new patient profile to get started.
 					</p>
-					<Button className="h-11" asChild>
+					<Button className="h-9" asChild>
 						<Link href="/dashboard/add-new-patient">Add patient </Link>
 					</Button>
 				</div>

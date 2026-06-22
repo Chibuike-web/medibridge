@@ -15,7 +15,7 @@ export default function Verify() {
 					You have successfully create a new password
 				</p>
 
-				<Button className="h-11 mt-16" type="submit">
+				<Button className="h-9 mt-16" type="submit">
 					Continue to sign in
 				</Button>
 			</div>
