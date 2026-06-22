@@ -78,67 +78,68 @@ export function SelectPatient({
 	}
 
 	return (
-		<div className="flex flex-col gap-3.5 items-start">
-			<span className="text-gray-800 text-sm block">Select Patient</span>
+		<div className="flex flex-col gap-3 items-start">
+			<span className="text-gray-800 font-medium block">Select Patient</span>
 			<Popover>
 				<PopoverTrigger className="group flex h-9 items-center justify-between gap-4 w-full border border-input px-4 py-2 text-left outline-0 rounded-md focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50">
 					<span className="text-sm truncate">{selectedSummary}</span>
-					<RiArrowDownSLine className="size-5 text-gray-400 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+					<RiArrowDownSLine className="size-4 text-gray-400 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
 				</PopoverTrigger>
 
 				<PopoverContent sideOffset={8} className="rounded-2xl h-[24rem] flex flex-col p-0">
-					<div className="flex items-center gap-2 px-4 py-2 text-gray-400 border-b border-gray-200">
-						<RiSearchLine className="size-5 shrink-0" />
+					<div className="flex shrink-0 items-center gap-2 px-4 py-2 text-gray-400 border-b border-gray-200">
+						<RiSearchLine className="size-4 shrink-0" />
 						<input
-							className="h-10 min-w-0 flex-1 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-0"
+							className="h-9 min-w-0 flex-1 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-0"
 							type="search"
 							placeholder="Search by name and patient ID"
 							value={searchTerm}
 							onChange={(event) => setSearchTerm(event.target.value)}
 						/>
 					</div>
-					<div className="flex flex-col gap-1 overflow-y-auto px-4 py-3">
-						{patientOptions.length === 0 ? (
-							<p className="px-3 py-4 text-sm text-gray-500">No patients available.</p>
-						) : (
-							patientOptions.map((patient) => {
-								const isSelected = selectedTransferPatients.some(
-									(item) => item.patientId === patient.patientId,
-								);
+					<div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+						<div className="flex flex-col gap-1">
+							{patientOptions.length === 0 ? (
+								<p className="px-3 py-4 text-sm text-gray-500">No patients available.</p>
+							) : (
+								patientOptions.map((patient) => {
+									const isSelected = selectedTransferPatients.some(
+										(item) => item.patientId === patient.patientId,
+									);
 
-								return (
-									<button
-										key={patient.patientId + patient.name}
-										type="button"
-										onClick={() => toggleSelectedTransferPatient(patient)}
-										className={cn(
-											"flex w-full text-left items-center justify-between rounded-md px-3 h-9 text-sm shrink-0",
-											isSelected ? "bg-gray-200 text-foreground" : "text-gray-600 hover:bg-gray-50",
-										)}
-									>
-										<div className="flex items-center gap-3">
-											<span className="font-medium">{patient.name}</span>
-											<span
-												className="p-1 rounded-sm bg-white text-xs border"
-												title={patient.patientId}
-											>
-												{truncateId(patient.patientId)}
-											</span>
-										</div>
-										{isSelected ? <RiCheckLine className="size-4" /> : null}
-									</button>
-								);
-							})
-						)}
+									return (
+										<button
+											key={patient.patientId + patient.name}
+											type="button"
+											onClick={() => toggleSelectedTransferPatient(patient)}
+											className={cn(
+												"flex w-full text-left items-center justify-between rounded-md px-3 h-9 text-sm shrink-0",
+												isSelected ? "bg-gray-200 text-foreground" : "text-gray-600 hover:bg-gray-50",
+											)}
+										>
+											<div className="flex items-center gap-3">
+												<span className="font-medium">{patient.name}</span>
+												<span
+													className="p-1 rounded-sm bg-white text-xs border"
+													title={patient.patientId}
+												>
+													{truncateId(patient.patientId)}
+												</span>
+											</div>
+											{isSelected ? <RiCheckLine className="size-4" /> : null}
+										</button>
+									);
+								})
+							)}
+						</div>
 					</div>
-					<div className="grid grid-cols-3 items-center border-t border-gray-200 px-6 py-4">
+					<div className="grid shrink-0 grid-cols-3 items-center border-t border-gray-200 p-4">
 						<Button
 							type="button"
 							variant="outline"
-							size="sm"
 							onClick={() => handlePageChange(currentPage - 1)}
 							disabled={optimisticPage <= 1 || isUpdatingPatientOptionsPage}
-							className="justify-self-start border-gray-200 px-3 text-gray-700 shadow-none transition"
+							className="justify-self-start text-sm border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Previous
 						</Button>
@@ -148,10 +149,9 @@ export function SelectPatient({
 						<Button
 							type="button"
 							variant="outline"
-							size="sm"
 							onClick={() => handlePageChange(currentPage + 1)}
 							disabled={optimisticPage >= currentTotalPages || isUpdatingPatientOptionsPage}
-							className="justify-self-end border-gray-200 px-3 text-gray-700 shadow-none transition"
+							className="justify-self-end text-sm border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Next
 						</Button>

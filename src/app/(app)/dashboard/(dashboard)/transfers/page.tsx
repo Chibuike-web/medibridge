@@ -4,11 +4,7 @@ import Image from "next/image";
 import { getTransfers } from "@/lib/api/get-transfers";
 import { TransfersClient } from "./transfers-client";
 import type { TransferStatusFilter } from "@/features/transfers/types";
-import {
-	getNumberParam,
-	getStringParam,
-	parseDateBoundaryParam,
-} from "@/lib/utils/search-params";
+import { getNumberParam, getStringParam, parseDateBoundaryParam } from "@/lib/utils/search-params";
 
 export const metadata = {
 	title: "Transfers",
@@ -32,11 +28,9 @@ function parseTransferStatusFilters(status: string | string[] | undefined) {
 		.filter((value): value is TransferStatusFilter => transferStatusFilterSet.has(value));
 }
 
-export default async function Transfers({
-	searchParams,
-}: {
-	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+type TransferPageProps = PageProps<"/dashboard/transfers">;
+
+export default async function Transfers({ searchParams }: TransferPageProps) {
 	const { page, limit, query, requestedFrom, requestedTo, status } = await searchParams;
 	const currentPage = getNumberParam(page, 1, { min: 1 });
 	const currentLimit = getNumberParam(limit, 14, { min: 1, max: 100 });
@@ -84,7 +78,7 @@ export default async function Transfers({
 					<p className="mb-12 text-center">
 						Start by creating your first transfer request to move patients securely.
 					</p>
-					<Button className="h-9" asChild>
+					<Button asChild>
 						<Link href="/dashboard/new-transfer-request">Create transfer request </Link>
 					</Button>
 				</div>

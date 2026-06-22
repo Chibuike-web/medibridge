@@ -98,11 +98,10 @@ export function FilterButton({
 		>
 			<DropdownMenuTrigger asChild>
 				<Button
-					size="lg"
 					variant="outline"
-					className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+					className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
 				>
-					<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
+					<RiFilter3Line aria-hidden className="size-4 text-gray-600" />
 					Filter
 				</Button>
 			</DropdownMenuTrigger>
@@ -309,11 +308,10 @@ function CustomRangeCalendarPanel({
 			/>
 
 			<div className="mt-7 flex justify-end gap-3">
-				<Button
-					type="button"
-					size="lg"
-					variant="outline"
-					className="min-w-28"
+					<Button
+						type="button"
+						variant="outline"
+						className="min-w-28 text-sm"
 					disabled={isPending}
 					onClick={() => {
 						setDraftRequestedAtRange(undefined);
@@ -322,10 +320,9 @@ function CustomRangeCalendarPanel({
 				>
 					Reset
 				</Button>
-				<Button
-					type="button"
-					size="lg"
-					className="min-w-40 flex-1"
+					<Button
+						type="button"
+						className="min-w-40 flex-1 text-sm"
 					disabled={!draftRequestedAtRange?.from || !draftRequestedAtRange?.to || isPending}
 					onClick={() => {
 						if (!draftRequestedAtRange?.from || !draftRequestedAtRange?.to) return;
@@ -358,7 +355,7 @@ function DatePresetButton({
 				event.preventDefault();
 				onSelect();
 			}}
-			className="flex h-10 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
+			className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
 		>
 			<span>{label}</span>
 			{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}

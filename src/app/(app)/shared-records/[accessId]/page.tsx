@@ -17,13 +17,11 @@ export const metadata = {
 	title: "Shared Patient Record",
 };
 
-export default async function SharedRecordsPage({
-	params,
-	searchParams,
-}: {
-	params: Promise<{ accessId: string }>;
+type SharedRecordsPageProps = Pick<PageProps<"/shared-records/[accessId]">, "params"> & {
 	searchParams: Promise<{ section?: string }>;
-}) {
+};
+
+export default async function SharedRecordsPage({ params, searchParams }: SharedRecordsPageProps) {
 	return (
 		<div className="min-h-dvh bg-white text-gray-800">
 			<Suspense fallback={<SharedRecordsPageSkeleton />}>
@@ -33,13 +31,7 @@ export default async function SharedRecordsPage({
 	);
 }
 
-async function SharedRecordsContent({
-	params,
-	searchParams,
-}: {
-	params: Promise<{ accessId: string }>;
-	searchParams: Promise<{ section?: string }>;
-}) {
+async function SharedRecordsContent({ params, searchParams }: SharedRecordsPageProps) {
 	const [{ accessId }, { section }] = await Promise.all([params, searchParams]);
 	const hasVerifiedAccessSession = await hasVerifiedExternalAccessSession(accessId);
 

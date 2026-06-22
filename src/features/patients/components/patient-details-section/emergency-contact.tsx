@@ -95,39 +95,39 @@ export function EmergencyContact({
 					<form className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-sm text-gray-800">
 						<div className="flex flex-col gap-2">
 							<Label>First name</Label>
-							<Input placeholder="e.g. Ifeoma" className="h-9" />
+							<Input placeholder="e.g. Ifeoma" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Middle name</Label>
-							<Input placeholder="e.g. Nneka" className="h-9" />
+							<Input placeholder="e.g. Nneka" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Last name</Label>
-							<Input placeholder="e.g. Okafor" className="h-9" />
+							<Input placeholder="e.g. Okafor" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Relationship</Label>
-							<Input placeholder="e.g. Sister, spouse, guardian" className="h-9" />
+							<Input placeholder="e.g. Sister, spouse, guardian" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Phone number</Label>
-							<Input type="tel" placeholder="e.g. +234 803 456 7890" className="h-9" />
+							<Input type="tel" placeholder="e.g. +234 803 456 7890" />
 						</div>
 					</form>
 
 					<DialogFooter className="mt-16 border-t border-gray-200 text-sm">
 						<div className="flex gap-4 ml-auto">
 							<DialogClose asChild>
-								<Button variant="outline" className="h-10">
+								<Button variant="outline" className="text-sm">
 									Cancel
 								</Button>
 							</DialogClose>
 
-							<Button className="h-10">Save</Button>
+							<Button className="text-sm">Save</Button>
 						</div>
 					</DialogFooter>
 				</DialogContent>

@@ -106,10 +106,10 @@ export function AllergiesTable({
 			<h1 className="mx-auto max-w-7xl text-xl font-semibold">Allergies</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl items-center gap-2">
 				<div className="relative w-full">
-					<RiSearchLine className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
+					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
-						className="h-10 w-full pl-8"
+						className="w-full pl-8"
 						placeholder="Search by name and allergy id"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
@@ -118,9 +118,8 @@ export function AllergiesTable({
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button
-							size="lg"
 							variant="outline"
-							className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+							className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
 						>
 							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 							Filter
@@ -133,8 +132,7 @@ export function AllergiesTable({
 					>
 						<DropdownMenuSub>
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiCheckboxCircleLine className="size-4.5" />{" "}
-								<span className="block">Status</span>
+								<RiCheckboxCircleLine className="size-4.5" /> <span className="block">Status</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={12}
@@ -177,8 +175,7 @@ export function AllergiesTable({
 
 						<DropdownMenuSub>
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiBarChartBoxLine className="text-lg" />{" "}
-								<span className="block">Severity</span>
+								<RiBarChartBoxLine className="text-lg" /> <span className="block">Severity</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={8}
@@ -232,8 +229,7 @@ export function AllergiesTable({
 
 						<DropdownMenuSub>
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiCalendarLine className="size-4.5" />{" "}
-								<span className="block">Date recorded</span>
+								<RiCalendarLine className="size-4.5" /> <span className="block">Date recorded</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={8}
@@ -252,12 +248,14 @@ export function AllergiesTable({
 						</DropdownMenuSub>
 					</DropdownMenuContent>
 				</DropdownMenu>
-				<Button size="lg" variant="outline"
-					className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200">
+				<Button
+					variant="outline"
+					className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+				>
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button size="lg">Add allergy</Button>
+				<Button className="text-sm">Add allergy</Button>
 			</div>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="w-full min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left">

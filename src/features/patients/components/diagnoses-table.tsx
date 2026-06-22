@@ -35,18 +35,8 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
-import {
-	DiagnosisType,
-	type DiagnosisStatusFilter,
-} from "@/features/patients/types";
-import {
-	endOfDay,
-	format,
-	isSameDay,
-	startOfDay,
-	subDays,
-	subYears,
-} from "date-fns";
+import { DiagnosisType, type DiagnosisStatusFilter } from "@/features/patients/types";
+import { endOfDay, format, isSameDay, startOfDay, subDays, subYears } from "date-fns";
 import {
 	type ColumnDef,
 	flexRender,
@@ -82,11 +72,7 @@ import type { DateRange } from "react-day-picker";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
-type DiagnosisFilterSubmenu =
-	| "status"
-	| "last-reviewed"
-	| "diagnosed-at"
-	| "created-at";
+type DiagnosisFilterSubmenu = "status" | "last-reviewed" | "diagnosed-at" | "created-at";
 
 type DiagnosisDateFilterPreset = {
 	label: string;
@@ -157,10 +143,7 @@ type DiagnosesTableProps = {
 	statusFilters: DiagnosisStatusFilter[];
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onDiagnosedAtRangeApply: (diagnosedFrom: string, diagnosedTo: string) => void;
-	onLastReviewedRangeApply: (
-		lastReviewedFrom: string,
-		lastReviewedTo: string,
-	) => void;
+	onLastReviewedRangeApply: (lastReviewedFrom: string, lastReviewedTo: string) => void;
 	onQueryChange: (query: string) => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
@@ -196,23 +179,20 @@ export function DiagnosesTable({
 		() => diagnoses.map((diagnosis) => diagnosis.diagnosisId).join(","),
 		[diagnoses],
 	);
-	const [sorting, setSorting] = useState<SortingState>([
-		{ id: "name", desc: false },
-	]);
+	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 	const [activeDiagnosisFilterSubmenu, setActiveDiagnosisFilterSubmenu] =
 		useState<DiagnosisFilterSubmenu | null>(null);
-	const [isCreateDiagnosisDrawerOpen, setIsCreateDiagnosisDrawerOpen] =
-		useState(false);
+	const [isCreateDiagnosisDrawerOpen, setIsCreateDiagnosisDrawerOpen] = useState(false);
 
 	return (
 		<div className="p-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-xl font-semibold">Diagnoses</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl items-center gap-2">
 				<div className="relative w-full">
-					<RiSearchLine className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
+					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
-						className="h-10 w-full pl-8"
+						className="w-full pl-8"
 						placeholder="Search by patient name or ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
@@ -227,9 +207,8 @@ export function DiagnosesTable({
 				>
 					<DropdownMenuTrigger asChild>
 						<Button
-							size="lg"
 							variant="outline"
-							className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+							className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
 						>
 							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 							Filter
@@ -243,19 +222,17 @@ export function DiagnosesTable({
 						<DropdownMenuSub
 							open={activeDiagnosisFilterSubmenu === "status"}
 							onOpenChange={(isStatusSubmenuOpen) => {
-								setActiveDiagnosisFilterSubmenu(
-									(currentActiveDiagnosisFilterSubmenu) =>
-										isStatusSubmenuOpen
-											? "status"
-											: currentActiveDiagnosisFilterSubmenu === "status"
-												? null
-												: currentActiveDiagnosisFilterSubmenu,
+								setActiveDiagnosisFilterSubmenu((currentActiveDiagnosisFilterSubmenu) =>
+									isStatusSubmenuOpen
+										? "status"
+										: currentActiveDiagnosisFilterSubmenu === "status"
+											? null
+											: currentActiveDiagnosisFilterSubmenu,
 								);
 							}}
 						>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-								<RiCheckboxCircleLine className="size-4.5" />{" "}
-								<span className="block">Status</span>
+								<RiCheckboxCircleLine className="size-4.5" /> <span className="block">Status</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={12}
@@ -263,9 +240,7 @@ export function DiagnosesTable({
 								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
 								{diagnosisStatusFilterOptions.map((statusOption) => {
-									const isStatusSelected = statusFilters.includes(
-										statusOption.value,
-									);
+									const isStatusSelected = statusFilters.includes(statusOption.value);
 									const statusOptionId = `diagnosis-status-${statusOption.value}`;
 
 									return (
@@ -289,8 +264,7 @@ export function DiagnosesTable({
 															checked === true
 																? [...statusFilters, statusOption.value]
 																: statusFilters.filter(
-																		(statusFilter) =>
-																			statusFilter !== statusOption.value,
+																		(statusFilter) => statusFilter !== statusOption.value,
 																	),
 														);
 													}}
@@ -307,19 +281,17 @@ export function DiagnosesTable({
 						<DropdownMenuSub
 							open={activeDiagnosisFilterSubmenu === "last-reviewed"}
 							onOpenChange={(isLastReviewedSubmenuOpen) => {
-								setActiveDiagnosisFilterSubmenu(
-									(currentActiveDiagnosisFilterSubmenu) =>
-										isLastReviewedSubmenuOpen
-											? "last-reviewed"
-											: currentActiveDiagnosisFilterSubmenu === "last-reviewed"
-												? null
-												: currentActiveDiagnosisFilterSubmenu,
+								setActiveDiagnosisFilterSubmenu((currentActiveDiagnosisFilterSubmenu) =>
+									isLastReviewedSubmenuOpen
+										? "last-reviewed"
+										: currentActiveDiagnosisFilterSubmenu === "last-reviewed"
+											? null
+											: currentActiveDiagnosisFilterSubmenu,
 								);
 							}}
 						>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-								<RiHistoryLine className="text-lg" />{" "}
-								<span className="block">Last updated</span>
+								<RiHistoryLine className="text-lg" /> <span className="block">Last updated</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={8}
@@ -338,19 +310,17 @@ export function DiagnosesTable({
 						<DropdownMenuSub
 							open={activeDiagnosisFilterSubmenu === "diagnosed-at"}
 							onOpenChange={(isDiagnosedAtSubmenuOpen) => {
-								setActiveDiagnosisFilterSubmenu(
-									(currentActiveDiagnosisFilterSubmenu) =>
-										isDiagnosedAtSubmenuOpen
-											? "diagnosed-at"
-											: currentActiveDiagnosisFilterSubmenu === "diagnosed-at"
-												? null
-												: currentActiveDiagnosisFilterSubmenu,
+								setActiveDiagnosisFilterSubmenu((currentActiveDiagnosisFilterSubmenu) =>
+									isDiagnosedAtSubmenuOpen
+										? "diagnosed-at"
+										: currentActiveDiagnosisFilterSubmenu === "diagnosed-at"
+											? null
+											: currentActiveDiagnosisFilterSubmenu,
 								);
 							}}
 						>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-								<RiPulseLine className="size-4.5" />{" "}
-								<span className="block">Diagnosed At</span>
+								<RiPulseLine className="size-4.5" /> <span className="block">Diagnosed At</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={8}
@@ -368,19 +338,17 @@ export function DiagnosesTable({
 						<DropdownMenuSub
 							open={activeDiagnosisFilterSubmenu === "created-at"}
 							onOpenChange={(isCreatedAtSubmenuOpen) => {
-								setActiveDiagnosisFilterSubmenu(
-									(currentActiveDiagnosisFilterSubmenu) =>
-										isCreatedAtSubmenuOpen
-											? "created-at"
-											: currentActiveDiagnosisFilterSubmenu === "created-at"
-												? null
-												: currentActiveDiagnosisFilterSubmenu,
+								setActiveDiagnosisFilterSubmenu((currentActiveDiagnosisFilterSubmenu) =>
+									isCreatedAtSubmenuOpen
+										? "created-at"
+										: currentActiveDiagnosisFilterSubmenu === "created-at"
+											? null
+											: currentActiveDiagnosisFilterSubmenu,
 								);
 							}}
 						>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-								<RiCalendarLine className="size-4.5" />{" "}
-								<span className="block">Created at</span>
+								<RiCalendarLine className="size-4.5" /> <span className="block">Created at</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={8}
@@ -397,13 +365,15 @@ export function DiagnosesTable({
 						</DropdownMenuSub>
 					</DropdownMenuContent>
 				</DropdownMenu>
-				<Button size="lg" variant="outline"
-					className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200">
+				<Button
+					variant="outline"
+					className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+				>
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
 				<Button
-					size="lg"
+					className="text-sm"
 					type="button"
 					onClick={() => setIsCreateDiagnosisDrawerOpen(true)}
 				>
@@ -470,8 +440,7 @@ function DiagnosesTableContent({
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
 }) {
-	const [selectedDiagnosisRows, setSelectedDiagnosisRows] =
-		useState<RowSelectionState>({});
+	const [selectedDiagnosisRows, setSelectedDiagnosisRows] = useState<RowSelectionState>({});
 	const table = useReactTable({
 		data: diagnoses,
 		columns,
@@ -486,9 +455,7 @@ function DiagnosesTableContent({
 			rowSelection: selectedDiagnosisRows,
 		},
 	});
-	const selectedDiagnoses = table
-		.getSelectedRowModel()
-		.rows.map((row) => row.original);
+	const selectedDiagnoses = table.getSelectedRowModel().rows.map((row) => row.original);
 
 	return (
 		<>
@@ -508,35 +475,26 @@ function DiagnosesTableContent({
 										}}
 										className={cn(
 											"z-10 h-12 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
-											header.column.getCanSort()
-												? "cursor-pointer select-none"
-												: "",
+											header.column.getCanSort() ? "cursor-pointer select-none" : "",
 										)}
 									>
 										<div className="flex items-center justify-between gap-3">
 											{header.isPlaceholder
 												? null
-												: flexRender(
-														header.column.columnDef.header,
-														header.getContext(),
-													)}
+												: flexRender(header.column.columnDef.header, header.getContext())}
 											{header.column.getCanSort() ? (
 												<div className="-space-y-2">
 													<RiArrowUpSLine
 														className={cn(
 															"size-4 text-gray-800",
-															header.column.getIsSorted() === "desc"
-																? "opacity-30"
-																: "",
+															header.column.getIsSorted() === "desc" ? "opacity-30" : "",
 														)}
 														aria-hidden
 													/>
 													<RiArrowDownSLine
 														className={cn(
 															"size-4 text-gray-800",
-															header.column.getIsSorted() === "asc"
-																? "opacity-30"
-																: "",
+															header.column.getIsSorted() === "asc" ? "opacity-30" : "",
 														)}
 														aria-hidden
 													/>
@@ -558,14 +516,10 @@ function DiagnosesTableContent({
 											className={cn(
 												"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
 												row.getIsSelected() ? "bg-gray-100" : "bg-white",
-												rowPosition === table.getRowModel().rows.length - 1 &&
-													"border-b-0",
+												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 											)}
 										>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
+											{flexRender(cell.column.columnDef.cell, cell.getContext())}
 										</TableCell>
 									))}
 								</TableRow>
@@ -649,8 +603,7 @@ function DiagnosesBulkActionBar({
 	onClearSelection: () => void;
 }) {
 	const selectedDiagnosisCount = selectedDiagnoses.length;
-	const singleSelectedDiagnosis =
-		selectedDiagnosisCount === 1 ? selectedDiagnoses[0] : undefined;
+	const singleSelectedDiagnosis = selectedDiagnosisCount === 1 ? selectedDiagnoses[0] : undefined;
 
 	if (selectedDiagnosisCount === 0) {
 		return null;
@@ -659,8 +612,7 @@ function DiagnosesBulkActionBar({
 	return (
 		<div className="no-scrollbar fixed right-4 bottom-6 left-4 z-50 flex items-center gap-4 overflow-x-auto rounded-xl border border-white/20 bg-gray-800 px-4 py-2 text-white shadow-[0_1rem_2.5rem_rgba(15,23,42,0.35)] ring ring-gray-800 sm:right-auto sm:left-1/2 sm:w-max sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2">
 			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
-				{selectedDiagnosisCount}{" "}
-				{selectedDiagnosisCount === 1 ? "item" : "items"} selected
+				{selectedDiagnosisCount} {selectedDiagnosisCount === 1 ? "item" : "items"} selected
 			</span>
 			<TableBulkActionSeparator />
 			{singleSelectedDiagnosis ? (
@@ -724,10 +676,7 @@ function DiagnosisActiveFilterPills({
 	statusFilters: DiagnosisStatusFilter[];
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onDiagnosedAtRangeApply: (diagnosedFrom: string, diagnosedTo: string) => void;
-	onLastReviewedRangeApply: (
-		lastReviewedFrom: string,
-		lastReviewedTo: string,
-	) => void;
+	onLastReviewedRangeApply: (lastReviewedFrom: string, lastReviewedTo: string) => void;
 	onStatusFiltersChange: (statusFilters: DiagnosisStatusFilter[]) => void;
 }) {
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
@@ -735,12 +684,7 @@ function DiagnosisActiveFilterPills({
 	const hasLastReviewedFilter = Boolean(lastReviewedFrom || lastReviewedTo);
 	const hasStatusFilters = statusFilters.length > 0;
 
-	if (
-		!hasCreatedAtFilter &&
-		!hasDiagnosedAtFilter &&
-		!hasLastReviewedFilter &&
-		!hasStatusFilters
-	) {
+	if (!hasCreatedAtFilter && !hasDiagnosedAtFilter && !hasLastReviewedFilter && !hasStatusFilters) {
 		return null;
 	}
 
@@ -757,9 +701,7 @@ function DiagnosisActiveFilterPills({
 						label={`Status: ${statusOption?.label ?? statusFilter}`}
 						onRemove={() => {
 							onStatusFiltersChange(
-								statusFilters.filter(
-									(currentStatusFilter) => currentStatusFilter !== statusFilter,
-								),
+								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
 							);
 						}}
 					/>
@@ -787,13 +729,7 @@ function DiagnosisActiveFilterPills({
 	);
 }
 
-function DiagnosisFilterPill({
-	label,
-	onRemove,
-}: {
-	label: string;
-	onRemove: () => void;
-}) {
+function DiagnosisFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
 	return (
 		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
 			<span>{label}</span>
@@ -823,11 +759,7 @@ function DiagnosisDateFilterContent({
 	return (
 		<div className="flex w-max">
 			<div className="flex w-50 shrink-0 flex-col p-1 text-sm text-gray-600">
-				<DiagnosisDatePresetList
-					from={from}
-					to={to}
-					onDateRangeApply={onDateRangeApply}
-				/>
+				<DiagnosisDatePresetList from={from} to={to} onDateRangeApply={onDateRangeApply} />
 			</div>
 
 			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
@@ -862,15 +794,9 @@ function DiagnosisDatePresetList({
 					<DiagnosisDatePresetButton
 						key={preset.label}
 						label={preset.label}
-						isSelected={isSameDateRange(
-							selectedDiagnosisDateRange,
-							presetRange,
-						)}
+						isSelected={isSameDateRange(selectedDiagnosisDateRange, presetRange)}
 						onSelect={() => {
-							onDateRangeApply(
-								formatUrlDate(presetRange.from),
-								formatUrlDate(presetRange.to),
-							);
+							onDateRangeApply(formatUrlDate(presetRange.from), formatUrlDate(presetRange.to));
 						}}
 					/>
 				);
@@ -891,16 +817,12 @@ function DiagnosisCustomRangeCalendarPanel({
 	onDateRangeApply: (from: string, to: string) => void;
 }) {
 	const selectedDiagnosisDateRange = getDateRangeFromParams(from, to);
-	const selectedDiagnosisDateRangeKey = getDateRangeKey(
+	const selectedDiagnosisDateRangeKey = getDateRangeKey(selectedDiagnosisDateRange);
+	const [draftDiagnosisDateRange, setDraftDiagnosisDateRange] = useState<DateRange | undefined>(
 		selectedDiagnosisDateRange,
 	);
-	const [draftDiagnosisDateRange, setDraftDiagnosisDateRange] = useState<
-		DateRange | undefined
-	>(selectedDiagnosisDateRange);
-	const [
-		previousSelectedDiagnosisDateRangeKey,
-		setPreviousSelectedDiagnosisDateRangeKey,
-	] = useState(selectedDiagnosisDateRangeKey);
+	const [previousSelectedDiagnosisDateRangeKey, setPreviousSelectedDiagnosisDateRangeKey] =
+		useState(selectedDiagnosisDateRangeKey);
 
 	if (selectedDiagnosisDateRangeKey !== previousSelectedDiagnosisDateRangeKey) {
 		setPreviousSelectedDiagnosisDateRangeKey(selectedDiagnosisDateRangeKey);
@@ -910,18 +832,9 @@ function DiagnosisCustomRangeCalendarPanel({
 	return (
 		<div className="flex min-w-0 flex-col">
 			<div className="flex items-center gap-3">
-				<DiagnosisDateFieldPlaceholder
-					value={draftDiagnosisDateRange?.from}
-					label="Start date"
-				/>
-				<RiArrowRightLine
-					className="size-5 shrink-0 text-gray-400"
-					aria-hidden="true"
-				/>
-				<DiagnosisDateFieldPlaceholder
-					value={draftDiagnosisDateRange?.to}
-					label="End date"
-				/>
+				<DiagnosisDateFieldPlaceholder value={draftDiagnosisDateRange?.from} label="Start date" />
+				<RiArrowRightLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
+				<DiagnosisDateFieldPlaceholder value={draftDiagnosisDateRange?.to} label="End date" />
 			</div>
 
 			<Calendar
@@ -935,8 +848,7 @@ function DiagnosisCustomRangeCalendarPanel({
 				classNames={{
 					month_caption: "flex h-9 w-full items-center justify-center px-9",
 					caption_label: "text-sm font-semibold text-gray-800",
-					weekday:
-						"flex-1 rounded-md text-sm font-medium text-gray-700 select-none",
+					weekday: "flex-1 rounded-md text-sm font-medium text-gray-700 select-none",
 					day_button: "rounded-lg text-sm",
 				}}
 				disabled={isPending}
@@ -945,9 +857,8 @@ function DiagnosisCustomRangeCalendarPanel({
 			<div className="mt-7 flex justify-end gap-3">
 				<Button
 					type="button"
-					size="lg"
 					variant="outline"
-					className="min-w-28"
+					className="min-w-28 text-sm"
 					disabled={isPending}
 					onClick={() => {
 						setDraftDiagnosisDateRange(undefined);
@@ -958,16 +869,10 @@ function DiagnosisCustomRangeCalendarPanel({
 				</Button>
 				<Button
 					type="button"
-					size="lg"
-					className="min-w-40 flex-1"
-					disabled={
-						!draftDiagnosisDateRange?.from ||
-						!draftDiagnosisDateRange?.to ||
-						isPending
-					}
+					className="min-w-40 flex-1 text-sm"
+					disabled={!draftDiagnosisDateRange?.from || !draftDiagnosisDateRange?.to || isPending}
 					onClick={() => {
-						if (!draftDiagnosisDateRange?.from || !draftDiagnosisDateRange?.to)
-							return;
+						if (!draftDiagnosisDateRange?.from || !draftDiagnosisDateRange?.to) return;
 
 						onDateRangeApply(
 							formatUrlDate(draftDiagnosisDateRange.from),
@@ -997,33 +902,20 @@ function DiagnosisDatePresetButton({
 				event.preventDefault();
 				onSelect();
 			}}
-			className="flex h-10 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
+			className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
 		>
 			<span>{label}</span>
-			{isSelected ? (
-				<RiCheckLine className="size-5 text-gray-700" aria-hidden="true" />
-			) : null}
+			{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}
 		</DropdownMenuItem>
 	);
 }
 
-function DiagnosisDateFieldPlaceholder({
-	label,
-	value,
-}: {
-	label: string;
-	value?: Date;
-}) {
+function DiagnosisDateFieldPlaceholder({ label, value }: { label: string; value?: Date }) {
 	return (
-		<div className="flex h-9 min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left font-medium text-gray-500">
-			<RiCalendarLine
-				className="size-5 shrink-0 text-gray-400"
-				aria-hidden="true"
-			/>
+		<div className="flex h-9 text-sm min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left font-medium text-gray-500">
+			<RiCalendarLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
 			<span className="sr-only">{label}</span>
-			<span className="truncate">
-				{value ? format(value, "dd/MM/yyyy") : "DD/MM/YYYY"}
-			</span>
+			<span className="truncate">{value ? format(value, "dd/MM/yyyy") : "DD/MM/YYYY"}</span>
 		</div>
 	);
 }
@@ -1047,10 +939,7 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 	return "Any date";
 }
 
-function getDateRangeFromParams(
-	from: string,
-	to: string,
-): DateRange | undefined {
+function getDateRangeFromParams(from: string, to: string): DateRange | undefined {
 	const parsedFromDate = parseDateParam(from);
 	const parsedToDate = parseDateParam(to);
 
@@ -1063,16 +952,10 @@ function getDateRangeKey(range?: DateRange) {
 	return `${range?.from ? formatUrlDate(range.from) : ""}:${range?.to ? formatUrlDate(range.to) : ""}`;
 }
 
-function isSameDateRange(
-	range: DateRange | undefined,
-	presetRange: DiagnosisDateCompleteRange,
-) {
+function isSameDateRange(range: DateRange | undefined, presetRange: DiagnosisDateCompleteRange) {
 	if (!range?.from || !range.to) return false;
 
-	return (
-		isSameDay(range.from, presetRange.from) &&
-		isSameDay(range.to, presetRange.to)
-	);
+	return isSameDay(range.from, presetRange.from) && isSameDay(range.to, presetRange.to);
 }
 
 function formatUrlDate(date: Date) {
@@ -1115,9 +998,7 @@ function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
 			header: "Diagnosis name",
 			accessorKey: "name",
 			enableSorting: true,
-			cell: ({ row }) => (
-				<span className="font-medium text-gray-800">{row.original.name}</span>
-			),
+			cell: ({ row }) => <span className="font-medium text-gray-800">{row.original.name}</span>,
 		},
 		{
 			id: "diagnosedAt",

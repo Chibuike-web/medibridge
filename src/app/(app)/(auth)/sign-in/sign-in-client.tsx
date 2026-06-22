@@ -47,7 +47,9 @@ export function SignInClient() {
 				return;
 			}
 		} catch (signInActionError) {
-			setSignInError(signInActionError instanceof Error ? signInActionError.message : "Unknown error");
+			setSignInError(
+				signInActionError instanceof Error ? signInActionError.message : "Unknown error",
+			);
 			return;
 		}
 		startRedirectTransition(() => {
@@ -62,14 +64,13 @@ export function SignInClient() {
 			className="text-gray-800 mt-12"
 		>
 			<div className="mb-8">
-				<Label htmlFor="adminEmail" className="block mb-3.5">
+				<Label htmlFor="adminEmail" className="block mb-3">
 					Email Address
 				</Label>
 				<Input
 					id="adminEmail"
 					type="email"
 					placeholder="sarah.thompson@stmaryhospital.org"
-					className="h-9"
 					{...register("email")}
 					aria-invalid={!!errors.email}
 					aria-describedby={errors.email ? "email-error" : "email-info"}
@@ -87,7 +88,7 @@ export function SignInClient() {
 				)}
 			</div>
 			<div className="mb-2">
-				<Label htmlFor="password" className="block mb-3.5">
+				<Label htmlFor="password" className="block mb-3">
 					Password
 				</Label>
 				<div className="relative">
@@ -95,7 +96,6 @@ export function SignInClient() {
 						id="password"
 						type={isPasswordVisible ? "text" : "password"}
 						placeholder="Enter new password"
-						className="h-9"
 						{...register("password")}
 						aria-describedby={errors.password ? "admin-password-error" : undefined}
 						aria-invalid={!!errors.password}
@@ -108,9 +108,9 @@ export function SignInClient() {
 					>
 						<span aria-hidden="true">
 							{isPasswordVisible ? (
-								<RiEyeOffLine className="size-5 text-gray-600" />
+								<RiEyeOffLine className="size-4 text-gray-600" />
 							) : (
-								<RiEyeLine className="size-5 text-gray-600" />
+								<RiEyeLine className="size-4 text-gray-600" />
 							)}
 						</span>
 					</button>
@@ -160,7 +160,11 @@ export function SignInClient() {
 					<span>{signInSuccess}</span>
 				</div>
 			)}
-			<Button className="w-full h-9 mt-16" type="submit" disabled={isSubmitting || isRedirectPending}>
+			<Button
+				className="w-full text-sm mt-16"
+				type="submit"
+				disabled={isSubmitting || isRedirectPending}
+			>
 				{isSubmitting ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

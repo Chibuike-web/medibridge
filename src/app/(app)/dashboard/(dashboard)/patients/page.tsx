@@ -5,21 +5,15 @@ import Image from "next/image";
 import { PatientsClient } from "./patients-client";
 import type { PatientAgeGroupFilter, PatientGenderFilter } from "@/features/patients/types";
 import { Suspense } from "react";
-import {
-	getNumberParam,
-	getStringParam,
-	parseDateBoundaryParam,
-} from "@/lib/utils/search-params";
+import { getNumberParam, getStringParam, parseDateBoundaryParam } from "@/lib/utils/search-params";
 
 export const metadata = {
 	title: "Patients",
 };
 
-export default function PatientsPage({
-	searchParams,
-}: {
-	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+type PatientsPagePageProps = Pick<PageProps<"/dashboard/transfers">, "searchParams">;
+
+export default function PatientsPage({ searchParams }: PatientsPagePageProps) {
 	return (
 		<Suspense fallback={<PatientsPageSkeleton />}>
 			<PatientsPageContent searchParams={searchParams} />
@@ -27,11 +21,7 @@ export default function PatientsPage({
 	);
 }
 
-async function PatientsPageContent({
-	searchParams,
-}: {
-	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+async function PatientsPageContent({ searchParams }: PatientsPagePageProps) {
 	const { page, limit, query, createdFrom, createdTo, gender, ageGroup } = await searchParams;
 	const currentPage = getNumberParam(page, 1, { min: 1 });
 	const currentLimit = getNumberParam(limit, 14, { min: 1, max: 100 });
@@ -82,7 +72,7 @@ async function PatientsPageContent({
 					<p className="mb-12 text-center">
 						Patient records will appear here once patients have been added to the system.
 					</p>
-					<Button className="h-9" asChild>
+					<Button asChild>
 						<Link href="/dashboard/add-new-patient">Add patient </Link>
 					</Button>
 				</div>

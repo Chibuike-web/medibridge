@@ -22,7 +22,7 @@ export function CreateNewPasswordClient() {
 			className="text-gray-800 mt-12"
 		>
 			<div className="mb-8">
-				<Label htmlFor="newPassword" className="block mb-3.5">
+				<Label htmlFor="newPassword" className="block mb-3">
 					New Password
 				</Label>
 				<div className="relative">
@@ -30,8 +30,7 @@ export function CreateNewPasswordClient() {
 						id="newPassword"
 						type={isPasswordVisible ? "text" : "password"}
 						placeholder="Enter new password"
-						className="h-9"
-					/>
+						/>
 					<button
 						type="button"
 						aria-label={isPasswordVisible ? "Hide password" : "Show password"}
@@ -39,15 +38,15 @@ export function CreateNewPasswordClient() {
 						onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 					>
 						{isPasswordVisible ? (
-							<RiEyeOffLine className="size-5 text-gray-600" />
+							<RiEyeOffLine className="size-4 text-gray-600" />
 						) : (
-							<RiEyeLine className="size-5 text-gray-600" />
+							<RiEyeLine className="size-4 text-gray-600" />
 						)}
 					</button>
 				</div>
 			</div>
 			<div className="mb-8">
-				<Label htmlFor="confirmNewPassword" className="block mb-3.5">
+				<Label htmlFor="confirmNewPassword" className="block mb-3">
 					Confirm New Password
 				</Label>
 				<div className="relative">
@@ -55,8 +54,7 @@ export function CreateNewPasswordClient() {
 						id="confirmNewPassword"
 						type={isConfirmPasswordVisible ? "text" : "password"}
 						placeholder="Confirm New password"
-						className="h-9"
-					/>
+						/>
 					<button
 						type="button"
 						aria-label={isConfirmPasswordVisible ? "Hide password" : "Show password"}
@@ -71,7 +69,7 @@ export function CreateNewPasswordClient() {
 					</button>
 				</div>
 			</div>
-			<Button className="w-full h-9 mt-16" type="submit">
+			<Button className="mt-16 w-full" type="submit">
 				Reset Password
 			</Button>
 		</form>

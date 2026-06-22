@@ -43,7 +43,7 @@ type AttachmentRow = {
 const fieldLabelClassName = "text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
-	"h-9 border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400";
+	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400";
 
 export function CreateDiagnosisDrawer({
 	open,
@@ -247,7 +247,7 @@ export function CreateDiagnosisDrawer({
 										<Button
 											type="button"
 											variant="outline"
-											className="h-9 gap-2 border-gray-200 bg-white px-4 text-gray-600 shadow-xs"
+											className="gap-2 border-gray-200 bg-white px-4 text-gray-600 shadow-xs"
 											onClick={handleAddAttachmentRow}
 										>
 											<RiAddLine className="size-5" aria-hidden="true" />
@@ -263,11 +263,11 @@ export function CreateDiagnosisDrawer({
 				<DrawerFooter className="border-t border-gray-200 px-6 py-5 text-sm">
 					<div className="ml-auto flex gap-4">
 						<DrawerClose asChild>
-							<Button type="button" variant="outline" className="h-10 min-w-32 text-sm">
+							<Button type="button" variant="outline" className="min-w-32 text-sm">
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="button" className="h-10 min-w-44 text-sm">
+						<Button type="button" className="min-w-44 text-sm">
 							Add diagnosis
 						</Button>
 					</div>

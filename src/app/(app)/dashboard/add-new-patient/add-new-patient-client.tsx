@@ -132,7 +132,7 @@ export function AddNewPatientClient() {
 							type="button"
 							variant="ghost"
 							size="icon"
-							className="ml-auto h-6 w-6 shrink-0 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+							className="ml-auto h-6 w-6 shrink-0 rounded-full text-sm text-red-700 hover:bg-red-100 hover:text-red-700"
 							aria-label="Dismiss upload error"
 							onClick={() => setUploadError("")}
 						>
@@ -148,7 +148,7 @@ export function AddNewPatientClient() {
 						aria-atomic="true"
 						className="mt-2 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-red-700"
 					>
-						<RiErrorWarningLine className="mt-0.5 h-4 w-4 shrink-0" />
+						<RiErrorWarningLine className="mt-0.5 s-=ize-4 shrink-0" />
 						<p className="text-sm font-medium">{extractError}</p>
 						<Button
 							type="button"
@@ -214,7 +214,7 @@ function Footer({
 		<footer className="fixed z-50 bottom-0 left-0 right-0 flex items-center justify-center border-t h-20 border-gray-200 bg-white px-4 md:px-0">
 			{!isExtracting && !extractionComplete ? (
 				<div className="flex w-full justify-between items-center max-w-[37.5rem]">
-					<Button type="button" variant="outline" className="h-9" disabled={!uploadComplete}>
+					<Button type="button" variant="outline" disabled={!uploadComplete}>
 						<label htmlFor="file-input">
 							<input
 								type="file"
@@ -240,7 +240,7 @@ function Footer({
 
 					<Dialog>
 						<DialogTrigger asChild>
-							<Button disabled={!uploadComplete || isExtracting} className="h-9">
+							<Button disabled={!uploadComplete || isExtracting}>
 								Extract Information
 							</Button>
 						</DialogTrigger>
@@ -250,8 +250,7 @@ function Footer({
 									Confirm Transfer Request
 								</DialogTitle>
 								<DialogDescription className="sr-only">
-									Confirm that the uploaded patients are complete before starting
-									extraction.
+									Confirm that the uploaded patients are complete before starting extraction.
 								</DialogDescription>
 								<DialogClose>
 									<RiCloseLine className="size-6" />
@@ -259,21 +258,21 @@ function Footer({
 							</DialogHeader>
 							<div className="mt-8 px-6">
 								<p className="text-gray-600 font-medium">
-									Please ensure all required patients are uploaded and correct. Once
-									extraction starts, additional files cannot be added and the process cannot be
-									paused or restarted.
+									Please ensure all required patients are uploaded and correct. Once extraction
+									starts, additional files cannot be added and the process cannot be paused or
+									restarted.
 								</p>
 							</div>
 							<DialogFooter className="mt-16 border-t border-gray-200 text-sm">
 								<div className="flex gap-4 ml-auto">
 									<DialogClose asChild>
-										<Button variant="outline" className="h-10 text-sm">
+										<Button variant="outline" className="text-sm">
 											Cancel
 										</Button>
 									</DialogClose>
 									<DialogClose asChild>
 										<Button
-											className="h-10 text-sm"
+											className="text-sm"
 											onClick={async () => {
 												await extractInfo();
 											}}
@@ -295,7 +294,7 @@ function Footer({
 			) : null}
 
 			{extractionComplete && !isFailedExtract && (
-				<Button className="h-9 w-xl" asChild>
+				<Button className="w-xl" asChild>
 					<Link href="/dashboard/review-extracted-info">Continue</Link>
 				</Button>
 			)}

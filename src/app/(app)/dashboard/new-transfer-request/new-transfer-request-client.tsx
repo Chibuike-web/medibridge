@@ -145,7 +145,7 @@ export function NewTransferRequestClient({
 	return (
 		<>
 			<form className="w-full">
-				<p className="mb-10 w-full text-center text-xl font-medium text-gray-600">
+				<p className="mb-10 w-full text-center font-medium text-gray-600">
 					Step {currentTransferRequestStep}/2
 				</p>
 
@@ -160,7 +160,7 @@ export function NewTransferRequestClient({
 							totalPages={totalPatientPages}
 						/>
 						<Button
-							className="h-9 w-full mt-16"
+							className="mt-16 w-full text-sm"
 							type="button"
 							onClick={() => {
 								if (selectedTransferPatients.length > 0) {
@@ -229,7 +229,6 @@ export function NewTransferRequestClient({
 									Target Hospital Name <span className="text-gray-400 font-normal">(required)</span>
 								</Label>
 								<Input
-									className="h-9"
 									placeholder="e.g., Enugu State Teaching Hospital"
 									defaultValue={currentPatientTransferData.hospitalName ?? ""}
 									onBlur={(e) => {
@@ -253,7 +252,6 @@ export function NewTransferRequestClient({
 										<span className="text-gray-400 font-normal">(required)</span>
 									</Label>
 									<Input
-										className="h-9"
 										placeholder="e.g., admin@enuguhospital.gov.ng"
 										defaultValue={currentPatientTransferData.hospitalEmail ?? ""}
 										onBlur={(e) => {
@@ -300,16 +298,16 @@ export function NewTransferRequestClient({
 
 						<div className="flex items-center mt-16 justify-between">
 							<Button
-								className="h-9"
 								variant="outline"
 								type="button"
+								className="text-sm"
 								onClick={() => setCurrentTransferRequestStep(1)}
 							>
 								Back
 							</Button>
 							<Dialog>
 								<DialogTrigger asChild>
-									<Button className="h-9" type="button" disabled={!isComplete}>
+									<Button type="button" className="text-sm" disabled={!isComplete}>
 										Continue
 									</Button>
 								</DialogTrigger>
@@ -361,12 +359,12 @@ export function NewTransferRequestClient({
 									<DialogFooter className="mt-16 border-t border-gray-200 text-sm">
 										<div className="flex gap-4 ml-auto">
 											<DialogClose asChild>
-												<Button variant="outline" className="h-10 text-sm" type="button">
+												<Button variant="outline" className="text-sm" type="button">
 													Cancel
 												</Button>
 											</DialogClose>
 											<Button
-												className="h-10 text-sm"
+												className="text-sm"
 												type="button"
 												onClick={() => router.push("/dashboard/new-transfer-request")}
 											>
@@ -385,14 +383,14 @@ export function NewTransferRequestClient({
 					isOpen={isSuccessModalOpen}
 					setIsOpen={setIsSuccessModalOpen}
 					heading="Transfer Request Sent"
-					description="Your transfer request has been successfully submitted. 
+					description="Your transfer request has been successfully submitted.
 The patient will review and approve this transfer before it is sent to the target hospital. You can track the status of this request in the Transfers section."
 				>
 					<DialogFooter className="border-t border-gray-200 text-sm">
-						<Button variant="outline" className="h-10 text-sm">
+						<Button variant="outline" className="text-sm">
 							Return to Dashboard
 						</Button>
-						<Button className="h-10 text-sm">Create another request</Button>
+						<Button className="text-sm">Create another request</Button>
 					</DialogFooter>
 				</SuccessModal>
 			)}

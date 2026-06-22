@@ -63,7 +63,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 								</span>
 							</div>
 
-							<RiExpandUpDownLine className="size-5 shrink-0" />
+							<RiExpandUpDownLine className="size-4 shrink-0" />
 						</div>
 					) : null}
 				</DropdownMenuTrigger>
@@ -75,14 +75,8 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					<DropdownMenuLabel className="p-0 font-normal">
 						<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 							<Avatar className="h-8 w-8 rounded-full">
-								<AvatarImage
-									src={dummyUser.image}
-									alt="profile image"
-									className="rounded-full"
-								/>
-								<AvatarFallback className="rounded-lg">
-									{initials}
-								</AvatarFallback>
+								<AvatarImage src={dummyUser.image} alt="profile image" className="rounded-full" />
+								<AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
 							</Avatar>
 							<div className="grid flex-1 text-left text-sm leading-tight">
 								<span className="truncate font-medium">{dummyUser.name}</span>

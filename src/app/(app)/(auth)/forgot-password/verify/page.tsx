@@ -15,9 +15,8 @@ export default function Verify() {
 					If your email is associated with a MediBridge account, you’ll receive a reset link
 					shortly.
 				</p>
-				<Button className="h-9 mt-16">Open email app</Button>
+				<Button className="text-sm mt-16">Open email app</Button>
 			</div>
 		</main>
 	);
 }
-

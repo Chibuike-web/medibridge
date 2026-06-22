@@ -44,10 +44,10 @@ async function NewTransferRequestContent({
 		<>
 			<nav className="w-full h-16 flex items-center sticky z-[20] top-0 bg-white border-b border-gray-300 px-8">
 				<Link href={safeReturnTo} className="flex gap-2 w-max items-center text-foreground">
-					<RiArrowLeftLine className="size-5" /> <span className="sr-only">Back</span>
+					<RiArrowLeftLine className="size-4" /> <span className="sr-only">Back</span>
 				</Link>
 			</nav>
-			<main className="flex flex-col gap-9 my-12 max-w-[37.5rem] w-full mx-auto px-6 md:px-0">
+			<main className="flex flex-col gap-8 my-12 max-w-[37.5rem] w-full mx-auto px-6 md:px-0">
 				<h1 className="font-semibold text-2xl text-center">New Transfer Request</h1>
 				<Suspense>
 					<NewTransferRequestClient

@@ -98,29 +98,30 @@ export function EncountersTable({
 			<h1 className="mx-auto max-w-7xl text-xl font-semibold">Encounters</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl items-center gap-2">
 				<div className="relative w-full">
-					<RiSearchLine className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
+					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
-						className="h-10 w-full pl-8"
+						className="w-full pl-8"
 						placeholder="Search by department or physician"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
 				<Button
-					size="lg"
 					variant="outline"
-					className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+					className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
 				>
 					<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 					Filter
 				</Button>
-				<Button size="lg" variant="outline"
-					className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200">
+				<Button
+					variant="outline"
+					className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+				>
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button size="lg">Create encounter</Button>
+				<Button className="text-sm">Create encounter</Button>
 			</div>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="w-full min-w-[82rem] border-separate border-spacing-0 bg-gray-50 text-left">

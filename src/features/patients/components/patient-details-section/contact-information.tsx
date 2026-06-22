@@ -90,12 +90,12 @@ export function ContactInformation({
 					<form className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-sm text-gray-800">
 						<div className="flex flex-col gap-2">
 							<Label>Phone number</Label>
-							<Input id="phone" placeholder="e.g. +234 801 234 5678" type="tel" className="h-9" />
+							<Input id="phone" placeholder="e.g. +234 801 234 5678" type="tel" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Email address</Label>
-							<Input id="email" placeholder="e.g. chinenye.okafor@example.com" type="email" className="h-9" />
+							<Input id="email" placeholder="e.g. chinenye.okafor@example.com" type="email" />
 						</div>
 
 						<div className="flex flex-col gap-2">
@@ -104,30 +104,29 @@ export function ContactInformation({
 								id="address"
 								placeholder="e.g. 14 Hospital Road, Enugu"
 								type="text"
-								className="h-9"
 							/>
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>State of Origin</Label>
-							<Input id="state" placeholder="e.g. Enugu" type="text" className="h-9" />
+							<Input id="state" placeholder="e.g. Enugu" type="text" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Country of Origin</Label>
-							<Input id="country" placeholder="e.g. Nigeria" type="text" className="h-9" />
+							<Input id="country" placeholder="e.g. Nigeria" type="text" />
 						</div>
 					</form>
 
 					<DialogFooter className="mt-16 border-t border-gray-200 text-sm">
 						<div className="flex gap-4 ml-auto">
 							<DialogClose asChild>
-								<Button variant="outline" className="h-10">
+								<Button variant="outline" className="text-sm">
 									Cancel
 								</Button>
 							</DialogClose>
 
-							<Button className="h-10">Save</Button>
+							<Button className="text-sm">Save</Button>
 						</div>
 					</DialogFooter>
 				</DialogContent>

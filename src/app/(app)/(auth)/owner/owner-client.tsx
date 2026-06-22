@@ -48,14 +48,13 @@ export function OwnerClient() {
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className="text-gray-800 w-full">
 			<div className="mb-8">
-				<Label htmlFor="name" className="block mb-3.5">
+				<Label htmlFor="name" className="block mb-3">
 					Name
 				</Label>
 				<Input
 					id="name"
 					type="text"
 					placeholder="eg., John Doe"
-					className="h-9"
 					{...register("name")}
 					aria-labelledby={errors.name ? "name-error" : undefined}
 					aria-invalid={!!errors.name}
@@ -67,14 +66,13 @@ export function OwnerClient() {
 				)}
 			</div>
 			<div className="mb-8">
-				<Label htmlFor="email" className="block mb-3.5">
+				<Label htmlFor="email" className="block mb-3">
 					Email
 				</Label>
 				<Input
 					id="email"
 					placeholder="eg., john.doe@stmaryhospital.org"
 					type="email"
-					className="h-9"
 					{...register("email")}
 					aria-labelledby={errors.email ? "email-error" : "email-info"}
 					aria-invalid={!!errors.email}
@@ -101,7 +99,6 @@ export function OwnerClient() {
 					id="password"
 					type={isVisible ? "text" : "password"}
 					placeholder="Enter a secure password"
-					className="h-9"
 					{...register("password")}
 					aria-describedby={errors.password ? "password-error" : undefined}
 					aria-invalid={!!errors.password}
@@ -115,9 +112,9 @@ export function OwnerClient() {
 				>
 					<span aria-hidden="true">
 						{isVisible ? (
-							<RiEyeOffLine className="size-5 text-gray-600" />
+							<RiEyeOffLine className="size-4 text-gray-600" />
 						) : (
-							<RiEyeLine className="size-5 text-gray-600" />
+							<RiEyeLine className="size-4 text-gray-600" />
 						)}
 					</span>
 				</button>
@@ -128,7 +125,7 @@ export function OwnerClient() {
 				</p>
 			)}
 
-			<Button className="w-full h-9 mt-16" type="submit">
+			<Button className="w-full text-sm mt-16" type="submit">
 				Continue
 			</Button>
 		</form>

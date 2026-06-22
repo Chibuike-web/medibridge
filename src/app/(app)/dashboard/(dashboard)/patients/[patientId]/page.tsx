@@ -20,6 +20,7 @@ import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
 import { getPatientMedications } from "@/lib/api/get-patient-medications";
 import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
 import { verifySession } from "@/lib/api/verify-session";
+import { getStringParam } from "@/lib/utils/search-params";
 import {
 	AllergiesClient,
 	DiagnosesClient,
@@ -35,13 +36,12 @@ export const metadata = {
 	title: "Patient",
 };
 
-export default async function PatientPage({
-	searchParams,
-	params,
-}: {
-	searchParams: Promise<{ section: string }>;
-	params: Promise<{ patientId: string }>;
-}) {
+type PatientPageProps = Pick<
+	PageProps<"/dashboard/patients/[patientId]">,
+	"params" | "searchParams"
+>;
+
+export default async function PatientPage({ searchParams, params }: PatientPageProps) {
 	return (
 		<Suspense fallback={<PatientPageSkeleton />}>
 			<PatientPageContent searchParams={searchParams} params={params} />
@@ -49,13 +49,7 @@ export default async function PatientPage({
 	);
 }
 
-async function PatientPageContent({
-	searchParams,
-	params,
-}: {
-	searchParams: Promise<{ section: string }>;
-	params: Promise<{ patientId: string }>;
-}) {
+async function PatientPageContent({ searchParams, params }: PatientPageProps) {
 	await verifySession();
 
 	return (
@@ -82,14 +76,9 @@ async function PatientPageContent({
 	);
 }
 
-async function BreadCrumb({
-	searchParams,
-	params,
-}: {
-	searchParams: Promise<{ section: string }>;
-	params: Promise<{ patientId: string }>;
-}) {
+async function BreadCrumb({ searchParams, params }: PatientPageProps) {
 	const [{ section }, { patientId }] = await Promise.all([searchParams, params]);
+	const currentSection = getStringParam(section);
 
 	const patient = await getPatientById(patientId);
 
@@ -103,12 +92,12 @@ async function BreadCrumb({
 				{patient.firstName} {patient.lastName}
 			</span>
 			<RiArrowRightSLine aria-hidden="true" />
-			<span className="font-semibold shrink-0">{formatPatientSectionLabel(section)}</span>
+			<span className="font-semibold shrink-0">{formatPatientSectionLabel(currentSection)}</span>
 		</>
 	);
 }
 
-async function Header({ params }: { params: Promise<{ patientId: string }> }) {
+async function Header({ params }: Pick<PatientPageProps, "params">) {
 	const { patientId } = await params;
 	const patient = await getPatientById(patientId);
 
@@ -154,22 +143,17 @@ async function Header({ params }: { params: Promise<{ patientId: string }> }) {
 	);
 }
 
-async function Main({
-	searchParams,
-	params,
-}: {
-	searchParams: Promise<{ section: string }>;
-	params: Promise<{ patientId: string }>;
-}) {
+async function Main({ searchParams, params }: PatientPageProps) {
 	const { section } = await searchParams;
+	const currentSection = getStringParam(section);
 
 	return (
 		<div className="flex min-h-0 flex-1 flex-col">
 			<Suspense fallback={<SectionTabsSkeleton />}>
-				<SectionTabs activeSection={section as PatientSection} />
+				<SectionTabs activeSection={currentSection as PatientSection} />
 			</Suspense>
 			<div className="min-h-0 flex-1 overflow-y-auto">
-				<Suspense fallback={<SectionContentSkeleton section={section} />}>
+				<Suspense fallback={<SectionContentSkeleton section={currentSection} />}>
 					<SectionContent searchParams={searchParams} params={params} />
 				</Suspense>
 			</div>
@@ -177,16 +161,10 @@ async function Main({
 	);
 }
 
-async function SectionContent({
-	searchParams,
-	params,
-}: {
-	searchParams: Promise<{ section: string }>;
-	params: Promise<{ patientId: string }>;
-}) {
+async function SectionContent({ searchParams, params }: PatientPageProps) {
 	const [{ section }, { patientId }] = await Promise.all([searchParams, params]);
 
-	return renderSectionContent(section, patientId);
+	return renderSectionContent(getStringParam(section), patientId);
 }
 
 async function renderSectionContent(section: string, patientId: string) {
@@ -439,7 +417,7 @@ function renderEmptyState(title: string, description: string, action: string) {
 				<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
 					<h2 className="mb-4 text-2xl font-semibold text-gray-800">{title}</h2>
 					<p className="mb-8 max-w-[32rem] text-pretty text-gray-500">{description}</p>
-					<Button size="lg" type="button">
+					<Button className="text-sm" type="button">
 						{action}
 					</Button>
 				</div>
@@ -630,10 +608,7 @@ function TableSectionSkeleton() {
 									className="grid min-h-14 grid-cols-[2.5rem_1.4fr_1fr_1fr_8rem_1fr_6rem_3rem] items-center gap-3 border-b border-gray-200 px-3 last:border-b-0"
 								>
 									{Array.from({ length: 8 }).map((_, cellIndex) => (
-										<div
-											key={cellIndex}
-											className="h-4 animate-pulse rounded bg-gray-100"
-										/>
+										<div key={cellIndex} className="h-4 animate-pulse rounded bg-gray-100" />
 									))}
 								</div>
 							))}
@@ -656,13 +631,7 @@ function TableSectionSkeleton() {
 	);
 }
 
-function MetaItemSkeleton({
-	labelWidth,
-	valueWidth,
-}: {
-	labelWidth: string;
-	valueWidth: string;
-}) {
+function MetaItemSkeleton({ labelWidth, valueWidth }: { labelWidth: string; valueWidth: string }) {
 	return (
 		<div className="flex shrink-0 items-center gap-1">
 			<div className={`h-4 ${labelWidth} animate-pulse rounded bg-gray-200`} />

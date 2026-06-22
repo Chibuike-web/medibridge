@@ -101,12 +101,12 @@ export function PhysicalInformation({
 					<form className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-sm text-gray-800">
 						<div className="flex flex-col gap-2">
 							<Label>Height</Label>
-							<Input placeholder="e.g. 172 cm" type="number" className="h-9" />
+							<Input placeholder="e.g. 172 cm" type="number" />
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label>Weight</Label>
-							<Input placeholder="e.g. 68 kg" type="number" className="h-9" />
+							<Input placeholder="e.g. 68 kg" type="number" />
 						</div>
 
 						<div className="flex flex-col gap-2">
@@ -152,11 +152,11 @@ export function PhysicalInformation({
 					<DialogFooter className="mt-16 border-t border-gray-200 text-sm">
 						<div className="flex gap-4 ml-auto">
 							<DialogClose asChild>
-								<Button variant="outline" className="h-10">
+								<Button variant="outline" className="text-sm">
 									Cancel
 								</Button>
 							</DialogClose>
-							<Button className="h-10">Save</Button>
+							<Button className="text-sm">Save</Button>
 						</div>
 					</DialogFooter>
 				</DialogContent>

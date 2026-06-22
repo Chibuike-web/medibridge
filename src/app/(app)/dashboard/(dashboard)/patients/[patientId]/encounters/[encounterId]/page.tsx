@@ -12,11 +12,11 @@ export const metadata = {
 	title: "Encounter Details",
 };
 
-export default async function EncounterDetailsPage({
-	params,
-}: {
-	params: Promise<{ patientId: string; encounterId: string }>;
-}) {
+type EncounterDetailsPageProps =
+	PageProps<"/dashboard/patients/[patientId]/encounters/[encounterId]">;
+type EncounterDetailsParamsProps = Pick<EncounterDetailsPageProps, "params">;
+
+export default async function EncounterDetailsPage({ params }: EncounterDetailsPageProps) {
 	return (
 		<Suspense fallback={<EncounterDetailsPageSkeleton />}>
 			<EncounterDetailsContent params={params} />
@@ -24,11 +24,7 @@ export default async function EncounterDetailsPage({
 	);
 }
 
-async function EncounterDetailsContent({
-	params,
-}: {
-	params: Promise<{ patientId: string; encounterId: string }>;
-}) {
+async function EncounterDetailsContent({ params }: EncounterDetailsParamsProps) {
 	const { patientId, encounterId } = await params;
 	await verifySession();
 

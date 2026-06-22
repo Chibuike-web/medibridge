@@ -199,7 +199,6 @@ export function PersonalInformation({
 								name="firstName"
 								placeholder="e.g. Chinenye"
 								type="text"
-								className="h-9"
 								defaultValue={getPersonalInformationValue(
 									optimisticPersonalInformation,
 									"First name",
@@ -213,7 +212,6 @@ export function PersonalInformation({
 								name="middleName"
 								placeholder="e.g. Ada"
 								type="text"
-								className="h-9"
 								defaultValue={getPersonalInformationValue(
 									optimisticPersonalInformation,
 									"Middle name",
@@ -227,7 +225,6 @@ export function PersonalInformation({
 								name="lastName"
 								placeholder="e.g. Okafor"
 								type="text"
-								className="h-9"
 								defaultValue={getPersonalInformationValue(
 									optimisticPersonalInformation,
 									"Last name",
@@ -241,7 +238,6 @@ export function PersonalInformation({
 								name="age"
 								placeholder="e.g. 32"
 								type="number"
-								className="h-9"
 								defaultValue={getPersonalInformationValue(
 									optimisticPersonalInformation,
 									"Age",
@@ -261,7 +257,7 @@ export function PersonalInformation({
 									<Button
 										variant="outline"
 										data-empty={!dob}
-										className="h-9 w-full flex items-center justify-between font-normal data-[empty=true]:text-muted-foreground active:scale-100 hover:bg-transparent"
+										className="flex w-full items-center justify-between font-normal data-[empty=true]:text-muted-foreground active:scale-100 hover:bg-transparent"
 									>
 										{dob ? (
 											format(dob, "PPP")
@@ -358,7 +354,6 @@ export function PersonalInformation({
 								name="nationalId"
 								placeholder="e.g. NIN-12345678901"
 								type="text"
-								className="h-9"
 								defaultValue={getPersonalInformationValue(
 									optimisticPersonalInformation,
 									"National ID",
@@ -369,12 +364,12 @@ export function PersonalInformation({
 					<DialogFooter className="mt-16 border-t border-gray-200 text-sm">
 						<div className="flex gap-4 ml-auto">
 							<DialogClose asChild>
-								<Button variant="outline" className="h-10">
+								<Button variant="outline" className="text-sm">
 									Cancel
 								</Button>
 							</DialogClose>
 							<Button
-								className="h-10"
+								className="text-sm"
 								type="submit"
 								form={personalInformationFormId}
 								disabled={isUpdatingPersonalInformation}

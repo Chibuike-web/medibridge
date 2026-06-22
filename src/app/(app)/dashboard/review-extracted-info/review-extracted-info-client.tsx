@@ -131,7 +131,7 @@ export function ReviewExtractedInfoClient() {
 												className="size-10 rounded-full"
 												aria-label="Close patient details"
 											>
-												<RiCloseLine className="size-5" aria-hidden="true" />
+												<RiCloseLine className="size-4" aria-hidden="true" />
 											</Button>
 										</DialogClose>
 									</div>
@@ -169,7 +169,7 @@ export function ReviewExtractedInfoClient() {
 						<p className="text-sm font-medium text-red-600 text-pretty">{saveError}</p>
 					) : null}
 
-					<Button className="mt-8 h-9 w-full" onClick={handleSave} disabled={isPending}>
+					<Button className="mt-8 w-full" onClick={handleSave} disabled={isPending}>
 						{isPending ? "Saving..." : "Save Patient"}
 					</Button>
 
@@ -181,10 +181,10 @@ export function ReviewExtractedInfoClient() {
 							description="The patient's information has been securely saved. You may now proceed with additional documentation or return to the dashboard."
 						>
 							<DialogFooter className="w-full border-t border-gray-200 text-sm">
-								<Button className="h-10 text-sm" variant="outline" onClick={closeModal}>
+								<Button className="text-sm" variant="outline" onClick={closeModal}>
 									Return to Dashboard
 								</Button>
-								<Button className="h-10 text-sm" asChild>
+								<Button className="text-sm" asChild>
 									<Link href="/dashboard/add-new-patient">Add Another Record</Link>
 								</Button>
 							</DialogFooter>

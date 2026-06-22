@@ -6,9 +6,8 @@ export const metadata = {
 	title: "Verify Access",
 };
 
-type VerifyAccessPageProps = {
-	params: Promise<{ accessId: string }>;
-};
+type VerifyAccessPageProps = PageProps<"/verify-access/[accessId]">;
+type VerifyAccessParamsProps = Pick<VerifyAccessPageProps, "params">;
 
 export default function VerifyAccessPage({ params }: VerifyAccessPageProps) {
 	return (
@@ -18,7 +17,7 @@ export default function VerifyAccessPage({ params }: VerifyAccessPageProps) {
 	);
 }
 
-async function VerifyAccessContent({ params }: VerifyAccessPageProps) {
+async function VerifyAccessContent({ params }: VerifyAccessParamsProps) {
 	const { accessId } = await params;
 	const verificationState = await getAccessVerificationState(accessId);
 

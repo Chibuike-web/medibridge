@@ -30,10 +30,7 @@ type PatientsClientProps = {
 	ageGroupFilter: PatientAgeGroupFilter;
 };
 
-const patientAgeGroupFilterLabels: Record<
-	Exclude<PatientAgeGroupFilter, "">,
-	string
-> = {
+const patientAgeGroupFilterLabels: Record<Exclude<PatientAgeGroupFilter, "">, string> = {
 	children: "0-12 (Children)",
 	teenagers: "13-17 (Teenagers)",
 	"young-adults": "18-35 (Young adults)",
@@ -41,10 +38,7 @@ const patientAgeGroupFilterLabels: Record<
 	seniors: "60+ (Seniors)",
 };
 
-const patientGenderFilterLabels: Record<
-	Exclude<PatientGenderFilter, "">,
-	string
-> = {
+const patientGenderFilterLabels: Record<Exclude<PatientGenderFilter, "">, string> = {
 	male: "Male",
 	female: "Female",
 };
@@ -65,22 +59,17 @@ export function PatientsClient({
 	const searchParams = useSearchParams();
 	const [patientSearchQuery, setPatientSearchQuery] = useState(searchQuery);
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [optimisticPatientsPage, setOptimisticPatientsPage] =
-		useOptimistic(page);
-	const [optimisticPatientsLimit, setOptimisticPatientsLimit] =
-		useOptimistic(limit);
-	const [optimisticCreatedAtRange, setOptimisticCreatedAtRange] = useOptimistic(
-		{
-			createdFrom,
-			createdTo,
-		},
-	);
+	const [optimisticPatientsPage, setOptimisticPatientsPage] = useOptimistic(page);
+	const [optimisticPatientsLimit, setOptimisticPatientsLimit] = useOptimistic(limit);
+	const [optimisticCreatedAtRange, setOptimisticCreatedAtRange] = useOptimistic({
+		createdFrom,
+		createdTo,
+	});
 	const [optimisticPatientAgeGroupFilter, setOptimisticPatientAgeGroupFilter] =
 		useOptimistic(ageGroupFilter);
 	const [optimisticPatientGenderFilter, setOptimisticPatientGenderFilter] =
 		useOptimistic(genderFilter);
-	const [isUpdatingPatientsTable, startPatientsTableUpdateTransition] =
-		useTransition();
+	const [isUpdatingPatientsTable, startPatientsTableUpdateTransition] = useTransition();
 
 	if (searchQuery !== previousSearchQuery) {
 		setPreviousSearchQuery(searchQuery);
@@ -116,10 +105,7 @@ export function PatientsClient({
 		return newParams.toString();
 	}
 
-	function handleCreatedAtRangeApply(
-		nextCreatedFrom: string,
-		nextCreatedTo: string,
-	) {
+	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
 		startPatientsTableUpdateTransition(async () => {
 			setOptimisticPatientsPage(1);
 			setOptimisticCreatedAtRange({
@@ -157,9 +143,7 @@ export function PatientsClient({
 		});
 	}
 
-	function handleAgeGroupFilterChange(
-		nextAgeGroupFilter: PatientAgeGroupFilter,
-	) {
+	function handleAgeGroupFilterChange(nextAgeGroupFilter: PatientAgeGroupFilter) {
 		startPatientsTableUpdateTransition(async () => {
 			setOptimisticPatientsPage(1);
 			setOptimisticPatientAgeGroupFilter(nextAgeGroupFilter);
@@ -216,11 +200,7 @@ export function PatientsClient({
 			setOptimisticPatientsPage(1);
 			setOptimisticPatientsLimit(Number(value));
 
-			router.push(
-				(pathname +
-					"?" +
-					createQueryString({ page: "1", limit: value })) as Route,
-			);
+			router.push((pathname + "?" + createQueryString({ page: "1", limit: value })) as Route);
 		});
 	}
 
@@ -232,10 +212,10 @@ export function PatientsClient({
 				</h1>
 				<div className="flex items-center gap-2 flex-1 justify-end">
 					<div className="relative min-w-[12.5rem] max-w-[31.25rem] flex-1">
-						<RiSearchLine className="size-5 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
+						<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 						<Input
 							type="search"
-							className="h-10 w-full pl-8"
+							className="w-full pl-8"
 							placeholder="Search by patient name or ID"
 							value={patientSearchQuery}
 							onChange={(event) => handleQueryChange(event.target.value)}
@@ -253,14 +233,13 @@ export function PatientsClient({
 						onGenderFilterChange={handleGenderFilterChange}
 					/>
 					<Button
-						size="lg"
 						variant="outline"
-						className="gap-2 border-gray-200 bg-white text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+						className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
 					>
-						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
+						<RiShare2Line aria-hidden className="size-4 text-gray-600" />
 						Export
 					</Button>
-					<Button size="lg" asChild>
+					<Button className="text-sm" asChild>
 						<Link href="/dashboard/add-new-patient">Add patient</Link>
 					</Button>
 				</div>
@@ -340,13 +319,7 @@ function PatientActiveFilterPills({
 	);
 }
 
-function PatientFilterPill({
-	label,
-	onRemove,
-}: {
-	label: string;
-	onRemove: () => void;
-}) {
+function PatientFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
 	return (
 		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
 			<span>{label}</span>

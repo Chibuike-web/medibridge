@@ -124,24 +124,23 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 							)}
 						</div>
 					)}
-					<RiArrowDownSLine className="size-5 text-gray-400 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+					<RiArrowDownSLine className="size-4 text-gray-400 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
 				</PopoverTrigger>
 
 				<PopoverContent sideOffset={8} className="rounded-2xl h-[24rem] flex flex-col p-0">
-					<div className="flex items-center gap-2 px-4 py-2 text-gray-400 border-b border-gray-200">
-						<RiSearchLine className="size-5" />
+					<div className="flex shrink-0 items-center gap-2 px-4 py-2 text-gray-400 border-b border-gray-200">
+						<RiSearchLine className="size-4" />
 						<input
-							className="h-10 placeholder:text-sm placeholder:text-gray-400 focus:outline-0 w-full"
+							className="h-9 w-full placeholder:text-sm placeholder:text-gray-400 focus:outline-0"
 							type="search"
 							value={searchQuery}
 							onChange={(event) => setSearchQuery(event.target.value)}
 							placeholder={`Search ${activeTab.label.toLowerCase()} records`}
 						/>
 					</div>
-
 					<div
 						className={cn(
-							"flex h-9 w-full items-center gap-3 rounded-md px-6 text-left text-sm text-gray-600",
+							"flex h-12 w-full shrink-0 items-center gap-3 rounded-md px-5 text-left text-sm text-gray-600",
 							filteredRecordsForActiveTab.length === 0 && "opacity-50",
 						)}
 					>
@@ -157,31 +156,32 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 							<span>Select all</span>
 						</Label>
 					</div>
-					<div className="flex flex-col gap-1 overflow-y-auto px-4 pb-3">
-						{filteredRecordsForActiveTab.map(({ id, name }) => (
-							<MultiSelectItem
-								key={id}
-								isSelected={selectedRecordsIds.has(id)}
-								onClick={() =>
-									toggleAttachedClinicalRecordForPatient(activePatient, {
-										id,
-										name,
-										type: activeTab.label,
-									})
-								}
-							>
-								{name}
-							</MultiSelectItem>
-						))}
-						{filteredRecordsForActiveTab.length === 0 && (
-							<div className="px-3 py-2 text-sm text-gray-500">No records found</div>
-						)}
+					<div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+						<div className="flex flex-col gap-1">
+							{filteredRecordsForActiveTab.map(({ id, name }) => (
+								<MultiSelectItem
+									key={id}
+									isSelected={selectedRecordsIds.has(id)}
+									onClick={() =>
+										toggleAttachedClinicalRecordForPatient(activePatient, {
+											id,
+											name,
+											type: activeTab.label,
+										})
+									}
+								>
+									{name}
+								</MultiSelectItem>
+							))}
+							{filteredRecordsForActiveTab.length === 0 && (
+								<div className="px-3 py-2 text-sm text-gray-500">No records found</div>
+							)}
+						</div>
 					</div>
-					<div className="grid grid-cols-3 items-center border-t border-gray-200 px-6 py-4">
+					<div className="grid shrink-0 grid-cols-3 items-center border-t border-gray-200 p-4 text-sm">
 						<Button
 							type="button"
 							variant="outline"
-							size="sm"
 							className="justify-self-start border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Previous
@@ -190,7 +190,6 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 						<Button
 							type="button"
 							variant="outline"
-							size="sm"
 							className="justify-self-end border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Next

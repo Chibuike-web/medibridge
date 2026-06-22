@@ -102,14 +102,13 @@ export function HospitalDetailsClient() {
 	return (
 		<form className="w-full" onSubmit={handleSubmit(onSubmit)}>
 			<div className="mb-8">
-				<Label htmlFor="hospitalName" className="block mb-3.5">
+				<Label htmlFor="hospitalName" className="block mb-3">
 					Hospital Name
 				</Label>
 				<Input
 					id="hospitalName"
 					type="text"
 					placeholder="eg., St. Mary's General Hospital"
-					className="h-9"
 					{...register("hospitalName")}
 					aria-labelledby={errors.hospitalName ? "hospital-name-error" : undefined}
 					aria-invalid={!!errors.hospitalName}
@@ -121,14 +120,13 @@ export function HospitalDetailsClient() {
 				)}
 			</div>
 			<div className="mb-8">
-				<Label htmlFor="hospitalAddress" className="block mb-3.5">
+				<Label htmlFor="hospitalAddress" className="block mb-3">
 					Hospital Address
 				</Label>
 				<Input
 					id="hospitalAddress"
 					type="text"
 					placeholder="eg., 123 Healthway Blvd, Springfield, IL"
-					className="h-9"
 					{...register("hospitalAddress")}
 					aria-labelledby={errors.hospitalAddress ? "hospital-address-error" : undefined}
 					aria-invalid={!!errors.hospitalAddress}
@@ -176,12 +174,12 @@ export function HospitalDetailsClient() {
 			{success && (
 				<div className="flex items-center gap-2 px-4 py-4 mt-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200">
 					<span>
-						<RiCheckboxCircleFill className="size-5" />
+						<RiCheckboxCircleFill className="size-4" />
 					</span>
 					<span>{success}</span>
 				</div>
 			)}
-			<Button className="w-full h-9 mt-16" type="submit" disabled={isPending}>
+			<Button className="w-full mt-16 text-sm" type="submit" disabled={isPending}>
 				{isPending ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

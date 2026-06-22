@@ -116,7 +116,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								isHovered ? "opacity-100 blur-0" : "opacity-0 blur-sm",
 							)}
 						>
-							<RiContractLeftLine className="size-5 shrink-0" aria-hidden />
+							<RiContractLeftLine className="size-4 shrink-0" aria-hidden />
 						</button>
 					</div>
 				) : (
@@ -134,7 +134,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							aria-label="Collapse sidebar"
 							className="flex size-10 items-center justify-center rounded-lg hover:bg-gray-100"
 						>
-							<RiContractLeftLine className="size-5 shrink-0" aria-hidden />
+							<RiContractLeftLine className="size-4 shrink-0" aria-hidden />
 						</button>
 					</>
 				)}
@@ -152,7 +152,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								)}
 								aria-label="Search chats"
 							>
-								<RiSearchLine className="size-5 shrink-0" aria-hidden />
+								<RiSearchLine className="size-4 shrink-0" aria-hidden />
 								{!isCollapsed ? <span className="whitespace-nowrap">Search...</span> : null}
 							</button>
 						</DialogTrigger>
@@ -163,7 +163,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 									Search patients, IDs, diagnoses, and other patient records.
 								</DialogDescription>
 								<input
-									className="h-10 placeholder:text-sm placeholder:text-gray-400 focus:outline-0 w-full"
+									className="h-9 w-full placeholder:text-sm placeholder:text-gray-400 focus:outline-0"
 									type="text"
 									placeholder="Search patients, IDs, diagnoses..."
 								/>
@@ -239,21 +239,21 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								<span className="shrink-0">
 									{id === "overview" ? (
 										isActive ? (
-											<RiFunctionFill className="size-5 shrink-0" />
+											<RiFunctionFill className="size-4 shrink-0" />
 										) : (
-											<RiFunctionLine className="size-5 shrink-0" />
+											<RiFunctionLine className="size-4 shrink-0" />
 										)
 									) : id === "patients" ? (
 										isActive ? (
-											<RiFileListFill className="size-5 shrink-0" />
+											<RiFileListFill className="size-4 shrink-0" />
 										) : (
-											<RiFileListLine className="size-5 shrink-0" />
+											<RiFileListLine className="size-4 shrink-0" />
 										)
 									) : id === "transfers" ? (
 										isActive ? (
-											<RiFileTransferFill className="size-5 shrink-0" />
+											<RiFileTransferFill className="size-4 shrink-0" />
 										) : (
-											<RiFileTransferLine className="size-5 shrink-0" />
+											<RiFileTransferLine className="size-4 shrink-0" />
 										)
 									) : null}
 								</span>

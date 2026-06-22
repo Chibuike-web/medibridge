@@ -6,9 +6,8 @@ export const metadata = {
 	title: "Transfer Approval",
 };
 
-type TransferApprovalPageProps = {
-	params: Promise<{ transferId: string }>;
-};
+type TransferApprovalPageProps = PageProps<"/transfer-approval/[transferId]">;
+type TransferApprovalParamsProps = Pick<TransferApprovalPageProps, "params">;
 
 export default function TransferApprovalPage({ params }: TransferApprovalPageProps) {
 	return (
@@ -18,7 +17,7 @@ export default function TransferApprovalPage({ params }: TransferApprovalPagePro
 	);
 }
 
-async function TransferApprovalContent({ params }: TransferApprovalPageProps) {
+async function TransferApprovalContent({ params }: TransferApprovalParamsProps) {
 	const { transferId } = await params;
 	const transfer = await getTransferApproval(transferId);
 

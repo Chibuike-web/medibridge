@@ -8,7 +8,7 @@ export const metadata = {
 
 export default async function ReviewExtractedInfo() {
 	return (
-		<Suspense fallback={null}>
+		<Suspense>
 			<ReviewExtractedInfoContent />
 		</Suspense>
 	);

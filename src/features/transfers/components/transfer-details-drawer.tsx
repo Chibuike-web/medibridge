@@ -117,11 +117,11 @@ export function TransferDetailsDrawer({
 				<DrawerFooter className="border-t border-gray-200 px-6 py-5 text-sm">
 					<div className="flex flex-col lg:flex-row gap-x-4 gap-y-2 lg:self-end">
 						<DrawerClose asChild>
-							<Button className="h-10 bg-[#FB3748] text-sm" variant="destructive">
+							<Button className="bg-[#FB3748] text-sm" variant="destructive">
 								Cancel transfer
 							</Button>
 						</DrawerClose>
-						<Button className="h-10 text-sm">Resend approval request</Button>
+						<Button className="text-sm">Resend approval request</Button>
 					</div>
 				</DrawerFooter>
 			</DrawerContent>
