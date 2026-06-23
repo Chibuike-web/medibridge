@@ -63,7 +63,7 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 		<div className="mt-12 max-w-7xl">
 			<h1 className="mb-4 text-lg font-semibold">Recent Transfers</h1>
 			<div className="overflow-x-auto rounded-xl border border-gray-200">
-				<Table className="w-full min-w-[50rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<Table className="min-w-[50rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="h-12 text-sm font-semibold text-gray-500">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className="h-12">

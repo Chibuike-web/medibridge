@@ -15,7 +15,7 @@ export function PatientAvatarMenu({ patientName }: { patientName: string }) {
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<button className="relative">
-					<Avatar className="size-16 border border-gray-200 bg-gray-100 text-gray-700 relative">
+					<Avatar className="size-16 border border-gray-200 bg-gray-100 text-gray-700">
 						<AvatarFallback className="bg-gray-100 text-2xl font-semibold text-gray-700">
 							{getInitials(patientName ?? "")}
 						</AvatarFallback>
@@ -28,13 +28,13 @@ export function PatientAvatarMenu({ patientName }: { patientName: string }) {
 			<DropdownMenuContent
 				align="start"
 				sideOffset={16}
-				className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+				className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
-				<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+				<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 					<RiUpload2Line className="text-white" />
 					<span>Upload image</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+				<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 					<RiDeleteBin2Line className="text-white" />
 					<span>Remove image</span>
 				</DropdownMenuItem>

@@ -190,7 +190,7 @@ export function TransfersClient({
 						<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 						<Input
 							type="search"
-							className="w-full pl-8"
+							className="pl-8"
 							placeholder="Search by patient name or ID"
 							value={transferSearchQuery}
 							onChange={(event) => handleQueryChange(event.target.value)}
@@ -207,7 +207,7 @@ export function TransfersClient({
 					/>
 					<Button
 						variant="outline"
-						className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+						className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
 					>
 						<RiShare2Line aria-hidden className="size-4 text-gray-600" />
 						Export

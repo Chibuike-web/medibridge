@@ -125,11 +125,11 @@ export function SharedDiagnosesTable({ rows }: { rows: SharedDiagnosisRow[] }) {
 						className="pl-10"
 					/>
 				</div>
-				<Button type="button" variant="outline" className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200">
+				<Button type="button" variant="outline" className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200">
 					<RiFilter3Line aria-hidden="true" />
 					Filter
 				</Button>
-				<Button type="button" variant="outline" className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200">
+				<Button type="button" variant="outline" className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200">
 					<RiShare2Line aria-hidden="true" />
 					Export
 				</Button>
@@ -212,13 +212,13 @@ function RowMenu() {
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="end"
-				className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+				className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
-				<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+				<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 					<RiEyeLine className="text-white" aria-hidden="true" />
 					<span>View details</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+				<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 					<RiShare2Line className="text-white" aria-hidden="true" />
 					<span>Export</span>
 				</DropdownMenuItem>

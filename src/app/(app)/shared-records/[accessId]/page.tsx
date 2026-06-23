@@ -138,7 +138,7 @@ function PatientHeader({ patient }: { patient: SharedPatient }) {
 	return (
 		<header className="border-b border-gray-200">
 			<div className="mx-auto flex w-full max-w-7xl items-center gap-5 px-6 py-3.5">
-				<Avatar className="size-16 border border-gray-200 bg-gray-100 text-gray-700 relative">
+				<Avatar className="size-16 border border-gray-200 bg-gray-100 text-gray-700">
 					<AvatarFallback className="bg-gray-100 text-2xl font-semibold text-gray-700">
 						{getInitials(patient.name)}
 					</AvatarFallback>

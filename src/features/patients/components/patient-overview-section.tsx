@@ -75,7 +75,7 @@ function RecentDiagnoses({ recentDiagnoses }: { recentDiagnoses: RecentDiagnosis
 					<TableHeader className="bg-gray-50">
 						<TableRow className="hover:bg-transparent">
 							{recentDiagnosisHeaders.map((h) => (
-								<TableHead key={h.key} className="h-12 px-4 text-sm font-medium text-gray-600">
+								<TableHead key={h.key} className="h-12 px-4 text-sm text-gray-600">
 									{h.label}
 								</TableHead>
 							))}
@@ -117,7 +117,7 @@ function RecentAllergies({ recentAllergies }: { recentAllergies: RecentAllergy[]
 					<TableHeader className="bg-gray-50">
 						<TableRow className="hover:bg-transparent">
 							{recentAllergyHeaders.map((h) => (
-								<TableHead key={h.key} className="h-12 px-4 text-sm font-medium text-gray-600">
+								<TableHead key={h.key} className="h-12 px-4 text-sm text-gray-600">
 									{h.label}
 								</TableHead>
 							))}

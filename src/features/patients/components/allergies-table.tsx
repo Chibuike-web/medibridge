@@ -109,7 +109,7 @@ export function AllergiesTable({
 					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
-						className="w-full pl-8"
+						className="pl-8"
 						placeholder="Search by name and allergy id"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
@@ -119,7 +119,7 @@ export function AllergiesTable({
 					<DropdownMenuTrigger asChild>
 						<Button
 							variant="outline"
-							className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+							className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
 						>
 							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 							Filter
@@ -128,7 +128,7 @@ export function AllergiesTable({
 					<DropdownMenuContent
 						align="end"
 						sideOffset={8}
-						className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 					>
 						<DropdownMenuSub>
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
@@ -190,7 +190,7 @@ export function AllergiesTable({
 								>
 									<Label
 										htmlFor="requested-mild"
-										className="flex w-full cursor-pointer items-center gap-2 leading-normal font-normal"
+										className="w-full cursor-pointer leading-normal font-normal"
 									>
 										<Checkbox id="requested-mild" className="[&_svg]:!text-current" />
 										<span>Mild</span>
@@ -204,7 +204,7 @@ export function AllergiesTable({
 								>
 									<Label
 										htmlFor="requested-moderate"
-										className="flex w-full cursor-pointer items-center gap-2 leading-normal font-normal"
+										className="w-full cursor-pointer leading-normal font-normal"
 									>
 										<Checkbox id="requested-moderate" className="[&_svg]:!text-current" />
 										<span>Moderate</span>
@@ -218,7 +218,7 @@ export function AllergiesTable({
 								>
 									<Label
 										htmlFor="requested-severe"
-										className="flex w-full cursor-pointer items-center gap-2 leading-normal font-normal"
+										className="w-full cursor-pointer leading-normal font-normal"
 									>
 										<Checkbox id="requested-severe" className="[&_svg]:!text-current" />
 										<span>Severe</span>
@@ -250,7 +250,7 @@ export function AllergiesTable({
 				</DropdownMenu>
 				<Button
 					variant="outline"
-					className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+					className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
 				>
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
@@ -258,7 +258,7 @@ export function AllergiesTable({
 				<Button className="text-sm">Add allergy</Button>
 			</div>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
-				<Table className="w-full min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<Table className="min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="h-12 text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className="h-12">
@@ -460,14 +460,14 @@ function getAllergiesColumns(): ColumnDef<AllergyType>[] {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
 							align="end"
-							className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+							className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiEyeLine className="text-white" />
 								<span>View details</span>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator className="bg-white/20" />
-							<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiArchiveLine className="text-white" />
 								<span>Archive</span>
 							</DropdownMenuItem>

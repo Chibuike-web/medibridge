@@ -99,7 +99,7 @@ export function FilterButton({
 			<DropdownMenuTrigger asChild>
 				<Button
 					variant="outline"
-					className="gap-2 border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+					className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
 				>
 					<RiFilter3Line aria-hidden className="size-4 text-gray-600" />
 					Filter
@@ -109,7 +109,7 @@ export function FilterButton({
 			<DropdownMenuContent
 				align="end"
 				sideOffset={8}
-				className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+				className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 			>
 					<DropdownMenuSub
 						open={activeTransferFilterSubmenu === "status"}
@@ -144,7 +144,7 @@ export function FilterButton({
 								>
 									<Label
 										htmlFor={statusOptionId}
-										className="flex w-full cursor-pointer items-center gap-2 px-2 py-2 leading-normal font-normal"
+										className="w-full cursor-pointer px-2 py-2 leading-normal font-normal"
 									>
 										<Checkbox
 											id={statusOptionId}

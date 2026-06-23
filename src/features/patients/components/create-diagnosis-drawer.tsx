@@ -58,7 +58,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
-				<DrawerHeader className="flex flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
+				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
 					<DrawerTitle className="text-lg leading-[1.2] text-gray-800">Add diagnosis</DrawerTitle>
 					<DrawerClose aria-label="Close add diagnosis drawer">
 						<RiCloseLine className="size-6" aria-hidden="true" />
@@ -186,7 +186,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 							<Textarea
 								id={`${generatedFormId}-clinical-notes`}
 								placeholder="Add supporting clinical observations, symptoms, or treatment notes"
-								className=" border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400"
+								className="border-gray-200 bg-white text-gray-700 placeholder:text-gray-400"
 							/>
 						</div>
 
@@ -220,7 +220,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 										<Button
 											type="button"
 											variant="outline"
-											className="gap-2 border-gray-200 bg-white px-4 text-gray-600 shadow-xs"
+											className="border-gray-200 bg-white text-gray-600 shadow-xs"
 											onClick={handleAddAttachmentRow}
 										>
 											<RiAddLine className="size-5" aria-hidden="true" />

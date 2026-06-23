@@ -127,7 +127,7 @@ export function SignInClient() {
 					control={control}
 					defaultValue={false}
 					render={({ field }) => (
-						<Label className="flex items-center gap-2 cursor-pointer">
+						<Label className="cursor-pointer">
 							<Checkbox checked={field.value} onCheckedChange={field.onChange} />
 							Remember me
 						</Label>

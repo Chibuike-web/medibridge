@@ -112,7 +112,7 @@ export function PersonalInformation({
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="end"
-				className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+				className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
 				<DropdownMenuItem
 					onSelect={(e) => {
@@ -125,7 +125,7 @@ export function PersonalInformation({
 					<span>Edit info</span>
 				</DropdownMenuItem>
 
-				<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+				<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 					<RiShare2Line className="text-white" />
 					<span>Export info</span>
 				</DropdownMenuItem>
@@ -233,14 +233,14 @@ export function PersonalInformation({
 									<Button
 										variant="outline"
 										data-empty={!dob}
-										className="flex w-full items-center justify-between font-normal data-[empty=true]:text-muted-foreground active:scale-100 hover:bg-transparent"
+										className="flex w-full justify-between font-normal data-[empty=true]:text-muted-foreground active:scale-100 hover:bg-transparent"
 									>
 										{dob ? format(dob, "PPP") : <span>Select date of birth</span>}
 										<RiCalendarLine className="size-4 text-gray-600" />
 									</Button>
 								</PopoverTrigger>
 
-								<PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+								<PopoverContent className="p-0">
 									<Calendar
 										mode="single"
 										defaultMonth={dob}
@@ -330,7 +330,7 @@ export function PersonalInformation({
 								form={personalInformationFormId}
 								disabled={isUpdatingPersonalInformation}
 							>
-								Save
+								Save changes
 							</Button>
 						</div>
 					</DialogFooter>

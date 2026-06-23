@@ -47,7 +47,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 							: "gap-2 cursor-pointer overflow-hidden hover:bg-gray-200",
 					)}
 				>
-					<Avatar className="size-8 rounded-full shrink-0">
+					<Avatar>
 						<AvatarImage src={dummyUser.image} alt="profile image" />
 						<AvatarFallback>{initials}</AvatarFallback>
 					</Avatar>
@@ -74,7 +74,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 				>
 					<DropdownMenuLabel className="p-0 font-normal">
 						<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-							<Avatar className="h-8 w-8 rounded-full">
+							<Avatar className="h-8 w-8">
 								<AvatarImage src={dummyUser.image} alt="profile image" className="rounded-full" />
 								<AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
 							</Avatar>

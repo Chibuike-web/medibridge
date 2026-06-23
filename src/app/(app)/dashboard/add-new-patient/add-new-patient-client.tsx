@@ -132,7 +132,7 @@ export function AddNewPatientClient() {
 							type="button"
 							variant="ghost"
 							size="icon"
-							className="ml-auto h-6 w-6 shrink-0 rounded-full text-sm text-red-700 hover:bg-red-100 hover:text-red-700"
+							className="ml-auto h-6 w-6 rounded-full text-sm text-red-700 hover:bg-red-100 hover:text-red-700"
 							aria-label="Dismiss upload error"
 							onClick={() => setUploadError("")}
 						>
@@ -154,7 +154,7 @@ export function AddNewPatientClient() {
 							type="button"
 							variant="ghost"
 							size="icon"
-							className="ml-auto h-6 w-6 shrink-0 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+							className="ml-auto h-6 w-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
 							aria-label="Dismiss extract error"
 							onClick={() => {
 								setExtractError("");
@@ -246,7 +246,7 @@ function Footer({
 						</DialogTrigger>
 						<DialogContent>
 							<DialogHeader className="h-16 px-6 border-b border-gray-200">
-								<DialogTitle className="text-xl font-semibold">
+								<DialogTitle className="text-xl">
 									Confirm Transfer Request
 								</DialogTitle>
 								<DialogDescription className="sr-only">

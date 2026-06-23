@@ -94,7 +94,7 @@ export function PhysicalInformation({
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="end"
-				className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+				className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
 				<DropdownMenuItem
 					onSelect={(e) => {
@@ -107,7 +107,7 @@ export function PhysicalInformation({
 					<span>Edit info</span>
 				</DropdownMenuItem>
 
-				<DropdownMenuItem className="flex items-center gap-3 rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
+				<DropdownMenuItem className="gap-3 rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
 					<RiShare2Line className="text-white" />
 					<span>Export info</span>
 				</DropdownMenuItem>
@@ -244,7 +244,7 @@ export function PhysicalInformation({
 								disabled={isUpdatingPhysicalInformation}
 								className="text-sm"
 							>
-								Save
+								Save changes
 							</Button>
 						</div>
 					</DialogFooter>

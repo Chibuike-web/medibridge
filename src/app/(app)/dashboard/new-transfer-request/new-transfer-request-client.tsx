@@ -225,7 +225,7 @@ export function NewTransferRequestClient({
 							</div>
 
 							<div className="flex flex-col gap-3.5 mt-8">
-								<Label className="text-gray-600 font-medium">
+								<Label className="text-gray-600">
 									Target Hospital Name <span className="text-gray-400 font-normal">(required)</span>
 								</Label>
 								<Input
@@ -247,7 +247,7 @@ export function NewTransferRequestClient({
 							</div>
 							<div className="mt-8">
 								<div className="flex flex-col gap-3.5">
-									<Label className="text-gray-600 font-medium">
+									<Label className="text-gray-600">
 										Target Hospital Email
 										<span className="text-gray-400 font-normal">(required)</span>
 									</Label>
@@ -274,7 +274,7 @@ export function NewTransferRequestClient({
 								</div>
 							</div>
 							<div className="flex flex-col gap-3.5 mt-8">
-								<Label className="text-gray-600 font-medium">
+								<Label className="text-gray-600">
 									Notes <span className="text-gray-400 font-normal">(optional)</span>
 								</Label>
 								<Textarea
@@ -313,7 +313,7 @@ export function NewTransferRequestClient({
 								</DialogTrigger>
 								<DialogContent>
 									<DialogHeader className="h-16 px-6 border-b border-gray-200">
-										<DialogTitle className="text-xl font-semibold">
+										<DialogTitle className="text-xl">
 											Confirm Transfer Request
 										</DialogTitle>
 										<DialogDescription className="sr-only">
@@ -348,7 +348,7 @@ export function NewTransferRequestClient({
 												<span>Target hospital details are accurate for every patient</span>
 											</li>
 										</ul>
-										<Label className="flex items-center gap-4 px-5 py-3.5 rounded-lg bg-gray-50">
+										<Label className="gap-4 px-5 py-3.5 rounded-lg bg-gray-50">
 											<Checkbox />
 											<div className="leading-[1.4em] font-normal">
 												I have reviewed the patient details, selected records, and target hospital
