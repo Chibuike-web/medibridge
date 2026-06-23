@@ -137,7 +137,7 @@ function TransferContentSummary({
 	const transferContentGroups = transferContent ? groupTransferContentByType(transferContent) : [];
 
 	return (
-		<div className="flex flex-col gap-2 sm:col-span-2">
+		<div className="flex flex-col gap-2">
 			<span className="text-gray-400">Transfer Content</span>
 			{transferContentGroups.length > 0 ? (
 				<ul className="ml-5 list-disc space-y-2 text-gray-600 marker:text-gray-600">
@@ -209,7 +209,7 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<span id={titleId} className="text-lg font-semibold text-gray-800">
+				<span id={titleId} className="text-base font-semibold text-gray-800">
 					{contentGroup.contentType}
 				</span>
 				<RiArrowDownSLine
@@ -271,32 +271,6 @@ function DetailItem({ label, value }: { label: string; value?: string | null }) 
 	);
 }
 
-function TransferDetailsFallback() {
-	return (
-		<div className="flex flex-col gap-6" aria-busy="true" aria-live="polite">
-			<div className="flex flex-wrap gap-4">
-				<div className="h-6 w-36 animate-pulse rounded-md bg-gray-100" />
-				<div className="h-6 w-40 animate-pulse rounded-md bg-gray-100" />
-				<div className="h-6 w-44 animate-pulse rounded-md bg-gray-100" />
-			</div>
-			<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-				{Array.from({ length: 6 }).map((_, index) => (
-					<div key={index} className="flex flex-col gap-2">
-						<div className="h-4 w-28 animate-pulse rounded bg-gray-100" />
-						<div className="h-5 w-44 animate-pulse rounded bg-gray-100" />
-					</div>
-				))}
-			</div>
-			<div className="flex flex-col gap-3 rounded-2xl border border-gray-200 p-4">
-				<div className="h-4 w-32 animate-pulse rounded bg-gray-100" />
-				<div className="h-5 w-full animate-pulse rounded bg-gray-100" />
-				<div className="h-5 w-4/5 animate-pulse rounded bg-gray-100" />
-				<div className="h-5 w-3/5 animate-pulse rounded bg-gray-100" />
-			</div>
-		</div>
-	);
-}
-
 function TransferProgress() {
 	const [isTransferProgressExpanded, setIsTransferProgressExpanded] = useState(false);
 	const shouldReduceMotion = useReducedMotion();
@@ -314,8 +288,8 @@ function TransferProgress() {
 				className="flex w-full items-center justify-between"
 			>
 				<div className="flex items-center gap-2">
-					<span id={titleId} className="text-left text-lg font-semibold text-gray-800">
-						Transfer Progress{" "}
+					<span id={titleId} className="text-left text-base font-semibold text-gray-800">
+						Transfer Progress
 					</span>
 					<span className="text-sm text-muted-foreground text-left">22 January 2026 at 14:10</span>
 				</div>
@@ -390,6 +364,32 @@ function TransferProgress() {
 					</motion.div>
 				)}
 			</AnimatePresence>
+		</div>
+	);
+}
+
+function TransferDetailsFallback() {
+	return (
+		<div className="flex flex-col gap-6" aria-busy="true" aria-live="polite">
+			<div className="flex flex-wrap gap-4">
+				<div className="h-6 w-36 animate-pulse rounded-md bg-gray-100" />
+				<div className="h-6 w-40 animate-pulse rounded-md bg-gray-100" />
+				<div className="h-6 w-44 animate-pulse rounded-md bg-gray-100" />
+			</div>
+			<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+				{Array.from({ length: 6 }).map((_, index) => (
+					<div key={index} className="flex flex-col gap-2">
+						<div className="h-4 w-28 animate-pulse rounded bg-gray-100" />
+						<div className="h-5 w-44 animate-pulse rounded bg-gray-100" />
+					</div>
+				))}
+			</div>
+			<div className="flex flex-col gap-3 rounded-2xl border border-gray-200 p-4">
+				<div className="h-4 w-32 animate-pulse rounded bg-gray-100" />
+				<div className="h-5 w-full animate-pulse rounded bg-gray-100" />
+				<div className="h-5 w-4/5 animate-pulse rounded bg-gray-100" />
+				<div className="h-5 w-3/5 animate-pulse rounded bg-gray-100" />
+			</div>
 		</div>
 	);
 }

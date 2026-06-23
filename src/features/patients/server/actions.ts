@@ -26,6 +26,7 @@ import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatients } from "@/lib/api/get-patients";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
+import { getPatientDiagnosisDetails } from "@/lib/api/get-patient-diagnosis-details";
 import { getPatientEncounters } from "@/lib/api/get-patient-encounters";
 import { getPatientImaging } from "@/lib/api/get-patient-imaging";
 import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
@@ -402,6 +403,10 @@ export async function getPatientDiagnosesTableAction({
 		limit: currentLimit,
 		totalPages: Math.ceil(totalDiagnoses / currentLimit) || 1,
 	};
+}
+
+export async function getPatientDiagnosisDetailsAction(diagnosisId: string) {
+	return getPatientDiagnosisDetails(diagnosisId);
 }
 
 export async function getPatientAllergiesTableAction({

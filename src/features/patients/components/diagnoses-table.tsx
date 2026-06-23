@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { CreateDiagnosisDrawer } from "@/features/patients/components/create-diagnosis-drawer";
+import { DiagnosisDetailsDrawer } from "@/features/patients/components/diagnosis-details-drawer";
+import { getPatientDiagnosisDetailsAction } from "@/features/patients/server/actions";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -35,7 +37,11 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
-import { DiagnosisType, type DiagnosisStatusFilter } from "@/features/patients/types";
+import {
+	type DiagnosisDetailsType,
+	DiagnosisType,
+	type DiagnosisStatusFilter,
+} from "@/features/patients/types";
 import { endOfDay, format, isSameDay, startOfDay, subDays, subYears } from "date-fns";
 import {
 	type ColumnDef,
@@ -174,7 +180,7 @@ export function DiagnosesTable({
 	onLimitChange,
 	onStatusFiltersChange,
 }: DiagnosesTableProps) {
-	const columns = useMemo(() => getDiagnosesColumns(), []);
+	const [isLoadingDiagnosisDetails, startLoadDiagnosisDetailsTransition] = useTransition();
 	const visibleDiagnosisRowIds = useMemo(
 		() => diagnoses.map((diagnosis) => diagnosis.diagnosisId).join(","),
 		[diagnoses],
@@ -183,6 +189,24 @@ export function DiagnosesTable({
 	const [activeDiagnosisFilterSubmenu, setActiveDiagnosisFilterSubmenu] =
 		useState<DiagnosisFilterSubmenu | null>(null);
 	const [isCreateDiagnosisDrawerOpen, setIsCreateDiagnosisDrawerOpen] = useState(false);
+	const [isDiagnosisDetailsDrawerOpen, setIsDiagnosisDetailsDrawerOpen] = useState(false);
+	const [selectedDiagnosisDetails, setSelectedDiagnosisDetails] =
+		useState<DiagnosisDetailsType | null>(null);
+
+	function handleViewDiagnosisDetails(diagnosisId: string) {
+		setSelectedDiagnosisDetails(null);
+		setIsDiagnosisDetailsDrawerOpen(true);
+
+		startLoadDiagnosisDetailsTransition(async () => {
+			const diagnosisDetails = await getPatientDiagnosisDetailsAction(diagnosisId);
+			setSelectedDiagnosisDetails(diagnosisDetails);
+		});
+	}
+
+	const columns = useMemo(
+		() => getDiagnosesColumns({ onViewDiagnosisDetails: handleViewDiagnosisDetails }),
+		[],
+	);
 
 	return (
 		<div className="p-8 text-sm">
@@ -219,16 +243,16 @@ export function DiagnosesTable({
 						sideOffset={8}
 						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 					>
-							<DropdownMenuSub
-								open={activeDiagnosisFilterSubmenu === "status"}
-								onOpenChange={(isStatusSubmenuOpen) => {
-									setActiveDiagnosisFilterSubmenu((prev) => {
-										if (isStatusSubmenuOpen) return "status";
-										if (prev === "status") return null;
-										return prev;
-									});
-								}}
-							>
+						<DropdownMenuSub
+							open={activeDiagnosisFilterSubmenu === "status"}
+							onOpenChange={(isStatusSubmenuOpen) => {
+								setActiveDiagnosisFilterSubmenu((prev) => {
+									if (isStatusSubmenuOpen) return "status";
+									if (prev === "status") return null;
+									return prev;
+								});
+							}}
+						>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 								<RiCheckboxCircleLine className="size-4.5" /> <span className="block">Status</span>
 							</DropdownMenuSubTrigger>
@@ -276,16 +300,16 @@ export function DiagnosesTable({
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
 
-							<DropdownMenuSub
-								open={activeDiagnosisFilterSubmenu === "last-reviewed"}
-								onOpenChange={(isLastReviewedSubmenuOpen) => {
-									setActiveDiagnosisFilterSubmenu((prev) => {
-										if (isLastReviewedSubmenuOpen) return "last-reviewed";
-										if (prev === "last-reviewed") return null;
-										return prev;
-									});
-								}}
-							>
+						<DropdownMenuSub
+							open={activeDiagnosisFilterSubmenu === "last-reviewed"}
+							onOpenChange={(isLastReviewedSubmenuOpen) => {
+								setActiveDiagnosisFilterSubmenu((prev) => {
+									if (isLastReviewedSubmenuOpen) return "last-reviewed";
+									if (prev === "last-reviewed") return null;
+									return prev;
+								});
+							}}
+						>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 								<RiHistoryLine className="text-lg" /> <span className="block">Last updated</span>
 							</DropdownMenuSubTrigger>
@@ -303,16 +327,16 @@ export function DiagnosesTable({
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
 
-							<DropdownMenuSub
-								open={activeDiagnosisFilterSubmenu === "diagnosed-at"}
-								onOpenChange={(isDiagnosedAtSubmenuOpen) => {
-									setActiveDiagnosisFilterSubmenu((prev) => {
-										if (isDiagnosedAtSubmenuOpen) return "diagnosed-at";
-										if (prev === "diagnosed-at") return null;
-										return prev;
-									});
-								}}
-							>
+						<DropdownMenuSub
+							open={activeDiagnosisFilterSubmenu === "diagnosed-at"}
+							onOpenChange={(isDiagnosedAtSubmenuOpen) => {
+								setActiveDiagnosisFilterSubmenu((prev) => {
+									if (isDiagnosedAtSubmenuOpen) return "diagnosed-at";
+									if (prev === "diagnosed-at") return null;
+									return prev;
+								});
+							}}
+						>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 								<RiPulseLine className="size-4.5" /> <span className="block">Diagnosed At</span>
 							</DropdownMenuSubTrigger>
@@ -329,16 +353,16 @@ export function DiagnosesTable({
 								/>
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
-							<DropdownMenuSub
-								open={activeDiagnosisFilterSubmenu === "created-at"}
-								onOpenChange={(isCreatedAtSubmenuOpen) => {
-									setActiveDiagnosisFilterSubmenu((prev) => {
-										if (isCreatedAtSubmenuOpen) return "created-at";
-										if (prev === "created-at") return null;
-										return prev;
-									});
-								}}
-							>
+						<DropdownMenuSub
+							open={activeDiagnosisFilterSubmenu === "created-at"}
+							onOpenChange={(isCreatedAtSubmenuOpen) => {
+								setActiveDiagnosisFilterSubmenu((prev) => {
+									if (isCreatedAtSubmenuOpen) return "created-at";
+									if (prev === "created-at") return null;
+									return prev;
+								});
+							}}
+						>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 								<RiCalendarLine className="size-4.5" /> <span className="block">Created at</span>
 							</DropdownMenuSubTrigger>
@@ -395,6 +419,7 @@ export function DiagnosesTable({
 				limit={limit}
 				totalPages={totalPages}
 				isPending={isPending}
+				onViewDiagnosisDetails={handleViewDiagnosisDetails}
 				onPreviousPage={onPreviousPage}
 				onNextPage={onNextPage}
 				onLimitChange={onLimitChange}
@@ -402,6 +427,12 @@ export function DiagnosesTable({
 			<CreateDiagnosisDrawer
 				open={isCreateDiagnosisDrawerOpen}
 				onOpenChange={setIsCreateDiagnosisDrawerOpen}
+			/>
+			<DiagnosisDetailsDrawer
+				open={isDiagnosisDetailsDrawerOpen}
+				onOpenChange={setIsDiagnosisDetailsDrawerOpen}
+				diagnosis={selectedDiagnosisDetails}
+				isLoading={isLoadingDiagnosisDetails}
 			/>
 		</div>
 	);
@@ -416,6 +447,7 @@ function DiagnosesTableContent({
 	limit,
 	totalPages,
 	isPending,
+	onViewDiagnosisDetails,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -428,6 +460,7 @@ function DiagnosesTableContent({
 	limit: number;
 	totalPages: number;
 	isPending: boolean;
+	onViewDiagnosisDetails: (diagnosisId: string) => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -582,6 +615,7 @@ function DiagnosesTableContent({
 			<DiagnosesBulkActionBar
 				selectedDiagnoses={selectedDiagnoses}
 				onClearSelection={() => table.resetRowSelection()}
+				onViewDiagnosisDetails={onViewDiagnosisDetails}
 			/>
 		</>
 	);
@@ -590,9 +624,11 @@ function DiagnosesTableContent({
 function DiagnosesBulkActionBar({
 	selectedDiagnoses,
 	onClearSelection,
+	onViewDiagnosisDetails,
 }: {
 	selectedDiagnoses: DiagnosisType[];
 	onClearSelection: () => void;
+	onViewDiagnosisDetails: (diagnosisId: string) => void;
 }) {
 	const selectedDiagnosisCount = selectedDiagnoses.length;
 	const singleSelectedDiagnosis = selectedDiagnosisCount === 1 ? selectedDiagnoses[0] : undefined;
@@ -611,6 +647,9 @@ function DiagnosesBulkActionBar({
 				<>
 					<button
 						type="button"
+						onClick={() => {
+							onViewDiagnosisDetails(singleSelectedDiagnosis.diagnosisId);
+						}}
 						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
 					>
 						<RiEyeLine className="size-5" aria-hidden={true} />
@@ -954,7 +993,11 @@ function formatUrlDate(date: Date) {
 	return format(date, "yyyy-MM-dd");
 }
 
-function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
+function getDiagnosesColumns({
+	onViewDiagnosisDetails,
+}: {
+	onViewDiagnosisDetails: (diagnosisId: string) => void;
+}): ColumnDef<DiagnosisType>[] {
 	return [
 		{
 			id: "select",
@@ -1043,9 +1086,18 @@ function getDiagnosesColumns(): ColumnDef<DiagnosisType>[] {
 							align="end"
 							className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
-							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+							<DropdownMenuItem
+								className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+								onSelect={() => {
+									onViewDiagnosisDetails(row.original.diagnosisId);
+								}}
+							>
 								<RiEyeLine className="text-white" />
 								<span>View details</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+								<RiShare2Line className="text-white" />
+								<span>Export</span>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator className="bg-white/20" />
 							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">

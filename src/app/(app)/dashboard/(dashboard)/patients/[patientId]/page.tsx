@@ -60,9 +60,9 @@ async function PatientPageContent({ searchParams, params }: PatientPageProps) {
 					className="flex items-center gap-2 border-b border-gray-200 px-6 py-5 text-sm"
 				>
 					<Link href="/dashboard/patients" className="flex items-center gap-2 shrink-0">
-						<RiArrowLeftLine aria-hidden="true" /> <span>Patients</span>
+						<RiArrowLeftLine aria-hidden="true" className="size-5" /> <span>Patients</span>
 					</Link>
-					<RiArrowRightSLine aria-hidden="true" />
+					<RiArrowRightSLine aria-hidden="true" className="size-5" />
 					<Suspense fallback={<BreadCrumbSkeleton />}>
 						<BreadCrumb searchParams={searchParams} params={params} />
 					</Suspense>
@@ -91,7 +91,7 @@ async function BreadCrumb({ searchParams, params }: PatientPageProps) {
 			<span className="shrink-0">
 				{patient.firstName} {patient.lastName}
 			</span>
-			<RiArrowRightSLine aria-hidden="true" />
+			<RiArrowRightSLine aria-hidden="true" className="size-5" />
 			<span className="font-semibold shrink-0">{formatPatientSectionLabel(currentSection)}</span>
 		</>
 	);
@@ -443,9 +443,9 @@ function PatientPageSkeleton() {
 					className="flex items-center gap-2 border-b border-gray-200 px-6 py-5 text-sm"
 				>
 					<Link href="/dashboard/patients" className="flex items-center gap-2 shrink-0">
-						<RiArrowLeftLine aria-hidden="true" /> <span>Patients</span>
+						<RiArrowLeftLine aria-hidden="true" className="size-5" /> <span>Patients</span>
 					</Link>
-					<RiArrowRightSLine aria-hidden="true" />
+					<RiArrowRightSLine aria-hidden="true" className="size-5" />
 					<BreadCrumbSkeleton />
 				</nav>
 				<HeaderSkeleton />
@@ -464,7 +464,7 @@ function BreadCrumbSkeleton() {
 	return (
 		<div className="flex items-center gap-2">
 			<div className="h-4 w-24 shrink-0 animate-pulse rounded bg-gray-200" />
-			<RiArrowRightSLine aria-hidden="true" className="shrink-0 text-gray-400" />
+			<RiArrowRightSLine aria-hidden="true" className="shrink-0 size-5 text-gray-400" />
 			<div className="h-4 w-32 shrink-0 animate-pulse rounded bg-gray-200" />
 		</div>
 	);

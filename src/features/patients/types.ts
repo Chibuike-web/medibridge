@@ -30,6 +30,45 @@ export type DiagnosisType = {
 	status: "Active" | "Resolved";
 };
 
+export type DiagnosisDetailsRelatedRecord = {
+	id: string;
+	name: string;
+	status: string;
+};
+
+export type DiagnosisDetailsHistoryEvent = {
+	id: string;
+	title: string;
+	timestamp: string;
+	items: {
+		label: string;
+		value: string;
+	}[];
+};
+
+export type DiagnosisDetailsType = {
+	diagnosisId: string;
+	encounterId: string | null;
+	name: string;
+	status: "Active" | "Resolved";
+	severityStage: string;
+	diagnosedAt: string;
+	createdAt: string;
+	updatedAt: string;
+	lastReviewedAt: string;
+	diagnosedBy: string;
+	createdBy: string;
+	updatedBy: string;
+	clinicalNote: string;
+	history: DiagnosisDetailsHistoryEvent[];
+	relatedRecords: {
+		medications: DiagnosisDetailsRelatedRecord[];
+		labTests: DiagnosisDetailsRelatedRecord[];
+		imaging: DiagnosisDetailsRelatedRecord[];
+		procedures: DiagnosisDetailsRelatedRecord[];
+	};
+};
+
 export type DiagnosisStatusFilter = "active" | "resolved";
 
 export type AllergyType = {

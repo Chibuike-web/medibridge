@@ -169,7 +169,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								/>
 								<DialogDescription className="sr-only">Search dialog </DialogDescription>
 								<DialogClose>
-									<RiCloseLine className="size-6" />
+									<RiCloseLine className="size-5" />
 								</DialogClose>
 							</DialogHeader>
 							<div className="my-12 w-full px-6">
