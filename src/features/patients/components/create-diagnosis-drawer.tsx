@@ -13,11 +13,7 @@ import {
 } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
 	Select,
 	SelectContent,
@@ -43,12 +39,9 @@ type AttachmentRow = {
 const fieldLabelClassName = "text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
-	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400";
+	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400 text-sm h-9";
 
-export function CreateDiagnosisDrawer({
-	open,
-	onOpenChange,
-}: CreateDiagnosisDrawerProps) {
+export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDrawerProps) {
 	const generatedFormId = useId();
 	const [diagnosedAt, setDiagnosedAt] = useState<Date | undefined>();
 	const [attachmentRows, setAttachmentRows] = useState<AttachmentRow[]>([
@@ -56,11 +49,9 @@ export function CreateDiagnosisDrawer({
 	]);
 
 	function handleAddAttachmentRow() {
-		setAttachmentRows((previousAttachmentRows) => [
-			...previousAttachmentRows,
-			{
-				id: `${generatedFormId}-attachment-${previousAttachmentRows.length + 1}`,
-			},
+		setAttachmentRows((prev) => [
+			...prev,
+			{ id: `${generatedFormId}-attachment-${prev.length + 1}` },
 		]);
 	}
 
@@ -68,9 +59,7 @@ export function CreateDiagnosisDrawer({
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
 				<DrawerHeader className="flex flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
-					<DrawerTitle className="text-lg leading-[1.2] text-gray-800">
-						Add diagnosis
-					</DrawerTitle>
+					<DrawerTitle className="text-lg leading-[1.2] text-gray-800">Add diagnosis</DrawerTitle>
 					<DrawerClose aria-label="Close add diagnosis drawer">
 						<RiCloseLine className="size-6" aria-hidden="true" />
 					</DrawerClose>
@@ -82,12 +71,8 @@ export function CreateDiagnosisDrawer({
 				<form className="min-h-0 flex-1 overflow-y-auto px-6 py-8 text-sm">
 					<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label
-								htmlFor={`${generatedFormId}-diagnosis-name`}
-								className={fieldLabelClassName}
-							>
-								Diagnosis name{" "}
-								<span className={optionalLabelClassName}>(required)</span>
+							<Label htmlFor={`${generatedFormId}-diagnosis-name`} className={fieldLabelClassName}>
+								Diagnosis name <span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-diagnosis-name`}
@@ -97,12 +82,8 @@ export function CreateDiagnosisDrawer({
 						</div>
 
 						<div className="flex flex-col gap-2">
-							<Label
-								htmlFor={`${generatedFormId}-severity`}
-								className={fieldLabelClassName}
-							>
-								Severity/Stage{" "}
-								<span className={optionalLabelClassName}>(optional)</span>
+							<Label htmlFor={`${generatedFormId}-severity`} className={fieldLabelClassName}>
+								Severity/Stage <span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Select>
 								<SelectTrigger
@@ -113,24 +94,32 @@ export function CreateDiagnosisDrawer({
 								</SelectTrigger>
 								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
 									<SelectGroup>
-										<SelectItem value="mild">Mild</SelectItem>
-										<SelectItem value="moderate">Moderate</SelectItem>
-										<SelectItem value="severe">Severe</SelectItem>
-										<SelectItem value="stage-1">Stage 1</SelectItem>
-										<SelectItem value="stage-2">Stage 2</SelectItem>
-										<SelectItem value="stage-3">Stage 3</SelectItem>
+										<SelectItem value="mild" className="rounded-md px-3 h-9">
+											Mild
+										</SelectItem>
+										<SelectItem value="moderate" className="rounded-md px-3 h-9">
+											Moderate
+										</SelectItem>
+										<SelectItem value="severe" className="rounded-md px-3 h-9">
+											Severe
+										</SelectItem>
+										<SelectItem value="stage-1" className="rounded-md px-3 h-9">
+											Stage 1
+										</SelectItem>
+										<SelectItem value="stage-2" className="rounded-md px-3 h-9">
+											Stage 2
+										</SelectItem>
+										<SelectItem value="stage-3" className="rounded-md px-3 h-9">
+											Stage 3
+										</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>
 						</div>
 
 						<div className="flex flex-col gap-2">
-							<Label
-								htmlFor={`${generatedFormId}-status`}
-								className={fieldLabelClassName}
-							>
-								Status{" "}
-								<span className={optionalLabelClassName}>(required)</span>
+							<Label htmlFor={`${generatedFormId}-status`} className={fieldLabelClassName}>
+								Status <span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
 								<SelectTrigger
@@ -141,8 +130,12 @@ export function CreateDiagnosisDrawer({
 								</SelectTrigger>
 								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
 									<SelectGroup>
-										<SelectItem value="active">Active</SelectItem>
-										<SelectItem value="resolved">Resolved</SelectItem>
+										<SelectItem value="active" className="rounded-md px-3 h-9">
+											Active
+										</SelectItem>
+										<SelectItem value="resolved" className="rounded-md px-3 h-9">
+											Resolved
+										</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>
@@ -150,8 +143,7 @@ export function CreateDiagnosisDrawer({
 
 						<div className="flex flex-col gap-2">
 							<Label className={fieldLabelClassName}>
-								Diagnosed at{" "}
-								<span className={optionalLabelClassName}>(required)</span>
+								Diagnosed at <span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Popover>
 								<PopoverTrigger asChild>
@@ -161,13 +153,8 @@ export function CreateDiagnosisDrawer({
 										data-empty={!diagnosedAt}
 										className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
 									>
-										{diagnosedAt
-											? format(diagnosedAt, "PPP")
-											: "Select diagnosis date"}
-										<RiCalendarLine
-											className="size-5 text-gray-600"
-											aria-hidden="true"
-										/>
+										{diagnosedAt ? format(diagnosedAt, "PPP") : "Select diagnosis date"}
+											<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
 									</Button>
 								</PopoverTrigger>
 								<PopoverContent className="p-0">
@@ -182,12 +169,8 @@ export function CreateDiagnosisDrawer({
 						</div>
 
 						<div className="flex flex-col gap-2">
-							<Label
-								htmlFor={`${generatedFormId}-diagnosed-by`}
-								className={fieldLabelClassName}
-							>
-								Diagnosed by{" "}
-								<span className={optionalLabelClassName}>(required)</span>
+							<Label htmlFor={`${generatedFormId}-diagnosed-by`} className={fieldLabelClassName}>
+								Diagnosed by <span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-diagnosed-by`}
@@ -197,17 +180,13 @@ export function CreateDiagnosisDrawer({
 						</div>
 
 						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label
-								htmlFor={`${generatedFormId}-clinical-notes`}
-								className={fieldLabelClassName}
-							>
-								Clinical notes{" "}
-								<span className={optionalLabelClassName}>(optional)</span>
+							<Label htmlFor={`${generatedFormId}-clinical-notes`} className={fieldLabelClassName}>
+								Clinical notes <span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Textarea
 								id={`${generatedFormId}-clinical-notes`}
 								placeholder="Add supporting clinical observations, symptoms, or treatment notes"
-								className="min-h-36 resize-none border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400"
+								className=" border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400"
 							/>
 						</div>
 
@@ -217,10 +196,7 @@ export function CreateDiagnosisDrawer({
 								className="grid grid-cols-1 gap-x-6 gap-y-6 sm:col-span-2 sm:grid-cols-2"
 							>
 								<div className="flex flex-col gap-2">
-									<Label
-										htmlFor={`${attachmentRow.id}-name`}
-										className={fieldLabelClassName}
-									>
+									<Label htmlFor={`${attachmentRow.id}-name`} className={fieldLabelClassName}>
 										Attachment name
 									</Label>
 									<Input
@@ -230,10 +206,7 @@ export function CreateDiagnosisDrawer({
 									/>
 								</div>
 								<div className="flex flex-col gap-2">
-									<Label
-										htmlFor={`${attachmentRow.id}-id`}
-										className={fieldLabelClassName}
-									>
+									<Label htmlFor={`${attachmentRow.id}-id`} className={fieldLabelClassName}>
 										Attachment ID
 									</Label>
 									<Input
@@ -261,13 +234,13 @@ export function CreateDiagnosisDrawer({
 				</form>
 
 				<DrawerFooter className="border-t border-gray-200 px-6 py-5 text-sm">
-					<div className="ml-auto flex gap-4">
+					<div className="flex flex-col lg:flex-row gap-x-4 gap-y-2 lg:self-end">
 						<DrawerClose asChild>
-							<Button type="button" variant="outline" className="min-w-32 text-sm">
+							<Button type="button" variant="outline" className="text-sm">
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="button" className="min-w-44 text-sm">
+						<Button type="button" className="text-sm">
 							Add diagnosis
 						</Button>
 					</div>

@@ -15,11 +15,7 @@ import {
 } from "@remixicon/react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
 	Dialog,
 	DialogClose,
@@ -30,7 +26,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { useOptimistic, useState, useTransition } from "react";
-import type { FormEvent } from "react";
+import type { SyntheticEvent } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -59,15 +55,11 @@ export function PersonalInformation({
 	patientId: string;
 	personalInformation: PersonalInformationItem[];
 }) {
-	const [isPersonalInformationDialogOpen, setIsPersonalInformationDialogOpen] =
-		useState(false);
+	const [isPersonalInformationDialogOpen, setIsPersonalInformationDialogOpen] = useState(false);
 	const [personalInformationError, setPersonalInformationError] = useState("");
 	const [optimisticPersonalInformation, setOptimisticPersonalInformation] =
 		useOptimistic(personalInformation);
-	const [
-		isUpdatingPersonalInformation,
-		startUpdatePersonalInformationTransition,
-	] = useTransition();
+	const [isUpdatingPersonalInformation, startUpdatePersonalInformationTransition] = useTransition();
 	const currentDateOfBirth = getPersonalInformationValue(
 		optimisticPersonalInformation,
 		"Date of birth",
@@ -76,19 +68,13 @@ export function PersonalInformation({
 		getPersonalInformationValue(optimisticPersonalInformation, "Sex"),
 	);
 	const currentMaritalStatus = getSelectValue(
-		getPersonalInformationValue(
-			optimisticPersonalInformation,
-			"Marital status",
-		),
+		getPersonalInformationValue(optimisticPersonalInformation, "Marital status"),
 	);
-	const [dob, setDob] = useState<Date | undefined>(
-		getDateFromDisplayValue(currentDateOfBirth),
-	);
+	const [dob, setDob] = useState<Date | undefined>(getDateFromDisplayValue(currentDateOfBirth));
 	const [selectedSex, setSelectedSex] = useState(currentSex);
-	const [selectedMaritalStatus, setSelectedMaritalStatus] =
-		useState(currentMaritalStatus);
+	const [selectedMaritalStatus, setSelectedMaritalStatus] = useState(currentMaritalStatus);
 
-	function handlePersonalInformationSubmit(event: FormEvent<HTMLFormElement>) {
+	function handlePersonalInformationSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>) {
 		event.preventDefault();
 
 		const formData = new FormData(event.currentTarget);
@@ -106,10 +92,7 @@ export function PersonalInformation({
 			setPersonalInformationError("");
 			setOptimisticPersonalInformation(nextPersonalInformation);
 
-			const result = await updatePatientPersonalInformationAction(
-				patientId,
-				formData,
-			);
+			const result = await updatePatientPersonalInformationAction(patientId, formData);
 
 			if (!result.ok) {
 				setPersonalInformationError(result.message);
@@ -166,8 +149,7 @@ export function PersonalInformation({
 					<DialogHeader className="h-16 px-6 border-b border-gray-200">
 						<DialogTitle>Edit Personal Information</DialogTitle>
 						<DialogDescription className="sr-only">
-							Form for editing personal information such as name, age, sex, and
-							marital status.
+							Form for editing personal information such as name, age, sex, and marital status.
 						</DialogDescription>
 						<DialogClose>
 							<RiCloseLine className="size-6" />
@@ -182,10 +164,7 @@ export function PersonalInformation({
 						<input
 							type="hidden"
 							name="patientDisplayId"
-							value={getPersonalInformationValue(
-								optimisticPersonalInformation,
-								"Patient ID",
-							)}
+							value={getPersonalInformationValue(optimisticPersonalInformation, "Patient ID")}
 						/>
 						{personalInformationError ? (
 							<p className="col-span-full text-sm font-medium text-red-600">
@@ -238,10 +217,7 @@ export function PersonalInformation({
 								name="age"
 								placeholder="e.g. 32"
 								type="number"
-								defaultValue={getPersonalInformationValue(
-									optimisticPersonalInformation,
-									"Age",
-								)}
+								defaultValue={getPersonalInformationValue(optimisticPersonalInformation, "Age")}
 							/>
 						</div>
 						<div className="flex flex-col gap-2">
@@ -259,12 +235,8 @@ export function PersonalInformation({
 										data-empty={!dob}
 										className="flex w-full items-center justify-between font-normal data-[empty=true]:text-muted-foreground active:scale-100 hover:bg-transparent"
 									>
-										{dob ? (
-											format(dob, "PPP")
-										) : (
-											<span>Select date of birth</span>
-										)}
-										<RiCalendarLine className="size-5 text-gray-600" />
+										{dob ? format(dob, "PPP") : <span>Select date of birth</span>}
+										<RiCalendarLine className="size-4 text-gray-600" />
 									</Button>
 								</PopoverTrigger>
 
@@ -305,16 +277,9 @@ export function PersonalInformation({
 						</div>
 						<div className="flex flex-col gap-2">
 							<Label>Marital Status</Label>
-							<input
-								type="hidden"
-								name="maritalStatus"
-								value={selectedMaritalStatus}
-							/>
+							<input type="hidden" name="maritalStatus" value={selectedMaritalStatus} />
 
-							<Select
-								value={selectedMaritalStatus}
-								onValueChange={setSelectedMaritalStatus}
-							>
+							<Select value={selectedMaritalStatus} onValueChange={setSelectedMaritalStatus}>
 								<SelectTrigger className="w-full h-9">
 									<SelectValue placeholder="Select marital status" />
 								</SelectTrigger>
@@ -324,22 +289,13 @@ export function PersonalInformation({
 										<SelectItem value="single" className="rounded-md px-3 h-9">
 											Single
 										</SelectItem>
-										<SelectItem
-											value="married"
-											className="rounded-md px-3 h-9"
-										>
+										<SelectItem value="married" className="rounded-md px-3 h-9">
 											Married
 										</SelectItem>
-										<SelectItem
-											value="divorced"
-											className="rounded-md px-3 h-9"
-										>
+										<SelectItem value="divorced" className="rounded-md px-3 h-9">
 											Divorced
 										</SelectItem>
-										<SelectItem
-											value="widowed"
-											className="rounded-md px-3 h-9"
-										>
+										<SelectItem value="widowed" className="rounded-md px-3 h-9">
 											Widowed
 										</SelectItem>
 									</SelectGroup>
@@ -384,9 +340,7 @@ export function PersonalInformation({
 	);
 }
 
-function getNextPersonalInformation(
-	formData: FormData,
-): PersonalInformationItem[] {
+function getNextPersonalInformation(formData: FormData): PersonalInformationItem[] {
 	const firstName = getFormValue(formData, "firstName");
 	const middleName = getFormValue(formData, "middleName");
 	const lastName = getFormValue(formData, "lastName");
@@ -460,8 +414,5 @@ function formatDisplayValue(value: string) {
 
 	const normalizedValue = value.replaceAll("_", " ");
 
-	return (
-		normalizedValue.charAt(0).toUpperCase() +
-		normalizedValue.slice(1).toLowerCase()
-	);
+	return normalizedValue.charAt(0).toUpperCase() + normalizedValue.slice(1).toLowerCase();
 }

@@ -475,7 +475,7 @@ function HeaderSkeleton() {
 		<div className="flex items-center gap-3 border-b border-gray-200 px-6 py-3.5 text-sm">
 			<div className="relative shrink-0">
 				<div className="size-16 animate-pulse rounded-full border border-gray-200 bg-gray-100" />
-				<div className="absolute right-0 bottom-0 size-4.5 animate-pulse rounded-full bg-gray-300 ring ring-gray-800" />
+				<div className="absolute right-0 bottom-0 size-4.5 animate-pulse rounded-full bg-gray-300" />
 			</div>
 
 			<div className="flex flex-1 flex-col gap-4 overflow-hidden">

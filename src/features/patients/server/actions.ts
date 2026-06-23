@@ -1,6 +1,12 @@
 "use server";
 
-import { patient, patientPersonalInformation } from "@/db/schemas";
+import {
+	patient,
+	patientContactInformation,
+	patientEmergencyContact,
+	patientPersonalInformation,
+	patientPhysicalInformation,
+} from "@/db/schemas";
 import { db } from "@/lib/better-auth/auth";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { deletePatientUploadService } from "@/services/patient/delete-patient-upload-service";
@@ -10,7 +16,12 @@ import { and, eq } from "drizzle-orm";
 
 import { PatientType } from "../schemas/patient-schema";
 import type { DiagnosisStatusFilter } from "../types";
-import { updatePatientPersonalInformationSchema } from "./schemas";
+import {
+	updatePatientContactInformationSchema,
+	updatePatientEmergencyContactSchema,
+	updatePatientPersonalInformationSchema,
+	updatePatientPhysicalInformationSchema,
+} from "./schemas";
 import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatients } from "@/lib/api/get-patients";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
@@ -87,6 +98,219 @@ export async function updatePatientPersonalInformationAction(
 			updatedAt: new Date(),
 		})
 		.where(eq(patientPersonalInformation.patientId, patientId));
+
+	updateTag(`patient-profile-${organizationId}-${patientId}`);
+	updateTag(`patient-by-id-${organizationId}-${patientId}`);
+	updateTag(`patients-list-${organizationId}`);
+	updateTag(`recent-patients-${organizationId}`);
+	updateTag(`recent-transfers-${organizationId}`);
+
+	return { ok: true, message: "" };
+}
+
+export async function updatePatientContactInformationAction(
+	patientId: string,
+	formData: FormData,
+) {
+	const organizationId = await getOrganizationId();
+
+	if (!organizationId) {
+		return { ok: false, message: "Unable to verify your hospital." };
+	}
+
+	const parsedContactInformation = updatePatientContactInformationSchema.safeParse({
+		phoneNumber: formData.get("phoneNumber"),
+		emailAddress: formData.get("emailAddress"),
+		residentialAddress: formData.get("residentialAddress"),
+		stateOfOrigin: formData.get("stateOfOrigin"),
+		countryOfOrigin: formData.get("countryOfOrigin"),
+	});
+
+	if (!parsedContactInformation.success) {
+		return {
+			ok: false,
+			message:
+				parsedContactInformation.error.issues[0]?.message ??
+				"Please check the contact information fields.",
+		};
+	}
+
+	const [patientRow] = await db
+		.select({ id: patient.id })
+		.from(patient)
+		.where(and(eq(patient.id, patientId), eq(patient.organizationId, organizationId)))
+		.limit(1);
+
+	if (!patientRow) {
+		return { ok: false, message: "Patient record was not found." };
+	}
+
+	const contactInformation = parsedContactInformation.data;
+
+	await db
+		.insert(patientContactInformation)
+		.values({
+			id: crypto.randomUUID(),
+			patientId,
+			phoneNumber: contactInformation.phoneNumber || null,
+			emailAddress: contactInformation.emailAddress || null,
+			residentialAddress: contactInformation.residentialAddress || null,
+			stateOfOrigin: contactInformation.stateOfOrigin || null,
+			countryOfOrigin: contactInformation.countryOfOrigin || null,
+			updatedAt: new Date(),
+		})
+		.onConflictDoUpdate({
+			target: patientContactInformation.patientId,
+			set: {
+				phoneNumber: contactInformation.phoneNumber || null,
+				emailAddress: contactInformation.emailAddress || null,
+				residentialAddress: contactInformation.residentialAddress || null,
+				stateOfOrigin: contactInformation.stateOfOrigin || null,
+				countryOfOrigin: contactInformation.countryOfOrigin || null,
+				updatedAt: new Date(),
+			},
+		});
+
+	updateTag(`patient-profile-${organizationId}-${patientId}`);
+	updateTag(`patient-by-id-${organizationId}-${patientId}`);
+	updateTag(`patients-list-${organizationId}`);
+	updateTag(`recent-patients-${organizationId}`);
+	updateTag(`recent-transfers-${organizationId}`);
+
+	return { ok: true, message: "" };
+}
+
+export async function updatePatientEmergencyContactAction(
+	patientId: string,
+	formData: FormData,
+) {
+	const organizationId = await getOrganizationId();
+
+	if (!organizationId) {
+		return { ok: false, message: "Unable to verify your hospital." };
+	}
+
+	const parsedEmergencyContact = updatePatientEmergencyContactSchema.safeParse({
+		firstName: formData.get("firstName"),
+		middleName: formData.get("middleName"),
+		lastName: formData.get("lastName"),
+		relationship: formData.get("relationship"),
+		phoneNumber: formData.get("phoneNumber"),
+	});
+
+	if (!parsedEmergencyContact.success) {
+		return {
+			ok: false,
+			message:
+				parsedEmergencyContact.error.issues[0]?.message ??
+				"Please check the emergency contact fields.",
+		};
+	}
+
+	const [patientRow] = await db
+		.select({ id: patient.id })
+		.from(patient)
+		.where(and(eq(patient.id, patientId), eq(patient.organizationId, organizationId)))
+		.limit(1);
+
+	if (!patientRow) {
+		return { ok: false, message: "Patient record was not found." };
+	}
+
+	const emergencyContact = parsedEmergencyContact.data;
+
+	await db
+		.insert(patientEmergencyContact)
+		.values({
+			id: crypto.randomUUID(),
+			patientId,
+			firstName: emergencyContact.firstName,
+			middleName: emergencyContact.middleName || null,
+			lastName: emergencyContact.lastName,
+			relationship: emergencyContact.relationship || null,
+			phoneNumber: emergencyContact.phoneNumber || null,
+			updatedAt: new Date(),
+		})
+		.onConflictDoUpdate({
+			target: patientEmergencyContact.patientId,
+			set: {
+				firstName: emergencyContact.firstName,
+				middleName: emergencyContact.middleName || null,
+				lastName: emergencyContact.lastName,
+				relationship: emergencyContact.relationship || null,
+				phoneNumber: emergencyContact.phoneNumber || null,
+				updatedAt: new Date(),
+			},
+		});
+
+	updateTag(`patient-profile-${organizationId}-${patientId}`);
+	updateTag(`patient-by-id-${organizationId}-${patientId}`);
+	updateTag(`patients-list-${organizationId}`);
+	updateTag(`recent-patients-${organizationId}`);
+	updateTag(`recent-transfers-${organizationId}`);
+
+	return { ok: true, message: "" };
+}
+
+export async function updatePatientPhysicalInformationAction(
+	patientId: string,
+	formData: FormData,
+) {
+	const organizationId = await getOrganizationId();
+
+	if (!organizationId) {
+		return { ok: false, message: "Unable to verify your hospital." };
+	}
+
+	const parsedPhysicalInformation = updatePatientPhysicalInformationSchema.safeParse({
+		height: formData.get("height"),
+		weight: formData.get("weight"),
+		bloodGroup: formData.get("bloodGroup"),
+		genotype: formData.get("genotype"),
+	});
+
+	if (!parsedPhysicalInformation.success) {
+		return {
+			ok: false,
+			message:
+				parsedPhysicalInformation.error.issues[0]?.message ??
+				"Please check the physical information fields.",
+		};
+	}
+
+	const [patientRow] = await db
+		.select({ id: patient.id })
+		.from(patient)
+		.where(and(eq(patient.id, patientId), eq(patient.organizationId, organizationId)))
+		.limit(1);
+
+	if (!patientRow) {
+		return { ok: false, message: "Patient record was not found." };
+	}
+
+	const physicalInformation = parsedPhysicalInformation.data;
+
+	await db
+		.insert(patientPhysicalInformation)
+		.values({
+			id: crypto.randomUUID(),
+			patientId,
+			height: physicalInformation.height || null,
+			weight: physicalInformation.weight || null,
+			bloodGroup: physicalInformation.bloodGroup || null,
+			genotype: physicalInformation.genotype || null,
+			updatedAt: new Date(),
+		})
+		.onConflictDoUpdate({
+			target: patientPhysicalInformation.patientId,
+			set: {
+				height: physicalInformation.height || null,
+				weight: physicalInformation.weight || null,
+				bloodGroup: physicalInformation.bloodGroup || null,
+				genotype: physicalInformation.genotype || null,
+				updatedAt: new Date(),
+			},
+		});
 
 	updateTag(`patient-profile-${organizationId}-${patientId}`);
 	updateTag(`patient-by-id-${organizationId}-${patientId}`);

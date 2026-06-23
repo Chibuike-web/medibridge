@@ -31,8 +31,10 @@ import { Label } from "@/components/ui/label";
 
 import { RiEditLine, RiMore2Fill, RiShare2Line, RiCloseLine } from "@remixicon/react";
 
-import { useState } from "react";
+import { useOptimistic, useState, useTransition } from "react";
+import type { SyntheticEvent } from "react";
 import { DetailItem, DetailsSection } from "./detail-fields";
+import { updatePatientPhysicalInformationAction } from "@/features/patients/server/actions";
 
 type PhysicalInformationItem = {
 	label: string;
@@ -40,52 +42,90 @@ type PhysicalInformationItem = {
 };
 
 export function PhysicalInformation({
+	patientId,
 	physicalInformation,
 }: {
+	patientId: string;
 	physicalInformation: PhysicalInformationItem[];
 }) {
-	const [open, setOpen] = useState(false);
+	const physicalInformationFormId = "physical-information-form";
+	const [isPhysicalInformationDialogOpen, setIsPhysicalInformationDialogOpen] =
+		useState(false);
+	const [physicalInformationError, setPhysicalInformationError] = useState("");
+	const [optimisticPhysicalInformation, setOptimisticPhysicalInformation] =
+		useOptimistic(physicalInformation);
+	const [isUpdatingPhysicalInformation, startUpdatePhysicalInformationTransition] =
+		useTransition();
+
+	function handlePhysicalInformationSubmit(
+		event: SyntheticEvent<HTMLFormElement, SubmitEvent>,
+	) {
+		event.preventDefault();
+
+		const formData = new FormData(event.currentTarget);
+		const nextPhysicalInformation = getNextPhysicalInformation(formData);
+
+		setIsPhysicalInformationDialogOpen(false);
+
+		startUpdatePhysicalInformationTransition(async () => {
+			setPhysicalInformationError("");
+			setOptimisticPhysicalInformation(nextPhysicalInformation);
+
+			const result = await updatePatientPhysicalInformationAction(
+				patientId,
+				formData,
+			);
+
+			if (!result.ok) {
+				setPhysicalInformationError(result.message);
+				setIsPhysicalInformationDialogOpen(true);
+			}
+		});
+	}
 
 	const action = (
 		<DropdownMenu>
-					<DropdownMenuTrigger
-						type="button"
-						className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-						aria-label="Open actions for Personal Information"
-					>
-						<RiMore2Fill className="size-5" aria-hidden />
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
-					>
-						<DropdownMenuItem
-							onSelect={(e) => {
-								e.preventDefault();
-								setOpen(true);
-							}}
-							className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
-						>
-							<RiEditLine className="text-white" />
-							<span>Edit info</span>
-						</DropdownMenuItem>
+			<DropdownMenuTrigger
+				type="button"
+				className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+				aria-label="Open actions for Physical Information"
+			>
+				<RiMore2Fill className="size-5" aria-hidden />
+			</DropdownMenuTrigger>
+			<DropdownMenuContent
+				align="end"
+				className="w-[13.75rem] rounded-xl border border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+			>
+				<DropdownMenuItem
+					onSelect={(e) => {
+						e.preventDefault();
+						setIsPhysicalInformationDialogOpen(true);
+					}}
+					className="flex items-center gap-3 rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
+				>
+					<RiEditLine className="text-white" />
+					<span>Edit info</span>
+				</DropdownMenuItem>
 
-						<DropdownMenuItem className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-							<RiShare2Line className="text-white" />
-							<span>Export info</span>
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
+				<DropdownMenuItem className="flex items-center gap-3 rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
+					<RiShare2Line className="text-white" />
+					<span>Export info</span>
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 
 	return (
 		<>
 			<DetailsSection title="Physical Information" action={action}>
-				{physicalInformation.map((item) => (
+				{optimisticPhysicalInformation.map((item) => (
 					<DetailItem key={item.label} label={item.label} value={item.value} />
 				))}
 			</DetailsSection>
-			<Dialog open={open} onOpenChange={setOpen}>
+			<Dialog
+				open={isPhysicalInformationDialogOpen}
+				onOpenChange={setIsPhysicalInformationDialogOpen}
+			>
 				<DialogContent className="max-w-[50rem]">
 					<DialogHeader className="h-16 px-6 border-b border-gray-200">
 						<DialogTitle>Edit Physical Information</DialogTitle>
@@ -98,21 +138,57 @@ export function PhysicalInformation({
 						</DialogClose>
 					</DialogHeader>
 
-					<form className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-sm text-gray-800">
+					<form
+						id={physicalInformationFormId}
+						onSubmit={handlePhysicalInformationSubmit}
+						className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-sm text-gray-800"
+					>
+						<input type="hidden" name="patientId" value={patientId} />
+
+						{physicalInformationError ? (
+							<div className="col-span-full rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+								{physicalInformationError}
+							</div>
+						) : null}
+
 						<div className="flex flex-col gap-2">
-							<Label>Height</Label>
-							<Input placeholder="e.g. 172 cm" type="number" />
+							<Label htmlFor="physical-height">Height</Label>
+							<Input
+								id="physical-height"
+								name="height"
+								defaultValue={getPhysicalInformationValue(
+									optimisticPhysicalInformation,
+									"Height",
+								)}
+								placeholder="e.g. 172 cm"
+								type="number"
+							/>
 						</div>
 
 						<div className="flex flex-col gap-2">
-							<Label>Weight</Label>
-							<Input placeholder="e.g. 68 kg" type="number" />
+							<Label htmlFor="physical-weight">Weight</Label>
+							<Input
+								id="physical-weight"
+								name="weight"
+								defaultValue={getPhysicalInformationValue(
+									optimisticPhysicalInformation,
+									"Weight",
+								)}
+								placeholder="e.g. 68 kg"
+								type="number"
+							/>
 						</div>
 
 						<div className="flex flex-col gap-2">
-							<Label>Blood</Label>
-							<Select>
-								<SelectTrigger className="h-9 w-full">
+							<Label>Blood group</Label>
+							<Select
+								name="bloodGroup"
+								defaultValue={getPhysicalInformationValue(
+									optimisticPhysicalInformation,
+									"Blood group",
+								)}
+							>
+								<SelectTrigger className="w-full">
 									<SelectValue placeholder="Select blood group" />
 								</SelectTrigger>
 								<SelectContent className="p-1 rounded-[0.625rem]">
@@ -132,8 +208,14 @@ export function PhysicalInformation({
 
 						<div className="flex flex-col gap-2">
 							<Label>Genotype</Label>
-							<Select>
-								<SelectTrigger className="h-9 w-full">
+							<Select
+								name="genotype"
+								defaultValue={getPhysicalInformationValue(
+									optimisticPhysicalInformation,
+									"Genotype",
+								)}
+							>
+								<SelectTrigger className="w-full">
 									<SelectValue placeholder="Select genotype" />
 								</SelectTrigger>
 								<SelectContent className="p-1 rounded-[0.625rem]">
@@ -156,7 +238,14 @@ export function PhysicalInformation({
 									Cancel
 								</Button>
 							</DialogClose>
-							<Button className="text-sm">Save</Button>
+							<Button
+								type="submit"
+								form={physicalInformationFormId}
+								disabled={isUpdatingPhysicalInformation}
+								className="text-sm"
+							>
+								Save
+							</Button>
 						</div>
 					</DialogFooter>
 				</DialogContent>
@@ -165,3 +254,32 @@ export function PhysicalInformation({
 	);
 }
 
+function getNextPhysicalInformation(
+	formData: FormData,
+): PhysicalInformationItem[] {
+	return [
+		{ label: "Height", value: formatDisplayValue(formData.get("height")) },
+		{ label: "Weight", value: formatDisplayValue(formData.get("weight")) },
+		{ label: "Blood group", value: formatDisplayValue(formData.get("bloodGroup")) },
+		{ label: "Genotype", value: formatDisplayValue(formData.get("genotype")) },
+	];
+}
+
+function getPhysicalInformationValue(
+	physicalInformation: PhysicalInformationItem[],
+	label: string,
+) {
+	const value = physicalInformation.find((item) => item.label === label)?.value;
+
+	return value === "-" ? "" : String(value ?? "");
+}
+
+function getFormValue(value: FormDataEntryValue | null) {
+	return typeof value === "string" ? value.trim() : "";
+}
+
+function formatDisplayValue(value: FormDataEntryValue | null) {
+	const nextValue = getFormValue(value);
+
+	return nextValue || "-";
+}

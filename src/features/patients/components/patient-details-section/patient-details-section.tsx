@@ -27,9 +27,16 @@ export async function PatientDetailsSection({
 						patientId={patientId}
 						personalInformation={profile.personalInformation}
 					/>
-					<ContactInformation contactInformation={profile.contactInformation} />
-					<EmergencyContact emergencyContact={profile.emergencyContact} />
+					<ContactInformation
+						patientId={patientId}
+						contactInformation={profile.contactInformation}
+					/>
+					<EmergencyContact
+						patientId={patientId}
+						emergencyContact={profile.emergencyContact}
+					/>
 					<PhysicalInformation
+						patientId={patientId}
 						physicalInformation={profile.physicalInformation}
 					/>
 				</div>

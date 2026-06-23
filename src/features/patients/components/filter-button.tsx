@@ -108,18 +108,16 @@ export function FilterButton({
 				sideOffset={8}
 				className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 			>
-				<DropdownMenuSub
-					open={activePatientFilterSubmenu === "gender"}
-					onOpenChange={(isGenderSubmenuOpen) => {
-						setActivePatientFilterSubmenu((currentActivePatientFilterSubmenu) =>
-							isGenderSubmenuOpen
-								? "gender"
-								: currentActivePatientFilterSubmenu === "gender"
-									? null
-									: currentActivePatientFilterSubmenu,
-						);
-					}}
-				>
+					<DropdownMenuSub
+						open={activePatientFilterSubmenu === "gender"}
+						onOpenChange={(isGenderSubmenuOpen) => {
+							setActivePatientFilterSubmenu((prev) => {
+								if (isGenderSubmenuOpen) return "gender";
+								if (prev === "gender") return null;
+								return prev;
+							});
+						}}
+					>
 					<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 text-gray-600  data-[state=open]:bg-gray-100 py-2">
 						<RiMenLine className="size-4.5" />
 						<span className="block">Gender</span>
@@ -173,18 +171,16 @@ export function FilterButton({
 					</DropdownMenuSubContent>
 				</DropdownMenuSub>
 
-				<DropdownMenuSub
-					open={activePatientFilterSubmenu === "age"}
-					onOpenChange={(isAgeSubmenuOpen) => {
-						setActivePatientFilterSubmenu((currentActivePatientFilterSubmenu) =>
-							isAgeSubmenuOpen
-								? "age"
-								: currentActivePatientFilterSubmenu === "age"
-									? null
-									: currentActivePatientFilterSubmenu,
-						);
-					}}
-				>
+					<DropdownMenuSub
+						open={activePatientFilterSubmenu === "age"}
+						onOpenChange={(isAgeSubmenuOpen) => {
+							setActivePatientFilterSubmenu((prev) => {
+								if (isAgeSubmenuOpen) return "age";
+								if (prev === "age") return null;
+								return prev;
+							});
+						}}
+					>
 					<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
 						<RiCalendarView className="size-4.5" /> <span className="block">Age</span>
 					</DropdownMenuSubTrigger>
@@ -269,18 +265,16 @@ export function FilterButton({
 					</DropdownMenuSubContent>
 				</DropdownMenuSub>
 
-				<DropdownMenuSub
-					open={activePatientFilterSubmenu === "created-at"}
-					onOpenChange={(isCreatedAtSubmenuOpen) => {
-						setActivePatientFilterSubmenu((currentActivePatientFilterSubmenu) =>
-							isCreatedAtSubmenuOpen
-								? "created-at"
-								: currentActivePatientFilterSubmenu === "created-at"
-									? null
-									: currentActivePatientFilterSubmenu,
-						);
-					}}
-				>
+					<DropdownMenuSub
+						open={activePatientFilterSubmenu === "created-at"}
+						onOpenChange={(isCreatedAtSubmenuOpen) => {
+							setActivePatientFilterSubmenu((prev) => {
+								if (isCreatedAtSubmenuOpen) return "created-at";
+								if (prev === "created-at") return null;
+								return prev;
+							});
+						}}
+					>
 					<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
 						<RiCalendarLine className="size-4.5" /> <span className="block">Created at</span>
 					</DropdownMenuSubTrigger>

@@ -111,18 +111,16 @@ export function FilterButton({
 				sideOffset={8}
 				className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 			>
-				<DropdownMenuSub
-					open={activeTransferFilterSubmenu === "status"}
-					onOpenChange={(isStatusSubmenuOpen) => {
-						setActiveTransferFilterSubmenu((currentActiveTransferFilterSubmenu) =>
-							isStatusSubmenuOpen
-								? "status"
-								: currentActiveTransferFilterSubmenu === "status"
-									? null
-									: currentActiveTransferFilterSubmenu,
-						);
-					}}
-				>
+					<DropdownMenuSub
+						open={activeTransferFilterSubmenu === "status"}
+						onOpenChange={(isStatusSubmenuOpen) => {
+							setActiveTransferFilterSubmenu((prev) => {
+								if (isStatusSubmenuOpen) return "status";
+								if (prev === "status") return null;
+								return prev;
+							});
+						}}
+					>
 					<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 						<RiMenLine className="size-4.5" /> <span className="block">Status</span>
 					</DropdownMenuSubTrigger>
@@ -171,18 +169,16 @@ export function FilterButton({
 					</DropdownMenuSubContent>
 				</DropdownMenuSub>
 
-				<DropdownMenuSub
-					open={activeTransferFilterSubmenu === "requested-at"}
-					onOpenChange={(isRequestedAtSubmenuOpen) => {
-						setActiveTransferFilterSubmenu((currentActiveTransferFilterSubmenu) =>
-							isRequestedAtSubmenuOpen
-								? "requested-at"
-								: currentActiveTransferFilterSubmenu === "requested-at"
-									? null
-									: currentActiveTransferFilterSubmenu,
-						);
-					}}
-				>
+					<DropdownMenuSub
+						open={activeTransferFilterSubmenu === "requested-at"}
+						onOpenChange={(isRequestedAtSubmenuOpen) => {
+							setActiveTransferFilterSubmenu((prev) => {
+								if (isRequestedAtSubmenuOpen) return "requested-at";
+								if (prev === "requested-at") return null;
+								return prev;
+							});
+						}}
+					>
 					<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 						<RiCalendarLine className="size-4.5" /> <span className="block">Requested at</span>
 					</DropdownMenuSubTrigger>

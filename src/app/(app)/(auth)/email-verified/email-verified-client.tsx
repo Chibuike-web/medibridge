@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/better-auth/auth.client";
+import { Button } from "@/components/ui/button";
 
 export function EmailVerifiedClient() {
 	const searchParams = useSearchParams();
@@ -76,12 +77,9 @@ const NoSession = () => {
 					again.
 				</p>
 
-				<Link
-					href="/sign-in"
-					className="inline-block mt-6 py-3 px-6 rounded-md bg-foreground text-white font-medium"
-				>
-					Sign in
-				</Link>
+				<Button className="text-sm mt-6">
+					<Link href="/sign-in">Sign in</Link>
+				</Button>
 			</div>
 		</main>
 	);
@@ -95,13 +93,9 @@ const Valid = () => {
 				<p className="text-foreground/70 mt-3">
 					Your email has been successfully verified. You can now continue.
 				</p>
-
-				<Link
-					href="/"
-					className="mt-6 inline-block py-3 px-6 rounded-md bg-foreground text-white font-medium"
-				>
-					Continue
-				</Link>
+				<Button className="text-sm mt-6">
+					<Link href="/">Continue</Link>
+				</Button>
 			</div>
 		</main>
 	);

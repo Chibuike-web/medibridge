@@ -219,18 +219,16 @@ export function DiagnosesTable({
 						sideOffset={8}
 						className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 					>
-						<DropdownMenuSub
-							open={activeDiagnosisFilterSubmenu === "status"}
-							onOpenChange={(isStatusSubmenuOpen) => {
-								setActiveDiagnosisFilterSubmenu((currentActiveDiagnosisFilterSubmenu) =>
-									isStatusSubmenuOpen
-										? "status"
-										: currentActiveDiagnosisFilterSubmenu === "status"
-											? null
-											: currentActiveDiagnosisFilterSubmenu,
-								);
-							}}
-						>
+							<DropdownMenuSub
+								open={activeDiagnosisFilterSubmenu === "status"}
+								onOpenChange={(isStatusSubmenuOpen) => {
+									setActiveDiagnosisFilterSubmenu((prev) => {
+										if (isStatusSubmenuOpen) return "status";
+										if (prev === "status") return null;
+										return prev;
+									});
+								}}
+							>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 								<RiCheckboxCircleLine className="size-4.5" /> <span className="block">Status</span>
 							</DropdownMenuSubTrigger>
@@ -278,18 +276,16 @@ export function DiagnosesTable({
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
 
-						<DropdownMenuSub
-							open={activeDiagnosisFilterSubmenu === "last-reviewed"}
-							onOpenChange={(isLastReviewedSubmenuOpen) => {
-								setActiveDiagnosisFilterSubmenu((currentActiveDiagnosisFilterSubmenu) =>
-									isLastReviewedSubmenuOpen
-										? "last-reviewed"
-										: currentActiveDiagnosisFilterSubmenu === "last-reviewed"
-											? null
-											: currentActiveDiagnosisFilterSubmenu,
-								);
-							}}
-						>
+							<DropdownMenuSub
+								open={activeDiagnosisFilterSubmenu === "last-reviewed"}
+								onOpenChange={(isLastReviewedSubmenuOpen) => {
+									setActiveDiagnosisFilterSubmenu((prev) => {
+										if (isLastReviewedSubmenuOpen) return "last-reviewed";
+										if (prev === "last-reviewed") return null;
+										return prev;
+									});
+								}}
+							>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 								<RiHistoryLine className="text-lg" /> <span className="block">Last updated</span>
 							</DropdownMenuSubTrigger>
@@ -307,18 +303,16 @@ export function DiagnosesTable({
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
 
-						<DropdownMenuSub
-							open={activeDiagnosisFilterSubmenu === "diagnosed-at"}
-							onOpenChange={(isDiagnosedAtSubmenuOpen) => {
-								setActiveDiagnosisFilterSubmenu((currentActiveDiagnosisFilterSubmenu) =>
-									isDiagnosedAtSubmenuOpen
-										? "diagnosed-at"
-										: currentActiveDiagnosisFilterSubmenu === "diagnosed-at"
-											? null
-											: currentActiveDiagnosisFilterSubmenu,
-								);
-							}}
-						>
+							<DropdownMenuSub
+								open={activeDiagnosisFilterSubmenu === "diagnosed-at"}
+								onOpenChange={(isDiagnosedAtSubmenuOpen) => {
+									setActiveDiagnosisFilterSubmenu((prev) => {
+										if (isDiagnosedAtSubmenuOpen) return "diagnosed-at";
+										if (prev === "diagnosed-at") return null;
+										return prev;
+									});
+								}}
+							>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 								<RiPulseLine className="size-4.5" /> <span className="block">Diagnosed At</span>
 							</DropdownMenuSubTrigger>
@@ -335,18 +329,16 @@ export function DiagnosesTable({
 								/>
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
-						<DropdownMenuSub
-							open={activeDiagnosisFilterSubmenu === "created-at"}
-							onOpenChange={(isCreatedAtSubmenuOpen) => {
-								setActiveDiagnosisFilterSubmenu((currentActiveDiagnosisFilterSubmenu) =>
-									isCreatedAtSubmenuOpen
-										? "created-at"
-										: currentActiveDiagnosisFilterSubmenu === "created-at"
-											? null
-											: currentActiveDiagnosisFilterSubmenu,
-								);
-							}}
-						>
+							<DropdownMenuSub
+								open={activeDiagnosisFilterSubmenu === "created-at"}
+								onOpenChange={(isCreatedAtSubmenuOpen) => {
+									setActiveDiagnosisFilterSubmenu((prev) => {
+										if (isCreatedAtSubmenuOpen) return "created-at";
+										if (prev === "created-at") return null;
+										return prev;
+									});
+								}}
+							>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 								<RiCalendarLine className="size-4.5" /> <span className="block">Created at</span>
 							</DropdownMenuSubTrigger>
