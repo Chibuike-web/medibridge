@@ -81,6 +81,10 @@ export type AllergyType = {
 	status: "Active" | "Inactive";
 };
 
+export type AllergyStatusFilter = "" | "active" | "inactive";
+
+export type AllergySeverityFilter = "mild" | "moderate" | "severe";
+
 export type ImmunizationType = {
 	vaccineName: string;
 	immunizationId: string;

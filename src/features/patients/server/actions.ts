@@ -414,11 +414,19 @@ export async function getPatientAllergiesTableAction({
 	page,
 	limit,
 	query = "",
+	createdFrom = "",
+	createdTo = "",
+	statusFilter = "",
+	severityFilters = [],
 }: {
 	patientId: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilter?: "" | "active" | "inactive";
+	severityFilters?: ("mild" | "moderate" | "severe")[];
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
@@ -427,6 +435,9 @@ export async function getPatientAllergiesTableAction({
 		currentPage,
 		currentLimit,
 		query,
+		{ createdFrom, createdTo },
+		statusFilter,
+		severityFilters,
 	);
 
 	return {

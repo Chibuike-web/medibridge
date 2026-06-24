@@ -1,11 +1,22 @@
 import { unstable_cache } from "next/cache";
 import { patient, patientAllergy } from "@/db/schemas";
-import type { AllergyType } from "@/features/patients/types";
+import type {
+	AllergySeverityFilter,
+	AllergyStatusFilter,
+	AllergyType,
+} from "@/features/patients/types";
 import { db } from "@/lib/better-auth/auth";
 import { formatDateTime } from "@/lib/utils/format-date-time";
+import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
-import { and, count, desc, eq, ilike, or } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { endOfDay, startOfDay } from "date-fns";
 import { getOrganizationId } from "./get-organization-id";
+
+type AllergyDateFilters = {
+	createdFrom?: string;
+	createdTo?: string;
+};
 
 function normalizeSeverity(value: string): AllergyType["severity"] {
 	if (value === "Mild" || value === "Moderate" || value === "Severe") {
@@ -24,34 +35,46 @@ export async function getPatientAllergies(
 	page = 1,
 	limit = 14,
 	query = "",
+	dateFilters: AllergyDateFilters = {},
+	statusFilter: AllergyStatusFilter = "",
+	severityFilters: AllergySeverityFilter[] = [],
 ): Promise<{ allergies: AllergyType[]; totalAllergies: number }> {
 	const organizationId = await getOrganizationId();
 	const offset = (page - 1) * limit;
 	const normalizedQuery = query.trim();
 	const searchPattern = `%${normalizedQuery}%`;
+	const createdFromDate = parseDateParam(dateFilters.createdFrom ?? "");
+	const createdToDate = parseDateParam(dateFilters.createdTo ?? "");
+	const databaseSeverityFilters = severityFilters.map(toTitleCase);
+	const databaseStatusFilter = statusFilter ? toTitleCase(statusFilter) : "";
 
 	if (!organizationId) return { allergies: [], totalAllergies: 0 };
 
 	return unstable_cache(
 		async () => {
+			const allergyFilter = and(
+				eq(patientAllergy.patientId, patientId),
+				eq(patient.organizationId, organizationId),
+				createdFromDate ? gte(patientAllergy.createdAt, startOfDay(createdFromDate)) : undefined,
+				createdToDate ? lte(patientAllergy.createdAt, endOfDay(createdToDate)) : undefined,
+				databaseStatusFilter ? eq(patientAllergy.status, databaseStatusFilter) : undefined,
+				databaseSeverityFilters.length > 0
+					? inArray(patientAllergy.severity, databaseSeverityFilters)
+					: undefined,
+				or(
+					ilike(patientAllergy.allergen, searchPattern),
+					ilike(patientAllergy.id, searchPattern),
+					ilike(patientAllergy.reaction, searchPattern),
+					ilike(patientAllergy.severity, searchPattern),
+					ilike(patientAllergy.status, searchPattern),
+				),
+			);
 			const [countRows, rows] = await Promise.all([
 				db
 					.select({ value: count() })
 					.from(patientAllergy)
 					.innerJoin(patient, eq(patientAllergy.patientId, patient.id))
-					.where(
-						and(
-							eq(patientAllergy.patientId, patientId),
-							eq(patient.organizationId, organizationId),
-							or(
-								ilike(patientAllergy.allergen, searchPattern),
-								ilike(patientAllergy.id, searchPattern),
-								ilike(patientAllergy.reaction, searchPattern),
-								ilike(patientAllergy.severity, searchPattern),
-								ilike(patientAllergy.status, searchPattern),
-							),
-						),
-					),
+					.where(allergyFilter),
 				db
 					.select({
 						allergen: patientAllergy.allergen,
@@ -63,19 +86,7 @@ export async function getPatientAllergies(
 					})
 					.from(patientAllergy)
 					.innerJoin(patient, eq(patientAllergy.patientId, patient.id))
-					.where(
-						and(
-							eq(patientAllergy.patientId, patientId),
-							eq(patient.organizationId, organizationId),
-							or(
-								ilike(patientAllergy.allergen, searchPattern),
-								ilike(patientAllergy.id, searchPattern),
-								ilike(patientAllergy.reaction, searchPattern),
-								ilike(patientAllergy.severity, searchPattern),
-								ilike(patientAllergy.status, searchPattern),
-							),
-						),
-					)
+					.where(allergyFilter)
 					.orderBy(desc(patientAllergy.createdAt))
 					.limit(limit)
 					.offset(offset),
@@ -94,7 +105,13 @@ export async function getPatientAllergies(
 				})),
 			};
 		},
-		[`patient-allergies-record-primary-ids-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
+		[
+			`patient-allergies-record-primary-ids-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}-${dateFilters.createdFrom ?? ""}-${dateFilters.createdTo ?? ""}-${statusFilter}-${severityFilters.join(",")}`,
+		],
 		{ tags: [`patient-allergies-${organizationId}-${patientId}`] },
 	)();
+}
+
+function toTitleCase(value: string) {
+	return value.charAt(0).toUpperCase() + value.slice(1);
 }

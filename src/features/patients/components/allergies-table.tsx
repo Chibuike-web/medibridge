@@ -6,6 +6,7 @@ import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -34,6 +35,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils/cn";
+import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {
 	type ColumnDef,
 	flexRender,
@@ -44,11 +46,14 @@ import {
 } from "@tanstack/react-table";
 import {
 	RiArchiveLine,
+	RiArrowRightLine,
 	RiArrowDownSLine,
 	RiArrowUpSLine,
 	RiBarChartBoxLine,
 	RiCalendarLine,
+	RiCheckLine,
 	RiCheckboxCircleLine,
+	RiCloseLine,
 	RiEyeLine,
 	RiFilter3Line,
 	RiMore2Fill,
@@ -56,10 +61,76 @@ import {
 	RiShare2Line,
 } from "@remixicon/react";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
+import { endOfDay, format, isSameDay, startOfDay, startOfMonth, subDays, subYears } from "date-fns";
+import type { DateRange } from "react-day-picker";
+
+type AllergyFilterSubmenu = "status" | "severity" | "created-at";
+
+type AllergyDateFilterPreset = {
+	label: string;
+	getRange: (today: Date) => AllergyDateCompleteRange;
+};
+
+type AllergyDateCompleteRange = {
+	from: Date;
+	to: Date;
+};
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
+
+const allergyStatusFilterOptions: {
+	label: string;
+	value: "" | "active" | "inactive";
+}[] = [
+	{ label: "All", value: "" },
+	{ label: "Active", value: "active" },
+	{ label: "Inactive", value: "inactive" },
+];
+
+const allergySeverityFilterOptions: {
+	label: string;
+	value: "mild" | "moderate" | "severe";
+}[] = [
+	{ label: "Mild", value: "mild" },
+	{ label: "Moderate", value: "moderate" },
+	{ label: "Severe", value: "severe" },
+];
+
+const allergyDateFilterPresets: AllergyDateFilterPreset[] = [
+	{
+		label: "Today",
+		getRange: (today) => ({ from: startOfDay(today), to: endOfDay(today) }),
+	},
+	{
+		label: "This week",
+		getRange: (today) => ({
+			from: startOfDay(subDays(today, today.getDay())),
+			to: endOfDay(today),
+		}),
+	},
+	{
+		label: "Last 30 days",
+		getRange: (today) => ({
+			from: startOfDay(subDays(today, 29)),
+			to: endOfDay(today),
+		}),
+	},
+	{
+		label: "This month",
+		getRange: (today) => ({
+			from: startOfDay(startOfMonth(today)),
+			to: endOfDay(today),
+		}),
+	},
+	{
+		label: "Last year",
+		getRange: (today) => ({
+			from: startOfDay(subYears(today, 1)),
+			to: endOfDay(today),
+		}),
+	},
+];
 
 type AllergiesTableProps = {
 	allergies: AllergyType[];
@@ -67,8 +138,15 @@ type AllergiesTableProps = {
 	limit: number;
 	totalPages: number;
 	query: string;
+	createdFrom: string;
+	createdTo: string;
+	statusFilter: "" | "active" | "inactive";
+	severityFilters: ("mild" | "moderate" | "severe")[];
 	isPending: boolean;
 	onQueryChange: (query: string) => void;
+	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
+	onStatusFilterChange: (statusFilter: "" | "active" | "inactive") => void;
+	onSeverityFiltersChange: (severityFilters: ("mild" | "moderate" | "severe")[]) => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -80,14 +158,26 @@ export function AllergiesTable({
 	limit,
 	totalPages,
 	query,
+	createdFrom,
+	createdTo,
+	statusFilter,
+	severityFilters,
 	isPending,
 	onQueryChange,
+	onCreatedAtRangeApply,
+	onStatusFilterChange,
+	onSeverityFiltersChange,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
 }: AllergiesTableProps) {
 	const columns = useMemo(() => getAllergiesColumns(), []);
 	const [sorting, setSorting] = useState<SortingState>([]);
+	const [activeAllergyFilterSubmenu, setActiveAllergyFilterSubmenu] =
+		useState<AllergyFilterSubmenu | null>(null);
+	const hasActiveFilters = Boolean(
+		query || createdFrom || createdTo || statusFilter || severityFilters.length > 0,
+	);
 
 	const table = useReactTable({
 		data: allergies,
@@ -115,7 +205,13 @@ export function AllergiesTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<DropdownMenu>
+				<DropdownMenu
+					onOpenChange={(isAllergyFilterMenuOpen) => {
+						if (!isAllergyFilterMenuOpen) {
+							setActiveAllergyFilterSubmenu(null);
+						}
+					}}
+				>
 					<DropdownMenuTrigger asChild>
 						<Button
 							variant="outline"
@@ -130,7 +226,16 @@ export function AllergiesTable({
 						sideOffset={8}
 						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 					>
-						<DropdownMenuSub>
+						<DropdownMenuSub
+							open={activeAllergyFilterSubmenu === "status"}
+							onOpenChange={(isStatusSubmenuOpen) => {
+								setActiveAllergyFilterSubmenu((prev) => {
+									if (isStatusSubmenuOpen) return "status";
+									if (prev === "status") return null;
+									return prev;
+								});
+							}}
+						>
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
 								<RiCheckboxCircleLine className="size-4.5" /> <span className="block">Status</span>
 							</DropdownMenuSubTrigger>
@@ -139,41 +244,64 @@ export function AllergiesTable({
 								alignOffset={-5}
 								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
-								<RadioGroup defaultValue="all" className="flex flex-col gap-0">
-									<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
-										<RadioGroupItem value="all" id="all" />
-										<Label
-											htmlFor="all"
-											className="cursor-pointer w-full leading-normal font-normal"
-										>
-											All
-										</Label>
-									</div>
+								{allergyStatusFilterOptions.map((statusOption) => {
+									const isStatusSelected = statusFilter === statusOption.value;
+									const statusOptionId = `allergy-status-${statusOption.value || "all"}`;
 
-									<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
-										<RadioGroupItem value="male" id="male" />
-										<Label
-											htmlFor="male"
-											className="cursor-pointer w-full leading-normal font-normal"
+									return (
+										<DropdownMenuItem
+											key={statusOption.value || "all"}
+											className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
+											onSelect={(event) => {
+												event.preventDefault();
+												onStatusFilterChange(statusOption.value);
+											}}
 										>
-											Active
-										</Label>
-									</div>
-
-									<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
-										<RadioGroupItem value="female" id="female" />
-										<Label
-											htmlFor="female"
-											className="cursor-pointer w-full leading-normal font-normal"
-										>
-											Inactive
-										</Label>
-									</div>
-								</RadioGroup>
+											<Label
+												htmlFor={statusOptionId}
+												className="w-full cursor-pointer px-2 py-2 leading-normal font-normal"
+											>
+												<span
+													className={cn(
+														"flex size-4 items-center justify-center rounded-full border border-gray-300",
+														isStatusSelected ? "border-gray-800" : "",
+													)}
+													aria-hidden="true"
+												>
+													<span
+														className={cn(
+															"size-2 rounded-full bg-gray-800",
+															isStatusSelected ? "block" : "hidden",
+														)}
+													/>
+												</span>
+												<input
+													id={statusOptionId}
+													type="radio"
+													name="allergy-status"
+													value={statusOption.value}
+													checked={isStatusSelected}
+													readOnly
+													className="sr-only"
+												/>
+												<span>{statusOption.label}</span>
+											</Label>
+										</DropdownMenuItem>
+									);
+								})}
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
 
-						<DropdownMenuSub>
+						<DropdownMenuSub
+							open={activeAllergyFilterSubmenu === "severity"}
+							onOpenChange={(isSeveritySubmenuOpen) => {
+								setActiveAllergyFilterSubmenu((prev) => {
+									if (isSeveritySubmenuOpen) return "severity";
+									if (prev === "severity") return null;
+									return prev;
+								});
+							}}
+						>
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
 								<RiBarChartBoxLine className="text-lg" /> <span className="block">Severity</span>
 							</DropdownMenuSubTrigger>
@@ -182,68 +310,69 @@ export function AllergiesTable({
 								alignOffset={-5}
 								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
-								<DropdownMenuItem
-									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
-									onSelect={(e) => {
-										e.preventDefault();
-									}}
-								>
-									<Label
-										htmlFor="requested-mild"
-										className="w-full cursor-pointer leading-normal font-normal"
-									>
-										<Checkbox id="requested-mild" className="[&_svg]:!text-current" />
-										<span>Mild</span>
-									</Label>
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
-									onSelect={(e) => {
-										e.preventDefault();
-									}}
-								>
-									<Label
-										htmlFor="requested-moderate"
-										className="w-full cursor-pointer leading-normal font-normal"
-									>
-										<Checkbox id="requested-moderate" className="[&_svg]:!text-current" />
-										<span>Moderate</span>
-									</Label>
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2"
-									onSelect={(e) => {
-										e.preventDefault();
-									}}
-								>
-									<Label
-										htmlFor="requested-severe"
-										className="w-full cursor-pointer leading-normal font-normal"
-									>
-										<Checkbox id="requested-severe" className="[&_svg]:!text-current" />
-										<span>Severe</span>
-									</Label>
-								</DropdownMenuItem>
+								{allergySeverityFilterOptions.map((severityOption) => {
+									const isSeveritySelected = severityFilters.includes(severityOption.value);
+									const severityOptionId = `allergy-severity-${severityOption.value}`;
+
+									return (
+										<DropdownMenuItem
+											key={severityOption.value}
+											className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
+											onSelect={(event) => {
+												event.preventDefault();
+											}}
+										>
+											<Label
+												htmlFor={severityOptionId}
+												className="w-full cursor-pointer px-2 py-2 leading-normal font-normal"
+											>
+												<Checkbox
+													id={severityOptionId}
+													checked={isSeveritySelected}
+													disabled={isPending}
+													onCheckedChange={(checked) => {
+														onSeverityFiltersChange(
+															checked === true
+																? [...severityFilters, severityOption.value]
+																: severityFilters.filter(
+																		(severityFilter) => severityFilter !== severityOption.value,
+																	),
+														);
+													}}
+													className="[&_svg]:!text-current"
+												/>
+												<span>{severityOption.label}</span>
+											</Label>
+										</DropdownMenuItem>
+									);
+								})}
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
 
-						<DropdownMenuSub>
+						<DropdownMenuSub
+							open={activeAllergyFilterSubmenu === "created-at"}
+							onOpenChange={(isCreatedAtSubmenuOpen) => {
+								setActiveAllergyFilterSubmenu((prev) => {
+									if (isCreatedAtSubmenuOpen) return "created-at";
+									if (prev === "created-at") return null;
+									return prev;
+								});
+							}}
+						>
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiCalendarLine className="size-4.5" /> <span className="block">Date recorded</span>
+								<RiCalendarLine className="size-4.5" /> <span className="block">Created at</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								sideOffset={8}
-								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+								alignOffset={-5}
+								className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
 							>
-								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2">
-									Today
-								</DropdownMenuItem>
-								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2">
-									This week
-								</DropdownMenuItem>
-								<DropdownMenuItem className="rounded-lg focus:bg-gray-100 focus:text-gray-900 py-2">
-									This month
-								</DropdownMenuItem>
+								<AllergyDateFilterContent
+									from={createdFrom}
+									to={createdTo}
+									isPending={isPending}
+									onDateRangeApply={onCreatedAtRangeApply}
+								/>
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
 					</DropdownMenuContent>
@@ -257,6 +386,15 @@ export function AllergiesTable({
 				</Button>
 				<Button className="text-sm">Add allergy</Button>
 			</div>
+			<AllergyActiveFilterPills
+				createdFrom={createdFrom}
+				createdTo={createdTo}
+				statusFilter={statusFilter}
+				severityFilters={severityFilters}
+				onCreatedAtRangeApply={onCreatedAtRangeApply}
+				onStatusFilterChange={onStatusFilterChange}
+				onSeverityFiltersChange={onSeverityFiltersChange}
+			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="h-12 text-sm font-semibold text-gray-600">
@@ -305,21 +443,34 @@ export function AllergiesTable({
 						))}
 					</TableHeader>
 					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
-						{table.getRowModel().rows.map((row, rowPosition) => (
-							<TableRow key={row.id} className="group min-h-14">
-								{row.getVisibleCells().map((cell) => (
-									<TableCell
-										key={cell.id}
-										className={cn(
-											"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
-											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
-										)}
-									>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
-									</TableCell>
-								))}
+						{table.getRowModel().rows.length > 0 ? (
+							table.getRowModel().rows.map((row, rowPosition) => (
+								<TableRow key={row.id} className="group min-h-14">
+									{row.getVisibleCells().map((cell) => (
+										<TableCell
+											key={cell.id}
+											className={cn(
+												"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
+												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
+											)}
+										>
+											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+										</TableCell>
+									))}
+								</TableRow>
+							))
+						) : (
+							<TableRow>
+								<TableCell
+									colSpan={columns.length}
+									className="h-32 bg-white px-3 py-0 text-center text-sm text-gray-500"
+								>
+									{hasActiveFilters
+										? "No allergies match the current filters."
+										: "No allergies found."}
+								</TableCell>
 							</TableRow>
-						))}
+						)}
 					</TableBody>
 				</Table>
 				<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
@@ -375,6 +526,299 @@ export function AllergiesTable({
 			</div>
 		</div>
 	);
+}
+
+function AllergyActiveFilterPills({
+	createdFrom,
+	createdTo,
+	statusFilter,
+	severityFilters,
+	onCreatedAtRangeApply,
+	onStatusFilterChange,
+	onSeverityFiltersChange,
+}: {
+	createdFrom: string;
+	createdTo: string;
+	statusFilter: "" | "active" | "inactive";
+	severityFilters: ("mild" | "moderate" | "severe")[];
+	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
+	onStatusFilterChange: (statusFilter: "" | "active" | "inactive") => void;
+	onSeverityFiltersChange: (severityFilters: ("mild" | "moderate" | "severe")[]) => void;
+}) {
+	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
+	const hasStatusFilter = Boolean(statusFilter);
+	const hasSeverityFilters = severityFilters.length > 0;
+
+	if (!hasCreatedAtFilter && !hasStatusFilter && !hasSeverityFilters) {
+		return null;
+	}
+
+	return (
+		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+			{hasStatusFilter ? (
+				<AllergyFilterPill
+					label={`Status: ${formatAllergyFilterValue(statusFilter)}`}
+					onRemove={() => onStatusFilterChange("")}
+				/>
+			) : null}
+			{severityFilters.map((severityFilter) => (
+				<AllergyFilterPill
+					key={severityFilter}
+					label={`Severity: ${formatAllergyFilterValue(severityFilter)}`}
+					onRemove={() => {
+						onSeverityFiltersChange(
+							severityFilters.filter(
+								(currentSeverityFilter) => currentSeverityFilter !== severityFilter,
+							),
+						);
+					}}
+				/>
+			))}
+			{hasCreatedAtFilter ? (
+				<AllergyFilterPill
+					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
+		</div>
+	);
+}
+
+function AllergyFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
+	return (
+		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
+			<span>{label}</span>
+			<button
+				type="button"
+				onClick={onRemove}
+				className="flex items-center justify-center bg-gray-800 text-white size-5 rounded-full transition hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+				aria-label={`Remove ${label} filter`}
+			>
+				<RiCloseLine className="size-4" aria-hidden="true" />
+			</button>
+		</span>
+	);
+}
+
+function AllergyDateFilterContent({
+	from,
+	to,
+	isPending,
+	onDateRangeApply,
+}: {
+	from: string;
+	to: string;
+	isPending: boolean;
+	onDateRangeApply: (from: string, to: string) => void;
+}) {
+	return (
+		<div className="flex w-max">
+			<div className="flex w-50 shrink-0 flex-col p-1 text-sm text-gray-600">
+				<AllergyDatePresetList from={from} to={to} onDateRangeApply={onDateRangeApply} />
+			</div>
+
+			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
+				<AllergyCustomRangeCalendarPanel
+					from={from}
+					to={to}
+					isPending={isPending}
+					onDateRangeApply={onDateRangeApply}
+				/>
+			</div>
+		</div>
+	);
+}
+
+function AllergyDatePresetList({
+	from,
+	to,
+	onDateRangeApply,
+}: {
+	from: string;
+	to: string;
+	onDateRangeApply: (from: string, to: string) => void;
+}) {
+	const selectedAllergyDateRange = getDateRangeFromParams(from, to);
+	const today = new Date();
+
+	return (
+		<>
+			{allergyDateFilterPresets.map((preset) => {
+				const presetRange = preset.getRange(today);
+				return (
+					<AllergyDatePresetButton
+						key={preset.label}
+						label={preset.label}
+						isSelected={isSameDateRange(selectedAllergyDateRange, presetRange)}
+						onSelect={() => {
+							onDateRangeApply(formatUrlDate(presetRange.from), formatUrlDate(presetRange.to));
+						}}
+					/>
+				);
+			})}
+		</>
+	);
+}
+
+function AllergyCustomRangeCalendarPanel({
+	from,
+	to,
+	isPending,
+	onDateRangeApply,
+}: {
+	from: string;
+	to: string;
+	isPending: boolean;
+	onDateRangeApply: (from: string, to: string) => void;
+}) {
+	const selectedAllergyDateRange = getDateRangeFromParams(from, to);
+	const selectedAllergyDateRangeKey = getDateRangeKey(selectedAllergyDateRange);
+	const [draftAllergyDateRange, setDraftAllergyDateRange] = useState<DateRange | undefined>(
+		selectedAllergyDateRange,
+	);
+	const [previousSelectedAllergyDateRangeKey, setPreviousSelectedAllergyDateRangeKey] =
+		useState(selectedAllergyDateRangeKey);
+
+	if (selectedAllergyDateRangeKey !== previousSelectedAllergyDateRangeKey) {
+		setPreviousSelectedAllergyDateRangeKey(selectedAllergyDateRangeKey);
+		setDraftAllergyDateRange(selectedAllergyDateRange);
+	}
+
+	return (
+		<div className="flex min-w-0 flex-col">
+			<div className="flex items-center gap-3">
+				<AllergyDateFieldPlaceholder value={draftAllergyDateRange?.from} label="Start date" />
+				<RiArrowRightLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
+				<AllergyDateFieldPlaceholder value={draftAllergyDateRange?.to} label="End date" />
+			</div>
+
+			<Calendar
+				mode="range"
+				selected={draftAllergyDateRange}
+				onSelect={(nextDraftAllergyDateRange) => {
+					setDraftAllergyDateRange(nextDraftAllergyDateRange);
+				}}
+				numberOfMonths={1}
+				className="mt-4 p-0"
+				classNames={{
+					month_caption: "flex h-9 w-full items-center justify-center px-9",
+					caption_label: "text-sm font-semibold text-gray-800",
+					weekday: "flex-1 rounded-md text-sm font-medium text-gray-700 select-none",
+					day_button: "rounded-lg text-sm",
+				}}
+				disabled={isPending}
+			/>
+
+			<div className="mt-7 flex justify-end gap-3">
+				<Button
+					type="button"
+					variant="outline"
+					className="min-w-28 text-sm"
+					disabled={isPending}
+					onClick={() => {
+						setDraftAllergyDateRange(undefined);
+						onDateRangeApply("", "");
+					}}
+				>
+					Reset
+				</Button>
+				<Button
+					type="button"
+					className="min-w-40 flex-1 text-sm"
+					disabled={!draftAllergyDateRange?.from || !draftAllergyDateRange?.to || isPending}
+					onClick={() => {
+						if (!draftAllergyDateRange?.from || !draftAllergyDateRange?.to) return;
+
+						onDateRangeApply(
+							formatUrlDate(draftAllergyDateRange.from),
+							formatUrlDate(draftAllergyDateRange.to),
+						);
+					}}
+				>
+					Apply
+				</Button>
+			</div>
+		</div>
+	);
+}
+
+function AllergyDatePresetButton({
+	isSelected,
+	label,
+	onSelect,
+}: {
+	isSelected: boolean;
+	label: string;
+	onSelect: () => void;
+}) {
+	return (
+		<DropdownMenuItem
+			onSelect={(event) => {
+				event.preventDefault();
+				onSelect();
+			}}
+			className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
+		>
+			<span>{label}</span>
+			{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}
+		</DropdownMenuItem>
+	);
+}
+
+function AllergyDateFieldPlaceholder({ label, value }: { label: string; value?: Date }) {
+	return (
+		<div className="flex h-9 text-sm min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left font-medium text-gray-500">
+			<RiCalendarLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
+			<span className="sr-only">{label}</span>
+			<span className="truncate">{value ? format(value, "dd/MM/yyyy") : "DD/MM/YYYY"}</span>
+		</div>
+	);
+}
+
+function formatDateRangeFilterLabel(from: string, to: string) {
+	const parsedFromDate = parseDateParam(from);
+	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate) {
+		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedFromDate) {
+		return `From ${format(parsedFromDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedToDate) {
+		return `Until ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	return "Any date";
+}
+
+function getDateRangeFromParams(from: string, to: string): DateRange | undefined {
+	const parsedFromDate = parseDateParam(from);
+	const parsedToDate = parseDateParam(to);
+
+	if (!parsedFromDate && !parsedToDate) return undefined;
+
+	return { from: parsedFromDate, to: parsedToDate };
+}
+
+function getDateRangeKey(range?: DateRange) {
+	return `${range?.from ? formatUrlDate(range.from) : ""}:${range?.to ? formatUrlDate(range.to) : ""}`;
+}
+
+function isSameDateRange(range: DateRange | undefined, presetRange: AllergyDateCompleteRange) {
+	if (!range?.from || !range.to) return false;
+
+	return isSameDay(range.from, presetRange.from) && isSameDay(range.to, presetRange.to);
+}
+
+function formatUrlDate(date: Date) {
+	return format(date, "yyyy-MM-dd");
+}
+
+function formatAllergyFilterValue(value: string) {
+	return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function getAllergiesColumns(): ColumnDef<AllergyType>[] {

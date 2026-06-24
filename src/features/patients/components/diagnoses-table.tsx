@@ -419,6 +419,16 @@ export function DiagnosesTable({
 				limit={limit}
 				totalPages={totalPages}
 				isPending={isPending}
+				hasActiveFilters={Boolean(
+					query ||
+						createdFrom ||
+						createdTo ||
+						diagnosedFrom ||
+						diagnosedTo ||
+						lastReviewedFrom ||
+						lastReviewedTo ||
+						statusFilters.length > 0,
+				)}
 				onViewDiagnosisDetails={handleViewDiagnosisDetails}
 				onPreviousPage={onPreviousPage}
 				onNextPage={onNextPage}
@@ -447,6 +457,7 @@ function DiagnosesTableContent({
 	limit,
 	totalPages,
 	isPending,
+	hasActiveFilters,
 	onViewDiagnosisDetails,
 	onPreviousPage,
 	onNextPage,
@@ -460,6 +471,7 @@ function DiagnosesTableContent({
 	limit: number;
 	totalPages: number;
 	isPending: boolean;
+	hasActiveFilters: boolean;
 	onViewDiagnosisDetails: (diagnosisId: string) => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
@@ -481,6 +493,9 @@ function DiagnosesTableContent({
 		},
 	});
 	const selectedDiagnoses = table.getSelectedRowModel().rows.map((row) => row.original);
+	const emptyMessage = hasActiveFilters
+		? "No diagnoses match the current filters."
+		: "No diagnoses found.";
 
 	return (
 		<>
@@ -555,7 +570,7 @@ function DiagnosesTableContent({
 									colSpan={columns.length}
 									className="h-32 bg-white px-3 py-0 text-center text-sm text-gray-500"
 								>
-									No diagnoses found.
+									{emptyMessage}
 								</TableCell>
 							</TableRow>
 						)}
