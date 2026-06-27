@@ -194,6 +194,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 														<DialogClose asChild key={entry.id}>
 															<Link
 																href={entry.href}
+																prefetch
 																className="flex items-center gap-3 rounded-lg px-3 py-3 hover:bg-gray-100 transition-colors"
 															>
 																<Icon className="shrink-0 text-gray-600 size-4" />
@@ -229,7 +230,6 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 						>
 							<Link
 								href={href}
-								prefetch={true}
 								className={cn(
 									"flex w-full items-center gap-2",
 									isCollapsed ? "justify-center" : "justify-start",

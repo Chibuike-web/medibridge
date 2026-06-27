@@ -1,4 +1,5 @@
-import { unstable_cache } from "next/cache";
+import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/better-auth/auth";
 import { patient, patientContactInformation, patientPersonalInformation } from "@/db/schemas";
 import { getOrganizationId } from "./get-organization-id";
@@ -15,47 +16,43 @@ function formatSex(value: string | null) {
 	return value;
 }
 
-export async function getPatientById(patientId: string) {
+export const getPatientById = cache(async (patientId: string) => {
 	const organizationId = await getOrganizationId();
 
 	if (!organizationId) {
 		return null;
 	}
 
-	return unstable_cache(
-		async () => {
-			const rows = await db
-				.select({
-					patientId: patient.patientId,
-					firstName: patientPersonalInformation.firstName,
-					lastName: patientPersonalInformation.lastName,
-					sex: patientPersonalInformation.sex,
-					email: patientContactInformation.emailAddress,
-					phoneNumber: patientContactInformation.phoneNumber,
-					address: patientContactInformation.residentialAddress,
-				})
-				.from(patient)
-				.innerJoin(
-					patientPersonalInformation,
-					eq(patient.id, patientPersonalInformation.patientId),
-				)
-				.leftJoin(
-					patientContactInformation,
-					eq(patient.id, patientContactInformation.patientId),
-				)
-				.where(and(eq(patient.id, patientId), eq(patient.organizationId, organizationId)))
-				.limit(1);
+	return getPatientByIdForOrganization(patientId, organizationId);
+});
 
-			const row = rows[0];
+export async function getPatientByIdForOrganization(patientId: string, organizationId: string) {
+	"use cache";
+	cacheLife("max");
+	cacheTag(`patient-by-id-${organizationId}-${patientId}`);
 
-			if (!row) return null;
+	const rows = await db
+		.select({
+			patientId: patient.patientId,
+			firstName: patientPersonalInformation.firstName,
+			lastName: patientPersonalInformation.lastName,
+			sex: patientPersonalInformation.sex,
+			email: patientContactInformation.emailAddress,
+			phoneNumber: patientContactInformation.phoneNumber,
+			address: patientContactInformation.residentialAddress,
+		})
+		.from(patient)
+		.innerJoin(patientPersonalInformation, eq(patient.id, patientPersonalInformation.patientId))
+		.leftJoin(patientContactInformation, eq(patient.id, patientContactInformation.patientId))
+		.where(and(eq(patient.id, patientId), eq(patient.organizationId, organizationId)))
+		.limit(1);
 
-			return {
-				...row,
-				sex: formatSex(row.sex),
-			};
-		},
-		[`patient-by-id-${organizationId}-${patientId}`],
-		{ tags: [`patient-by-id-${organizationId}-${patientId}`] },
-	)();
+	const row = rows[0];
+
+	if (!row) return null;
+
+	return {
+		...row,
+		sex: formatSex(row.sex),
+	};
 }

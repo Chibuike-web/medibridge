@@ -1,15 +1,25 @@
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/status-badge";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { SectionTabs, type PatientSection } from "@/features/patients/components/section-tabs";
 import { PatientOverviewSection } from "@/features/patients/components/patient-overview-section";
 import { PatientDetailsSection } from "@/features/patients/components/patient-details-section/patient-details-section";
 import { PatientAvatarMenu } from "@/features/patients/components/patient-avatar-menu";
+import {
+	CreateAllergyEmptyStateAction,
+	CreateDiagnosisEmptyStateAction,
+	CreateDocumentEmptyStateAction,
+	CreateEncounterEmptyStateAction,
+	CreateImagingEmptyStateAction,
+	CreateImmunizationEmptyStateAction,
+	CreateLabTestEmptyStateAction,
+	CreateMedicationEmptyStateAction,
+	CreateProcedureEmptyStateAction,
+} from "@/features/patients/components/patient-empty-state-actions";
 import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
@@ -216,11 +226,11 @@ async function DiagnosesSection({ patientId }: { patientId: string }) {
 	const { diagnoses, totalDiagnoses } = await getPatientDiagnoses(patientId);
 
 	if (diagnoses.length === 0) {
-		return renderEmptyState(
-			"No Diagnoses yet",
-			"No diagnoses have been recorded for this patient.",
-			"Add diagnosis",
-		);
+		return renderEmptyState({
+			title: "No Diagnoses yet",
+			description: "No diagnoses have been recorded for this patient.",
+			action: <CreateDiagnosisEmptyStateAction />,
+		});
 	}
 
 	return (
@@ -238,11 +248,11 @@ async function AllergiesSection({ patientId }: { patientId: string }) {
 	const { allergies, totalAllergies } = await getPatientAllergies(patientId);
 
 	if (allergies.length === 0) {
-		return renderEmptyState(
-			"No Allergies yet",
-			"No allergies have been recorded for this patient.",
-			"Add allergy",
-		);
+		return renderEmptyState({
+			title: "No Allergies yet",
+			description: "No allergies have been recorded for this patient.",
+			action: <CreateAllergyEmptyStateAction />,
+		});
 	}
 
 	return (
@@ -260,11 +270,11 @@ async function ImmunizationSection({ patientId }: { patientId: string }) {
 	const { immunizations, totalImmunizations } = await getPatientImmunizations(patientId);
 
 	if (immunizations.length === 0) {
-		return renderEmptyState(
-			"No Immunizations yet",
-			"No immunizations have been recorded for this patient.",
-			"Add immunization",
-		);
+		return renderEmptyState({
+			title: "No Immunizations yet",
+			description: "No immunizations have been recorded for this patient.",
+			action: <CreateImmunizationEmptyStateAction />,
+		});
 	}
 
 	return (
@@ -282,11 +292,11 @@ async function ProceduresSection({ patientId }: { patientId: string }) {
 	const { procedures, totalProcedures } = await getPatientProcedures(patientId);
 
 	if (procedures.length === 0) {
-		return renderEmptyState(
-			"No Procedures yet",
-			"No procedures have been recorded for this patient.",
-			"Add procedure",
-		);
+		return renderEmptyState({
+			title: "No Procedures yet",
+			description: "No procedures have been recorded for this patient.",
+			action: <CreateProcedureEmptyStateAction />,
+		});
 	}
 
 	return (
@@ -304,11 +314,11 @@ async function MedicationsSection({ patientId }: { patientId: string }) {
 	const { medications, totalMedications } = await getPatientMedications(patientId);
 
 	if (medications.length === 0) {
-		return renderEmptyState(
-			"No Medications yet",
-			"No medications have been recorded for this patient.",
-			"Add medication",
-		);
+		return renderEmptyState({
+			title: "No Medications yet",
+			description: "No medications have been recorded for this patient.",
+			action: <CreateMedicationEmptyStateAction />,
+		});
 	}
 
 	return (
@@ -326,11 +336,11 @@ async function EncountersSection({ patientId }: { patientId: string }) {
 	const { encounters, totalEncounters } = await getPatientEncounters(patientId);
 
 	if (encounters.length === 0) {
-		return renderEmptyState(
-			"No Encounters yet",
-			"No encounters have been recorded for this patient.",
-			"Add encounter",
-		);
+		return renderEmptyState({
+			title: "No Encounters yet",
+			description: "No encounters have been recorded for this patient.",
+			action: <CreateEncounterEmptyStateAction />,
+		});
 	}
 
 	return (
@@ -348,11 +358,11 @@ async function LabTestsSection({ patientId }: { patientId: string }) {
 	const { labTests, totalLabTests } = await getPatientLabTests(patientId);
 
 	if (labTests.length === 0) {
-		return renderEmptyState(
-			"No Lab Tests yet",
-			"No lab tests have been recorded for this patient.",
-			"Add lab test",
-		);
+		return renderEmptyState({
+			title: "No Lab Tests yet",
+			description: "No lab tests have been recorded for this patient.",
+			action: <CreateLabTestEmptyStateAction />,
+		});
 	}
 
 	return (
@@ -370,11 +380,11 @@ async function ImagingSection({ patientId }: { patientId: string }) {
 	const { imagingStudies, totalImagingStudies } = await getPatientImaging(patientId);
 
 	if (imagingStudies.length === 0) {
-		return renderEmptyState(
-			"No Imaging yet",
-			"No imaging studies have been recorded for this patient.",
-			"Add imaging",
-		);
+		return renderEmptyState({
+			title: "No Imaging yet",
+			description: "No imaging studies have been recorded for this patient.",
+			action: <CreateImagingEmptyStateAction />,
+		});
 	}
 
 	return (
@@ -392,17 +402,25 @@ function DocumentsSection({ patientId }: { patientId: string }) {
 	const documents: unknown[] = [];
 
 	if (documents.length === 0) {
-		return renderEmptyState(
-			"No Documents yet",
-			"No documents have been recorded for this patient.",
-			"Add document",
-		);
+		return renderEmptyState({
+			title: "No Documents yet",
+			description: "No documents have been recorded for this patient.",
+			action: <CreateDocumentEmptyStateAction />,
+		});
 	}
 
 	return <div className="px-6 py-3">{patientId} documents table</div>;
 }
 
-function renderEmptyState(title: string, description: string, action: string) {
+function renderEmptyState({
+	title,
+	description,
+	action,
+}: {
+	title: string;
+	description: string;
+	action: ReactNode;
+}) {
 	return (
 		<div className="flex min-h-[calc(100vh-13.75rem)] items-center justify-center px-6 py-12">
 			<div className="relative flex w-[31.25rem] max-w-full items-end justify-center">
@@ -417,9 +435,7 @@ function renderEmptyState(title: string, description: string, action: string) {
 				<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
 					<h2 className="mb-4 text-2xl font-semibold text-gray-800">{title}</h2>
 					<p className="mb-8 max-w-[32rem] text-pretty text-gray-500">{description}</p>
-					<Button className="text-sm" type="button">
-						{action}
-					</Button>
+					{action}
 				</div>
 			</div>
 		</div>

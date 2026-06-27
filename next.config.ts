@@ -6,10 +6,11 @@ const nextConfig: NextConfig = {
 	logging: { fetches: { fullUrl: true } },
 	serverExternalPackages: ["tesseract.js", "pdf-parse", "mammoth"],
 	experimental: {
+		turbopackFileSystemCacheForDev: true,
 		turbopackFileSystemCacheForBuild: true,
 		staleTimes: {
-			dynamic: 300,
-			static: 300,
+			dynamic: 60 * 60 * 24 * 30, // 30 days
+			static: 60 * 60 * 24 * 30,
 		},
 		optimizePackageImports: [
 			"@radix-ui/react-label",

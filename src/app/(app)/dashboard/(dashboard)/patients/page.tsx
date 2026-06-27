@@ -73,7 +73,9 @@ async function PatientsPageContent({ searchParams }: PatientsPagePageProps) {
 						Patient records will appear here once patients have been added to the system.
 					</p>
 					<Button asChild>
-						<Link href="/dashboard/add-new-patient">Add patient </Link>
+						<Link href="/dashboard/add-new-patient" className="text-sm">
+							Add patient
+						</Link>
 					</Button>
 				</div>
 			</div>

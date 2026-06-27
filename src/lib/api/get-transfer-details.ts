@@ -1,4 +1,5 @@
-import { unstable_cache } from "next/cache";
+import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { and, eq, inArray } from "drizzle-orm";
 import {
 	patient,
@@ -282,86 +283,91 @@ async function getTransferContentMetadata(
 	return metadataByRecordId;
 }
 
-export async function getTransferDetails(
+export const getTransferDetails = cache(async (
 	transferId: string,
-): Promise<TransferDetailsType | null> {
+): Promise<TransferDetailsType | null> => {
 	const organizationId = await getOrganizationId();
 
 	if (!organizationId) return null;
 
-	return unstable_cache(
-		async () => {
-			const [transfer] = await db
-				.select({
-					transferId: patientTransfer.id,
-					status: patientTransfer.status,
-					patientId: patientTransfer.patientId,
-					requestedAt: patientTransfer.requestedAt,
-					requestedBy: patientTransfer.requestedBy,
-					createdBy: patientTransfer.createdBy,
-					updatedBy: patientTransfer.updatedBy,
-					targetHospitalName: patientTransfer.targetHospitalName,
-					targetHospitalAdminName: patientTransfer.targetHospitalAdminName,
-					targetHospitalAdminEmail: patientTransfer.targetHospitalAdminEmail,
-					firstName: patientPersonalInformation.firstName,
-					middleName: patientPersonalInformation.middleName,
-					lastName: patientPersonalInformation.lastName,
-				})
-				.from(patientTransfer)
-				.innerJoin(patient, eq(patientTransfer.patientId, patient.id))
-				.innerJoin(
-					patientPersonalInformation,
-					eq(patient.id, patientPersonalInformation.patientId),
-				)
-				.where(
-					and(
-						eq(patientTransfer.id, transferId),
-						eq(patientTransfer.sourceOrganizationId, organizationId),
-					),
-				);
+	return getTransferDetailsForOrganization(transferId, organizationId);
+});
 
-			if (!transfer) return null;
+export async function getTransferDetailsForOrganization(
+	transferId: string,
+	organizationId: string,
+): Promise<TransferDetailsType | null> {
+	"use cache";
+	cacheLife("max");
+	cacheTag(`transfer-details-${organizationId}-${transferId}`);
 
-			const transferContent = await db
-				.select({
-					contentType: patientTransferContent.contentType,
-					recordId: patientTransferContent.recordId,
-				})
-				.from(patientTransferContent)
-				.where(eq(patientTransferContent.transferId, transfer.transferId));
-			const transferContentMetadata = await getTransferContentMetadata(
-				transferContent,
-				transfer.patientId,
-			);
+	const [transfer] = await db
+		.select({
+			transferId: patientTransfer.id,
+			status: patientTransfer.status,
+			patientId: patientTransfer.patientId,
+			requestedAt: patientTransfer.requestedAt,
+			requestedBy: patientTransfer.requestedBy,
+			createdBy: patientTransfer.createdBy,
+			updatedBy: patientTransfer.updatedBy,
+			targetHospitalName: patientTransfer.targetHospitalName,
+			targetHospitalAdminName: patientTransfer.targetHospitalAdminName,
+			targetHospitalAdminEmail: patientTransfer.targetHospitalAdminEmail,
+			firstName: patientPersonalInformation.firstName,
+			middleName: patientPersonalInformation.middleName,
+			lastName: patientPersonalInformation.lastName,
+		})
+		.from(patientTransfer)
+		.innerJoin(patient, eq(patientTransfer.patientId, patient.id))
+		.innerJoin(
+			patientPersonalInformation,
+			eq(patient.id, patientPersonalInformation.patientId),
+		)
+		.where(
+			and(
+				eq(patientTransfer.id, transferId),
+				eq(patientTransfer.sourceOrganizationId, organizationId),
+			),
+		);
+
+	if (!transfer) return null;
+
+	const transferContent = await db
+		.select({
+			contentType: patientTransferContent.contentType,
+			recordId: patientTransferContent.recordId,
+		})
+		.from(patientTransferContent)
+		.where(eq(patientTransferContent.transferId, transfer.transferId));
+	const transferContentMetadata = await getTransferContentMetadata(
+		transferContent,
+		transfer.patientId,
+	);
+
+	return {
+		id: transfer.transferId,
+		patientName: formatPatientName(transfer),
+		patientFirstName: transfer.firstName,
+		patientMiddleName: transfer.middleName,
+		patientLastName: transfer.lastName,
+		patientId: transfer.patientId,
+		status: toTransferStatus(transfer.status),
+		requestedAt: transfer.requestedAt.toISOString(),
+		requestedBy: transfer.requestedBy,
+		createdBy: transfer.createdBy,
+		updatedBy: transfer.updatedBy,
+		targetHospitalName: transfer.targetHospitalName,
+		targetHospitalAdminName: transfer.targetHospitalAdminName,
+		targetHospitalAdminEmail: transfer.targetHospitalAdminEmail,
+		transferContent: transferContent.map((content) => {
+			const metadata = transferContentMetadata.get(content.recordId);
 
 			return {
-				id: transfer.transferId,
-				patientName: formatPatientName(transfer),
-				patientFirstName: transfer.firstName,
-				patientMiddleName: transfer.middleName,
-				patientLastName: transfer.lastName,
-				patientId: transfer.patientId,
-				status: toTransferStatus(transfer.status),
-				requestedAt: transfer.requestedAt.toISOString(),
-				requestedBy: transfer.requestedBy,
-				createdBy: transfer.createdBy,
-				updatedBy: transfer.updatedBy,
-				targetHospitalName: transfer.targetHospitalName,
-				targetHospitalAdminName: transfer.targetHospitalAdminName,
-				targetHospitalAdminEmail: transfer.targetHospitalAdminEmail,
-				transferContent: transferContent.map((content) => {
-					const metadata = transferContentMetadata.get(content.recordId);
-
-					return {
-						contentType: formatContentType(content.contentType),
-						recordId: content.recordId,
-						recordName: metadata?.recordName ?? null,
-						status: metadata?.status ?? null,
-					};
-				}),
+				contentType: formatContentType(content.contentType),
+				recordId: content.recordId,
+				recordName: metadata?.recordName ?? null,
+				status: metadata?.status ?? null,
 			};
-		},
-		[`transfer-details-record-metadata-v3-${organizationId}-${transferId}`],
-		{ tags: [`transfer-details-${organizationId}-${transferId}`] },
-	)();
+		}),
+	};
 }

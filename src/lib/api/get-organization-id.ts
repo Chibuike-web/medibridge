@@ -1,5 +1,5 @@
-import { headers } from "next/headers";
 import { cache } from "react";
+import { headers } from "next/headers";
 import { auth } from "../better-auth/auth";
 import { verifySession } from "./verify-session";
 

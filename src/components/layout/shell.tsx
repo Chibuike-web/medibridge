@@ -1,6 +1,6 @@
 import "@/styles/globals.css";
-import { Providers } from "@/components/providers";
 import { Agentation } from "agentation";
+import { Providers } from "../providers";
 
 export function Shell({ children }: { children: React.ReactNode }) {
 	return (

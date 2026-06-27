@@ -1,4 +1,5 @@
-import { unstable_cache } from "next/cache";
+import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { patient, patientImaging } from "@/db/schemas";
 import type { ImagingType } from "@/features/patients/types";
 import { db } from "@/lib/better-auth/auth";
@@ -39,88 +40,94 @@ function normalizeStatus(value: string): ImagingType["status"] {
 	return "Pending";
 }
 
-export async function getPatientImaging(
+export const getPatientImaging = cache(async (
 	patientId: string,
 	page = 1,
 	limit = 14,
 	query = "",
-): Promise<{ imagingStudies: ImagingType[]; totalImagingStudies: number }> {
+): Promise<{ imagingStudies: ImagingType[]; totalImagingStudies: number }> => {
 	const organizationId = await getOrganizationId();
-	const offset = (page - 1) * limit;
-	const normalizedQuery = query.trim();
-	const searchPattern = `%${normalizedQuery}%`;
 
 	if (!organizationId) return { imagingStudies: [], totalImagingStudies: 0 };
 
-	return unstable_cache(
-		async () => {
-			const [countRows, rows] = await Promise.all([
-				db
-					.select({ value: count() })
-					.from(patientImaging)
-					.innerJoin(patient, eq(patientImaging.patientId, patient.id))
-					.where(
-						and(
-							eq(patientImaging.patientId, patientId),
-							eq(patient.organizationId, organizationId),
-							or(
-								ilike(patientImaging.study, searchPattern),
-								ilike(patientImaging.id, searchPattern),
-								ilike(patientImaging.modality, searchPattern),
-								ilike(patientImaging.region, searchPattern),
-								ilike(patientImaging.impression, searchPattern),
-								ilike(patientImaging.status, searchPattern),
-							),
-						),
-					),
-				db
-					.select({
-						study: patientImaging.study,
-						imagingId: patientImaging.id,
-						modality: patientImaging.modality,
-						region: patientImaging.region,
-						impression: patientImaging.impression,
-						orderedAt: patientImaging.orderedAt,
-						status: patientImaging.status,
-					})
-					.from(patientImaging)
-					.innerJoin(patient, eq(patientImaging.patientId, patient.id))
-					.where(
-						and(
-							eq(patientImaging.patientId, patientId),
-							eq(patient.organizationId, organizationId),
-							or(
-								ilike(patientImaging.study, searchPattern),
-								ilike(patientImaging.id, searchPattern),
-								ilike(patientImaging.modality, searchPattern),
-								ilike(patientImaging.region, searchPattern),
-								ilike(patientImaging.impression, searchPattern),
-								ilike(patientImaging.status, searchPattern),
-							),
-						),
-					)
-					.orderBy(desc(patientImaging.orderedAt))
-					.limit(limit)
-					.offset(offset),
-			]);
+	return getPatientImagingForOrganization(patientId, organizationId, page, limit, query.trim());
+});
 
-			return {
-				totalImagingStudies: countRows[0]?.value ?? 0,
-				imagingStudies: rows.map((imaging) => ({
-					study: imaging.study,
-					imagingId: imaging.imagingId,
-					modality: normalizeModality(imaging.modality),
-					region: imaging.region,
-					impression: imaging.impression ?? "-",
-					orderedAtLabel: imaging.orderedAt
-						? formatDate(imaging.orderedAt.toISOString())
-						: "-",
-					orderedAtSortValue: toSortValue(imaging.orderedAt),
-					status: normalizeStatus(imaging.status),
-				})),
-			};
-		},
-		[`patient-imaging-record-primary-ids-${organizationId}-${patientId}-${page}-${limit}-${normalizedQuery}`],
-		{ tags: [`patient-imaging-${organizationId}-${patientId}`] },
-	)();
+export async function getPatientImagingForOrganization(
+	patientId: string,
+	organizationId: string,
+	page: number,
+	limit: number,
+	normalizedQuery: string,
+): Promise<{ imagingStudies: ImagingType[]; totalImagingStudies: number }> {
+	"use cache";
+	cacheLife("max");
+	cacheTag(`patient-imaging-${organizationId}-${patientId}`);
+
+	const offset = (page - 1) * limit;
+	const searchPattern = `%${normalizedQuery}%`;
+
+	const [countRows, rows] = await Promise.all([
+		db
+			.select({ value: count() })
+			.from(patientImaging)
+			.innerJoin(patient, eq(patientImaging.patientId, patient.id))
+			.where(
+				and(
+					eq(patientImaging.patientId, patientId),
+					eq(patient.organizationId, organizationId),
+					or(
+						ilike(patientImaging.study, searchPattern),
+						ilike(patientImaging.id, searchPattern),
+						ilike(patientImaging.modality, searchPattern),
+						ilike(patientImaging.region, searchPattern),
+						ilike(patientImaging.impression, searchPattern),
+						ilike(patientImaging.status, searchPattern),
+					),
+				),
+			),
+		db
+			.select({
+				study: patientImaging.study,
+				imagingId: patientImaging.id,
+				modality: patientImaging.modality,
+				region: patientImaging.region,
+				impression: patientImaging.impression,
+				orderedAt: patientImaging.orderedAt,
+				status: patientImaging.status,
+			})
+			.from(patientImaging)
+			.innerJoin(patient, eq(patientImaging.patientId, patient.id))
+			.where(
+				and(
+					eq(patientImaging.patientId, patientId),
+					eq(patient.organizationId, organizationId),
+					or(
+						ilike(patientImaging.study, searchPattern),
+						ilike(patientImaging.id, searchPattern),
+						ilike(patientImaging.modality, searchPattern),
+						ilike(patientImaging.region, searchPattern),
+						ilike(patientImaging.impression, searchPattern),
+						ilike(patientImaging.status, searchPattern),
+					),
+				),
+			)
+			.orderBy(desc(patientImaging.orderedAt))
+			.limit(limit)
+			.offset(offset),
+	]);
+
+	return {
+		totalImagingStudies: countRows[0]?.value ?? 0,
+		imagingStudies: rows.map((imaging) => ({
+			study: imaging.study,
+			imagingId: imaging.imagingId,
+			modality: normalizeModality(imaging.modality),
+			region: imaging.region,
+			impression: imaging.impression ?? "-",
+			orderedAtLabel: imaging.orderedAt ? formatDate(imaging.orderedAt.toISOString()) : "-",
+			orderedAtSortValue: toSortValue(imaging.orderedAt),
+			status: normalizeStatus(imaging.status),
+		})),
+	};
 }
