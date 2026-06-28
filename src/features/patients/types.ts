@@ -81,6 +81,31 @@ export type AllergyType = {
 	status: "Active" | "Inactive";
 };
 
+export type AllergyDetailsHistoryEvent = {
+	id: string;
+	title: string;
+	timestamp: string;
+	items: {
+		label: string;
+		value: string;
+	}[];
+};
+
+export type AllergyDetailsType = {
+	allergyId: string;
+	encounterId: string | null;
+	allergen: string;
+	reaction: string;
+	severity: "Mild" | "Moderate" | "Severe";
+	status: "Active" | "Inactive";
+	createdAt: string;
+	updatedAt: string;
+	createdBy: string;
+	updatedBy: string;
+	clinicalNote: string;
+	history: AllergyDetailsHistoryEvent[];
+};
+
 export type AllergyStatusFilter = "" | "active" | "inactive";
 
 export type AllergySeverityFilter = "mild" | "moderate" | "severe";

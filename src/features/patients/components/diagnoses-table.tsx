@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
@@ -53,6 +53,7 @@ import {
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
+import useSWR from "swr";
 import {
 	RiArrowRightLine,
 	RiArchiveLine,
@@ -180,7 +181,6 @@ export function DiagnosesTable({
 	onLimitChange,
 	onStatusFiltersChange,
 }: DiagnosesTableProps) {
-	const [isLoadingDiagnosisDetails, startLoadDiagnosisDetailsTransition] = useTransition();
 	const visibleDiagnosisRowIds = useMemo(
 		() => diagnoses.map((diagnosis) => diagnosis.diagnosisId).join(","),
 		[diagnoses],
@@ -190,17 +190,15 @@ export function DiagnosesTable({
 		useState<DiagnosisFilterSubmenu | null>(null);
 	const [isCreateDiagnosisDrawerOpen, setIsCreateDiagnosisDrawerOpen] = useState(false);
 	const [isDiagnosisDetailsDrawerOpen, setIsDiagnosisDetailsDrawerOpen] = useState(false);
-	const [selectedDiagnosisDetails, setSelectedDiagnosisDetails] =
-		useState<DiagnosisDetailsType | null>(null);
+	const [selectedDiagnosisId, setSelectedDiagnosisId] = useState<string | null>(null);
+	const diagnosisDetailsQuery = useSWR(
+		selectedDiagnosisId ? (["patient-diagnosis-details", selectedDiagnosisId] as const) : null,
+		([, selectedDiagnosisId]) => getPatientDiagnosisDetailsAction(selectedDiagnosisId),
+	);
 
 	function handleViewDiagnosisDetails(diagnosisId: string) {
-		setSelectedDiagnosisDetails(null);
+		setSelectedDiagnosisId(diagnosisId);
 		setIsDiagnosisDetailsDrawerOpen(true);
-
-		startLoadDiagnosisDetailsTransition(async () => {
-			const diagnosisDetails = await getPatientDiagnosisDetailsAction(diagnosisId);
-			setSelectedDiagnosisDetails(diagnosisDetails);
-		});
 	}
 
 	const columns = useMemo(
@@ -441,8 +439,8 @@ export function DiagnosesTable({
 			<DiagnosisDetailsDrawer
 				open={isDiagnosisDetailsDrawerOpen}
 				onOpenChange={setIsDiagnosisDetailsDrawerOpen}
-				diagnosis={selectedDiagnosisDetails}
-				isLoading={isLoadingDiagnosisDetails}
+				diagnosis={diagnosisDetailsQuery.data ?? null}
+				isLoading={diagnosisDetailsQuery.isLoading}
 			/>
 		</div>
 	);

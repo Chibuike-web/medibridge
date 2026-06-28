@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CreateAllergyDrawer } from "@/features/patients/components/create-allergy-drawer";
 import { CreateDiagnosisDrawer } from "@/features/patients/components/create-diagnosis-drawer";
 
 export function CreateDiagnosisEmptyStateAction() {
@@ -36,7 +37,10 @@ export function CreateAllergyEmptyStateAction() {
 			>
 				Add allergy
 			</Button>
-			<PendingCreateDrawer open={isCreateAllergyDrawerOpen} />
+			<CreateAllergyDrawer
+				open={isCreateAllergyDrawerOpen}
+				onOpenChange={setIsCreateAllergyDrawerOpen}
+			/>
 		</>
 	);
 }

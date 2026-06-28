@@ -23,6 +23,7 @@ import {
 	updatePatientPhysicalInformationSchema,
 } from "./schemas";
 import { getPatientById } from "@/lib/api/get-patient-by-id";
+import { getPatientAllergyDetails } from "@/lib/api/get-patient-allergy-details";
 import { getPatients } from "@/lib/api/get-patients";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
@@ -407,6 +408,10 @@ export async function getPatientDiagnosesTableAction({
 
 export async function getPatientDiagnosisDetailsAction(diagnosisId: string) {
 	return getPatientDiagnosisDetails(diagnosisId);
+}
+
+export async function getPatientAllergyDetailsAction(allergyId: string) {
+	return getPatientAllergyDetails(allergyId);
 }
 
 export async function getPatientAllergiesTableAction({

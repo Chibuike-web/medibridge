@@ -45,8 +45,8 @@ export default async function Overview() {
 												You haven't added any patient records yet. Create a new patient profile to
 												get started.
 											</p>
-											<Button asChild>
-												<Link href="/dashboard/add-new-patient" className="text-sm">
+											<Button asChild className="text-sm">
+												<Link href="/dashboard/add-new-patient">
 													Add patient
 												</Link>
 											</Button>

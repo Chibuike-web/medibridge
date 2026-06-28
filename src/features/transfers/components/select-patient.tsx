@@ -10,10 +10,17 @@ import { RiArrowDownSLine, RiCheckLine, RiCloseLine, RiSearchLine } from "@remix
 import { cn } from "@/lib/utils/cn";
 import { useRouter } from "next/navigation";
 import { useAttachClinicalRecords } from "../stores/use-attach-clinical-records";
-import { useOptimistic, useState, useTransition } from "react";
+import { useState } from "react";
 import { getTransferPatientOptionsAction } from "@/features/transfers/server/actions";
 import { truncateId } from "@/lib/utils/truncate-id";
 import type { Route } from "next";
+import useSWR from "swr";
+
+type PatientOptionsData = {
+	patients: SelectedTransferPatient[];
+	page: number;
+	totalPages: number;
+};
 
 export function SelectPatient({
 	patientId,
@@ -31,11 +38,31 @@ export function SelectPatient({
 	totalPages: number;
 }) {
 	const [searchTerm, setSearchTerm] = useState("");
-	const [patientOptions, setPatientOptions] = useState(patients);
-	const [currentPage, setCurrentPage] = useState(page);
-	const [currentTotalPages, setCurrentTotalPages] = useState(totalPages);
-	const [optimisticPage, setOptimisticPage] = useOptimistic(currentPage);
-	const [isUpdatingPatientOptionsPage, startPatientOptionsPageTransition] = useTransition();
+	const [selectedPatientOptionsPage, setSelectedPatientOptionsPage] = useState(page);
+	const initialPatientOptionsData: PatientOptionsData = { patients, page, totalPages };
+	const patientOptionsQuery = useSWR(
+		["transfer-patient-options", selectedPatientOptionsPage, limit] as const,
+		async ([, selectedPatientOptionsPage, patientOptionsLimit]) => {
+			const result = await getTransferPatientOptionsAction({
+				page: selectedPatientOptionsPage,
+				limit: patientOptionsLimit,
+			});
+
+			return {
+				patients: result.patients.map((patient) => ({
+					name: patient.name,
+					patientId: patient.patientId,
+				})),
+				page: result.page,
+				totalPages: result.totalPages,
+			};
+		},
+		{
+			fallbackData:
+				selectedPatientOptionsPage === page ? initialPatientOptionsData : undefined,
+			keepPreviousData: true,
+		},
+	);
 	const { removeAttachedClinicalRecordsForPatient } = useAttachClinicalRecords();
 
 	const router = useRouter();
@@ -59,22 +86,15 @@ export function SelectPatient({
 		) : (
 			`${selectedTransferPatients[0].name} +${selectedCount - 1} more`
 		);
+	const patientOptionsData = patientOptionsQuery.data ?? initialPatientOptionsData;
+	const patientOptions = patientOptionsData.patients;
+	const currentTotalPages = patientOptionsData.totalPages;
+	const isUpdatingPatientOptionsPage = patientOptionsQuery.isLoading;
 
 	function handlePageChange(nextPage: number) {
 		if (nextPage < 1 || nextPage > currentTotalPages || isUpdatingPatientOptionsPage) return;
 
-		startPatientOptionsPageTransition(async () => {
-			setOptimisticPage(nextPage);
-
-			const result = await getTransferPatientOptionsAction({
-				page: nextPage,
-				limit,
-			});
-
-			setPatientOptions(result.patients);
-			setCurrentPage(result.page);
-			setCurrentTotalPages(result.totalPages);
-		});
+		setSelectedPatientOptionsPage(nextPage);
 	}
 
 	return (
@@ -137,20 +157,20 @@ export function SelectPatient({
 						<Button
 							type="button"
 							variant="outline"
-							onClick={() => handlePageChange(currentPage - 1)}
-							disabled={optimisticPage <= 1 || isUpdatingPatientOptionsPage}
+							onClick={() => handlePageChange(selectedPatientOptionsPage - 1)}
+							disabled={selectedPatientOptionsPage <= 1 || isUpdatingPatientOptionsPage}
 							className="justify-self-start text-sm border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Previous
 						</Button>
 						<span className="justify-self-center text-sm font-medium text-gray-600">
-							Page {optimisticPage} of {currentTotalPages}
+							Page {selectedPatientOptionsPage} of {currentTotalPages}
 						</span>
 						<Button
 							type="button"
 							variant="outline"
-							onClick={() => handlePageChange(currentPage + 1)}
-							disabled={optimisticPage >= currentTotalPages || isUpdatingPatientOptionsPage}
+							onClick={() => handlePageChange(selectedPatientOptionsPage + 1)}
+							disabled={selectedPatientOptionsPage >= currentTotalPages || isUpdatingPatientOptionsPage}
 							className="justify-self-end text-sm border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Next

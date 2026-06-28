@@ -88,8 +88,8 @@ async function TransfersContent({ searchParams }: TransferPageSearchParamsProps)
 					<p className="mb-12 text-center">
 						Start by creating your first transfer request to move patients securely.
 					</p>
-					<Button asChild>
-						<Link href="/dashboard/new-transfer-request" className="text-sm">
+					<Button asChild className="text-sm">
+						<Link href="/dashboard/new-transfer-request">
 							Create transfer request{" "}
 						</Link>
 					</Button>

@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { AllergyType } from "@/features/patients/types";
+import { AllergyDetailsDrawer } from "@/features/patients/components/allergy-details-drawer";
+import { CreateAllergyDrawer } from "@/features/patients/components/create-allergy-drawer";
+import { getPatientAllergyDetailsAction } from "@/features/patients/server/actions";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
@@ -41,6 +44,8 @@ import {
 	flexRender,
 	getCoreRowModel,
 	getSortedRowModel,
+	type OnChangeFn,
+	type RowSelectionState,
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
@@ -64,6 +69,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { endOfDay, format, isSameDay, startOfDay, startOfMonth, subDays, subYears } from "date-fns";
 import type { DateRange } from "react-day-picker";
+import useSWR from "swr";
 
 type AllergyFilterSubmenu = "status" | "severity" | "created-at";
 
@@ -171,25 +177,31 @@ export function AllergiesTable({
 	onNextPage,
 	onLimitChange,
 }: AllergiesTableProps) {
-	const columns = useMemo(() => getAllergiesColumns(), []);
+	const visibleAllergyRowIds = useMemo(
+		() => allergies.map((allergy) => allergy.allergyId).join(","),
+		[allergies],
+	);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [activeAllergyFilterSubmenu, setActiveAllergyFilterSubmenu] =
 		useState<AllergyFilterSubmenu | null>(null);
+	const [isCreateAllergyDrawerOpen, setIsCreateAllergyDrawerOpen] = useState(false);
+	const [isAllergyDetailsDrawerOpen, setIsAllergyDetailsDrawerOpen] = useState(false);
+	const [selectedAllergyId, setSelectedAllergyId] = useState<string | null>(null);
+	const allergyDetailsQuery = useSWR(
+		selectedAllergyId ? (["patient-allergy-details", selectedAllergyId] as const) : null,
+		([, selectedAllergyId]) => getPatientAllergyDetailsAction(selectedAllergyId),
+	);
+	function handleViewAllergyDetails(allergyId: string) {
+		setSelectedAllergyId(allergyId);
+		setIsAllergyDetailsDrawerOpen(true);
+	}
+	const columns = useMemo(
+		() => getAllergiesColumns({ onViewAllergyDetails: handleViewAllergyDetails }),
+		[],
+	);
 	const hasActiveFilters = Boolean(
 		query || createdFrom || createdTo || statusFilter || severityFilters.length > 0,
 	);
-
-	const table = useReactTable({
-		data: allergies,
-		columns,
-		enableRowSelection: true,
-		onSortingChange: setSorting,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		state: {
-			sorting,
-		},
-	});
 
 	return (
 		<div className="p-8 text-sm">
@@ -384,7 +396,13 @@ export function AllergiesTable({
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button className="text-sm">Add allergy</Button>
+				<Button
+					className="text-sm"
+					type="button"
+					onClick={() => setIsCreateAllergyDrawerOpen(true)}
+				>
+					Add allergy
+				</Button>
 			</div>
 			<AllergyActiveFilterPills
 				createdFrom={createdFrom}
@@ -395,132 +413,205 @@ export function AllergiesTable({
 				onStatusFilterChange={onStatusFilterChange}
 				onSeverityFiltersChange={onSeverityFiltersChange}
 			/>
-			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
-				<Table className="min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left">
-					<TableHeader className="h-12 text-sm font-semibold text-gray-600">
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id} className="h-12">
-								{headerGroup.headers.map((header) => (
-									<TableHead
-										key={header.id}
-										onClick={header.column.getToggleSortingHandler()}
-										onKeyDown={(event) => {
-											if (event.key === "Enter") {
-												header.column.getToggleSortingHandler()?.(event);
-											}
-										}}
+			<AllergiesTableContent
+				key={visibleAllergyRowIds}
+				allergies={allergies}
+				columns={columns}
+				sorting={sorting}
+				onSortingChange={setSorting}
+				page={page}
+				limit={limit}
+				totalPages={totalPages}
+				isPending={isPending}
+				hasActiveFilters={hasActiveFilters}
+				onPreviousPage={onPreviousPage}
+				onNextPage={onNextPage}
+				onLimitChange={onLimitChange}
+			/>
+			<CreateAllergyDrawer
+				open={isCreateAllergyDrawerOpen}
+				onOpenChange={setIsCreateAllergyDrawerOpen}
+			/>
+			<AllergyDetailsDrawer
+				open={isAllergyDetailsDrawerOpen}
+				onOpenChange={setIsAllergyDetailsDrawerOpen}
+				allergy={allergyDetailsQuery.data ?? null}
+				isLoading={allergyDetailsQuery.isLoading}
+			/>
+		</div>
+	);
+}
+
+function AllergiesTableContent({
+	allergies,
+	columns,
+	sorting,
+	onSortingChange,
+	page,
+	limit,
+	totalPages,
+	isPending,
+	hasActiveFilters,
+	onPreviousPage,
+	onNextPage,
+	onLimitChange,
+}: {
+	allergies: AllergyType[];
+	columns: ColumnDef<AllergyType>[];
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
+	page: number;
+	limit: number;
+	totalPages: number;
+	isPending: boolean;
+	hasActiveFilters: boolean;
+	onPreviousPage: () => void;
+	onNextPage: () => void;
+	onLimitChange: (limit: number) => void;
+}) {
+	const [selectedAllergyRows, setSelectedAllergyRows] = useState<RowSelectionState>({});
+	const table = useReactTable({
+		data: allergies,
+		columns,
+		enableRowSelection: true,
+		getRowId: (row) => row.allergyId,
+		onSortingChange,
+		onRowSelectionChange: setSelectedAllergyRows,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		state: {
+			sorting,
+			rowSelection: selectedAllergyRows,
+		},
+	});
+	const emptyMessage = hasActiveFilters
+		? "No allergies match the current filters."
+		: "No allergies found.";
+
+	return (
+		<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
+			<Table className="min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<TableHeader className="h-12 text-sm font-semibold text-gray-600">
+					{table.getHeaderGroups().map((headerGroup) => (
+						<TableRow key={headerGroup.id} className="h-12">
+							{headerGroup.headers.map((header) => (
+								<TableHead
+									key={header.id}
+									onClick={header.column.getToggleSortingHandler()}
+									onKeyDown={(event) => {
+										if (event.key === "Enter") {
+											header.column.getToggleSortingHandler()?.(event);
+										}
+									}}
+									className={cn(
+										"z-10 h-12 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
+										header.column.getCanSort() ? "cursor-pointer select-none" : "",
+									)}
+								>
+									<div className="flex items-center justify-between gap-3">
+										{header.isPlaceholder
+											? null
+											: flexRender(header.column.columnDef.header, header.getContext())}
+										{header.column.getCanSort() ? (
+											<div className="-space-y-2">
+												<RiArrowUpSLine
+													className={cn(
+														"size-4 text-gray-800",
+														header.column.getIsSorted() === "desc" ? "opacity-30" : "",
+													)}
+													aria-hidden
+												/>
+												<RiArrowDownSLine
+													className={cn(
+														"size-4 text-gray-800",
+														header.column.getIsSorted() === "asc" ? "opacity-30" : "",
+													)}
+													aria-hidden
+												/>
+											</div>
+										) : null}
+									</div>
+								</TableHead>
+							))}
+						</TableRow>
+					))}
+				</TableHeader>
+				<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
+					{table.getRowModel().rows.length > 0 ? (
+						table.getRowModel().rows.map((row, rowPosition) => (
+							<TableRow key={row.id} className="group min-h-14">
+								{row.getVisibleCells().map((cell) => (
+									<TableCell
+										key={cell.id}
 										className={cn(
-											"z-10 h-12 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
-											header.column.getCanSort() ? "cursor-pointer select-none" : "",
+											"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
+											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 										)}
 									>
-										<div className="flex items-center justify-between gap-3">
-											{header.isPlaceholder
-												? null
-												: flexRender(header.column.columnDef.header, header.getContext())}
-											{header.column.getCanSort() ? (
-												<div className="-space-y-2">
-													<RiArrowUpSLine
-														className={cn(
-															"size-4 text-gray-800",
-															header.column.getIsSorted() === "desc" ? "opacity-30" : "",
-														)}
-														aria-hidden
-													/>
-													<RiArrowDownSLine
-														className={cn(
-															"size-4 text-gray-800",
-															header.column.getIsSorted() === "asc" ? "opacity-30" : "",
-														)}
-														aria-hidden
-													/>
-												</div>
-											) : null}
-										</div>
-									</TableHead>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</TableCell>
 								))}
 							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
-						{table.getRowModel().rows.length > 0 ? (
-							table.getRowModel().rows.map((row, rowPosition) => (
-								<TableRow key={row.id} className="group min-h-14">
-									{row.getVisibleCells().map((cell) => (
-										<TableCell
-											key={cell.id}
-											className={cn(
-												"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
-												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
-											)}
-										>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</TableCell>
-									))}
-								</TableRow>
-							))
-						) : (
-							<TableRow>
-								<TableCell
-									colSpan={columns.length}
-									className="h-32 bg-white px-3 py-0 text-center text-sm text-gray-500"
-								>
-									{hasActiveFilters
-										? "No allergies match the current filters."
-										: "No allergies found."}
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
-				<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-					<div className="flex items-center gap-3">
-						<span>Rows per page</span>
-						<Select
-							value={String(limit)}
-							onValueChange={(value) => onLimitChange(Number(value))}
-							disabled={isPending}
+						))
+					) : (
+						<TableRow>
+							<TableCell
+								colSpan={columns.length}
+								className="h-32 bg-white px-3 py-0 text-center text-sm text-gray-500"
+							>
+								{emptyMessage}
+							</TableCell>
+						</TableRow>
+					)}
+				</TableBody>
+			</Table>
+			<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex items-center gap-3">
+					<span>Rows per page</span>
+					<Select
+						value={String(limit)}
+						onValueChange={(value) => onLimitChange(Number(value))}
+						disabled={isPending}
+					>
+						<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
+							<SelectValue aria-label="Rows per page" placeholder="Rows" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectGroup className="p-1">
+								{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
+									<SelectItem key={pageSize} value={String(pageSize)}>
+										{pageSize}
+									</SelectItem>
+								))}
+							</SelectGroup>
+						</SelectContent>
+					</Select>
+				</div>
+				<div className="flex items-center gap-3">
+					<span>
+						Page {page} of {totalPages}
+					</span>
+					<div className="flex items-center gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={onPreviousPage}
+							disabled={page <= 1 || isPending}
+							className="border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
-							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
-								<SelectValue aria-label="Rows per page" placeholder="Rows" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectGroup className="p-1">
-									{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
-										<SelectItem key={pageSize} value={String(pageSize)}>
-											{pageSize}
-										</SelectItem>
-									))}
-								</SelectGroup>
-							</SelectContent>
-						</Select>
-					</div>
-					<div className="flex items-center gap-3">
-						<span>
-							Page {page} of {totalPages}
-						</span>
-						<div className="flex items-center gap-2">
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={onPreviousPage}
-								disabled={page <= 1 || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
-							>
-								Previous
-							</Button>
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={onNextPage}
-								disabled={page >= totalPages || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
-							>
-								Next
-							</Button>
-						</div>
+							Previous
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={onNextPage}
+							disabled={page >= totalPages || isPending}
+							className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+						>
+							Next
+						</Button>
 					</div>
 				</div>
 			</div>
@@ -821,7 +912,11 @@ function formatAllergyFilterValue(value: string) {
 	return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-function getAllergiesColumns(): ColumnDef<AllergyType>[] {
+function getAllergiesColumns({
+	onViewAllergyDetails,
+}: {
+	onViewAllergyDetails: (allergyId: string) => void;
+}): ColumnDef<AllergyType>[] {
 	return [
 		{
 			id: "select",
@@ -906,7 +1001,10 @@ function getAllergiesColumns(): ColumnDef<AllergyType>[] {
 							align="end"
 							className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
-							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+							<DropdownMenuItem
+								className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+								onSelect={() => onViewAllergyDetails(row.original.allergyId)}
+							>
 								<RiEyeLine className="text-white" />
 								<span>View details</span>
 							</DropdownMenuItem>

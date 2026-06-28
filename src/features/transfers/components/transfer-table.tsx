@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -58,8 +58,9 @@ import {
 	RiShare2Line,
 } from "@remixicon/react";
 import { getTransferDetailsAction } from "@/features/transfers/server/actions";
-import type { TransferDetailsType, TransferType } from "../types";
+import type { TransferType } from "../types";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
+import useSWR from "swr";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
@@ -96,25 +97,17 @@ export function TransferTable({
 	const [selectedTransferId, setSelectedTransferId] = useState<string | null>(
 		null,
 	);
-	const selectedTransferIdRef = useRef<string | null>(null);
-	const [selectedTransfer, setSelectedTransfer] =
-		useState<TransferDetailsType | null>(null);
-	const [isDetailsPending, startDetailsTransition] = useTransition();
+	const transferDetailsQuery = useSWR(
+		selectedTransferId ? (["transfer-details", selectedTransferId] as const) : null,
+		async ([, selectedTransferId]) => {
+			const result = await getTransferDetailsAction(selectedTransferId);
+
+			return result.transfer ?? null;
+		},
+	);
 
 	const onViewTransferDetails = useCallback((transferId: string) => {
-		selectedTransferIdRef.current = transferId;
 		setSelectedTransferId(transferId);
-		setSelectedTransfer(null);
-
-		startDetailsTransition(async () => {
-			const result = await getTransferDetailsAction(transferId);
-
-			if (!result.transfer) return;
-			if (selectedTransferIdRef.current !== transferId) return;
-			const transfer = result.transfer;
-
-			setSelectedTransfer(transfer);
-		});
 	}, []);
 
 	const columns = useMemo(() => {
@@ -142,13 +135,11 @@ export function TransferTable({
 				open={selectedTransferId !== null}
 				onOpenChange={(open) => {
 					if (!open) {
-						selectedTransferIdRef.current = null;
 						setSelectedTransferId(null);
-						setSelectedTransfer(null);
 					}
 				}}
-				transfer={selectedTransfer}
-				isLoading={isDetailsPending && selectedTransfer === null}
+				transfer={transferDetailsQuery.data ?? null}
+				isLoading={transferDetailsQuery.isLoading}
 			/>
 		</>
 	);
