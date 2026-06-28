@@ -23,13 +23,10 @@ import {
 	updatePatientPhysicalInformationSchema,
 } from "./schemas";
 import { getPatientById } from "@/lib/api/get-patient-by-id";
-import { getPatientAllergyDetails } from "@/lib/api/get-patient-allergy-details";
 import { getPatients } from "@/lib/api/get-patients";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
-import { getPatientDiagnosisDetails } from "@/lib/api/get-patient-diagnosis-details";
 import { getPatientEncounters } from "@/lib/api/get-patient-encounters";
-import { getPatientImmunizationDetails } from "@/lib/api/get-patient-immunization-details";
 import { getPatientImaging } from "@/lib/api/get-patient-imaging";
 import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
 import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
@@ -405,18 +402,6 @@ export async function getPatientDiagnosesTableAction({
 		limit: currentLimit,
 		totalPages: Math.ceil(totalDiagnoses / currentLimit) || 1,
 	};
-}
-
-export async function getPatientDiagnosisDetailsAction(diagnosisId: string) {
-	return getPatientDiagnosisDetails(diagnosisId);
-}
-
-export async function getPatientAllergyDetailsAction(allergyId: string) {
-	return getPatientAllergyDetails(allergyId);
-}
-
-export async function getPatientImmunizationDetailsAction(immunizationId: string) {
-	return getPatientImmunizationDetails(immunizationId);
 }
 
 export async function getPatientAllergiesTableAction({

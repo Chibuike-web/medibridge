@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils/cn";
 import { useRouter } from "next/navigation";
 import { useAttachClinicalRecords } from "../stores/use-attach-clinical-records";
 import { useState } from "react";
-import { getTransferPatientOptionsAction } from "@/features/transfers/server/actions";
 import { truncateId } from "@/lib/utils/truncate-id";
 import type { Route } from "next";
 import useSWR from "swr";
@@ -43,10 +42,10 @@ export function SelectPatient({
 	const patientOptionsQuery = useSWR(
 		["transfer-patient-options", selectedPatientOptionsPage, limit] as const,
 		async ([, selectedPatientOptionsPage, patientOptionsLimit]) => {
-			const result = await getTransferPatientOptionsAction({
-				page: selectedPatientOptionsPage,
-				limit: patientOptionsLimit,
-			});
+			const result = await fetchTransferPatientOptions(
+				selectedPatientOptionsPage,
+				patientOptionsLimit,
+			);
 
 			return {
 				patients: result.patients.map((patient) => ({
@@ -204,4 +203,22 @@ export function SelectPatient({
 			</div>
 		</div>
 	);
+}
+
+async function fetchTransferPatientOptions(page: number, limit: number) {
+	const params = new URLSearchParams({
+		page: String(page),
+		limit: String(limit),
+	});
+	const response = await fetch(`/api/transfer-patient-options?${params.toString()}`);
+
+	if (!response.ok) {
+		throw new Error("Unable to load patient options.");
+	}
+
+	return (await response.json()) as {
+		patients: { name: string; patientId: string }[];
+		page: number;
+		totalPages: number;
+	};
 }

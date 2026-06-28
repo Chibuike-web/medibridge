@@ -57,8 +57,7 @@ import {
 	RiSendPlaneLine,
 	RiShare2Line,
 } from "@remixicon/react";
-import { getTransferDetailsAction } from "@/features/transfers/server/actions";
-import type { TransferType } from "../types";
+import type { TransferDetailsType, TransferType } from "../types";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import useSWR from "swr";
 
@@ -99,11 +98,7 @@ export function TransferTable({
 	);
 	const transferDetailsQuery = useSWR(
 		selectedTransferId ? (["transfer-details", selectedTransferId] as const) : null,
-		async ([, selectedTransferId]) => {
-			const result = await getTransferDetailsAction(selectedTransferId);
-
-			return result.transfer ?? null;
-		},
+		([, selectedTransferId]) => fetchTransferDetails(selectedTransferId),
 	);
 
 	const onViewTransferDetails = useCallback((transferId: string) => {
@@ -617,4 +612,16 @@ function getCurrentRoute(pathname: string, searchParams: URLSearchParams) {
 	const queryString = searchParams.toString();
 
 	return queryString ? `${pathname}?${queryString}` : pathname;
+}
+
+async function fetchTransferDetails(selectedTransferId: string) {
+	const response = await fetch(`/api/transfer-details/${encodeURIComponent(selectedTransferId)}`);
+
+	if (!response.ok) {
+		throw new Error("Unable to load transfer details.");
+	}
+
+	const result = (await response.json()) as { transfer: TransferDetailsType | null };
+
+	return result.transfer;
 }

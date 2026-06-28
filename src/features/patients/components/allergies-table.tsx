@@ -1,10 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AllergyType } from "@/features/patients/types";
+import type { AllergyDetailsType, AllergyType } from "@/features/patients/types";
 import { AllergyDetailsDrawer } from "@/features/patients/components/allergy-details-drawer";
 import { CreateAllergyDrawer } from "@/features/patients/components/create-allergy-drawer";
-import { getPatientAllergyDetailsAction } from "@/features/patients/server/actions";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
@@ -189,7 +188,7 @@ export function AllergiesTable({
 	const [selectedAllergyId, setSelectedAllergyId] = useState<string | null>(null);
 	const allergyDetailsQuery = useSWR(
 		selectedAllergyId ? (["patient-allergy-details", selectedAllergyId] as const) : null,
-		([, selectedAllergyId]) => getPatientAllergyDetailsAction(selectedAllergyId),
+		([, selectedAllergyId]) => fetchPatientAllergyDetails(selectedAllergyId),
 	);
 	function handleViewAllergyDetails(allergyId: string) {
 		setSelectedAllergyId(allergyId);
@@ -910,6 +909,20 @@ function formatUrlDate(date: Date) {
 
 function formatAllergyFilterValue(value: string) {
 	return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+async function fetchPatientAllergyDetails(selectedAllergyId: string) {
+	const response = await fetch(
+		`/api/patient-allergy-details/${encodeURIComponent(selectedAllergyId)}`,
+	);
+
+	if (!response.ok) {
+		throw new Error("Unable to load allergy details.");
+	}
+
+	const result = (await response.json()) as { allergy: AllergyDetailsType | null };
+
+	return result.allergy;
 }
 
 function getAllergiesColumns({

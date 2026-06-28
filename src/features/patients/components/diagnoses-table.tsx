@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { CreateDiagnosisDrawer } from "@/features/patients/components/create-diagnosis-drawer";
 import { DiagnosisDetailsDrawer } from "@/features/patients/components/diagnosis-details-drawer";
-import { getPatientDiagnosisDetailsAction } from "@/features/patients/server/actions";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -193,7 +192,7 @@ export function DiagnosesTable({
 	const [selectedDiagnosisId, setSelectedDiagnosisId] = useState<string | null>(null);
 	const diagnosisDetailsQuery = useSWR(
 		selectedDiagnosisId ? (["patient-diagnosis-details", selectedDiagnosisId] as const) : null,
-		([, selectedDiagnosisId]) => getPatientDiagnosisDetailsAction(selectedDiagnosisId),
+		([, selectedDiagnosisId]) => fetchPatientDiagnosisDetails(selectedDiagnosisId),
 	);
 
 	function handleViewDiagnosisDetails(diagnosisId: string) {
@@ -1004,6 +1003,20 @@ function isSameDateRange(range: DateRange | undefined, presetRange: DiagnosisDat
 
 function formatUrlDate(date: Date) {
 	return format(date, "yyyy-MM-dd");
+}
+
+async function fetchPatientDiagnosisDetails(selectedDiagnosisId: string) {
+	const response = await fetch(
+		`/api/patient-diagnosis-details/${encodeURIComponent(selectedDiagnosisId)}`,
+	);
+
+	if (!response.ok) {
+		throw new Error("Unable to load diagnosis details.");
+	}
+
+	const result = (await response.json()) as { diagnosis: DiagnosisDetailsType | null };
+
+	return result.diagnosis;
 }
 
 function getDiagnosesColumns({

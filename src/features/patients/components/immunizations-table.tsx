@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type {
+	ImmunizationDetailsType,
 	ImmunizationStatusFilter,
 	ImmunizationType,
 } from "@/features/patients/types";
@@ -12,7 +13,6 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { getPatientImmunizationDetailsAction } from "@/features/patients/server/actions";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -178,7 +178,7 @@ export function ImmunizationsTable({
 		selectedImmunizationId
 			? (["patient-immunization-details", selectedImmunizationId] as const)
 			: null,
-		([, selectedImmunizationId]) => getPatientImmunizationDetailsAction(selectedImmunizationId),
+		([, selectedImmunizationId]) => fetchPatientImmunizationDetails(selectedImmunizationId),
 	);
 	const hasActiveFilters = Boolean(query || createdFrom || createdTo || statusFilters.length > 0);
 	const columns = useMemo(
@@ -791,6 +791,22 @@ function formatUrlDate(date: Date) {
 
 function formatImmunizationFilterValue(value: string) {
 	return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+async function fetchPatientImmunizationDetails(selectedImmunizationId: string) {
+	const response = await fetch(
+		`/api/patient-immunization-details/${encodeURIComponent(selectedImmunizationId)}`,
+	);
+
+	if (!response.ok) {
+		throw new Error("Unable to load immunization details.");
+	}
+
+	const result = (await response.json()) as {
+		immunization: ImmunizationDetailsType | null;
+	};
+
+	return result.immunization;
 }
 
 function getImmunizationsColumns({
