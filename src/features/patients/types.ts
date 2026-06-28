@@ -116,7 +116,37 @@ export type ImmunizationType = {
 	dose: string;
 	createdAtLabel: string;
 	createdAtSortValue: string;
-	status: "Active" | "Completed" | "Discontinued";
+	status: "Active" | "Completed" | "Cancelled" | "Discontinued";
+};
+
+export type ImmunizationStatusFilter = "active" | "completed" | "cancelled" | "discontinued";
+
+export type ImmunizationDetailsHistoryEvent = {
+	id: string;
+	title: string;
+	timestamp: string;
+	items: {
+		label: string;
+		value: string;
+	}[];
+};
+
+export type ImmunizationDetailsType = {
+	immunizationId: string;
+	encounterId: string | null;
+	vaccineName: string;
+	seriesType: string;
+	currentDose: string;
+	totalDoses: string;
+	status: "Active" | "Completed" | "Cancelled" | "Discontinued";
+	dateAdministered: string;
+	administeredBy: string;
+	createdAt: string;
+	updatedAt: string;
+	createdBy: string;
+	updatedBy: string;
+	clinicalNote: string;
+	history: ImmunizationDetailsHistoryEvent[];
 };
 
 export type ProcedureType = {

@@ -29,6 +29,7 @@ import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
 import { getPatientDiagnosisDetails } from "@/lib/api/get-patient-diagnosis-details";
 import { getPatientEncounters } from "@/lib/api/get-patient-encounters";
+import { getPatientImmunizationDetails } from "@/lib/api/get-patient-immunization-details";
 import { getPatientImaging } from "@/lib/api/get-patient-imaging";
 import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
 import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
@@ -414,6 +415,10 @@ export async function getPatientAllergyDetailsAction(allergyId: string) {
 	return getPatientAllergyDetails(allergyId);
 }
 
+export async function getPatientImmunizationDetailsAction(immunizationId: string) {
+	return getPatientImmunizationDetails(immunizationId);
+}
+
 export async function getPatientAllergiesTableAction({
 	patientId,
 	page,
@@ -458,11 +463,17 @@ export async function getPatientImmunizationsTableAction({
 	page,
 	limit,
 	query = "",
+	createdFrom = "",
+	createdTo = "",
+	statusFilters = [],
 }: {
 	patientId: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilters?: ("active" | "completed" | "cancelled" | "discontinued")[];
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
@@ -471,6 +482,8 @@ export async function getPatientImmunizationsTableAction({
 		currentPage,
 		currentLimit,
 		query,
+		{ createdFrom, createdTo },
+		statusFilters,
 	);
 
 	return {

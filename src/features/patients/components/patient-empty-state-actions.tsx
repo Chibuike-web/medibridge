@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CreateAllergyDrawer } from "@/features/patients/components/create-allergy-drawer";
 import { CreateDiagnosisDrawer } from "@/features/patients/components/create-diagnosis-drawer";
+import { CreateImmunizationDrawer } from "@/features/patients/components/create-immunization-drawer";
 
 export function CreateDiagnosisEmptyStateAction() {
 	const [isCreateDiagnosisDrawerOpen, setIsCreateDiagnosisDrawerOpen] = useState(false);
@@ -57,7 +58,10 @@ export function CreateImmunizationEmptyStateAction() {
 			>
 				Add immunization
 			</Button>
-			<PendingCreateDrawer open={isCreateImmunizationDrawerOpen} />
+			<CreateImmunizationDrawer
+				open={isCreateImmunizationDrawerOpen}
+				onOpenChange={setIsCreateImmunizationDrawerOpen}
+			/>
 		</>
 	);
 }
