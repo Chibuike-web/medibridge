@@ -28,6 +28,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
 	Table,
 	TableBody,
@@ -250,58 +251,45 @@ export function AllergiesTable({
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
 								<RiCheckboxCircleLine className="size-4.5" /> <span className="block">Status</span>
 							</DropdownMenuSubTrigger>
-							<DropdownMenuSubContent
-								sideOffset={12}
-								alignOffset={-5}
-								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
-							>
-								{allergyStatusFilterOptions.map((statusOption) => {
-									const isStatusSelected = statusFilter === statusOption.value;
-									const statusOptionId = `allergy-status-${statusOption.value || "all"}`;
+								<DropdownMenuSubContent
+									sideOffset={12}
+									alignOffset={-5}
+									className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+								>
+									<RadioGroup
+										value={statusFilter || "all"}
+										onValueChange={(nextStatusFilter) => {
+											onStatusFilterChange(
+												nextStatusFilter === "all"
+													? ""
+													: (nextStatusFilter as "" | "active" | "inactive"),
+											);
+										}}
+										className="flex flex-col gap-0"
+										disabled={isPending}
+									>
+										{allergyStatusFilterOptions.map((statusOption) => {
+											const statusOptionValue = statusOption.value || "all";
+											const statusOptionId = `allergy-status-${statusOptionValue}`;
 
-									return (
-										<DropdownMenuItem
-											key={statusOption.value || "all"}
-											className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
-											onSelect={(event) => {
-												event.preventDefault();
-												onStatusFilterChange(statusOption.value);
-											}}
-										>
-											<Label
-												htmlFor={statusOptionId}
-												className="w-full cursor-pointer px-2 py-2 leading-normal font-normal"
-											>
-												<span
-													className={cn(
-														"flex size-4 items-center justify-center rounded-full border border-gray-300",
-														isStatusSelected ? "border-gray-800" : "",
-													)}
-													aria-hidden="true"
+											return (
+												<div
+													key={statusOptionValue}
+													className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100"
 												>
-													<span
-														className={cn(
-															"size-2 rounded-full bg-gray-800",
-															isStatusSelected ? "block" : "hidden",
-														)}
-													/>
-												</span>
-												<input
-													id={statusOptionId}
-													type="radio"
-													name="allergy-status"
-													value={statusOption.value}
-													checked={isStatusSelected}
-													readOnly
-													className="sr-only"
-												/>
-												<span>{statusOption.label}</span>
-											</Label>
-										</DropdownMenuItem>
-									);
-								})}
-							</DropdownMenuSubContent>
-						</DropdownMenuSub>
+													<RadioGroupItem value={statusOptionValue} id={statusOptionId} />
+												<Label
+													htmlFor={statusOptionId}
+													className="cursor-pointer w-full leading-normal font-normal"
+												>
+													<span>{statusOption.label}</span>
+												</Label>
+												</div>
+											);
+										})}
+									</RadioGroup>
+								</DropdownMenuSubContent>
+							</DropdownMenuSub>
 
 						<DropdownMenuSub
 							open={activeAllergyFilterSubmenu === "severity"}

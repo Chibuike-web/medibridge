@@ -15,7 +15,7 @@ import { updateTag } from "next/cache";
 import { and, eq } from "drizzle-orm";
 
 import { PatientType } from "../schemas/patient-schema";
-import type { DiagnosisStatusFilter } from "../types";
+import type { DiagnosisStatusFilter, MedicationStatusFilter, ProcedureStatusFilter } from "../types";
 import {
 	updatePatientContactInformationSchema,
 	updatePatientEmergencyContactSchema,
@@ -484,11 +484,17 @@ export async function getPatientProceduresTableAction({
 	page,
 	limit,
 	query = "",
+	createdFrom = "",
+	createdTo = "",
+	statusFilters = [],
 }: {
 	patientId: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilters?: ProcedureStatusFilter[];
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
@@ -497,6 +503,8 @@ export async function getPatientProceduresTableAction({
 		currentPage,
 		currentLimit,
 		query,
+		{ createdFrom, createdTo },
+		statusFilters,
 	);
 
 	return {
@@ -512,11 +520,17 @@ export async function getPatientMedicationsTableAction({
 	page,
 	limit,
 	query = "",
+	createdFrom = "",
+	createdTo = "",
+	statusFilter = "",
 }: {
 	patientId: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilter?: MedicationStatusFilter;
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
@@ -525,6 +539,8 @@ export async function getPatientMedicationsTableAction({
 		currentPage,
 		currentLimit,
 		query,
+		{ createdFrom, createdTo },
+		statusFilter,
 	);
 
 	return {

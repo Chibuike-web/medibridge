@@ -1,0 +1,240 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+	Drawer,
+	DrawerClose,
+	DrawerContent,
+	DrawerDescription,
+	DrawerFooter,
+	DrawerHeader,
+	DrawerTitle,
+} from "@/components/ui/drawer";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { RiAddLine, RiCalendarLine, RiCloseLine } from "@remixicon/react";
+import { format } from "date-fns";
+import { useId, useState } from "react";
+
+type CreateMedicationDrawerProps = {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+};
+
+const fieldLabelClassName = "text-sm font-medium text-gray-700";
+const optionalLabelClassName = "font-normal text-gray-400";
+const fieldControlClassName =
+	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400 text-sm h-9";
+
+export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationDrawerProps) {
+	const generatedFormId = useId();
+	const [startedAt, setStartedAt] = useState<Date | undefined>();
+
+	return (
+		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
+				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
+					<DrawerTitle className="text-lg leading-[1.2] text-gray-800">Add medication</DrawerTitle>
+					<DrawerClose aria-label="Close add medication drawer">
+						<RiCloseLine className="size-6" aria-hidden="true" />
+					</DrawerClose>
+					<DrawerDescription className="sr-only">
+						Create a new medication record for this patient.
+					</DrawerDescription>
+				</DrawerHeader>
+
+				<form className="min-h-0 flex-1 overflow-y-auto px-6 py-8 text-sm">
+					<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+						<div className="flex flex-col gap-2 sm:col-span-2">
+							<Label htmlFor={`${generatedFormId}-medication`} className={fieldLabelClassName}>
+								Medication <span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-medication`}
+								placeholder="e.g. Amoxicillin"
+								className={fieldControlClassName}
+							/>
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-indication`} className={fieldLabelClassName}>
+								Indication <span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-indication`}
+								placeholder="e.g. Bacterial respiratory tract infection"
+								className={fieldControlClassName}
+							/>
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-status`} className={fieldLabelClassName}>
+								Status <span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Select>
+								<SelectTrigger id={`${generatedFormId}-status`} className={`${fieldControlClassName} w-full`}>
+									<SelectValue placeholder="Select status" />
+								</SelectTrigger>
+								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+									<SelectGroup>
+										<SelectItem value="active" className="rounded-md px-3 h-9">
+											Active
+										</SelectItem>
+										<SelectItem value="completed" className="rounded-md px-3 h-9">
+											Completed
+										</SelectItem>
+										<SelectItem value="discontinued" className="rounded-md px-3 h-9">
+											Discontinued
+										</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-dose`} className={fieldLabelClassName}>
+								Dose <span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-dose`}
+								placeholder="e.g. 500 mg"
+								className={fieldControlClassName}
+							/>
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-route`} className={fieldLabelClassName}>
+								Route <span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Select>
+								<SelectTrigger id={`${generatedFormId}-route`} className={`${fieldControlClassName} w-full`}>
+									<SelectValue placeholder="Select route" />
+								</SelectTrigger>
+								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+									<SelectGroup>
+										<SelectItem value="oral" className="rounded-md px-3 h-9">
+											Oral
+										</SelectItem>
+										<SelectItem value="iv" className="rounded-md px-3 h-9">
+											IV
+										</SelectItem>
+										<SelectItem value="inhalation" className="rounded-md px-3 h-9">
+											Inhalation
+										</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-prescribed-by`} className={fieldLabelClassName}>
+								Prescribed by <span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-prescribed-by`}
+								placeholder="e.g. Dr. Ekene Okafor"
+								className={fieldControlClassName}
+							/>
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-frequency`} className={fieldLabelClassName}>
+								Frequency <span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-frequency`}
+								placeholder="e.g. Three times daily"
+								className={fieldControlClassName}
+							/>
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-duration`} className={fieldLabelClassName}>
+								Duration <span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-duration`}
+								placeholder="e.g. 7 days"
+								className={fieldControlClassName}
+							/>
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label className={fieldLabelClassName}>
+								Started at <span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<input
+								type="hidden"
+								name="startedAt"
+								value={startedAt ? format(startedAt, "yyyy-MM-dd") : ""}
+							/>
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button
+										id={`${generatedFormId}-started-at`}
+										type="button"
+										variant="outline"
+										data-empty={!startedAt}
+										className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+									>
+										{startedAt ? format(startedAt, "PPP") : "Select start date"}
+										<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent className="p-0">
+									<Calendar mode="single" selected={startedAt} onSelect={setStartedAt} autoFocus />
+								</PopoverContent>
+							</Popover>
+						</div>
+
+						<div className="flex flex-col gap-2 sm:col-span-2">
+							<Label htmlFor={`${generatedFormId}-clinical-notes`} className={fieldLabelClassName}>
+								Clinical notes <span className={optionalLabelClassName}>(optional)</span>
+							</Label>
+							<Textarea
+								id={`${generatedFormId}-clinical-notes`}
+								placeholder="Add additional instructions, patient response, or prescribing notes"
+								className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+							/>
+						</div>
+
+						<div className="sm:col-span-2">
+							<Button
+								type="button"
+								variant="outline"
+								className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+							>
+								<RiAddLine className="size-5" aria-hidden="true" />
+								Add attachment
+							</Button>
+						</div>
+					</div>
+				</form>
+
+				<DrawerFooter className="border-t border-gray-200 px-6 py-5 text-sm">
+					<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
+						<DrawerClose asChild>
+							<Button type="button" variant="outline" className="text-sm">
+								Cancel
+							</Button>
+						</DrawerClose>
+						<Button type="button" className="text-sm">
+							Add medication
+						</Button>
+					</div>
+				</DrawerFooter>
+			</DrawerContent>
+		</Drawer>
+	);
+}

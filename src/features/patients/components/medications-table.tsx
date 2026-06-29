@@ -1,19 +1,30 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MedicationType } from "@/features/patients/types";
+import type {
+	MedicationDetailsType,
+	MedicationStatusFilter,
+	MedicationType,
+} from "@/features/patients/types";
+import { CreateMedicationDrawer } from "@/features/patients/components/create-medication-drawer";
+import { MedicationDetailsDrawer } from "@/features/patients/components/medication-details-drawer";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -22,6 +33,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
 	Table,
 	TableBody,
@@ -31,6 +43,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils/cn";
+import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {
 	type ColumnDef,
 	flexRender,
@@ -41,18 +54,81 @@ import {
 } from "@tanstack/react-table";
 import {
 	RiArchiveLine,
+	RiArrowRightLine,
 	RiArrowDownSLine,
 	RiArrowUpSLine,
+	RiCalendarLine,
 	RiCheckLine,
+	RiCheckboxCircleLine,
 	RiCloseLine,
-	RiErrorWarningLine,
+	RiEyeLine,
 	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
 	RiShare2Line,
 } from "@remixicon/react";
+import { endOfDay, format, isSameDay, startOfDay, startOfMonth, subDays, subYears } from "date-fns";
+import type { DateRange } from "react-day-picker";
+import useSWR from "swr";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
+
+type MedicationFilterSubmenu = "status" | "created-at";
+
+type MedicationDateFilterPreset = {
+	label: string;
+	getRange: (today: Date) => MedicationDateCompleteRange;
+};
+
+type MedicationDateCompleteRange = {
+	from: Date;
+	to: Date;
+};
+
+const medicationStatusFilterOptions: {
+	label: string;
+	value: MedicationStatusFilter;
+}[] = [
+	{ label: "All", value: "" },
+	{ label: "Active", value: "active" },
+	{ label: "Completed", value: "completed" },
+	{ label: "Discontinued", value: "discontinued" },
+];
+
+const medicationDateFilterPresets: MedicationDateFilterPreset[] = [
+	{
+		label: "Today",
+		getRange: (today) => ({ from: startOfDay(today), to: endOfDay(today) }),
+	},
+	{
+		label: "This week",
+		getRange: (today) => ({
+			from: startOfDay(subDays(today, today.getDay())),
+			to: endOfDay(today),
+		}),
+	},
+	{
+		label: "Last 30 days",
+		getRange: (today) => ({
+			from: startOfDay(subDays(today, 29)),
+			to: endOfDay(today),
+		}),
+	},
+	{
+		label: "This month",
+		getRange: (today) => ({
+			from: startOfDay(startOfMonth(today)),
+			to: endOfDay(today),
+		}),
+	},
+	{
+		label: "Last year",
+		getRange: (today) => ({
+			from: startOfDay(subYears(today, 1)),
+			to: endOfDay(today),
+		}),
+	},
+];
 
 type MedicationsTableProps = {
 	medications: MedicationType[];
@@ -60,8 +136,13 @@ type MedicationsTableProps = {
 	limit: number;
 	totalPages: number;
 	query: string;
+	createdFrom: string;
+	createdTo: string;
+	statusFilter: MedicationStatusFilter;
 	isPending: boolean;
 	onQueryChange: (query: string) => void;
+	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
+	onStatusFilterChange: (statusFilter: MedicationStatusFilter) => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -73,14 +154,37 @@ export function MedicationsTable({
 	limit,
 	totalPages,
 	query,
+	createdFrom,
+	createdTo,
+	statusFilter,
 	isPending,
 	onQueryChange,
+	onCreatedAtRangeApply,
+	onStatusFilterChange,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
 }: MedicationsTableProps) {
-	const columns = useMemo(() => getMedicationsColumns(), []);
+	const [isCreateMedicationDrawerOpen, setIsCreateMedicationDrawerOpen] = useState(false);
+	const [isMedicationDetailsDrawerOpen, setIsMedicationDetailsDrawerOpen] = useState(false);
+	const [selectedMedicationId, setSelectedMedicationId] = useState<string | null>(null);
 	const [sorting, setSorting] = useState<SortingState>([]);
+	const [activeMedicationFilterSubmenu, setActiveMedicationFilterSubmenu] =
+		useState<MedicationFilterSubmenu | null>(null);
+	const medicationDetailsQuery = useSWR(
+		selectedMedicationId ? (["patient-medication-details", selectedMedicationId] as const) : null,
+		([, selectedMedicationId]) => fetchPatientMedicationDetails(selectedMedicationId),
+	);
+
+	function handleViewMedicationDetails(medicationId: string) {
+		setSelectedMedicationId(medicationId);
+		setIsMedicationDetailsDrawerOpen(true);
+	}
+
+	const columns = useMemo(
+		() => getMedicationsColumns({ onViewMedicationDetails: handleViewMedicationDetails }),
+		[],
+	);
 
 	const table = useReactTable({
 		data: medications,
@@ -93,6 +197,10 @@ export function MedicationsTable({
 			sorting,
 		},
 	});
+	const hasActiveFilters = Boolean(query || createdFrom || createdTo || statusFilter);
+	const emptyMessage = hasActiveFilters
+		? "No medications match the current filters."
+		: "No medications found.";
 
 	return (
 		<div className="p-8 text-sm">
@@ -108,13 +216,110 @@ export function MedicationsTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<Button
-					variant="outline"
-					className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+				<DropdownMenu
+					onOpenChange={(isMedicationFilterMenuOpen) => {
+						if (!isMedicationFilterMenuOpen) {
+							setActiveMedicationFilterSubmenu(null);
+						}
+					}}
 				>
-					<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
-					Filter
-				</Button>
+					<DropdownMenuTrigger asChild>
+						<Button
+							variant="outline"
+							className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+						>
+							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
+							Filter
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="end"
+						sideOffset={8}
+						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+					>
+						<DropdownMenuSub
+							open={activeMedicationFilterSubmenu === "status"}
+							onOpenChange={(isStatusSubmenuOpen) => {
+								setActiveMedicationFilterSubmenu((prev) => {
+									if (isStatusSubmenuOpen) return "status";
+									if (prev === "status") return null;
+									return prev;
+								});
+							}}
+						>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+								<RiCheckboxCircleLine className="size-4.5" />
+								<span className="block">Status</span>
+							</DropdownMenuSubTrigger>
+								<DropdownMenuSubContent
+									sideOffset={12}
+									alignOffset={-5}
+									className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+								>
+									<RadioGroup
+										value={statusFilter || "all"}
+										onValueChange={(nextStatusFilter) => {
+											onStatusFilterChange(
+												nextStatusFilter === "all"
+													? ""
+													: (nextStatusFilter as MedicationStatusFilter),
+											);
+										}}
+										className="flex flex-col gap-0"
+										disabled={isPending}
+									>
+										{medicationStatusFilterOptions.map((statusOption) => {
+											const statusOptionValue = statusOption.value || "all";
+											const statusOptionId = `medication-status-${statusOptionValue}`;
+
+											return (
+												<div
+													key={statusOptionValue}
+													className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100"
+												>
+													<RadioGroupItem value={statusOptionValue} id={statusOptionId} />
+												<Label
+													htmlFor={statusOptionId}
+													className="cursor-pointer w-full leading-normal font-normal"
+												>
+													<span>{statusOption.label}</span>
+												</Label>
+												</div>
+											);
+										})}
+									</RadioGroup>
+								</DropdownMenuSubContent>
+							</DropdownMenuSub>
+
+						<DropdownMenuSub
+							open={activeMedicationFilterSubmenu === "created-at"}
+							onOpenChange={(isCreatedAtSubmenuOpen) => {
+								setActiveMedicationFilterSubmenu((prev) => {
+									if (isCreatedAtSubmenuOpen) return "created-at";
+									if (prev === "created-at") return null;
+									return prev;
+								});
+							}}
+						>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+								<RiCalendarLine className="size-4.5" />
+								<span className="block">Created at</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								sideOffset={8}
+								alignOffset={-5}
+								className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
+							>
+								<MedicationDateFilterContent
+									from={createdFrom}
+									to={createdTo}
+									isPending={isPending}
+									onDateRangeApply={onCreatedAtRangeApply}
+								/>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
+					</DropdownMenuContent>
+				</DropdownMenu>
 				<Button
 					variant="outline"
 					className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
@@ -122,8 +327,21 @@ export function MedicationsTable({
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button className="text-sm">Add medication</Button>
+				<Button
+					className="text-sm"
+					type="button"
+					onClick={() => setIsCreateMedicationDrawerOpen(true)}
+				>
+					Add medication
+				</Button>
 			</div>
+			<MedicationActiveFilterPills
+				createdFrom={createdFrom}
+				createdTo={createdTo}
+				statusFilter={statusFilter}
+				onCreatedAtRangeApply={onCreatedAtRangeApply}
+				onStatusFilterChange={onStatusFilterChange}
+			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="h-12 text-sm font-semibold text-gray-600">
@@ -172,21 +390,32 @@ export function MedicationsTable({
 						))}
 					</TableHeader>
 					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
-						{table.getRowModel().rows.map((row, rowPosition) => (
-							<TableRow key={row.id} className="group min-h-14">
-								{row.getVisibleCells().map((cell) => (
-									<TableCell
-										key={cell.id}
-										className={cn(
-											"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
-											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
-										)}
-									>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
-									</TableCell>
-								))}
+						{table.getRowModel().rows.length > 0 ? (
+							table.getRowModel().rows.map((row, rowPosition) => (
+								<TableRow key={row.id} className="group min-h-14">
+									{row.getVisibleCells().map((cell) => (
+										<TableCell
+											key={cell.id}
+											className={cn(
+												"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
+												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
+											)}
+										>
+											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+										</TableCell>
+									))}
+								</TableRow>
+							))
+						) : (
+							<TableRow>
+								<TableCell
+									colSpan={columns.length}
+									className="h-28 border-b border-gray-200 bg-white px-3 text-center text-sm text-gray-500"
+								>
+									{emptyMessage}
+								</TableCell>
 							</TableRow>
-						))}
+						)}
 					</TableBody>
 				</Table>
 				<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
@@ -240,11 +469,316 @@ export function MedicationsTable({
 					</div>
 				</div>
 			</div>
+			<CreateMedicationDrawer
+				open={isCreateMedicationDrawerOpen}
+				onOpenChange={setIsCreateMedicationDrawerOpen}
+			/>
+			<MedicationDetailsDrawer
+				open={isMedicationDetailsDrawerOpen}
+				onOpenChange={setIsMedicationDetailsDrawerOpen}
+				medication={medicationDetailsQuery.data ?? null}
+				isLoading={medicationDetailsQuery.isLoading}
+			/>
+		</div>
+	);
+}
+	
+function MedicationActiveFilterPills({
+	createdFrom,
+	createdTo,
+	statusFilter,
+	onCreatedAtRangeApply,
+	onStatusFilterChange,
+}: {
+	createdFrom: string;
+	createdTo: string;
+	statusFilter: MedicationStatusFilter;
+	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
+	onStatusFilterChange: (statusFilter: MedicationStatusFilter) => void;
+}) {
+	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
+	const hasStatusFilter = Boolean(statusFilter);
+
+	if (!hasCreatedAtFilter && !hasStatusFilter) {
+		return null;
+	}
+
+	const statusOption = medicationStatusFilterOptions.find((option) => option.value === statusFilter);
+
+	return (
+		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+			{hasStatusFilter ? (
+				<MedicationFilterPill
+					label={`Status: ${statusOption?.label ?? formatMedicationFilterValue(statusFilter)}`}
+					onRemove={() => onStatusFilterChange("")}
+				/>
+			) : null}
+			{hasCreatedAtFilter ? (
+				<MedicationFilterPill
+					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
 		</div>
 	);
 }
 
-function getMedicationsColumns(): ColumnDef<MedicationType>[] {
+function MedicationFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
+	return (
+		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
+			<span>{label}</span>
+			<button
+				type="button"
+				onClick={onRemove}
+				className="flex items-center justify-center bg-gray-800 text-white size-5 rounded-full transition hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+				aria-label={`Remove ${label} filter`}
+			>
+				<RiCloseLine className="size-4" aria-hidden="true" />
+			</button>
+		</span>
+	);
+}
+
+function MedicationDateFilterContent({
+	from,
+	to,
+	isPending,
+	onDateRangeApply,
+}: {
+	from: string;
+	to: string;
+	isPending: boolean;
+	onDateRangeApply: (from: string, to: string) => void;
+}) {
+	return (
+		<div className="flex w-max">
+			<div className="flex w-50 shrink-0 flex-col p-1 text-sm text-gray-600">
+				<MedicationDatePresetList from={from} to={to} onDateRangeApply={onDateRangeApply} />
+			</div>
+
+			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
+				<MedicationCustomRangeCalendarPanel
+					from={from}
+					to={to}
+					isPending={isPending}
+					onDateRangeApply={onDateRangeApply}
+				/>
+			</div>
+		</div>
+	);
+}
+
+function MedicationDatePresetList({
+	from,
+	to,
+	onDateRangeApply,
+}: {
+	from: string;
+	to: string;
+	onDateRangeApply: (from: string, to: string) => void;
+}) {
+	const selectedMedicationDateRange = getDateRangeFromParams(from, to);
+	const today = new Date();
+
+	return (
+		<>
+			{medicationDateFilterPresets.map((preset) => {
+				const presetRange = preset.getRange(today);
+				return (
+					<MedicationDatePresetButton
+						key={preset.label}
+						label={preset.label}
+						isSelected={isSameDateRange(selectedMedicationDateRange, presetRange)}
+						onSelect={() => {
+							onDateRangeApply(formatUrlDate(presetRange.from), formatUrlDate(presetRange.to));
+						}}
+					/>
+				);
+			})}
+		</>
+	);
+}
+
+function MedicationCustomRangeCalendarPanel({
+	from,
+	to,
+	isPending,
+	onDateRangeApply,
+}: {
+	from: string;
+	to: string;
+	isPending: boolean;
+	onDateRangeApply: (from: string, to: string) => void;
+}) {
+	const selectedMedicationDateRange = getDateRangeFromParams(from, to);
+	const selectedMedicationDateRangeKey = getDateRangeKey(selectedMedicationDateRange);
+	const [draftMedicationDateRange, setDraftMedicationDateRange] = useState<DateRange | undefined>(
+		selectedMedicationDateRange,
+	);
+	const [previousSelectedMedicationDateRangeKey, setPreviousSelectedMedicationDateRangeKey] =
+		useState(selectedMedicationDateRangeKey);
+
+	if (selectedMedicationDateRangeKey !== previousSelectedMedicationDateRangeKey) {
+		setPreviousSelectedMedicationDateRangeKey(selectedMedicationDateRangeKey);
+		setDraftMedicationDateRange(selectedMedicationDateRange);
+	}
+
+	return (
+		<div className="flex min-w-0 flex-col">
+			<div className="flex items-center gap-3">
+				<MedicationDateFieldPlaceholder value={draftMedicationDateRange?.from} label="Start date" />
+				<RiArrowRightLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
+				<MedicationDateFieldPlaceholder value={draftMedicationDateRange?.to} label="End date" />
+			</div>
+
+			<Calendar
+				mode="range"
+				selected={draftMedicationDateRange}
+				onSelect={(nextDraftMedicationDateRange) => {
+					setDraftMedicationDateRange(nextDraftMedicationDateRange);
+				}}
+				numberOfMonths={1}
+				className="mt-4 p-0"
+				classNames={{
+					month_caption: "flex h-9 w-full items-center justify-center px-9",
+					caption_label: "text-sm font-semibold text-gray-800",
+					weekday: "flex-1 rounded-md text-sm font-medium text-gray-700 select-none",
+					day_button: "rounded-lg text-sm",
+				}}
+				disabled={isPending}
+			/>
+
+			<div className="mt-7 flex justify-end gap-3">
+				<Button
+					type="button"
+					variant="outline"
+					className="min-w-28 text-sm"
+					disabled={isPending}
+					onClick={() => {
+						setDraftMedicationDateRange(undefined);
+						onDateRangeApply("", "");
+					}}
+				>
+					Reset
+				</Button>
+				<Button
+					type="button"
+					className="min-w-40 flex-1 text-sm"
+					disabled={!draftMedicationDateRange?.from || !draftMedicationDateRange?.to || isPending}
+					onClick={() => {
+						if (!draftMedicationDateRange?.from || !draftMedicationDateRange?.to) return;
+
+						onDateRangeApply(
+							formatUrlDate(draftMedicationDateRange.from),
+							formatUrlDate(draftMedicationDateRange.to),
+						);
+					}}
+				>
+					Apply
+				</Button>
+			</div>
+		</div>
+	);
+}
+
+function MedicationDatePresetButton({
+	isSelected,
+	label,
+	onSelect,
+}: {
+	isSelected: boolean;
+	label: string;
+	onSelect: () => void;
+}) {
+	return (
+		<DropdownMenuItem
+			onSelect={(event) => {
+				event.preventDefault();
+				onSelect();
+			}}
+			className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
+		>
+			<span>{label}</span>
+			{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}
+		</DropdownMenuItem>
+	);
+}
+
+function MedicationDateFieldPlaceholder({ label, value }: { label: string; value?: Date }) {
+	return (
+		<div className="flex h-9 text-sm min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left font-medium text-gray-500">
+			<RiCalendarLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
+			<span className="sr-only">{label}</span>
+			<span className="truncate">{value ? format(value, "dd/MM/yyyy") : "DD/MM/YYYY"}</span>
+		</div>
+	);
+}
+
+function formatDateRangeFilterLabel(from: string, to: string) {
+	const parsedFromDate = parseDateParam(from);
+	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate) {
+		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedFromDate) {
+		return `From ${format(parsedFromDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedToDate) {
+		return `Until ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	return "Any date";
+}
+
+function getDateRangeFromParams(from: string, to: string): DateRange | undefined {
+	const parsedFromDate = parseDateParam(from);
+	const parsedToDate = parseDateParam(to);
+
+	if (!parsedFromDate && !parsedToDate) return undefined;
+
+	return { from: parsedFromDate, to: parsedToDate };
+}
+
+function getDateRangeKey(range?: DateRange) {
+	return `${range?.from ? formatUrlDate(range.from) : ""}:${range?.to ? formatUrlDate(range.to) : ""}`;
+}
+
+function isSameDateRange(range: DateRange | undefined, presetRange: MedicationDateCompleteRange) {
+	if (!range?.from || !range.to) return false;
+
+	return isSameDay(range.from, presetRange.from) && isSameDay(range.to, presetRange.to);
+}
+
+function formatUrlDate(date: Date) {
+	return format(date, "yyyy-MM-dd");
+}
+
+function formatMedicationFilterValue(value: string) {
+	return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+async function fetchPatientMedicationDetails(selectedMedicationId: string) {
+	const response = await fetch(
+		`/api/patient-medication-details/${encodeURIComponent(selectedMedicationId)}`,
+	);
+
+	if (!response.ok) {
+		throw new Error("Unable to load medication details.");
+	}
+
+	const result = (await response.json()) as { medication: MedicationDetailsType | null };
+
+	return result.medication;
+}
+
+function getMedicationsColumns({
+	onViewMedicationDetails,
+}: {
+	onViewMedicationDetails: (medicationId: string) => void;
+}): ColumnDef<MedicationType>[] {
 	return [
 		{
 			id: "select",
@@ -339,10 +873,13 @@ function getMedicationsColumns(): ColumnDef<MedicationType>[] {
 							align="end"
 							className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
-							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-								<RiErrorWarningLine className="text-white" />
-								<span>View details</span>
-							</DropdownMenuItem>
+								<DropdownMenuItem
+									className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+									onSelect={() => onViewMedicationDetails(row.original.medicationId)}
+								>
+									<RiEyeLine className="text-white" />
+									<span>View details</span>
+								</DropdownMenuItem>
 							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiCheckLine className="text-white" />
 								<span>Mark as completed</span>

@@ -159,6 +159,50 @@ export type ProcedureType = {
 	status: "Pending" | "Completed" | "Cancelled";
 };
 
+export type ProcedureStatusFilter = "pending" | "completed" | "cancelled";
+
+export type ProcedureDetailsHistoryEvent = {
+	id: string;
+	title: string;
+	timestamp: string;
+	items: {
+		label: string;
+		value: string;
+	}[];
+};
+
+export type ProcedureDetailsRelatedRecord = {
+	id: string;
+	name: string;
+	status: string;
+};
+
+export type ProcedureDetailsType = {
+	procedureId: string;
+	encounterId: string | null;
+	name: string;
+	indication: string;
+	status: "Pending" | "Completed" | "Cancelled";
+	procedureDate: string;
+	performedBy: string;
+	assistants: string[];
+	facility: string;
+	plannedDate: string;
+	plannedPhysician: string;
+	plannedAssistants: string[];
+	plannedFacility: string;
+	clinicalNote: string;
+	createdAt: string;
+	updatedAt: string;
+	createdBy: string;
+	updatedBy: string;
+	relatedRecords: {
+		diagnosis: ProcedureDetailsRelatedRecord | null;
+		medication: ProcedureDetailsRelatedRecord | null;
+	};
+	history: ProcedureDetailsHistoryEvent[];
+};
+
 export type MedicationType = {
 	medication: string;
 	dose: string;
@@ -168,6 +212,37 @@ export type MedicationType = {
 	createdAtLabel: string;
 	createdAtSortValue: string;
 	status: "Active" | "Completed" | "Discontinued";
+};
+
+export type MedicationStatusFilter = "" | "active" | "completed" | "discontinued";
+
+export type MedicationDetailsHistoryEvent = {
+	id: string;
+	title: string;
+	timestamp: string;
+	items: {
+		label: string;
+		value: string;
+	}[];
+};
+
+export type MedicationDetailsType = {
+	medicationId: string;
+	encounterId: string | null;
+	name: string;
+	dose: string;
+	route: string;
+	indication: string;
+	status: "Active" | "Completed" | "Discontinued";
+	frequency: string;
+	duration: string;
+	prescribedBy: string;
+	startedAt: string;
+	createdAt: string;
+	updatedAt: string;
+	createdBy: string;
+	clinicalNote: string;
+	history: MedicationDetailsHistoryEvent[];
 };
 
 export type EncounterType = {

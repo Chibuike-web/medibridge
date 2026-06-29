@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { CreateAllergyDrawer } from "@/features/patients/components/create-allergy-drawer";
 import { CreateDiagnosisDrawer } from "@/features/patients/components/create-diagnosis-drawer";
 import { CreateImmunizationDrawer } from "@/features/patients/components/create-immunization-drawer";
+import { CreateMedicationDrawer } from "@/features/patients/components/create-medication-drawer";
+import { CreateProcedureDrawer } from "@/features/patients/components/create-procedure-drawer";
 
 export function CreateDiagnosisEmptyStateAction() {
 	const [isCreateDiagnosisDrawerOpen, setIsCreateDiagnosisDrawerOpen] = useState(false);
@@ -75,12 +77,15 @@ export function CreateProcedureEmptyStateAction() {
 				className="text-sm"
 				type="button"
 				onClick={() => setIsCreateProcedureDrawerOpen(true)}
-			>
-				Add procedure
-			</Button>
-			<PendingCreateDrawer open={isCreateProcedureDrawerOpen} />
-		</>
-	);
+				>
+					Add procedure
+				</Button>
+				<CreateProcedureDrawer
+					open={isCreateProcedureDrawerOpen}
+					onOpenChange={setIsCreateProcedureDrawerOpen}
+				/>
+			</>
+		);
 }
 
 export function CreateMedicationEmptyStateAction() {
@@ -92,13 +97,16 @@ export function CreateMedicationEmptyStateAction() {
 				className="text-sm"
 				type="button"
 				onClick={() => setIsCreateMedicationDrawerOpen(true)}
-			>
-				Add medication
-			</Button>
-			<PendingCreateDrawer open={isCreateMedicationDrawerOpen} />
-		</>
-	);
-}
+				>
+					Add medication
+				</Button>
+				<CreateMedicationDrawer
+					open={isCreateMedicationDrawerOpen}
+					onOpenChange={setIsCreateMedicationDrawerOpen}
+				/>
+			</>
+		);
+	}
 
 export function CreateEncounterEmptyStateAction() {
 	const [isCreateEncounterDrawerOpen, setIsCreateEncounterDrawerOpen] = useState(false);
