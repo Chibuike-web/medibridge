@@ -37,17 +37,27 @@ export function ImagingClient({
 	const [query, setQuery] = useState("");
 	const [isPending, startTransition] = useTransition();
 	const latestSectionTableRequestIdRef = useRef(0);
-	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+
+	function refreshImagingTable({
+		nextPage = 1,
+		nextLimit = tableData.limit,
+		nextQuery = query,
+	}: {
+		nextPage?: number;
+		nextLimit?: number;
+		nextQuery?: string;
+	}) {
 		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
 		latestSectionTableRequestIdRef.current = sectionTableRequestId;
 
 		startTransition(async () => {
-			setOptimisticPage(1);
+			setOptimisticPage(nextPage);
+			setOptimisticLimit(nextLimit);
 
 			const result = await getPatientImagingTableAction({
 				patientId,
-				page: 1,
-				limit: tableData.limit,
+				page: nextPage,
+				limit: nextLimit,
 				query: nextQuery,
 			});
 
@@ -62,6 +72,10 @@ export function ImagingClient({
 				totalPages: result.totalPages,
 			});
 		});
+	}
+
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		refreshImagingTable({ nextQuery });
 	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
@@ -71,83 +85,16 @@ export function ImagingClient({
 
 	function handlePreviousPage() {
 		const nextPage = Math.max(tableData.page - 1, 1);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientImagingTableAction({
-				patientId,
-				page: nextPage,
-				limit: tableData.limit,
-				query,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.imagingStudies,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshImagingTable({ nextPage });
 	}
 
 	function handleNextPage() {
 		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientImagingTableAction({
-				patientId,
-				page: nextPage,
-				limit: tableData.limit,
-				query,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.imagingStudies,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshImagingTable({ nextPage });
 	}
 
 	function handleLimitChange(nextLimit: number) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticLimit(nextLimit);
-			const result = await getPatientImagingTableAction({
-				patientId,
-				page: 1,
-				limit: nextLimit,
-				query,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.imagingStudies,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshImagingTable({ nextLimit });
 	}
 
 	return (

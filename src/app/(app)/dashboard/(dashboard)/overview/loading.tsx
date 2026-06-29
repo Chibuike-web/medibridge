@@ -14,7 +14,7 @@ export default function Loading() {
 	return (
 		<div className="flex h-full flex-col">
 			<header className="border-b border-gray-100 bg-white sticky top-0 z-20 shrink-0">
-				<div className="flex h-16 items-center px-8">
+				<div className="flex h-14 items-center px-6">
 					<div className="h-6 w-32 animate-pulse rounded bg-gray-100" />
 				</div>
 			</header>

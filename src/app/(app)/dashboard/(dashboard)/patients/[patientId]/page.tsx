@@ -67,7 +67,7 @@ async function PatientPageContent({ searchParams, params }: PatientPageProps) {
 			<div className="shrink-0">
 				<nav
 					aria-label="Breadcrumb"
-					className="flex items-center gap-2 border-b border-gray-200 px-6 py-5 text-sm"
+					className="flex h-14 items-center gap-2 border-b border-gray-200 px-6 text-sm"
 				>
 					<Link href="/dashboard/patients" className="flex items-center gap-2 shrink-0">
 						<RiArrowLeftLine aria-hidden="true" className="size-5" /> <span>Patients</span>
@@ -120,19 +120,16 @@ async function Header({ params }: Pick<PatientPageProps, "params">) {
 		<div className="flex items-center gap-3 border-b border-gray-200 px-6 py-3.5 text-sm">
 			<PatientAvatarMenu patientName={patientName ?? ""} />
 
-			<div className="flex flex-col gap-4">
+			<div className="flex flex-col gap-3">
 				<div className="flex items-center gap-2.5">
 					<h1 className="text-xl font-semibold">{patientName}</h1>
-					<StatusBadge status="Active" />
+					<StatusBadge status="Active" className="text-sm" />
+					<CopyIdButton id={patient.patientId} />
 				</div>
 				<div className="flex items-center gap-4">
 					<div className="flex items-center shrink-0 gap-1">
 						<span className="text-gray-400">Sex:</span>
 						<span className="font-semibold text-gray-600">{patient.sex ?? "-"}</span>
-					</div>
-					<div className="flex items-center shrink-0 gap-1">
-						<span>Patient ID:</span>
-						<CopyIdButton id={patient.patientId} className="min-w-0" />
 					</div>
 
 					<div className="flex items-center shrink-0 gap-1">
@@ -456,7 +453,7 @@ function PatientPageSkeleton() {
 			<div className="shrink-0">
 				<nav
 					aria-label="Breadcrumb"
-					className="flex items-center gap-2 border-b border-gray-200 px-6 py-5 text-sm"
+					className="flex h-14 items-center gap-2 border-b border-gray-200 px-6 text-sm"
 				>
 					<Link href="/dashboard/patients" className="flex items-center gap-2 shrink-0">
 						<RiArrowLeftLine aria-hidden="true" className="size-5" /> <span>Patients</span>

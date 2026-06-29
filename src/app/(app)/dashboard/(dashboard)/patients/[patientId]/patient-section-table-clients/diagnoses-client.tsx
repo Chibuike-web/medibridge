@@ -2,10 +2,7 @@
 
 import { DiagnosesTable } from "@/features/patients/components/diagnoses-table";
 import { getPatientDiagnosesTableAction } from "@/features/patients/server/actions";
-import type {
-	DiagnosisStatusFilter,
-	DiagnosisType,
-} from "@/features/patients/types";
+import type { DiagnosisStatusFilter, DiagnosisType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useRef, useState, useTransition } from "react";
 
@@ -44,246 +41,44 @@ export function DiagnosesClient({
 	const [diagnosedTo, setDiagnosedTo] = useState("");
 	const [lastReviewedFrom, setLastReviewedFrom] = useState("");
 	const [lastReviewedTo, setLastReviewedTo] = useState("");
-	const [statusFilters, setStatusFilters] = useState<DiagnosisStatusFilter[]>(
-		[],
-	);
+	const [statusFilters, setStatusFilters] = useState<DiagnosisStatusFilter[]>([]);
 	const [isPending, startTransition] = useTransition();
 	const latestSectionTableRequestIdRef = useRef(0);
-	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
 
-		startTransition(async () => {
-			setOptimisticPage(1);
-
-			const result = await getPatientDiagnosesTableAction({
-				patientId,
-				page: 1,
-				limit: tableData.limit,
-				query: nextQuery,
-				createdFrom,
-				createdTo,
-				diagnosedFrom,
-				diagnosedTo,
-				lastReviewedFrom,
-				lastReviewedTo,
-				statusFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.diagnoses,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
-	}, 300);
-
-	function handleQueryChange(nextQuery: string) {
-		setQuery(nextQuery);
-		debouncedSearch(nextQuery);
-	}
-
-	function handlePreviousPage() {
-		const nextPage = Math.max(tableData.page - 1, 1);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientDiagnosesTableAction({
-				patientId,
-				page: nextPage,
-				limit: tableData.limit,
-				query,
-				createdFrom,
-				createdTo,
-				diagnosedFrom,
-				diagnosedTo,
-				lastReviewedFrom,
-				lastReviewedTo,
-				statusFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.diagnoses,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
-	}
-
-	function handleNextPage() {
-		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientDiagnosesTableAction({
-				patientId,
-				page: nextPage,
-				limit: tableData.limit,
-				query,
-				createdFrom,
-				createdTo,
-				diagnosedFrom,
-				diagnosedTo,
-				lastReviewedFrom,
-				lastReviewedTo,
-				statusFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.diagnoses,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
-	}
-
-	function handleLimitChange(nextLimit: number) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticLimit(nextLimit);
-			const result = await getPatientDiagnosesTableAction({
-				patientId,
-				page: 1,
-				limit: nextLimit,
-				query,
-				createdFrom,
-				createdTo,
-				diagnosedFrom,
-				diagnosedTo,
-				lastReviewedFrom,
-				lastReviewedTo,
-				statusFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.diagnoses,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
-	}
-
-	function handleStatusFiltersChange(
-		nextStatusFilters: DiagnosisStatusFilter[],
-	) {
-		setStatusFilters(nextStatusFilters);
-		fetchFilteredDiagnoses({
-			nextCreatedFrom: createdFrom,
-			nextCreatedTo: createdTo,
-			nextDiagnosedFrom: diagnosedFrom,
-			nextDiagnosedTo: diagnosedTo,
-			nextLastReviewedFrom: lastReviewedFrom,
-			nextLastReviewedTo: lastReviewedTo,
-			nextStatusFilters,
-		});
-	}
-
-	function handleCreatedAtRangeApply(
-		nextCreatedFrom: string,
-		nextCreatedTo: string,
-	) {
-		setCreatedFrom(nextCreatedFrom);
-		setCreatedTo(nextCreatedTo);
-		fetchFilteredDiagnoses({
-			nextCreatedFrom,
-			nextCreatedTo,
-			nextDiagnosedFrom: diagnosedFrom,
-			nextDiagnosedTo: diagnosedTo,
-			nextLastReviewedFrom: lastReviewedFrom,
-			nextLastReviewedTo: lastReviewedTo,
-			nextStatusFilters: statusFilters,
-		});
-	}
-
-	function handleDiagnosedAtRangeApply(
-		nextDiagnosedFrom: string,
-		nextDiagnosedTo: string,
-	) {
-		setDiagnosedFrom(nextDiagnosedFrom);
-		setDiagnosedTo(nextDiagnosedTo);
-		fetchFilteredDiagnoses({
-			nextCreatedFrom: createdFrom,
-			nextCreatedTo: createdTo,
-			nextDiagnosedFrom,
-			nextDiagnosedTo,
-			nextLastReviewedFrom: lastReviewedFrom,
-			nextLastReviewedTo: lastReviewedTo,
-			nextStatusFilters: statusFilters,
-		});
-	}
-
-	function handleLastReviewedRangeApply(
-		nextLastReviewedFrom: string,
-		nextLastReviewedTo: string,
-	) {
-		setLastReviewedFrom(nextLastReviewedFrom);
-		setLastReviewedTo(nextLastReviewedTo);
-		fetchFilteredDiagnoses({
-			nextCreatedFrom: createdFrom,
-			nextCreatedTo: createdTo,
-			nextDiagnosedFrom: diagnosedFrom,
-			nextDiagnosedTo: diagnosedTo,
-			nextLastReviewedFrom,
-			nextLastReviewedTo,
-			nextStatusFilters: statusFilters,
-		});
-	}
-
-	function fetchFilteredDiagnoses({
-		nextCreatedFrom,
-		nextCreatedTo,
-		nextDiagnosedFrom,
-		nextDiagnosedTo,
-		nextLastReviewedFrom,
-		nextLastReviewedTo,
-		nextStatusFilters,
+	function refreshDiagnosesTable({
+		nextPage = 1,
+		nextLimit = tableData.limit,
+		nextQuery = query,
+		nextCreatedFrom = createdFrom,
+		nextCreatedTo = createdTo,
+		nextDiagnosedFrom = diagnosedFrom,
+		nextDiagnosedTo = diagnosedTo,
+		nextLastReviewedFrom = lastReviewedFrom,
+		nextLastReviewedTo = lastReviewedTo,
+		nextStatusFilters = statusFilters,
 	}: {
-		nextCreatedFrom: string;
-		nextCreatedTo: string;
-		nextDiagnosedFrom: string;
-		nextDiagnosedTo: string;
-		nextLastReviewedFrom: string;
-		nextLastReviewedTo: string;
-		nextStatusFilters: DiagnosisStatusFilter[];
+		nextPage?: number;
+		nextLimit?: number;
+		nextQuery?: string;
+		nextCreatedFrom?: string;
+		nextCreatedTo?: string;
+		nextDiagnosedFrom?: string;
+		nextDiagnosedTo?: string;
+		nextLastReviewedFrom?: string;
+		nextLastReviewedTo?: string;
+		nextStatusFilters?: DiagnosisStatusFilter[];
 	}) {
 		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
 		latestSectionTableRequestIdRef.current = sectionTableRequestId;
 
 		startTransition(async () => {
-			setOptimisticPage(1);
-
+			setOptimisticPage(nextPage);
+			setOptimisticLimit(nextLimit);
 			const result = await getPatientDiagnosesTableAction({
 				patientId,
-				page: 1,
-				limit: tableData.limit,
-				query,
+				page: nextPage,
+				limit: nextLimit,
+				query: nextQuery,
 				createdFrom: nextCreatedFrom,
 				createdTo: nextCreatedTo,
 				diagnosedFrom: nextDiagnosedFrom,
@@ -304,6 +99,52 @@ export function DiagnosesClient({
 				totalPages: result.totalPages,
 			});
 		});
+	}
+
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		refreshDiagnosesTable({ nextQuery });
+	}, 300);
+
+	function handleQueryChange(nextQuery: string) {
+		setQuery(nextQuery);
+		debouncedSearch(nextQuery);
+	}
+
+	function handlePreviousPage() {
+		const nextPage = Math.max(tableData.page - 1, 1);
+		refreshDiagnosesTable({ nextPage });
+	}
+
+	function handleNextPage() {
+		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
+		refreshDiagnosesTable({ nextPage });
+	}
+
+	function handleLimitChange(nextLimit: number) {
+		refreshDiagnosesTable({ nextLimit });
+	}
+
+	function handleStatusFiltersChange(nextStatusFilters: DiagnosisStatusFilter[]) {
+		setStatusFilters(nextStatusFilters);
+		refreshDiagnosesTable({ nextStatusFilters });
+	}
+
+	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
+		setCreatedFrom(nextCreatedFrom);
+		setCreatedTo(nextCreatedTo);
+		refreshDiagnosesTable({ nextCreatedFrom, nextCreatedTo });
+	}
+
+	function handleDiagnosedAtRangeApply(nextDiagnosedFrom: string, nextDiagnosedTo: string) {
+		setDiagnosedFrom(nextDiagnosedFrom);
+		setDiagnosedTo(nextDiagnosedTo);
+		refreshDiagnosesTable({ nextDiagnosedFrom, nextDiagnosedTo });
+	}
+
+	function handleLastReviewedRangeApply(nextLastReviewedFrom: string, nextLastReviewedTo: string) {
+		setLastReviewedFrom(nextLastReviewedFrom);
+		setLastReviewedTo(nextLastReviewedTo);
+		refreshDiagnosesTable({ nextLastReviewedFrom, nextLastReviewedTo });
 	}
 
 	return (

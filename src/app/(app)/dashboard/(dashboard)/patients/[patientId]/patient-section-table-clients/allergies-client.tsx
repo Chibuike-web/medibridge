@@ -46,52 +46,39 @@ export function AllergiesClient({
 	const [isPending, startTransition] = useTransition();
 	const latestSectionTableRequestIdRef = useRef(0);
 
-	function getAllergiesRequestParams({
-		page,
-		limit,
-		query,
-		createdFrom,
-		createdTo,
-		statusFilter,
-		severityFilters,
+	function refreshAllergiesTable({
+		nextPage = 1,
+		nextLimit = tableData.limit,
+		nextQuery = query,
+		nextCreatedFrom = createdFrom,
+		nextCreatedTo = createdTo,
+		nextStatusFilter = statusFilter,
+		nextSeverityFilters = severityFilters,
 	}: {
-		page: number;
-		limit: number;
-		query: string;
-		createdFrom: string;
-		createdTo: string;
-		statusFilter: AllergyStatusFilter;
-		severityFilters: AllergySeverityFilter[];
+		nextPage?: number;
+		nextLimit?: number;
+		nextQuery?: string;
+		nextCreatedFrom?: string;
+		nextCreatedTo?: string;
+		nextStatusFilter?: AllergyStatusFilter;
+		nextSeverityFilters?: AllergySeverityFilter[];
 	}) {
-		return {
-			patientId,
-			page,
-			limit,
-			query,
-			createdFrom,
-			createdTo,
-			statusFilter,
-			severityFilters,
-		};
-	}
-
-	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
 		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
 		latestSectionTableRequestIdRef.current = sectionTableRequestId;
 
 		startTransition(async () => {
-			setOptimisticPage(1);
+			setOptimisticPage(nextPage);
+			setOptimisticLimit(nextLimit);
 
 			const result = await getPatientAllergiesTableAction({
-				...getAllergiesRequestParams({
-					page: 1,
-					limit: tableData.limit,
-					query: nextQuery,
-					createdFrom,
-					createdTo,
-					statusFilter,
-					severityFilters,
-				}),
+				patientId,
+				page: nextPage,
+				limit: nextLimit,
+				query: nextQuery,
+				createdFrom: nextCreatedFrom,
+				createdTo: nextCreatedTo,
+				statusFilter: nextStatusFilter,
+				severityFilters: nextSeverityFilters,
 			});
 
 			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
@@ -105,6 +92,10 @@ export function AllergiesClient({
 				totalPages: result.totalPages,
 			});
 		});
+	}
+
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		refreshAllergiesTable({ nextQuery });
 	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
@@ -114,145 +105,31 @@ export function AllergiesClient({
 
 	function handlePreviousPage() {
 		const nextPage = Math.max(tableData.page - 1, 1);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientAllergiesTableAction({
-				...getAllergiesRequestParams({
-					page: nextPage,
-					limit: tableData.limit,
-					query,
-					createdFrom,
-					createdTo,
-					statusFilter,
-					severityFilters,
-				}),
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.allergies,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshAllergiesTable({ nextPage });
 	}
 
 	function handleNextPage() {
 		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientAllergiesTableAction({
-				...getAllergiesRequestParams({
-					page: nextPage,
-					limit: tableData.limit,
-					query,
-					createdFrom,
-					createdTo,
-					statusFilter,
-					severityFilters,
-				}),
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.allergies,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshAllergiesTable({ nextPage });
 	}
 
 	function handleLimitChange(nextLimit: number) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticLimit(nextLimit);
-			const result = await getPatientAllergiesTableAction({
-				...getAllergiesRequestParams({
-					page: 1,
-					limit: nextLimit,
-					query,
-					createdFrom,
-					createdTo,
-					statusFilter,
-					severityFilters,
-				}),
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.allergies,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshAllergiesTable({ nextLimit });
 	}
 
-	function handleAllergyFiltersChange({
-		createdFrom: nextCreatedFrom = createdFrom,
-		createdTo: nextCreatedTo = createdTo,
-		statusFilter: nextStatusFilter = statusFilter,
-		severityFilters: nextSeverityFilters = severityFilters,
-	}: {
-		createdFrom?: string;
-		createdTo?: string;
-		statusFilter?: AllergyStatusFilter;
-		severityFilters?: AllergySeverityFilter[];
-	}) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
+	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
 		setCreatedFrom(nextCreatedFrom);
 		setCreatedTo(nextCreatedTo);
+		refreshAllergiesTable({ nextCreatedFrom, nextCreatedTo });
+	}
+
+	function handleStatusFiltersChange(nextStatusFilter: AllergyStatusFilter) {
 		setStatusFilter(nextStatusFilter);
+		refreshAllergiesTable({ nextStatusFilter });
+	}
+	function handleSeverityFiltersChange(nextSeverityFilters: AllergySeverityFilter[]) {
 		setSeverityFilters(nextSeverityFilters);
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-
-			const result = await getPatientAllergiesTableAction({
-				...getAllergiesRequestParams({
-					page: 1,
-					limit: tableData.limit,
-					query,
-					createdFrom: nextCreatedFrom,
-					createdTo: nextCreatedTo,
-					statusFilter: nextStatusFilter,
-					severityFilters: nextSeverityFilters,
-				}),
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.allergies,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshAllergiesTable({ nextSeverityFilters });
 	}
 
 	return (
@@ -268,18 +145,9 @@ export function AllergiesClient({
 			severityFilters={severityFilters}
 			isPending={isPending}
 			onQueryChange={handleQueryChange}
-			onCreatedAtRangeApply={(nextCreatedFrom, nextCreatedTo) =>
-				handleAllergyFiltersChange({
-					createdFrom: nextCreatedFrom,
-					createdTo: nextCreatedTo,
-				})
-			}
-			onStatusFilterChange={(nextStatusFilter) =>
-				handleAllergyFiltersChange({ statusFilter: nextStatusFilter })
-			}
-			onSeverityFiltersChange={(nextSeverityFilters) =>
-				handleAllergyFiltersChange({ severityFilters: nextSeverityFilters })
-			}
+			onCreatedAtRangeApply={handleCreatedAtRangeApply}
+			onStatusFilterChange={handleStatusFiltersChange}
+			onSeverityFiltersChange={handleSeverityFiltersChange}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

@@ -70,8 +70,8 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 
 	return (
 		<div className="mt-8 flex flex-col gap-3.5 items-start">
-			<span className="text-gray-600 font-medium">
-				Attach Clinical Records <span className="text-gray-400 font-normal">(required)</span>
+			<span className="inline-flex items-baseline gap-0.5 text-gray-600 font-medium">
+				Attach Clinical Records<span className="text-gray-400 font-normal">(required)</span>
 			</span>
 
 			<Tabs.Root value={activeTabId} onValueChange={setActiveTabId} className="w-full">

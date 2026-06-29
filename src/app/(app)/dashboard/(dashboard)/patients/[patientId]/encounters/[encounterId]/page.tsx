@@ -41,10 +41,10 @@ async function EncounterDetailsContent({ params }: EncounterDetailsParamsProps) 
 
 	return (
 		<div className="flex h-full min-h-0 flex-col overflow-hidden">
-			<nav
-				aria-label="Breadcrumb"
-				className="flex items-center gap-2 border-b border-gray-200 px-6 py-5 text-sm"
-			>
+				<nav
+					aria-label="Breadcrumb"
+					className="flex h-14 items-center gap-2 border-b border-gray-200 px-6 text-sm"
+				>
 				<Link href="/dashboard/patients" className="flex shrink-0 items-center gap-2">
 					<RiArrowLeftLine aria-hidden="true" />
 					<span>Patients</span>
@@ -110,10 +110,10 @@ async function EncounterDetailsContent({ params }: EncounterDetailsParamsProps) 
 function EncounterDetailsPageSkeleton() {
 	return (
 		<div className="flex h-full min-h-0 flex-col overflow-hidden">
-			<nav
-				aria-label="Breadcrumb"
-				className="flex items-center gap-2 border-b border-gray-200 px-6 py-5 text-sm"
-			>
+				<nav
+					aria-label="Breadcrumb"
+					className="flex h-14 items-center gap-2 border-b border-gray-200 px-6 text-sm"
+				>
 				<Link href="/dashboard/patients" className="flex shrink-0 items-center gap-2">
 					<RiArrowLeftLine aria-hidden="true" />
 					<span>Patients</span>

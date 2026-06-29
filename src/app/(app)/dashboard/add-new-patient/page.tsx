@@ -21,7 +21,7 @@ async function AddNewPatientContent() {
 
 	return (
 		<>
-			<nav className="w-full h-16 flex items-center sticky z-1 top-0 bg-white border-b border-gray-300 px-8">
+			<nav className="w-full h-14 flex items-center sticky z-1 top-0 bg-white border-b border-gray-300 px-6">
 				<Link href="/dashboard/overview" className="flex gap-2 w-max items-center text-foreground">
 					<RiArrowLeftLine className="size-4" /> <span className="sr-only">Back</span>
 				</Link>

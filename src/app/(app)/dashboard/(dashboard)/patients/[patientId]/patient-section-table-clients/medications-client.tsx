@@ -40,90 +40,36 @@ export function MedicationsClient({
 	const [statusFilter, setStatusFilter] = useState<MedicationStatusFilter>("");
 	const [isPending, startTransition] = useTransition();
 	const latestSectionTableRequestIdRef = useRef(0);
-	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+
+	function refreshMedicationsTable({
+		nextPage = 1,
+		nextLimit = tableData.limit,
+		nextQuery = query,
+		nextCreatedFrom = createdFrom,
+		nextCreatedTo = createdTo,
+		nextStatusFilter = statusFilter,
+	}: {
+		nextPage?: number;
+		nextLimit?: number;
+		nextQuery?: string;
+		nextCreatedFrom?: string;
+		nextCreatedTo?: string;
+		nextStatusFilter?: MedicationStatusFilter;
+	}) {
 		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
 		latestSectionTableRequestIdRef.current = sectionTableRequestId;
 
 		startTransition(async () => {
-			setOptimisticPage(1);
+			setOptimisticPage(nextPage);
+			setOptimisticLimit(nextLimit);
 
 			const result = await getPatientMedicationsTableAction({
 				patientId,
-				page: 1,
-					limit: tableData.limit,
-					query: nextQuery,
-					createdFrom,
-					createdTo,
-					statusFilter,
-				});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.medications,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
-	}, 300);
-
-	function handleQueryChange(nextQuery: string) {
-		setQuery(nextQuery);
-		debouncedSearch(nextQuery);
-	}
-
-	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		setCreatedFrom(nextCreatedFrom);
-		setCreatedTo(nextCreatedTo);
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-
-			const result = await getPatientMedicationsTableAction({
-				patientId,
-				page: 1,
-				limit: tableData.limit,
-				query,
+				page: nextPage,
+				limit: nextLimit,
+				query: nextQuery,
 				createdFrom: nextCreatedFrom,
 				createdTo: nextCreatedTo,
-				statusFilter,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.medications,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
-	}
-
-	function handleStatusFilterChange(nextStatusFilter: MedicationStatusFilter) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		setStatusFilter(nextStatusFilter);
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-
-			const result = await getPatientMedicationsTableAction({
-				patientId,
-				page: 1,
-				limit: tableData.limit,
-				query,
-				createdFrom,
-				createdTo,
 				statusFilter: nextStatusFilter,
 			});
 
@@ -140,94 +86,40 @@ export function MedicationsClient({
 		});
 	}
 
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		refreshMedicationsTable({ nextQuery });
+	}, 300);
+
+	function handleQueryChange(nextQuery: string) {
+		setQuery(nextQuery);
+		debouncedSearch(nextQuery);
+	}
+
+	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
+		setCreatedFrom(nextCreatedFrom);
+		setCreatedTo(nextCreatedTo);
+
+		refreshMedicationsTable({ nextCreatedFrom, nextCreatedTo });
+	}
+
+	function handleStatusFilterChange(nextStatusFilter: MedicationStatusFilter) {
+		setStatusFilter(nextStatusFilter);
+
+		refreshMedicationsTable({ nextStatusFilter });
+	}
+
 	function handlePreviousPage() {
 		const nextPage = Math.max(tableData.page - 1, 1);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientMedicationsTableAction({
-				patientId,
-				page: nextPage,
-					limit: tableData.limit,
-					query,
-					createdFrom,
-					createdTo,
-					statusFilter,
-				});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.medications,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshMedicationsTable({ nextPage });
 	}
 
 	function handleNextPage() {
 		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientMedicationsTableAction({
-				patientId,
-				page: nextPage,
-					limit: tableData.limit,
-					query,
-					createdFrom,
-					createdTo,
-					statusFilter,
-				});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.medications,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshMedicationsTable({ nextPage });
 	}
 
 	function handleLimitChange(nextLimit: number) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticLimit(nextLimit);
-			const result = await getPatientMedicationsTableAction({
-				patientId,
-				page: 1,
-					limit: nextLimit,
-					query,
-					createdFrom,
-					createdTo,
-					statusFilter,
-				});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.medications,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshMedicationsTable({ nextLimit });
 	}
 
 	return (
@@ -235,16 +127,16 @@ export function MedicationsClient({
 			medications={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}
-				totalPages={tableData.totalPages}
-				query={query}
-				createdFrom={createdFrom}
-				createdTo={createdTo}
-				statusFilter={statusFilter}
-				isPending={isPending}
-				onQueryChange={handleQueryChange}
-				onCreatedAtRangeApply={handleCreatedAtRangeApply}
-				onStatusFilterChange={handleStatusFilterChange}
-				onPreviousPage={handlePreviousPage}
+			totalPages={tableData.totalPages}
+			query={query}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+			statusFilter={statusFilter}
+			isPending={isPending}
+			onQueryChange={handleQueryChange}
+			onCreatedAtRangeApply={handleCreatedAtRangeApply}
+			onStatusFilterChange={handleStatusFilterChange}
+			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}
 		/>

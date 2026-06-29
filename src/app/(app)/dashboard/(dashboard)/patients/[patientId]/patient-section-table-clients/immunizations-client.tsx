@@ -41,48 +41,36 @@ export function ImmunizationsClient({
 	const [isPending, startTransition] = useTransition();
 	const latestSectionTableRequestIdRef = useRef(0);
 
-	function getImmunizationsRequestParams({
-		page,
-		limit,
-		query,
-		createdFrom,
-		createdTo,
-		statusFilters,
+	function refreshImmunizationsTable({
+		nextPage = 1,
+		nextLimit = tableData.limit,
+		nextQuery = query,
+		nextCreatedFrom = createdFrom,
+		nextCreatedTo = createdTo,
+		nextStatusFilters = statusFilters,
 	}: {
-		page: number;
-		limit: number;
-		query: string;
-		createdFrom: string;
-		createdTo: string;
-		statusFilters: ImmunizationStatusFilter[];
+		nextPage?: number;
+		nextLimit?: number;
+		nextQuery?: string;
+		nextCreatedFrom?: string;
+		nextCreatedTo?: string;
+		nextStatusFilters?: ImmunizationStatusFilter[];
 	}) {
-		return {
-			patientId,
-			page,
-			limit,
-			query,
-			createdFrom,
-			createdTo,
-			statusFilters,
-		};
-	}
-
-	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
 		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
 		latestSectionTableRequestIdRef.current = sectionTableRequestId;
 
 		startTransition(async () => {
-			setOptimisticPage(1);
+			setOptimisticPage(nextPage);
+			setOptimisticLimit(nextLimit);
 
 			const result = await getPatientImmunizationsTableAction({
-				...getImmunizationsRequestParams({
-					page: 1,
-					limit: tableData.limit,
-					query: nextQuery,
-					createdFrom,
-					createdTo,
-					statusFilters,
-				}),
+				patientId,
+				page: nextPage,
+				limit: nextLimit,
+				query: nextQuery,
+				createdFrom: nextCreatedFrom,
+				createdTo: nextCreatedTo,
+				statusFilters: nextStatusFilters,
 			});
 
 			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
@@ -96,6 +84,10 @@ export function ImmunizationsClient({
 				totalPages: result.totalPages,
 			});
 		});
+	}
+
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		refreshImmunizationsTable({ nextQuery });
 	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
@@ -105,138 +97,27 @@ export function ImmunizationsClient({
 
 	function handlePreviousPage() {
 		const nextPage = Math.max(tableData.page - 1, 1);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientImmunizationsTableAction({
-				...getImmunizationsRequestParams({
-					page: nextPage,
-					limit: tableData.limit,
-					query,
-					createdFrom,
-					createdTo,
-					statusFilters,
-				}),
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.immunizations,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshImmunizationsTable({ nextPage });
 	}
 
 	function handleNextPage() {
 		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientImmunizationsTableAction({
-				...getImmunizationsRequestParams({
-					page: nextPage,
-					limit: tableData.limit,
-					query,
-					createdFrom,
-					createdTo,
-					statusFilters,
-				}),
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.immunizations,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshImmunizationsTable({ nextPage });
 	}
 
 	function handleLimitChange(nextLimit: number) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticLimit(nextLimit);
-			const result = await getPatientImmunizationsTableAction({
-				...getImmunizationsRequestParams({
-					page: 1,
-					limit: nextLimit,
-					query,
-					createdFrom,
-					createdTo,
-					statusFilters,
-				}),
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.immunizations,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshImmunizationsTable({ nextLimit });
 	}
 
-	function handleImmunizationFiltersChange({
-		createdFrom: nextCreatedFrom = createdFrom,
-		createdTo: nextCreatedTo = createdTo,
-		statusFilters: nextStatusFilters = statusFilters,
-	}: {
-		createdFrom?: string;
-		createdTo?: string;
-		statusFilters?: ImmunizationStatusFilter[];
-	}) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
+	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
 		setCreatedFrom(nextCreatedFrom);
 		setCreatedTo(nextCreatedTo);
+		refreshImmunizationsTable({ nextCreatedFrom, nextCreatedTo });
+	}
+
+	function handleStatusFiltersChange(nextStatusFilters: ImmunizationStatusFilter[]) {
 		setStatusFilters(nextStatusFilters);
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-
-			const result = await getPatientImmunizationsTableAction({
-				...getImmunizationsRequestParams({
-					page: 1,
-					limit: tableData.limit,
-					query,
-					createdFrom: nextCreatedFrom,
-					createdTo: nextCreatedTo,
-					statusFilters: nextStatusFilters,
-				}),
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.immunizations,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshImmunizationsTable({ nextStatusFilters });
 	}
 
 	return (
@@ -251,15 +132,8 @@ export function ImmunizationsClient({
 			statusFilters={statusFilters}
 			isPending={isPending}
 			onQueryChange={handleQueryChange}
-			onCreatedAtRangeApply={(nextCreatedFrom, nextCreatedTo) =>
-				handleImmunizationFiltersChange({
-					createdFrom: nextCreatedFrom,
-					createdTo: nextCreatedTo,
-				})
-			}
-			onStatusFiltersChange={(nextStatusFilters) =>
-				handleImmunizationFiltersChange({ statusFilters: nextStatusFilters })
-			}
+			onCreatedAtRangeApply={handleCreatedAtRangeApply}
+			onStatusFiltersChange={handleStatusFiltersChange}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

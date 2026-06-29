@@ -27,7 +27,7 @@ export function SharedLabTestsTable({ rows }: { rows: SharedLabTestRow[] }) {
 		{ header: "Test", accessorKey: "test", enableSorting: true, cell: ({ row }) => <span className="font-medium">{row.original.test}</span> },
 		{ header: "Lab ID", accessorKey: "labId", enableSorting: false, cell: ({ row }) => <CopyIdButton id={row.original.labId} /> },
 		{ header: "Reference Range", accessorKey: "referenceRange", enableSorting: true },
-		{ header: "Interpretation", accessorKey: "interpretation", enableSorting: true },
+		{ header: "Flag", accessorKey: "interpretation", enableSorting: true },
 		{ header: "Created At", accessorKey: "createdAt", enableSorting: true },
 		{ header: "Status", accessorKey: "status", enableSorting: true, cell: ({ row }) => <StatusBadge status={row.original.status} /> },
 		{ id: "actions", header: "", cell: () => <RowMenu />, enableSorting: false, size: 40 },

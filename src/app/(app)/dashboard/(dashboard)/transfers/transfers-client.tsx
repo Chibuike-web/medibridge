@@ -48,15 +48,14 @@ export function TransfersClient({
 	const searchParams = useSearchParams();
 	const [transferSearchQuery, setTransferSearchQuery] = useState(searchQuery);
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [optimisticTransfersPage, setOptimisticTransfersPage] = useOptimistic(page);
-	const [optimisticTransfersLimit, setOptimisticTransfersLimit] = useOptimistic(limit);
-	const [isUpdatingTransfersTable, startTransfersTableUpdateTransition] = useTransition();
+	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
+	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [isPending, startTransition] = useTransition();
 	const [optimistiRequestedAtRange, setOptimistiRequestedAtRange] = useOptimistic({
 		requestedFrom,
 		requestedTo,
 	});
-	const [optimisticTransferStatusFilters, setOptimisticTransferStatusFilters] =
-		useOptimistic(statusFilters);
+	const [optimisticStatusFilters, setOptimisticStatusFilters] = useOptimistic(statusFilters);
 
 	if (searchQuery !== previousSearchQuery) {
 		setPreviousSearchQuery(searchQuery);
@@ -64,8 +63,8 @@ export function TransfersClient({
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		startTransfersTableUpdateTransition(async () => {
-			setOptimisticTransfersPage(1);
+		startTransition(async () => {
+			setOptimisticPage(1);
 
 			router.push(
 				(pathname +
@@ -100,8 +99,8 @@ export function TransfersClient({
 	}
 
 	function handleRequestedAtRangeApply(nextRequestedFrom: string, nextRequestedTo: string) {
-		startTransfersTableUpdateTransition(async () => {
-			setOptimisticTransfersPage(1);
+		startTransition(async () => {
+			setOptimisticPage(1);
 			setOptimistiRequestedAtRange({
 				requestedFrom: nextRequestedFrom,
 				requestedTo: nextRequestedTo,
@@ -120,9 +119,9 @@ export function TransfersClient({
 	}
 
 	function handleStatusFiltersChange(nextStatusFilters: TransferStatusFilter[]) {
-		startTransfersTableUpdateTransition(async () => {
-			setOptimisticTransfersPage(1);
-			setOptimisticTransferStatusFilters(nextStatusFilters);
+		startTransition(async () => {
+			setOptimisticPage(1);
+			setOptimisticStatusFilters(nextStatusFilters);
 
 			router.push(
 				(pathname +
@@ -137,8 +136,8 @@ export function TransfersClient({
 	}
 
 	function handlePreviousPage() {
-		startTransfersTableUpdateTransition(async () => {
-			setOptimisticTransfersPage(page - 1);
+		startTransition(async () => {
+			setOptimisticPage(page - 1);
 
 			router.push(
 				(pathname +
@@ -152,8 +151,8 @@ export function TransfersClient({
 	}
 
 	function handleNextPage() {
-		startTransfersTableUpdateTransition(async () => {
-			setOptimisticTransfersPage(page + 1);
+		startTransition(async () => {
+			setOptimisticPage(page + 1);
 
 			router.push(
 				(pathname +
@@ -167,9 +166,9 @@ export function TransfersClient({
 	}
 
 	function handleLimitChange(value: string) {
-		startTransfersTableUpdateTransition(async () => {
-			setOptimisticTransfersPage(1);
-			setOptimisticTransfersLimit(Number(value));
+		startTransition(async () => {
+			setOptimisticPage(1);
+			setOptimisticLimit(Number(value));
 
 			router.push((pathname + "?" + createQueryString({ page: "1", limit: value })) as Route);
 		});
@@ -181,7 +180,7 @@ export function TransfersClient({
 
 	return (
 		<div className="flex h-full flex-col">
-			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0 text-sm">
+			<header className="border-b border-gray-200 bg-white px-6 h-14 flex items-center sticky top-0 z-20 shrink-0 text-sm">
 				<h1 className="text-xl font-semibold text-balance text-gray-800 tracking-[-0.015em]">
 					Transfers
 				</h1>
@@ -200,10 +199,10 @@ export function TransfersClient({
 					<FilterButton
 						requestedFrom={optimistiRequestedAtRange.requestedFrom}
 						requestedTo={optimistiRequestedAtRange.requestedTo}
-						isPending={isUpdatingTransfersTable}
+						isPending={isPending}
 						onRequestedAtRangeApply={handleRequestedAtRangeApply}
 						onStatusFiltersChange={handleStatusFiltersChange}
-						statusFilters={optimisticTransferStatusFilters}
+						statusFilters={optimisticStatusFilters}
 					/>
 					<Button
 						variant="outline"
@@ -223,16 +222,16 @@ export function TransfersClient({
 					<TransferActiveFilterPills
 						requestedFrom={optimistiRequestedAtRange.requestedFrom}
 						requestedTo={optimistiRequestedAtRange.requestedTo}
-						statusFilters={optimisticTransferStatusFilters}
+						statusFilters={optimisticStatusFilters}
 						onRequestedAtRangeApply={handleRequestedAtRangeApply}
 						onStatusFiltersChange={handleStatusFiltersChange}
 					/>
 					<TransferTable
 						data={transfers}
-						page={optimisticTransfersPage}
-						limit={optimisticTransfersLimit}
+						page={optimisticPage}
+						limit={optimisticLimit}
 						totalPages={totalPages}
-						isPending={isUpdatingTransfersTable}
+						isPending={isPending}
 						onPreviousPage={handlePreviousPage}
 						onNextPage={handleNextPage}
 						onLimitChange={handleLimitChange}

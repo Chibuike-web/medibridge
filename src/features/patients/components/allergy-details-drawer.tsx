@@ -27,10 +27,14 @@ import type {
 	AllergyDetailsHistoryEvent,
 	AllergyDetailsType,
 } from "@/features/patients/types";
+import {
+	AttachmentFormFields,
+	type AttachmentFormRow,
+} from "@/features/patients/components/attachment-form-fields";
 import { cn } from "@/lib/utils/cn";
 import { RiAddLine, RiArrowDownSLine, RiCloseLine, RiEditLine } from "@remixicon/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 type AllergyDetailsDrawerProps = {
 	open: boolean;
@@ -41,7 +45,8 @@ type AllergyDetailsDrawerProps = {
 
 const EMPTY_VALUE = "-";
 const allergyDetailsFormId = "allergy-details-form";
-const allergyDetailsFieldLabelClassName = "text-sm font-medium text-gray-700";
+const allergyDetailsFieldLabelClassName =
+	"inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const allergyDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const allergyDetailsFieldControlClassName =
 	"h-9 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400";
@@ -196,25 +201,49 @@ function AllergyDetailsOverview({
 }
 
 function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
-	return (
-		<form id={allergyDetailsFormId} className="flex flex-col gap-8">
-			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Allergy ID:</span>
-					<CopyIdButton id={allergy.allergyId} className="text-sm" />
-				</div>
-				{allergy.encounterId ? (
-					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
-						<CopyIdButton id={allergy.encounterId} className="text-sm" />
-					</div>
-				) : null}
-			</div>
+	const generatedAttachmentRowId = useId();
+	const nextAttachmentRowNumberRef = useRef(0);
+	const [allergyAttachmentRows, setAllergyAttachmentRows] = useState<AttachmentFormRow[]>([]);
 
-			<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+	function handleAddAllergyAttachmentRow() {
+		nextAttachmentRowNumberRef.current += 1;
+
+		setAllergyAttachmentRows((prev) => [
+			...prev,
+			{
+				id: `${generatedAttachmentRowId}-attachment-${nextAttachmentRowNumberRef.current}`,
+				name: "",
+				recordId: "",
+			},
+		]);
+	}
+
+	function handleRemoveAllergyAttachmentRow(attachmentRowId: string) {
+		setAllergyAttachmentRows((prev) =>
+			prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId),
+		);
+	}
+
+	return (
+		<form id={allergyDetailsFormId} className="flex flex-col gap-12">
+			<div className="flex flex-col gap-8">
+				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
+					<div className="flex items-center gap-2">
+						<span className="text-gray-400">Allergy ID:</span>
+						<CopyIdButton id={allergy.allergyId} className="text-sm" />
+					</div>
+					{allergy.encounterId ? (
+						<div className="flex items-center gap-2">
+							<span className="text-gray-400">Encounter ID:</span>
+							<CopyIdButton id={allergy.encounterId} className="text-sm" />
+						</div>
+					) : null}
+				</div>
+
+				<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
 				<div className="flex flex-col gap-2 sm:col-span-2">
 					<Label htmlFor="edit-allergy-allergen" className={allergyDetailsFieldLabelClassName}>
-						Allergen <span className={allergyDetailsRequiredLabelClassName}>(required)</span>
+						Allergen<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Input
 						id="edit-allergy-allergen"
@@ -226,7 +255,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-allergy-severity" className={allergyDetailsFieldLabelClassName}>
-						Severity <span className={allergyDetailsRequiredLabelClassName}>(required)</span>
+						Severity<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Select defaultValue={allergy.severity.toLowerCase()}>
 						<SelectTrigger
@@ -253,7 +282,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-allergy-status" className={allergyDetailsFieldLabelClassName}>
-						Status <span className={allergyDetailsRequiredLabelClassName}>(required)</span>
+						Status<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Select defaultValue={allergy.status.toLowerCase()}>
 						<SelectTrigger
@@ -277,7 +306,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 
 				<div className="flex flex-col gap-2 sm:col-span-2">
 					<Label htmlFor="edit-allergy-reaction" className={allergyDetailsFieldLabelClassName}>
-						Reaction <span className={allergyDetailsRequiredLabelClassName}>(required)</span>
+						Reaction<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Textarea
 						id="edit-allergy-reaction"
@@ -289,7 +318,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 
 				<div className="flex flex-col gap-2 sm:col-span-2">
 					<Label htmlFor="edit-allergy-clinical-note" className={allergyDetailsFieldLabelClassName}>
-						Clinical notes{" "}
+							Clinical notes
 						<span className={allergyDetailsRequiredLabelClassName}>(optional)</span>
 					</Label>
 					<Textarea
@@ -300,11 +329,28 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 					/>
 				</div>
 
-				<div className="sm:col-span-2">
+				</div>
+			</div>
+
+			<div className="flex flex-col gap-6">
+				{allergyAttachmentRows.map((attachmentRow, attachmentIndex) => (
+					<AttachmentFormFields
+						key={attachmentRow.id}
+						attachmentRow={attachmentRow}
+						attachmentIndex={attachmentIndex}
+						fieldLabelClassName={allergyDetailsFieldLabelClassName}
+						requiredLabelClassName={allergyDetailsRequiredLabelClassName}
+						fieldControlClassName={allergyDetailsFieldControlClassName}
+						onRemoveAttachmentRow={handleRemoveAllergyAttachmentRow}
+					/>
+				))}
+
+				<div>
 					<Button
 						type="button"
 						variant="outline"
 						className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+						onClick={handleAddAllergyAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
 						Add attachment
@@ -354,7 +400,7 @@ function AllergyHistoryCard({ historyEvent }: { historyEvent: AllergyDetailsHist
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+				<div className="flex flex-wrap items-center gap-[6px]">
 					<span id={titleId} className="text-base font-semibold text-gray-800">
 						{historyEvent.title}
 					</span>

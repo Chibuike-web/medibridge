@@ -42,7 +42,7 @@ async function NewTransferRequestContent({
 
 	return (
 		<>
-			<nav className="w-full h-16 flex items-center sticky z-[20] top-0 bg-white border-b border-gray-300 px-8">
+			<nav className="w-full h-14 flex items-center sticky z-[20] top-0 bg-white border-b border-gray-300 px-6">
 				<Link href={safeReturnTo} className="flex gap-2 w-max items-center text-foreground">
 					<RiArrowLeftLine className="size-4" /> <span className="sr-only">Back</span>
 				</Link>

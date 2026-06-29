@@ -73,9 +73,7 @@ async function PatientsPageContent({ searchParams }: PatientsPagePageProps) {
 						Patient records will appear here once patients have been added to the system.
 					</p>
 					<Button asChild className="text-sm">
-						<Link href="/dashboard/add-new-patient">
-							Add patient
-						</Link>
+						<Link href="/dashboard/add-new-patient"> Add patient</Link>
 					</Button>
 				</div>
 			</div>
@@ -120,7 +118,7 @@ function getGender(gender: unknown): PatientGenderFilter {
 function PatientsPageSkeleton() {
 	return (
 		<div className="flex h-full flex-col">
-			<header className="sticky top-0 z-20 flex h-16 shrink-0 items-center border-b border-gray-200 bg-white px-8">
+			<header className="sticky top-0 z-20 flex h-14 shrink-0 items-center border-b border-gray-200 bg-white px-6">
 				<div className="h-6 w-40 animate-pulse rounded bg-gray-100" />
 				<div className="ml-auto flex items-center gap-2">
 					<div className="h-10 w-[18rem] animate-pulse rounded bg-gray-100" />

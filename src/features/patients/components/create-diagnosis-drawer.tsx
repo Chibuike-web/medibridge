@@ -23,36 +23,45 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+	AttachmentFormFields,
+	type AttachmentFormRow,
+} from "@/features/patients/components/attachment-form-fields";
 import { RiAddLine, RiCalendarLine, RiCloseLine } from "@remixicon/react";
 import { format } from "date-fns";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 type CreateDiagnosisDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 };
 
-type AttachmentRow = {
-	id: string;
-};
-
-const fieldLabelClassName = "text-sm font-medium text-gray-700";
+const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400 text-sm h-9";
 
 export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDrawerProps) {
 	const generatedFormId = useId();
+	const nextAttachmentRowNumberRef = useRef(0);
 	const [diagnosedAt, setDiagnosedAt] = useState<Date | undefined>();
-	const [attachmentRows, setAttachmentRows] = useState<AttachmentRow[]>([
-		{ id: `${generatedFormId}-attachment-1` },
-	]);
+	const [attachmentRows, setAttachmentRows] = useState<AttachmentFormRow[]>([]);
 
 	function handleAddAttachmentRow() {
+		nextAttachmentRowNumberRef.current += 1;
+
 		setAttachmentRows((prev) => [
 			...prev,
-			{ id: `${generatedFormId}-attachment-${prev.length + 1}` },
+			{
+				id: `${generatedFormId}-attachment-${nextAttachmentRowNumberRef.current}`,
+				name: "",
+				recordId: "",
+			},
 		]);
+	}
+
+	function handleRemoveAttachmentRow(attachmentRowId: string) {
+		setAttachmentRows((prev) => prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId));
 	}
 
 	return (
@@ -68,11 +77,11 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<form className="min-h-0 flex-1 overflow-y-auto px-6 py-8 text-sm">
+				<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-6 py-8 text-sm">
 					<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-diagnosis-name`} className={fieldLabelClassName}>
-								Diagnosis name <span className={optionalLabelClassName}>(required)</span>
+								Diagnosis name<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-diagnosis-name`}
@@ -83,7 +92,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-severity`} className={fieldLabelClassName}>
-								Severity/Stage <span className={optionalLabelClassName}>(optional)</span>
+								Severity/Stage<span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Select>
 								<SelectTrigger
@@ -119,7 +128,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-status`} className={fieldLabelClassName}>
-								Status <span className={optionalLabelClassName}>(required)</span>
+								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
 								<SelectTrigger
@@ -143,7 +152,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 
 						<div className="flex flex-col gap-2">
 							<Label className={fieldLabelClassName}>
-								Diagnosed at <span className={optionalLabelClassName}>(required)</span>
+								Diagnosed at<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Popover>
 								<PopoverTrigger asChild>
@@ -170,7 +179,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-diagnosed-by`} className={fieldLabelClassName}>
-								Diagnosed by <span className={optionalLabelClassName}>(required)</span>
+								Diagnosed by<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-diagnosed-by`}
@@ -181,7 +190,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-clinical-notes`} className={fieldLabelClassName}>
-								Clinical notes <span className={optionalLabelClassName}>(optional)</span>
+								Clinical notes<span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Textarea
 								id={`${generatedFormId}-clinical-notes`}
@@ -189,47 +198,32 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 								className="border-gray-200 bg-white text-gray-700 placeholder:text-gray-400"
 							/>
 						</div>
+					</div>
 
+					<div className="flex flex-col gap-6">
 						{attachmentRows.map((attachmentRow, attachmentIndex) => (
-							<div
+							<AttachmentFormFields
 								key={attachmentRow.id}
-								className="grid grid-cols-1 gap-x-6 gap-y-6 sm:col-span-2 sm:grid-cols-2"
-							>
-								<div className="flex flex-col gap-2">
-									<Label htmlFor={`${attachmentRow.id}-name`} className={fieldLabelClassName}>
-										Attachment name
-									</Label>
-									<Input
-										id={`${attachmentRow.id}-name`}
-										placeholder="e.g. Lab test, Imaging report, Prescription"
-										className={fieldControlClassName}
-									/>
-								</div>
-								<div className="flex flex-col gap-2">
-									<Label htmlFor={`${attachmentRow.id}-id`} className={fieldLabelClassName}>
-										Attachment ID
-									</Label>
-									<Input
-										id={`${attachmentRow.id}-id`}
-										placeholder="e.g. LAB-2048, IMG-1032, MED-4821"
-										className={fieldControlClassName}
-									/>
-								</div>
-								{attachmentIndex === attachmentRows.length - 1 ? (
-									<div className="sm:col-span-2">
-										<Button
-											type="button"
-											variant="outline"
-											className="border-gray-200 bg-white text-gray-600 shadow-xs"
-											onClick={handleAddAttachmentRow}
-										>
-											<RiAddLine className="size-5" aria-hidden="true" />
-											Add attachment
-										</Button>
-									</div>
-								) : null}
-							</div>
+								attachmentRow={attachmentRow}
+								attachmentIndex={attachmentIndex}
+								fieldLabelClassName={fieldLabelClassName}
+								requiredLabelClassName={optionalLabelClassName}
+								fieldControlClassName={fieldControlClassName}
+								onRemoveAttachmentRow={handleRemoveAttachmentRow}
+							/>
 						))}
+
+						<div>
+							<Button
+								type="button"
+								variant="outline"
+								className="border-gray-200 bg-white text-gray-600 shadow-xs"
+								onClick={handleAddAttachmentRow}
+							>
+								<RiAddLine className="size-5" aria-hidden="true" />
+								Add attachment
+							</Button>
+						</div>
 					</div>
 				</form>
 

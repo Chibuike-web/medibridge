@@ -23,34 +23,45 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+	AttachmentFormFields,
+	type AttachmentFormRow,
+} from "@/features/patients/components/attachment-form-fields";
 import { RiAddLine, RiCalendarLine, RiCloseLine } from "@remixicon/react";
 import { format } from "date-fns";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 type CreateProcedureDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 };
 
-type ProcedureAttachmentRow = {
-	id: string;
-};
-
-const fieldLabelClassName = "text-sm font-medium text-gray-700";
+const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400 text-sm h-9";
 
 export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDrawerProps) {
 	const generatedFormId = useId();
+	const nextAttachmentRowNumberRef = useRef(0);
 	const [procedureDate, setProcedureDate] = useState<Date | undefined>();
-	const [attachmentRows, setAttachmentRows] = useState<ProcedureAttachmentRow[]>([]);
+	const [attachmentRows, setAttachmentRows] = useState<AttachmentFormRow[]>([]);
 
 	function handleAddAttachmentRow() {
+		nextAttachmentRowNumberRef.current += 1;
+
 		setAttachmentRows((prev) => [
 			...prev,
-			{ id: `${generatedFormId}-attachment-${prev.length + 1}` },
+			{
+				id: `${generatedFormId}-attachment-${nextAttachmentRowNumberRef.current}`,
+				name: "",
+				recordId: "",
+			},
 		]);
+	}
+
+	function handleRemoveAttachmentRow(attachmentRowId: string) {
+		setAttachmentRows((prev) => prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId));
 	}
 
 	return (
@@ -66,11 +77,11 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<form className="min-h-0 flex-1 overflow-y-auto px-6 py-8 text-sm">
+				<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-6 py-8 text-sm">
 					<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-procedure`} className={fieldLabelClassName}>
-								Procedure <span className={optionalLabelClassName}>(required)</span>
+								Procedure<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-procedure`}
@@ -81,7 +92,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-indication`} className={fieldLabelClassName}>
-								Indication <span className={optionalLabelClassName}>(optional)</span>
+								Indication<span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-indication`}
@@ -92,7 +103,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-status`} className={fieldLabelClassName}>
-								Status <span className={optionalLabelClassName}>(required)</span>
+								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
 								<SelectTrigger id={`${generatedFormId}-status`} className={`${fieldControlClassName} w-full`}>
@@ -116,7 +127,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 
 						<div className="flex flex-col gap-2">
 							<Label className={fieldLabelClassName}>
-								Date <span className={optionalLabelClassName}>(required)</span>
+								Date<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<input
 								type="hidden"
@@ -149,7 +160,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-physician`} className={fieldLabelClassName}>
-								Physician <span className={optionalLabelClassName}>(required)</span>
+								Physician<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-physician`}
@@ -160,7 +171,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-assistants`} className={fieldLabelClassName}>
-								Assistants <span className={optionalLabelClassName}>(required)</span>
+								Assistants<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
 								<SelectTrigger
@@ -187,7 +198,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-facility`} className={fieldLabelClassName}>
-								Facility <span className={optionalLabelClassName}>(required)</span>
+								Facility<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-facility`}
@@ -198,7 +209,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-clinical-notes`} className={fieldLabelClassName}>
-								Clinical notes <span className={optionalLabelClassName}>(optional)</span>
+								Clinical notes<span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Textarea
 								id={`${generatedFormId}-clinical-notes`}
@@ -207,35 +218,22 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 							/>
 						</div>
 
-						{attachmentRows.map((attachmentRow) => (
-							<div
+					</div>
+
+					<div className="flex flex-col gap-6">
+						{attachmentRows.map((attachmentRow, attachmentIndex) => (
+							<AttachmentFormFields
 								key={attachmentRow.id}
-								className="grid grid-cols-1 gap-x-6 gap-y-6 sm:col-span-2 sm:grid-cols-2"
-							>
-								<div className="flex flex-col gap-2">
-									<Label htmlFor={`${attachmentRow.id}-name`} className={fieldLabelClassName}>
-										Attachment name <span className={optionalLabelClassName}>(required)</span>
-									</Label>
-									<Input
-										id={`${attachmentRow.id}-name`}
-										placeholder="e.g. Diagnosis"
-										className={fieldControlClassName}
-									/>
-								</div>
-								<div className="flex flex-col gap-2">
-									<Label htmlFor={`${attachmentRow.id}-id`} className={fieldLabelClassName}>
-										Attachment ID <span className={optionalLabelClassName}>(required)</span>
-									</Label>
-									<Input
-										id={`${attachmentRow.id}-id`}
-										placeholder="e.g. DIA-2048"
-										className={fieldControlClassName}
-									/>
-								</div>
-							</div>
+								attachmentRow={attachmentRow}
+								attachmentIndex={attachmentIndex}
+								fieldLabelClassName={fieldLabelClassName}
+								requiredLabelClassName={optionalLabelClassName}
+								fieldControlClassName={fieldControlClassName}
+								onRemoveAttachmentRow={handleRemoveAttachmentRow}
+							/>
 						))}
 
-						<div className="sm:col-span-2">
+						<div>
 							<Button
 								type="button"
 								variant="outline"

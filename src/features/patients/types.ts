@@ -275,6 +275,20 @@ export type LabTestType = {
 	status: "Pending" | "Completed" | "Cancelled";
 };
 
+export type LabTestStatusFilter = "pending" | "completed" | "cancelled";
+
+export type LabTestFlagFilter =
+	| "within-range"
+	| "abnormal"
+	| "high"
+	| "low"
+	| "critical"
+	| "pending"
+	| "borderline"
+	| "invalid"
+	| "cancelled"
+	| "inconclusive";
+
 export type ImagingType = {
 	study: string;
 	imagingId: string;

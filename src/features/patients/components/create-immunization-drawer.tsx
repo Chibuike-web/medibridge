@@ -23,16 +23,20 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+	AttachmentFormFields,
+	type AttachmentFormRow,
+} from "@/features/patients/components/attachment-form-fields";
 import { RiAddLine, RiCalendarLine, RiCloseLine } from "@remixicon/react";
 import { format } from "date-fns";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 type CreateImmunizationDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 };
 
-const fieldLabelClassName = "text-sm font-medium text-gray-700";
+const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400 text-sm h-9";
@@ -42,7 +46,26 @@ export function CreateImmunizationDrawer({
 	onOpenChange,
 }: CreateImmunizationDrawerProps) {
 	const generatedFormId = useId();
+	const nextAttachmentRowNumberRef = useRef(0);
 	const [administeredAt, setAdministeredAt] = useState<Date | undefined>();
+	const [attachmentRows, setAttachmentRows] = useState<AttachmentFormRow[]>([]);
+
+	function handleAddAttachmentRow() {
+		nextAttachmentRowNumberRef.current += 1;
+
+		setAttachmentRows((prev) => [
+			...prev,
+			{
+				id: `${generatedFormId}-attachment-${nextAttachmentRowNumberRef.current}`,
+				name: "",
+				recordId: "",
+			},
+		]);
+	}
+
+	function handleRemoveAttachmentRow(attachmentRowId: string) {
+		setAttachmentRows((prev) => prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId));
+	}
 
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
@@ -59,11 +82,11 @@ export function CreateImmunizationDrawer({
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<form className="min-h-0 flex-1 overflow-y-auto px-6 py-8 text-sm">
+				<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-6 py-8 text-sm">
 					<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-vaccine-name`} className={fieldLabelClassName}>
-								Vaccine name <span className={optionalLabelClassName}>(required)</span>
+								Vaccine name<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-vaccine-name`}
@@ -74,7 +97,7 @@ export function CreateImmunizationDrawer({
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-series-type`} className={fieldLabelClassName}>
-								Series Type <span className={optionalLabelClassName}>(optional)</span>
+								Series Type<span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Select>
 								<SelectTrigger
@@ -98,7 +121,7 @@ export function CreateImmunizationDrawer({
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-current-dose`} className={fieldLabelClassName}>
-								Current Dose <span className={optionalLabelClassName}>(required)</span>
+								Current Dose<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-current-dose`}
@@ -109,7 +132,7 @@ export function CreateImmunizationDrawer({
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-total-dosage`} className={fieldLabelClassName}>
-								Total Dosage <span className={optionalLabelClassName}>(required)</span>
+								Total Dosage<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-total-dosage`}
@@ -120,7 +143,7 @@ export function CreateImmunizationDrawer({
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-status`} className={fieldLabelClassName}>
-								Status <span className={optionalLabelClassName}>(required)</span>
+								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
 								<SelectTrigger
@@ -150,7 +173,7 @@ export function CreateImmunizationDrawer({
 
 						<div className="flex flex-col gap-2">
 							<Label className={fieldLabelClassName}>
-								Date administered <span className={optionalLabelClassName}>(required)</span>
+								Date administered<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<input
 								type="hidden"
@@ -185,7 +208,7 @@ export function CreateImmunizationDrawer({
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-administered-by`} className={fieldLabelClassName}>
-								Administered by <span className={optionalLabelClassName}>(required)</span>
+								Administered by<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-administered-by`}
@@ -196,7 +219,7 @@ export function CreateImmunizationDrawer({
 
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-clinical-notes`} className={fieldLabelClassName}>
-								Clinical notes <span className={optionalLabelClassName}>(optional)</span>
+								Clinical notes<span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Textarea
 								id={`${generatedFormId}-clinical-notes`}
@@ -205,11 +228,27 @@ export function CreateImmunizationDrawer({
 							/>
 						</div>
 
-						<div className="sm:col-span-2">
+					</div>
+
+					<div className="flex flex-col gap-6">
+						{attachmentRows.map((attachmentRow, attachmentIndex) => (
+							<AttachmentFormFields
+								key={attachmentRow.id}
+								attachmentRow={attachmentRow}
+								attachmentIndex={attachmentIndex}
+								fieldLabelClassName={fieldLabelClassName}
+								requiredLabelClassName={optionalLabelClassName}
+								fieldControlClassName={fieldControlClassName}
+								onRemoveAttachmentRow={handleRemoveAttachmentRow}
+							/>
+						))}
+
+						<div>
 							<Button
 								type="button"
 								variant="outline"
 								className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />
 								Add attachment

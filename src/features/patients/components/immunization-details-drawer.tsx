@@ -29,6 +29,10 @@ import type {
 	ImmunizationDetailsHistoryEvent,
 	ImmunizationDetailsType,
 } from "@/features/patients/types";
+import {
+	AttachmentFormFields,
+	type AttachmentFormRow,
+} from "@/features/patients/components/attachment-form-fields";
 import { cn } from "@/lib/utils/cn";
 import {
 	RiAddLine,
@@ -39,7 +43,7 @@ import {
 } from "@remixicon/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { format } from "date-fns";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 type ImmunizationDetailsDrawerProps = {
 	open: boolean;
@@ -50,7 +54,8 @@ type ImmunizationDetailsDrawerProps = {
 
 const EMPTY_VALUE = "-";
 const immunizationDetailsFormId = "immunization-details-form";
-const immunizationDetailsFieldLabelClassName = "text-sm font-medium text-gray-700";
+const immunizationDetailsFieldLabelClassName =
+	"inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const immunizationDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const immunizationDetailsFieldControlClassName =
 	"h-9 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400";
@@ -222,29 +227,52 @@ function ImmunizationDetailsEditForm({
 }: {
 	immunization: ImmunizationDetailsType;
 }) {
+	const generatedAttachmentRowId = useId();
+	const nextAttachmentRowNumberRef = useRef(0);
 	const [administeredAt, setAdministeredAt] = useState<Date | undefined>(() =>
 		parseImmunizationDisplayDate(immunization.dateAdministered),
 	);
+	const [immunizationAttachmentRows, setImmunizationAttachmentRows] = useState<AttachmentFormRow[]>([]);
+
+	function handleAddImmunizationAttachmentRow() {
+		nextAttachmentRowNumberRef.current += 1;
+
+		setImmunizationAttachmentRows((prev) => [
+			...prev,
+			{
+				id: `${generatedAttachmentRowId}-attachment-${nextAttachmentRowNumberRef.current}`,
+				name: "",
+				recordId: "",
+			},
+		]);
+	}
+
+	function handleRemoveImmunizationAttachmentRow(attachmentRowId: string) {
+		setImmunizationAttachmentRows((prev) =>
+			prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId),
+		);
+	}
 
 	return (
-		<form id={immunizationDetailsFormId} className="flex flex-col gap-8">
-			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Immunization ID:</span>
-					<CopyIdButton id={immunization.immunizationId} className="text-sm" />
-				</div>
-				{immunization.encounterId ? (
+		<form id={immunizationDetailsFormId} className="flex flex-col gap-12">
+			<div className="flex flex-col gap-8">
+				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
-						<CopyIdButton id={immunization.encounterId} className="text-sm" />
+						<span className="text-gray-400">Immunization ID:</span>
+						<CopyIdButton id={immunization.immunizationId} className="text-sm" />
 					</div>
-				) : null}
-			</div>
+					{immunization.encounterId ? (
+						<div className="flex items-center gap-2">
+							<span className="text-gray-400">Encounter ID:</span>
+							<CopyIdButton id={immunization.encounterId} className="text-sm" />
+						</div>
+					) : null}
+				</div>
 
-			<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
 				<div className="flex flex-col gap-2 sm:col-span-2">
 					<Label htmlFor="edit-immunization-vaccine-name" className={immunizationDetailsFieldLabelClassName}>
-						Vaccine name{" "}
+							Vaccine name
 						<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Input
@@ -257,7 +285,7 @@ function ImmunizationDetailsEditForm({
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-immunization-series-type" className={immunizationDetailsFieldLabelClassName}>
-						Series Type{" "}
+							Series Type
 						<span className={immunizationDetailsRequiredLabelClassName}>(optional)</span>
 					</Label>
 					<Select defaultValue={getImmunizationSelectValue(immunization.seriesType)}>
@@ -282,7 +310,7 @@ function ImmunizationDetailsEditForm({
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-immunization-current-dose" className={immunizationDetailsFieldLabelClassName}>
-						Current dose{" "}
+							Current dose
 						<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Input
@@ -295,7 +323,7 @@ function ImmunizationDetailsEditForm({
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-immunization-total-dosage" className={immunizationDetailsFieldLabelClassName}>
-						Total Dosage{" "}
+							Total Dosage
 						<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Input
@@ -308,7 +336,7 @@ function ImmunizationDetailsEditForm({
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-immunization-status" className={immunizationDetailsFieldLabelClassName}>
-						Status <span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
+						Status<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Select defaultValue={getImmunizationSelectValue(immunization.status)}>
 						<SelectTrigger
@@ -338,7 +366,7 @@ function ImmunizationDetailsEditForm({
 
 				<div className="flex flex-col gap-2">
 					<Label className={immunizationDetailsFieldLabelClassName}>
-						Date administered{" "}
+							Date administered
 						<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<input
@@ -374,7 +402,7 @@ function ImmunizationDetailsEditForm({
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-immunization-administered-by" className={immunizationDetailsFieldLabelClassName}>
-						Administered by{" "}
+							Administered by
 						<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Input
@@ -387,7 +415,7 @@ function ImmunizationDetailsEditForm({
 
 				<div className="flex flex-col gap-2 sm:col-span-2">
 					<Label htmlFor="edit-immunization-clinical-note" className={immunizationDetailsFieldLabelClassName}>
-						Clinical notes{" "}
+							Clinical notes
 						<span className={immunizationDetailsRequiredLabelClassName}>(optional)</span>
 					</Label>
 					<Textarea
@@ -398,11 +426,28 @@ function ImmunizationDetailsEditForm({
 					/>
 				</div>
 
-				<div className="sm:col-span-2">
+				</div>
+			</div>
+
+			<div className="flex flex-col gap-6">
+				{immunizationAttachmentRows.map((attachmentRow, attachmentIndex) => (
+					<AttachmentFormFields
+						key={attachmentRow.id}
+						attachmentRow={attachmentRow}
+						attachmentIndex={attachmentIndex}
+						fieldLabelClassName={immunizationDetailsFieldLabelClassName}
+						requiredLabelClassName={immunizationDetailsRequiredLabelClassName}
+						fieldControlClassName={immunizationDetailsFieldControlClassName}
+						onRemoveAttachmentRow={handleRemoveImmunizationAttachmentRow}
+					/>
+				))}
+
+				<div>
 					<Button
 						type="button"
 						variant="outline"
 						className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+						onClick={handleAddImmunizationAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
 						Add attachment
@@ -460,7 +505,7 @@ function ImmunizationHistoryCard({
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+				<div className="flex flex-wrap items-center gap-[6px]">
 					<span id={titleId} className="text-base font-semibold text-gray-800">
 						{historyEvent.title}
 					</span>

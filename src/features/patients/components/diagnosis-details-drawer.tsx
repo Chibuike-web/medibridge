@@ -24,13 +24,23 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+	AttachmentFormFields,
+	type AttachmentFormRow,
+} from "@/features/patients/components/attachment-form-fields";
 import type {
 	DiagnosisDetailsHistoryEvent,
 	DiagnosisDetailsRelatedRecord,
 	DiagnosisDetailsType,
 } from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
-import { RiArrowDownSLine, RiCalendarLine, RiCloseLine, RiEditLine } from "@remixicon/react";
+import {
+	RiAddLine,
+	RiArrowDownSLine,
+	RiCalendarLine,
+	RiCloseLine,
+	RiEditLine,
+} from "@remixicon/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useId, useState } from "react";
 
@@ -43,7 +53,8 @@ type DiagnosisDetailsDrawerProps = {
 
 const EMPTY_VALUE = "-";
 const diagnosisDetailsFormId = "diagnosis-details-form";
-const diagnosisDetailsFieldLabelClassName = "text-sm font-medium text-gray-700";
+const diagnosisDetailsFieldLabelClassName =
+	"inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const diagnosisDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const diagnosisDetailsFieldControlClassName =
 	"h-9 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400";
@@ -202,146 +213,221 @@ function DiagnosisDetailsOverview({
 }
 
 function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsType }) {
+	const generatedAttachmentRowId = useId();
+	const [diagnosisAttachmentRows, setDiagnosisAttachmentRows] = useState<AttachmentFormRow[]>(
+		() => getDiagnosisAttachmentRows(diagnosis),
+	);
+
+	function handleAddDiagnosisAttachmentRow() {
+		setDiagnosisAttachmentRows((prev) => [
+			...prev,
+			{
+				id: `${generatedAttachmentRowId}-attachment-${prev.length + 1}`,
+				name: "",
+				recordId: "",
+			},
+		]);
+	}
+
+	function handleRemoveDiagnosisAttachmentRow(attachmentRowId: string) {
+		setDiagnosisAttachmentRows((prev) =>
+			prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId),
+		);
+	}
+
 	return (
-		<form id={diagnosisDetailsFormId} className="flex flex-col gap-8">
-			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Diagnosis ID:</span>
-					<CopyIdButton id={diagnosis.diagnosisId} className="text-sm" />
-				</div>
-				{diagnosis.encounterId ? (
+		<form id={diagnosisDetailsFormId} className="flex flex-col gap-12">
+			<div className="flex flex-col gap-8">
+				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
-						<CopyIdButton id={diagnosis.encounterId} className="text-sm" />
+						<span className="text-gray-400">Diagnosis ID:</span>
+						<CopyIdButton id={diagnosis.diagnosisId} className="text-sm" />
 					</div>
-				) : null}
+					{diagnosis.encounterId ? (
+						<div className="flex items-center gap-2">
+							<span className="text-gray-400">Encounter ID:</span>
+							<CopyIdButton id={diagnosis.encounterId} className="text-sm" />
+						</div>
+					) : null}
+				</div>
+
+				<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label htmlFor="edit-diagnosis-name" className={diagnosisDetailsFieldLabelClassName}>
+							Diagnosis name
+							<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-diagnosis-name"
+							name="diagnosisName"
+							defaultValue={diagnosis.name}
+							className={diagnosisDetailsFieldControlClassName}
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-diagnosis-severity" className={diagnosisDetailsFieldLabelClassName}>
+							Severity/Stage
+							<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Select defaultValue={getDiagnosisSelectValue(diagnosis.severityStage)}>
+							<SelectTrigger
+								id="edit-diagnosis-severity"
+								className={`${diagnosisDetailsFieldControlClassName} w-full`}
+							>
+								<SelectValue placeholder="Select severity or stage" />
+							</SelectTrigger>
+							<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectGroup>
+									<SelectItem value="mild" className="rounded-md px-3 h-9">
+										Mild
+									</SelectItem>
+									<SelectItem value="moderate" className="rounded-md px-3 h-9">
+										Moderate
+									</SelectItem>
+									<SelectItem value="severe" className="rounded-md px-3 h-9">
+										Severe
+									</SelectItem>
+									<SelectItem value="stage-1" className="rounded-md px-3 h-9">
+										Stage 1
+									</SelectItem>
+									<SelectItem value="stage-2" className="rounded-md px-3 h-9">
+										Stage 2
+									</SelectItem>
+									<SelectItem value="stage-3" className="rounded-md px-3 h-9">
+										Stage 3
+									</SelectItem>
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-diagnosis-status" className={diagnosisDetailsFieldLabelClassName}>
+							Status<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Select defaultValue={diagnosis.status.toLowerCase()}>
+							<SelectTrigger
+								id="edit-diagnosis-status"
+								className={`${diagnosisDetailsFieldControlClassName} w-full`}
+							>
+								<SelectValue placeholder="Select status" />
+							</SelectTrigger>
+							<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectGroup>
+									<SelectItem value="active" className="rounded-md px-3 h-9">
+										Active
+									</SelectItem>
+									<SelectItem value="resolved" className="rounded-md px-3 h-9">
+										Resolved
+									</SelectItem>
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label className={diagnosisDetailsFieldLabelClassName}>
+							Diagnosed at
+							<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Popover>
+							<PopoverTrigger asChild>
+								<Button
+									type="button"
+									variant="outline"
+									className={`${diagnosisDetailsFieldControlClassName} flex w-full justify-between font-normal hover:bg-white active:scale-100`}
+								>
+									{diagnosis.diagnosedAt || "Select diagnosis date"}
+									<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
+								</Button>
+							</PopoverTrigger>
+							<PopoverContent className="w-72 p-3 text-sm text-gray-500">
+								Date editing is visual only for now.
+							</PopoverContent>
+						</Popover>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-diagnosis-diagnosed-by" className={diagnosisDetailsFieldLabelClassName}>
+							Diagnosed by
+							<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-diagnosis-diagnosed-by"
+							name="diagnosedBy"
+							defaultValue={diagnosis.diagnosedBy}
+							className={diagnosisDetailsFieldControlClassName}
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label htmlFor="edit-diagnosis-clinical-note" className={diagnosisDetailsFieldLabelClassName}>
+							Clinical notes
+							<span className={diagnosisDetailsRequiredLabelClassName}>(optional)</span>
+						</Label>
+						<Textarea
+							id="edit-diagnosis-clinical-note"
+							name="clinicalNote"
+							defaultValue={diagnosis.clinicalNote}
+							className="border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+						/>
+					</div>
+				</div>
 			</div>
 
-			<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-diagnosis-name" className={diagnosisDetailsFieldLabelClassName}>
-						Diagnosis name{" "}
-						<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-diagnosis-name"
-						name="diagnosisName"
-						defaultValue={diagnosis.name}
-						className={diagnosisDetailsFieldControlClassName}
+			<div className="flex flex-col gap-6">
+				{diagnosisAttachmentRows.map((attachmentRow, attachmentIndex) => (
+					<AttachmentFormFields
+						key={attachmentRow.id}
+						attachmentRow={attachmentRow}
+						attachmentIndex={attachmentIndex}
+						fieldLabelClassName={diagnosisDetailsFieldLabelClassName}
+						requiredLabelClassName={diagnosisDetailsRequiredLabelClassName}
+						fieldControlClassName={diagnosisDetailsFieldControlClassName}
+						onRemoveAttachmentRow={handleRemoveDiagnosisAttachmentRow}
 					/>
-				</div>
+				))}
 
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-diagnosis-severity" className={diagnosisDetailsFieldLabelClassName}>
-						Severity/Stage{" "}
-						<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Select defaultValue={getDiagnosisSelectValue(diagnosis.severityStage)}>
-						<SelectTrigger
-							id="edit-diagnosis-severity"
-							className={`${diagnosisDetailsFieldControlClassName} w-full`}
-						>
-							<SelectValue placeholder="Select severity or stage" />
-						</SelectTrigger>
-						<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
-							<SelectGroup>
-								<SelectItem value="mild" className="rounded-md px-3 h-9">
-									Mild
-								</SelectItem>
-								<SelectItem value="moderate" className="rounded-md px-3 h-9">
-									Moderate
-								</SelectItem>
-								<SelectItem value="severe" className="rounded-md px-3 h-9">
-									Severe
-								</SelectItem>
-								<SelectItem value="stage-1" className="rounded-md px-3 h-9">
-									Stage 1
-								</SelectItem>
-								<SelectItem value="stage-2" className="rounded-md px-3 h-9">
-									Stage 2
-								</SelectItem>
-								<SelectItem value="stage-3" className="rounded-md px-3 h-9">
-									Stage 3
-								</SelectItem>
-							</SelectGroup>
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-diagnosis-status" className={diagnosisDetailsFieldLabelClassName}>
-						Status <span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Select defaultValue={diagnosis.status.toLowerCase()}>
-						<SelectTrigger
-							id="edit-diagnosis-status"
-							className={`${diagnosisDetailsFieldControlClassName} w-full`}
-						>
-							<SelectValue placeholder="Select status" />
-						</SelectTrigger>
-						<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
-							<SelectGroup>
-								<SelectItem value="active" className="rounded-md px-3 h-9">
-									Active
-								</SelectItem>
-								<SelectItem value="resolved" className="rounded-md px-3 h-9">
-									Resolved
-								</SelectItem>
-							</SelectGroup>
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label className={diagnosisDetailsFieldLabelClassName}>
-						Diagnosed at{" "}
-						<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Popover>
-						<PopoverTrigger asChild>
-							<Button
-								type="button"
-								variant="outline"
-								className={`${diagnosisDetailsFieldControlClassName} flex w-full justify-between font-normal hover:bg-white active:scale-100`}
-							>
-								{diagnosis.diagnosedAt || "Select diagnosis date"}
-								<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent className="w-72 p-3 text-sm text-gray-500">
-							Date editing is visual only for now.
-						</PopoverContent>
-					</Popover>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-diagnosis-diagnosed-by" className={diagnosisDetailsFieldLabelClassName}>
-						Diagnosed by{" "}
-						<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-diagnosis-diagnosed-by"
-						name="diagnosedBy"
-						defaultValue={diagnosis.diagnosedBy}
-						className={diagnosisDetailsFieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-diagnosis-clinical-note" className={diagnosisDetailsFieldLabelClassName}>
-						Clinical notes{" "}
-						<span className={diagnosisDetailsRequiredLabelClassName}>(optional)</span>
-					</Label>
-					<Textarea
-						id="edit-diagnosis-clinical-note"
-						name="clinicalNote"
-						defaultValue={diagnosis.clinicalNote}
-						className="border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
-					/>
+				<div>
+					<Button
+						type="button"
+						variant="outline"
+						className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+						onClick={handleAddDiagnosisAttachmentRow}
+					>
+						<RiAddLine className="size-5" aria-hidden="true" />
+						Add attachment
+					</Button>
 				</div>
 			</div>
 		</form>
 	);
+}
+
+function getDiagnosisAttachmentRows(diagnosis: DiagnosisDetailsType): AttachmentFormRow[] {
+	return [
+		...diagnosis.relatedRecords.labTests.map((record) => ({
+			id: `attachment-lab-test-${record.id}`,
+			name: record.name,
+			recordId: record.id,
+		})),
+		...diagnosis.relatedRecords.imaging.map((record) => ({
+			id: `attachment-imaging-${record.id}`,
+			name: record.name,
+			recordId: record.id,
+		})),
+		...diagnosis.relatedRecords.medications.map((record) => ({
+			id: `attachment-medication-${record.id}`,
+			name: record.name,
+			recordId: record.id,
+		})),
+		...diagnosis.relatedRecords.procedures.map((record) => ({
+			id: `attachment-procedure-${record.id}`,
+			name: record.name,
+			recordId: record.id,
+		})),
+	];
 }
 
 function getDiagnosisSelectValue(value: string) {
@@ -387,7 +473,7 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+				<div className="flex flex-wrap items-center gap-[6px]">
 					<span id={titleId} className="text-base font-semibold text-gray-800">
 						{historyEvent.title}
 					</span>

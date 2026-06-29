@@ -23,23 +23,46 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+	AttachmentFormFields,
+	type AttachmentFormRow,
+} from "@/features/patients/components/attachment-form-fields";
 import { RiAddLine, RiCalendarLine, RiCloseLine } from "@remixicon/react";
 import { format } from "date-fns";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 type CreateMedicationDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 };
 
-const fieldLabelClassName = "text-sm font-medium text-gray-700";
+const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400 text-sm h-9";
 
 export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationDrawerProps) {
 	const generatedFormId = useId();
+	const nextAttachmentRowNumberRef = useRef(0);
 	const [startedAt, setStartedAt] = useState<Date | undefined>();
+	const [attachmentRows, setAttachmentRows] = useState<AttachmentFormRow[]>([]);
+
+	function handleAddAttachmentRow() {
+		nextAttachmentRowNumberRef.current += 1;
+
+		setAttachmentRows((prev) => [
+			...prev,
+			{
+				id: `${generatedFormId}-attachment-${nextAttachmentRowNumberRef.current}`,
+				name: "",
+				recordId: "",
+			},
+		]);
+	}
+
+	function handleRemoveAttachmentRow(attachmentRowId: string) {
+		setAttachmentRows((prev) => prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId));
+	}
 
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
@@ -54,11 +77,11 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<form className="min-h-0 flex-1 overflow-y-auto px-6 py-8 text-sm">
+				<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-6 py-8 text-sm">
 					<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-medication`} className={fieldLabelClassName}>
-								Medication <span className={optionalLabelClassName}>(required)</span>
+								Medication<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-medication`}
@@ -69,7 +92,7 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-indication`} className={fieldLabelClassName}>
-								Indication <span className={optionalLabelClassName}>(required)</span>
+								Indication<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-indication`}
@@ -80,7 +103,7 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-status`} className={fieldLabelClassName}>
-								Status <span className={optionalLabelClassName}>(required)</span>
+								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
 								<SelectTrigger id={`${generatedFormId}-status`} className={`${fieldControlClassName} w-full`}>
@@ -104,7 +127,7 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-dose`} className={fieldLabelClassName}>
-								Dose <span className={optionalLabelClassName}>(required)</span>
+								Dose<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-dose`}
@@ -115,7 +138,7 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-route`} className={fieldLabelClassName}>
-								Route <span className={optionalLabelClassName}>(required)</span>
+								Route<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
 								<SelectTrigger id={`${generatedFormId}-route`} className={`${fieldControlClassName} w-full`}>
@@ -139,7 +162,7 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-prescribed-by`} className={fieldLabelClassName}>
-								Prescribed by <span className={optionalLabelClassName}>(required)</span>
+								Prescribed by<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-prescribed-by`}
@@ -150,7 +173,7 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-frequency`} className={fieldLabelClassName}>
-								Frequency <span className={optionalLabelClassName}>(required)</span>
+								Frequency<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-frequency`}
@@ -161,7 +184,7 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-duration`} className={fieldLabelClassName}>
-								Duration <span className={optionalLabelClassName}>(required)</span>
+								Duration<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-duration`}
@@ -172,7 +195,7 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 
 						<div className="flex flex-col gap-2">
 							<Label className={fieldLabelClassName}>
-								Started at <span className={optionalLabelClassName}>(required)</span>
+								Started at<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<input
 								type="hidden"
@@ -200,7 +223,7 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-clinical-notes`} className={fieldLabelClassName}>
-								Clinical notes <span className={optionalLabelClassName}>(optional)</span>
+								Clinical notes<span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Textarea
 								id={`${generatedFormId}-clinical-notes`}
@@ -209,11 +232,27 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 							/>
 						</div>
 
-						<div className="sm:col-span-2">
+					</div>
+
+					<div className="flex flex-col gap-6">
+						{attachmentRows.map((attachmentRow, attachmentIndex) => (
+							<AttachmentFormFields
+								key={attachmentRow.id}
+								attachmentRow={attachmentRow}
+								attachmentIndex={attachmentIndex}
+								fieldLabelClassName={fieldLabelClassName}
+								requiredLabelClassName={optionalLabelClassName}
+								fieldControlClassName={fieldControlClassName}
+								onRemoveAttachmentRow={handleRemoveAttachmentRow}
+							/>
+						))}
+
+						<div>
 							<Button
 								type="button"
 								variant="outline"
 								className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />
 								Add attachment

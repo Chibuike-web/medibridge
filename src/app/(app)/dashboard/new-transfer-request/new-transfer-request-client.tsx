@@ -225,9 +225,9 @@ export function NewTransferRequestClient({
 							</div>
 
 							<div className="flex flex-col gap-3.5 mt-8">
-								<Label className="text-gray-600">
-									Target Hospital Name <span className="text-gray-400 font-normal">(required)</span>
-								</Label>
+									<Label className="inline-flex items-baseline gap-0.5 text-gray-600">
+										Target Hospital Name<span className="text-gray-400 font-normal">(required)</span>
+									</Label>
 								<Input
 									placeholder="e.g., Enugu State Teaching Hospital"
 									defaultValue={currentPatientTransferData.hospitalName ?? ""}
@@ -247,10 +247,10 @@ export function NewTransferRequestClient({
 							</div>
 							<div className="mt-8">
 								<div className="flex flex-col gap-3.5">
-									<Label className="text-gray-600">
-										Target Hospital Email
-										<span className="text-gray-400 font-normal">(required)</span>
-									</Label>
+										<Label className="inline-flex items-baseline gap-0.5 text-gray-600">
+											Target Hospital Email
+											<span className="text-gray-400 font-normal">(required)</span>
+										</Label>
 									<Input
 										placeholder="e.g., admin@enuguhospital.gov.ng"
 										defaultValue={currentPatientTransferData.hospitalEmail ?? ""}
@@ -274,9 +274,9 @@ export function NewTransferRequestClient({
 								</div>
 							</div>
 							<div className="flex flex-col gap-3.5 mt-8">
-								<Label className="text-gray-600">
-									Notes <span className="text-gray-400 font-normal">(optional)</span>
-								</Label>
+									<Label className="inline-flex items-baseline gap-0.5 text-gray-600">
+										Notes<span className="text-gray-400 font-normal">(optional)</span>
+									</Label>
 								<Textarea
 									placeholder="Add context or special instructions"
 									defaultValue={currentPatientTransferData.notes ?? ""}

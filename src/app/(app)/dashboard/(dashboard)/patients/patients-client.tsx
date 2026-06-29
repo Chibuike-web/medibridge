@@ -59,17 +59,15 @@ export function PatientsClient({
 	const searchParams = useSearchParams();
 	const [patientSearchQuery, setPatientSearchQuery] = useState(searchQuery);
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [optimisticPatientsPage, setOptimisticPatientsPage] = useOptimistic(page);
-	const [optimisticPatientsLimit, setOptimisticPatientsLimit] = useOptimistic(limit);
+	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
+	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [optimisticCreatedAtRange, setOptimisticCreatedAtRange] = useOptimistic({
 		createdFrom,
 		createdTo,
 	});
-	const [optimisticPatientAgeGroupFilter, setOptimisticPatientAgeGroupFilter] =
-		useOptimistic(ageGroupFilter);
-	const [optimisticPatientGenderFilter, setOptimisticPatientGenderFilter] =
-		useOptimistic(genderFilter);
-	const [isUpdatingPatientsTable, startPatientsTableUpdateTransition] = useTransition();
+	const [optimisticAgeGroupFilter, setOptimisticAgeGroupFilter] = useOptimistic(ageGroupFilter);
+	const [optimisticGenderFilter, setOptimisticGenderFilter] = useOptimistic(genderFilter);
+	const [isPending, startTransition] = useTransition();
 
 	if (searchQuery !== previousSearchQuery) {
 		setPreviousSearchQuery(searchQuery);
@@ -77,8 +75,8 @@ export function PatientsClient({
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		startPatientsTableUpdateTransition(async () => {
-			setOptimisticPatientsPage(1);
+		startTransition(async () => {
+			setOptimisticPage(1);
 
 			router.push(
 				(pathname +
@@ -106,8 +104,8 @@ export function PatientsClient({
 	}
 
 	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
-		startPatientsTableUpdateTransition(async () => {
-			setOptimisticPatientsPage(1);
+		startTransition(async () => {
+			setOptimisticPage(1);
 			setOptimisticCreatedAtRange({
 				createdFrom: nextCreatedFrom,
 				createdTo: nextCreatedTo,
@@ -127,9 +125,9 @@ export function PatientsClient({
 	}
 
 	function handleGenderFilterChange(nextGenderFilter: PatientGenderFilter) {
-		startPatientsTableUpdateTransition(async () => {
-			setOptimisticPatientsPage(1);
-			setOptimisticPatientGenderFilter(nextGenderFilter);
+		startTransition(async () => {
+			setOptimisticPage(1);
+			setOptimisticGenderFilter(nextGenderFilter);
 
 			router.push(
 				(pathname +
@@ -144,9 +142,9 @@ export function PatientsClient({
 	}
 
 	function handleAgeGroupFilterChange(nextAgeGroupFilter: PatientAgeGroupFilter) {
-		startPatientsTableUpdateTransition(async () => {
-			setOptimisticPatientsPage(1);
-			setOptimisticPatientAgeGroupFilter(nextAgeGroupFilter);
+		startTransition(async () => {
+			setOptimisticPage(1);
+			setOptimisticAgeGroupFilter(nextAgeGroupFilter);
 
 			router.push(
 				(pathname +
@@ -166,8 +164,8 @@ export function PatientsClient({
 	}
 
 	function handlePreviousPage() {
-		startPatientsTableUpdateTransition(async () => {
-			setOptimisticPatientsPage(page - 1);
+		startTransition(async () => {
+			setOptimisticPage(page - 1);
 
 			router.push(
 				(pathname +
@@ -181,8 +179,8 @@ export function PatientsClient({
 	}
 
 	function handleNextPage() {
-		startPatientsTableUpdateTransition(async () => {
-			setOptimisticPatientsPage(page + 1);
+		startTransition(async () => {
+			setOptimisticPage(page + 1);
 
 			router.push(
 				(pathname +
@@ -196,9 +194,9 @@ export function PatientsClient({
 	}
 
 	function handleLimitChange(value: string) {
-		startPatientsTableUpdateTransition(async () => {
-			setOptimisticPatientsPage(1);
-			setOptimisticPatientsLimit(Number(value));
+		startTransition(async () => {
+			setOptimisticPage(1);
+			setOptimisticLimit(Number(value));
 
 			router.push((pathname + "?" + createQueryString({ page: "1", limit: value })) as Route);
 		});
@@ -206,7 +204,7 @@ export function PatientsClient({
 
 	return (
 		<div className="flex h-full flex-col">
-			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0 text-sm">
+			<header className="border-b border-gray-200 bg-white px-6 h-14 flex items-center sticky top-0 z-20 shrink-0 text-sm">
 				<h1 className="text-xl font-semibold text-balance text-gray-800 tracking-[-0.015em]">
 					Patients
 				</h1>
@@ -223,11 +221,11 @@ export function PatientsClient({
 					</div>
 
 					<FilterButton
-						ageGroupFilter={optimisticPatientAgeGroupFilter}
+						ageGroupFilter={optimisticAgeGroupFilter}
 						createdFrom={optimisticCreatedAtRange.createdFrom}
 						createdTo={optimisticCreatedAtRange.createdTo}
-						genderFilter={optimisticPatientGenderFilter}
-						isPending={isUpdatingPatientsTable}
+						genderFilter={optimisticGenderFilter}
+						isPending={isPending}
 						onAgeGroupFilterChange={handleAgeGroupFilterChange}
 						onCreatedAtRangeApply={handleCreatedAtRangeApply}
 						onGenderFilterChange={handleGenderFilterChange}
@@ -248,20 +246,20 @@ export function PatientsClient({
 			<div className="min-h-0 flex-1 overflow-y-auto">
 				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
 					<PatientActiveFilterPills
-						ageGroupFilter={optimisticPatientAgeGroupFilter}
+						ageGroupFilter={optimisticAgeGroupFilter}
 						createdFrom={optimisticCreatedAtRange.createdFrom}
 						createdTo={optimisticCreatedAtRange.createdTo}
-						genderFilter={optimisticPatientGenderFilter}
+						genderFilter={optimisticGenderFilter}
 						onAgeGroupFilterChange={handleAgeGroupFilterChange}
 						onCreatedAtRangeApply={handleCreatedAtRangeApply}
 						onGenderFilterChange={handleGenderFilterChange}
 					/>
 					<PatientsTable
 						patients={patients}
-						page={optimisticPatientsPage}
-						limit={optimisticPatientsLimit}
+						page={optimisticPage}
+						limit={optimisticLimit}
 						totalPages={totalPages}
-						isPending={isUpdatingPatientsTable}
+						isPending={isPending}
 						onPreviousPage={handlePreviousPage}
 						onNextPage={handleNextPage}
 						onLimitChange={handleLimitChange}

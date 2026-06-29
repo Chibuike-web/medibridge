@@ -1,7 +1,7 @@
 export default function Loading() {
 	return (
 		<div className="flex h-full flex-col">
-			<header className="border-b border-gray-200 bg-white px-8 h-16 flex items-center sticky top-0 z-20 shrink-0">
+			<header className="border-b border-gray-200 bg-white px-6 h-14 flex items-center sticky top-0 z-20 shrink-0">
 				{/* Title */}
 				<div className="h-6 w-32 animate-pulse rounded bg-gray-100" />
 

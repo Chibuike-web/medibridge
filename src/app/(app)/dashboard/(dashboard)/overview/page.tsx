@@ -18,7 +18,7 @@ export default async function Overview() {
 
 	return (
 		<div className="flex h-full flex-col">
-			<header className="sticky top-0 z-20 flex h-16 shrink-0 items-center border-b border-gray-200 bg-white px-8">
+			<header className="sticky top-0 z-20 flex h-14 shrink-0 items-center border-b border-gray-200 bg-white px-6">
 				<h1 className="text-xl font-semibold tracking-[-0.015em] text-gray-800">Overview</h1>
 			</header>
 

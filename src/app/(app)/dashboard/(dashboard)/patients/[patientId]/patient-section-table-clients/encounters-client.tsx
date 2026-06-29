@@ -37,17 +37,27 @@ export function EncountersClient({
 	const [query, setQuery] = useState("");
 	const [isPending, startTransition] = useTransition();
 	const latestSectionTableRequestIdRef = useRef(0);
-	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+
+	function refreshEncountersTable({
+		nextPage = 1,
+		nextLimit = tableData.limit,
+		nextQuery = query,
+	}: {
+		nextPage?: number;
+		nextLimit?: number;
+		nextQuery?: string;
+	}) {
 		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
 		latestSectionTableRequestIdRef.current = sectionTableRequestId;
 
 		startTransition(async () => {
-			setOptimisticPage(1);
+			setOptimisticPage(nextPage);
+			setOptimisticLimit(nextLimit);
 
 			const result = await getPatientEncountersTableAction({
 				patientId,
-				page: 1,
-				limit: tableData.limit,
+				page: nextPage,
+				limit: nextLimit,
 				query: nextQuery,
 			});
 
@@ -62,6 +72,9 @@ export function EncountersClient({
 				totalPages: result.totalPages,
 			});
 		});
+	}
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		refreshEncountersTable({ nextQuery });
 	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
@@ -71,83 +84,16 @@ export function EncountersClient({
 
 	function handlePreviousPage() {
 		const nextPage = Math.max(tableData.page - 1, 1);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientEncountersTableAction({
-				patientId,
-				page: nextPage,
-				limit: tableData.limit,
-				query,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.encounters,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshEncountersTable({ nextPage });
 	}
 
 	function handleNextPage() {
 		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientEncountersTableAction({
-				patientId,
-				page: nextPage,
-				limit: tableData.limit,
-				query,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.encounters,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshEncountersTable({ nextPage });
 	}
 
 	function handleLimitChange(nextLimit: number) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticLimit(nextLimit);
-			const result = await getPatientEncountersTableAction({
-				patientId,
-				page: 1,
-				limit: nextLimit,
-				query,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.encounters,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshEncountersTable({ nextLimit });
 	}
 
 	return (

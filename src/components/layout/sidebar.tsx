@@ -90,7 +90,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 		>
 			<div
 				className={cn(
-					"relative h-16 flex items-center transition-[padding] duration-300 ease-in-out",
+					"relative h-14 flex items-center transition-[padding] duration-300 ease-in-out",
 					isCollapsed ? "justify-center px-2" : "justify-between pl-5 pr-2",
 				)}
 			>
@@ -116,7 +116,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								isHovered ? "opacity-100 blur-0" : "opacity-0 blur-sm",
 							)}
 						>
-							<RiContractLeftLine className="size-4 shrink-0" aria-hidden />
+							<RiContractLeftLine className="size-5 shrink-0" aria-hidden />
 						</button>
 					</div>
 				) : (
@@ -134,7 +134,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							aria-label="Collapse sidebar"
 							className="flex size-10 items-center justify-center rounded-lg hover:bg-gray-100"
 						>
-							<RiContractLeftLine className="size-4 shrink-0" aria-hidden />
+							<RiContractLeftLine className="size-5 shrink-0" aria-hidden />
 						</button>
 					</>
 				)}
@@ -194,7 +194,6 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 														<DialogClose asChild key={entry.id}>
 															<Link
 																href={entry.href}
-																prefetch
 																className="flex items-center gap-3 rounded-lg px-3 py-3 hover:bg-gray-100 transition-colors"
 															>
 																<Icon className="shrink-0 text-gray-600 size-4" />

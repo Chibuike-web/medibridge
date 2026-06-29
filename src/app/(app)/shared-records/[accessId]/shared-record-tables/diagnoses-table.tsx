@@ -125,11 +125,19 @@ export function SharedDiagnosesTable({ rows }: { rows: SharedDiagnosisRow[] }) {
 						className="pl-10"
 					/>
 				</div>
-				<Button type="button" variant="outline" className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200">
+				<Button
+					type="button"
+					variant="outline"
+					className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+				>
 					<RiFilter3Line aria-hidden="true" />
 					Filter
 				</Button>
-				<Button type="button" variant="outline" className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200">
+				<Button
+					type="button"
+					variant="outline"
+					className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+				>
 					<RiShare2Line aria-hidden="true" />
 					Export
 				</Button>

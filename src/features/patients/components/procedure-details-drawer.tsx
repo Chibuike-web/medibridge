@@ -30,6 +30,10 @@ import type {
 	ProcedureDetailsRelatedRecord,
 	ProcedureDetailsType,
 } from "@/features/patients/types";
+import {
+	AttachmentFormFields,
+	type AttachmentFormRow,
+} from "@/features/patients/components/attachment-form-fields";
 import { cn } from "@/lib/utils/cn";
 import {
 	RiAddLine,
@@ -40,7 +44,7 @@ import {
 } from "@remixicon/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { format } from "date-fns";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 type ProcedureDetailsDrawerProps = {
 	open: boolean;
@@ -51,7 +55,8 @@ type ProcedureDetailsDrawerProps = {
 
 const EMPTY_VALUE = "-";
 const procedureDetailsFormId = "procedure-details-form";
-const procedureDetailsFieldLabelClassName = "text-sm font-medium text-gray-700";
+const procedureDetailsFieldLabelClassName =
+	"inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const procedureDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const procedureDetailsFieldControlClassName =
 	"h-9 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400";
@@ -229,188 +234,223 @@ function ProcedureDetailsOverview({
 }
 
 function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsType }) {
+	const generatedAttachmentRowId = useId();
+	const nextAttachmentRowNumberRef = useRef(0);
 	const [procedureDate, setProcedureDate] = useState<Date | undefined>();
+	const [procedureAttachmentRows, setProcedureAttachmentRows] = useState<AttachmentFormRow[]>(
+		() => getProcedureAttachmentRows(procedure),
+	);
+
+	function handleAddProcedureAttachmentRow() {
+		nextAttachmentRowNumberRef.current += 1;
+
+		setProcedureAttachmentRows((prev) => [
+			...prev,
+			{
+				id: `${generatedAttachmentRowId}-attachment-${nextAttachmentRowNumberRef.current}`,
+				name: "",
+				recordId: "",
+			},
+		]);
+	}
+
+	function handleRemoveProcedureAttachmentRow(attachmentRowId: string) {
+		setProcedureAttachmentRows((prev) =>
+			prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId),
+		);
+	}
 
 	return (
-		<form id={procedureDetailsFormId} className="flex flex-col gap-8">
-			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Procedure ID:</span>
-					<CopyIdButton id={procedure.procedureId} className="text-sm" />
-				</div>
-				{procedure.encounterId ? (
-					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
-						<CopyIdButton id={procedure.encounterId} className="text-sm" />
+		<form id={procedureDetailsFormId} className="flex flex-col gap-12">
+				<div className="flex flex-col gap-8">
+					<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
+						<div className="flex items-center gap-2">
+							<span className="text-gray-400">Procedure ID:</span>
+							<CopyIdButton id={procedure.procedureId} className="text-sm" />
 					</div>
-				) : null}
-			</div>
+					{procedure.encounterId ? (
+						<div className="flex items-center gap-2">
+							<span className="text-gray-400">Encounter ID:</span>
+							<CopyIdButton id={procedure.encounterId} className="text-sm" />
+						</div>
+					) : null}
+					</div>
 
-			<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-procedure-name" className={procedureDetailsFieldLabelClassName}>
-						Procedure <span className={procedureDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-procedure-name"
-						name="procedureName"
-						defaultValue={procedure.name}
-						className={procedureDetailsFieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-procedure-indication" className={procedureDetailsFieldLabelClassName}>
-						Indication <span className={procedureDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-procedure-indication"
-						name="indication"
-						defaultValue={procedure.indication}
-						className={procedureDetailsFieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-procedure-status" className={procedureDetailsFieldLabelClassName}>
-						Status <span className={procedureDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Select defaultValue={procedure.status.toLowerCase()}>
-						<SelectTrigger
-							id="edit-procedure-status"
-							className={`${procedureDetailsFieldControlClassName} w-full`}
-						>
-							<SelectValue placeholder="Select status" />
-						</SelectTrigger>
-						<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
-							<SelectGroup>
-								<SelectItem value="pending" className="rounded-md px-3 h-9">
-									Pending
-								</SelectItem>
-								<SelectItem value="completed" className="rounded-md px-3 h-9">
-									Completed
-								</SelectItem>
-								<SelectItem value="cancelled" className="rounded-md px-3 h-9">
-									Cancelled
-								</SelectItem>
-							</SelectGroup>
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label className={procedureDetailsFieldLabelClassName}>
-						Date <span className={procedureDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Popover>
-						<PopoverTrigger asChild>
-							<Button
-								type="button"
-								variant="outline"
-								data-empty={!procedureDate && procedure.procedureDate === EMPTY_VALUE}
-								className={`${procedureDetailsFieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
-							>
-								{procedureDate
-									? format(procedureDate, "PPP")
-									: procedure.procedureDate !== EMPTY_VALUE
-										? procedure.procedureDate
-										: procedure.plannedDate}
-								<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent className="p-0">
-							<Calendar
-								mode="single"
-								selected={procedureDate}
-								onSelect={setProcedureDate}
-								autoFocus
+					<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+						<div className="flex flex-col gap-2 sm:col-span-2">
+							<Label htmlFor="edit-procedure-name" className={procedureDetailsFieldLabelClassName}>
+								Procedure<span className={procedureDetailsRequiredLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id="edit-procedure-name"
+								name="procedureName"
+								defaultValue={procedure.name}
+								className={procedureDetailsFieldControlClassName}
 							/>
-						</PopoverContent>
-					</Popover>
-				</div>
+						</div>
 
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-procedure-physician" className={procedureDetailsFieldLabelClassName}>
-						Physician <span className={procedureDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-procedure-physician"
-						name="physician"
-						defaultValue={
-							procedure.performedBy !== EMPTY_VALUE
-								? procedure.performedBy
-								: procedure.plannedPhysician
-						}
-						className={procedureDetailsFieldControlClassName}
-					/>
-				</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor="edit-procedure-indication" className={procedureDetailsFieldLabelClassName}>
+								Indication<span className={procedureDetailsRequiredLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id="edit-procedure-indication"
+								name="indication"
+								defaultValue={procedure.indication}
+								className={procedureDetailsFieldControlClassName}
+							/>
+						</div>
 
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-procedure-assistants" className={procedureDetailsFieldLabelClassName}>
-						Assistants <span className={procedureDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Select defaultValue={procedure.assistants[0] ?? procedure.plannedAssistants[0] ?? ""}>
-						<SelectTrigger
-							id="edit-procedure-assistants"
-							className={`${procedureDetailsFieldControlClassName} w-full`}
-						>
-							<SelectValue placeholder="Enter assistants" />
-						</SelectTrigger>
-						<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
-							<SelectGroup>
-								{[...new Set([...procedure.assistants, ...procedure.plannedAssistants])]
-									.filter(Boolean)
-									.map((assistant) => (
-										<SelectItem key={assistant} value={assistant} className="rounded-md px-3 h-9">
-											{assistant}
+						<div className="flex flex-col gap-2">
+							<Label htmlFor="edit-procedure-status" className={procedureDetailsFieldLabelClassName}>
+								Status<span className={procedureDetailsRequiredLabelClassName}>(required)</span>
+							</Label>
+							<Select defaultValue={procedure.status.toLowerCase()}>
+								<SelectTrigger
+									id="edit-procedure-status"
+									className={`${procedureDetailsFieldControlClassName} w-full`}
+								>
+									<SelectValue placeholder="Select status" />
+								</SelectTrigger>
+								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+									<SelectGroup>
+										<SelectItem value="pending" className="h-9 rounded-md px-3">
+											Pending
 										</SelectItem>
-									))}
-							</SelectGroup>
-						</SelectContent>
-					</Select>
+										<SelectItem value="completed" className="h-9 rounded-md px-3">
+											Completed
+										</SelectItem>
+										<SelectItem value="cancelled" className="h-9 rounded-md px-3">
+											Cancelled
+										</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label className={procedureDetailsFieldLabelClassName}>
+								Date<span className={procedureDetailsRequiredLabelClassName}>(required)</span>
+							</Label>
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button
+										type="button"
+										variant="outline"
+										data-empty={!procedureDate && procedure.procedureDate === EMPTY_VALUE}
+										className={`${procedureDetailsFieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+									>
+										{procedureDate
+											? format(procedureDate, "PPP")
+											: procedure.procedureDate !== EMPTY_VALUE
+												? procedure.procedureDate
+												: procedure.plannedDate}
+										<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent className="p-0">
+									<Calendar
+										mode="single"
+										selected={procedureDate}
+										onSelect={setProcedureDate}
+										autoFocus
+									/>
+								</PopoverContent>
+							</Popover>
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label htmlFor="edit-procedure-physician" className={procedureDetailsFieldLabelClassName}>
+								Physician<span className={procedureDetailsRequiredLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id="edit-procedure-physician"
+								name="physician"
+								defaultValue={
+									procedure.performedBy !== EMPTY_VALUE
+										? procedure.performedBy
+										: procedure.plannedPhysician
+								}
+								className={procedureDetailsFieldControlClassName}
+							/>
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label htmlFor="edit-procedure-assistants" className={procedureDetailsFieldLabelClassName}>
+								Assistants<span className={procedureDetailsRequiredLabelClassName}>(required)</span>
+							</Label>
+							<Select defaultValue={procedure.assistants[0] ?? procedure.plannedAssistants[0] ?? ""}>
+								<SelectTrigger
+									id="edit-procedure-assistants"
+									className={`${procedureDetailsFieldControlClassName} w-full`}
+								>
+									<SelectValue placeholder="Enter assistants" />
+								</SelectTrigger>
+								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+									<SelectGroup>
+										{[...new Set([...procedure.assistants, ...procedure.plannedAssistants])]
+											.filter(Boolean)
+											.map((assistant) => (
+												<SelectItem key={assistant} value={assistant} className="h-9 rounded-md px-3">
+													{assistant}
+												</SelectItem>
+											))}
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+						</div>
+
+						<div className="flex flex-col gap-2">
+							<Label htmlFor="edit-procedure-facility" className={procedureDetailsFieldLabelClassName}>
+								Facility<span className={procedureDetailsRequiredLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id="edit-procedure-facility"
+								name="facility"
+								defaultValue={
+									procedure.facility !== EMPTY_VALUE ? procedure.facility : procedure.plannedFacility
+								}
+								className={procedureDetailsFieldControlClassName}
+							/>
+						</div>
+
+						<div className="flex flex-col gap-2 sm:col-span-2">
+							<Label
+								htmlFor="edit-procedure-clinical-note"
+								className={procedureDetailsFieldLabelClassName}
+							>
+								Clinical notes
+								<span className={procedureDetailsRequiredLabelClassName}>(optional)</span>
+							</Label>
+							<Textarea
+								id="edit-procedure-clinical-note"
+								name="clinicalNote"
+								defaultValue={procedure.clinicalNote}
+								className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+							/>
+						</div>
+					</div>
 				</div>
 
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-procedure-facility" className={procedureDetailsFieldLabelClassName}>
-						Facility <span className={procedureDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-procedure-facility"
-						name="facility"
-						defaultValue={
-							procedure.facility !== EMPTY_VALUE ? procedure.facility : procedure.plannedFacility
-						}
-						className={procedureDetailsFieldControlClassName}
+			<div className="flex flex-col gap-6">
+				{procedureAttachmentRows.map((attachmentRow, attachmentIndex) => (
+					<AttachmentFormFields
+						key={attachmentRow.id}
+						attachmentRow={attachmentRow}
+						attachmentIndex={attachmentIndex}
+						fieldLabelClassName={procedureDetailsFieldLabelClassName}
+						requiredLabelClassName={procedureDetailsRequiredLabelClassName}
+						fieldControlClassName={procedureDetailsFieldControlClassName}
+						onRemoveAttachmentRow={handleRemoveProcedureAttachmentRow}
 					/>
-				</div>
+				))}
 
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-procedure-clinical-note" className={procedureDetailsFieldLabelClassName}>
-						Clinical notes{" "}
-						<span className={procedureDetailsRequiredLabelClassName}>(optional)</span>
-					</Label>
-					<Textarea
-						id="edit-procedure-clinical-note"
-						name="clinicalNote"
-						defaultValue={procedure.clinicalNote}
-						className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
-					/>
-				</div>
-
-				<ProcedureAttachmentField
-					name="Diagnosis"
-					id={procedure.relatedRecords.diagnosis?.id ?? ""}
-				/>
-				<ProcedureAttachmentField
-					name="Medication"
-					id={procedure.relatedRecords.medication?.id ?? ""}
-				/>
-
-				<div className="sm:col-span-2">
+				<div>
 					<Button
 						type="button"
 						variant="outline"
 						className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+						onClick={handleAddProcedureAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
 						Add attachment
@@ -421,31 +461,27 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 	);
 }
 
-function ProcedureAttachmentField({ name, id }: { name: string; id: string }) {
-	const fieldId = useId();
+function getProcedureAttachmentRows(procedure: ProcedureDetailsType): AttachmentFormRow[] {
+	const relatedAttachmentRecords = [
+		{ kind: "diagnosis", name: "Diagnosis", record: procedure.relatedRecords.diagnosis },
+		{ kind: "medication", name: "Medication", record: procedure.relatedRecords.medication },
+	];
 
-	if (!id) return null;
-
-	return (
-		<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:col-span-2 sm:grid-cols-2">
-			<div className="flex flex-col gap-2">
-				<Label htmlFor={`${fieldId}-name`} className={procedureDetailsFieldLabelClassName}>
-					Attachment name <span className={procedureDetailsRequiredLabelClassName}>(required)</span>
-				</Label>
-				<Input
-					id={`${fieldId}-name`}
-					defaultValue={name}
-					className={procedureDetailsFieldControlClassName}
-				/>
-			</div>
-			<div className="flex flex-col gap-2">
-				<Label htmlFor={`${fieldId}-id`} className={procedureDetailsFieldLabelClassName}>
-					Attachment ID <span className={procedureDetailsRequiredLabelClassName}>(required)</span>
-				</Label>
-				<Input id={`${fieldId}-id`} defaultValue={id} className={procedureDetailsFieldControlClassName} />
-			</div>
-		</div>
-	);
+	return relatedAttachmentRecords
+		.filter(
+			(
+				relatedAttachmentRecord,
+			): relatedAttachmentRecord is {
+				kind: string;
+				name: string;
+				record: ProcedureDetailsRelatedRecord;
+			} => Boolean(relatedAttachmentRecord.record),
+		)
+		.map((relatedAttachmentRecord) => ({
+			id: `attachment-${relatedAttachmentRecord.kind}-${relatedAttachmentRecord.record.id}`,
+			name: relatedAttachmentRecord.name,
+			recordId: relatedAttachmentRecord.record.id,
+		}));
 }
 
 function ProcedureDetailItem({ label, value }: { label: string; value: string }) {
@@ -602,7 +638,7 @@ function ProcedureHistoryCard({ historyEvent }: { historyEvent: ProcedureDetails
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+				<div className="flex flex-wrap items-center gap-[6px]">
 					<span id={titleId} className="text-base font-semibold text-gray-800">
 						{historyEvent.title}
 					</span>

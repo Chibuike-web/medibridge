@@ -29,6 +29,10 @@ import type {
 	MedicationDetailsHistoryEvent,
 	MedicationDetailsType,
 } from "@/features/patients/types";
+import {
+	AttachmentFormFields,
+	type AttachmentFormRow,
+} from "@/features/patients/components/attachment-form-fields";
 import { cn } from "@/lib/utils/cn";
 import {
 	RiAddLine,
@@ -39,7 +43,7 @@ import {
 } from "@remixicon/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { format } from "date-fns";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 type MedicationDetailsDrawerProps = {
 	open: boolean;
@@ -50,7 +54,8 @@ type MedicationDetailsDrawerProps = {
 
 const EMPTY_VALUE = "-";
 const medicationDetailsFormId = "medication-details-form";
-const medicationDetailsFieldLabelClassName = "text-sm font-medium text-gray-700";
+const medicationDetailsFieldLabelClassName =
+	"inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const medicationDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const medicationDetailsFieldControlClassName =
 	"h-9 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400";
@@ -219,27 +224,50 @@ function MedicationDetailsOverview({
 }
 
 function MedicationDetailsEditForm({ medication }: { medication: MedicationDetailsType }) {
+	const generatedAttachmentRowId = useId();
+	const nextAttachmentRowNumberRef = useRef(0);
 	const [startedAt, setStartedAt] = useState<Date | undefined>();
+	const [medicationAttachmentRows, setMedicationAttachmentRows] = useState<AttachmentFormRow[]>([]);
+
+	function handleAddMedicationAttachmentRow() {
+		nextAttachmentRowNumberRef.current += 1;
+
+		setMedicationAttachmentRows((prev) => [
+			...prev,
+			{
+				id: `${generatedAttachmentRowId}-attachment-${nextAttachmentRowNumberRef.current}`,
+				name: "",
+				recordId: "",
+			},
+		]);
+	}
+
+	function handleRemoveMedicationAttachmentRow(attachmentRowId: string) {
+		setMedicationAttachmentRows((prev) =>
+			prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId),
+		);
+	}
 
 	return (
-		<form id={medicationDetailsFormId} className="flex flex-col gap-8">
-			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Medication ID:</span>
-					<CopyIdButton id={medication.medicationId} className="text-sm" />
-				</div>
-				{medication.encounterId ? (
+		<form id={medicationDetailsFormId} className="flex flex-col gap-12">
+			<div className="flex flex-col gap-8">
+				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
-						<CopyIdButton id={medication.encounterId} className="text-sm" />
+						<span className="text-gray-400">Medication ID:</span>
+						<CopyIdButton id={medication.medicationId} className="text-sm" />
 					</div>
-				) : null}
-			</div>
+					{medication.encounterId ? (
+						<div className="flex items-center gap-2">
+							<span className="text-gray-400">Encounter ID:</span>
+							<CopyIdButton id={medication.encounterId} className="text-sm" />
+						</div>
+					) : null}
+				</div>
 
-			<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
 				<div className="flex flex-col gap-2 sm:col-span-2">
 					<Label htmlFor="edit-medication-name" className={medicationDetailsFieldLabelClassName}>
-						Medication <span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						Medication<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Input
 						id="edit-medication-name"
@@ -251,7 +279,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-medication-indication" className={medicationDetailsFieldLabelClassName}>
-						Indication <span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						Indication<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Input
 						id="edit-medication-indication"
@@ -263,7 +291,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-medication-status" className={medicationDetailsFieldLabelClassName}>
-						Status <span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						Status<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Select defaultValue={medication.status.toLowerCase()}>
 						<SelectTrigger
@@ -290,7 +318,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-medication-dose" className={medicationDetailsFieldLabelClassName}>
-						Dose <span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						Dose<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Input
 						id="edit-medication-dose"
@@ -302,7 +330,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-medication-route" className={medicationDetailsFieldLabelClassName}>
-						Route <span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						Route<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Select defaultValue={medication.route.toLowerCase()}>
 						<SelectTrigger
@@ -329,7 +357,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-medication-prescribed-by" className={medicationDetailsFieldLabelClassName}>
-						Prescribed by <span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						Prescribed by<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Input
 						id="edit-medication-prescribed-by"
@@ -340,7 +368,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-medication-frequency" className={medicationDetailsFieldLabelClassName}>
-						Frequency <span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						Frequency<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Input
 						id="edit-medication-frequency"
@@ -351,7 +379,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="edit-medication-duration" className={medicationDetailsFieldLabelClassName}>
-						Duration <span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						Duration<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Input
 						id="edit-medication-duration"
@@ -362,7 +390,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 
 				<div className="flex flex-col gap-2">
 					<Label className={medicationDetailsFieldLabelClassName}>
-						Started at <span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						Started at<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
 					</Label>
 					<Popover>
 						<PopoverTrigger asChild>
@@ -384,7 +412,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 
 				<div className="flex flex-col gap-2 sm:col-span-2">
 					<Label htmlFor="edit-medication-clinical-note" className={medicationDetailsFieldLabelClassName}>
-						Clinical notes{" "}
+							Clinical notes
 						<span className={medicationDetailsRequiredLabelClassName}>(optional)</span>
 					</Label>
 					<Textarea
@@ -394,11 +422,28 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 					/>
 				</div>
 
-				<div className="sm:col-span-2">
+				</div>
+			</div>
+
+			<div className="flex flex-col gap-6">
+				{medicationAttachmentRows.map((attachmentRow, attachmentIndex) => (
+					<AttachmentFormFields
+						key={attachmentRow.id}
+						attachmentRow={attachmentRow}
+						attachmentIndex={attachmentIndex}
+						fieldLabelClassName={medicationDetailsFieldLabelClassName}
+						requiredLabelClassName={medicationDetailsRequiredLabelClassName}
+						fieldControlClassName={medicationDetailsFieldControlClassName}
+						onRemoveAttachmentRow={handleRemoveMedicationAttachmentRow}
+					/>
+				))}
+
+				<div>
 					<Button
 						type="button"
 						variant="outline"
 						className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+						onClick={handleAddMedicationAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
 						Add attachment
@@ -452,7 +497,7 @@ function MedicationHistoryCard({
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+				<div className="flex flex-wrap items-center gap-[6px]">
 					<span id={titleId} className="text-base font-semibold text-gray-800">
 						{historyEvent.title}
 					</span>

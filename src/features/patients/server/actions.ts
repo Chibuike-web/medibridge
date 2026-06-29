@@ -15,7 +15,13 @@ import { updateTag } from "next/cache";
 import { and, eq } from "drizzle-orm";
 
 import { PatientType } from "../schemas/patient-schema";
-import type { DiagnosisStatusFilter, MedicationStatusFilter, ProcedureStatusFilter } from "../types";
+import type {
+	DiagnosisStatusFilter,
+	LabTestFlagFilter,
+	LabTestStatusFilter,
+	MedicationStatusFilter,
+	ProcedureStatusFilter,
+} from "../types";
 import {
 	updatePatientContactInformationSchema,
 	updatePatientEmergencyContactSchema,
@@ -104,14 +110,12 @@ export async function updatePatientPersonalInformationAction(
 	updateTag(`patients-list-${organizationId}`);
 	updateTag(`recent-patients-${organizationId}`);
 	updateTag(`recent-transfers-${organizationId}`);
+	updateTag(`transfers-list-${organizationId}`);
 
 	return { ok: true, message: "" };
 }
 
-export async function updatePatientContactInformationAction(
-	patientId: string,
-	formData: FormData,
-) {
+export async function updatePatientContactInformationAction(patientId: string, formData: FormData) {
 	const organizationId = await getOrganizationId();
 
 	if (!organizationId) {
@@ -180,10 +184,7 @@ export async function updatePatientContactInformationAction(
 	return { ok: true, message: "" };
 }
 
-export async function updatePatientEmergencyContactAction(
-	patientId: string,
-	formData: FormData,
-) {
+export async function updatePatientEmergencyContactAction(patientId: string, formData: FormData) {
 	const organizationId = await getOrganizationId();
 
 	if (!organizationId) {
@@ -584,11 +585,19 @@ export async function getPatientLabTestsTableAction({
 	page,
 	limit,
 	query = "",
+	createdFrom = "",
+	createdTo = "",
+	statusFilters = [],
+	flagFilters = [],
 }: {
 	patientId: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilters?: LabTestStatusFilter[];
+	flagFilters?: LabTestFlagFilter[];
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
@@ -597,6 +606,9 @@ export async function getPatientLabTestsTableAction({
 		currentPage,
 		currentLimit,
 		query,
+		{ createdFrom, createdTo },
+		statusFilters,
+		flagFilters,
 	);
 
 	return {

@@ -40,90 +40,36 @@ export function ProceduresClient({
 	const [statusFilters, setStatusFilters] = useState<ProcedureStatusFilter[]>([]);
 	const [isPending, startTransition] = useTransition();
 	const latestSectionTableRequestIdRef = useRef(0);
-	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+
+	function refreshProceduresTable({
+		nextPage = 1,
+		nextLimit = tableData.limit,
+		nextQuery = query,
+		nextCreatedFrom = createdFrom,
+		nextCreatedTo = createdTo,
+		nextStatusFilters = statusFilters,
+	}: {
+		nextPage?: number;
+		nextLimit?: number;
+		nextQuery?: string;
+		nextCreatedFrom?: string;
+		nextCreatedTo?: string;
+		nextStatusFilters?: ProcedureStatusFilter[];
+	}) {
 		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
 		latestSectionTableRequestIdRef.current = sectionTableRequestId;
 
 		startTransition(async () => {
-			setOptimisticPage(1);
+			setOptimisticPage(nextPage);
+			setOptimisticLimit(nextLimit);
 
 			const result = await getPatientProceduresTableAction({
 				patientId,
-				page: 1,
-				limit: tableData.limit,
+				page: nextPage,
+				limit: nextLimit,
 				query: nextQuery,
-				createdFrom,
-				createdTo,
-				statusFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.procedures,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
-	}, 300);
-
-	function handleQueryChange(nextQuery: string) {
-		setQuery(nextQuery);
-		debouncedSearch(nextQuery);
-	}
-
-	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		setCreatedFrom(nextCreatedFrom);
-		setCreatedTo(nextCreatedTo);
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-
-			const result = await getPatientProceduresTableAction({
-				patientId,
-				page: 1,
-				limit: tableData.limit,
-				query,
 				createdFrom: nextCreatedFrom,
 				createdTo: nextCreatedTo,
-				statusFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.procedures,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
-	}
-
-	function handleStatusFiltersChange(nextStatusFilters: ProcedureStatusFilter[]) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		setStatusFilters(nextStatusFilters);
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-
-			const result = await getPatientProceduresTableAction({
-				patientId,
-				page: 1,
-				limit: tableData.limit,
-				query,
-				createdFrom,
-				createdTo,
 				statusFilters: nextStatusFilters,
 			});
 
@@ -140,94 +86,38 @@ export function ProceduresClient({
 		});
 	}
 
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {}, 300);
+
+	function handleQueryChange(nextQuery: string) {
+		setQuery(nextQuery);
+		debouncedSearch(nextQuery);
+	}
+
+	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
+		setCreatedFrom(nextCreatedFrom);
+		setCreatedTo(nextCreatedTo);
+
+		refreshProceduresTable({ nextCreatedFrom, nextCreatedTo });
+	}
+
+	function handleStatusFiltersChange(nextStatusFilters: ProcedureStatusFilter[]) {
+		setStatusFilters(nextStatusFilters);
+		refreshProceduresTable({ nextStatusFilters });
+	}
+
 	function handlePreviousPage() {
 		const nextPage = Math.max(tableData.page - 1, 1);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
 
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientProceduresTableAction({
-				patientId,
-				page: nextPage,
-				limit: tableData.limit,
-				query,
-				createdFrom,
-				createdTo,
-				statusFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.procedures,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshProceduresTable({ nextPage });
 	}
 
 	function handleNextPage() {
 		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			const result = await getPatientProceduresTableAction({
-				patientId,
-				page: nextPage,
-				limit: tableData.limit,
-				query,
-				createdFrom,
-				createdTo,
-				statusFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.procedures,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshProceduresTable({ nextPage });
 	}
 
 	function handleLimitChange(nextLimit: number) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticLimit(nextLimit);
-			const result = await getPatientProceduresTableAction({
-				patientId,
-				page: 1,
-				limit: nextLimit,
-				query,
-				createdFrom,
-				createdTo,
-				statusFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.procedures,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
+		refreshProceduresTable({ nextLimit });
 	}
 
 	return (
