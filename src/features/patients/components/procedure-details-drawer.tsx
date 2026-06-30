@@ -614,7 +614,7 @@ function ProcedureRelatedRecordSection({
 
 function ProcedureHistorySection({ history }: { history: ProcedureDetailsHistoryEvent[] }) {
 	return (
-		<div className="flex flex-col gap-4">
+		<div className="flex flex-col gap-6">
 			{history.map((historyEvent) => (
 				<ProcedureHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
 			))}
@@ -638,7 +638,7 @@ function ProcedureHistoryCard({ historyEvent }: { historyEvent: ProcedureDetails
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<div className="flex flex-wrap items-center gap-[6px]">
+				<div className="flex flex-wrap items-center gap-1.5">
 					<span id={titleId} className="text-base font-semibold text-gray-800">
 						{historyEvent.title}
 					</span>

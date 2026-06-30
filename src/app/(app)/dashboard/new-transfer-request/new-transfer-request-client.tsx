@@ -211,7 +211,7 @@ export function NewTransferRequestClient({
 										selected
 									</p>
 								)}
-								<div className="flex flex-col gap-[10px]">
+								<div className="flex flex-col gap-2.5">
 									{recordCountsArray.map((r) => (
 										<div key={r[0][1]} className="flex gap-3 font-medium">
 											<RiCheckLine />

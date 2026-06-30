@@ -11,10 +11,16 @@ import { SuccessModal } from "@/components/success-modal";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { useShowSuccess } from "@/hooks/use-show-success";
-import { RiCheckboxCircleFill, RiErrorWarningFill, RiEyeLine, RiEyeOffLine } from "@remixicon/react";
+import {
+	RiCheckboxCircleFill,
+	RiErrorWarningFill,
+	RiEyeLine,
+	RiEyeOffLine,
+	RiInformationLine,
+} from "@remixicon/react";
 
 export function AcceptInviteClient() {
-	const [isVisible, setIsVisible] = useState(false);
+	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const [error] = useState("");
 	const [success] = useState("");
 	const { isSuccessModalOpen, setIsSuccessModalOpen } = useShowSuccess();
@@ -31,24 +37,29 @@ export function AcceptInviteClient() {
 	return (
 		<>
 			<form onSubmit={handleSubmit(onSubmit)} className="text-gray-800">
-				<div className="mb-8">
-					<Label htmlFor="email" className="block mb-3.5">
+				<div className="mb-6">
+					<Label htmlFor="email" className="block mb-2 text-sm">
 						Email
 					</Label>
 					<Input
 						id="email"
-						placeholder="eg., john.doe@stmaryhospital.org"
+						placeholder="sarah.thompson@stmaryhospital.org"
 						type="email"
+						aria-describedby="email-info"
 					/>
+					<p id="email-info" className="flex gap-1 items-center mt-2">
+						<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
+						<span className="text-sm text-gray-400">Must be official verified hospital email</span>
+					</p>
 				</div>
 
-				<Label htmlFor="password" className="block mb-2">
+				<Label htmlFor="password" className="block mb-2 text-sm">
 					Password
 				</Label>
 				<div className="relative">
 					<Input
 						id="password"
-						type={isVisible ? "text" : "password"}
+						type={isPasswordVisible ? "text" : "password"}
 						placeholder="Enter a secure password"
 						{...register("password")}
 						aria-describedby={errors.password ? "password-error" : undefined}
@@ -56,16 +67,16 @@ export function AcceptInviteClient() {
 					/>
 					<button
 						type="button"
-						aria-pressed={isVisible}
-						aria-label={isVisible ? "Hide password" : "Show password"}
+						aria-pressed={isPasswordVisible}
+						aria-label={isPasswordVisible ? "Hide password" : "Show password"}
 						className="absolute right-4 top-1/2 -translate-y-1/2"
-						onClick={() => setIsVisible(!isVisible)}
+						onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 					>
 						<span aria-hidden="true">
-							{isVisible ? (
-								<RiEyeOffLine className="size-5 text-gray-600" />
+							{isPasswordVisible ? (
+								<RiEyeOffLine className="size-4 text-gray-600" />
 							) : (
-								<RiEyeLine className="size-5 text-gray-600" />
+								<RiEyeLine className="size-4 text-gray-600" />
 							)}
 						</span>
 					</button>
@@ -77,23 +88,23 @@ export function AcceptInviteClient() {
 				)}
 
 				{success && (
-					<div className="flex items-center gap-2 px-4 py-4 mt-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200 shadow-sm">
+					<div className="mt-4 flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-sm font-medium text-green-700">
 						<span>
-							<RiCheckboxCircleFill className="size-5" />
+							<RiCheckboxCircleFill className="size-4" aria-hidden="true" />
 						</span>
 						<span>{success}</span>
 					</div>
 				)}
 
 				{error && (
-					<div className="text-red-500 flex items-center mt-4 gap-2 px-4 py-4 border bg-red-100 border-red-500 rounded-xl">
-						<span>
-							<RiErrorWarningFill className="size-4" />
+					<div className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+						<span className="shrink-0">
+							<RiErrorWarningFill className="size-4" aria-hidden="true" />
 						</span>
 						<span>{error}</span>
 					</div>
 				)}
-				<Button className="mt-16 w-full" type="submit" disabled={isSubmitting}>
+				<Button className="mt-16 w-full text-sm" type="submit" disabled={isSubmitting}>
 					{isSubmitting ? (
 						<span className="flex items-center gap-2">
 							<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

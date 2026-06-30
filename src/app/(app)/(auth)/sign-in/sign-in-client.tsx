@@ -63,8 +63,8 @@ export function SignInClient() {
 			onSubmit={handleSubmit(onSubmit)}
 			className="text-gray-800 mt-12"
 		>
-			<div className="mb-8">
-				<Label htmlFor="adminEmail" className="block mb-3">
+			<div className="mb-6">
+				<Label htmlFor="adminEmail" className="block mb-2 text-sm">
 					Email Address
 				</Label>
 				<Input
@@ -81,14 +81,14 @@ export function SignInClient() {
 					</p>
 				)}
 				{!errors.email && (
-					<p id="email-info" className="flex gap-1 items-center mt-3.5">
+					<p id="email-info" className="flex gap-1 items-center mt-2">
 						<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
 						<span className="text-sm text-gray-400">Must be official verified hospital email</span>
 					</p>
 				)}
 			</div>
 			<div className="mb-2">
-				<Label htmlFor="password" className="block mb-3">
+				<Label htmlFor="password" className="block mb-2 text-sm">
 					Password
 				</Label>
 				<div className="relative">
@@ -153,9 +153,9 @@ export function SignInClient() {
 			)}
 
 			{signInSuccess && (
-				<div className="flex items-center gap-2 px-4 py-4 mt-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200">
+				<div className="mt-4 flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-sm font-medium text-green-700">
 					<span>
-						<RiCheckboxCircleFill className="size-5" />
+						<RiCheckboxCircleFill className="size-4" aria-hidden="true" />
 					</span>
 					<span>{signInSuccess}</span>
 				</div>

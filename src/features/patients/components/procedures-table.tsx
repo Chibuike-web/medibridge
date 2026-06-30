@@ -67,7 +67,7 @@ import {
 	RiShare2Line,
 } from "@remixicon/react";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
-import { endOfDay, format, isSameDay, startOfDay, startOfMonth, subDays, subYears } from "date-fns";
+import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import useSWR from "swr";
 
@@ -100,9 +100,9 @@ const procedureDateFilterPresets: ProcedureDateFilterPreset[] = [
 		getRange: (today) => ({ from: startOfDay(today), to: endOfDay(today) }),
 	},
 	{
-		label: "This week",
+		label: "Last 7 days",
 		getRange: (today) => ({
-			from: startOfDay(subDays(today, today.getDay())),
+			from: startOfDay(subDays(today, 6)),
 			to: endOfDay(today),
 		}),
 	},
@@ -110,20 +110,6 @@ const procedureDateFilterPresets: ProcedureDateFilterPreset[] = [
 		label: "Last 30 days",
 		getRange: (today) => ({
 			from: startOfDay(subDays(today, 29)),
-			to: endOfDay(today),
-		}),
-	},
-	{
-		label: "This month",
-		getRange: (today) => ({
-			from: startOfDay(startOfMonth(today)),
-			to: endOfDay(today),
-		}),
-	},
-	{
-		label: "Last year",
-		getRange: (today) => ({
-			from: startOfDay(subYears(today, 1)),
 			to: endOfDay(today),
 		}),
 	},
@@ -211,7 +197,7 @@ export function ProceduresTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by procedure, Procedure ID, indication and facility"
+						placeholder="Search by procedure, indication, facility, status, or procedure ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>

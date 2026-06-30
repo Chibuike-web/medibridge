@@ -41,7 +41,7 @@ import {
 	DiagnosisType,
 	type DiagnosisStatusFilter,
 } from "@/features/patients/types";
-import { endOfDay, format, isSameDay, startOfDay, subDays, subYears } from "date-fns";
+import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import {
 	type ColumnDef,
 	flexRender,
@@ -114,20 +114,6 @@ const diagnosisDateFilterPresets: DiagnosisDateFilterPreset[] = [
 		label: "Last 30 days",
 		getRange: (today) => ({
 			from: startOfDay(subDays(today, 29)),
-			to: endOfDay(today),
-		}),
-	},
-	{
-		label: "Last year",
-		getRange: (today) => ({
-			from: startOfDay(subYears(today, 1)),
-			to: endOfDay(today),
-		}),
-	},
-	{
-		label: "Last 5 years",
-		getRange: (today) => ({
-			from: startOfDay(subYears(today, 5)),
 			to: endOfDay(today),
 		}),
 	},
@@ -214,7 +200,7 @@ export function DiagnosesTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by patient name or ID"
+						placeholder="Search by diagnosis, status, or diagnosis ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>

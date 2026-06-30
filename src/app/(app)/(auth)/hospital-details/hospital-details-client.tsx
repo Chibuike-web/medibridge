@@ -99,40 +99,40 @@ export function HospitalDetailsClient() {
 		});
 	}
 
-	return (
-		<form className="w-full" onSubmit={handleSubmit(onSubmit)}>
-			<div className="mb-8">
-				<Label htmlFor="hospitalName" className="block mb-3">
-					Hospital Name
-				</Label>
-				<Input
-					id="hospitalName"
-					type="text"
+		return (
+			<form className="w-full" onSubmit={handleSubmit(onSubmit)}>
+				<div className="mb-6">
+					<Label htmlFor="hospitalName" className="block mb-2 text-sm">
+						Hospital Name
+					</Label>
+					<Input
+						id="hospitalName"
+						type="text"
 					placeholder="eg., St. Mary's General Hospital"
 					{...register("hospitalName")}
-					aria-labelledby={errors.hospitalName ? "hospital-name-error" : undefined}
+					aria-describedby={errors.hospitalName ? "hospital-name-error" : undefined}
 					aria-invalid={!!errors.hospitalName}
 				/>
 				{errors.hospitalName && (
-					<p id="hospital-name-error" className="font-medium text-red-500 mt-1 text-sm">
+					<p id="hospital-name-error" className="font-medium text-red-500 mt-2 text-sm">
 						{errors.hospitalName.message}
 					</p>
-				)}
-			</div>
-			<div className="mb-8">
-				<Label htmlFor="hospitalAddress" className="block mb-3">
-					Hospital Address
-				</Label>
-				<Input
-					id="hospitalAddress"
-					type="text"
+					)}
+				</div>
+				<div className="mb-6">
+					<Label htmlFor="hospitalAddress" className="block mb-2 text-sm">
+						Hospital Address
+					</Label>
+					<Input
+						id="hospitalAddress"
+						type="text"
 					placeholder="eg., 123 Healthway Blvd, Springfield, IL"
 					{...register("hospitalAddress")}
-					aria-labelledby={errors.hospitalAddress ? "hospital-address-error" : undefined}
+					aria-describedby={errors.hospitalAddress ? "hospital-address-error" : undefined}
 					aria-invalid={!!errors.hospitalAddress}
 				/>
 				{errors.hospitalAddress && (
-					<p id="hospital-address-error" className="font-medium text-red-500 mt-1 text-sm">
+					<p id="hospital-address-error" className="font-medium text-red-500 mt-2 text-sm">
 						{errors.hospitalAddress.message}
 					</p>
 				)}
@@ -164,17 +164,17 @@ export function HospitalDetailsClient() {
 			)}
 
 			{error && (
-				<div className="text-red-500 flex items-center mt-4 gap-2 px-4 py-4 border bg-red-100 border-red-500 rounded-xl">
-					<span>
-						<RiErrorWarningFill className="size-4" />
+				<div className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+					<span className="shrink-0">
+						<RiErrorWarningFill className="size-4" aria-hidden="true" />
 					</span>
 					<span>{error}</span>
 				</div>
 			)}
 			{success && (
-				<div className="flex items-center gap-2 px-4 py-4 mt-4 bg-green-100 text-green-700 text-sm font-medium rounded-md border border-green-200">
+				<div className="mt-4 flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-sm font-medium text-green-700">
 					<span>
-						<RiCheckboxCircleFill className="size-4" />
+						<RiCheckboxCircleFill className="size-4" aria-hidden="true" />
 					</span>
 					<span>{success}</span>
 				</div>

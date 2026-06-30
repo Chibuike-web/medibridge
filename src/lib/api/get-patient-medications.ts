@@ -5,7 +5,7 @@ import type { MedicationStatusFilter, MedicationType } from "@/features/patients
 import { db } from "@/lib/better-auth/auth";
 import { formatDateTime } from "@/lib/utils/format-date-time";
 import { toSortValue } from "@/lib/utils/to-sort-value";
-import { and, count, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { getOrganizationId } from "./get-organization-id";
 
 type MedicationDateFilters = {
@@ -33,7 +33,7 @@ export const getPatientMedications = cache(async (
 	limit = 14,
 	query = "",
 	dateFilters: MedicationDateFilters = {},
-	statusFilter: MedicationStatusFilter = "",
+	statusFilters: MedicationStatusFilter[] = [],
 ): Promise<{ medications: MedicationType[]; totalMedications: number }> => {
 	const organizationId = await getOrganizationId();
 
@@ -46,7 +46,7 @@ export const getPatientMedications = cache(async (
 		limit,
 		query.trim(),
 		dateFilters,
-		statusFilter,
+		statusFilters,
 	);
 });
 
@@ -57,7 +57,7 @@ export async function getPatientMedicationsForOrganization(
 	limit: number,
 	normalizedQuery: string,
 	dateFilters: MedicationDateFilters,
-	statusFilter: MedicationStatusFilter,
+	statusFilters: MedicationStatusFilter[],
 ): Promise<{ medications: MedicationType[]; totalMedications: number }> {
 	"use cache";
 	cacheLife("max");
@@ -67,13 +67,15 @@ export async function getPatientMedicationsForOrganization(
 	const searchPattern = `%${normalizedQuery}%`;
 	const createdFromDate = parseDateFilter(dateFilters.createdFrom);
 	const createdToDate = parseDateFilter(dateFilters.createdTo);
-	const databaseStatusFilter = statusFilter ? statusFilter.toLowerCase() : "";
+	const databaseStatusFilters = statusFilters.map((statusFilter) => statusFilter.toLowerCase());
 	const filters = and(
 		eq(patientMedication.patientId, patientId),
 		eq(patient.organizationId, organizationId),
 		createdFromDate ? gte(patientMedication.createdAt, startOfDay(createdFromDate)) : undefined,
 		createdToDate ? lte(patientMedication.createdAt, endOfDay(createdToDate)) : undefined,
-		databaseStatusFilter ? eq(patientMedication.status, databaseStatusFilter) : undefined,
+		databaseStatusFilters.length > 0
+			? inArray(patientMedication.status, databaseStatusFilters)
+			: undefined,
 		or(
 			ilike(patientMedication.medicationName, searchPattern),
 			ilike(patientMedication.id, searchPattern),

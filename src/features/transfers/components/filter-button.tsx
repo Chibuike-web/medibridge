@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
-import { endOfDay, format, isSameDay, startOfDay, subDays, subYears } from "date-fns";
+import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
 import type { TransferStatusFilter } from "../types";
@@ -27,12 +27,12 @@ import {
 	RiMenLine,
 } from "@remixicon/react";
 
-type RequestedAtFilterPreset = {
+type TransferRequestedAtFilterPreset = {
 	label: string;
-	getRange: (today: Date) => RequestedAtCompleteRange;
+	getRange: (today: Date) => TransferRequestedAtCompleteRange;
 };
 
-type RequestedAtCompleteRange = {
+type TransferRequestedAtCompleteRange = {
 	from: Date;
 	to: Date;
 };
@@ -47,7 +47,7 @@ const transferStatusFilterOptions: { label: string; value: TransferStatusFilter 
 	{ label: "Cancelled", value: "cancelled" },
 ];
 
-const requestedAtFilterPresets: RequestedAtFilterPreset[] = [
+const transferRequestedAtFilterPresets: TransferRequestedAtFilterPreset[] = [
 	{
 		label: "Today",
 		getRange: (today) => ({ from: startOfDay(today), to: endOfDay(today) }),
@@ -59,14 +59,6 @@ const requestedAtFilterPresets: RequestedAtFilterPreset[] = [
 	{
 		label: "Last 30 days",
 		getRange: (today) => ({ from: startOfDay(subDays(today, 29)), to: endOfDay(today) }),
-	},
-	{
-		label: "Last year",
-		getRange: (today) => ({ from: startOfDay(subYears(today, 1)), to: endOfDay(today) }),
-	},
-	{
-		label: "Last 5 years",
-		getRange: (today) => ({ from: startOfDay(subYears(today, 5)), to: endOfDay(today) }),
 	},
 ];
 
@@ -233,7 +225,7 @@ function RequestedAtPresetList({
 
 	return (
 		<>
-			{requestedAtFilterPresets.map((preset) => {
+			{transferRequestedAtFilterPresets.map((preset) => {
 				const presetRange = preset.getRange(today);
 				return (
 					<DatePresetButton
@@ -382,7 +374,7 @@ function getDateRangeKey(range?: DateRange) {
 	return `${range?.from ? formatUrlDate(range.from) : ""}:${range?.to ? formatUrlDate(range.to) : ""}`;
 }
 
-function isSameDateRange(range: DateRange | undefined, presetRange: RequestedAtCompleteRange) {
+function isSameDateRange(range: DateRange | undefined, presetRange: TransferRequestedAtCompleteRange) {
 	if (!range?.from || !range.to) return false;
 
 	return isSameDay(range.from, presetRange.from) && isSameDay(range.to, presetRange.to);

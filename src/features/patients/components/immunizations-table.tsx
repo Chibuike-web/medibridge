@@ -68,7 +68,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
-import { endOfDay, format, isSameDay, startOfDay, startOfMonth, subDays, subYears } from "date-fns";
+import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import useSWR from "swr";
 
@@ -102,9 +102,9 @@ const immunizationDateFilterPresets: ImmunizationDateFilterPreset[] = [
 		getRange: (today) => ({ from: startOfDay(today), to: endOfDay(today) }),
 	},
 	{
-		label: "This week",
+		label: "Last 7 days",
 		getRange: (today) => ({
-			from: startOfDay(subDays(today, today.getDay())),
+			from: startOfDay(subDays(today, 6)),
 			to: endOfDay(today),
 		}),
 	},
@@ -112,20 +112,6 @@ const immunizationDateFilterPresets: ImmunizationDateFilterPreset[] = [
 		label: "Last 30 days",
 		getRange: (today) => ({
 			from: startOfDay(subDays(today, 29)),
-			to: endOfDay(today),
-		}),
-	},
-	{
-		label: "This month",
-		getRange: (today) => ({
-			from: startOfDay(startOfMonth(today)),
-			to: endOfDay(today),
-		}),
-	},
-	{
-		label: "Last year",
-		getRange: (today) => ({
-			from: startOfDay(subYears(today, 1)),
 			to: endOfDay(today),
 		}),
 	},
@@ -221,7 +207,7 @@ export function ImmunizationsTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by name and immunization id"
+						placeholder="Search by immunization, status, or immunization ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>

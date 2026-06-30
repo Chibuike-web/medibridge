@@ -37,7 +37,7 @@ export function MedicationsClient({
 	const [query, setQuery] = useState("");
 	const [createdFrom, setCreatedFrom] = useState("");
 	const [createdTo, setCreatedTo] = useState("");
-	const [statusFilter, setStatusFilter] = useState<MedicationStatusFilter>("");
+	const [statusFilters, setStatusFilters] = useState<MedicationStatusFilter[]>([]);
 	const [isPending, startTransition] = useTransition();
 	const latestSectionTableRequestIdRef = useRef(0);
 
@@ -47,14 +47,14 @@ export function MedicationsClient({
 		nextQuery = query,
 		nextCreatedFrom = createdFrom,
 		nextCreatedTo = createdTo,
-		nextStatusFilter = statusFilter,
+		nextStatusFilters = statusFilters,
 	}: {
 		nextPage?: number;
 		nextLimit?: number;
 		nextQuery?: string;
 		nextCreatedFrom?: string;
 		nextCreatedTo?: string;
-		nextStatusFilter?: MedicationStatusFilter;
+		nextStatusFilters?: MedicationStatusFilter[];
 	}) {
 		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
 		latestSectionTableRequestIdRef.current = sectionTableRequestId;
@@ -70,7 +70,7 @@ export function MedicationsClient({
 				query: nextQuery,
 				createdFrom: nextCreatedFrom,
 				createdTo: nextCreatedTo,
-				statusFilter: nextStatusFilter,
+				statusFilters: nextStatusFilters,
 			});
 
 			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
@@ -102,10 +102,10 @@ export function MedicationsClient({
 		refreshMedicationsTable({ nextCreatedFrom, nextCreatedTo });
 	}
 
-	function handleStatusFilterChange(nextStatusFilter: MedicationStatusFilter) {
-		setStatusFilter(nextStatusFilter);
+	function handleStatusFiltersChange(nextStatusFilters: MedicationStatusFilter[]) {
+		setStatusFilters(nextStatusFilters);
 
-		refreshMedicationsTable({ nextStatusFilter });
+		refreshMedicationsTable({ nextStatusFilters });
 	}
 
 	function handlePreviousPage() {
@@ -131,11 +131,11 @@ export function MedicationsClient({
 			query={query}
 			createdFrom={createdFrom}
 			createdTo={createdTo}
-			statusFilter={statusFilter}
+			statusFilters={statusFilters}
 			isPending={isPending}
 			onQueryChange={handleQueryChange}
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
-			onStatusFilterChange={handleStatusFilterChange}
+			onStatusFiltersChange={handleStatusFiltersChange}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

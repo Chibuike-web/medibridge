@@ -86,7 +86,9 @@ export function ProceduresClient({
 		});
 	}
 
-	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {}, 300);
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		refreshProceduresTable({ nextQuery });
+	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
 		setQuery(nextQuery);

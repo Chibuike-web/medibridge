@@ -7,7 +7,9 @@ import type {
 	LabTestType,
 } from "@/features/patients/types";
 import { CopyIdButton } from "@/components/copy-id-button";
+import { CreateLabTestDrawer } from "@/features/patients/components/create-lab-test-drawer";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
+import { LabTestDetailsDrawer } from "@/features/patients/components/lab-test-details-drawer";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -166,10 +168,22 @@ export function LabTestsTable({
 }: LabTestsTableProps) {
 	void patientId;
 
-	const columns = useMemo(() => getLabTestsColumns(), []);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [activeLabTestFilterSubmenu, setActiveLabTestFilterSubmenu] =
 		useState<LabTestFilterSubmenu | null>(null);
+	const [isCreateLabTestDrawerOpen, setIsCreateLabTestDrawerOpen] = useState(false);
+	const [isLabTestDetailsDrawerOpen, setIsLabTestDetailsDrawerOpen] = useState(false);
+	const [selectedLabTest, setSelectedLabTest] = useState<LabTestType | null>(null);
+
+	function handleViewLabTestDetails(labTest: LabTestType) {
+		setSelectedLabTest(labTest);
+		setIsLabTestDetailsDrawerOpen(true);
+	}
+
+	const columns = useMemo(
+		() => getLabTestsColumns({ onViewLabTestDetails: handleViewLabTestDetails }),
+		[],
+	);
 
 	const table = useReactTable({
 		data: labTests,
@@ -192,7 +206,7 @@ export function LabTestsTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by test name and lab ID"
+						placeholder="Search by test, result, status, or lab ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
@@ -312,7 +326,13 @@ export function LabTestsTable({
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-					<Button className="text-sm">Add lab test</Button>
+						<Button
+							className="text-sm"
+							type="button"
+							onClick={() => setIsCreateLabTestDrawerOpen(true)}
+						>
+							Add lab test
+						</Button>
 				</div>
 				<LabTestActiveFilterPills
 					createdFrom={createdFrom}
@@ -438,10 +458,19 @@ export function LabTestsTable({
 						</div>
 					</div>
 				</div>
+				</div>
+				<CreateLabTestDrawer
+					open={isCreateLabTestDrawerOpen}
+					onOpenChange={setIsCreateLabTestDrawerOpen}
+				/>
+				<LabTestDetailsDrawer
+					open={isLabTestDetailsDrawerOpen}
+					onOpenChange={setIsLabTestDetailsDrawerOpen}
+					labTest={selectedLabTest}
+				/>
 			</div>
-		</div>
-	);
-}
+		);
+	}
 
 function LabTestCheckboxFilterList<TValue extends string>({
 	name,
@@ -795,7 +824,11 @@ function formatLabTestFilterValue(value: string) {
 		.join(" ");
 }
 
-function getLabTestsColumns(): ColumnDef<LabTestType>[] {
+function getLabTestsColumns({
+	onViewLabTestDetails,
+}: {
+	onViewLabTestDetails: (labTest: LabTestType) => void;
+}): ColumnDef<LabTestType>[] {
 	return [
 		{
 			id: "select",
@@ -846,8 +879,9 @@ function getLabTestsColumns(): ColumnDef<LabTestType>[] {
 		},
 			{
 				header: "Flag",
-				accessorKey: "interpretation",
+				accessorKey: "flag",
 				enableSorting: true,
+				cell: ({ row }) => row.original.flag || row.original.interpretation,
 			},
 		{
 			id: "createdAt",
@@ -880,10 +914,13 @@ function getLabTestsColumns(): ColumnDef<LabTestType>[] {
 							align="end"
 							className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
-							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-								<RiErrorWarningLine className="text-white" />
-								<span>View details</span>
-							</DropdownMenuItem>
+								<DropdownMenuItem
+									className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+									onSelect={() => onViewLabTestDetails(row.original)}
+								>
+									<RiErrorWarningLine className="text-white" />
+									<span>View details</span>
+								</DropdownMenuItem>
 							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiCheckLine className="text-white" />
 								<span>Mark as completed</span>

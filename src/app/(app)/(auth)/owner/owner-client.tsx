@@ -8,10 +8,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { ownerSchema, OwnerType } from "@/features/auth/schemas/owner-schema";
-import { RiErrorWarningLine, RiEyeLine, RiEyeOffLine } from "@remixicon/react";
+import { RiEyeLine, RiEyeOffLine, RiInformationLine } from "@remixicon/react";
 
 export function OwnerClient() {
-	const [isVisible, setIsVisible] = useState(false);
+	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const router = useRouter();
 	const {
 		register,
@@ -47,8 +47,8 @@ export function OwnerClient() {
 	}
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className="text-gray-800 w-full">
-			<div className="mb-8">
-				<Label htmlFor="name" className="block mb-3">
+			<div className="mb-6">
+				<Label htmlFor="name" className="block mb-2 text-sm">
 					Name
 				</Label>
 				<Input
@@ -56,25 +56,25 @@ export function OwnerClient() {
 					type="text"
 					placeholder="eg., John Doe"
 					{...register("name")}
-					aria-labelledby={errors.name ? "name-error" : undefined}
+					aria-describedby={errors.name ? "name-error" : undefined}
 					aria-invalid={!!errors.name}
 				/>
 				{errors.name && (
-					<p id="name-error" className="font-medium text-red-500 mt-1 text-sm">
+					<p id="name-error" className="font-medium text-red-500 mt-2 text-sm">
 						{errors.name.message}
 					</p>
 				)}
 			</div>
-			<div className="mb-8">
-				<Label htmlFor="email" className="block mb-3">
+			<div className="mb-6">
+				<Label htmlFor="email" className="block mb-2 text-sm">
 					Email
 				</Label>
 				<Input
 					id="email"
-					placeholder="eg., john.doe@stmaryhospital.org"
+					placeholder="sarah.thompson@stmaryhospital.org"
 					type="email"
 					{...register("email")}
-					aria-labelledby={errors.email ? "email-error" : "email-info"}
+					aria-describedby={errors.email ? "email-error" : "email-info"}
 					aria-invalid={!!errors.email}
 				/>
 				{errors.email ? (
@@ -82,22 +82,20 @@ export function OwnerClient() {
 						{errors.email.message}
 					</p>
 				) : (
-					<div className="text-sm flex gap-1 items-center mt-2 text-gray-400">
-						<span aria-hidden>
-							<RiErrorWarningLine className="size-4" />
-						</span>
-						<p id="email-info">Use your official hospital email</p>
-					</div>
+					<p id="email-info" className="flex gap-1 items-center mt-2">
+						<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
+						<span className="text-sm text-gray-400">Must be official verified hospital email</span>
+					</p>
 				)}
 			</div>
 
-			<Label htmlFor="password" className="block mb-3.5">
+			<Label htmlFor="password" className="block mb-2 text-sm">
 				Password
 			</Label>
 			<div className="relative">
 				<Input
 					id="password"
-					type={isVisible ? "text" : "password"}
+					type={isPasswordVisible ? "text" : "password"}
 					placeholder="Enter a secure password"
 					{...register("password")}
 					aria-describedby={errors.password ? "password-error" : undefined}
@@ -105,13 +103,13 @@ export function OwnerClient() {
 				/>
 				<button
 					type="button"
-					aria-pressed={isVisible}
-					aria-label={isVisible ? "Hide password" : "Show password"}
+					aria-pressed={isPasswordVisible}
+					aria-label={isPasswordVisible ? "Hide password" : "Show password"}
 					className="absolute right-4 top-1/2 -translate-y-1/2"
-					onClick={() => setIsVisible(!isVisible)}
+					onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 				>
 					<span aria-hidden="true">
-						{isVisible ? (
+						{isPasswordVisible ? (
 							<RiEyeOffLine className="size-4 text-gray-600" />
 						) : (
 							<RiEyeLine className="size-4 text-gray-600" />

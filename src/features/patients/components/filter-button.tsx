@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { endOfDay, format, isSameDay, startOfDay, subDays, subYears } from "date-fns";
+import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
@@ -28,19 +28,19 @@ import {
 	RiMenLine,
 } from "@remixicon/react";
 
-type CreatedAtFilterPreset = {
+type PatientCreatedAtFilterPreset = {
 	label: string;
-	getRange: (today: Date) => CreatedAtCompleteRange;
+	getRange: (today: Date) => PatientCreatedAtCompleteRange;
 };
 
-type CreatedAtCompleteRange = {
+type PatientCreatedAtCompleteRange = {
 	from: Date;
 	to: Date;
 };
 
 type PatientFilterSubmenu = "gender" | "age" | "created-at";
 
-const createdAtFilterPresets: CreatedAtFilterPreset[] = [
+const patientCreatedAtFilterPresets: PatientCreatedAtFilterPreset[] = [
 	{
 		label: "Today",
 		getRange: (today) => ({ from: startOfDay(today), to: endOfDay(today) }),
@@ -52,14 +52,6 @@ const createdAtFilterPresets: CreatedAtFilterPreset[] = [
 	{
 		label: "Last 30 days",
 		getRange: (today) => ({ from: startOfDay(subDays(today, 29)), to: endOfDay(today) }),
-	},
-	{
-		label: "Last year",
-		getRange: (today) => ({ from: startOfDay(subYears(today, 1)), to: endOfDay(today) }),
-	},
-	{
-		label: "Last 5 years",
-		getRange: (today) => ({ from: startOfDay(subYears(today, 5)), to: endOfDay(today) }),
 	},
 ];
 
@@ -329,7 +321,7 @@ function CreatedAtPresetList({
 
 	return (
 		<>
-			{createdAtFilterPresets.map((preset) => {
+			{patientCreatedAtFilterPresets.map((preset) => {
 				const presetRange = preset.getRange(today);
 				return (
 					<DatePresetButton
@@ -474,7 +466,7 @@ function getDateRangeKey(range?: DateRange) {
 	return `${range?.from ? formatUrlDate(range.from) : ""}:${range?.to ? formatUrlDate(range.to) : ""}`;
 }
 
-function isSameDateRange(range: DateRange | undefined, presetRange: CreatedAtCompleteRange) {
+function isSameDateRange(range: DateRange | undefined, presetRange: PatientCreatedAtCompleteRange) {
 	if (!range?.from || !range.to) return false;
 
 	return isSameDay(range.from, presetRange.from) && isSameDay(range.to, presetRange.to);

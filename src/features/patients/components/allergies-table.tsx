@@ -1,7 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { AllergyDetailsType, AllergyType } from "@/features/patients/types";
+import type {
+	AllergyDetailsType,
+	AllergySeverityFilter,
+	AllergyStatusFilter,
+	AllergyType,
+} from "@/features/patients/types";
 import { AllergyDetailsDrawer } from "@/features/patients/components/allergy-details-drawer";
 import { CreateAllergyDrawer } from "@/features/patients/components/create-allergy-drawer";
 import { CopyIdButton } from "@/components/copy-id-button";
@@ -28,7 +33,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
 	Table,
 	TableBody,
@@ -67,7 +71,7 @@ import {
 } from "@remixicon/react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { endOfDay, format, isSameDay, startOfDay, startOfMonth, subDays, subYears } from "date-fns";
+import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import useSWR from "swr";
 
@@ -87,16 +91,15 @@ const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
 const allergyStatusFilterOptions: {
 	label: string;
-	value: "" | "active" | "inactive";
+	value: AllergyStatusFilter;
 }[] = [
-	{ label: "All", value: "" },
 	{ label: "Active", value: "active" },
 	{ label: "Inactive", value: "inactive" },
 ];
 
 const allergySeverityFilterOptions: {
 	label: string;
-	value: "mild" | "moderate" | "severe";
+	value: AllergySeverityFilter;
 }[] = [
 	{ label: "Mild", value: "mild" },
 	{ label: "Moderate", value: "moderate" },
@@ -109,32 +112,12 @@ const allergyDateFilterPresets: AllergyDateFilterPreset[] = [
 		getRange: (today) => ({ from: startOfDay(today), to: endOfDay(today) }),
 	},
 	{
-		label: "This week",
-		getRange: (today) => ({
-			from: startOfDay(subDays(today, today.getDay())),
-			to: endOfDay(today),
-		}),
+		label: "Last 7 days",
+		getRange: (today) => ({ from: startOfDay(subDays(today, 6)), to: endOfDay(today) }),
 	},
 	{
 		label: "Last 30 days",
-		getRange: (today) => ({
-			from: startOfDay(subDays(today, 29)),
-			to: endOfDay(today),
-		}),
-	},
-	{
-		label: "This month",
-		getRange: (today) => ({
-			from: startOfDay(startOfMonth(today)),
-			to: endOfDay(today),
-		}),
-	},
-	{
-		label: "Last year",
-		getRange: (today) => ({
-			from: startOfDay(subYears(today, 1)),
-			to: endOfDay(today),
-		}),
+		getRange: (today) => ({ from: startOfDay(subDays(today, 29)), to: endOfDay(today) }),
 	},
 ];
 
@@ -146,13 +129,13 @@ type AllergiesTableProps = {
 	query: string;
 	createdFrom: string;
 	createdTo: string;
-	statusFilter: "" | "active" | "inactive";
-	severityFilters: ("mild" | "moderate" | "severe")[];
+	statusFilters: AllergyStatusFilter[];
+	severityFilters: AllergySeverityFilter[];
 	isPending: boolean;
 	onQueryChange: (query: string) => void;
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
-	onStatusFilterChange: (statusFilter: "" | "active" | "inactive") => void;
-	onSeverityFiltersChange: (severityFilters: ("mild" | "moderate" | "severe")[]) => void;
+	onStatusFiltersChange: (statusFilters: AllergyStatusFilter[]) => void;
+	onSeverityFiltersChange: (severityFilters: AllergySeverityFilter[]) => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -166,12 +149,12 @@ export function AllergiesTable({
 	query,
 	createdFrom,
 	createdTo,
-	statusFilter,
+	statusFilters,
 	severityFilters,
 	isPending,
 	onQueryChange,
 	onCreatedAtRangeApply,
-	onStatusFilterChange,
+	onStatusFiltersChange,
 	onSeverityFiltersChange,
 	onPreviousPage,
 	onNextPage,
@@ -200,7 +183,7 @@ export function AllergiesTable({
 		[],
 	);
 	const hasActiveFilters = Boolean(
-		query || createdFrom || createdTo || statusFilter || severityFilters.length > 0,
+		query || createdFrom || createdTo || statusFilters.length > 0 || severityFilters.length > 0,
 	);
 
 	return (
@@ -212,7 +195,7 @@ export function AllergiesTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by name and allergy id"
+						placeholder="Search by allergen, reaction, severity, status, or allergy ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
@@ -251,45 +234,20 @@ export function AllergiesTable({
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
 								<RiCheckboxCircleLine className="size-4.5" /> <span className="block">Status</span>
 							</DropdownMenuSubTrigger>
-								<DropdownMenuSubContent
-									sideOffset={12}
-									alignOffset={-5}
-									className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
-								>
-									<RadioGroup
-										value={statusFilter || "all"}
-										onValueChange={(nextStatusFilter) => {
-											onStatusFilterChange(
-												nextStatusFilter === "all"
-													? ""
-													: (nextStatusFilter as "" | "active" | "inactive"),
-											);
-										}}
-										className="flex flex-col gap-0"
-										disabled={isPending}
-									>
-										{allergyStatusFilterOptions.map((statusOption) => {
-											const statusOptionValue = statusOption.value || "all";
-											const statusOptionId = `allergy-status-${statusOptionValue}`;
-
-											return (
-												<div
-													key={statusOptionValue}
-													className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100"
-												>
-													<RadioGroupItem value={statusOptionValue} id={statusOptionId} />
-												<Label
-													htmlFor={statusOptionId}
-													className="cursor-pointer w-full leading-normal font-normal"
-												>
-													<span>{statusOption.label}</span>
-												</Label>
-												</div>
-											);
-										})}
-									</RadioGroup>
-								</DropdownMenuSubContent>
-							</DropdownMenuSub>
+							<DropdownMenuSubContent
+								sideOffset={12}
+								alignOffset={-5}
+								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							>
+								<AllergyCheckboxFilterList
+									name="allergy-status"
+									options={allergyStatusFilterOptions}
+									selectedValues={statusFilters}
+									isPending={isPending}
+									onSelectedValuesChange={onStatusFiltersChange}
+								/>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
 
 						<DropdownMenuSub
 							open={activeAllergyFilterSubmenu === "severity"}
@@ -309,42 +267,13 @@ export function AllergiesTable({
 								alignOffset={-5}
 								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
-								{allergySeverityFilterOptions.map((severityOption) => {
-									const isSeveritySelected = severityFilters.includes(severityOption.value);
-									const severityOptionId = `allergy-severity-${severityOption.value}`;
-
-									return (
-										<DropdownMenuItem
-											key={severityOption.value}
-											className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
-											onSelect={(event) => {
-												event.preventDefault();
-											}}
-										>
-											<Label
-												htmlFor={severityOptionId}
-												className="w-full cursor-pointer px-2 py-2 leading-normal font-normal"
-											>
-												<Checkbox
-													id={severityOptionId}
-													checked={isSeveritySelected}
-													disabled={isPending}
-													onCheckedChange={(checked) => {
-														onSeverityFiltersChange(
-															checked === true
-																? [...severityFilters, severityOption.value]
-																: severityFilters.filter(
-																		(severityFilter) => severityFilter !== severityOption.value,
-																	),
-														);
-													}}
-													className="[&_svg]:!text-current"
-												/>
-												<span>{severityOption.label}</span>
-											</Label>
-										</DropdownMenuItem>
-									);
-								})}
+								<AllergyCheckboxFilterList
+									name="allergy-severity"
+									options={allergySeverityFilterOptions}
+									selectedValues={severityFilters}
+									isPending={isPending}
+									onSelectedValuesChange={onSeverityFiltersChange}
+								/>
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
 
@@ -394,10 +323,10 @@ export function AllergiesTable({
 			<AllergyActiveFilterPills
 				createdFrom={createdFrom}
 				createdTo={createdTo}
-				statusFilter={statusFilter}
+				statusFilters={statusFilters}
 				severityFilters={severityFilters}
 				onCreatedAtRangeApply={onCreatedAtRangeApply}
-				onStatusFilterChange={onStatusFilterChange}
+				onStatusFiltersChange={onStatusFiltersChange}
 				onSeverityFiltersChange={onSeverityFiltersChange}
 			/>
 			<AllergiesTableContent
@@ -606,39 +535,97 @@ function AllergiesTableContent({
 	);
 }
 
+function AllergyCheckboxFilterList<TValue extends string>({
+	name,
+	options,
+	selectedValues,
+	isPending,
+	onSelectedValuesChange,
+}: {
+	name: string;
+	options: { label: string; value: TValue }[];
+	selectedValues: TValue[];
+	isPending: boolean;
+	onSelectedValuesChange: (selectedValues: TValue[]) => void;
+}) {
+	return (
+		<>
+			{options.map((option) => {
+				const isSelected = selectedValues.includes(option.value);
+				const optionId = `${name}-${option.value}`;
+
+				return (
+					<DropdownMenuItem
+						key={option.value}
+						className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
+						onSelect={(event) => {
+							event.preventDefault();
+						}}
+					>
+						<Label
+							htmlFor={optionId}
+							className="flex w-full cursor-pointer items-center gap-3 px-2 py-2 leading-normal font-normal"
+						>
+							<Checkbox
+								id={optionId}
+								checked={isSelected}
+								disabled={isPending}
+								onCheckedChange={(checked) => {
+									onSelectedValuesChange(
+										checked === true
+											? [...selectedValues, option.value]
+											: selectedValues.filter((selectedValue) => selectedValue !== option.value),
+									);
+								}}
+								className="[&_svg]:!text-current"
+							/>
+							<span>{option.label}</span>
+						</Label>
+					</DropdownMenuItem>
+				);
+			})}
+		</>
+	);
+}
+
 function AllergyActiveFilterPills({
 	createdFrom,
 	createdTo,
-	statusFilter,
+	statusFilters,
 	severityFilters,
 	onCreatedAtRangeApply,
-	onStatusFilterChange,
+	onStatusFiltersChange,
 	onSeverityFiltersChange,
 }: {
 	createdFrom: string;
 	createdTo: string;
-	statusFilter: "" | "active" | "inactive";
-	severityFilters: ("mild" | "moderate" | "severe")[];
+	statusFilters: AllergyStatusFilter[];
+	severityFilters: AllergySeverityFilter[];
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
-	onStatusFilterChange: (statusFilter: "" | "active" | "inactive") => void;
-	onSeverityFiltersChange: (severityFilters: ("mild" | "moderate" | "severe")[]) => void;
+	onStatusFiltersChange: (statusFilters: AllergyStatusFilter[]) => void;
+	onSeverityFiltersChange: (severityFilters: AllergySeverityFilter[]) => void;
 }) {
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
-	const hasStatusFilter = Boolean(statusFilter);
+	const hasStatusFilters = statusFilters.length > 0;
 	const hasSeverityFilters = severityFilters.length > 0;
 
-	if (!hasCreatedAtFilter && !hasStatusFilter && !hasSeverityFilters) {
+	if (!hasCreatedAtFilter && !hasStatusFilters && !hasSeverityFilters) {
 		return null;
 	}
 
 	return (
 		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{hasStatusFilter ? (
+			{statusFilters.map((statusFilter) => (
 				<AllergyFilterPill
+					key={statusFilter}
 					label={`Status: ${formatAllergyFilterValue(statusFilter)}`}
-					onRemove={() => onStatusFilterChange("")}
+					onRemove={() => {
+						onStatusFiltersChange(
+							statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
+						);
+					}}
 				/>
-			) : null}
+			))}
 			{severityFilters.map((severityFilter) => (
 				<AllergyFilterPill
 					key={severityFilter}

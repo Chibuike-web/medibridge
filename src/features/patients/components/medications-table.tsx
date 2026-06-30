@@ -23,6 +23,7 @@ import {
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -33,7 +34,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
 	Table,
 	TableBody,
@@ -67,7 +67,7 @@ import {
 	RiSearchLine,
 	RiShare2Line,
 } from "@remixicon/react";
-import { endOfDay, format, isSameDay, startOfDay, startOfMonth, subDays, subYears } from "date-fns";
+import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import useSWR from "swr";
 
@@ -89,7 +89,6 @@ const medicationStatusFilterOptions: {
 	label: string;
 	value: MedicationStatusFilter;
 }[] = [
-	{ label: "All", value: "" },
 	{ label: "Active", value: "active" },
 	{ label: "Completed", value: "completed" },
 	{ label: "Discontinued", value: "discontinued" },
@@ -101,32 +100,12 @@ const medicationDateFilterPresets: MedicationDateFilterPreset[] = [
 		getRange: (today) => ({ from: startOfDay(today), to: endOfDay(today) }),
 	},
 	{
-		label: "This week",
-		getRange: (today) => ({
-			from: startOfDay(subDays(today, today.getDay())),
-			to: endOfDay(today),
-		}),
+		label: "Last 7 days",
+		getRange: (today) => ({ from: startOfDay(subDays(today, 6)), to: endOfDay(today) }),
 	},
 	{
 		label: "Last 30 days",
-		getRange: (today) => ({
-			from: startOfDay(subDays(today, 29)),
-			to: endOfDay(today),
-		}),
-	},
-	{
-		label: "This month",
-		getRange: (today) => ({
-			from: startOfDay(startOfMonth(today)),
-			to: endOfDay(today),
-		}),
-	},
-	{
-		label: "Last year",
-		getRange: (today) => ({
-			from: startOfDay(subYears(today, 1)),
-			to: endOfDay(today),
-		}),
+		getRange: (today) => ({ from: startOfDay(subDays(today, 29)), to: endOfDay(today) }),
 	},
 ];
 
@@ -138,11 +117,11 @@ type MedicationsTableProps = {
 	query: string;
 	createdFrom: string;
 	createdTo: string;
-	statusFilter: MedicationStatusFilter;
+	statusFilters: MedicationStatusFilter[];
 	isPending: boolean;
 	onQueryChange: (query: string) => void;
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
-	onStatusFilterChange: (statusFilter: MedicationStatusFilter) => void;
+	onStatusFiltersChange: (statusFilters: MedicationStatusFilter[]) => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -156,11 +135,11 @@ export function MedicationsTable({
 	query,
 	createdFrom,
 	createdTo,
-	statusFilter,
+	statusFilters,
 	isPending,
 	onQueryChange,
 	onCreatedAtRangeApply,
-	onStatusFilterChange,
+	onStatusFiltersChange,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -197,7 +176,7 @@ export function MedicationsTable({
 			sorting,
 		},
 	});
-	const hasActiveFilters = Boolean(query || createdFrom || createdTo || statusFilter);
+	const hasActiveFilters = Boolean(query || createdFrom || createdTo || statusFilters.length > 0);
 	const emptyMessage = hasActiveFilters
 		? "No medications match the current filters."
 		: "No medications found.";
@@ -211,7 +190,7 @@ export function MedicationsTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by department or physician"
+						placeholder="Search by medication, dose, route, indication, status, or medication ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
@@ -251,45 +230,20 @@ export function MedicationsTable({
 								<RiCheckboxCircleLine className="size-4.5" />
 								<span className="block">Status</span>
 							</DropdownMenuSubTrigger>
-								<DropdownMenuSubContent
-									sideOffset={12}
-									alignOffset={-5}
-									className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
-								>
-									<RadioGroup
-										value={statusFilter || "all"}
-										onValueChange={(nextStatusFilter) => {
-											onStatusFilterChange(
-												nextStatusFilter === "all"
-													? ""
-													: (nextStatusFilter as MedicationStatusFilter),
-											);
-										}}
-										className="flex flex-col gap-0"
-										disabled={isPending}
-									>
-										{medicationStatusFilterOptions.map((statusOption) => {
-											const statusOptionValue = statusOption.value || "all";
-											const statusOptionId = `medication-status-${statusOptionValue}`;
-
-											return (
-												<div
-													key={statusOptionValue}
-													className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100"
-												>
-													<RadioGroupItem value={statusOptionValue} id={statusOptionId} />
-												<Label
-													htmlFor={statusOptionId}
-													className="cursor-pointer w-full leading-normal font-normal"
-												>
-													<span>{statusOption.label}</span>
-												</Label>
-												</div>
-											);
-										})}
-									</RadioGroup>
-								</DropdownMenuSubContent>
-							</DropdownMenuSub>
+							<DropdownMenuSubContent
+								sideOffset={12}
+								alignOffset={-5}
+								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							>
+								<MedicationCheckboxFilterList
+									name="medication-status"
+									options={medicationStatusFilterOptions}
+									selectedValues={statusFilters}
+									isPending={isPending}
+									onSelectedValuesChange={onStatusFiltersChange}
+								/>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
 
 						<DropdownMenuSub
 							open={activeMedicationFilterSubmenu === "created-at"}
@@ -338,9 +292,9 @@ export function MedicationsTable({
 			<MedicationActiveFilterPills
 				createdFrom={createdFrom}
 				createdTo={createdTo}
-				statusFilter={statusFilter}
+				statusFilters={statusFilters}
 				onCreatedAtRangeApply={onCreatedAtRangeApply}
-				onStatusFilterChange={onStatusFilterChange}
+				onStatusFiltersChange={onStatusFiltersChange}
 			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left">
@@ -482,37 +436,100 @@ export function MedicationsTable({
 		</div>
 	);
 }
-	
+function MedicationCheckboxFilterList<TValue extends string>({
+	name,
+	options,
+	selectedValues,
+	isPending,
+	onSelectedValuesChange,
+}: {
+	name: string;
+	options: { label: string; value: TValue }[];
+	selectedValues: TValue[];
+	isPending: boolean;
+	onSelectedValuesChange: (selectedValues: TValue[]) => void;
+}) {
+	return (
+		<>
+			{options.map((option) => {
+				const isSelected = selectedValues.includes(option.value);
+				const optionId = `${name}-${option.value}`;
+
+				return (
+					<DropdownMenuItem
+						key={option.value}
+						className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
+						onSelect={(event) => {
+							event.preventDefault();
+						}}
+					>
+						<Label
+							htmlFor={optionId}
+							className="flex w-full cursor-pointer items-center gap-3 px-2 py-2 leading-normal font-normal"
+						>
+							<Checkbox
+								id={optionId}
+								checked={isSelected}
+								disabled={isPending}
+								onCheckedChange={(checked) => {
+									onSelectedValuesChange(
+										checked === true
+											? [...selectedValues, option.value]
+											: selectedValues.filter((selectedValue) => selectedValue !== option.value),
+									);
+								}}
+								className="[&_svg]:!text-current"
+							/>
+							<span>{option.label}</span>
+						</Label>
+					</DropdownMenuItem>
+				);
+			})}
+		</>
+	);
+}
+
 function MedicationActiveFilterPills({
 	createdFrom,
 	createdTo,
-	statusFilter,
+	statusFilters,
 	onCreatedAtRangeApply,
-	onStatusFilterChange,
+	onStatusFiltersChange,
 }: {
 	createdFrom: string;
 	createdTo: string;
-	statusFilter: MedicationStatusFilter;
+	statusFilters: MedicationStatusFilter[];
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
-	onStatusFilterChange: (statusFilter: MedicationStatusFilter) => void;
+	onStatusFiltersChange: (statusFilters: MedicationStatusFilter[]) => void;
 }) {
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
-	const hasStatusFilter = Boolean(statusFilter);
+	const hasStatusFilters = statusFilters.length > 0;
 
-	if (!hasCreatedAtFilter && !hasStatusFilter) {
+	if (!hasCreatedAtFilter && !hasStatusFilters) {
 		return null;
 	}
 
-	const statusOption = medicationStatusFilterOptions.find((option) => option.value === statusFilter);
-
 	return (
 		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{hasStatusFilter ? (
-				<MedicationFilterPill
-					label={`Status: ${statusOption?.label ?? formatMedicationFilterValue(statusFilter)}`}
-					onRemove={() => onStatusFilterChange("")}
-				/>
-			) : null}
+			{statusFilters.map((statusFilter) => {
+				const statusOption = medicationStatusFilterOptions.find(
+					(option) => option.value === statusFilter,
+				);
+
+				return (
+					<MedicationFilterPill
+						key={statusFilter}
+						label={`Status: ${statusOption?.label ?? formatMedicationFilterValue(statusFilter)}`}
+						onRemove={() => {
+							onStatusFiltersChange(
+								statusFilters.filter(
+									(currentStatusFilter) => currentStatusFilter !== statusFilter,
+								),
+							);
+						}}
+					/>
+				);
+			})}
 			{hasCreatedAtFilter ? (
 				<MedicationFilterPill
 					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}

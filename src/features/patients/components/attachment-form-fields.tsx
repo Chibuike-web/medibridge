@@ -29,8 +29,8 @@ export function AttachmentFormFields({
 	onRemoveAttachmentRow,
 }: AttachmentFormFieldsProps) {
 	return (
-		<div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-			<div className="col-span-2 flex items-center justify-between gap-4 sm:col-span-3">
+		<div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+			<div className="flex items-center justify-between gap-4 sm:col-span-2">
 				<span className="text-base font-semibold text-gray-800">
 					Attachment {attachmentIndex + 1}
 				</span>
@@ -39,13 +39,13 @@ export function AttachmentFormFields({
 					variant="ghost"
 					size="icon"
 					aria-label={`Remove attachment ${attachmentIndex + 1}`}
-					className="size-8 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+					className="size-6 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
 					onClick={() => onRemoveAttachmentRow(attachmentRow.id)}
 				>
 					<RiCloseLine className="size-4" aria-hidden="true" />
 				</Button>
 			</div>
-			<div className="col-span-2 flex flex-col gap-2 sm:col-span-1">
+			<div className="flex flex-col gap-2">
 				<Label htmlFor={`${attachmentRow.id}-name`} className={fieldLabelClassName}>
 					Attachment name<span className={requiredLabelClassName}>(required)</span>
 				</Label>
@@ -57,7 +57,7 @@ export function AttachmentFormFields({
 					className={fieldControlClassName}
 				/>
 			</div>
-			<div className="col-span-2 flex flex-col gap-2 sm:col-span-1">
+			<div className="flex flex-col gap-2">
 				<Label htmlFor={`${attachmentRow.id}-id`} className={fieldLabelClassName}>
 					Attachment ID<span className={requiredLabelClassName}>(required)</span>
 				</Label>

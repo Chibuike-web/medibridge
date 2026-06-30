@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { CreateAllergyDrawer } from "@/features/patients/components/create-allergy-drawer";
 import { CreateDiagnosisDrawer } from "@/features/patients/components/create-diagnosis-drawer";
 import { CreateImmunizationDrawer } from "@/features/patients/components/create-immunization-drawer";
+import { CreateImagingDrawer } from "@/features/patients/components/create-imaging-drawer";
+import { CreateLabTestDrawer } from "@/features/patients/components/create-lab-test-drawer";
 import { CreateMedicationDrawer } from "@/features/patients/components/create-medication-drawer";
 import { CreateProcedureDrawer } from "@/features/patients/components/create-procedure-drawer";
 
@@ -137,7 +139,10 @@ export function CreateLabTestEmptyStateAction() {
 			>
 				Add lab test
 			</Button>
-			<PendingCreateDrawer open={isCreateLabTestDrawerOpen} />
+				<CreateLabTestDrawer
+					open={isCreateLabTestDrawerOpen}
+					onOpenChange={setIsCreateLabTestDrawerOpen}
+				/>
 		</>
 	);
 }
@@ -154,7 +159,10 @@ export function CreateImagingEmptyStateAction() {
 			>
 				Add imaging
 			</Button>
-			<PendingCreateDrawer open={isCreateImagingDrawerOpen} />
+			<CreateImagingDrawer
+				open={isCreateImagingDrawerOpen}
+				onOpenChange={setIsCreateImagingDrawerOpen}
+			/>
 		</>
 	);
 }

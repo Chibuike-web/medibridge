@@ -37,7 +37,7 @@ export const getPatientAllergies = cache(async (
 	limit = 14,
 	query = "",
 	dateFilters: AllergyDateFilters = {},
-	statusFilter: AllergyStatusFilter = "",
+	statusFilters: AllergyStatusFilter[] = [],
 	severityFilters: AllergySeverityFilter[] = [],
 ): Promise<{ allergies: AllergyType[]; totalAllergies: number }> => {
 	const organizationId = await getOrganizationId();
@@ -51,7 +51,7 @@ export const getPatientAllergies = cache(async (
 		limit,
 		query.trim(),
 		dateFilters,
-		statusFilter,
+		statusFilters,
 		severityFilters,
 	);
 });
@@ -63,7 +63,7 @@ export async function getPatientAllergiesForOrganization(
 	limit: number,
 	normalizedQuery: string,
 	dateFilters: AllergyDateFilters,
-	statusFilter: AllergyStatusFilter,
+	statusFilters: AllergyStatusFilter[],
 	severityFilters: AllergySeverityFilter[],
 ): Promise<{ allergies: AllergyType[]; totalAllergies: number }> {
 	"use cache";
@@ -75,14 +75,16 @@ export async function getPatientAllergiesForOrganization(
 	const createdFromDate = parseDateParam(dateFilters.createdFrom ?? "");
 	const createdToDate = parseDateParam(dateFilters.createdTo ?? "");
 	const databaseSeverityFilters = severityFilters.map(toTitleCase);
-	const databaseStatusFilter = statusFilter ? toTitleCase(statusFilter) : "";
+	const databaseStatusFilters = statusFilters.map(toTitleCase);
 
 	const allergyFilter = and(
 		eq(patientAllergy.patientId, patientId),
 		eq(patient.organizationId, organizationId),
 		createdFromDate ? gte(patientAllergy.createdAt, startOfDay(createdFromDate)) : undefined,
 		createdToDate ? lte(patientAllergy.createdAt, endOfDay(createdToDate)) : undefined,
-		databaseStatusFilter ? eq(patientAllergy.status, databaseStatusFilter) : undefined,
+		databaseStatusFilters.length > 0
+			? inArray(patientAllergy.status, databaseStatusFilters)
+			: undefined,
 		databaseSeverityFilters.length > 0
 			? inArray(patientAllergy.severity, databaseSeverityFilters)
 			: undefined,

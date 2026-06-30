@@ -41,7 +41,7 @@ export function AllergiesClient({
 	const [query, setQuery] = useState("");
 	const [createdFrom, setCreatedFrom] = useState("");
 	const [createdTo, setCreatedTo] = useState("");
-	const [statusFilter, setStatusFilter] = useState<AllergyStatusFilter>("");
+	const [statusFilters, setStatusFilters] = useState<AllergyStatusFilter[]>([]);
 	const [severityFilters, setSeverityFilters] = useState<AllergySeverityFilter[]>([]);
 	const [isPending, startTransition] = useTransition();
 	const latestSectionTableRequestIdRef = useRef(0);
@@ -52,7 +52,7 @@ export function AllergiesClient({
 		nextQuery = query,
 		nextCreatedFrom = createdFrom,
 		nextCreatedTo = createdTo,
-		nextStatusFilter = statusFilter,
+		nextStatusFilters = statusFilters,
 		nextSeverityFilters = severityFilters,
 	}: {
 		nextPage?: number;
@@ -60,7 +60,7 @@ export function AllergiesClient({
 		nextQuery?: string;
 		nextCreatedFrom?: string;
 		nextCreatedTo?: string;
-		nextStatusFilter?: AllergyStatusFilter;
+		nextStatusFilters?: AllergyStatusFilter[];
 		nextSeverityFilters?: AllergySeverityFilter[];
 	}) {
 		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
@@ -77,7 +77,7 @@ export function AllergiesClient({
 				query: nextQuery,
 				createdFrom: nextCreatedFrom,
 				createdTo: nextCreatedTo,
-				statusFilter: nextStatusFilter,
+				statusFilters: nextStatusFilters,
 				severityFilters: nextSeverityFilters,
 			});
 
@@ -123,9 +123,9 @@ export function AllergiesClient({
 		refreshAllergiesTable({ nextCreatedFrom, nextCreatedTo });
 	}
 
-	function handleStatusFiltersChange(nextStatusFilter: AllergyStatusFilter) {
-		setStatusFilter(nextStatusFilter);
-		refreshAllergiesTable({ nextStatusFilter });
+	function handleStatusFiltersChange(nextStatusFilters: AllergyStatusFilter[]) {
+		setStatusFilters(nextStatusFilters);
+		refreshAllergiesTable({ nextStatusFilters });
 	}
 	function handleSeverityFiltersChange(nextSeverityFilters: AllergySeverityFilter[]) {
 		setSeverityFilters(nextSeverityFilters);
@@ -141,12 +141,12 @@ export function AllergiesClient({
 			query={query}
 			createdFrom={createdFrom}
 			createdTo={createdTo}
-			statusFilter={statusFilter}
+			statusFilters={statusFilters}
 			severityFilters={severityFilters}
 			isPending={isPending}
 			onQueryChange={handleQueryChange}
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
-			onStatusFilterChange={handleStatusFiltersChange}
+			onStatusFiltersChange={handleStatusFiltersChange}
 			onSeverityFiltersChange={handleSeverityFiltersChange}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}

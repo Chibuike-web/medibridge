@@ -106,7 +106,7 @@ export type AllergyDetailsType = {
 	history: AllergyDetailsHistoryEvent[];
 };
 
-export type AllergyStatusFilter = "" | "active" | "inactive";
+export type AllergyStatusFilter = "active" | "inactive";
 
 export type AllergySeverityFilter = "mild" | "moderate" | "severe";
 
@@ -214,7 +214,7 @@ export type MedicationType = {
 	status: "Active" | "Completed" | "Discontinued";
 };
 
-export type MedicationStatusFilter = "" | "active" | "completed" | "discontinued";
+export type MedicationStatusFilter = "active" | "completed" | "discontinued";
 
 export type MedicationDetailsHistoryEvent = {
 	id: string;
@@ -267,12 +267,30 @@ export type EncounterType = {
 
 export type LabTestType = {
 	test: string;
+	testName: string;
 	labId: string;
+	encounterId: string | null;
+	result: string;
+	specimen: string;
 	referenceRange: string;
 	interpretation: string;
+	flag: string;
+	orderedAtValue: string;
+	orderedAtLabel: string;
+	orderedAtSortValue: string;
+	orderedBy: string;
 	createdAtLabel: string;
 	createdAtSortValue: string;
+	updatedAtLabel: string;
+	updatedAtSortValue: string;
+	createdBy: string;
+	updatedBy: string;
 	status: "Pending" | "Completed" | "Cancelled";
+	clinicalNote: string;
+	fileName: string;
+	fileUrl: string;
+	fileSize: string;
+	fileType: string;
 };
 
 export type LabTestStatusFilter = "pending" | "completed" | "cancelled";
@@ -292,13 +310,30 @@ export type LabTestFlagFilter =
 export type ImagingType = {
 	study: string;
 	imagingId: string;
+	encounterId: string;
 	modality: "CT" | "MRI" | "Ultrasound" | "X-ray";
 	region: string;
 	impression: string;
 	orderedAtLabel: string;
+	orderedAtValue: string;
 	orderedAtSortValue: string;
+	orderedBy: string;
+	reportedBy: string;
 	status: "Pending" | "Completed" | "Cancelled";
+	clinicalNote: string;
+	fileName: string;
+	fileUrl: string;
+	fileSize: string;
+	fileType: string;
+	createdBy: string;
+	updatedBy: string;
+	createdAtLabel: string;
+	updatedAtLabel: string;
 };
+
+export type ImagingStatusFilter = "pending" | "completed" | "cancelled";
+
+export type ImagingModalityFilter = "ct" | "mri" | "ultrasound" | "x-ray";
 
 export type PatientSectionProps = {
 	section: string;

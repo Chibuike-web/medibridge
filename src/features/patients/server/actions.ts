@@ -16,7 +16,10 @@ import { and, eq } from "drizzle-orm";
 
 import { PatientType } from "../schemas/patient-schema";
 import type {
+	AllergyStatusFilter,
 	DiagnosisStatusFilter,
+	ImagingModalityFilter,
+	ImagingStatusFilter,
 	LabTestFlagFilter,
 	LabTestStatusFilter,
 	MedicationStatusFilter,
@@ -412,7 +415,7 @@ export async function getPatientAllergiesTableAction({
 	query = "",
 	createdFrom = "",
 	createdTo = "",
-	statusFilter = "",
+	statusFilters = [],
 	severityFilters = [],
 }: {
 	patientId: string;
@@ -421,7 +424,7 @@ export async function getPatientAllergiesTableAction({
 	query?: string;
 	createdFrom?: string;
 	createdTo?: string;
-	statusFilter?: "" | "active" | "inactive";
+	statusFilters?: AllergyStatusFilter[];
 	severityFilters?: ("mild" | "moderate" | "severe")[];
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
@@ -432,7 +435,7 @@ export async function getPatientAllergiesTableAction({
 		currentLimit,
 		query,
 		{ createdFrom, createdTo },
-		statusFilter,
+		statusFilters,
 		severityFilters,
 	);
 
@@ -523,7 +526,7 @@ export async function getPatientMedicationsTableAction({
 	query = "",
 	createdFrom = "",
 	createdTo = "",
-	statusFilter = "",
+	statusFilters = [],
 }: {
 	patientId: string;
 	page: number | string;
@@ -531,7 +534,7 @@ export async function getPatientMedicationsTableAction({
 	query?: string;
 	createdFrom?: string;
 	createdTo?: string;
-	statusFilter?: MedicationStatusFilter;
+	statusFilters?: MedicationStatusFilter[];
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
@@ -541,7 +544,7 @@ export async function getPatientMedicationsTableAction({
 		currentLimit,
 		query,
 		{ createdFrom, createdTo },
-		statusFilter,
+		statusFilters,
 	);
 
 	return {
@@ -624,11 +627,23 @@ export async function getPatientImagingTableAction({
 	page,
 	limit,
 	query = "",
+	orderedFrom = "",
+	orderedTo = "",
+	createdFrom = "",
+	createdTo = "",
+	statusFilters = [],
+	modalityFilters = [],
 }: {
 	patientId: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
+	orderedFrom?: string;
+	orderedTo?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilters?: ImagingStatusFilter[];
+	modalityFilters?: ImagingModalityFilter[];
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
@@ -637,6 +652,9 @@ export async function getPatientImagingTableAction({
 		currentPage,
 		currentLimit,
 		query,
+		{ orderedFrom, orderedTo, createdFrom, createdTo },
+		statusFilters,
+		modalityFilters,
 	);
 
 	return {

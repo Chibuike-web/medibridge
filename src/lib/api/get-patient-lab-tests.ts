@@ -117,15 +117,28 @@ export async function getPatientLabTestsForOrganization(
 				.innerJoin(patient, eq(patientLabTest.patientId, patient.id))
 				.where(labTestFilter),
 		db
-			.select({
-				testName: patientLabTest.testName,
-				result: patientLabTest.result,
-				labId: patientLabTest.id,
-				referenceRange: patientLabTest.referenceRange,
-				interpretation: patientLabTest.interpretation,
-				createdAt: patientLabTest.createdAt,
-				status: patientLabTest.status,
-			})
+				.select({
+					testName: patientLabTest.testName,
+					result: patientLabTest.result,
+					labId: patientLabTest.id,
+					encounterId: patientLabTest.encounterId,
+					specimen: patientLabTest.specimen,
+					referenceRange: patientLabTest.referenceRange,
+					interpretation: patientLabTest.interpretation,
+					flag: patientLabTest.flag,
+					orderedAt: patientLabTest.orderedAt,
+					orderedBy: patientLabTest.orderedBy,
+					clinicalNote: patientLabTest.clinicalNote,
+					fileName: patientLabTest.fileName,
+					fileUrl: patientLabTest.fileUrl,
+					fileSize: patientLabTest.fileSize,
+					fileType: patientLabTest.fileType,
+					createdBy: patientLabTest.createdBy,
+					updatedBy: patientLabTest.updatedBy,
+					createdAt: patientLabTest.createdAt,
+					updatedAt: patientLabTest.updatedAt,
+					status: patientLabTest.status,
+				})
 				.from(patientLabTest)
 				.innerJoin(patient, eq(patientLabTest.patientId, patient.id))
 				.where(labTestFilter)
@@ -135,15 +148,33 @@ export async function getPatientLabTestsForOrganization(
 	]);
 
 	return {
-		totalLabTests: countRows[0]?.value ?? 0,
-		labTests: rows.map((labTest) => ({
-			test: formatTestName(labTest.testName, labTest.result),
-			labId: labTest.labId,
-			referenceRange: labTest.referenceRange ?? "-",
-			interpretation: labTest.interpretation ?? "-",
-			createdAtLabel: formatDateTime(labTest.createdAt),
-			createdAtSortValue: toSortValue(labTest.createdAt),
-			status: normalizeStatus(labTest.status),
-		})),
-	};
-}
+			totalLabTests: countRows[0]?.value ?? 0,
+			labTests: rows.map((labTest) => ({
+				test: formatTestName(labTest.testName, labTest.result),
+				testName: labTest.testName,
+				labId: labTest.labId,
+				encounterId: labTest.encounterId,
+				result: labTest.result ?? "",
+				specimen: labTest.specimen ?? "",
+				referenceRange: labTest.referenceRange ?? "-",
+				interpretation: labTest.interpretation ?? "-",
+				flag: labTest.flag ?? "",
+				orderedAtValue: labTest.orderedAt?.toISOString() ?? "",
+				orderedAtLabel: labTest.orderedAt ? formatDateTime(labTest.orderedAt) : "-",
+				orderedAtSortValue: toSortValue(labTest.orderedAt),
+				orderedBy: labTest.orderedBy ?? "",
+				createdAtLabel: formatDateTime(labTest.createdAt),
+				createdAtSortValue: toSortValue(labTest.createdAt),
+				updatedAtLabel: formatDateTime(labTest.updatedAt),
+				updatedAtSortValue: toSortValue(labTest.updatedAt),
+				createdBy: labTest.createdBy ?? "",
+				updatedBy: labTest.updatedBy ?? "",
+				status: normalizeStatus(labTest.status),
+				clinicalNote: labTest.clinicalNote ?? "",
+				fileName: labTest.fileName ?? "",
+				fileUrl: labTest.fileUrl ?? "",
+				fileSize: labTest.fileSize ?? "",
+				fileType: labTest.fileType ?? "",
+			})),
+		};
+	}

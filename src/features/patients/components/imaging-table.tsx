@@ -1,19 +1,31 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ImagingType } from "@/features/patients/types";
+import { CreateImagingDrawer } from "@/features/patients/components/create-imaging-drawer";
+import { ImagingDetailsDrawer } from "@/features/patients/components/imaging-details-drawer";
+import type {
+	ImagingModalityFilter,
+	ImagingStatusFilter,
+	ImagingType,
+} from "@/features/patients/types";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -31,6 +43,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils/cn";
+import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {
 	type ColumnDef,
 	flexRender,
@@ -42,7 +55,10 @@ import {
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
+	RiArrowRightLine,
 	RiArrowUpSLine,
+	RiCalendarLine,
+	RiCheckboxCircleLine,
 	RiCheckLine,
 	RiCloseLine,
 	RiErrorWarningLine,
@@ -51,8 +67,56 @@ import {
 	RiSearchLine,
 	RiShare2Line,
 } from "@remixicon/react";
+import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
+import type { DateRange } from "react-day-picker";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
+
+type ImagingFilterSubmenu = "status" | "modality" | "ordered-at" | "created-at";
+
+type ImagingDateFilterPreset = {
+	label: string;
+	getRange: (today: Date) => ImagingDateCompleteRange;
+};
+
+type ImagingDateCompleteRange = {
+	from: Date;
+	to: Date;
+};
+
+const imagingStatusFilterOptions: {
+	label: string;
+	value: ImagingStatusFilter;
+}[] = [
+	{ label: "Pending", value: "pending" },
+	{ label: "Completed", value: "completed" },
+	{ label: "Cancelled", value: "cancelled" },
+];
+
+const imagingModalityFilterOptions: {
+	label: string;
+	value: ImagingModalityFilter;
+}[] = [
+	{ label: "CT", value: "ct" },
+	{ label: "MRI", value: "mri" },
+	{ label: "Ultrasound", value: "ultrasound" },
+	{ label: "X-ray", value: "x-ray" },
+];
+
+const imagingDateFilterPresets: ImagingDateFilterPreset[] = [
+	{
+		label: "Today",
+		getRange: (today) => ({ from: startOfDay(today), to: endOfDay(today) }),
+	},
+	{
+		label: "Last 7 days",
+		getRange: (today) => ({ from: startOfDay(subDays(today, 6)), to: endOfDay(today) }),
+	},
+	{
+		label: "Last 30 days",
+		getRange: (today) => ({ from: startOfDay(subDays(today, 29)), to: endOfDay(today) }),
+	},
+];
 
 type ImagingTableProps = {
 	imagingStudies: ImagingType[];
@@ -60,8 +124,18 @@ type ImagingTableProps = {
 	limit: number;
 	totalPages: number;
 	query: string;
+	orderedFrom: string;
+	orderedTo: string;
+	createdFrom: string;
+	createdTo: string;
+	statusFilters: ImagingStatusFilter[];
+	modalityFilters: ImagingModalityFilter[];
 	isPending: boolean;
 	onQueryChange: (query: string) => void;
+	onOrderedAtRangeApply: (orderedFrom: string, orderedTo: string) => void;
+	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
+	onStatusFiltersChange: (statusFilters: ImagingStatusFilter[]) => void;
+	onModalityFiltersChange: (modalityFilters: ImagingModalityFilter[]) => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -73,14 +147,38 @@ export function ImagingTable({
 	limit,
 	totalPages,
 	query,
+	orderedFrom,
+	orderedTo,
+	createdFrom,
+	createdTo,
+	statusFilters,
+	modalityFilters,
 	isPending,
 	onQueryChange,
+	onOrderedAtRangeApply,
+	onCreatedAtRangeApply,
+	onStatusFiltersChange,
+	onModalityFiltersChange,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
 }: ImagingTableProps) {
-	const columns = useMemo(() => getImagingColumns(), []);
 	const [sorting, setSorting] = useState<SortingState>([]);
+	const [activeImagingFilterSubmenu, setActiveImagingFilterSubmenu] =
+		useState<ImagingFilterSubmenu | null>(null);
+	const [isCreateImagingDrawerOpen, setIsCreateImagingDrawerOpen] = useState(false);
+	const [isImagingDetailsDrawerOpen, setIsImagingDetailsDrawerOpen] = useState(false);
+	const [selectedImagingStudy, setSelectedImagingStudy] = useState<ImagingType | null>(null);
+
+	function handleViewImagingDetails(imaging: ImagingType) {
+		setSelectedImagingStudy(imaging);
+		setIsImagingDetailsDrawerOpen(true);
+	}
+
+	const columns = useMemo(
+		() => getImagingColumns({ onViewImagingDetails: handleViewImagingDetails }),
+		[],
+	);
 
 	const table = useReactTable({
 		data: imagingStudies,
@@ -103,18 +201,147 @@ export function ImagingTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by study, impression and imaging id"
+						placeholder="Search by study, modality, region, impression, status, or imaging ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<Button
-					variant="outline"
-					className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+				<DropdownMenu
+					onOpenChange={(isImagingFilterMenuOpen) => {
+						if (!isImagingFilterMenuOpen) {
+							setActiveImagingFilterSubmenu(null);
+						}
+					}}
 				>
-					<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
-					Filter
-				</Button>
+					<DropdownMenuTrigger asChild>
+						<Button
+							variant="outline"
+							className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+						>
+							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
+							Filter
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="end"
+						sideOffset={8}
+						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+					>
+						<DropdownMenuSub
+							open={activeImagingFilterSubmenu === "status"}
+							onOpenChange={(isStatusSubmenuOpen) => {
+								setActiveImagingFilterSubmenu((prev) => {
+									if (isStatusSubmenuOpen) return "status";
+									if (prev === "status") return null;
+									return prev;
+								});
+							}}
+						>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+								<RiCheckboxCircleLine className="size-4.5" />
+								<span className="block">Status</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								sideOffset={12}
+								alignOffset={-5}
+								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							>
+								<ImagingCheckboxFilterList
+									name="imaging-status"
+									options={imagingStatusFilterOptions}
+									selectedValues={statusFilters}
+									isPending={isPending}
+									onSelectedValuesChange={onStatusFiltersChange}
+								/>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
+
+						<DropdownMenuSub
+							open={activeImagingFilterSubmenu === "modality"}
+							onOpenChange={(isModalitySubmenuOpen) => {
+								setActiveImagingFilterSubmenu((prev) => {
+									if (isModalitySubmenuOpen) return "modality";
+									if (prev === "modality") return null;
+									return prev;
+								});
+							}}
+						>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+								<RiFilter3Line className="size-4.5" />
+								<span className="block">Modality</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								sideOffset={12}
+								alignOffset={-5}
+								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							>
+								<ImagingCheckboxFilterList
+									name="imaging-modality"
+									options={imagingModalityFilterOptions}
+									selectedValues={modalityFilters}
+									isPending={isPending}
+									onSelectedValuesChange={onModalityFiltersChange}
+								/>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
+
+						<DropdownMenuSub
+							open={activeImagingFilterSubmenu === "ordered-at"}
+							onOpenChange={(isOrderedAtSubmenuOpen) => {
+								setActiveImagingFilterSubmenu((prev) => {
+									if (isOrderedAtSubmenuOpen) return "ordered-at";
+									if (prev === "ordered-at") return null;
+									return prev;
+								});
+							}}
+						>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+								<RiCalendarLine className="size-4.5" />
+								<span className="block">Ordered at</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								sideOffset={8}
+								alignOffset={-5}
+								className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
+							>
+								<ImagingDateFilterContent
+									from={orderedFrom}
+									to={orderedTo}
+									isPending={isPending}
+									onDateRangeApply={onOrderedAtRangeApply}
+								/>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
+
+						<DropdownMenuSub
+							open={activeImagingFilterSubmenu === "created-at"}
+							onOpenChange={(isCreatedAtSubmenuOpen) => {
+								setActiveImagingFilterSubmenu((prev) => {
+									if (isCreatedAtSubmenuOpen) return "created-at";
+									if (prev === "created-at") return null;
+									return prev;
+								});
+							}}
+						>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+								<RiCalendarLine className="size-4.5" />
+								<span className="block">Created at</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								sideOffset={8}
+								alignOffset={-5}
+								className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
+							>
+								<ImagingDateFilterContent
+									from={createdFrom}
+									to={createdTo}
+									isPending={isPending}
+									onDateRangeApply={onCreatedAtRangeApply}
+								/>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
+					</DropdownMenuContent>
+				</DropdownMenu>
 				<Button
 					variant="outline"
 					className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
@@ -122,8 +349,26 @@ export function ImagingTable({
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button className="text-sm">Add imaging</Button>
+				<Button
+					type="button"
+					className="text-sm"
+					onClick={() => setIsCreateImagingDrawerOpen(true)}
+				>
+					Add imaging
+				</Button>
 			</div>
+			<ImagingActiveFilterPills
+				orderedFrom={orderedFrom}
+				orderedTo={orderedTo}
+				createdFrom={createdFrom}
+				createdTo={createdTo}
+				statusFilters={statusFilters}
+				modalityFilters={modalityFilters}
+				onOrderedAtRangeApply={onOrderedAtRangeApply}
+				onCreatedAtRangeApply={onCreatedAtRangeApply}
+				onStatusFiltersChange={onStatusFiltersChange}
+				onModalityFiltersChange={onModalityFiltersChange}
+			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="h-12 text-sm font-semibold text-gray-600">
@@ -240,11 +485,398 @@ export function ImagingTable({
 					</div>
 				</div>
 			</div>
+			<CreateImagingDrawer
+				open={isCreateImagingDrawerOpen}
+				onOpenChange={setIsCreateImagingDrawerOpen}
+			/>
+			<ImagingDetailsDrawer
+				open={isImagingDetailsDrawerOpen}
+				onOpenChange={setIsImagingDetailsDrawerOpen}
+				imaging={selectedImagingStudy}
+			/>
 		</div>
 	);
 }
 
-function getImagingColumns(): ColumnDef<ImagingType>[] {
+function ImagingCheckboxFilterList<TValue extends string>({
+	name,
+	options,
+	selectedValues,
+	isPending,
+	onSelectedValuesChange,
+}: {
+	name: string;
+	options: { label: string; value: TValue }[];
+	selectedValues: TValue[];
+	isPending: boolean;
+	onSelectedValuesChange: (selectedValues: TValue[]) => void;
+}) {
+	return (
+		<>
+			{options.map((option) => {
+				const isSelected = selectedValues.includes(option.value);
+				const optionId = `${name}-${option.value}`;
+
+				return (
+					<DropdownMenuItem
+						key={option.value}
+						className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
+						onSelect={(event) => {
+							event.preventDefault();
+						}}
+					>
+						<Label
+							htmlFor={optionId}
+							className="flex w-full cursor-pointer items-center gap-3 px-2 py-2 leading-normal font-normal"
+						>
+							<Checkbox
+								id={optionId}
+								checked={isSelected}
+								disabled={isPending}
+								onCheckedChange={(checked) => {
+									onSelectedValuesChange(
+										checked === true
+											? [...selectedValues, option.value]
+											: selectedValues.filter((selectedValue) => selectedValue !== option.value),
+									);
+								}}
+								className="[&_svg]:!text-current"
+							/>
+							<span>{option.label}</span>
+						</Label>
+					</DropdownMenuItem>
+				);
+			})}
+		</>
+	);
+}
+
+function ImagingActiveFilterPills({
+	orderedFrom,
+	orderedTo,
+	createdFrom,
+	createdTo,
+	statusFilters,
+	modalityFilters,
+	onOrderedAtRangeApply,
+	onCreatedAtRangeApply,
+	onStatusFiltersChange,
+	onModalityFiltersChange,
+}: {
+	orderedFrom: string;
+	orderedTo: string;
+	createdFrom: string;
+	createdTo: string;
+	statusFilters: ImagingStatusFilter[];
+	modalityFilters: ImagingModalityFilter[];
+	onOrderedAtRangeApply: (orderedFrom: string, orderedTo: string) => void;
+	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
+	onStatusFiltersChange: (statusFilters: ImagingStatusFilter[]) => void;
+	onModalityFiltersChange: (modalityFilters: ImagingModalityFilter[]) => void;
+}) {
+	const hasOrderedAtFilter = Boolean(orderedFrom || orderedTo);
+	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
+	const hasStatusFilters = statusFilters.length > 0;
+	const hasModalityFilters = modalityFilters.length > 0;
+
+	if (!hasOrderedAtFilter && !hasCreatedAtFilter && !hasStatusFilters && !hasModalityFilters) {
+		return null;
+	}
+
+	return (
+		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+			{statusFilters.map((statusFilter) => (
+				<ImagingFilterPill
+					key={statusFilter}
+					label={`Status: ${formatImagingFilterValue(statusFilter)}`}
+					onRemove={() => {
+						onStatusFiltersChange(
+							statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
+						);
+					}}
+				/>
+			))}
+			{modalityFilters.map((modalityFilter) => (
+				<ImagingFilterPill
+					key={modalityFilter}
+					label={`Modality: ${formatImagingFilterValue(modalityFilter)}`}
+					onRemove={() => {
+						onModalityFiltersChange(
+							modalityFilters.filter(
+								(currentModalityFilter) => currentModalityFilter !== modalityFilter,
+							),
+						);
+					}}
+				/>
+			))}
+			{hasOrderedAtFilter ? (
+				<ImagingFilterPill
+					label={`Ordered: ${formatDateRangeFilterLabel(orderedFrom, orderedTo)}`}
+					onRemove={() => onOrderedAtRangeApply("", "")}
+				/>
+			) : null}
+			{hasCreatedAtFilter ? (
+				<ImagingFilterPill
+					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
+		</div>
+	);
+}
+
+function ImagingFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
+	return (
+		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
+			<span>{label}</span>
+			<button
+				type="button"
+				onClick={onRemove}
+				className="flex size-5 items-center justify-center rounded-full bg-gray-800 text-white transition hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+				aria-label={`Remove ${label} filter`}
+			>
+				<RiCloseLine className="size-4" aria-hidden="true" />
+			</button>
+		</span>
+	);
+}
+
+function ImagingDateFilterContent({
+	from,
+	to,
+	isPending,
+	onDateRangeApply,
+}: {
+	from: string;
+	to: string;
+	isPending: boolean;
+	onDateRangeApply: (from: string, to: string) => void;
+}) {
+	return (
+		<div className="flex w-max">
+			<div className="flex w-50 shrink-0 flex-col p-1 text-sm text-gray-600">
+				<ImagingDatePresetList from={from} to={to} onDateRangeApply={onDateRangeApply} />
+			</div>
+
+			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
+				<ImagingCustomRangeCalendarPanel
+					from={from}
+					to={to}
+					isPending={isPending}
+					onDateRangeApply={onDateRangeApply}
+				/>
+			</div>
+		</div>
+	);
+}
+
+function ImagingDatePresetList({
+	from,
+	to,
+	onDateRangeApply,
+}: {
+	from: string;
+	to: string;
+	onDateRangeApply: (from: string, to: string) => void;
+}) {
+	const selectedImagingDateRange = getDateRangeFromParams(from, to);
+	const today = new Date();
+
+	return (
+		<>
+			{imagingDateFilterPresets.map((preset) => {
+				const presetRange = preset.getRange(today);
+				return (
+					<ImagingDatePresetButton
+						key={preset.label}
+						label={preset.label}
+						isSelected={isSameDateRange(selectedImagingDateRange, presetRange)}
+						onSelect={() => {
+							onDateRangeApply(formatUrlDate(presetRange.from), formatUrlDate(presetRange.to));
+						}}
+					/>
+				);
+			})}
+		</>
+	);
+}
+
+function ImagingCustomRangeCalendarPanel({
+	from,
+	to,
+	isPending,
+	onDateRangeApply,
+}: {
+	from: string;
+	to: string;
+	isPending: boolean;
+	onDateRangeApply: (from: string, to: string) => void;
+}) {
+	const selectedImagingDateRange = getDateRangeFromParams(from, to);
+	const selectedImagingDateRangeKey = getDateRangeKey(selectedImagingDateRange);
+	const [draftImagingDateRange, setDraftImagingDateRange] = useState<DateRange | undefined>(
+		selectedImagingDateRange,
+	);
+	const [previousSelectedImagingDateRangeKey, setPreviousSelectedImagingDateRangeKey] =
+		useState(selectedImagingDateRangeKey);
+
+	if (selectedImagingDateRangeKey !== previousSelectedImagingDateRangeKey) {
+		setPreviousSelectedImagingDateRangeKey(selectedImagingDateRangeKey);
+		setDraftImagingDateRange(selectedImagingDateRange);
+	}
+
+	return (
+		<div className="flex min-w-0 flex-col">
+			<div className="flex items-center gap-3">
+				<ImagingDateFieldPlaceholder value={draftImagingDateRange?.from} label="Start date" />
+				<RiArrowRightLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
+				<ImagingDateFieldPlaceholder value={draftImagingDateRange?.to} label="End date" />
+			</div>
+
+			<Calendar
+				mode="range"
+				selected={draftImagingDateRange}
+				onSelect={(nextDraftImagingDateRange) => {
+					setDraftImagingDateRange(nextDraftImagingDateRange);
+				}}
+				numberOfMonths={1}
+				className="mt-4 p-0"
+				classNames={{
+					month_caption: "flex h-9 w-full items-center justify-center px-9",
+					caption_label: "text-sm font-semibold text-gray-800",
+					weekday: "flex-1 rounded-md text-sm font-medium text-gray-700 select-none",
+					day_button: "rounded-lg text-sm",
+				}}
+				disabled={isPending}
+			/>
+
+			<div className="mt-7 flex justify-end gap-3">
+				<Button
+					type="button"
+					variant="outline"
+					className="min-w-28 text-sm"
+					disabled={isPending}
+					onClick={() => {
+						setDraftImagingDateRange(undefined);
+						onDateRangeApply("", "");
+					}}
+				>
+					Reset
+				</Button>
+				<Button
+					type="button"
+					className="min-w-40 flex-1 text-sm"
+					disabled={!draftImagingDateRange?.from || !draftImagingDateRange?.to || isPending}
+					onClick={() => {
+						if (!draftImagingDateRange?.from || !draftImagingDateRange?.to) return;
+
+						onDateRangeApply(
+							formatUrlDate(draftImagingDateRange.from),
+							formatUrlDate(draftImagingDateRange.to),
+						);
+					}}
+				>
+					Apply
+				</Button>
+			</div>
+		</div>
+	);
+}
+
+function ImagingDatePresetButton({
+	isSelected,
+	label,
+	onSelect,
+}: {
+	isSelected: boolean;
+	label: string;
+	onSelect: () => void;
+}) {
+	return (
+		<DropdownMenuItem
+			onSelect={(event) => {
+				event.preventDefault();
+				onSelect();
+			}}
+			className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
+		>
+			<span>{label}</span>
+			{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}
+		</DropdownMenuItem>
+	);
+}
+
+function ImagingDateFieldPlaceholder({ label, value }: { label: string; value?: Date }) {
+	return (
+		<div className="flex h-9 min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left text-sm font-medium text-gray-500">
+			<RiCalendarLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
+			<span className="sr-only">{label}</span>
+			<span className="truncate">{value ? format(value, "dd/MM/yyyy") : "DD/MM/YYYY"}</span>
+		</div>
+	);
+}
+
+function formatDateRangeFilterLabel(from: string, to: string) {
+	const parsedFromDate = parseDateParam(from);
+	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate) {
+		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedFromDate) {
+		return `From ${format(parsedFromDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedToDate) {
+		return `Until ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	return "Any date";
+}
+
+function getDateRangeFromParams(from: string, to: string): DateRange | undefined {
+	const parsedFromDate = parseDateParam(from);
+	const parsedToDate = parseDateParam(to);
+
+	if (!parsedFromDate && !parsedToDate) {
+		return undefined;
+	}
+
+	return {
+		from: parsedFromDate ?? undefined,
+		to: parsedToDate ?? undefined,
+	};
+}
+
+function getDateRangeKey(dateRange?: DateRange) {
+	return `${dateRange?.from?.toISOString() ?? ""}:${dateRange?.to?.toISOString() ?? ""}`;
+}
+
+function isSameDateRange(left?: DateRange, right?: DateRange) {
+	if (!left?.from || !left?.to || !right?.from || !right?.to) {
+		return false;
+	}
+
+	return isSameDay(left.from, right.from) && isSameDay(left.to, right.to);
+}
+
+function formatUrlDate(date: Date) {
+	return format(date, "yyyy-MM-dd");
+}
+
+function formatImagingFilterValue(value: string) {
+	return value
+		.split("-")
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(" ");
+}
+
+function getImagingColumns({
+	onViewImagingDetails,
+}: {
+	onViewImagingDetails: (imaging: ImagingType) => void;
+}): ColumnDef<ImagingType>[] {
 	return [
 		{
 			id: "select",
@@ -337,7 +969,10 @@ function getImagingColumns(): ColumnDef<ImagingType>[] {
 							align="end"
 							className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
-							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+							<DropdownMenuItem
+								className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+								onSelect={() => onViewImagingDetails(row.original)}
+							>
 								<RiErrorWarningLine className="text-white" />
 								<span>View details</span>
 							</DropdownMenuItem>

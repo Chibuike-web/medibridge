@@ -2,7 +2,11 @@
 
 import { ImagingTable } from "@/features/patients/components/imaging-table";
 import { getPatientImagingTableAction } from "@/features/patients/server/actions";
-import type { ImagingType } from "@/features/patients/types";
+import type {
+	ImagingModalityFilter,
+	ImagingStatusFilter,
+	ImagingType,
+} from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useRef, useState, useTransition } from "react";
 
@@ -35,6 +39,12 @@ export function ImagingClient({
 	const [optimisticPage, setOptimisticPage] = useOptimistic(tableData.page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
 	const [query, setQuery] = useState("");
+	const [orderedFrom, setOrderedFrom] = useState("");
+	const [orderedTo, setOrderedTo] = useState("");
+	const [createdFrom, setCreatedFrom] = useState("");
+	const [createdTo, setCreatedTo] = useState("");
+	const [statusFilters, setStatusFilters] = useState<ImagingStatusFilter[]>([]);
+	const [modalityFilters, setModalityFilters] = useState<ImagingModalityFilter[]>([]);
 	const [isPending, startTransition] = useTransition();
 	const latestSectionTableRequestIdRef = useRef(0);
 
@@ -42,10 +52,22 @@ export function ImagingClient({
 		nextPage = 1,
 		nextLimit = tableData.limit,
 		nextQuery = query,
+		nextOrderedFrom = orderedFrom,
+		nextOrderedTo = orderedTo,
+		nextCreatedFrom = createdFrom,
+		nextCreatedTo = createdTo,
+		nextStatusFilters = statusFilters,
+		nextModalityFilters = modalityFilters,
 	}: {
 		nextPage?: number;
 		nextLimit?: number;
 		nextQuery?: string;
+		nextOrderedFrom?: string;
+		nextOrderedTo?: string;
+		nextCreatedFrom?: string;
+		nextCreatedTo?: string;
+		nextStatusFilters?: ImagingStatusFilter[];
+		nextModalityFilters?: ImagingModalityFilter[];
 	}) {
 		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
 		latestSectionTableRequestIdRef.current = sectionTableRequestId;
@@ -59,6 +81,12 @@ export function ImagingClient({
 				page: nextPage,
 				limit: nextLimit,
 				query: nextQuery,
+				orderedFrom: nextOrderedFrom,
+				orderedTo: nextOrderedTo,
+				createdFrom: nextCreatedFrom,
+				createdTo: nextCreatedTo,
+				statusFilters: nextStatusFilters,
+				modalityFilters: nextModalityFilters,
 			});
 
 			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
@@ -97,6 +125,28 @@ export function ImagingClient({
 		refreshImagingTable({ nextLimit });
 	}
 
+	function handleOrderedAtRangeApply(nextOrderedFrom: string, nextOrderedTo: string) {
+		setOrderedFrom(nextOrderedFrom);
+		setOrderedTo(nextOrderedTo);
+		refreshImagingTable({ nextOrderedFrom, nextOrderedTo });
+	}
+
+	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
+		setCreatedFrom(nextCreatedFrom);
+		setCreatedTo(nextCreatedTo);
+		refreshImagingTable({ nextCreatedFrom, nextCreatedTo });
+	}
+
+	function handleStatusFiltersChange(nextStatusFilters: ImagingStatusFilter[]) {
+		setStatusFilters(nextStatusFilters);
+		refreshImagingTable({ nextStatusFilters });
+	}
+
+	function handleModalityFiltersChange(nextModalityFilters: ImagingModalityFilter[]) {
+		setModalityFilters(nextModalityFilters);
+		refreshImagingTable({ nextModalityFilters });
+	}
+
 	return (
 		<ImagingTable
 			imagingStudies={tableData.rows}
@@ -104,8 +154,18 @@ export function ImagingClient({
 			limit={optimisticLimit}
 			totalPages={tableData.totalPages}
 			query={query}
+			orderedFrom={orderedFrom}
+			orderedTo={orderedTo}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+			statusFilters={statusFilters}
+			modalityFilters={modalityFilters}
 			isPending={isPending}
 			onQueryChange={handleQueryChange}
+			onOrderedAtRangeApply={handleOrderedAtRangeApply}
+			onCreatedAtRangeApply={handleCreatedAtRangeApply}
+			onStatusFiltersChange={handleStatusFiltersChange}
+			onModalityFiltersChange={handleModalityFiltersChange}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

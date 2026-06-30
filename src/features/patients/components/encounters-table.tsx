@@ -102,7 +102,7 @@ export function EncountersTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by department or physician"
+						placeholder="Search by type, department, physician, or encounter ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
