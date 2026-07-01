@@ -2,7 +2,11 @@
 
 import { EncountersTable } from "@/features/patients/components/encounters-table";
 import { getPatientEncountersTableAction } from "@/features/patients/server/actions";
-import type { EncounterType } from "@/features/patients/types";
+import type {
+	EncounterDepartmentFilter,
+	EncounterType,
+	EncounterTypeFilter,
+} from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useRef, useState, useTransition } from "react";
 
@@ -35,6 +39,12 @@ export function EncountersClient({
 	const [optimisticPage, setOptimisticPage] = useOptimistic(tableData.page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
 	const [query, setQuery] = useState("");
+	const [encounterFrom, setEncounterFrom] = useState("");
+	const [encounterTo, setEncounterTo] = useState("");
+	const [createdFrom, setCreatedFrom] = useState("");
+	const [createdTo, setCreatedTo] = useState("");
+	const [encounterTypeFilters, setEncounterTypeFilters] = useState<EncounterTypeFilter[]>([]);
+	const [departmentFilters, setDepartmentFilters] = useState<EncounterDepartmentFilter[]>([]);
 	const [isPending, startTransition] = useTransition();
 	const latestSectionTableRequestIdRef = useRef(0);
 
@@ -42,10 +52,22 @@ export function EncountersClient({
 		nextPage = 1,
 		nextLimit = tableData.limit,
 		nextQuery = query,
+		nextEncounterFrom = encounterFrom,
+		nextEncounterTo = encounterTo,
+		nextCreatedFrom = createdFrom,
+		nextCreatedTo = createdTo,
+		nextEncounterTypeFilters = encounterTypeFilters,
+		nextDepartmentFilters = departmentFilters,
 	}: {
 		nextPage?: number;
 		nextLimit?: number;
 		nextQuery?: string;
+		nextEncounterFrom?: string;
+		nextEncounterTo?: string;
+		nextCreatedFrom?: string;
+		nextCreatedTo?: string;
+		nextEncounterTypeFilters?: EncounterTypeFilter[];
+		nextDepartmentFilters?: EncounterDepartmentFilter[];
 	}) {
 		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
 		latestSectionTableRequestIdRef.current = sectionTableRequestId;
@@ -59,6 +81,12 @@ export function EncountersClient({
 				page: nextPage,
 				limit: nextLimit,
 				query: nextQuery,
+				encounterFrom: nextEncounterFrom,
+				encounterTo: nextEncounterTo,
+				createdFrom: nextCreatedFrom,
+				createdTo: nextCreatedTo,
+				encounterTypeFilters: nextEncounterTypeFilters,
+				departmentFilters: nextDepartmentFilters,
 			});
 
 			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
@@ -96,6 +124,28 @@ export function EncountersClient({
 		refreshEncountersTable({ nextLimit });
 	}
 
+	function handleEncounterDateRangeApply(nextEncounterFrom: string, nextEncounterTo: string) {
+		setEncounterFrom(nextEncounterFrom);
+		setEncounterTo(nextEncounterTo);
+		refreshEncountersTable({ nextEncounterFrom, nextEncounterTo });
+	}
+
+	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
+		setCreatedFrom(nextCreatedFrom);
+		setCreatedTo(nextCreatedTo);
+		refreshEncountersTable({ nextCreatedFrom, nextCreatedTo });
+	}
+
+	function handleEncounterTypeFiltersChange(nextEncounterTypeFilters: EncounterTypeFilter[]) {
+		setEncounterTypeFilters(nextEncounterTypeFilters);
+		refreshEncountersTable({ nextEncounterTypeFilters });
+	}
+
+	function handleDepartmentFiltersChange(nextDepartmentFilters: EncounterDepartmentFilter[]) {
+		setDepartmentFilters(nextDepartmentFilters);
+		refreshEncountersTable({ nextDepartmentFilters });
+	}
+
 	return (
 		<EncountersTable
 			patientId={patientId}
@@ -104,8 +154,18 @@ export function EncountersClient({
 			limit={optimisticLimit}
 			totalPages={tableData.totalPages}
 			query={query}
+			encounterFrom={encounterFrom}
+			encounterTo={encounterTo}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+			encounterTypeFilters={encounterTypeFilters}
+			departmentFilters={departmentFilters}
 			isPending={isPending}
 			onQueryChange={handleQueryChange}
+			onEncounterDateRangeApply={handleEncounterDateRangeApply}
+			onCreatedAtRangeApply={handleCreatedAtRangeApply}
+			onEncounterTypeFiltersChange={handleEncounterTypeFiltersChange}
+			onDepartmentFiltersChange={handleDepartmentFiltersChange}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

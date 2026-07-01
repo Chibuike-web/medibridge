@@ -64,6 +64,7 @@ import {
 	RiErrorWarningLine,
 	RiFilter3Line,
 	RiMore2Fill,
+	RiScan2Line,
 	RiSearchLine,
 	RiShare2Line,
 } from "@remixicon/react";
@@ -267,7 +268,7 @@ export function ImagingTable({
 							}}
 						>
 							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiFilter3Line className="size-4.5" />
+								<RiScan2Line className="size-4.5" />
 								<span className="block">Modality</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
@@ -717,8 +718,9 @@ function ImagingCustomRangeCalendarPanel({
 	const [draftImagingDateRange, setDraftImagingDateRange] = useState<DateRange | undefined>(
 		selectedImagingDateRange,
 	);
-	const [previousSelectedImagingDateRangeKey, setPreviousSelectedImagingDateRangeKey] =
-		useState(selectedImagingDateRangeKey);
+	const [previousSelectedImagingDateRangeKey, setPreviousSelectedImagingDateRangeKey] = useState(
+		selectedImagingDateRangeKey,
+	);
 
 	if (selectedImagingDateRangeKey !== previousSelectedImagingDateRangeKey) {
 		setPreviousSelectedImagingDateRangeKey(selectedImagingDateRangeKey);
@@ -955,44 +957,56 @@ function getImagingColumns({
 			id: "actions",
 			header: "",
 			enableSorting: false,
-			cell: ({ row }) => (
-				<div className="flex justify-end">
-					<DropdownMenu>
-						<DropdownMenuTrigger
-							type="button"
-							className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-							aria-label={`Open actions for ${row.original.study}`}
-						>
-							<RiMore2Fill className="size-5" aria-hidden />
-						</DropdownMenuTrigger>
-						<DropdownMenuContent
-							align="end"
-							className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
-						>
-							<DropdownMenuItem
-								className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
-								onSelect={() => onViewImagingDetails(row.original)}
+			cell: ({ row }) => {
+				const canUpdateImagingStatus = row.original.status === "Pending";
+
+				return (
+					<div className="flex justify-end">
+						<DropdownMenu>
+							<DropdownMenuTrigger
+								type="button"
+								className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+								aria-label={`Open actions for ${row.original.study}`}
 							>
-								<RiErrorWarningLine className="text-white" />
-								<span>View details</span>
-							</DropdownMenuItem>
-							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-								<RiCheckLine className="text-white" />
-								<span>Mark as completed</span>
-							</DropdownMenuItem>
-							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-								<RiCloseLine className="text-white" />
-								<span>Cancel imaging</span>
-							</DropdownMenuItem>
-							<DropdownMenuSeparator className="bg-white/20" />
-							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-								<RiArchiveLine className="text-white" />
-								<span>Archive</span>
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</div>
-			),
+								<RiMore2Fill className="size-5" aria-hidden />
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="end"
+								className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+							>
+								<DropdownMenuItem
+									className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+									onSelect={() => onViewImagingDetails(row.original)}
+								>
+									<RiErrorWarningLine className="text-white" />
+									<span>View details</span>
+								</DropdownMenuItem>
+								<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<RiShare2Line className="text-white" />
+									<span>Export</span>
+								</DropdownMenuItem>
+								{canUpdateImagingStatus ? (
+									<>
+										<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+											<RiCheckLine className="text-white" />
+											<span>Mark as completed</span>
+										</DropdownMenuItem>
+										<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+											<RiCloseLine className="text-white" />
+											<span>Cancel</span>
+										</DropdownMenuItem>
+									</>
+								) : null}
+								<DropdownMenuSeparator className="bg-white/20" />
+								<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<RiArchiveLine className="text-white" />
+									<span>Archive</span>
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
+				);
+			},
 		},
 	];
 }

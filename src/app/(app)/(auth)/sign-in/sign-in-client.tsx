@@ -25,11 +25,12 @@ export function SignInClient() {
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const [signInError, setSignInError] = useState("");
 	const [signInSuccess, setSignInSuccess] = useState("");
-	const [isRedirectPending, startRedirectTransition] = useTransition();
+	const [isPending, startTransition] = useTransition();
 
 	const {
 		register,
 		handleSubmit,
+		reset,
 		control,
 		formState: { errors, isSubmitting },
 	} = useForm<SignInType>({
@@ -52,8 +53,9 @@ export function SignInClient() {
 			);
 			return;
 		}
-		startRedirectTransition(() => {
+		startTransition(() => {
 			router.replace("/dashboard/overview");
+			reset();
 		});
 	};
 
@@ -160,11 +162,7 @@ export function SignInClient() {
 					<span>{signInSuccess}</span>
 				</div>
 			)}
-			<Button
-				className="w-full text-sm mt-16"
-				type="submit"
-				disabled={isSubmitting || isRedirectPending}
-			>
+			<Button className="w-full text-sm mt-16" type="submit" disabled={isSubmitting || isPending}>
 				{isSubmitting ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

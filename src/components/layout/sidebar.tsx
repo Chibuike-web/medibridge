@@ -9,8 +9,8 @@ import {
 	RiArrowRightLine,
 	RiCloseLine,
 	RiContractLeftLine,
-	RiFileListFill,
-	RiFileListLine,
+	RiFileList3Fill,
+	RiFileList3Line,
 	RiFileTransferFill,
 	RiFileTransferLine,
 	RiFunctionFill,
@@ -156,7 +156,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								{!isCollapsed ? <span className="whitespace-nowrap">Search...</span> : null}
 							</button>
 						</DialogTrigger>
-						<DialogContent className="max-w-[50rem]">
+						<DialogContent className="max-w-[50rem] text-sm">
 							<DialogHeader className="h-16 px-6 border-b border-gray-200">
 								<DialogTitle className="sr-only">Search chats</DialogTitle>
 								<DialogDescription className="sr-only">
@@ -244,9 +244,9 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 										)
 									) : id === "patients" ? (
 										isActive ? (
-											<RiFileListFill className="size-4 shrink-0" />
+											<RiFileList3Fill className="size-4 shrink-0" />
 										) : (
-											<RiFileListLine className="size-4 shrink-0" />
+											<RiFileList3Line className="size-4 shrink-0" />
 										)
 									) : id === "transfers" ? (
 										isActive ? (

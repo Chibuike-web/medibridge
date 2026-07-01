@@ -265,6 +265,20 @@ export type EncounterType = {
 	patientId: string;
 };
 
+export type EncounterTypeFilter =
+	| "emergency-visit"
+	| "routine-checkup"
+	| "follow-up-visit"
+	| "outpatient-visit";
+
+export type EncounterDepartmentFilter =
+	| "emergency-medicine"
+	| "general-medicine"
+	| "cardiology"
+	| "endocrinology"
+	| "family-medicine"
+	| "nephrology";
+
 export type LabTestType = {
 	test: string;
 	testName: string;

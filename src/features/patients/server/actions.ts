@@ -18,6 +18,8 @@ import { PatientType } from "../schemas/patient-schema";
 import type {
 	AllergyStatusFilter,
 	DiagnosisStatusFilter,
+	EncounterDepartmentFilter,
+	EncounterTypeFilter,
 	ImagingModalityFilter,
 	ImagingStatusFilter,
 	LabTestFlagFilter,
@@ -560,11 +562,23 @@ export async function getPatientEncountersTableAction({
 	page,
 	limit,
 	query = "",
+	encounterFrom = "",
+	encounterTo = "",
+	createdFrom = "",
+	createdTo = "",
+	encounterTypeFilters = [],
+	departmentFilters = [],
 }: {
 	patientId: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
+	encounterFrom?: string;
+	encounterTo?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	encounterTypeFilters?: EncounterTypeFilter[];
+	departmentFilters?: EncounterDepartmentFilter[];
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
@@ -573,6 +587,9 @@ export async function getPatientEncountersTableAction({
 		currentPage,
 		currentLimit,
 		query,
+		{ encounterFrom, encounterTo, createdFrom, createdTo },
+		encounterTypeFilters,
+		departmentFilters,
 	);
 
 	return {
