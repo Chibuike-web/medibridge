@@ -144,20 +144,20 @@ export function MedicationsTable({
 	onNextPage,
 	onLimitChange,
 }: MedicationsTableProps) {
-	const [isCreateMedicationDrawerOpen, setIsCreateMedicationDrawerOpen] = useState(false);
-	const [isMedicationDetailsDrawerOpen, setIsMedicationDetailsDrawerOpen] = useState(false);
-	const [selectedMedicationId, setSelectedMedicationId] = useState<string | null>(null);
+	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [activeMedicationFilterSubmenu, setActiveMedicationFilterSubmenu] =
+	const [activeFilterSubmenu, setActiveFilterSubmenu] =
 		useState<MedicationFilterSubmenu | null>(null);
 	const medicationDetailsQuery = useSWR(
-		selectedMedicationId ? (["patient-medication-details", selectedMedicationId] as const) : null,
-		([, selectedMedicationId]) => fetchPatientMedicationDetails(selectedMedicationId),
+		selectedId ? (["patient-medication-details", selectedId] as const) : null,
+		([, selectedId]) => fetchPatientMedicationDetails(selectedId),
 	);
 
 	function handleViewMedicationDetails(medicationId: string) {
-		setSelectedMedicationId(medicationId);
-		setIsMedicationDetailsDrawerOpen(true);
+		setSelectedId(medicationId);
+		setIsDetailsDrawerOpen(true);
 	}
 
 	const columns = useMemo(
@@ -198,7 +198,7 @@ export function MedicationsTable({
 				<DropdownMenu
 					onOpenChange={(isMedicationFilterMenuOpen) => {
 						if (!isMedicationFilterMenuOpen) {
-							setActiveMedicationFilterSubmenu(null);
+							setActiveFilterSubmenu(null);
 						}
 					}}
 				>
@@ -217,9 +217,9 @@ export function MedicationsTable({
 						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 					>
 						<DropdownMenuSub
-							open={activeMedicationFilterSubmenu === "status"}
+							open={activeFilterSubmenu === "status"}
 							onOpenChange={(isStatusSubmenuOpen) => {
-								setActiveMedicationFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isStatusSubmenuOpen) return "status";
 									if (prev === "status") return null;
 									return prev;
@@ -246,9 +246,9 @@ export function MedicationsTable({
 						</DropdownMenuSub>
 
 						<DropdownMenuSub
-							open={activeMedicationFilterSubmenu === "created-at"}
+							open={activeFilterSubmenu === "created-at"}
 							onOpenChange={(isCreatedAtSubmenuOpen) => {
-								setActiveMedicationFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isCreatedAtSubmenuOpen) return "created-at";
 									if (prev === "created-at") return null;
 									return prev;
@@ -284,7 +284,7 @@ export function MedicationsTable({
 				<Button
 					className="text-sm"
 					type="button"
-					onClick={() => setIsCreateMedicationDrawerOpen(true)}
+					onClick={() => setIsCreateDrawerOpen(true)}
 				>
 					Add medication
 				</Button>
@@ -424,12 +424,12 @@ export function MedicationsTable({
 				</div>
 			</div>
 			<CreateMedicationDrawer
-				open={isCreateMedicationDrawerOpen}
-				onOpenChange={setIsCreateMedicationDrawerOpen}
+				open={isCreateDrawerOpen}
+				onOpenChange={setIsCreateDrawerOpen}
 			/>
 			<MedicationDetailsDrawer
-				open={isMedicationDetailsDrawerOpen}
-				onOpenChange={setIsMedicationDetailsDrawerOpen}
+				open={isDetailsDrawerOpen}
+				onOpenChange={setIsDetailsDrawerOpen}
 				medication={medicationDetailsQuery.data ?? null}
 				isLoading={medicationDetailsQuery.isLoading}
 			/>
@@ -777,9 +777,9 @@ function formatMedicationFilterValue(value: string) {
 	return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-async function fetchPatientMedicationDetails(selectedMedicationId: string) {
+async function fetchPatientMedicationDetails(selectedId: string) {
 	const response = await fetch(
-		`/api/patient-medication-details/${encodeURIComponent(selectedMedicationId)}`,
+		`/api/patient-medication-details/${encodeURIComponent(selectedId)}`,
 	);
 
 	if (!response.ok) {

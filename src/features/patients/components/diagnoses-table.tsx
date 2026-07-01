@@ -171,19 +171,19 @@ export function DiagnosesTable({
 		[diagnoses],
 	);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
-	const [activeDiagnosisFilterSubmenu, setActiveDiagnosisFilterSubmenu] =
+	const [activeFilterSubmenu, setActiveFilterSubmenu] =
 		useState<DiagnosisFilterSubmenu | null>(null);
-	const [isCreateDiagnosisDrawerOpen, setIsCreateDiagnosisDrawerOpen] = useState(false);
-	const [isDiagnosisDetailsDrawerOpen, setIsDiagnosisDetailsDrawerOpen] = useState(false);
-	const [selectedDiagnosisId, setSelectedDiagnosisId] = useState<string | null>(null);
+	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const diagnosisDetailsQuery = useSWR(
-		selectedDiagnosisId ? (["patient-diagnosis-details", selectedDiagnosisId] as const) : null,
-		([, selectedDiagnosisId]) => fetchPatientDiagnosisDetails(selectedDiagnosisId),
+		selectedId ? (["patient-diagnosis-details", selectedId] as const) : null,
+		([, selectedId]) => fetchPatientDiagnosisDetails(selectedId),
 	);
 
 	function handleViewDiagnosisDetails(diagnosisId: string) {
-		setSelectedDiagnosisId(diagnosisId);
-		setIsDiagnosisDetailsDrawerOpen(true);
+		setSelectedId(diagnosisId);
+		setIsDetailsDrawerOpen(true);
 	}
 
 	const columns = useMemo(
@@ -208,7 +208,7 @@ export function DiagnosesTable({
 				<DropdownMenu
 					onOpenChange={(isDiagnosisFilterMenuOpen) => {
 						if (!isDiagnosisFilterMenuOpen) {
-							setActiveDiagnosisFilterSubmenu(null);
+							setActiveFilterSubmenu(null);
 						}
 					}}
 				>
@@ -227,9 +227,9 @@ export function DiagnosesTable({
 						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 					>
 						<DropdownMenuSub
-							open={activeDiagnosisFilterSubmenu === "status"}
+							open={activeFilterSubmenu === "status"}
 							onOpenChange={(isStatusSubmenuOpen) => {
-								setActiveDiagnosisFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isStatusSubmenuOpen) return "status";
 									if (prev === "status") return null;
 									return prev;
@@ -284,9 +284,9 @@ export function DiagnosesTable({
 						</DropdownMenuSub>
 
 						<DropdownMenuSub
-							open={activeDiagnosisFilterSubmenu === "last-reviewed"}
+							open={activeFilterSubmenu === "last-reviewed"}
 							onOpenChange={(isLastReviewedSubmenuOpen) => {
-								setActiveDiagnosisFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isLastReviewedSubmenuOpen) return "last-reviewed";
 									if (prev === "last-reviewed") return null;
 									return prev;
@@ -311,9 +311,9 @@ export function DiagnosesTable({
 						</DropdownMenuSub>
 
 						<DropdownMenuSub
-							open={activeDiagnosisFilterSubmenu === "diagnosed-at"}
+							open={activeFilterSubmenu === "diagnosed-at"}
 							onOpenChange={(isDiagnosedAtSubmenuOpen) => {
-								setActiveDiagnosisFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isDiagnosedAtSubmenuOpen) return "diagnosed-at";
 									if (prev === "diagnosed-at") return null;
 									return prev;
@@ -337,9 +337,9 @@ export function DiagnosesTable({
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
 						<DropdownMenuSub
-							open={activeDiagnosisFilterSubmenu === "created-at"}
+							open={activeFilterSubmenu === "created-at"}
 							onOpenChange={(isCreatedAtSubmenuOpen) => {
-								setActiveDiagnosisFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isCreatedAtSubmenuOpen) return "created-at";
 									if (prev === "created-at") return null;
 									return prev;
@@ -374,7 +374,7 @@ export function DiagnosesTable({
 				<Button
 					className="text-sm"
 					type="button"
-					onClick={() => setIsCreateDiagnosisDrawerOpen(true)}
+					onClick={() => setIsCreateDrawerOpen(true)}
 				>
 					Add diagnosis
 				</Button>
@@ -418,12 +418,12 @@ export function DiagnosesTable({
 				onLimitChange={onLimitChange}
 			/>
 			<CreateDiagnosisDrawer
-				open={isCreateDiagnosisDrawerOpen}
-				onOpenChange={setIsCreateDiagnosisDrawerOpen}
+				open={isCreateDrawerOpen}
+				onOpenChange={setIsCreateDrawerOpen}
 			/>
 			<DiagnosisDetailsDrawer
-				open={isDiagnosisDetailsDrawerOpen}
-				onOpenChange={setIsDiagnosisDetailsDrawerOpen}
+				open={isDetailsDrawerOpen}
+				onOpenChange={setIsDetailsDrawerOpen}
 				diagnosis={diagnosisDetailsQuery.data ?? null}
 				isLoading={diagnosisDetailsQuery.isLoading}
 			/>
@@ -991,9 +991,9 @@ function formatUrlDate(date: Date) {
 	return format(date, "yyyy-MM-dd");
 }
 
-async function fetchPatientDiagnosisDetails(selectedDiagnosisId: string) {
+async function fetchPatientDiagnosisDetails(selectedId: string) {
 	const response = await fetch(
-		`/api/patient-diagnosis-details/${encodeURIComponent(selectedDiagnosisId)}`,
+		`/api/patient-diagnosis-details/${encodeURIComponent(selectedId)}`,
 	);
 
 	if (!response.ok) {

@@ -155,16 +155,16 @@ export function ImmunizationsTable({
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [selectedImmunizationRows, setSelectedImmunizationRows] =
 		useState<RowSelectionState>({});
-	const [activeImmunizationFilterSubmenu, setActiveImmunizationFilterSubmenu] =
+	const [activeFilterSubmenu, setActiveFilterSubmenu] =
 		useState<ImmunizationFilterSubmenu | null>(null);
-	const [isCreateImmunizationDrawerOpen, setIsCreateImmunizationDrawerOpen] = useState(false);
-	const [isImmunizationDetailsDrawerOpen, setIsImmunizationDetailsDrawerOpen] = useState(false);
-	const [selectedImmunizationId, setSelectedImmunizationId] = useState<string | null>(null);
+	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const immunizationDetailsQuery = useSWR(
-		selectedImmunizationId
-			? (["patient-immunization-details", selectedImmunizationId] as const)
+		selectedId
+			? (["patient-immunization-details", selectedId] as const)
 			: null,
-		([, selectedImmunizationId]) => fetchPatientImmunizationDetails(selectedImmunizationId),
+		([, selectedId]) => fetchPatientImmunizationDetails(selectedId),
 	);
 	const hasActiveFilters = Boolean(query || createdFrom || createdTo || statusFilters.length > 0);
 	const columns = useMemo(
@@ -176,8 +176,8 @@ export function ImmunizationsTable({
 	);
 
 	function handleViewImmunizationDetails(immunizationId: string) {
-		setSelectedImmunizationId(immunizationId);
-		setIsImmunizationDetailsDrawerOpen(true);
+		setSelectedId(immunizationId);
+		setIsDetailsDrawerOpen(true);
 	}
 
 	const table = useReactTable({
@@ -215,7 +215,7 @@ export function ImmunizationsTable({
 				<DropdownMenu
 					onOpenChange={(isImmunizationFilterMenuOpen) => {
 						if (!isImmunizationFilterMenuOpen) {
-							setActiveImmunizationFilterSubmenu(null);
+							setActiveFilterSubmenu(null);
 						}
 					}}
 				>
@@ -234,9 +234,9 @@ export function ImmunizationsTable({
 						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 					>
 						<DropdownMenuSub
-							open={activeImmunizationFilterSubmenu === "status"}
+							open={activeFilterSubmenu === "status"}
 							onOpenChange={(isStatusSubmenuOpen) => {
-								setActiveImmunizationFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isStatusSubmenuOpen) return "status";
 									if (prev === "status") return null;
 									return prev;
@@ -292,9 +292,9 @@ export function ImmunizationsTable({
 						</DropdownMenuSub>
 
 						<DropdownMenuSub
-							open={activeImmunizationFilterSubmenu === "created-at"}
+							open={activeFilterSubmenu === "created-at"}
 							onOpenChange={(isCreatedAtSubmenuOpen) => {
-								setActiveImmunizationFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isCreatedAtSubmenuOpen) return "created-at";
 									if (prev === "created-at") return null;
 									return prev;
@@ -330,7 +330,7 @@ export function ImmunizationsTable({
 				<Button
 					className="text-sm"
 					type="button"
-					onClick={() => setIsCreateImmunizationDrawerOpen(true)}
+					onClick={() => setIsCreateDrawerOpen(true)}
 				>
 					Add immunization
 				</Button>
@@ -470,12 +470,12 @@ export function ImmunizationsTable({
 				</div>
 			</div>
 			<CreateImmunizationDrawer
-				open={isCreateImmunizationDrawerOpen}
-				onOpenChange={setIsCreateImmunizationDrawerOpen}
+				open={isCreateDrawerOpen}
+				onOpenChange={setIsCreateDrawerOpen}
 			/>
 			<ImmunizationDetailsDrawer
-				open={isImmunizationDetailsDrawerOpen}
-				onOpenChange={setIsImmunizationDetailsDrawerOpen}
+				open={isDetailsDrawerOpen}
+				onOpenChange={setIsDetailsDrawerOpen}
 				immunization={immunizationDetailsQuery.data ?? null}
 				isLoading={immunizationDetailsQuery.isLoading}
 			/>
@@ -779,9 +779,9 @@ function formatImmunizationFilterValue(value: string) {
 	return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-async function fetchPatientImmunizationDetails(selectedImmunizationId: string) {
+async function fetchPatientImmunizationDetails(selectedId: string) {
 	const response = await fetch(
-		`/api/patient-immunization-details/${encodeURIComponent(selectedImmunizationId)}`,
+		`/api/patient-immunization-details/${encodeURIComponent(selectedId)}`,
 	);
 
 	if (!response.ok) {

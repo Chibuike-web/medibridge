@@ -169,15 +169,15 @@ export function LabTestsTable({
 	void patientId;
 
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [activeLabTestFilterSubmenu, setActiveLabTestFilterSubmenu] =
+	const [activeFilterSubmenu, setActiveFilterSubmenu] =
 		useState<LabTestFilterSubmenu | null>(null);
-	const [isCreateLabTestDrawerOpen, setIsCreateLabTestDrawerOpen] = useState(false);
-	const [isLabTestDetailsDrawerOpen, setIsLabTestDetailsDrawerOpen] = useState(false);
-	const [selectedLabTest, setSelectedLabTest] = useState<LabTestType | null>(null);
+	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedTest, setSelectedTest] = useState<LabTestType | null>(null);
 
 	function handleViewLabTestDetails(labTest: LabTestType) {
-		setSelectedLabTest(labTest);
-		setIsLabTestDetailsDrawerOpen(true);
+		setSelectedTest(labTest);
+		setIsDetailsDrawerOpen(true);
 	}
 
 	const columns = useMemo(
@@ -214,7 +214,7 @@ export function LabTestsTable({
 					<DropdownMenu
 						onOpenChange={(isLabTestFilterMenuOpen) => {
 							if (!isLabTestFilterMenuOpen) {
-								setActiveLabTestFilterSubmenu(null);
+								setActiveFilterSubmenu(null);
 							}
 						}}
 					>
@@ -233,9 +233,9 @@ export function LabTestsTable({
 							className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 						>
 							<DropdownMenuSub
-								open={activeLabTestFilterSubmenu === "status"}
+								open={activeFilterSubmenu === "status"}
 								onOpenChange={(isStatusSubmenuOpen) => {
-									setActiveLabTestFilterSubmenu((prev) => {
+									setActiveFilterSubmenu((prev) => {
 										if (isStatusSubmenuOpen) return "status";
 										if (prev === "status") return null;
 										return prev;
@@ -262,9 +262,9 @@ export function LabTestsTable({
 							</DropdownMenuSub>
 
 							<DropdownMenuSub
-								open={activeLabTestFilterSubmenu === "flag"}
+								open={activeFilterSubmenu === "flag"}
 								onOpenChange={(isFlagSubmenuOpen) => {
-									setActiveLabTestFilterSubmenu((prev) => {
+									setActiveFilterSubmenu((prev) => {
 										if (isFlagSubmenuOpen) return "flag";
 										if (prev === "flag") return null;
 										return prev;
@@ -291,9 +291,9 @@ export function LabTestsTable({
 							</DropdownMenuSub>
 
 							<DropdownMenuSub
-								open={activeLabTestFilterSubmenu === "created-at"}
+								open={activeFilterSubmenu === "created-at"}
 								onOpenChange={(isCreatedAtSubmenuOpen) => {
-									setActiveLabTestFilterSubmenu((prev) => {
+									setActiveFilterSubmenu((prev) => {
 										if (isCreatedAtSubmenuOpen) return "created-at";
 										if (prev === "created-at") return null;
 										return prev;
@@ -329,7 +329,7 @@ export function LabTestsTable({
 						<Button
 							className="text-sm"
 							type="button"
-							onClick={() => setIsCreateLabTestDrawerOpen(true)}
+							onClick={() => setIsCreateDrawerOpen(true)}
 						>
 							Add lab test
 						</Button>
@@ -460,13 +460,13 @@ export function LabTestsTable({
 				</div>
 				</div>
 				<CreateLabTestDrawer
-					open={isCreateLabTestDrawerOpen}
-					onOpenChange={setIsCreateLabTestDrawerOpen}
+					open={isCreateDrawerOpen}
+					onOpenChange={setIsCreateDrawerOpen}
 				/>
 				<LabTestDetailsDrawer
-					open={isLabTestDetailsDrawerOpen}
-					onOpenChange={setIsLabTestDetailsDrawerOpen}
-					labTest={selectedLabTest}
+					open={isDetailsDrawerOpen}
+					onOpenChange={setIsDetailsDrawerOpen}
+					labTest={selectedTest}
 				/>
 			</div>
 		);
@@ -638,7 +638,7 @@ function LabTestDatePresetList({
 	to: string;
 	onDateRangeApply: (from: string, to: string) => void;
 }) {
-	const selectedLabTestDateRange = getDateRangeFromParams(from, to);
+	const selectedTestDateRange = getDateRangeFromParams(from, to);
 	const today = new Date();
 
 	return (
@@ -649,7 +649,7 @@ function LabTestDatePresetList({
 					<LabTestDatePresetButton
 						key={preset.label}
 						label={preset.label}
-						isSelected={isSameDateRange(selectedLabTestDateRange, presetRange)}
+						isSelected={isSameDateRange(selectedTestDateRange, presetRange)}
 						onSelect={() => {
 							onDateRangeApply(formatUrlDate(presetRange.from), formatUrlDate(presetRange.to));
 						}}
@@ -671,17 +671,17 @@ function LabTestCustomRangeCalendarPanel({
 	isPending: boolean;
 	onDateRangeApply: (from: string, to: string) => void;
 }) {
-	const selectedLabTestDateRange = getDateRangeFromParams(from, to);
-	const selectedLabTestDateRangeKey = getDateRangeKey(selectedLabTestDateRange);
+	const selectedTestDateRange = getDateRangeFromParams(from, to);
+	const selectedTestDateRangeKey = getDateRangeKey(selectedTestDateRange);
 	const [draftLabTestDateRange, setDraftLabTestDateRange] = useState<DateRange | undefined>(
-		selectedLabTestDateRange,
+		selectedTestDateRange,
 	);
 	const [previousSelectedLabTestDateRangeKey, setPreviousSelectedLabTestDateRangeKey] =
-		useState(selectedLabTestDateRangeKey);
+		useState(selectedTestDateRangeKey);
 
-	if (selectedLabTestDateRangeKey !== previousSelectedLabTestDateRangeKey) {
-		setPreviousSelectedLabTestDateRangeKey(selectedLabTestDateRangeKey);
-		setDraftLabTestDateRange(selectedLabTestDateRange);
+	if (selectedTestDateRangeKey !== previousSelectedLabTestDateRangeKey) {
+		setPreviousSelectedLabTestDateRangeKey(selectedTestDateRangeKey);
+		setDraftLabTestDateRange(selectedTestDateRange);
 	}
 
 	return (

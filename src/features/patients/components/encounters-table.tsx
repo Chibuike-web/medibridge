@@ -171,8 +171,9 @@ export function EncountersTable({
 }: EncountersTableProps) {
 	const columns = useMemo(() => getEncountersColumns(patientId), [patientId]);
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [activeEncounterFilterSubmenu, setActiveEncounterFilterSubmenu] =
-		useState<EncounterFilterSubmenu | null>(null);
+	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<EncounterFilterSubmenu | null>(
+		null,
+	);
 	const hasActiveFilters = Boolean(
 		query ||
 		encounterFrom ||
@@ -213,7 +214,7 @@ export function EncountersTable({
 				<DropdownMenu
 					onOpenChange={(isEncounterFilterMenuOpen) => {
 						if (!isEncounterFilterMenuOpen) {
-							setActiveEncounterFilterSubmenu(null);
+							setActiveFilterSubmenu(null);
 						}
 					}}
 				>
@@ -232,9 +233,9 @@ export function EncountersTable({
 						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 					>
 						<DropdownMenuSub
-							open={activeEncounterFilterSubmenu === "type"}
+							open={activeFilterSubmenu === "type"}
 							onOpenChange={(isTypeSubmenuOpen) => {
-								setActiveEncounterFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isTypeSubmenuOpen) return "type";
 									if (prev === "type") return null;
 									return prev;
@@ -261,9 +262,9 @@ export function EncountersTable({
 						</DropdownMenuSub>
 
 						<DropdownMenuSub
-							open={activeEncounterFilterSubmenu === "department"}
+							open={activeFilterSubmenu === "department"}
 							onOpenChange={(isDepartmentSubmenuOpen) => {
-								setActiveEncounterFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isDepartmentSubmenuOpen) return "department";
 									if (prev === "department") return null;
 									return prev;
@@ -290,9 +291,9 @@ export function EncountersTable({
 						</DropdownMenuSub>
 
 						<DropdownMenuSub
-							open={activeEncounterFilterSubmenu === "encounter-date"}
+							open={activeFilterSubmenu === "encounter-date"}
 							onOpenChange={(isEncounterDateSubmenuOpen) => {
-								setActiveEncounterFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isEncounterDateSubmenuOpen) return "encounter-date";
 									if (prev === "encounter-date") return null;
 									return prev;
@@ -318,9 +319,9 @@ export function EncountersTable({
 						</DropdownMenuSub>
 
 						<DropdownMenuSub
-							open={activeEncounterFilterSubmenu === "created-at"}
+							open={activeFilterSubmenu === "created-at"}
 							onOpenChange={(isCreatedAtSubmenuOpen) => {
-								setActiveEncounterFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isCreatedAtSubmenuOpen) return "created-at";
 									if (prev === "created-at") return null;
 									return prev;

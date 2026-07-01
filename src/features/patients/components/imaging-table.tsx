@@ -165,15 +165,14 @@ export function ImagingTable({
 	onLimitChange,
 }: ImagingTableProps) {
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [activeImagingFilterSubmenu, setActiveImagingFilterSubmenu] =
-		useState<ImagingFilterSubmenu | null>(null);
-	const [isCreateImagingDrawerOpen, setIsCreateImagingDrawerOpen] = useState(false);
-	const [isImagingDetailsDrawerOpen, setIsImagingDetailsDrawerOpen] = useState(false);
-	const [selectedImagingStudy, setSelectedImagingStudy] = useState<ImagingType | null>(null);
+	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<ImagingFilterSubmenu | null>(null);
+	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedStudy, setSelectedStudy] = useState<ImagingType | null>(null);
 
 	function handleViewImagingDetails(imaging: ImagingType) {
-		setSelectedImagingStudy(imaging);
-		setIsImagingDetailsDrawerOpen(true);
+		setSelectedStudy(imaging);
+		setIsDetailsDrawerOpen(true);
 	}
 
 	const columns = useMemo(
@@ -210,7 +209,7 @@ export function ImagingTable({
 				<DropdownMenu
 					onOpenChange={(isImagingFilterMenuOpen) => {
 						if (!isImagingFilterMenuOpen) {
-							setActiveImagingFilterSubmenu(null);
+							setActiveFilterSubmenu(null);
 						}
 					}}
 				>
@@ -229,9 +228,9 @@ export function ImagingTable({
 						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 					>
 						<DropdownMenuSub
-							open={activeImagingFilterSubmenu === "status"}
+							open={activeFilterSubmenu === "status"}
 							onOpenChange={(isStatusSubmenuOpen) => {
-								setActiveImagingFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isStatusSubmenuOpen) return "status";
 									if (prev === "status") return null;
 									return prev;
@@ -258,9 +257,9 @@ export function ImagingTable({
 						</DropdownMenuSub>
 
 						<DropdownMenuSub
-							open={activeImagingFilterSubmenu === "modality"}
+							open={activeFilterSubmenu === "modality"}
 							onOpenChange={(isModalitySubmenuOpen) => {
-								setActiveImagingFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isModalitySubmenuOpen) return "modality";
 									if (prev === "modality") return null;
 									return prev;
@@ -287,9 +286,9 @@ export function ImagingTable({
 						</DropdownMenuSub>
 
 						<DropdownMenuSub
-							open={activeImagingFilterSubmenu === "ordered-at"}
+							open={activeFilterSubmenu === "ordered-at"}
 							onOpenChange={(isOrderedAtSubmenuOpen) => {
-								setActiveImagingFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isOrderedAtSubmenuOpen) return "ordered-at";
 									if (prev === "ordered-at") return null;
 									return prev;
@@ -315,9 +314,9 @@ export function ImagingTable({
 						</DropdownMenuSub>
 
 						<DropdownMenuSub
-							open={activeImagingFilterSubmenu === "created-at"}
+							open={activeFilterSubmenu === "created-at"}
 							onOpenChange={(isCreatedAtSubmenuOpen) => {
-								setActiveImagingFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isCreatedAtSubmenuOpen) return "created-at";
 									if (prev === "created-at") return null;
 									return prev;
@@ -350,11 +349,7 @@ export function ImagingTable({
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button
-					type="button"
-					className="text-sm"
-					onClick={() => setIsCreateImagingDrawerOpen(true)}
-				>
+				<Button type="button" className="text-sm" onClick={() => setIsCreateDrawerOpen(true)}>
 					Add imaging
 				</Button>
 			</div>
@@ -486,14 +481,11 @@ export function ImagingTable({
 					</div>
 				</div>
 			</div>
-			<CreateImagingDrawer
-				open={isCreateImagingDrawerOpen}
-				onOpenChange={setIsCreateImagingDrawerOpen}
-			/>
+			<CreateImagingDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
 			<ImagingDetailsDrawer
-				open={isImagingDetailsDrawerOpen}
-				onOpenChange={setIsImagingDetailsDrawerOpen}
-				imaging={selectedImagingStudy}
+				open={isDetailsDrawerOpen}
+				onOpenChange={setIsDetailsDrawerOpen}
+				imaging={selectedStudy}
 			/>
 		</div>
 	);

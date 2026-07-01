@@ -150,20 +150,20 @@ export function ProceduresTable({
 	onNextPage,
 	onLimitChange,
 }: ProceduresTableProps) {
-	const [isCreateProcedureDrawerOpen, setIsCreateProcedureDrawerOpen] = useState(false);
-	const [isProcedureDetailsDrawerOpen, setIsProcedureDetailsDrawerOpen] = useState(false);
-	const [selectedProcedureId, setSelectedProcedureId] = useState<string | null>(null);
+	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [activeProcedureFilterSubmenu, setActiveProcedureFilterSubmenu] =
+	const [activeFilterSubmenu, setActiveFilterSubmenu] =
 		useState<ProcedureFilterSubmenu | null>(null);
 	const procedureDetailsQuery = useSWR(
-		selectedProcedureId ? (["patient-procedure-details", selectedProcedureId] as const) : null,
-		([, selectedProcedureId]) => fetchPatientProcedureDetails(selectedProcedureId),
+		selectedId ? (["patient-procedure-details", selectedId] as const) : null,
+		([, selectedId]) => fetchPatientProcedureDetails(selectedId),
 	);
 
 	function handleViewProcedureDetails(procedureId: string) {
-		setSelectedProcedureId(procedureId);
-		setIsProcedureDetailsDrawerOpen(true);
+		setSelectedId(procedureId);
+		setIsDetailsDrawerOpen(true);
 	}
 
 	const hasActiveFilters = Boolean(query || createdFrom || createdTo || statusFilters.length > 0);
@@ -205,7 +205,7 @@ export function ProceduresTable({
 				<DropdownMenu
 					onOpenChange={(isProcedureFilterMenuOpen) => {
 						if (!isProcedureFilterMenuOpen) {
-							setActiveProcedureFilterSubmenu(null);
+							setActiveFilterSubmenu(null);
 						}
 					}}
 				>
@@ -224,9 +224,9 @@ export function ProceduresTable({
 						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 					>
 						<DropdownMenuSub
-							open={activeProcedureFilterSubmenu === "status"}
+							open={activeFilterSubmenu === "status"}
 							onOpenChange={(isStatusSubmenuOpen) => {
-								setActiveProcedureFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isStatusSubmenuOpen) return "status";
 									if (prev === "status") return null;
 									return prev;
@@ -282,9 +282,9 @@ export function ProceduresTable({
 						</DropdownMenuSub>
 
 						<DropdownMenuSub
-							open={activeProcedureFilterSubmenu === "created-at"}
+							open={activeFilterSubmenu === "created-at"}
 							onOpenChange={(isCreatedAtSubmenuOpen) => {
-								setActiveProcedureFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isCreatedAtSubmenuOpen) return "created-at";
 									if (prev === "created-at") return null;
 									return prev;
@@ -320,7 +320,7 @@ export function ProceduresTable({
 				<Button
 					className="text-sm"
 					type="button"
-					onClick={() => setIsCreateProcedureDrawerOpen(true)}
+					onClick={() => setIsCreateDrawerOpen(true)}
 				>
 					Add procedure
 				</Button>
@@ -460,12 +460,12 @@ export function ProceduresTable({
 				</div>
 				</div>
 				<CreateProcedureDrawer
-					open={isCreateProcedureDrawerOpen}
-					onOpenChange={setIsCreateProcedureDrawerOpen}
+					open={isCreateDrawerOpen}
+					onOpenChange={setIsCreateDrawerOpen}
 				/>
 				<ProcedureDetailsDrawer
-					open={isProcedureDetailsDrawerOpen}
-					onOpenChange={setIsProcedureDetailsDrawerOpen}
+					open={isDetailsDrawerOpen}
+					onOpenChange={setIsDetailsDrawerOpen}
 					procedure={procedureDetailsQuery.data ?? null}
 					isLoading={procedureDetailsQuery.isLoading}
 				/>
@@ -777,9 +777,9 @@ function formatProcedureFilterValue(value: string) {
 	return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-async function fetchPatientProcedureDetails(selectedProcedureId: string) {
+async function fetchPatientProcedureDetails(selectedId: string) {
 	const response = await fetch(
-		`/api/patient-procedure-details/${encodeURIComponent(selectedProcedureId)}`,
+		`/api/patient-procedure-details/${encodeURIComponent(selectedId)}`,
 	);
 
 	if (!response.ok) {

@@ -165,18 +165,18 @@ export function AllergiesTable({
 		[allergies],
 	);
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [activeAllergyFilterSubmenu, setActiveAllergyFilterSubmenu] =
+	const [activeFilterSubmenu, setActiveFilterSubmenu] =
 		useState<AllergyFilterSubmenu | null>(null);
-	const [isCreateAllergyDrawerOpen, setIsCreateAllergyDrawerOpen] = useState(false);
-	const [isAllergyDetailsDrawerOpen, setIsAllergyDetailsDrawerOpen] = useState(false);
-	const [selectedAllergyId, setSelectedAllergyId] = useState<string | null>(null);
+	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const allergyDetailsQuery = useSWR(
-		selectedAllergyId ? (["patient-allergy-details", selectedAllergyId] as const) : null,
-		([, selectedAllergyId]) => fetchPatientAllergyDetails(selectedAllergyId),
+		selectedId ? (["patient-allergy-details", selectedId] as const) : null,
+		([, selectedId]) => fetchPatientAllergyDetails(selectedId),
 	);
 	function handleViewAllergyDetails(allergyId: string) {
-		setSelectedAllergyId(allergyId);
-		setIsAllergyDetailsDrawerOpen(true);
+		setSelectedId(allergyId);
+		setIsDetailsDrawerOpen(true);
 	}
 	const columns = useMemo(
 		() => getAllergiesColumns({ onViewAllergyDetails: handleViewAllergyDetails }),
@@ -203,7 +203,7 @@ export function AllergiesTable({
 				<DropdownMenu
 					onOpenChange={(isAllergyFilterMenuOpen) => {
 						if (!isAllergyFilterMenuOpen) {
-							setActiveAllergyFilterSubmenu(null);
+							setActiveFilterSubmenu(null);
 						}
 					}}
 				>
@@ -222,9 +222,9 @@ export function AllergiesTable({
 						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 					>
 						<DropdownMenuSub
-							open={activeAllergyFilterSubmenu === "status"}
+							open={activeFilterSubmenu === "status"}
 							onOpenChange={(isStatusSubmenuOpen) => {
-								setActiveAllergyFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isStatusSubmenuOpen) return "status";
 									if (prev === "status") return null;
 									return prev;
@@ -250,9 +250,9 @@ export function AllergiesTable({
 						</DropdownMenuSub>
 
 						<DropdownMenuSub
-							open={activeAllergyFilterSubmenu === "severity"}
+							open={activeFilterSubmenu === "severity"}
 							onOpenChange={(isSeveritySubmenuOpen) => {
-								setActiveAllergyFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isSeveritySubmenuOpen) return "severity";
 									if (prev === "severity") return null;
 									return prev;
@@ -278,9 +278,9 @@ export function AllergiesTable({
 						</DropdownMenuSub>
 
 						<DropdownMenuSub
-							open={activeAllergyFilterSubmenu === "created-at"}
+							open={activeFilterSubmenu === "created-at"}
 							onOpenChange={(isCreatedAtSubmenuOpen) => {
-								setActiveAllergyFilterSubmenu((prev) => {
+								setActiveFilterSubmenu((prev) => {
 									if (isCreatedAtSubmenuOpen) return "created-at";
 									if (prev === "created-at") return null;
 									return prev;
@@ -315,7 +315,7 @@ export function AllergiesTable({
 				<Button
 					className="text-sm"
 					type="button"
-					onClick={() => setIsCreateAllergyDrawerOpen(true)}
+					onClick={() => setIsCreateDrawerOpen(true)}
 				>
 					Add allergy
 				</Button>
@@ -345,12 +345,12 @@ export function AllergiesTable({
 				onLimitChange={onLimitChange}
 			/>
 			<CreateAllergyDrawer
-				open={isCreateAllergyDrawerOpen}
-				onOpenChange={setIsCreateAllergyDrawerOpen}
+				open={isCreateDrawerOpen}
+				onOpenChange={setIsCreateDrawerOpen}
 			/>
 			<AllergyDetailsDrawer
-				open={isAllergyDetailsDrawerOpen}
-				onOpenChange={setIsAllergyDetailsDrawerOpen}
+				open={isDetailsDrawerOpen}
+				onOpenChange={setIsDetailsDrawerOpen}
 				allergy={allergyDetailsQuery.data ?? null}
 				isLoading={allergyDetailsQuery.isLoading}
 			/>
@@ -886,9 +886,9 @@ function formatAllergyFilterValue(value: string) {
 	return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-async function fetchPatientAllergyDetails(selectedAllergyId: string) {
+async function fetchPatientAllergyDetails(selectedId: string) {
 	const response = await fetch(
-		`/api/patient-allergy-details/${encodeURIComponent(selectedAllergyId)}`,
+		`/api/patient-allergy-details/${encodeURIComponent(selectedId)}`,
 	);
 
 	if (!response.ok) {
