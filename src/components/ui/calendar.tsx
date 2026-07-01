@@ -79,7 +79,7 @@ function Calendar({
 					"flex-1 rounded-md text-sm font-normal text-muted-foreground select-none",
 					defaultClassNames.weekday,
 				),
-				week: cn("flex w-full", defaultClassNames.week),
+				week: cn("mt-1 flex w-full first:mt-0", defaultClassNames.week),
 				week_number_header: cn("w-(--cell-size) select-none", defaultClassNames.week_number_header),
 				week_number: cn(
 					"text-sm text-muted-foreground select-none",
