@@ -224,7 +224,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							className={cn(
 								"hover:bg-gray-100 font-medium h-8 px-2.5 flex items-center",
 								isActive && "bg-gray-200",
-								isCollapsed ? "justify-center rounded-md" : "rounded-lg",
+								isCollapsed ? "justify-center rounded-md" : "rounded-md",
 							)}
 						>
 							<Link

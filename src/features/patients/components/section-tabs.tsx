@@ -10,6 +10,7 @@ import { startTransition } from "react";
 export type PatientSection =
 	| "patient-overview"
 	| "patient-details"
+	| "vitals"
 	| "diagnoses"
 	| "allergies"
 	| "immunization"
@@ -75,6 +76,7 @@ export function SectionTabs({ activeSection }: { activeSection: PatientSection }
 export const sections = [
 	{ id: "patient-overview", label: "Patient Overview" },
 	{ id: "patient-details", label: "Patient Details" },
+	{ id: "vitals", label: "Vitals" },
 	{ id: "diagnoses", label: "Diagnoses" },
 	{ id: "allergies", label: "Allergies" },
 	{ id: "immunization", label: "Immunization" },

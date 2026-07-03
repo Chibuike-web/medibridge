@@ -66,12 +66,12 @@ async function PatientsPageContent({ searchParams }: PatientsPagePageProps) {
 					width={500}
 					height={336}
 					className="h-auto w-[31.25rem] max-w-full"
-				/>
-				<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
-					<h1 className="font-semibold text-2xl text-center mb-6">No patient records available</h1>
-					<p className="mb-12 text-center">
-						Patient records will appear here once patients have been added to the system.
-					</p>
+					/>
+					<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
+						<h1 className="mb-2 text-center text-xl font-semibold">No patient records available</h1>
+						<p className="mb-6 text-center text-sm">
+							Patient records will appear here once patients have been added to the system.
+						</p>
 					<Button asChild className="text-sm">
 						<Link href="/dashboard/add-new-patient"> Add patient</Link>
 					</Button>
@@ -127,6 +127,50 @@ function PatientsPageSkeleton() {
 					<div className="h-10 w-40 animate-pulse rounded bg-gray-100" />
 				</div>
 			</header>
+			<div className="min-h-0 flex-1 overflow-y-auto">
+				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
+					<PatientsTableSkeleton />
+				</section>
+			</div>
+		</div>
+	);
+}
+
+function PatientsTableSkeleton() {
+	const gridColumns = "grid-cols-[2.5rem_1.4fr_8rem_6rem_5rem_8rem_3rem]";
+
+	return (
+		<div className="overflow-x-auto rounded-xl border border-gray-200 text-sm">
+			<div className="min-w-[64rem] bg-white">
+				<div className={`grid h-12 ${gridColumns} items-center gap-3 bg-gray-50 px-3`}>
+					{Array.from({ length: 7 }).map((_, index) => (
+						<div key={index} className="h-4 animate-pulse rounded bg-gray-200" />
+					))}
+				</div>
+				<div>
+					{Array.from({ length: 8 }).map((_, rowIndex) => (
+						<div
+							key={rowIndex}
+							className={`grid min-h-14 ${gridColumns} items-center gap-3 border-b border-gray-200 px-3 last:border-b-0`}
+						>
+							{Array.from({ length: 7 }).map((_, cellIndex) => (
+								<div key={cellIndex} className="h-4 animate-pulse rounded bg-gray-100" />
+							))}
+						</div>
+					))}
+				</div>
+				<div className="flex min-h-14 items-center justify-between gap-3 border-t border-gray-200 bg-white p-3">
+					<div className="flex items-center gap-3">
+						<div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
+						<div className="h-8 w-[4.25rem] animate-pulse rounded-md bg-gray-200" />
+					</div>
+					<div className="flex items-center gap-3">
+						<div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
+						<div className="h-8 w-20 animate-pulse rounded-md bg-gray-200" />
+						<div className="h-8 w-14 animate-pulse rounded-md bg-gray-200" />
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }

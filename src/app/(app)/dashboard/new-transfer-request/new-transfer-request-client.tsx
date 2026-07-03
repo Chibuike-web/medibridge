@@ -201,94 +201,98 @@ export function NewTransferRequestClient({
 									</span>
 								</button>
 							))}
-						</div>
-						<Fragment key={activePatient}>
-							<AttachClinicalRecords activePatient={activePatient} />
-							<div className="flex flex-col gap-4 mt-4 text-gray-600">
-								{recordCountsArray.length > 0 && (
-									<p className="font-semibold ">
-										{recordCountsArray.length} record{recordCountsArray.length > 1 ? "s" : null}{" "}
-										selected
-									</p>
-								)}
-								<div className="flex flex-col gap-2.5">
-									{recordCountsArray.map((r) => (
-										<div key={r[0][1]} className="flex gap-3 font-medium">
-											<RiCheckLine />
-											<div>
-												<span>{r[0]}: </span>
-												<span>{r[1]}</span>
+							</div>
+							<Fragment key={activePatient}>
+								<AttachClinicalRecords activePatient={activePatient} />
+
+								<div className="mt-3 flex flex-col gap-2.5 text-sm text-gray-600">
+									{recordCountsArray.length > 0 && (
+										<p className="font-semibold">
+											{recordCountsArray.length} record{recordCountsArray.length > 1 ? "s" : null}{" "}
+											selected
+										</p>
+									)}
+									<div className="flex flex-col gap-2">
+										{recordCountsArray.map((recordCount) => (
+											<div
+												key={recordCount[0]}
+												className="flex items-center gap-2.5 font-medium"
+											>
+												<RiCheckLine className="size-5 shrink-0" />
+												<div>
+													<span>{recordCount[0]}: </span>
+													<span>{recordCount[1]}</span>
+												</div>
 											</div>
-										</div>
-									))}
+										))}
+									</div>
 								</div>
-							</div>
 
-							<div className="flex flex-col gap-3.5 mt-8">
-									<Label className="inline-flex items-baseline gap-0.5 text-gray-600">
-										Target Hospital Name<span className="text-gray-400 font-normal">(required)</span>
+								<div className="mt-8">
+									<Label className="mb-2 block text-sm text-gray-600">
+										Target Hospital Name <span className="text-gray-400 font-normal">(required)</span>
 									</Label>
-								<Input
-									placeholder="e.g., Enugu State Teaching Hospital"
-									defaultValue={currentPatientTransferData.hospitalName ?? ""}
-									onBlur={(e) => {
-										const nextPatientTransferData = {
-											...patientTransferDataByPatientId,
-											[activePatient]: {
-												...(patientTransferDataByPatientId[activePatient] ??
-													EMPTY_PATIENT_TRANSFER_DATA),
-												hospitalName: e.target.value,
-											},
-										};
-
-										setPatientTransferDataByPatientId(nextPatientTransferData);
-									}}
-								/>
-							</div>
-							<div className="mt-8">
-								<div className="flex flex-col gap-3.5">
-										<Label className="inline-flex items-baseline gap-0.5 text-gray-600">
-											Target Hospital Email
-											<span className="text-gray-400 font-normal">(required)</span>
-										</Label>
 									<Input
-										placeholder="e.g., admin@enuguhospital.gov.ng"
-										defaultValue={currentPatientTransferData.hospitalEmail ?? ""}
-										onBlur={(e) => {
-											const nextPatientTransferData = {
-												...patientTransferDataByPatientId,
-												[activePatient]: {
-													...(patientTransferDataByPatientId[activePatient] ??
-														EMPTY_PATIENT_TRANSFER_DATA),
-													hospitalEmail: e.target.value,
-												},
-											};
+										placeholder="e.g., Enugu State Teaching Hospital"
+											defaultValue={currentPatientTransferData.hospitalName ?? ""}
+											onBlur={(e) => {
+												const nextPatientTransferData = {
+													...patientTransferDataByPatientId,
+													[activePatient]: {
+														...(patientTransferDataByPatientId[activePatient] ??
+															EMPTY_PATIENT_TRANSFER_DATA),
+														hospitalName: e.target.value,
+													},
+												};
 
 											setPatientTransferDataByPatientId(nextPatientTransferData);
 										}}
 									/>
 								</div>
-								<div className="text-gray-400 flex items-center gap-1.5 mt-3 text-sm">
-									<RiErrorWarningLine className="size-4" />
-									<span>Must be official verified hospital</span>
+								<div className="mt-8">
+									<div>
+										<Label className="mb-2 block text-sm text-gray-600">
+											Target Hospital Email{" "}
+											<span className="text-gray-400 font-normal">(required)</span>
+										</Label>
+										<Input
+											placeholder="e.g., admin@enuguhospital.gov.ng"
+											defaultValue={currentPatientTransferData.hospitalEmail ?? ""}
+											onBlur={(e) => {
+												const nextPatientTransferData = {
+														...patientTransferDataByPatientId,
+														[activePatient]: {
+															...(patientTransferDataByPatientId[activePatient] ??
+																EMPTY_PATIENT_TRANSFER_DATA),
+															hospitalEmail: e.target.value,
+														},
+													};
+
+												setPatientTransferDataByPatientId(nextPatientTransferData);
+											}}
+										/>
+									</div>
+									<div className="mt-3 flex items-center gap-1.5 text-sm text-gray-400">
+										<RiErrorWarningLine className="size-4" />
+										<span>Must be official verified hospital</span>
+									</div>
 								</div>
-							</div>
-							<div className="flex flex-col gap-3.5 mt-8">
-									<Label className="inline-flex items-baseline gap-0.5 text-gray-600">
-										Notes<span className="text-gray-400 font-normal">(optional)</span>
+								<div className="mt-8">
+									<Label className="mb-2 block text-sm text-gray-600">
+										Notes <span className="text-gray-400 font-normal">(optional)</span>
 									</Label>
-								<Textarea
-									placeholder="Add context or special instructions"
-									defaultValue={currentPatientTransferData.notes ?? ""}
-									onBlur={(e) => {
-										const nextPatientTransferData = {
-											...patientTransferDataByPatientId,
-											[activePatient]: {
-												...(patientTransferDataByPatientId[activePatient] ??
-													EMPTY_PATIENT_TRANSFER_DATA),
-												notes: e.target.value,
-											},
-										};
+									<Textarea
+										placeholder="Add context or special instructions"
+										defaultValue={currentPatientTransferData.notes ?? ""}
+											onBlur={(e) => {
+												const nextPatientTransferData = {
+													...patientTransferDataByPatientId,
+													[activePatient]: {
+														...(patientTransferDataByPatientId[activePatient] ??
+															EMPTY_PATIENT_TRANSFER_DATA),
+														notes: e.target.value,
+													},
+												};
 
 										setPatientTransferDataByPatientId(nextPatientTransferData);
 									}}

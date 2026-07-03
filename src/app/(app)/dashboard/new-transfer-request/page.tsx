@@ -48,7 +48,7 @@ async function NewTransferRequestContent({
 				</Link>
 			</nav>
 			<main className="flex flex-col gap-8 my-12 max-w-[37.5rem] w-full mx-auto px-6 md:px-0">
-				<h1 className="font-semibold text-2xl text-center">New Transfer Request</h1>
+				<h1 className="text-center text-xl font-semibold">New Transfer Request</h1>
 				<Suspense>
 					<NewTransferRequestClient
 						searchParams={searchParams}

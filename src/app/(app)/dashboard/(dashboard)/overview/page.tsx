@@ -23,51 +23,47 @@ export default async function Overview() {
 			</header>
 
 			<div className="min-h-0 flex-1 overflow-y-auto">
-				<Suspense>
-					{statsPromise.then((stats) => {
-						if (!stats.hasPatients) {
-							return (
-								<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">
-									<div className="relative flex w-[31.25rem] max-w-full items-end justify-center">
-										<Image
-											src="/assets/empty-state.svg"
-											alt=""
-											aria-hidden="true"
-											width={500}
-											height={336}
-											className="h-auto w-[31.25rem] max-w-full"
+				{statsPromise.then((stats) => {
+					if (!stats.hasPatients) {
+						return (
+							<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">
+								<div className="relative flex w-[31.25rem] max-w-full items-end justify-center">
+									<Image
+										src="/assets/empty-state.svg"
+										alt=""
+										aria-hidden="true"
+										width={500}
+										height={336}
+										className="h-auto w-[31.25rem] max-w-full"
 										/>
 										<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
-											<h1 className="font-semibold text-2xl text-center mb-6">
+											<h1 className="mb-2 text-center text-xl font-semibold">
 												No patient records available
 											</h1>
-											<p className="mb-12 text-center">
-												You haven't added any patient records yet. Create a new patient profile to
-												get started.
-											</p>
-											<Button asChild className="text-sm">
-												<Link href="/dashboard/add-new-patient">
-													Add patient
-												</Link>
-											</Button>
-										</div>
+											<p className="mb-6 text-center text-sm">
+												You haven't added any patient records yet. Create a new patient profile to get
+												started.
+										</p>
+										<Button asChild className="text-sm">
+											<Link href="/dashboard/add-new-patient">Add patient</Link>
+										</Button>
 									</div>
 								</div>
-							);
-						}
-						return (
-							<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
-								<Cards stats={stats} />
-								<Suspense>
-									<RecentPatients />
-								</Suspense>
-								<Suspense>
-									<RecentTransfers />
-								</Suspense>
-							</section>
+							</div>
 						);
-					})}
-				</Suspense>
+					}
+					return (
+						<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
+							<Cards stats={stats} />
+							<Suspense>
+								<RecentPatients />
+							</Suspense>
+							<Suspense>
+								<RecentTransfers />
+							</Suspense>
+						</section>
+					);
+				})}
 			</div>
 		</div>
 	);

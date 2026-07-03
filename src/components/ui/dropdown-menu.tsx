@@ -194,6 +194,7 @@ function DropdownMenuSubTrigger({
 
 function DropdownMenuSubContent({
 	className,
+	sideOffset = 4,
 	...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>) {
 	return (
@@ -204,6 +205,7 @@ function DropdownMenuSubContent({
 				className,
 			)}
 			{...props}
+			sideOffset={sideOffset}
 		/>
 	);
 }

@@ -97,26 +97,24 @@ export function FilterButton({
 
 			<DropdownMenuContent
 				align="end"
-				sideOffset={8}
 				className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 			>
-					<DropdownMenuSub
-						open={activePatientFilterSubmenu === "gender"}
-						onOpenChange={(isGenderSubmenuOpen) => {
-							setActivePatientFilterSubmenu((prev) => {
-								if (isGenderSubmenuOpen) return "gender";
-								if (prev === "gender") return null;
-								return prev;
-							});
-						}}
-					>
-					<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 text-gray-600  data-[state=open]:bg-gray-100 py-2">
+				<DropdownMenuSub
+					open={activePatientFilterSubmenu === "gender"}
+					onOpenChange={(isGenderSubmenuOpen) => {
+						setActivePatientFilterSubmenu((prev) => {
+							if (isGenderSubmenuOpen) return "gender";
+							if (prev === "gender") return null;
+							return prev;
+						});
+					}}
+				>
+						<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 data-[state=open]:bg-gray-100">
 						<RiMenLine className="size-4.5" />
 						<span className="block">Gender</span>
 					</DropdownMenuSubTrigger>
 
 					<DropdownMenuSubContent
-						sideOffset={12}
 						alignOffset={-5}
 						className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 					>
@@ -130,7 +128,7 @@ export function FilterButton({
 							className="flex flex-col gap-0"
 							disabled={isPending}
 						>
-							<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
+								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="all" id="patient-gender-all" />
 								<Label
 									htmlFor="patient-gender-all"
@@ -140,7 +138,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-							<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
+								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="male" id="patient-gender-male" />
 								<Label
 									htmlFor="patient-gender-male"
@@ -150,7 +148,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-							<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
+								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="female" id="patient-gender-female" />
 								<Label
 									htmlFor="patient-gender-female"
@@ -163,22 +161,21 @@ export function FilterButton({
 					</DropdownMenuSubContent>
 				</DropdownMenuSub>
 
-					<DropdownMenuSub
-						open={activePatientFilterSubmenu === "age"}
-						onOpenChange={(isAgeSubmenuOpen) => {
-							setActivePatientFilterSubmenu((prev) => {
-								if (isAgeSubmenuOpen) return "age";
-								if (prev === "age") return null;
-								return prev;
-							});
-						}}
-					>
-					<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+				<DropdownMenuSub
+					open={activePatientFilterSubmenu === "age"}
+					onOpenChange={(isAgeSubmenuOpen) => {
+						setActivePatientFilterSubmenu((prev) => {
+							if (isAgeSubmenuOpen) return "age";
+							if (prev === "age") return null;
+							return prev;
+						});
+					}}
+				>
+						<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 						<RiCalendarView className="size-4.5" /> <span className="block">Age</span>
 					</DropdownMenuSubTrigger>
 
 					<DropdownMenuSubContent
-						sideOffset={8}
 						alignOffset={-5}
 						className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 					>
@@ -194,7 +191,7 @@ export function FilterButton({
 							className="flex flex-col gap-0"
 							disabled={isPending}
 						>
-							<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
+								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="any-age" id="patient-age-any" />
 								<Label
 									htmlFor="patient-age-any"
@@ -204,7 +201,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-							<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
+								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="children" id="patient-age-children" />
 								<Label
 									htmlFor="patient-age-children"
@@ -214,7 +211,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-							<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
+								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="teenagers" id="patient-age-teenagers" />
 								<Label
 									htmlFor="patient-age-teenagers"
@@ -224,7 +221,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-							<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
+								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="young-adults" id="patient-age-young-adults" />
 								<Label
 									htmlFor="patient-age-young-adults"
@@ -234,7 +231,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-							<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
+								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="adults" id="patient-age-adults" />
 								<Label
 									htmlFor="patient-age-adults"
@@ -244,7 +241,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-							<div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-100">
+								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="seniors" id="patient-age-seniors" />
 								<Label
 									htmlFor="patient-age-seniors"
@@ -257,22 +254,21 @@ export function FilterButton({
 					</DropdownMenuSubContent>
 				</DropdownMenuSub>
 
-					<DropdownMenuSub
-						open={activePatientFilterSubmenu === "created-at"}
-						onOpenChange={(isCreatedAtSubmenuOpen) => {
-							setActivePatientFilterSubmenu((prev) => {
-								if (isCreatedAtSubmenuOpen) return "created-at";
-								if (prev === "created-at") return null;
-								return prev;
-							});
-						}}
-					>
-					<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+				<DropdownMenuSub
+					open={activePatientFilterSubmenu === "created-at"}
+					onOpenChange={(isCreatedAtSubmenuOpen) => {
+						setActivePatientFilterSubmenu((prev) => {
+							if (isCreatedAtSubmenuOpen) return "created-at";
+							if (prev === "created-at") return null;
+							return prev;
+						});
+					}}
+				>
+						<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 						<RiCalendarLine className="size-4.5" /> <span className="block">Created at</span>
 					</DropdownMenuSubTrigger>
 
 					<DropdownMenuSubContent
-						sideOffset={8}
 						alignOffset={-5}
 						className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
 					>
@@ -388,10 +384,10 @@ function CustomRangeCalendarPanel({
 			/>
 
 			<div className="mt-7 flex justify-end gap-3">
-					<Button
-						type="button"
-						variant="outline"
-						className="min-w-28 text-sm"
+				<Button
+					type="button"
+					variant="outline"
+					className="min-w-28 text-sm"
 					disabled={isPending}
 					onClick={() => {
 						setDraftCreatedAtRange(undefined);
@@ -400,9 +396,9 @@ function CustomRangeCalendarPanel({
 				>
 					Reset
 				</Button>
-					<Button
-						type="button"
-						className="min-w-40 flex-1 text-sm"
+				<Button
+					type="button"
+					className="min-w-40 flex-1 text-sm"
 					disabled={!draftCreatedAtRange?.from || !draftCreatedAtRange?.to || isPending}
 					onClick={() => {
 						if (!draftCreatedAtRange?.from || !draftCreatedAtRange?.to) return;

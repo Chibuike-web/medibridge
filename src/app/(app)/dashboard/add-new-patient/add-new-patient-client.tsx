@@ -148,7 +148,7 @@ export function AddNewPatientClient() {
 						aria-atomic="true"
 						className="mt-2 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-red-700"
 					>
-						<RiErrorWarningLine className="mt-0.5 s-=ize-4 shrink-0" />
+						<RiErrorWarningLine className="mt-0.5 size-4 shrink-0" />
 						<p className="text-sm font-medium">{extractError}</p>
 						<Button
 							type="button"

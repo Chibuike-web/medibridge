@@ -61,7 +61,7 @@ import {
 	RiCheckboxCircleLine,
 	RiCheckLine,
 	RiCloseLine,
-	RiErrorWarningLine,
+	RiEyeLine,
 	RiFlagLine,
 	RiFilter3Line,
 	RiMore2Fill,
@@ -229,7 +229,6 @@ export function LabTestsTable({
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
 							align="end"
-							sideOffset={8}
 							className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 						>
 							<DropdownMenuSub
@@ -247,7 +246,6 @@ export function LabTestsTable({
 									<span className="block">Status</span>
 								</DropdownMenuSubTrigger>
 								<DropdownMenuSubContent
-									sideOffset={12}
 									alignOffset={-5}
 									className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 								>
@@ -276,7 +274,6 @@ export function LabTestsTable({
 									<span className="block">Flag</span>
 								</DropdownMenuSubTrigger>
 								<DropdownMenuSubContent
-									sideOffset={12}
 									alignOffset={-5}
 									className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 								>
@@ -305,7 +302,6 @@ export function LabTestsTable({
 									<span className="block">Created at</span>
 								</DropdownMenuSubTrigger>
 								<DropdownMenuSubContent
-									sideOffset={8}
 									alignOffset={-5}
 									className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
 								>
@@ -921,7 +917,7 @@ function getLabTestsColumns({
 									className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									onSelect={() => onViewLabTestDetails(row.original)}
 								>
-									<RiErrorWarningLine className="text-white" />
+									<RiEyeLine className="text-white" />
 									<span>View details</span>
 								</DropdownMenuItem>
 							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">

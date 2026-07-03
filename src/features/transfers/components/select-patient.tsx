@@ -97,8 +97,8 @@ export function SelectPatient({
 	}
 
 	return (
-		<div className="flex flex-col gap-3 items-start">
-			<span className="text-gray-800 font-medium block">Select Patient</span>
+		<div>
+			<span className="mb-2 block text-sm font-medium text-gray-800">Select Patient</span>
 			<Popover>
 				<PopoverTrigger className="group flex h-9 items-center justify-between gap-4 w-full border border-input px-4 py-2 text-left outline-0 rounded-md focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50">
 					<span className="text-sm truncate">{selectedSummary}</span>
@@ -177,7 +177,7 @@ export function SelectPatient({
 					</div>
 				</PopoverContent>
 			</Popover>
-			<div className="flex items-center gap-3 flex-wrap">
+			<div className="mt-3 flex flex-wrap items-center gap-3">
 				{selectedTransferPatients.map((s) => (
 					<div
 						key={s.patientId}

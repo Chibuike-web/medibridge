@@ -51,7 +51,7 @@ export function TransfersClient({
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [isPending, startTransition] = useTransition();
-	const [optimistiRequestedAtRange, setOptimistiRequestedAtRange] = useOptimistic({
+	const [optimisticRequestedAtRange, setOptimisticRequestedAtRange] = useOptimistic({
 		requestedFrom,
 		requestedTo,
 	});
@@ -101,7 +101,7 @@ export function TransfersClient({
 	function handleRequestedAtRangeApply(nextRequestedFrom: string, nextRequestedTo: string) {
 		startTransition(async () => {
 			setOptimisticPage(1);
-			setOptimistiRequestedAtRange({
+			setOptimisticRequestedAtRange({
 				requestedFrom: nextRequestedFrom,
 				requestedTo: nextRequestedTo,
 			});
@@ -197,8 +197,8 @@ export function TransfersClient({
 					</div>
 
 					<FilterButton
-						requestedFrom={optimistiRequestedAtRange.requestedFrom}
-						requestedTo={optimistiRequestedAtRange.requestedTo}
+						requestedFrom={optimisticRequestedAtRange.requestedFrom}
+						requestedTo={optimisticRequestedAtRange.requestedTo}
 						isPending={isPending}
 						onRequestedAtRangeApply={handleRequestedAtRangeApply}
 						onStatusFiltersChange={handleStatusFiltersChange}
@@ -220,8 +220,8 @@ export function TransfersClient({
 			<div className="min-h-0 flex-1 overflow-y-auto">
 				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
 					<TransferActiveFilterPills
-						requestedFrom={optimistiRequestedAtRange.requestedFrom}
-						requestedTo={optimistiRequestedAtRange.requestedTo}
+						requestedFrom={optimisticRequestedAtRange.requestedFrom}
+						requestedTo={optimisticRequestedAtRange.requestedTo}
 						statusFilters={optimisticStatusFilters}
 						onRequestedAtRangeApply={handleRequestedAtRangeApply}
 						onStatusFiltersChange={handleStatusFiltersChange}

@@ -52,7 +52,7 @@ import {
 	RiCloseLine,
 	RiCornerDownLeftFill,
 	RiEdit2Line,
-	RiErrorWarningLine,
+	RiEyeLine,
 	RiMore2Fill,
 	RiSendPlaneLine,
 	RiShare2Line,
@@ -371,7 +371,7 @@ function TransferBulkActionBar({
 						onClick={() => onViewTransferDetails(singleSelectedTransfer.id)}
 						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
 					>
-						<RiErrorWarningLine className="size-5" aria-hidden={true} />
+						<RiEyeLine className="size-5" aria-hidden={true} />
 						<span>View transfer details</span>
 					</button>
 					<TableBulkActionSeparator />
@@ -501,7 +501,7 @@ function getTransferColumns(
 										onSelect={() => onViewTransferDetails(row.original.id)}
 										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
-										<RiErrorWarningLine className="text-white" />
+										<RiEyeLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
@@ -519,7 +519,7 @@ function getTransferColumns(
 										onSelect={() => onViewTransferDetails(row.original.id)}
 										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
-										<RiErrorWarningLine className="text-white" />
+										<RiEyeLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem
@@ -545,7 +545,7 @@ function getTransferColumns(
 										onSelect={() => onViewTransferDetails(row.original.id)}
 										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
-										<RiErrorWarningLine className="text-white" />
+										<RiEyeLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuSeparator className="bg-white/20" />
@@ -560,7 +560,7 @@ function getTransferColumns(
 										onSelect={() => onViewTransferDetails(row.original.id)}
 										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
-										<RiErrorWarningLine className="text-white" />
+										<RiEyeLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
@@ -579,7 +579,7 @@ function getTransferColumns(
 										onSelect={() => onViewTransferDetails(row.original.id)}
 										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
-										<RiErrorWarningLine className="text-white" />
+										<RiEyeLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem

@@ -30,6 +30,23 @@ export function CreateDiagnosisEmptyStateAction() {
 	);
 }
 
+export function CreateVitalsEmptyStateAction() {
+	const [isCreateVitalsDrawerOpen, setIsCreateVitalsDrawerOpen] = useState(false);
+
+	return (
+		<>
+			<Button
+				className="text-sm"
+				type="button"
+				onClick={() => setIsCreateVitalsDrawerOpen(true)}
+			>
+				Add vitals
+			</Button>
+			<PendingCreateDrawer open={isCreateVitalsDrawerOpen} />
+		</>
+	);
+}
+
 export function CreateAllergyEmptyStateAction() {
 	const [isCreateAllergyDrawerOpen, setIsCreateAllergyDrawerOpen] = useState(false);
 

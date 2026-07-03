@@ -19,6 +19,7 @@ import {
 	CreateLabTestEmptyStateAction,
 	CreateMedicationEmptyStateAction,
 	CreateProcedureEmptyStateAction,
+	CreateVitalsEmptyStateAction,
 } from "@/features/patients/components/patient-empty-state-actions";
 import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
@@ -182,6 +183,10 @@ async function renderSectionContent(section: string, patientId: string) {
 		return <PatientDetailsSection patientId={patientId} />;
 	}
 
+	if (section === "vitals") {
+		return <VitalsSection patientId={patientId} />;
+	}
+
 	if (section === "diagnoses") {
 		return <DiagnosesSection patientId={patientId} />;
 	}
@@ -219,12 +224,26 @@ async function renderSectionContent(section: string, patientId: string) {
 	}
 }
 
+function VitalsSection({ patientId }: { patientId: string }) {
+	const vitals: unknown[] = [];
+
+	if (vitals.length === 0) {
+		return renderEmptyState({
+			title: "No vitals yet",
+			description: "No vitals have been recorded for this patient.",
+			action: <CreateVitalsEmptyStateAction />,
+		});
+	}
+
+	return <div className="px-6 py-3">{patientId} vitals table</div>;
+}
+
 async function DiagnosesSection({ patientId }: { patientId: string }) {
 	const { diagnoses, totalDiagnoses } = await getPatientDiagnoses(patientId);
 
 	if (diagnoses.length === 0) {
 		return renderEmptyState({
-			title: "No Diagnoses yet",
+			title: "No diagnoses yet",
 			description: "No diagnoses have been recorded for this patient.",
 			action: <CreateDiagnosisEmptyStateAction />,
 		});
@@ -246,7 +265,7 @@ async function AllergiesSection({ patientId }: { patientId: string }) {
 
 	if (allergies.length === 0) {
 		return renderEmptyState({
-			title: "No Allergies yet",
+			title: "No allergies yet",
 			description: "No allergies have been recorded for this patient.",
 			action: <CreateAllergyEmptyStateAction />,
 		});
@@ -268,7 +287,7 @@ async function ImmunizationSection({ patientId }: { patientId: string }) {
 
 	if (immunizations.length === 0) {
 		return renderEmptyState({
-			title: "No Immunizations yet",
+			title: "No immunizations yet",
 			description: "No immunizations have been recorded for this patient.",
 			action: <CreateImmunizationEmptyStateAction />,
 		});
@@ -290,7 +309,7 @@ async function ProceduresSection({ patientId }: { patientId: string }) {
 
 	if (procedures.length === 0) {
 		return renderEmptyState({
-			title: "No Procedures yet",
+			title: "No procedures yet",
 			description: "No procedures have been recorded for this patient.",
 			action: <CreateProcedureEmptyStateAction />,
 		});
@@ -312,7 +331,7 @@ async function MedicationsSection({ patientId }: { patientId: string }) {
 
 	if (medications.length === 0) {
 		return renderEmptyState({
-			title: "No Medications yet",
+			title: "No medications yet",
 			description: "No medications have been recorded for this patient.",
 			action: <CreateMedicationEmptyStateAction />,
 		});
@@ -334,7 +353,7 @@ async function EncountersSection({ patientId }: { patientId: string }) {
 
 	if (encounters.length === 0) {
 		return renderEmptyState({
-			title: "No Encounters yet",
+			title: "No encounters yet",
 			description: "No encounters have been recorded for this patient.",
 			action: <CreateEncounterEmptyStateAction />,
 		});
@@ -356,7 +375,7 @@ async function LabTestsSection({ patientId }: { patientId: string }) {
 
 	if (labTests.length === 0) {
 		return renderEmptyState({
-			title: "No Lab Tests yet",
+			title: "No lab tests yet",
 			description: "No lab tests have been recorded for this patient.",
 			action: <CreateLabTestEmptyStateAction />,
 		});
@@ -378,7 +397,7 @@ async function ImagingSection({ patientId }: { patientId: string }) {
 
 	if (imagingStudies.length === 0) {
 		return renderEmptyState({
-			title: "No Imaging yet",
+			title: "No imaging yet",
 			description: "No imaging studies have been recorded for this patient.",
 			action: <CreateImagingEmptyStateAction />,
 		});
@@ -400,7 +419,7 @@ function DocumentsSection({ patientId }: { patientId: string }) {
 
 	if (documents.length === 0) {
 		return renderEmptyState({
-			title: "No Documents yet",
+			title: "No documents yet",
 			description: "No documents have been recorded for this patient.",
 			action: <CreateDocumentEmptyStateAction />,
 		});
@@ -429,11 +448,11 @@ function renderEmptyState({
 					height={336}
 					className="h-auto w-[31.25rem] max-w-full"
 				/>
-				<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
-					<h2 className="mb-4 text-2xl font-semibold text-gray-800">{title}</h2>
-					<p className="mb-8 max-w-[32rem] text-pretty text-gray-500">{description}</p>
-					{action}
-				</div>
+					<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
+						<h2 className="mb-2 text-xl font-semibold text-gray-800">{title}</h2>
+						<p className="mb-6 max-w-[32rem] text-sm text-pretty text-gray-500">{description}</p>
+						{action}
+					</div>
 			</div>
 		</div>
 	);

@@ -47,7 +47,6 @@ import {
 	RiArrowDownSLine,
 	RiArrowUpSLine,
 	RiCloseLine,
-	RiErrorWarningLine,
 	RiEyeLine,
 	RiMore2Fill,
 	RiShare2Line,
@@ -530,7 +529,7 @@ function getPatientsColumns(
 								}
 								className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 							>
-								<RiErrorWarningLine className="text-white" />
+								<RiEyeLine className="text-white" />
 								<span> View patient</span>
 							</DropdownMenuItem>
 							<DropdownMenuItem

@@ -100,7 +100,6 @@ export function FilterButton({
 
 			<DropdownMenuContent
 				align="end"
-				sideOffset={8}
 				className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 			>
 					<DropdownMenuSub
@@ -113,12 +112,11 @@ export function FilterButton({
 							});
 						}}
 					>
-					<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
+					<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 						<RiMenLine className="size-4.5" /> <span className="block">Status</span>
 					</DropdownMenuSubTrigger>
 
 					<DropdownMenuSubContent
-						sideOffset={12}
 						alignOffset={-5}
 						className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 					>
@@ -136,7 +134,7 @@ export function FilterButton({
 								>
 									<Label
 										htmlFor={statusOptionId}
-										className="w-full cursor-pointer px-2 py-2 leading-normal font-normal"
+										className="flex h-9 w-full cursor-pointer items-center gap-2 px-2 leading-normal font-normal"
 									>
 										<Checkbox
 											id={statusOptionId}
@@ -171,12 +169,11 @@ export function FilterButton({
 							});
 						}}
 					>
-					<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
+					<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 						<RiCalendarLine className="size-4.5" /> <span className="block">Requested at</span>
 					</DropdownMenuSubTrigger>
 
 					<DropdownMenuSubContent
-						sideOffset={8}
 						alignOffset={-5}
 						className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
 					>

@@ -223,7 +223,6 @@ export function DiagnosesTable({
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
 						align="end"
-						sideOffset={8}
 						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 					>
 						<DropdownMenuSub
@@ -240,7 +239,6 @@ export function DiagnosesTable({
 								<RiCheckboxCircleLine className="size-4.5" /> <span className="block">Status</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
-								sideOffset={12}
 								alignOffset={-5}
 								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
@@ -297,7 +295,6 @@ export function DiagnosesTable({
 								<RiHistoryLine className="text-lg" /> <span className="block">Last updated</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
-								sideOffset={8}
 								alignOffset={-5}
 								className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
 							>
@@ -324,7 +321,6 @@ export function DiagnosesTable({
 								<RiPulseLine className="size-4.5" /> <span className="block">Diagnosed At</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
-								sideOffset={8}
 								alignOffset={-5}
 								className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
 							>
@@ -350,7 +346,6 @@ export function DiagnosesTable({
 								<RiCalendarLine className="size-4.5" /> <span className="block">Created at</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
-								sideOffset={8}
 								alignOffset={-5}
 								className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
 							>
