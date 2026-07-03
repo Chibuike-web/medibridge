@@ -569,7 +569,7 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 						onClick={handleAddLabTestAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
-						Add attachment
+						Add related record
 					</Button>
 				</div>
 			</div>

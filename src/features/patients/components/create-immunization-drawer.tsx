@@ -23,13 +23,9 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-	AttachmentFormFields,
-	type AttachmentFormRow,
-} from "@/features/patients/components/attachment-form-fields";
-import { RiAddLine, RiCalendarLine, RiCloseLine } from "@remixicon/react";
+import { RiCalendarLine, RiCloseLine } from "@remixicon/react";
 import { format } from "date-fns";
-import { useId, useRef, useState } from "react";
+import { useId, useState } from "react";
 
 type CreateImmunizationDrawerProps = {
 	open: boolean;
@@ -46,26 +42,7 @@ export function CreateImmunizationDrawer({
 	onOpenChange,
 }: CreateImmunizationDrawerProps) {
 	const generatedFormId = useId();
-	const nextAttachmentRowNumberRef = useRef(0);
 	const [administeredAt, setAdministeredAt] = useState<Date | undefined>();
-	const [attachmentRows, setAttachmentRows] = useState<AttachmentFormRow[]>([]);
-
-	function handleAddAttachmentRow() {
-		nextAttachmentRowNumberRef.current += 1;
-
-		setAttachmentRows((prev) => [
-			...prev,
-			{
-				id: `${generatedFormId}-attachment-${nextAttachmentRowNumberRef.current}`,
-				name: "",
-				recordId: "",
-			},
-		]);
-	}
-
-	function handleRemoveAttachmentRow(attachmentRowId: string) {
-		setAttachmentRows((prev) => prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId));
-	}
 
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
@@ -228,32 +205,6 @@ export function CreateImmunizationDrawer({
 							/>
 						</div>
 
-					</div>
-
-					<div className="flex flex-col gap-6">
-						{attachmentRows.map((attachmentRow, attachmentIndex) => (
-							<AttachmentFormFields
-								key={attachmentRow.id}
-								attachmentRow={attachmentRow}
-								attachmentIndex={attachmentIndex}
-								fieldLabelClassName={fieldLabelClassName}
-								requiredLabelClassName={optionalLabelClassName}
-								fieldControlClassName={fieldControlClassName}
-								onRemoveAttachmentRow={handleRemoveAttachmentRow}
-							/>
-						))}
-
-						<div>
-							<Button
-								type="button"
-								variant="outline"
-								className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
-								onClick={handleAddAttachmentRow}
-							>
-								<RiAddLine className="size-5" aria-hidden="true" />
-								Add attachment
-							</Button>
-						</div>
 					</div>
 				</form>
 

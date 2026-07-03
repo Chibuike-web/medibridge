@@ -223,7 +223,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 								onClick={handleAddImagingAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />
-								Add attachment
+								Add related record
 							</Button>
 						</div>
 					</div>

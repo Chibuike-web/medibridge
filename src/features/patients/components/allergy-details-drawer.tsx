@@ -353,7 +353,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 						onClick={handleAddAllergyAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
-						Add attachment
+						Add related record
 					</Button>
 				</div>
 			</div>

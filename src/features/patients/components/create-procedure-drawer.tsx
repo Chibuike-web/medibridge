@@ -241,7 +241,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />
-								Add attachment
+								Add related record
 							</Button>
 						</div>
 					</div>

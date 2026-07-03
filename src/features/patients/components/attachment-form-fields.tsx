@@ -32,13 +32,13 @@ export function AttachmentFormFields({
 		<div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
 			<div className="flex items-center justify-between gap-4 sm:col-span-2">
 				<span className="text-base font-semibold text-gray-800">
-					Attachment {attachmentIndex + 1}
+					Related record {attachmentIndex + 1}
 				</span>
 				<Button
 					type="button"
 					variant="ghost"
 					size="icon"
-					aria-label={`Remove attachment ${attachmentIndex + 1}`}
+					aria-label={`Remove related record ${attachmentIndex + 1}`}
 					className="size-6 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
 					onClick={() => onRemoveAttachmentRow(attachmentRow.id)}
 				>
@@ -47,19 +47,19 @@ export function AttachmentFormFields({
 			</div>
 			<div className="flex flex-col gap-2">
 				<Label htmlFor={`${attachmentRow.id}-name`} className={fieldLabelClassName}>
-					Attachment name<span className={requiredLabelClassName}>(required)</span>
+					Record type<span className={requiredLabelClassName}>(required)</span>
 				</Label>
 				<Input
 					id={`${attachmentRow.id}-name`}
 					defaultValue={attachmentRow.name}
 					required
-					placeholder="e.g. Lab test, Imaging report, medications"
+					placeholder="e.g. Lab test, imaging, medication"
 					className={fieldControlClassName}
 				/>
 			</div>
 			<div className="flex flex-col gap-2">
 				<Label htmlFor={`${attachmentRow.id}-id`} className={fieldLabelClassName}>
-					Attachment ID<span className={requiredLabelClassName}>(required)</span>
+					Record ID<span className={requiredLabelClassName}>(required)</span>
 				</Label>
 				<Input
 					id={`${attachmentRow.id}-id`}

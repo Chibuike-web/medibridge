@@ -29,13 +29,8 @@ import type {
 	ImmunizationDetailsHistoryEvent,
 	ImmunizationDetailsType,
 } from "@/features/patients/types";
-import {
-	AttachmentFormFields,
-	type AttachmentFormRow,
-} from "@/features/patients/components/attachment-form-fields";
 import { cn } from "@/lib/utils/cn";
 import {
-	RiAddLine,
 	RiArrowDownSLine,
 	RiCalendarLine,
 	RiCloseLine,
@@ -43,7 +38,7 @@ import {
 } from "@remixicon/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { format } from "date-fns";
-import { useId, useRef, useState } from "react";
+import { useId, useState } from "react";
 
 type ImmunizationDetailsDrawerProps = {
 	open: boolean;
@@ -227,31 +222,9 @@ function ImmunizationDetailsEditForm({
 }: {
 	immunization: ImmunizationDetailsType;
 }) {
-	const generatedAttachmentRowId = useId();
-	const nextAttachmentRowNumberRef = useRef(0);
 	const [administeredAt, setAdministeredAt] = useState<Date | undefined>(() =>
 		parseImmunizationDisplayDate(immunization.dateAdministered),
 	);
-	const [immunizationAttachmentRows, setImmunizationAttachmentRows] = useState<AttachmentFormRow[]>([]);
-
-	function handleAddImmunizationAttachmentRow() {
-		nextAttachmentRowNumberRef.current += 1;
-
-		setImmunizationAttachmentRows((prev) => [
-			...prev,
-			{
-				id: `${generatedAttachmentRowId}-attachment-${nextAttachmentRowNumberRef.current}`,
-				name: "",
-				recordId: "",
-			},
-		]);
-	}
-
-	function handleRemoveImmunizationAttachmentRow(attachmentRowId: string) {
-		setImmunizationAttachmentRows((prev) =>
-			prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId),
-		);
-	}
 
 	return (
 		<form id={immunizationDetailsFormId} className="flex flex-col gap-12">
@@ -429,31 +402,6 @@ function ImmunizationDetailsEditForm({
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-6">
-				{immunizationAttachmentRows.map((attachmentRow, attachmentIndex) => (
-					<AttachmentFormFields
-						key={attachmentRow.id}
-						attachmentRow={attachmentRow}
-						attachmentIndex={attachmentIndex}
-						fieldLabelClassName={immunizationDetailsFieldLabelClassName}
-						requiredLabelClassName={immunizationDetailsRequiredLabelClassName}
-						fieldControlClassName={immunizationDetailsFieldControlClassName}
-						onRemoveAttachmentRow={handleRemoveImmunizationAttachmentRow}
-					/>
-				))}
-
-				<div>
-					<Button
-						type="button"
-						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
-						onClick={handleAddImmunizationAttachmentRow}
-					>
-						<RiAddLine className="size-5" aria-hidden="true" />
-						Add attachment
-					</Button>
-				</div>
-			</div>
 		</form>
 	);
 }

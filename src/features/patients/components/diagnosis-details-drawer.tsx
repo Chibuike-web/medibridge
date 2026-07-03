@@ -397,7 +397,7 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 						onClick={handleAddDiagnosisAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
-						Add attachment
+						Add related record
 					</Button>
 				</div>
 			</div>

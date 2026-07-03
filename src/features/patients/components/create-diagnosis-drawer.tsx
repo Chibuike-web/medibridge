@@ -221,7 +221,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />
-								Add attachment
+								Add related record
 							</Button>
 						</div>
 					</div>

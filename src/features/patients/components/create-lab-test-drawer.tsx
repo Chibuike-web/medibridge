@@ -239,7 +239,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />
-								Add attachment
+								Add related record
 							</Button>
 						</div>
 					</div>

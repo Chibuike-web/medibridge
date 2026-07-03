@@ -446,7 +446,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 						onClick={handleAddMedicationAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
-						Add attachment
+						Add related record
 					</Button>
 				</div>
 			</div>

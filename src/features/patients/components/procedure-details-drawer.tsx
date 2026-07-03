@@ -453,7 +453,7 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 						onClick={handleAddProcedureAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
-						Add attachment
+						Add related record
 					</Button>
 				</div>
 			</div>
