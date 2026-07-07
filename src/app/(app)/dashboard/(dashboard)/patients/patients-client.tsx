@@ -232,11 +232,12 @@ export function PatientsClient({
 					/>
 					<Button
 						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+						className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50"
 					>
-						<RiShare2Line aria-hidden className="size-4 text-gray-600" />
+						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 						Export
 					</Button>
+
 					<Button className="text-sm" asChild>
 						<Link href="/dashboard/add-new-patient">Add patient</Link>
 					</Button>

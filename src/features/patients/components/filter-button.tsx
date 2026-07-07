@@ -292,6 +292,7 @@ export function FilterButton({
 
 				<div className="w-88 shrink-0 border-l border-gray-100 p-3">
 					<CustomRangeCalendarPanel
+						key={`${createdFrom}:${createdTo}`}
 						createdFrom={createdFrom}
 						createdTo={createdTo}
 						isPending={isPending}
@@ -346,17 +347,9 @@ function CustomRangeCalendarPanel({
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 }) {
 	const selectedCreatedAtRange = getDateRangeFromParams(createdFrom, createdTo);
-	const selectedCreatedAtRangeKey = getDateRangeKey(selectedCreatedAtRange);
 	const [draftCreatedAtRange, setDraftCreatedAtRange] = useState<DateRange | undefined>(
 		selectedCreatedAtRange,
 	);
-	const [previousSelectedCreatedAtRangeKey, setPreviousSelectedCreatedAtRangeKey] =
-		useState(selectedCreatedAtRangeKey);
-
-	if (selectedCreatedAtRangeKey !== previousSelectedCreatedAtRangeKey) {
-		setPreviousSelectedCreatedAtRangeKey(selectedCreatedAtRangeKey);
-		setDraftCreatedAtRange(selectedCreatedAtRange);
-	}
 
 	return (
 		<div className="flex min-w-0 flex-col">
@@ -458,9 +451,6 @@ function getDateRangeFromParams(createdFrom: string, createdTo: string): DateRan
 	return { from, to };
 }
 
-function getDateRangeKey(range?: DateRange) {
-	return `${range?.from ? formatUrlDate(range.from) : ""}:${range?.to ? formatUrlDate(range.to) : ""}`;
-}
 
 function isSameDateRange(range: DateRange | undefined, presetRange: PatientCreatedAtCompleteRange) {
 	if (!range?.from || !range.to) return false;

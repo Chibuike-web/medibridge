@@ -279,6 +279,16 @@ export type EncounterDepartmentFilter =
 	| "family-medicine"
 	| "nephrology";
 
+export type LabTestDetailsHistoryEvent = {
+	id: string;
+	title: string;
+	timestamp: string;
+	items: {
+		label: string;
+		value: string;
+	}[];
+};
+
 export type LabTestType = {
 	test: string;
 	testName: string;
@@ -305,6 +315,7 @@ export type LabTestType = {
 	fileUrl: string;
 	fileSize: string;
 	fileType: string;
+	history: LabTestDetailsHistoryEvent[];
 };
 
 export type LabTestStatusFilter = "pending" | "completed" | "cancelled";
@@ -320,6 +331,16 @@ export type LabTestFlagFilter =
 	| "invalid"
 	| "cancelled"
 	| "inconclusive";
+
+export type ImagingDetailsHistoryEvent = {
+	id: string;
+	title: string;
+	timestamp: string;
+	items: {
+		label: string;
+		value: string;
+	}[];
+};
 
 export type ImagingType = {
 	study: string;
@@ -343,6 +364,7 @@ export type ImagingType = {
 	updatedBy: string;
 	createdAtLabel: string;
 	updatedAtLabel: string;
+	history: ImagingDetailsHistoryEvent[];
 };
 
 export type ImagingStatusFilter = "pending" | "completed" | "cancelled";

@@ -171,8 +171,9 @@ export function DiagnosesTable({
 		[diagnoses],
 	);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
-	const [activeFilterSubmenu, setActiveFilterSubmenu] =
-		useState<DiagnosisFilterSubmenu | null>(null);
+	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<DiagnosisFilterSubmenu | null>(
+		null,
+	);
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -361,16 +362,12 @@ export function DiagnosesTable({
 				</DropdownMenu>
 				<Button
 					variant="outline"
-					className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 data-[state=open]:border-gray-400 data-[state=open]:ring-4 data-[state=open]:ring-gray-200"
+					className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50"
 				>
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button
-					className="text-sm"
-					type="button"
-					onClick={() => setIsCreateDrawerOpen(true)}
-				>
+				<Button className="text-sm" type="button" onClick={() => setIsCreateDrawerOpen(true)}>
 					Add diagnosis
 				</Button>
 			</div>
@@ -399,23 +396,20 @@ export function DiagnosesTable({
 				isPending={isPending}
 				hasActiveFilters={Boolean(
 					query ||
-						createdFrom ||
-						createdTo ||
-						diagnosedFrom ||
-						diagnosedTo ||
-						lastReviewedFrom ||
-						lastReviewedTo ||
-						statusFilters.length > 0,
+					createdFrom ||
+					createdTo ||
+					diagnosedFrom ||
+					diagnosedTo ||
+					lastReviewedFrom ||
+					lastReviewedTo ||
+					statusFilters.length > 0,
 				)}
 				onViewDiagnosisDetails={handleViewDiagnosisDetails}
 				onPreviousPage={onPreviousPage}
 				onNextPage={onNextPage}
 				onLimitChange={onLimitChange}
 			/>
-			<CreateDiagnosisDrawer
-				open={isCreateDrawerOpen}
-				onOpenChange={setIsCreateDrawerOpen}
-			/>
+			<CreateDiagnosisDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
 			<DiagnosisDetailsDrawer
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}
@@ -631,45 +625,45 @@ function DiagnosesBulkActionBar({
 	}
 
 	return (
-		<div className="no-scrollbar fixed right-4 bottom-6 left-4 z-50 flex items-center gap-4 overflow-x-auto rounded-xl border border-white/20 bg-gray-800 px-4 py-2 text-white shadow-[0_1rem_2.5rem_rgba(15,23,42,0.35)] ring ring-gray-800 sm:right-auto sm:left-1/2 sm:w-max sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2">
+		<div className="no-scrollbar fixed right-4 bottom-6 left-4 z-50 flex items-center gap-4 overflow-x-auto rounded-xl border border-white/20 bg-gray-800 pl-4 pr-2 h-12 text-white shadow-[0_1rem_2.5rem_rgba(15,23,42,0.35)] ring ring-gray-800 sm:right-auto sm:left-1/2 sm:w-max sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2">
 			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
 				{selectedDiagnosisCount} {selectedDiagnosisCount === 1 ? "item" : "items"} selected
 			</span>
 			<TableBulkActionSeparator />
-			{singleSelectedDiagnosis ? (
-				<>
-					<button
-						type="button"
-						onClick={() => {
-							onViewDiagnosisDetails(singleSelectedDiagnosis.diagnosisId);
-						}}
-						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-					>
-						<RiEyeLine className="size-5" aria-hidden={true} />
-						<span>View details</span>
-					</button>
-					<TableBulkActionSeparator />
-				</>
-			) : null}
-			<button
-				type="button"
-				className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-			>
-				<RiShare2Line className="size-5" aria-hidden={true} />
-				<span>Export</span>
-			</button>
-			<TableBulkActionSeparator />
-			<button
-				type="button"
-				className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-			>
-				<RiArchiveLine className="size-5" aria-hidden={true} />
-				<span>Archive</span>
-			</button>
+			<div className="flex items-center">
+				{singleSelectedDiagnosis ? (
+					<>
+						<button
+							type="button"
+							onClick={() => {
+								onViewDiagnosisDetails(singleSelectedDiagnosis.diagnosisId);
+							}}
+							className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+						>
+							<RiEyeLine className="size-5" aria-hidden={true} />
+							<span>View details</span>
+						</button>
+					</>
+				) : null}
+				<button
+					type="button"
+					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				>
+					<RiShare2Line className="size-5" aria-hidden={true} />
+					<span>Export {selectedDiagnosisCount > 1 ? "all" : null}</span>
+				</button>
+				<button
+					type="button"
+					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				>
+					<RiArchiveLine className="size-5" aria-hidden={true} />
+					<span>Archive {selectedDiagnosisCount > 1 ? "all" : null}</span>
+				</button>
+			</div>
 			<button
 				type="button"
 				onClick={onClearSelection}
-				className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected diagnoses"
 			>
 				<RiCloseLine className="size-5" aria-hidden={true} />
@@ -788,6 +782,7 @@ function DiagnosisDateFilterContent({
 
 			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
 				<DiagnosisCustomRangeCalendarPanel
+					key={`${from}:${to}`}
 					from={from}
 					to={to}
 					isPending={isPending}
@@ -841,17 +836,9 @@ function DiagnosisCustomRangeCalendarPanel({
 	onDateRangeApply: (from: string, to: string) => void;
 }) {
 	const selectedDiagnosisDateRange = getDateRangeFromParams(from, to);
-	const selectedDiagnosisDateRangeKey = getDateRangeKey(selectedDiagnosisDateRange);
 	const [draftDiagnosisDateRange, setDraftDiagnosisDateRange] = useState<DateRange | undefined>(
 		selectedDiagnosisDateRange,
 	);
-	const [previousSelectedDiagnosisDateRangeKey, setPreviousSelectedDiagnosisDateRangeKey] =
-		useState(selectedDiagnosisDateRangeKey);
-
-	if (selectedDiagnosisDateRangeKey !== previousSelectedDiagnosisDateRangeKey) {
-		setPreviousSelectedDiagnosisDateRangeKey(selectedDiagnosisDateRangeKey);
-		setDraftDiagnosisDateRange(selectedDiagnosisDateRange);
-	}
 
 	return (
 		<div className="flex min-w-0 flex-col">
@@ -972,10 +959,6 @@ function getDateRangeFromParams(from: string, to: string): DateRange | undefined
 	return { from: parsedFromDate, to: parsedToDate };
 }
 
-function getDateRangeKey(range?: DateRange) {
-	return `${range?.from ? formatUrlDate(range.from) : ""}:${range?.to ? formatUrlDate(range.to) : ""}`;
-}
-
 function isSameDateRange(range: DateRange | undefined, presetRange: DiagnosisDateCompleteRange) {
 	if (!range?.from || !range.to) return false;
 
@@ -987,9 +970,7 @@ function formatUrlDate(date: Date) {
 }
 
 async function fetchPatientDiagnosisDetails(selectedId: string) {
-	const response = await fetch(
-		`/api/patient-diagnosis-details/${encodeURIComponent(selectedId)}`,
-	);
+	const response = await fetch(`/api/patient-diagnosis-details/${encodeURIComponent(selectedId)}`);
 
 	if (!response.ok) {
 		throw new Error("Unable to load diagnosis details.");

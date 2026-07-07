@@ -663,6 +663,7 @@ function EncounterDateFilterContent({
 
 			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
 				<EncounterCustomRangeCalendarPanel
+					key={`${from}:${to}`}
 					from={from}
 					to={to}
 					isPending={isPending}
@@ -716,17 +717,9 @@ function EncounterCustomRangeCalendarPanel({
 	onDateRangeApply: (from: string, to: string) => void;
 }) {
 	const selectedEncounterDateRange = getDateRangeFromParams(from, to);
-	const selectedEncounterDateRangeKey = getDateRangeKey(selectedEncounterDateRange);
 	const [draftEncounterDateRange, setDraftEncounterDateRange] = useState<DateRange | undefined>(
 		selectedEncounterDateRange,
 	);
-	const [previousSelectedEncounterDateRangeKey, setPreviousSelectedEncounterDateRangeKey] =
-		useState(selectedEncounterDateRangeKey);
-
-	if (selectedEncounterDateRangeKey !== previousSelectedEncounterDateRangeKey) {
-		setPreviousSelectedEncounterDateRangeKey(selectedEncounterDateRangeKey);
-		setDraftEncounterDateRange(selectedEncounterDateRange);
-	}
 
 	return (
 		<div className="flex min-w-0 flex-col">
@@ -852,9 +845,6 @@ function getDateRangeFromParams(from: string, to: string): DateRange | undefined
 	};
 }
 
-function getDateRangeKey(dateRange?: DateRange) {
-	return `${dateRange?.from?.toISOString() ?? ""}:${dateRange?.to?.toISOString() ?? ""}`;
-}
 
 function isSameDateRange(left?: DateRange, right?: DateRange) {
 	if (!left?.from || !left?.to || !right?.from || !right?.to) {

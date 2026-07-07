@@ -572,6 +572,7 @@ function MedicationDateFilterContent({
 
 			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
 				<MedicationCustomRangeCalendarPanel
+					key={`${from}:${to}`}
 					from={from}
 					to={to}
 					isPending={isPending}
@@ -625,17 +626,9 @@ function MedicationCustomRangeCalendarPanel({
 	onDateRangeApply: (from: string, to: string) => void;
 }) {
 	const selectedMedicationDateRange = getDateRangeFromParams(from, to);
-	const selectedMedicationDateRangeKey = getDateRangeKey(selectedMedicationDateRange);
 	const [draftMedicationDateRange, setDraftMedicationDateRange] = useState<DateRange | undefined>(
 		selectedMedicationDateRange,
 	);
-	const [previousSelectedMedicationDateRangeKey, setPreviousSelectedMedicationDateRangeKey] =
-		useState(selectedMedicationDateRangeKey);
-
-	if (selectedMedicationDateRangeKey !== previousSelectedMedicationDateRangeKey) {
-		setPreviousSelectedMedicationDateRangeKey(selectedMedicationDateRangeKey);
-		setDraftMedicationDateRange(selectedMedicationDateRange);
-	}
 
 	return (
 		<div className="flex min-w-0 flex-col">
@@ -756,9 +749,6 @@ function getDateRangeFromParams(from: string, to: string): DateRange | undefined
 	return { from: parsedFromDate, to: parsedToDate };
 }
 
-function getDateRangeKey(range?: DateRange) {
-	return `${range?.from ? formatUrlDate(range.from) : ""}:${range?.to ? formatUrlDate(range.to) : ""}`;
-}
 
 function isSameDateRange(range: DateRange | undefined, presetRange: MedicationDateCompleteRange) {
 	if (!range?.from || !range.to) return false;

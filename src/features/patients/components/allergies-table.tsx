@@ -165,8 +165,7 @@ export function AllergiesTable({
 		[allergies],
 	);
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [activeFilterSubmenu, setActiveFilterSubmenu] =
-		useState<AllergyFilterSubmenu | null>(null);
+	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<AllergyFilterSubmenu | null>(null);
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -308,11 +307,7 @@ export function AllergiesTable({
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button
-					className="text-sm"
-					type="button"
-					onClick={() => setIsCreateDrawerOpen(true)}
-				>
+				<Button className="text-sm" type="button" onClick={() => setIsCreateDrawerOpen(true)}>
 					Add allergy
 				</Button>
 			</div>
@@ -340,10 +335,7 @@ export function AllergiesTable({
 				onNextPage={onNextPage}
 				onLimitChange={onLimitChange}
 			/>
-			<CreateAllergyDrawer
-				open={isCreateDrawerOpen}
-				onOpenChange={setIsCreateDrawerOpen}
-			/>
+			<CreateAllergyDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
 			<AllergyDetailsDrawer
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}
@@ -680,6 +672,7 @@ function AllergyDateFilterContent({
 
 			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
 				<AllergyCustomRangeCalendarPanel
+					key={`${from}:${to}`}
 					from={from}
 					to={to}
 					isPending={isPending}
@@ -733,17 +726,9 @@ function AllergyCustomRangeCalendarPanel({
 	onDateRangeApply: (from: string, to: string) => void;
 }) {
 	const selectedAllergyDateRange = getDateRangeFromParams(from, to);
-	const selectedAllergyDateRangeKey = getDateRangeKey(selectedAllergyDateRange);
 	const [draftAllergyDateRange, setDraftAllergyDateRange] = useState<DateRange | undefined>(
 		selectedAllergyDateRange,
 	);
-	const [previousSelectedAllergyDateRangeKey, setPreviousSelectedAllergyDateRangeKey] =
-		useState(selectedAllergyDateRangeKey);
-
-	if (selectedAllergyDateRangeKey !== previousSelectedAllergyDateRangeKey) {
-		setPreviousSelectedAllergyDateRangeKey(selectedAllergyDateRangeKey);
-		setDraftAllergyDateRange(selectedAllergyDateRange);
-	}
 
 	return (
 		<div className="flex min-w-0 flex-col">
@@ -864,10 +849,6 @@ function getDateRangeFromParams(from: string, to: string): DateRange | undefined
 	return { from: parsedFromDate, to: parsedToDate };
 }
 
-function getDateRangeKey(range?: DateRange) {
-	return `${range?.from ? formatUrlDate(range.from) : ""}:${range?.to ? formatUrlDate(range.to) : ""}`;
-}
-
 function isSameDateRange(range: DateRange | undefined, presetRange: AllergyDateCompleteRange) {
 	if (!range?.from || !range.to) return false;
 
@@ -883,9 +864,7 @@ function formatAllergyFilterValue(value: string) {
 }
 
 async function fetchPatientAllergyDetails(selectedId: string) {
-	const response = await fetch(
-		`/api/patient-allergy-details/${encodeURIComponent(selectedId)}`,
-	);
+	const response = await fetch(`/api/patient-allergy-details/${encodeURIComponent(selectedId)}`);
 
 	if (!response.ok) {
 		throw new Error("Unable to load allergy details.");

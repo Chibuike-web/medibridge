@@ -566,6 +566,7 @@ function ImmunizationDateFilterContent({
 
 			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
 				<ImmunizationCustomRangeCalendarPanel
+					key={`${from}:${to}`}
 					from={from}
 					to={to}
 					isPending={isPending}
@@ -619,19 +620,9 @@ function ImmunizationCustomRangeCalendarPanel({
 	onDateRangeApply: (from: string, to: string) => void;
 }) {
 	const selectedImmunizationDateRange = getDateRangeFromParams(from, to);
-	const selectedImmunizationDateRangeKey = getDateRangeKey(selectedImmunizationDateRange);
 	const [draftImmunizationDateRange, setDraftImmunizationDateRange] = useState<
 		DateRange | undefined
 	>(selectedImmunizationDateRange);
-	const [
-		previousSelectedImmunizationDateRangeKey,
-		setPreviousSelectedImmunizationDateRangeKey,
-	] = useState(selectedImmunizationDateRangeKey);
-
-	if (selectedImmunizationDateRangeKey !== previousSelectedImmunizationDateRangeKey) {
-		setPreviousSelectedImmunizationDateRangeKey(selectedImmunizationDateRangeKey);
-		setDraftImmunizationDateRange(selectedImmunizationDateRange);
-	}
 
 	return (
 		<div className="flex min-w-0 flex-col">
@@ -758,9 +749,6 @@ function getDateRangeFromParams(from: string, to: string): DateRange | undefined
 	return { from: parsedFromDate, to: parsedToDate };
 }
 
-function getDateRangeKey(range?: DateRange) {
-	return `${range?.from ? formatUrlDate(range.from) : ""}:${range?.to ? formatUrlDate(range.to) : ""}`;
-}
 
 function isSameDateRange(range: DateRange | undefined, presetRange: ImmunizationDateCompleteRange) {
 	if (!range?.from || !range.to) return false;

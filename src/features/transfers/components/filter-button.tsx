@@ -197,6 +197,7 @@ export function FilterButton({
 
 				<div className="w-88 shrink-0 border-l border-gray-100 p-3">
 					<CustomRangeCalendarPanel
+						key={`${requestedFrom}:${requestedTo}`}
 						requestedFrom={requestedFrom}
 						requestedTo={requestedTo}
 						isPending={isPending}
@@ -254,18 +255,9 @@ function CustomRangeCalendarPanel({
 	onRequestedAtRangeApply: (requestedFrom: string, requestedTo: string) => void;
 }) {
 	const selectedRequestedAtRange = getDateRangeFromParams(requestedFrom, requestedTo);
-	const selectedRequestedAtRangeKey = getDateRangeKey(selectedRequestedAtRange);
 	const [draftRequestedAtRange, setDraftRequestedAtRange] = useState<DateRange | undefined>(
 		selectedRequestedAtRange,
 	);
-	const [previousSelectedRequestedAtRangeKey, setPreviousSelectedRequestedAtRangeKey] = useState(
-		selectedRequestedAtRangeKey,
-	);
-
-	if (selectedRequestedAtRangeKey !== previousSelectedRequestedAtRangeKey) {
-		setPreviousSelectedRequestedAtRangeKey(selectedRequestedAtRangeKey);
-		setDraftRequestedAtRange(selectedRequestedAtRange);
-	}
 
 	return (
 		<div className="flex min-w-0 flex-col">
@@ -365,10 +357,6 @@ function getDateRangeFromParams(requestedFrom: string, requestedTo: string): Dat
 	if (!from && !to) return undefined;
 
 	return { from, to };
-}
-
-function getDateRangeKey(range?: DateRange) {
-	return `${range?.from ? formatUrlDate(range.from) : ""}:${range?.to ? formatUrlDate(range.to) : ""}`;
 }
 
 function isSameDateRange(range: DateRange | undefined, presetRange: TransferRequestedAtCompleteRange) {

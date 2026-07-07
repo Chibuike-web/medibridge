@@ -74,9 +74,7 @@ export function PatientsTable(props: PatientsTableProps) {
 		() => patients.map((patient) => patient.patientId).join(","),
 		[patients],
 	);
-	const [sorting, setSorting] = useState<SortingState>([
-		{ id: "name", desc: false },
-	]);
+	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 
 	return (
 		<PatientsTableContent
@@ -107,12 +105,8 @@ function PatientsTableContent({
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const returnTo = getCurrentRoute(pathname, searchParams);
-	const columns = useMemo(
-		() => getPatientsColumns(router, returnTo),
-		[router, returnTo],
-	);
-	const [selectedPatientRows, setSelectedPatientRows] =
-		useState<RowSelectionState>({});
+	const columns = useMemo(() => getPatientsColumns(router, returnTo), [router, returnTo]);
+	const [selectedPatientRows, setSelectedPatientRows] = useState<RowSelectionState>({});
 
 	const table = useReactTable({
 		data: patients,
@@ -126,19 +120,13 @@ function PatientsTableContent({
 		state: { sorting, rowSelection: selectedPatientRows },
 	});
 
-	const selectedPatients = table
-		.getSelectedRowModel()
-		.rows.map((row) => row.original);
+	const selectedPatients = table.getSelectedRowModel().rows.map((row) => row.original);
 
 	function handleViewSelectedPatient(patient: PatientListItemType) {
-		router.push(
-			`/dashboard/patients/${patient.patientId}?section=patient-overview`,
-		);
+		router.push(`/dashboard/patients/${patient.patientId}?section=patient-overview`);
 	}
 
-	function handleTransferSelectedPatients(
-		patientsToTransfer: PatientListItemType[],
-	) {
+	function handleTransferSelectedPatients(patientsToTransfer: PatientListItemType[]) {
 		const transferRequestSearchParams = new URLSearchParams();
 
 		for (const patient of patientsToTransfer) {
@@ -147,9 +135,7 @@ function PatientsTableContent({
 
 		transferRequestSearchParams.set("returnTo", returnTo);
 
-		router.push(
-			`/dashboard/new-transfer-request?${transferRequestSearchParams.toString()}`,
-		);
+		router.push(`/dashboard/new-transfer-request?${transferRequestSearchParams.toString()}`);
 	}
 
 	return (
@@ -170,35 +156,26 @@ function PatientsTableContent({
 										}}
 										className={cn(
 											"z-10 h-12 px-3 py-0 whitespace-nowrap text-gray-600 bg-gray-50",
-											header.column.getCanSort()
-												? "cursor-pointer select-none"
-												: "",
+											header.column.getCanSort() ? "cursor-pointer select-none" : "",
 										)}
 									>
 										<div className="flex items-center justify-between gap-3">
 											{header.isPlaceholder
 												? null
-												: flexRender(
-														header.column.columnDef.header,
-														header.getContext(),
-													)}
+												: flexRender(header.column.columnDef.header, header.getContext())}
 											{header.column.getCanSort() ? (
 												<div className="-space-y-2">
 													<RiArrowUpSLine
 														className={cn(
 															"size-4 text-gray-800",
-															header.column.getIsSorted() === "desc"
-																? "opacity-30"
-																: "",
+															header.column.getIsSorted() === "desc" ? "opacity-30" : "",
 														)}
 														aria-hidden={true}
 													/>
 													<RiArrowDownSLine
 														className={cn(
 															"size-4 text-gray-800",
-															header.column.getIsSorted() === "asc"
-																? "opacity-30"
-																: "",
+															header.column.getIsSorted() === "asc" ? "opacity-30" : "",
 														)}
 														aria-hidden={true}
 													/>
@@ -236,14 +213,10 @@ function PatientsTableContent({
 											className={cn(
 												"h-14 border-b border-gray-200 px-3 py-0 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
 												row.getIsSelected() ? "bg-gray-100" : "bg-white",
-												rowPosition === table.getRowModel().rows.length - 1 &&
-													"border-b-0",
+												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 											)}
 										>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
+											{flexRender(cell.column.columnDef.cell, cell.getContext())}
 										</TableCell>
 									))}
 								</TableRow>
@@ -263,11 +236,7 @@ function PatientsTableContent({
 				<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
-						<Select
-							value={limit.toString()}
-							onValueChange={onLimitChange}
-							disabled={isPending}
-						>
+						<Select value={limit.toString()} onValueChange={onLimitChange} disabled={isPending}>
 							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
@@ -333,62 +302,58 @@ function PatientBulkActionBar({
 	onTransferPatients: (patients: PatientListItemType[]) => void;
 }) {
 	const selectedPatientCount = selectedPatients.length;
-	const singleSelectedPatient =
-		selectedPatientCount === 1 ? selectedPatients[0] : undefined;
+	const singleSelectedPatient = selectedPatientCount === 1 ? selectedPatients[0] : undefined;
 
 	if (selectedPatientCount === 0) {
 		return null;
 	}
 
 	return (
-		<div className="no-scrollbar fixed right-4 bottom-6 left-4 z-50 flex items-center gap-4 overflow-x-auto rounded-xl border border-white/20 bg-gray-800 px-4 py-2 text-white shadow-[0_1rem_2.5rem_rgba(15,23,42,0.35)] ring ring-gray-800 sm:right-auto sm:left-1/2 sm:w-max sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2">
+		<div className="no-scrollbar fixed right-4 bottom-6 left-4 z-50 flex items-center gap-4 overflow-x-auto rounded-xl border border-white/20 bg-gray-800 pl-4 pr-2 h-12 text-white shadow-[0_1rem_2.5rem_rgba(15,23,42,0.35)] ring ring-gray-800 sm:right-auto sm:left-1/2 sm:w-max sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2">
 			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
-				{selectedPatientCount} {selectedPatientCount === 1 ? "item" : "items"}{" "}
-				selected
+				{selectedPatientCount} {selectedPatientCount === 1 ? "item" : "items"} selected
 			</span>
 			<TableBulkActionSeparator />
-			{singleSelectedPatient ? (
-				<>
-					<button
-						type="button"
-						onClick={() => onViewPatient(singleSelectedPatient)}
-						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-					>
-						<RiEyeLine className="size-5" aria-hidden={true} />
-						<span>View patient</span>
-					</button>
-					<TableBulkActionSeparator />
-				</>
-			) : null}
-			<button
-				type="button"
-				className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-			>
-				<RiShare2Line className="size-5" aria-hidden={true} />
-				<span>Export</span>
-			</button>
-			<button
-				type="button"
-				onClick={() => onTransferPatients(selectedPatients)}
-				className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-			>
-				<RiShareBoxLine className="size-5" aria-hidden={true} />
-				<span>
-					Transfer {selectedPatientCount === 1 ? "patient" : "patients"}
-				</span>
-			</button>
-			<TableBulkActionSeparator />
-			<button
-				type="button"
-				className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-			>
-				<RiArchiveLine className="size-5" aria-hidden={true} />
-				<span>Archive</span>
-			</button>
+			<div className="flex items-center">
+				{singleSelectedPatient ? (
+					<>
+						<button
+							type="button"
+							onClick={() => onViewPatient(singleSelectedPatient)}
+							className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+						>
+							<RiEyeLine className="size-5" aria-hidden={true} />
+							<span>View patient</span>
+						</button>
+					</>
+				) : null}
+				<button
+					type="button"
+					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				>
+					<RiShare2Line className="size-5" aria-hidden={true} />
+					<span>Export {selectedPatientCount > 1 ? "all" : null}</span>
+				</button>
+				<button
+					type="button"
+					onClick={() => onTransferPatients(selectedPatients)}
+					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				>
+					<RiShareBoxLine className="size-5" aria-hidden={true} />
+					<span>Transfer {selectedPatientCount === 1 ? "" : "patients"}</span>
+				</button>
+				<button
+					type="button"
+					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				>
+					<RiArchiveLine className="size-5" aria-hidden={true} />
+					<span>Archive {selectedPatientCount > 1 ? "all" : null}</span>
+				</button>
+			</div>
 			<button
 				type="button"
 				onClick={onClearSelection}
-				className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected patients"
 			>
 				<RiCloseLine className="size-5" aria-hidden={true} />
@@ -437,10 +402,7 @@ function getPatientsColumns(
 			accessorKey: "name",
 			enableSorting: true,
 			cell: ({ row }) => (
-				<div
-					className="flex items-center gap-3 w-max"
-					onClick={(e) => e.stopPropagation()}
-				>
+				<div className="flex items-center gap-3 w-max" onClick={(e) => e.stopPropagation()}>
 					<Avatar className="size-9 border border-gray-200 bg-gray-100 text-gray-700">
 						<AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
 							{getInitials(row.original.name)}
@@ -454,9 +416,7 @@ function getPatientsColumns(
 			header: "Patient ID",
 			accessorKey: "patientId",
 			enableSorting: false,
-			cell: ({ row }) => (
-				<CopyIdButton id={row.original.patientId} className="min-w-0" />
-			),
+			cell: ({ row }) => <CopyIdButton id={row.original.patientId} className="min-w-0" />,
 		},
 		{
 			header: "Gender",
@@ -540,12 +500,10 @@ function getPatientsColumns(
 								}
 								className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 							>
-								<RiShareBoxLine className="text-white" />{" "}
-								<span> Transfer patient</span>
+								<RiShareBoxLine className="text-white" /> <span> Transfer patient</span>
 							</DropdownMenuItem>
 							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-								<RiShare2Line className="text-white" />{" "}
-								<span> Export record</span>
+								<RiShare2Line className="text-white" /> <span> Export record</span>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator className="bg-white/20" />
 							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">

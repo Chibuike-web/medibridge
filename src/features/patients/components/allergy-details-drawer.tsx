@@ -23,10 +23,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type {
-	AllergyDetailsHistoryEvent,
-	AllergyDetailsType,
-} from "@/features/patients/types";
+import type { AllergyDetailsHistoryEvent, AllergyDetailsType } from "@/features/patients/types";
 import {
 	AttachmentFormFields,
 	type AttachmentFormRow,
@@ -58,12 +55,6 @@ export function AllergyDetailsDrawer({
 	isLoading,
 }: AllergyDetailsDrawerProps) {
 	const [allergyDetailsMode, setAllergyDetailsMode] = useState<"view" | "edit">("view");
-	const [previousAllergyId, setPreviousAllergyId] = useState(allergy?.allergyId ?? "");
-
-	if ((allergy?.allergyId ?? "") !== previousAllergyId) {
-		setPreviousAllergyId(allergy?.allergyId ?? "");
-		setAllergyDetailsMode("view");
-	}
 
 	function handleAllergyDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
@@ -241,94 +232,96 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-allergy-allergen" className={allergyDetailsFieldLabelClassName}>
-						Allergen<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-allergy-allergen"
-						name="allergen"
-						defaultValue={allergy.allergen}
-						className={allergyDetailsFieldControlClassName}
-					/>
-				</div>
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label htmlFor="edit-allergy-allergen" className={allergyDetailsFieldLabelClassName}>
+							Allergen<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-allergy-allergen"
+							name="allergen"
+							defaultValue={allergy.allergen}
+							className={allergyDetailsFieldControlClassName}
+						/>
+					</div>
 
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-allergy-severity" className={allergyDetailsFieldLabelClassName}>
-						Severity<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Select defaultValue={allergy.severity.toLowerCase()}>
-						<SelectTrigger
-							id="edit-allergy-severity"
-							className={`${allergyDetailsFieldControlClassName} w-full`}
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-allergy-severity" className={allergyDetailsFieldLabelClassName}>
+							Severity<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Select defaultValue={allergy.severity.toLowerCase()}>
+							<SelectTrigger
+								id="edit-allergy-severity"
+								className={`${allergyDetailsFieldControlClassName} w-full`}
+							>
+								<SelectValue placeholder="Select severity" />
+							</SelectTrigger>
+							<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectGroup>
+									<SelectItem value="mild" className="rounded-md px-3 h-9">
+										Mild
+									</SelectItem>
+									<SelectItem value="moderate" className="rounded-md px-3 h-9">
+										Moderate
+									</SelectItem>
+									<SelectItem value="severe" className="rounded-md px-3 h-9">
+										Severe
+									</SelectItem>
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-allergy-status" className={allergyDetailsFieldLabelClassName}>
+							Status<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Select defaultValue={allergy.status.toLowerCase()}>
+							<SelectTrigger
+								id="edit-allergy-status"
+								className={`${allergyDetailsFieldControlClassName} w-full`}
+							>
+								<SelectValue placeholder="Select status" />
+							</SelectTrigger>
+							<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectGroup>
+									<SelectItem value="active" className="rounded-md px-3 h-9">
+										Active
+									</SelectItem>
+									<SelectItem value="inactive" className="rounded-md px-3 h-9">
+										Inactive
+									</SelectItem>
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
+
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label htmlFor="edit-allergy-reaction" className={allergyDetailsFieldLabelClassName}>
+							Reaction<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Textarea
+							id="edit-allergy-reaction"
+							name="reaction"
+							defaultValue={allergy.reaction}
+							className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label
+							htmlFor="edit-allergy-clinical-note"
+							className={allergyDetailsFieldLabelClassName}
 						>
-							<SelectValue placeholder="Select severity" />
-						</SelectTrigger>
-						<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
-							<SelectGroup>
-								<SelectItem value="mild" className="rounded-md px-3 h-9">
-									Mild
-								</SelectItem>
-								<SelectItem value="moderate" className="rounded-md px-3 h-9">
-									Moderate
-								</SelectItem>
-								<SelectItem value="severe" className="rounded-md px-3 h-9">
-									Severe
-								</SelectItem>
-							</SelectGroup>
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-allergy-status" className={allergyDetailsFieldLabelClassName}>
-						Status<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Select defaultValue={allergy.status.toLowerCase()}>
-						<SelectTrigger
-							id="edit-allergy-status"
-							className={`${allergyDetailsFieldControlClassName} w-full`}
-						>
-							<SelectValue placeholder="Select status" />
-						</SelectTrigger>
-						<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
-							<SelectGroup>
-								<SelectItem value="active" className="rounded-md px-3 h-9">
-									Active
-								</SelectItem>
-								<SelectItem value="inactive" className="rounded-md px-3 h-9">
-									Inactive
-								</SelectItem>
-							</SelectGroup>
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-allergy-reaction" className={allergyDetailsFieldLabelClassName}>
-						Reaction<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Textarea
-						id="edit-allergy-reaction"
-						name="reaction"
-						defaultValue={allergy.reaction}
-						className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-allergy-clinical-note" className={allergyDetailsFieldLabelClassName}>
 							Clinical notes
-						<span className={allergyDetailsRequiredLabelClassName}>(optional)</span>
-					</Label>
-					<Textarea
-						id="edit-allergy-clinical-note"
-						name="clinicalNote"
-						defaultValue={allergy.clinicalNote}
-						className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
-					/>
-				</div>
-
+							<span className={allergyDetailsRequiredLabelClassName}>(optional)</span>
+						</Label>
+						<Textarea
+							id="edit-allergy-clinical-note"
+							name="clinicalNote"
+							defaultValue={allergy.clinicalNote}
+							className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -376,7 +369,11 @@ function AllergyDetailItem({ label, value }: { label: string; value: string }) {
 
 function AllergyHistorySection({ history }: { history: AllergyDetailsHistoryEvent[] }) {
 	return (
-		<div className="flex flex-col gap-6">
+		<div className="flex flex-col gap-[14px]">
+			<div className="flex items-center justify-between w-full">
+				<p className="text-[18px] font-semibold">History</p>
+				<button className="text-gray-400">View more</button>
+			</div>{" "}
 			{history.map((historyEvent) => (
 				<AllergyHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
 			))}
@@ -400,12 +397,12 @@ function AllergyHistoryCard({ historyEvent }: { historyEvent: AllergyDetailsHist
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<div className="flex flex-wrap items-center gap-1.5">
-					<span id={titleId} className="text-base font-semibold text-gray-800">
+				<p>
+					<span id={titleId} className="font-semibold text-gray-800">
 						{historyEvent.title}
-					</span>
-					<span className="text-sm text-gray-400">{historyEvent.timestamp}</span>
-				</div>
+					</span>{" "}
+					<span className="text-sm text-gray-400"> on {historyEvent.timestamp}</span>
+				</p>
 				<RiArrowDownSLine
 					className={cn(
 						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",

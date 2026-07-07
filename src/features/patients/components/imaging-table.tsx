@@ -648,6 +648,7 @@ function ImagingDateFilterContent({
 
 			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
 				<ImagingCustomRangeCalendarPanel
+					key={`${from}:${to}`}
 					from={from}
 					to={to}
 					isPending={isPending}
@@ -701,18 +702,9 @@ function ImagingCustomRangeCalendarPanel({
 	onDateRangeApply: (from: string, to: string) => void;
 }) {
 	const selectedImagingDateRange = getDateRangeFromParams(from, to);
-	const selectedImagingDateRangeKey = getDateRangeKey(selectedImagingDateRange);
 	const [draftImagingDateRange, setDraftImagingDateRange] = useState<DateRange | undefined>(
 		selectedImagingDateRange,
 	);
-	const [previousSelectedImagingDateRangeKey, setPreviousSelectedImagingDateRangeKey] = useState(
-		selectedImagingDateRangeKey,
-	);
-
-	if (selectedImagingDateRangeKey !== previousSelectedImagingDateRangeKey) {
-		setPreviousSelectedImagingDateRangeKey(selectedImagingDateRangeKey);
-		setDraftImagingDateRange(selectedImagingDateRange);
-	}
 
 	return (
 		<div className="flex min-w-0 flex-col">
@@ -838,9 +830,6 @@ function getDateRangeFromParams(from: string, to: string): DateRange | undefined
 	};
 }
 
-function getDateRangeKey(dateRange?: DateRange) {
-	return `${dateRange?.from?.toISOString() ?? ""}:${dateRange?.to?.toISOString() ?? ""}`;
-}
 
 function isSameDateRange(left?: DateRange, right?: DateRange) {
 	if (!left?.from || !left?.to || !right?.from || !right?.to) {

@@ -615,6 +615,7 @@ function LabTestDateFilterContent({
 
 			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
 				<LabTestCustomRangeCalendarPanel
+					key={`${from}:${to}`}
 					from={from}
 					to={to}
 					isPending={isPending}
@@ -668,17 +669,9 @@ function LabTestCustomRangeCalendarPanel({
 	onDateRangeApply: (from: string, to: string) => void;
 }) {
 	const selectedTestDateRange = getDateRangeFromParams(from, to);
-	const selectedTestDateRangeKey = getDateRangeKey(selectedTestDateRange);
 	const [draftLabTestDateRange, setDraftLabTestDateRange] = useState<DateRange | undefined>(
 		selectedTestDateRange,
 	);
-	const [previousSelectedLabTestDateRangeKey, setPreviousSelectedLabTestDateRangeKey] =
-		useState(selectedTestDateRangeKey);
-
-	if (selectedTestDateRangeKey !== previousSelectedLabTestDateRangeKey) {
-		setPreviousSelectedLabTestDateRangeKey(selectedTestDateRangeKey);
-		setDraftLabTestDateRange(selectedTestDateRange);
-	}
 
 	return (
 		<div className="flex min-w-0 flex-col">
@@ -799,9 +792,6 @@ function getDateRangeFromParams(from: string, to: string): DateRange | undefined
 	return { from: parsedFromDate, to: parsedToDate };
 }
 
-function getDateRangeKey(range?: DateRange) {
-	return `${range?.from ? formatUrlDate(range.from) : ""}:${range?.to ? formatUrlDate(range.to) : ""}`;
-}
 
 function isSameDateRange(range: DateRange | undefined, presetRange: LabTestDateCompleteRange) {
 	if (!range?.from || !range.to) return false;

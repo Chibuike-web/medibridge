@@ -66,12 +66,6 @@ export function DiagnosisDetailsDrawer({
 	isLoading,
 }: DiagnosisDetailsDrawerProps) {
 	const [diagnosisDetailsMode, setDiagnosisDetailsMode] = useState<"view" | "edit">("view");
-	const [previousDiagnosisId, setPreviousDiagnosisId] = useState(diagnosis?.diagnosisId ?? "");
-
-	if ((diagnosis?.diagnosisId ?? "") !== previousDiagnosisId) {
-		setPreviousDiagnosisId(diagnosis?.diagnosisId ?? "");
-		setDiagnosisDetailsMode("view");
-	}
 
 	function handleDiagnosisDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
@@ -106,7 +100,7 @@ export function DiagnosisDetailsDrawer({
 					) : isEditingDiagnosisDetails && diagnosis ? (
 						<DiagnosisDetailsEditForm diagnosis={diagnosis} />
 					) : diagnosis ? (
-						<div className="flex flex-col gap-10">
+						<div className="flex flex-col gap-12">
 							<DiagnosisDetailsOverview
 								diagnosis={diagnosis}
 								onEditDiagnosisDetails={() => setDiagnosisDetailsMode("edit")}
@@ -179,25 +173,25 @@ function DiagnosisDetailsOverview({
 						</>
 					) : null}
 				</div>
+			</div>
+
+			<div className="flex flex-col gap-6">
+				<div className="flex flex-wrap items-center justify-between gap-4">
+					<div className="flex items-center gap-3">
+						<h2 className="text-xl font-semibold text-gray-800">{diagnosis.name}</h2>
+						<StatusBadge status={diagnosis.status} />
+					</div>
+					<button
+						type="button"
+						onClick={onEditDiagnosisDetails}
+						className="inline-flex items-center gap-2 text-sm font-medium text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+					>
+						<RiEditLine className="size-4" aria-hidden="true" />
+						Edit
+					</button>
 				</div>
 
-				<div className="flex flex-col gap-6">
-					<div className="flex flex-wrap items-center justify-between gap-4">
-						<div className="flex items-center gap-3">
-							<h2 className="text-xl font-semibold text-gray-800">{diagnosis.name}</h2>
-							<StatusBadge status={diagnosis.status} />
-						</div>
-						<button
-							type="button"
-							onClick={onEditDiagnosisDetails}
-							className="inline-flex items-center gap-2 text-sm font-medium text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
-						>
-							<RiEditLine className="size-4" aria-hidden="true" />
-							Edit
-						</button>
-					</div>
-
-					<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
 					<DiagnosisDetailItem label="Severity/Stage" value={diagnosis.severityStage} />
 					<DiagnosisDetailItem label="Diagnosed at" value={diagnosis.diagnosedAt} />
 					<DiagnosisDetailItem label="Created at" value={diagnosis.createdAt} />
@@ -214,8 +208,8 @@ function DiagnosisDetailsOverview({
 
 function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsType }) {
 	const generatedAttachmentRowId = useId();
-	const [diagnosisAttachmentRows, setDiagnosisAttachmentRows] = useState<AttachmentFormRow[]>(
-		() => getDiagnosisAttachmentRows(diagnosis),
+	const [diagnosisAttachmentRows, setDiagnosisAttachmentRows] = useState<AttachmentFormRow[]>(() =>
+		getDiagnosisAttachmentRows(diagnosis),
 	);
 
 	function handleAddDiagnosisAttachmentRow() {
@@ -266,7 +260,10 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 					</div>
 
 					<div className="flex flex-col gap-2">
-						<Label htmlFor="edit-diagnosis-severity" className={diagnosisDetailsFieldLabelClassName}>
+						<Label
+							htmlFor="edit-diagnosis-severity"
+							className={diagnosisDetailsFieldLabelClassName}
+						>
 							Severity/Stage
 							<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
@@ -349,7 +346,10 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 					</div>
 
 					<div className="flex flex-col gap-2">
-						<Label htmlFor="edit-diagnosis-diagnosed-by" className={diagnosisDetailsFieldLabelClassName}>
+						<Label
+							htmlFor="edit-diagnosis-diagnosed-by"
+							className={diagnosisDetailsFieldLabelClassName}
+						>
 							Diagnosed by
 							<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
@@ -362,7 +362,10 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 					</div>
 
 					<div className="flex flex-col gap-2 sm:col-span-2">
-						<Label htmlFor="edit-diagnosis-clinical-note" className={diagnosisDetailsFieldLabelClassName}>
+						<Label
+							htmlFor="edit-diagnosis-clinical-note"
+							className={diagnosisDetailsFieldLabelClassName}
+						>
 							Clinical notes
 							<span className={diagnosisDetailsRequiredLabelClassName}>(optional)</span>
 						</Label>
@@ -449,10 +452,16 @@ function DiagnosisDetailItem({ label, value }: { label: string; value: string })
 
 function DiagnosisHistorySection({ history }: { history: DiagnosisDetailsHistoryEvent[] }) {
 	return (
-		<div className="flex flex-col gap-6">
-			{history.map((historyEvent) => (
-				<DiagnosisHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
-			))}
+		<div className="flex flex-col gap-[14px]">
+			<div className="flex items-center justify-between w-full">
+				<p className="text-[18px] font-semibold">History</p>
+				<button className="text-gray-400">View more</button>
+			</div>
+			<div className="flex flex-col gap-4">
+				{history.map((historyEvent) => (
+					<DiagnosisHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
+				))}
+			</div>
 		</div>
 	);
 }
@@ -473,12 +482,12 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<div className="flex flex-wrap items-center gap-1.5">
-					<span id={titleId} className="text-base font-semibold text-gray-800">
-						{historyEvent.title}
+				<p className="text-base">
+					<span id={titleId} className="font-semibold text-gray-800">
+						{historyEvent.title}{" "}
 					</span>
-					<span className="text-sm text-gray-400">{historyEvent.timestamp}</span>
-				</div>
+					<span className="text-gray-400">on {historyEvent.timestamp}</span>
+				</p>
 				<RiArrowDownSLine
 					className={cn(
 						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
@@ -540,14 +549,20 @@ function DiagnosisRelatedRecords({
 	}
 
 	return (
-		<div className="flex flex-col gap-4">
-			{sections.map((section) => (
-				<DiagnosisRelatedRecordSection
-					key={section.title}
-					title={section.title}
-					records={section.records}
-				/>
-			))}
+		<div className="flex flex-col gap-[14px]">
+			<div className="flex items-center justify-between w-full">
+				<p className="text-[18px] font-semibold">Related records</p>
+				<button className="text-gray-400">View more</button>
+			</div>{" "}
+			<div className="flex flex-col gap-4">
+				{sections.map((section) => (
+					<DiagnosisRelatedRecordSection
+						key={section.title}
+						title={section.title}
+						records={section.records}
+					/>
+				))}
+			</div>
 		</div>
 	);
 }
@@ -608,7 +623,7 @@ function DiagnosisRelatedRecordSection({
 									key={record.id}
 									className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
 								>
-									<div className="flex min-w-0 flex-wrap items-center gap-2">
+									<div className="flex w-full items-center gap-2">
 										<span className="min-w-0 truncate font-semibold text-gray-600">
 											{record.name}
 										</span>

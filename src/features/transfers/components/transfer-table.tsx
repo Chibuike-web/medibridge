@@ -90,12 +90,8 @@ export function TransferTable({
 		() => data.map((transfer) => transfer.id).join(","),
 		[data],
 	);
-	const [sorting, setSorting] = useState<SortingState>([
-		{ id: "patientName", desc: false },
-	]);
-	const [selectedTransferId, setSelectedTransferId] = useState<string | null>(
-		null,
-	);
+	const [sorting, setSorting] = useState<SortingState>([{ id: "patientName", desc: false }]);
+	const [selectedTransferId, setSelectedTransferId] = useState<string | null>(null);
 	const transferDetailsQuery = useSWR(
 		selectedTransferId ? (["transfer-details", selectedTransferId] as const) : null,
 		([, selectedTransferId]) => fetchTransferDetails(selectedTransferId),
@@ -167,8 +163,7 @@ function TransferTableContent({
 	onLimitChange: (value: string) => void;
 	onViewTransferDetails: (transferId: string) => void;
 }) {
-	const [selectedTransferRows, setSelectedTransferRows] =
-		useState<RowSelectionState>({});
+	const [selectedTransferRows, setSelectedTransferRows] = useState<RowSelectionState>({});
 	const table = useReactTable({
 		data,
 		columns,
@@ -184,9 +179,7 @@ function TransferTableContent({
 		},
 	});
 
-	const selectedTransfers = table
-		.getSelectedRowModel()
-		.rows.map((row) => row.original);
+	const selectedTransfers = table.getSelectedRowModel().rows.map((row) => row.original);
 
 	return (
 		<>
@@ -206,35 +199,26 @@ function TransferTableContent({
 										}}
 										className={cn(
 											"z-10 h-12 px-3 py-0 whitespace-nowrap text-gray-600 bg-gray-50",
-											header.column.getCanSort()
-												? "cursor-pointer select-none"
-												: "",
+											header.column.getCanSort() ? "cursor-pointer select-none" : "",
 										)}
 									>
 										<div className="flex items-center justify-between gap-3">
 											{header.isPlaceholder
 												? null
-												: flexRender(
-														header.column.columnDef.header,
-														header.getContext(),
-													)}
+												: flexRender(header.column.columnDef.header, header.getContext())}
 											{header.column.getCanSort() ? (
 												<div className="-space-y-2">
 													<RiArrowUpSLine
 														className={cn(
 															"size-4 text-gray-800",
-															header.column.getIsSorted() === "desc"
-																? "opacity-30"
-																: "",
+															header.column.getIsSorted() === "desc" ? "opacity-30" : "",
 														)}
 														aria-hidden={true}
 													/>
 													<RiArrowDownSLine
 														className={cn(
 															"size-4 text-gray-800",
-															header.column.getIsSorted() === "asc"
-																? "opacity-30"
-																: "",
+															header.column.getIsSorted() === "asc" ? "opacity-30" : "",
 														)}
 														aria-hidden={true}
 													/>
@@ -256,14 +240,10 @@ function TransferTableContent({
 											className={cn(
 												"h-14 border-b border-gray-200 px-3 py-0 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
 												row.getIsSelected() ? "bg-gray-100" : "bg-white",
-												rowPosition === table.getRowModel().rows.length - 1 &&
-													"border-b-0",
+												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 											)}
 										>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
+											{flexRender(cell.column.columnDef.cell, cell.getContext())}
 										</TableCell>
 									))}
 								</TableRow>
@@ -283,11 +263,7 @@ function TransferTableContent({
 				<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
-						<Select
-							value={limit.toString()}
-							onValueChange={onLimitChange}
-							disabled={isPending}
-						>
+						<Select value={limit.toString()} onValueChange={onLimitChange} disabled={isPending}>
 							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
@@ -350,52 +326,50 @@ function TransferBulkActionBar({
 	onViewTransferDetails: (transferId: string) => void;
 }) {
 	const selectedTransferCount = selectedTransfers.length;
-	const singleSelectedTransfer =
-		selectedTransferCount === 1 ? selectedTransfers[0] : undefined;
+	const singleSelectedTransfer = selectedTransferCount === 1 ? selectedTransfers[0] : undefined;
 
 	if (selectedTransferCount === 0) {
 		return null;
 	}
 
 	return (
-		<div className="no-scrollbar fixed right-4 bottom-6 left-4 z-50 flex items-center gap-4 overflow-x-auto rounded-xl border border-white/20 bg-gray-800 px-4 py-2 text-white shadow-[0_1rem_2.5rem_rgba(15,23,42,0.35)] ring ring-gray-800 sm:right-auto sm:left-1/2 sm:w-max sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2">
+		<div className="no-scrollbar fixed right-4 bottom-6 left-4 z-50 flex items-center gap-4 overflow-x-auto rounded-xl border border-white/20 bg-gray-800 pl-4 pr-2 h-12 text-white shadow-[0_1rem_2.5rem_rgba(15,23,42,0.35)] ring ring-gray-800 sm:right-auto sm:left-1/2 sm:w-max sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2">
 			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
-				{selectedTransferCount} {selectedTransferCount === 1 ? "item" : "items"}{" "}
-				selected
+				{selectedTransferCount} {selectedTransferCount === 1 ? "item" : "items"} selected
 			</span>
 			<TableBulkActionSeparator />
-			{singleSelectedTransfer ? (
-				<>
-					<button
-						type="button"
-						onClick={() => onViewTransferDetails(singleSelectedTransfer.id)}
-						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-					>
-						<RiEyeLine className="size-5" aria-hidden={true} />
-						<span>View transfer details</span>
-					</button>
-					<TableBulkActionSeparator />
-				</>
-			) : null}
-			<button
-				type="button"
-				className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-			>
-				<RiShare2Line className="size-5" aria-hidden={true} />
-				<span>Export</span>
-			</button>
-			<TableBulkActionSeparator />
-			<button
-				type="button"
-				className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-			>
-				<RiArchiveLine className="size-5" aria-hidden={true} />
-				<span>Archive</span>
-			</button>
+			<div className="flex items-center">
+				{singleSelectedTransfer ? (
+					<>
+						<button
+							type="button"
+							onClick={() => onViewTransferDetails(singleSelectedTransfer.id)}
+							className="inline-flex h89 shrink-0 items-center gap-2 rounded-lg px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+						>
+							<RiEyeLine className="size-5" aria-hidden={true} />
+							<span>View transfer details</span>
+						</button>
+					</>
+				) : null}
+				<button
+					type="button"
+					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				>
+					<RiShare2Line className="size-5" aria-hidden={true} />
+					<span>Export {selectedTransferCount > 1 ? "all" : null}</span>
+				</button>
+				<button
+					type="button"
+					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				>
+					<RiArchiveLine className="size-5" aria-hidden={true} />
+					<span>Archive {selectedTransferCount > 1 ? "all" : null}</span>
+				</button>
+			</div>
 			<button
 				type="button"
 				onClick={onClearSelection}
-				className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected transfers"
 			>
 				<RiCloseLine className="size-5" aria-hidden={true} />
@@ -443,9 +417,7 @@ function getTransferColumns(
 							{getInitials(row.original.patientName)}
 						</AvatarFallback>
 					</Avatar>
-					<span className="font-medium text-gray-800">
-						{row.original.patientName}
-					</span>
+					<span className="font-medium text-gray-800">{row.original.patientName}</span>
 				</div>
 			),
 		},
@@ -505,12 +477,10 @@ function getTransferColumns(
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-										<RiSendPlaneLine className="text-white" />{" "}
-										<span>Resend request</span>
+										<RiSendPlaneLine className="text-white" /> <span>Resend request</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-										<RiCloseLine className="text-white" />{" "}
-										<span>Cancel transfer</span>
+										<RiCloseLine className="text-white" /> <span>Cancel transfer</span>
 									</DropdownMenuItem>
 								</>
 							) : row.original.status.toLowerCase() === "rejected" ? (
@@ -530,8 +500,7 @@ function getTransferColumns(
 										}
 										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
-										<RiEdit2Line className="text-white" />{" "}
-										<span>Edit and resend request</span>
+										<RiEdit2Line className="text-white" /> <span>Edit and resend request</span>
 									</DropdownMenuItem>
 									<DropdownMenuSeparator className="bg-white/20" />
 									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
@@ -564,8 +533,7 @@ function getTransferColumns(
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-										<RiCornerDownLeftFill className="text-whte" />{" "}
-										<span>Retry transfer</span>
+										<RiCornerDownLeftFill className="text-whte" /> <span>Retry transfer</span>
 									</DropdownMenuItem>
 									<DropdownMenuSeparator className="bg-white/20" />
 									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
@@ -590,8 +558,7 @@ function getTransferColumns(
 											)
 										}
 									>
-										<RiAddLine className="text-whte" />{" "}
-										<span>Start new transfer</span>
+										<RiAddLine className="text-whte" /> <span>Start new transfer</span>
 									</DropdownMenuItem>
 									<DropdownMenuSeparator className="bg-white/20" />
 									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">

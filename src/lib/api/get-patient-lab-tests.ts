@@ -148,33 +148,78 @@ export async function getPatientLabTestsForOrganization(
 	]);
 
 	return {
-			totalLabTests: countRows[0]?.value ?? 0,
-			labTests: rows.map((labTest) => ({
+		totalLabTests: countRows[0]?.value ?? 0,
+		labTests: rows.map((labTest) => {
+			const status = normalizeStatus(labTest.status);
+			const result = labTest.result ?? "";
+			const specimen = labTest.specimen ?? "";
+			const referenceRange = labTest.referenceRange ?? "-";
+			const interpretation = labTest.interpretation ?? "-";
+			const flag = labTest.flag ?? "";
+			const orderedAtLabel = labTest.orderedAt ? formatDateTime(labTest.orderedAt) : "-";
+			const orderedBy = labTest.orderedBy ?? "";
+			const createdAtLabel = formatDateTime(labTest.createdAt);
+			const updatedAtLabel = formatDateTime(labTest.updatedAt);
+			const updatedBy = labTest.updatedBy ?? "";
+			const clinicalNote = labTest.clinicalNote ?? "";
+
+			return {
 				test: formatTestName(labTest.testName, labTest.result),
 				testName: labTest.testName,
 				labId: labTest.labId,
 				encounterId: labTest.encounterId,
-				result: labTest.result ?? "",
-				specimen: labTest.specimen ?? "",
-				referenceRange: labTest.referenceRange ?? "-",
-				interpretation: labTest.interpretation ?? "-",
-				flag: labTest.flag ?? "",
+				result,
+				specimen,
+				referenceRange,
+				interpretation,
+				flag,
 				orderedAtValue: labTest.orderedAt?.toISOString() ?? "",
-				orderedAtLabel: labTest.orderedAt ? formatDateTime(labTest.orderedAt) : "-",
+				orderedAtLabel,
 				orderedAtSortValue: toSortValue(labTest.orderedAt),
-				orderedBy: labTest.orderedBy ?? "",
-				createdAtLabel: formatDateTime(labTest.createdAt),
+				orderedBy,
+				createdAtLabel,
 				createdAtSortValue: toSortValue(labTest.createdAt),
-				updatedAtLabel: formatDateTime(labTest.updatedAt),
+				updatedAtLabel,
 				updatedAtSortValue: toSortValue(labTest.updatedAt),
 				createdBy: labTest.createdBy ?? "",
-				updatedBy: labTest.updatedBy ?? "",
-				status: normalizeStatus(labTest.status),
-				clinicalNote: labTest.clinicalNote ?? "",
+				updatedBy,
+				status,
+				clinicalNote,
 				fileName: labTest.fileName ?? "",
 				fileUrl: labTest.fileUrl ?? "",
 				fileSize: labTest.fileSize ?? "",
 				fileType: labTest.fileType ?? "",
-			})),
-		};
-	}
+				history: [
+					{
+						id: `${labTest.labId}-updated`,
+						title: "Updated",
+						timestamp: updatedAtLabel,
+						items: [
+							{ label: "Flag", value: flag || interpretation },
+							{ label: "Interpretation", value: interpretation },
+							{ label: "Result", value: result },
+							{ label: "Status", value: status },
+							{ label: "Updated by", value: updatedBy || orderedBy },
+							{ label: "Clinical notes", value: clinicalNote },
+						],
+					},
+					{
+						id: `${labTest.labId}-created`,
+						title: "Created",
+						timestamp: createdAtLabel,
+						items: [
+							{ label: "Status", value: "Pending" },
+							{ label: "Specimen", value: specimen },
+							{ label: "Reference Range", value: referenceRange },
+							{ label: "Ordered at", value: orderedAtLabel },
+							{ label: "Ordered by", value: orderedBy },
+							{ label: "Result", value: "" },
+							{ label: "Interpretation", value: "" },
+							{ label: "Flag", value: "" },
+						],
+					},
+				],
+			};
+		}),
+	};
+}

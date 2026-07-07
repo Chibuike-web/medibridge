@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
@@ -17,12 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-	Select,
-	SelectContent,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
 	AttachmentFormFields,
@@ -32,8 +26,7 @@ import {
 	ImagingModalityOptions,
 	ImagingStatusOptions,
 } from "@/features/patients/components/create-imaging-drawer";
-import type { ImagingType } from "@/features/patients/types";
-import pdfFileFormat from "@/assets/file-formats/pdf.svg";
+import type { ImagingDetailsHistoryEvent, ImagingType } from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
 import {
 	RiAddLine,
@@ -50,12 +43,6 @@ type ImagingDetailsDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	imaging: ImagingType | null;
-};
-
-type ImagingHistoryItem = {
-	label: string;
-	value: string;
-	type?: "status";
 };
 
 const imagingDetailsFieldLabelClassName =
@@ -87,27 +74,30 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 					<DrawerClose aria-label="Close imaging details drawer">
 						<RiCloseLine className="size-6" aria-hidden="true" />
 					</DrawerClose>
-					<DrawerDescription className="sr-only">
-						{isEditingImagingDetails
-							? "Edit the selected imaging details."
-							: "Showing details for the imaging study you selected."}
-					</DrawerDescription>
-				</DrawerHeader>
+						<DrawerDescription className="sr-only">
+							{isEditingImagingDetails
+								? "Edit the selected imaging details."
+								: "Showing details for the imaging study you selected."}
+						</DrawerDescription>
+					</DrawerHeader>
 
-				<div className="min-h-0 overflow-y-auto px-6 py-8 text-sm">
-					{isEditingImagingDetails && imaging ? (
-						<ImagingDetailsEditForm imaging={imaging} />
-					) : imaging ? (
-						<ImagingDetailsView
-							imaging={imaging}
-							onEditImagingDetails={() => setImagingDetailsMode("edit")}
-						/>
-					) : (
-						<div className="rounded-2xl border border-gray-200 p-5 text-gray-500">
-							Imaging details could not be found.
-						</div>
-					)}
-				</div>
+					<div className="min-h-0 overflow-y-auto px-6 py-8 text-sm">
+						{isEditingImagingDetails && imaging ? (
+							<ImagingDetailsEditForm imaging={imaging} />
+						) : imaging ? (
+							<div className="flex flex-col gap-10">
+								<ImagingDetailsOverview
+									imaging={imaging}
+									onEditImagingDetails={() => setImagingDetailsMode("edit")}
+								/>
+								<ImagingHistorySection history={imaging.history} />
+							</div>
+						) : (
+							<div className="rounded-2xl border border-gray-200 p-5 text-gray-500">
+								Imaging details could not be found.
+							</div>
+						)}
+					</div>
 
 				<DrawerFooter className="border-t border-gray-200 px-6 py-5 text-sm">
 					{isEditingImagingDetails ? (
@@ -146,15 +136,13 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 	);
 }
 
-function ImagingDetailsView({
+function ImagingDetailsOverview({
 	imaging,
 	onEditImagingDetails,
 }: {
 	imaging: ImagingType;
 	onEditImagingDetails: () => void;
 }) {
-	const hasImagingFile = Boolean(imaging.fileName);
-
 	return (
 		<div className="flex flex-col gap-10">
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
@@ -199,42 +187,6 @@ function ImagingDetailsView({
 					<ImagingDetailItem label="Clinical notes" value={imaging.clinicalNote} />
 				</div>
 			</div>
-
-			<div className="flex flex-col gap-6">
-				<ImagingHistoryCard
-					title="Updated"
-					timestamp={imaging.updatedAtLabel}
-					items={[
-						{ label: "Impression", value: imaging.impression },
-						{ label: "Status", value: imaging.status, type: "status" },
-						{ label: "Reported by", value: imaging.reportedBy },
-						{ label: "Clinical notes", value: imaging.clinicalNote },
-					]}
-					file={hasImagingFile ? imaging : null}
-				/>
-
-				<ImagingHistoryCard
-					title="Created"
-					timestamp={imaging.createdAtLabel}
-					items={[
-						{ label: "Status", value: "Pending", type: "status" },
-						{ label: "Region", value: imaging.region },
-						{ label: "Modality", value: imaging.modality },
-						{ label: "Ordered by", value: imaging.orderedBy },
-						{ label: "Ordered at", value: imaging.orderedAtLabel },
-						{ label: "Created by", value: imaging.createdBy },
-					]}
-				/>
-
-				{hasImagingFile ? (
-					<ImagingHistoryCard
-						title="Imaging Files"
-						timestamp={imaging.updatedAtLabel}
-						items={[]}
-						file={imaging}
-					/>
-				) : null}
-			</div>
 		</div>
 	);
 }
@@ -243,22 +195,30 @@ function ImagingDetailItem({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex flex-col gap-2">
 			<span className="text-gray-400">{label}</span>
-			<span className="font-semibold text-gray-600">{value || "-"}</span>
+			{label === "Status" ? (
+				<StatusBadge status={value || "Pending"} className="w-max" />
+			) : (
+				<span className="font-semibold text-gray-600">{value || "-"}</span>
+			)}
 		</div>
 	);
 }
 
-function ImagingHistoryCard({
-	title,
-	timestamp,
-	items,
-	file,
-}: {
-	title: string;
-	timestamp: string;
-	items: ImagingHistoryItem[];
-	file?: ImagingType | null;
-}) {
+function ImagingHistorySection({ history }: { history: ImagingDetailsHistoryEvent[] }) {
+	return (
+		<div className="flex flex-col gap-[14px]">
+			<div className="flex items-center justify-between w-full">
+				<p className="text-[18px] font-semibold">History</p>
+				<button className="text-gray-400">View more</button>
+			</div>
+			{history.map((historyEvent) => (
+				<ImagingHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
+			))}
+		</div>
+	);
+}
+
+function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHistoryEvent }) {
 	const [isImagingHistoryExpanded, setIsImagingHistoryExpanded] = useState(true);
 	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
@@ -274,12 +234,12 @@ function ImagingHistoryCard({
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<div className="flex flex-wrap items-center gap-1.5">
-					<span id={titleId} className="text-base font-semibold text-gray-800">
-						{title}
-					</span>
-					{timestamp ? <span className="text-gray-400">{timestamp}</span> : null}
-				</div>
+				<p>
+					<span id={titleId} className="font-semibold text-gray-800">
+						{historyEvent.title}
+					</span>{" "}
+					<span className="text-sm text-gray-400">on {historyEvent.timestamp}</span>
+				</p>
 				<RiArrowDownSLine
 					className={cn(
 						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
@@ -287,77 +247,41 @@ function ImagingHistoryCard({
 					)}
 					aria-hidden="true"
 				/>
-			</button>
-			<AnimatePresence initial={false}>
-				{isImagingHistoryExpanded ? (
-					<motion.div
-						id={panelId}
-						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						transition={
-							shouldReduceMotion
-								? { duration: 0.12 }
-								: {
-										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-										opacity: { duration: 0.16, ease: "easeOut" },
-									}
-						}
-						className="overflow-hidden"
-					>
-						<div aria-labelledby={titleId}>
-							{items.length > 0 ? (
-								<div className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2">
-									{items.map((item) => (
-										<ImagingHistoryDetailItem key={`${title}-${item.label}`} item={item} />
-									))}
-								</div>
-							) : null}
-
-							{file ? <ImagingFileCard imaging={file} className="mt-6" /> : null}
-						</div>
-					</motion.div>
-				) : null}
-			</AnimatePresence>
-		</section>
-	);
-}
-
-function ImagingHistoryDetailItem({ item }: { item: ImagingHistoryItem }) {
-	return (
-		<div className="flex flex-col gap-2">
-			<span className="text-gray-400">{item.label}</span>
-			{item.type === "status" ? (
-				<StatusBadge status={item.value || "Pending"} className="w-max" />
-			) : (
-				<span className="font-semibold text-gray-600">{item.value || "-"}</span>
-			)}
-		</div>
-	);
-}
-
-function ImagingFileCard({ imaging, className }: { imaging: ImagingType; className?: string }) {
-	return (
-		<div
-			className={`flex flex-col gap-4 rounded-2xl border border-gray-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between ${className ?? ""}`}
-		>
-			<div className="flex min-w-0 items-center gap-4">
-				<Image src={pdfFileFormat} alt="" width={40} height={40} className="shrink-0" />
-				<div className="min-w-0">
-					<p className="truncate font-semibold text-gray-800">{imaging.fileName}</p>
-					<p className="mt-1 text-sm text-gray-500">{imaging.fileSize || "120KB"}</p>
-				</div>
-			</div>
-			<div className="flex flex-col gap-3 sm:flex-row">
-				<Button type="button" variant="outline" className="text-sm">
-					Download
-				</Button>
-				<Button type="button" className="bg-gray-800 text-sm">
-					View Scan
-				</Button>
-			</div>
-		</div>
-	);
+				</button>
+				<AnimatePresence initial={false}>
+					{isImagingHistoryExpanded ? (
+						<motion.div
+							id={panelId}
+							initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+							animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+							exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+							transition={
+								shouldReduceMotion
+									? { duration: 0.12 }
+									: {
+											height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
+											opacity: { duration: 0.16, ease: "easeOut" },
+										}
+							}
+							className="overflow-hidden"
+						>
+							<div
+								aria-labelledby={titleId}
+								className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
+							>
+								{historyEvent.items.map((item) => (
+									<ImagingDetailItem
+										key={`${historyEvent.id}-${item.label}`}
+										label={item.label}
+										value={item.value}
+									/>
+								))}
+							</div>
+						</motion.div>
+					) : null}
+				</AnimatePresence>
+			</section>
+		);
 }
 
 function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
@@ -520,7 +444,10 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 				</div>
 
 				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-imaging-clinical-notes" className={imagingDetailsFieldLabelClassName}>
+					<Label
+						htmlFor="edit-imaging-clinical-notes"
+						className={imagingDetailsFieldLabelClassName}
+					>
 						Clinical notes<span className={imagingDetailsRequiredLabelClassName}>(optional)</span>
 					</Label>
 					<Textarea

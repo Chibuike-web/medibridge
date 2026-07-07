@@ -61,7 +61,9 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 	}
 
 	function handleRemoveAttachmentRow(attachmentRowId: string) {
-		setAttachmentRows((prev) => prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId));
+		setAttachmentRows((prev) =>
+			prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId),
+		);
 	}
 
 	return (
@@ -78,7 +80,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 				</DrawerHeader>
 
 				<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-6 py-8 text-sm">
-					<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-diagnosis-name`} className={fieldLabelClassName}>
 								Diagnosis name<span className={optionalLabelClassName}>(required)</span>
@@ -163,7 +165,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 										className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
 									>
 										{diagnosedAt ? format(diagnosedAt, "PPP") : "Select diagnosis date"}
-											<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
+										<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
 									</Button>
 								</PopoverTrigger>
 								<PopoverContent className="p-0">

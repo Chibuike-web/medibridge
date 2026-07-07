@@ -67,14 +67,6 @@ export function MedicationDetailsDrawer({
 	isLoading,
 }: MedicationDetailsDrawerProps) {
 	const [medicationDetailsMode, setMedicationDetailsMode] = useState<"view" | "edit">("view");
-	const [previousMedicationId, setPreviousMedicationId] = useState(
-		medication?.medicationId ?? "",
-	);
-
-	if ((medication?.medicationId ?? "") !== previousMedicationId) {
-		setPreviousMedicationId(medication?.medicationId ?? "");
-		setMedicationDetailsMode("view");
-	}
 
 	function handleMedicationDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
@@ -265,163 +257,181 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-medication-name" className={medicationDetailsFieldLabelClassName}>
-						Medication<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-medication-name"
-						name="medicationName"
-						defaultValue={medication.name}
-						className={medicationDetailsFieldControlClassName}
-					/>
-				</div>
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label htmlFor="edit-medication-name" className={medicationDetailsFieldLabelClassName}>
+							Medication<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-medication-name"
+							name="medicationName"
+							defaultValue={medication.name}
+							className={medicationDetailsFieldControlClassName}
+						/>
+					</div>
 
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-medication-indication" className={medicationDetailsFieldLabelClassName}>
-						Indication<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-medication-indication"
-						name="indication"
-						defaultValue={medication.indication}
-						className={medicationDetailsFieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-medication-status" className={medicationDetailsFieldLabelClassName}>
-						Status<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Select defaultValue={medication.status.toLowerCase()}>
-						<SelectTrigger
-							id="edit-medication-status"
-							className={`${medicationDetailsFieldControlClassName} w-full`}
+					<div className="flex flex-col gap-2">
+						<Label
+							htmlFor="edit-medication-indication"
+							className={medicationDetailsFieldLabelClassName}
 						>
-							<SelectValue placeholder="Select status" />
-						</SelectTrigger>
-						<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
-							<SelectGroup>
-								<SelectItem value="active" className="rounded-md px-3 h-9">
-									Active
-								</SelectItem>
-								<SelectItem value="completed" className="rounded-md px-3 h-9">
-									Completed
-								</SelectItem>
-								<SelectItem value="discontinued" className="rounded-md px-3 h-9">
-									Discontinued
-								</SelectItem>
-							</SelectGroup>
-						</SelectContent>
-					</Select>
-				</div>
+							Indication<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-medication-indication"
+							name="indication"
+							defaultValue={medication.indication}
+							className={medicationDetailsFieldControlClassName}
+						/>
+					</div>
 
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-medication-dose" className={medicationDetailsFieldLabelClassName}>
-						Dose<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-medication-dose"
-						name="dose"
-						defaultValue={medication.dose}
-						className={medicationDetailsFieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-medication-route" className={medicationDetailsFieldLabelClassName}>
-						Route<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Select defaultValue={medication.route.toLowerCase()}>
-						<SelectTrigger
-							id="edit-medication-route"
-							className={`${medicationDetailsFieldControlClassName} w-full`}
+					<div className="flex flex-col gap-2">
+						<Label
+							htmlFor="edit-medication-status"
+							className={medicationDetailsFieldLabelClassName}
 						>
-							<SelectValue placeholder="Select route" />
-						</SelectTrigger>
-						<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
-							<SelectGroup>
-								<SelectItem value="oral" className="rounded-md px-3 h-9">
-									Oral
-								</SelectItem>
-								<SelectItem value="iv" className="rounded-md px-3 h-9">
-									IV
-								</SelectItem>
-								<SelectItem value="inhalation" className="rounded-md px-3 h-9">
-									Inhalation
-								</SelectItem>
-							</SelectGroup>
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-medication-prescribed-by" className={medicationDetailsFieldLabelClassName}>
-						Prescribed by<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-medication-prescribed-by"
-						defaultValue={medication.prescribedBy}
-						className={medicationDetailsFieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-medication-frequency" className={medicationDetailsFieldLabelClassName}>
-						Frequency<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-medication-frequency"
-						defaultValue={medication.frequency}
-						className={medicationDetailsFieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-medication-duration" className={medicationDetailsFieldLabelClassName}>
-						Duration<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-medication-duration"
-						defaultValue={medication.duration}
-						className={medicationDetailsFieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label className={medicationDetailsFieldLabelClassName}>
-						Started at<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Popover>
-						<PopoverTrigger asChild>
-							<Button
-								type="button"
-								variant="outline"
-								data-empty={!startedAt && medication.startedAt === EMPTY_VALUE}
-								className={`${medicationDetailsFieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+							Status<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Select defaultValue={medication.status.toLowerCase()}>
+							<SelectTrigger
+								id="edit-medication-status"
+								className={`${medicationDetailsFieldControlClassName} w-full`}
 							>
-								{startedAt ? format(startedAt, "PPP") : medication.startedAt}
-								<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent className="p-0">
-							<Calendar mode="single" selected={startedAt} onSelect={setStartedAt} autoFocus />
-						</PopoverContent>
-					</Popover>
-				</div>
+								<SelectValue placeholder="Select status" />
+							</SelectTrigger>
+							<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectGroup>
+									<SelectItem value="active" className="rounded-md px-3 h-9">
+										Active
+									</SelectItem>
+									<SelectItem value="completed" className="rounded-md px-3 h-9">
+										Completed
+									</SelectItem>
+									<SelectItem value="discontinued" className="rounded-md px-3 h-9">
+										Discontinued
+									</SelectItem>
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
 
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-medication-clinical-note" className={medicationDetailsFieldLabelClassName}>
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-medication-dose" className={medicationDetailsFieldLabelClassName}>
+							Dose<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-medication-dose"
+							name="dose"
+							defaultValue={medication.dose}
+							className={medicationDetailsFieldControlClassName}
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-medication-route" className={medicationDetailsFieldLabelClassName}>
+							Route<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Select defaultValue={medication.route.toLowerCase()}>
+							<SelectTrigger
+								id="edit-medication-route"
+								className={`${medicationDetailsFieldControlClassName} w-full`}
+							>
+								<SelectValue placeholder="Select route" />
+							</SelectTrigger>
+							<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectGroup>
+									<SelectItem value="oral" className="rounded-md px-3 h-9">
+										Oral
+									</SelectItem>
+									<SelectItem value="iv" className="rounded-md px-3 h-9">
+										IV
+									</SelectItem>
+									<SelectItem value="inhalation" className="rounded-md px-3 h-9">
+										Inhalation
+									</SelectItem>
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label
+							htmlFor="edit-medication-prescribed-by"
+							className={medicationDetailsFieldLabelClassName}
+						>
+							Prescribed by
+							<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-medication-prescribed-by"
+							defaultValue={medication.prescribedBy}
+							className={medicationDetailsFieldControlClassName}
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label
+							htmlFor="edit-medication-frequency"
+							className={medicationDetailsFieldLabelClassName}
+						>
+							Frequency<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-medication-frequency"
+							defaultValue={medication.frequency}
+							className={medicationDetailsFieldControlClassName}
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label
+							htmlFor="edit-medication-duration"
+							className={medicationDetailsFieldLabelClassName}
+						>
+							Duration<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-medication-duration"
+							defaultValue={medication.duration}
+							className={medicationDetailsFieldControlClassName}
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label className={medicationDetailsFieldLabelClassName}>
+							Started at<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Popover>
+							<PopoverTrigger asChild>
+								<Button
+									type="button"
+									variant="outline"
+									data-empty={!startedAt && medication.startedAt === EMPTY_VALUE}
+									className={`${medicationDetailsFieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+								>
+									{startedAt ? format(startedAt, "PPP") : medication.startedAt}
+									<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
+								</Button>
+							</PopoverTrigger>
+							<PopoverContent className="p-0">
+								<Calendar mode="single" selected={startedAt} onSelect={setStartedAt} autoFocus />
+							</PopoverContent>
+						</Popover>
+					</div>
+
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label
+							htmlFor="edit-medication-clinical-note"
+							className={medicationDetailsFieldLabelClassName}
+						>
 							Clinical notes
-						<span className={medicationDetailsRequiredLabelClassName}>(optional)</span>
-					</Label>
-					<Textarea
-						id="edit-medication-clinical-note"
-						defaultValue={medication.clinicalNote}
-						className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
-					/>
-				</div>
-
+							<span className={medicationDetailsRequiredLabelClassName}>(optional)</span>
+						</Label>
+						<Textarea
+							id="edit-medication-clinical-note"
+							defaultValue={medication.clinicalNote}
+							className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -469,7 +479,11 @@ function MedicationDetailItem({ label, value }: { label: string; value: string }
 
 function MedicationHistorySection({ history }: { history: MedicationDetailsHistoryEvent[] }) {
 	return (
-		<div className="flex flex-col gap-4">
+		<div className="flex flex-col gap-[14px]">
+			<div className="flex items-center justify-between w-full">
+				<p className="text-[18px] font-semibold">History</p>
+				<button className="text-gray-400">View more</button>
+			</div>
 			{history.map((historyEvent) => (
 				<MedicationHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
 			))}
@@ -477,11 +491,7 @@ function MedicationHistorySection({ history }: { history: MedicationDetailsHisto
 	);
 }
 
-function MedicationHistoryCard({
-	historyEvent,
-}: {
-	historyEvent: MedicationDetailsHistoryEvent;
-}) {
+function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetailsHistoryEvent }) {
 	const [isMedicationHistoryExpanded, setIsMedicationHistoryExpanded] = useState(true);
 	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
@@ -497,12 +507,12 @@ function MedicationHistoryCard({
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<div className="flex flex-wrap items-center gap-1.5">
-					<span id={titleId} className="text-base font-semibold text-gray-800">
+				<p>
+					<span id={titleId} className="font-semibold text-gray-800">
 						{historyEvent.title}
-					</span>
-					<span className="text-sm text-gray-400">{historyEvent.timestamp}</span>
-				</div>
+					</span>{" "}
+					<span className="text-sm text-gray-400">on {historyEvent.timestamp}</span>
+				</p>
 				<RiArrowDownSLine
 					className={cn(
 						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",

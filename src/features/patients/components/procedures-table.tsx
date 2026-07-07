@@ -556,6 +556,7 @@ function ProcedureDateFilterContent({
 
 			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
 				<ProcedureCustomRangeCalendarPanel
+					key={`${from}:${to}`}
 					from={from}
 					to={to}
 					isPending={isPending}
@@ -625,17 +626,9 @@ function ProcedureCustomRangeCalendarPanel({
 	onDateRangeApply: (from: string, to: string) => void;
 }) {
 	const selectedProcedureDateRange = getDateRangeFromParams(from, to);
-	const selectedProcedureDateRangeKey = getDateRangeKey(selectedProcedureDateRange);
 	const [draftProcedureDateRange, setDraftProcedureDateRange] = useState<DateRange | undefined>(
 		selectedProcedureDateRange,
 	);
-	const [previousSelectedProcedureDateRangeKey, setPreviousSelectedProcedureDateRangeKey] =
-		useState(selectedProcedureDateRangeKey);
-
-	if (selectedProcedureDateRangeKey !== previousSelectedProcedureDateRangeKey) {
-		setPreviousSelectedProcedureDateRangeKey(selectedProcedureDateRangeKey);
-		setDraftProcedureDateRange(selectedProcedureDateRange);
-	}
 
 	return (
 		<div className="flex min-w-0 flex-col">
@@ -756,9 +749,6 @@ function getDateRangeFromParams(from: string, to: string): DateRange | undefined
 	return { from: parsedFromDate, to: parsedToDate };
 }
 
-function getDateRangeKey(range?: DateRange) {
-	return `${range?.from ? formatUrlDate(range.from) : ""}:${range?.to ? formatUrlDate(range.to) : ""}`;
-}
 
 function isSameDateRange(range: DateRange | undefined, presetRange: ProcedureDateCompleteRange) {
 	if (!range?.from || !range.to) return false;

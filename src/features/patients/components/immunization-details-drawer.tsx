@@ -30,12 +30,7 @@ import type {
 	ImmunizationDetailsType,
 } from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
-import {
-	RiArrowDownSLine,
-	RiCalendarLine,
-	RiCloseLine,
-	RiEditLine,
-} from "@remixicon/react";
+import { RiArrowDownSLine, RiCalendarLine, RiCloseLine, RiEditLine } from "@remixicon/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { format } from "date-fns";
 import { useId, useState } from "react";
@@ -61,17 +56,7 @@ export function ImmunizationDetailsDrawer({
 	immunization,
 	isLoading,
 }: ImmunizationDetailsDrawerProps) {
-	const [immunizationDetailsMode, setImmunizationDetailsMode] = useState<"view" | "edit">(
-		"view",
-	);
-	const [previousImmunizationId, setPreviousImmunizationId] = useState(
-		immunization?.immunizationId ?? "",
-	);
-
-	if ((immunization?.immunizationId ?? "") !== previousImmunizationId) {
-		setPreviousImmunizationId(immunization?.immunizationId ?? "");
-		setImmunizationDetailsMode("view");
-	}
+	const [immunizationDetailsMode, setImmunizationDetailsMode] = useState<"view" | "edit">("view");
 
 	function handleImmunizationDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
@@ -81,8 +66,7 @@ export function ImmunizationDetailsDrawer({
 		onOpenChange(nextOpen);
 	}
 
-	const isEditingImmunizationDetails =
-		immunizationDetailsMode === "edit" && Boolean(immunization);
+	const isEditingImmunizationDetails = immunizationDetailsMode === "edit" && Boolean(immunization);
 
 	return (
 		<Drawer open={open} onOpenChange={handleImmunizationDetailsOpenChange} direction="right">
@@ -201,10 +185,7 @@ function ImmunizationDetailsOverview({
 					<ImmunizationDetailItem label="Series Type" value={immunization.seriesType} />
 					<ImmunizationDetailItem label="Current dose" value={immunization.currentDose} />
 					<ImmunizationDetailItem label="Total Doses" value={immunization.totalDoses} />
-					<ImmunizationDetailItem
-						label="Date administered"
-						value={immunization.dateAdministered}
-					/>
+					<ImmunizationDetailItem label="Date administered" value={immunization.dateAdministered} />
 					<ImmunizationDetailItem label="Administered by" value={immunization.administeredBy} />
 					<ImmunizationDetailItem label="Created at" value={immunization.createdAt} />
 					<ImmunizationDetailItem label="Created by" value={immunization.createdBy} />
@@ -217,11 +198,7 @@ function ImmunizationDetailsOverview({
 	);
 }
 
-function ImmunizationDetailsEditForm({
-	immunization,
-}: {
-	immunization: ImmunizationDetailsType;
-}) {
+function ImmunizationDetailsEditForm({ immunization }: { immunization: ImmunizationDetailsType }) {
 	const [administeredAt, setAdministeredAt] = useState<Date | undefined>(() =>
 		parseImmunizationDisplayDate(immunization.dateAdministered),
 	);
@@ -243,165 +220,184 @@ function ImmunizationDetailsEditForm({
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-immunization-vaccine-name" className={immunizationDetailsFieldLabelClassName}>
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label
+							htmlFor="edit-immunization-vaccine-name"
+							className={immunizationDetailsFieldLabelClassName}
+						>
 							Vaccine name
-						<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-immunization-vaccine-name"
-						name="vaccineName"
-						defaultValue={immunization.vaccineName}
-						className={immunizationDetailsFieldControlClassName}
-					/>
-				</div>
+							<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-immunization-vaccine-name"
+							name="vaccineName"
+							defaultValue={immunization.vaccineName}
+							className={immunizationDetailsFieldControlClassName}
+						/>
+					</div>
 
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-immunization-series-type" className={immunizationDetailsFieldLabelClassName}>
+					<div className="flex flex-col gap-2">
+						<Label
+							htmlFor="edit-immunization-series-type"
+							className={immunizationDetailsFieldLabelClassName}
+						>
 							Series Type
-						<span className={immunizationDetailsRequiredLabelClassName}>(optional)</span>
-					</Label>
-					<Select defaultValue={getImmunizationSelectValue(immunization.seriesType)}>
-						<SelectTrigger
-							id="edit-immunization-series-type"
-							className={`${immunizationDetailsFieldControlClassName} w-full`}
-						>
-							<SelectValue placeholder="Select Series Type" />
-						</SelectTrigger>
-						<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
-							<SelectGroup>
-								<SelectItem value="primary" className="rounded-md px-3 h-9">
-									Primary
-								</SelectItem>
-								<SelectItem value="booster" className="rounded-md px-3 h-9">
-									Booster
-								</SelectItem>
-							</SelectGroup>
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-immunization-current-dose" className={immunizationDetailsFieldLabelClassName}>
-							Current dose
-						<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-immunization-current-dose"
-						name="currentDose"
-						defaultValue={immunization.currentDose}
-						className={immunizationDetailsFieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-immunization-total-dosage" className={immunizationDetailsFieldLabelClassName}>
-							Total Dosage
-						<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-immunization-total-dosage"
-						name="totalDosage"
-						defaultValue={immunization.totalDoses}
-						className={immunizationDetailsFieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-immunization-status" className={immunizationDetailsFieldLabelClassName}>
-						Status<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Select defaultValue={getImmunizationSelectValue(immunization.status)}>
-						<SelectTrigger
-							id="edit-immunization-status"
-							className={`${immunizationDetailsFieldControlClassName} w-full`}
-						>
-							<SelectValue placeholder="Select status" />
-						</SelectTrigger>
-						<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
-							<SelectGroup>
-								<SelectItem value="active" className="rounded-md px-3 h-9">
-									Active
-								</SelectItem>
-								<SelectItem value="completed" className="rounded-md px-3 h-9">
-									Completed
-								</SelectItem>
-								<SelectItem value="cancelled" className="rounded-md px-3 h-9">
-									Cancelled
-								</SelectItem>
-								<SelectItem value="discontinued" className="rounded-md px-3 h-9">
-									Discontinued
-								</SelectItem>
-							</SelectGroup>
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label className={immunizationDetailsFieldLabelClassName}>
-							Date administered
-						<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<input
-						type="hidden"
-						name="dateAdministered"
-						value={administeredAt ? format(administeredAt, "yyyy-MM-dd") : ""}
-					/>
-					<Popover>
-						<PopoverTrigger asChild>
-							<Button
-								type="button"
-								variant="outline"
-								data-empty={!administeredAt && !immunization.dateAdministered}
-								className={`${immunizationDetailsFieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+							<span className={immunizationDetailsRequiredLabelClassName}>(optional)</span>
+						</Label>
+						<Select defaultValue={getImmunizationSelectValue(immunization.seriesType)}>
+							<SelectTrigger
+								id="edit-immunization-series-type"
+								className={`${immunizationDetailsFieldControlClassName} w-full`}
 							>
-								{administeredAt
-									? format(administeredAt, "PPP")
-									: immunization.dateAdministered || "Select administration date"}
-								<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent className="p-0">
-							<Calendar
-								mode="single"
-								defaultMonth={administeredAt}
-								selected={administeredAt}
-								onSelect={setAdministeredAt}
-								autoFocus
-							/>
-						</PopoverContent>
-					</Popover>
-				</div>
+								<SelectValue placeholder="Select Series Type" />
+							</SelectTrigger>
+							<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectGroup>
+									<SelectItem value="primary" className="rounded-md px-3 h-9">
+										Primary
+									</SelectItem>
+									<SelectItem value="booster" className="rounded-md px-3 h-9">
+										Booster
+									</SelectItem>
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
 
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-immunization-administered-by" className={immunizationDetailsFieldLabelClassName}>
+					<div className="flex flex-col gap-2">
+						<Label
+							htmlFor="edit-immunization-current-dose"
+							className={immunizationDetailsFieldLabelClassName}
+						>
+							Current dose
+							<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-immunization-current-dose"
+							name="currentDose"
+							defaultValue={immunization.currentDose}
+							className={immunizationDetailsFieldControlClassName}
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label
+							htmlFor="edit-immunization-total-dosage"
+							className={immunizationDetailsFieldLabelClassName}
+						>
+							Total Dosage
+							<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-immunization-total-dosage"
+							name="totalDosage"
+							defaultValue={immunization.totalDoses}
+							className={immunizationDetailsFieldControlClassName}
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label
+							htmlFor="edit-immunization-status"
+							className={immunizationDetailsFieldLabelClassName}
+						>
+							Status<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Select defaultValue={getImmunizationSelectValue(immunization.status)}>
+							<SelectTrigger
+								id="edit-immunization-status"
+								className={`${immunizationDetailsFieldControlClassName} w-full`}
+							>
+								<SelectValue placeholder="Select status" />
+							</SelectTrigger>
+							<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectGroup>
+									<SelectItem value="active" className="rounded-md px-3 h-9">
+										Active
+									</SelectItem>
+									<SelectItem value="completed" className="rounded-md px-3 h-9">
+										Completed
+									</SelectItem>
+									<SelectItem value="cancelled" className="rounded-md px-3 h-9">
+										Cancelled
+									</SelectItem>
+									<SelectItem value="discontinued" className="rounded-md px-3 h-9">
+										Discontinued
+									</SelectItem>
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label className={immunizationDetailsFieldLabelClassName}>
+							Date administered
+							<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<input
+							type="hidden"
+							name="dateAdministered"
+							value={administeredAt ? format(administeredAt, "yyyy-MM-dd") : ""}
+						/>
+						<Popover>
+							<PopoverTrigger asChild>
+								<Button
+									type="button"
+									variant="outline"
+									data-empty={!administeredAt && !immunization.dateAdministered}
+									className={`${immunizationDetailsFieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+								>
+									{administeredAt
+										? format(administeredAt, "PPP")
+										: immunization.dateAdministered || "Select administration date"}
+									<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
+								</Button>
+							</PopoverTrigger>
+							<PopoverContent className="p-0">
+								<Calendar
+									mode="single"
+									defaultMonth={administeredAt}
+									selected={administeredAt}
+									onSelect={setAdministeredAt}
+									autoFocus
+								/>
+							</PopoverContent>
+						</Popover>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label
+							htmlFor="edit-immunization-administered-by"
+							className={immunizationDetailsFieldLabelClassName}
+						>
 							Administered by
-						<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-immunization-administered-by"
-						name="administeredBy"
-						defaultValue={immunization.administeredBy}
-						className={immunizationDetailsFieldControlClassName}
-					/>
-				</div>
+							<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-immunization-administered-by"
+							name="administeredBy"
+							defaultValue={immunization.administeredBy}
+							className={immunizationDetailsFieldControlClassName}
+						/>
+					</div>
 
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-immunization-clinical-note" className={immunizationDetailsFieldLabelClassName}>
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label
+							htmlFor="edit-immunization-clinical-note"
+							className={immunizationDetailsFieldLabelClassName}
+						>
 							Clinical notes
-						<span className={immunizationDetailsRequiredLabelClassName}>(optional)</span>
-					</Label>
-					<Textarea
-						id="edit-immunization-clinical-note"
-						name="clinicalNote"
-						defaultValue={immunization.clinicalNote}
-						className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
-					/>
-				</div>
-
+							<span className={immunizationDetailsRequiredLabelClassName}>(optional)</span>
+						</Label>
+						<Textarea
+							id="edit-immunization-clinical-note"
+							name="clinicalNote"
+							defaultValue={immunization.clinicalNote}
+							className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+						/>
+					</div>
 				</div>
 			</div>
-
 		</form>
 	);
 }
@@ -419,13 +415,13 @@ function ImmunizationDetailItem({ label, value }: { label: string; value: string
 	);
 }
 
-function ImmunizationHistorySection({
-	history,
-}: {
-	history: ImmunizationDetailsHistoryEvent[];
-}) {
+function ImmunizationHistorySection({ history }: { history: ImmunizationDetailsHistoryEvent[] }) {
 	return (
-		<div className="flex flex-col gap-4">
+		<div className="flex flex-col gap-[14px]">
+			<div className="flex items-center justify-between w-full">
+				<p className="text-[18px] font-semibold">History</p>
+				<button className="text-gray-400">View more</button>
+			</div>
 			{history.map((historyEvent) => (
 				<ImmunizationHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
 			))}
@@ -453,12 +449,12 @@ function ImmunizationHistoryCard({
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<div className="flex flex-wrap items-center gap-1.5">
-					<span id={titleId} className="text-base font-semibold text-gray-800">
+				<p>
+					<span id={titleId} className="font-semibold text-gray-800">
 						{historyEvent.title}
-					</span>
-					<span className="text-sm text-gray-400">{historyEvent.timestamp}</span>
-				</div>
+					</span>{" "}
+					<span className="text-sm text-gray-400">on {historyEvent.timestamp}</span>
+				</p>
 				<RiArrowDownSLine
 					className={cn(
 						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",

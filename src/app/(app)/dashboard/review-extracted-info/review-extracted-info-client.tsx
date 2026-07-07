@@ -96,7 +96,7 @@ export function ReviewExtractedInfoClient() {
 	return (
 		<main className="mx-auto my-30 max-w-[37.5rem]">
 			<div className="w-full">
-				<h1 className="mt-10 mb-5 text-center text-[1.8rem] font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
+				<h1 className="mt-10 mb-4 text-center text-2xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
 					Review Patient Information
 				</h1>
 				<div className="mb-10 text-center text-gray-600">
@@ -112,26 +112,26 @@ export function ReviewExtractedInfoClient() {
 									type="button"
 									className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-gray-200 bg-white p-4 text-left transition-colors hover:border-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
 								>
-									<h2 className="text-lg font-semibold text-gray-800">
+									<h2 className="text-base font-semibold text-gray-800">
 										{formatPatientLabel(record.personalInfo)}
 									</h2>
-									<RiArrowRightSLine className="size-6" aria-hidden="true" />
+									<RiArrowRightSLine className="size-5" aria-hidden="true" />
 								</button>
 							</DialogTrigger>
 							<DialogContent className="flex flex-col">
 								<DialogHeader className="border-b border-gray-20 px-4 py-3">
 									<div className="flex w-full items-center justify-between gap-4">
-										<DialogTitle className="text-xl text-gray-800">
+										<DialogTitle className="text-lg text-gray-800">
 											{formatPatientLabel(record.personalInfo)}
 										</DialogTitle>
 										<DialogClose asChild>
 											<Button
 												variant="ghost"
 												size="icon"
-												className="size-10 rounded-full"
+												className="size-8 rounded-full"
 												aria-label="Close patient details"
 											>
-												<RiCloseLine className="size-4" aria-hidden="true" />
+												<RiCloseLine className="size-5" aria-hidden="true" />
 											</Button>
 										</DialogClose>
 									</div>
@@ -169,7 +169,7 @@ export function ReviewExtractedInfoClient() {
 						<p className="text-sm font-medium text-red-600 text-pretty">{saveError}</p>
 					) : null}
 
-					<Button className="mt-8 w-full" onClick={handleSave} disabled={isPending}>
+					<Button className="mt-8 w-full text-sm" onClick={handleSave} disabled={isPending}>
 						{isPending ? "Saving..." : "Save Patient"}
 					</Button>
 

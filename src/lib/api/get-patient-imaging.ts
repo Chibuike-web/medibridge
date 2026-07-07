@@ -168,28 +168,68 @@ export async function getPatientImagingForOrganization(
 
 	return {
 		totalImagingStudies: countRows[0]?.value ?? 0,
-		imagingStudies: rows.map((imaging) => ({
-			study: imaging.study,
-			imagingId: imaging.imagingId,
-			encounterId: imaging.encounterId ?? "",
-			modality: normalizeModality(imaging.modality),
-			region: imaging.region,
-			impression: imaging.impression ?? "-",
-			orderedAtLabel: imaging.orderedAt ? formatDate(imaging.orderedAt.toISOString()) : "-",
-			orderedAtValue: imaging.orderedAt ? imaging.orderedAt.toISOString() : "",
-			orderedAtSortValue: toSortValue(imaging.orderedAt),
-			orderedBy: imaging.orderedBy ?? "-",
-			reportedBy: imaging.reportedBy ?? imaging.orderedBy ?? "-",
-			status: normalizeStatus(imaging.status),
-			clinicalNote: imaging.clinicalNote ?? "-",
-			fileName: imaging.fileName ?? "",
-			fileUrl: imaging.fileUrl ?? "",
-			fileType: imaging.fileType ?? "pdf",
-			fileSize: imaging.fileSize ?? "120KB",
-			createdBy: imaging.createdBy ?? imaging.orderedBy ?? "-",
-			updatedBy: imaging.updatedBy ?? imaging.reportedBy ?? imaging.orderedBy ?? "-",
-			createdAtLabel: formatDate(imaging.createdAt.toISOString()),
-			updatedAtLabel: formatDate(imaging.updatedAt.toISOString()),
-		})),
+		imagingStudies: rows.map((imaging) => {
+			const modality = normalizeModality(imaging.modality);
+			const impression = imaging.impression ?? "-";
+			const orderedAtLabel = imaging.orderedAt ? formatDate(imaging.orderedAt.toISOString()) : "-";
+			const orderedBy = imaging.orderedBy ?? "-";
+			const reportedBy = imaging.reportedBy ?? imaging.orderedBy ?? "-";
+			const status = normalizeStatus(imaging.status);
+			const clinicalNote = imaging.clinicalNote ?? "-";
+			const createdBy = imaging.createdBy ?? imaging.orderedBy ?? "-";
+			const updatedBy = imaging.updatedBy ?? imaging.reportedBy ?? imaging.orderedBy ?? "-";
+			const createdAtLabel = formatDate(imaging.createdAt.toISOString());
+			const updatedAtLabel = formatDate(imaging.updatedAt.toISOString());
+
+			return {
+				study: imaging.study,
+				imagingId: imaging.imagingId,
+				encounterId: imaging.encounterId ?? "",
+				modality,
+				region: imaging.region,
+				impression,
+				orderedAtLabel,
+				orderedAtValue: imaging.orderedAt ? imaging.orderedAt.toISOString() : "",
+				orderedAtSortValue: toSortValue(imaging.orderedAt),
+				orderedBy,
+				reportedBy,
+				status,
+				clinicalNote,
+				fileName: imaging.fileName ?? "",
+				fileUrl: imaging.fileUrl ?? "",
+				fileType: imaging.fileType ?? "pdf",
+				fileSize: imaging.fileSize ?? "120KB",
+				createdBy,
+				updatedBy,
+				createdAtLabel,
+				updatedAtLabel,
+				history: [
+					{
+						id: `${imaging.imagingId}-updated`,
+						title: "Updated",
+						timestamp: updatedAtLabel,
+						items: [
+							{ label: "Impression", value: impression },
+							{ label: "Status", value: status },
+							{ label: "Reported by", value: reportedBy },
+							{ label: "Clinical notes", value: clinicalNote },
+						],
+					},
+					{
+						id: `${imaging.imagingId}-created`,
+						title: "Created",
+						timestamp: createdAtLabel,
+						items: [
+							{ label: "Status", value: "Pending" },
+							{ label: "Region", value: imaging.region },
+							{ label: "Modality", value: modality },
+							{ label: "Ordered by", value: orderedBy },
+							{ label: "Ordered at", value: orderedAtLabel },
+							{ label: "Created by", value: createdBy },
+						],
+					},
+				],
+			};
+		}),
 	};
 }
