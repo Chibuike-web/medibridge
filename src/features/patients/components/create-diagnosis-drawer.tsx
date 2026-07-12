@@ -97,10 +97,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 								Severity/Stage<span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-severity`}
-									className={`${fieldControlClassName} w-full`}
-								>
+								<SelectTrigger id={`${generatedFormId}-severity`} className="w-full">
 									<SelectValue placeholder="Select severity or stage" />
 								</SelectTrigger>
 								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
@@ -133,10 +130,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-status`}
-									className={`${fieldControlClassName} w-full`}
-								>
+								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">

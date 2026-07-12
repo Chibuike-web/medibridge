@@ -30,6 +30,8 @@ import {
 import { RiAddLine, RiCalendarLine, RiCloseLine } from "@remixicon/react";
 import { format } from "date-fns";
 import { useId, useRef, useState } from "react";
+import { ChooseFileCard } from "@/components/choose-file-card";
+import { CreateSelectedFiles } from "@/components/create-selected-files";
 
 type CreateLabTestDrawerProps = {
 	open: boolean;
@@ -46,6 +48,22 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 	const nextAttachmentRowNumberRef = useRef(0);
 	const [orderedAt, setOrderedAt] = useState<Date | undefined>();
 	const [attachmentRows, setAttachmentRows] = useState<AttachmentFormRow[]>([]);
+	const labTestFileInputRef = useRef<HTMLInputElement>(null);
+	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+	function handleFilesSelected(event: React.ChangeEvent<HTMLInputElement>) {
+		const nextFiles = Array.from(event.target.files ?? []);
+
+		setSelectedFiles((previousFiles) => [...previousFiles, ...nextFiles]);
+
+		event.target.value = "";
+	}
+
+	function handleRemoveFile(file: File) {
+		setSelectedFiles((previousFiles) =>
+			previousFiles.filter((previousFile) => previousFile !== file),
+		);
+	}
 
 	function handleAddAttachmentRow() {
 		nextAttachmentRowNumberRef.current += 1;
@@ -61,7 +79,9 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 	}
 
 	function handleRemoveAttachmentRow(attachmentRowId: string) {
-		setAttachmentRows((prev) => prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId));
+		setAttachmentRows((prev) =>
+			prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId),
+		);
 	}
 
 	return (
@@ -95,7 +115,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 								Flag<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger id={`${generatedFormId}-flag`} className={`${fieldControlClassName} w-full`}>
+								<SelectTrigger id={`${generatedFormId}-flag`} className="w-full">
 									<SelectValue placeholder="Select flag" />
 								</SelectTrigger>
 								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
@@ -109,10 +129,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-status`}
-									className={`${fieldControlClassName} w-full`}
-								>
+								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
@@ -159,13 +176,13 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 										type="button"
 										variant="outline"
 										data-empty={!orderedAt}
-											className={`${fieldControlClassName} flex w-full items-center justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
-										>
-											<span className="min-w-0 truncate">
-												{orderedAt ? format(orderedAt, "PPP") : "Select date"}
-											</span>
-											<RiCalendarLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
-										</Button>
+										className={`${fieldControlClassName} flex w-full items-center justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+									>
+										<span className="min-w-0 truncate">
+											{orderedAt ? format(orderedAt, "PPP") : "Select date"}
+										</span>
+										<RiCalendarLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
+									</Button>
 								</PopoverTrigger>
 								<PopoverContent className="p-0">
 									<Calendar mode="single" selected={orderedAt} onSelect={setOrderedAt} autoFocus />
@@ -215,6 +232,31 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 								placeholder="Add additional laboratory observations or recommendations"
 								className="min-h-20 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
 							/>
+						</div>
+						<div className="flex flex-col gap-3 sm:col-span-2">
+							<Label className={fieldLabelClassName}>
+								Files<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+
+							{selectedFiles.length > 0 ? (
+								<CreateSelectedFiles
+									files={selectedFiles}
+									fileInputRef={labTestFileInputRef}
+									onFilesSelected={handleFilesSelected}
+									onRemoveFile={handleRemoveFile}
+								/>
+							) : (
+								<ChooseFileCard
+									onFilesSelected={handleFilesSelected}
+									fileInputRef={labTestFileInputRef}
+									title="Choose one or more files or drag and drop them here."
+									description="JPEG, PNG, and PDF, up to 50 MB."
+									browseLabel="Browse files"
+									accept="image/jpeg,image/png,application/pdf"
+									inputId="files"
+									multiple
+								/>
+							)}
 						</div>
 					</div>
 

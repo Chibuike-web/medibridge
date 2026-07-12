@@ -3,6 +3,7 @@
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
 	Drawer,
 	DrawerClose,
@@ -43,6 +44,7 @@ import {
 } from "@remixicon/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useId, useState } from "react";
+import { format } from "date-fns";
 
 type DiagnosisDetailsDrawerProps = {
 	open: boolean;
@@ -208,6 +210,8 @@ function DiagnosisDetailsOverview({
 
 function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsType }) {
 	const generatedAttachmentRowId = useId();
+	const [diagnosedAt, setDiagnosedAt] = useState<Date | undefined>();
+
 	const [diagnosisAttachmentRows, setDiagnosisAttachmentRows] = useState<AttachmentFormRow[]>(() =>
 		getDiagnosisAttachmentRows(diagnosis),
 	);
@@ -268,10 +272,7 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 							<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
 						<Select defaultValue={getDiagnosisSelectValue(diagnosis.severityStage)}>
-							<SelectTrigger
-								id="edit-diagnosis-severity"
-								className={`${diagnosisDetailsFieldControlClassName} w-full`}
-							>
+							<SelectTrigger id="edit-diagnosis-severity" className="w-full">
 								<SelectValue placeholder="Select severity or stage" />
 							</SelectTrigger>
 							<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
@@ -304,10 +305,7 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 							Status<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
 						<Select defaultValue={diagnosis.status.toLowerCase()}>
-							<SelectTrigger
-								id="edit-diagnosis-status"
-								className={`${diagnosisDetailsFieldControlClassName} w-full`}
-							>
+							<SelectTrigger id="edit-diagnosis-status" className="w-full">
 								<SelectValue placeholder="Select status" />
 							</SelectTrigger>
 							<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
@@ -335,12 +333,18 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 									variant="outline"
 									className={`${diagnosisDetailsFieldControlClassName} flex w-full justify-between font-normal hover:bg-white active:scale-100`}
 								>
-									{diagnosis.diagnosedAt || "Select diagnosis date"}
+									{diagnosedAt ? format(diagnosedAt, "PPP") : diagnosis.diagnosedAt}
+
 									<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
 								</Button>
 							</PopoverTrigger>
-							<PopoverContent className="w-72 p-3 text-sm text-gray-500">
-								Date editing is visual only for now.
+							<PopoverContent className="p-0">
+								<Calendar
+									mode="single"
+									selected={diagnosedAt}
+									onSelect={setDiagnosedAt}
+									autoFocus
+								/>
 							</PopoverContent>
 						</Popover>
 					</div>

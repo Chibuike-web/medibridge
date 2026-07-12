@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
-import { patient, patientLabTest } from "@/db/schemas";
+import { patient, patientLabTest, patientLabTestFile } from "@/db/schemas";
 import type {
 	LabTestFlagFilter,
 	LabTestStatusFilter,
@@ -146,6 +146,19 @@ export async function getPatientLabTestsForOrganization(
 			.limit(limit)
 			.offset(offset),
 	]);
+	const labTestFiles = rows.length
+		? await db
+				.select()
+				.from(patientLabTestFile)
+				.where(inArray(patientLabTestFile.labTestId, rows.map((row) => row.labId)))
+		: [];
+	const filesByLabTestId = new Map<string, typeof labTestFiles>();
+
+	for (const file of labTestFiles) {
+		const filesForLabTest = filesByLabTestId.get(file.labTestId) ?? [];
+		filesForLabTest.push(file);
+		filesByLabTestId.set(file.labTestId, filesForLabTest);
+	}
 
 	return {
 		totalLabTests: countRows[0]?.value ?? 0,
@@ -162,6 +175,28 @@ export async function getPatientLabTestsForOrganization(
 			const updatedAtLabel = formatDateTime(labTest.updatedAt);
 			const updatedBy = labTest.updatedBy ?? "";
 			const clinicalNote = labTest.clinicalNote ?? "";
+			const persistedFiles = filesByLabTestId.get(labTest.labId) ?? [];
+			const files = persistedFiles.length > 0
+				? persistedFiles.map((file) => ({
+						id: file.id,
+						name: file.name,
+						url: file.url ?? "",
+						type: file.type ?? "",
+						size: file.size ?? "",
+						uploadedAtLabel: formatDateTime(file.uploadedAt),
+					}))
+				: labTest.fileName
+					? [
+						{
+							id: `${labTest.labId}-file`,
+							name: labTest.fileName,
+							url: labTest.fileUrl ?? "",
+							type: labTest.fileType ?? "",
+							size: labTest.fileSize ?? "",
+							uploadedAtLabel: updatedAtLabel,
+						},
+					]
+				: [];
 
 			return {
 				test: formatTestName(labTest.testName, labTest.result),
@@ -189,6 +224,7 @@ export async function getPatientLabTestsForOrganization(
 				fileUrl: labTest.fileUrl ?? "",
 				fileSize: labTest.fileSize ?? "",
 				fileType: labTest.fileType ?? "",
+				files,
 				history: [
 					{
 						id: `${labTest.labId}-updated`,

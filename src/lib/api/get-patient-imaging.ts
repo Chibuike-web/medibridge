@@ -199,6 +199,17 @@ export async function getPatientImagingForOrganization(
 				fileUrl: imaging.fileUrl ?? "",
 				fileType: imaging.fileType ?? "pdf",
 				fileSize: imaging.fileSize ?? "120KB",
+				files: imaging.fileName
+					? [
+							{
+								name: imaging.fileName,
+								type: imaging.fileType ?? "pdf",
+								url: imaging.fileUrl ?? "",
+								size: imaging.fileSize ?? "120KB",
+								uploadedAt: imaging.updatedAt.toISOString(),
+							},
+						]
+					: [],
 				createdBy,
 				updatedBy,
 				createdAtLabel,

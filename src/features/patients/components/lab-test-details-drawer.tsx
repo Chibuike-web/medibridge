@@ -31,6 +31,10 @@ import {
 } from "@/features/patients/components/attachment-form-fields";
 import type { LabTestDetailsHistoryEvent, LabTestType } from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
+import docFileIcon from "@/assets/file-formats/doc.svg";
+import jpgFileIcon from "@/assets/file-formats/jpg.svg";
+import pdfFileIcon from "@/assets/file-formats/pdf.svg";
+import pngFileIcon from "@/assets/file-formats/png.svg";
 import {
 	RiAddLine,
 	RiArrowDownSLine,
@@ -40,7 +44,9 @@ import {
 } from "@remixicon/react";
 import { format } from "date-fns";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import Image from "next/image";
 import { useId, useRef, useState } from "react";
+import { ChooseFileCard } from "@/components/choose-file-card";
 
 type LabTestDetailsDrawerProps = {
 	open: boolean;
@@ -76,30 +82,31 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 					<DrawerClose aria-label="Close lab test details drawer">
 						<RiCloseLine className="size-6" aria-hidden="true" />
 					</DrawerClose>
-						<DrawerDescription className="sr-only">
-							{isEditingLabTestDetails
-								? "Edit the selected laboratory test details."
-								: "Showing details for the laboratory test you selected."}
-						</DrawerDescription>
-					</DrawerHeader>
+					<DrawerDescription className="sr-only">
+						{isEditingLabTestDetails
+							? "Edit the selected laboratory test details."
+							: "Showing details for the laboratory test you selected."}
+					</DrawerDescription>
+				</DrawerHeader>
 
-					<div className="min-h-0 overflow-y-auto px-6 py-8 text-sm">
-						{isEditingLabTestDetails && labTest ? (
-							<LabTestDetailsEditForm labTest={labTest} />
-						) : labTest ? (
-							<div className="flex flex-col gap-10">
-								<LabTestDetailsOverview
-									labTest={labTest}
-									onEditLabTestDetails={() => setLabTestDetailsMode("edit")}
-								/>
-								<LabTestHistorySection history={labTest.history} />
-							</div>
-						) : (
-							<div className="rounded-2xl border border-gray-200 p-5 text-gray-500">
-								Lab test details could not be found.
-							</div>
-						)}
-					</div>
+				<div className="min-h-0 overflow-y-auto px-6 py-8 text-sm">
+					{isEditingLabTestDetails && labTest ? (
+						<LabTestDetailsEditForm labTest={labTest} />
+					) : labTest ? (
+						<div className="flex flex-col gap-10">
+							<LabTestDetailsOverview
+								labTest={labTest}
+								onEditLabTestDetails={() => setLabTestDetailsMode("edit")}
+							/>
+							<LabTestFilesSection files={labTest.files} />
+							<LabTestHistorySection history={labTest.history} />
+						</div>
+					) : (
+						<div className="rounded-2xl border border-gray-200 p-5 text-gray-500">
+							Lab test details could not be found.
+						</div>
+					)}
+				</div>
 
 				<DrawerFooter className="border-t border-gray-200 px-6 py-5 text-sm">
 					{isEditingLabTestDetails ? (
@@ -203,6 +210,63 @@ function LabTestDetailItem({ label, value }: { label: string; value: string }) {
 	);
 }
 
+function LabTestFilesSection({ files }: { files: LabTestType["files"] }) {
+	const [areLabTestFilesExpanded, setAreLabTestFilesExpanded] = useState(false);
+	const visibleFiles = areLabTestFilesExpanded ? files : files.slice(0, 3);
+
+	if (files.length === 0) return null;
+
+	return (
+		<div className="flex flex-col gap-[14px]">
+			<div className="flex w-full items-center justify-between">
+				<p className="text-[18px] font-semibold text-gray-800">Files</p>
+				{files.length > 3 ? (
+					<button
+						type="button"
+						className="text-gray-400"
+						onClick={() => setAreLabTestFilesExpanded((previousValue) => !previousValue)}
+					>
+						{areLabTestFilesExpanded ? "View less" : "View more"}
+					</button>
+				) : null}
+			</div>
+			<div className="flex flex-col gap-3">
+				{visibleFiles.map((file) => (
+					<div
+						key={file.id}
+						className="flex items-center gap-4 rounded-2xl border border-gray-200 p-4"
+					>
+						<Image
+							src={getLabTestFileIcon(file.name, file.type)}
+							alt=""
+							className="size-9 shrink-0"
+							aria-hidden="true"
+						/>
+						<div className="min-w-0 flex-1">
+							<p className="truncate font-semibold text-gray-800">{file.name}</p>
+							<p className="mt-1 truncate text-gray-400">
+								{file.size} - Uploaded on {file.uploadedAtLabel}
+							</p>
+						</div>
+						<div className="flex shrink-0 items-center gap-2">
+							<Button variant="outline">Download</Button> <Button>Open</Button>
+						</div>
+					</div>
+				))}
+			</div>
+		</div>
+	);
+}
+
+function getLabTestFileIcon(fileName: string, fileType: string) {
+	const format = (fileType || fileName.split(".").pop() || "").toLowerCase();
+
+	if (format.includes("pdf")) return pdfFileIcon;
+	if (format.includes("png")) return pngFileIcon;
+	if (format.includes("jpg") || format.includes("jpeg")) return jpgFileIcon;
+	return docFileIcon;
+}
+
 function LabTestHistorySection({ history }: { history: LabTestDetailsHistoryEvent[] }) {
 	return (
 		<div className="flex flex-col gap-[14px]">
@@ -246,41 +310,41 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 					)}
 					aria-hidden="true"
 				/>
-				</button>
-				<AnimatePresence initial={false}>
-					{isLabTestHistoryExpanded ? (
-						<motion.div
-							id={panelId}
-							initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-							animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-							exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-							transition={
-								shouldReduceMotion
-									? { duration: 0.12 }
-									: {
-											height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-											opacity: { duration: 0.16, ease: "easeOut" },
-										}
-							}
-							className="overflow-hidden"
+			</button>
+			<AnimatePresence initial={false}>
+				{isLabTestHistoryExpanded ? (
+					<motion.div
+						id={panelId}
+						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+						transition={
+							shouldReduceMotion
+								? { duration: 0.12 }
+								: {
+										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
+										opacity: { duration: 0.16, ease: "easeOut" },
+									}
+						}
+						className="overflow-hidden"
+					>
+						<div
+							aria-labelledby={titleId}
+							className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
 						>
-							<div
-								aria-labelledby={titleId}
-								className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
-							>
-								{historyEvent.items.map((item) => (
-									<LabTestDetailItem
-										key={`${historyEvent.id}-${item.label}`}
-										label={item.label}
-										value={item.value}
-									/>
-								))}
-							</div>
-						</motion.div>
-					) : null}
-				</AnimatePresence>
-			</section>
-		);
+							{historyEvent.items.map((item) => (
+								<LabTestDetailItem
+									key={`${historyEvent.id}-${item.label}`}
+									label={item.label}
+									value={item.value}
+								/>
+							))}
+						</div>
+					</motion.div>
+				) : null}
+			</AnimatePresence>
+		</section>
+	);
 }
 
 function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
@@ -296,6 +360,32 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 			? labTest.orderedAtLabel
 			: "Select date";
 
+	const labTestFileInputRef = useRef<HTMLInputElement>(null);
+	const [editableLabTestFiles, setEditableLabTestFiles] = useState(labTest.files ?? []);
+
+	const hasLabTestFiles = editableLabTestFiles.length > 0;
+
+	function handleRemoveLabTestFile(fileId: string) {
+		setEditableLabTestFiles((previousFiles) =>
+			previousFiles.filter((previousFile) => previousFile.id !== fileId),
+		);
+	}
+	function handleLabTestFilesChange(event: React.ChangeEvent<HTMLInputElement>) {
+		const selectedFiles = Array.from(event.target.files ?? []);
+
+		const nextFiles = selectedFiles.map((file) => ({
+			id: crypto.randomUUID(),
+			name: file.name,
+			url: URL.createObjectURL(file),
+			type: file.type,
+			size: `${Math.round(file.size / 1024)}KB`,
+			uploadedAtLabel: "Uploaded just now",
+		}));
+
+		setEditableLabTestFiles((previousFiles) => [...previousFiles, ...nextFiles]);
+
+		event.target.value = "";
+	}
 	function handleAddLabTestAttachmentRow() {
 		nextAttachmentRowNumberRef.current += 1;
 
@@ -475,7 +565,83 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 					/>
 				</div>
 			</div>
+			<div className="space-y-3 sm:col-span-2">
+				<Label className={fieldLabelClassName}>
+					Files <span className="text-gray-400">(required)</span>
+				</Label>
+				{hasLabTestFiles ? (
+					<>
+						<div className="space-y-3">
+							{editableLabTestFiles.map((file) => (
+								<div
+									key={file.id}
+									className="flex items-center gap-4 rounded-2xl border border-gray-200 p-4"
+								>
+									<Image
+										src={getLabTestFileIcon(file.name, file.type)}
+										alt=""
+										width={44}
+										height={44}
+										className="size-11 shrink-0"
+										aria-hidden="true"
+									/>
 
+									<div className="min-w-0 flex-1">
+										<p className="truncate font-semibold text-gray-800">{file.name}</p>
+
+										<p className="text-gray-400">
+											{file.size} · Uploaded on {file.uploadedAtLabel}
+										</p>
+									</div>
+
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => handleRemoveLabTestFile(file.id)}
+									>
+										Remove
+									</Button>
+
+									<Button asChild type="button">
+										<a href={file.url} target="_blank" rel="noreferrer">
+											Open
+										</a>
+									</Button>
+								</div>
+							))}
+						</div>
+
+						<input
+							ref={labTestFileInputRef}
+							type="file"
+							multiple
+							accept="image/jpeg,image/png,application/pdf"
+							className="sr-only"
+							onChange={handleLabTestFilesChange}
+						/>
+
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => labTestFileInputRef.current?.click()}
+						>
+							<RiAddLine className="size-5" aria-hidden="true" />
+							Add files
+						</Button>
+					</>
+				) : (
+					<ChooseFileCard
+						onFilesSelected={handleLabTestFilesChange}
+						fileInputRef={labTestFileInputRef}
+						title="Choose one or more files or drag and drop them here."
+						description="JPEG, PNG, and PDF, up to 50 MB."
+						browseLabel="Browse files"
+						accept="image/jpeg,image/png,application/pdf"
+						inputId="lab-test-files"
+						multiple
+					/>
+				)}
+			</div>
 			<div className="flex flex-col gap-6">
 				{labTestAttachmentRows.map((attachmentRow, attachmentIndex) => (
 					<AttachmentFormFields

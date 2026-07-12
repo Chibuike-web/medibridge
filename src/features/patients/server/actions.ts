@@ -3,6 +3,7 @@
 import {
 	patient,
 	patientContactInformation,
+	patientDocument,
 	patientEmergencyContact,
 	patientPersonalInformation,
 	patientPhysicalInformation,
@@ -37,6 +38,7 @@ import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatients } from "@/lib/api/get-patients";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
+import { getPatientDocuments } from "@/lib/api/get-patient-documents";
 import { getPatientEncounters } from "@/lib/api/get-patient-encounters";
 import { getPatientImaging } from "@/lib/api/get-patient-imaging";
 import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
@@ -408,6 +410,126 @@ export async function getPatientDiagnosesTableAction({
 		limit: currentLimit,
 		totalPages: Math.ceil(totalDiagnoses / currentLimit) || 1,
 	};
+}
+
+export async function getPatientDocumentsTableAction({
+	patientId,
+	page,
+	limit,
+	query = "",
+	createdFrom = "",
+	createdTo = "",
+	documentTypeFilters = [],
+}: {
+	patientId: string;
+	page: number | string;
+	limit: number | string;
+	query?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	documentTypeFilters?: string[];
+}) {
+	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
+	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
+	const { documents, totalDocuments } = await getPatientDocuments(
+		patientId,
+		currentPage,
+		currentLimit,
+		query,
+		{ createdFrom, createdTo },
+		documentTypeFilters,
+	);
+
+	return {
+		documents,
+		page: currentPage,
+		limit: currentLimit,
+		totalPages: Math.ceil(totalDocuments / currentLimit) || 1,
+	};
+}
+
+export async function createPatientDocumentAction(patientId: string, formData: FormData) {
+	const organizationId = await getOrganizationId();
+	const title = String(formData.get("title") ?? "").trim();
+	const documentType = String(formData.get("documentType") ?? "").trim();
+	const clinicalNotes = String(formData.get("clinicalNotes") ?? "").trim();
+
+	if (!organizationId || !title || !documentType) {
+		return { ok: false, message: "Complete the required document fields." };
+	}
+
+	const [patientRow] = await db
+		.select({ id: patient.id })
+		.from(patient)
+		.where(and(eq(patient.id, patientId), eq(patient.organizationId, organizationId)))
+		.limit(1);
+
+	if (!patientRow) return { ok: false, message: "Patient could not be found." };
+
+	const documentId = `DOC-${crypto.randomUUID()}`;
+	await db.insert(patientDocument).values({
+		id: documentId,
+		patientId,
+		title,
+		documentType,
+		clinicalNotes: clinicalNotes || null,
+		files: [],
+	});
+	updateTag(`patient-documents-${organizationId}-${patientId}`);
+
+	return { ok: true, documentId };
+}
+
+export async function updatePatientDocumentAction(documentId: string, formData: FormData) {
+	const organizationId = await getOrganizationId();
+	const title = String(formData.get("title") ?? "").trim();
+	const documentType = String(formData.get("documentType") ?? "").trim();
+	const clinicalNotes = String(formData.get("clinicalNotes") ?? "").trim();
+
+	if (!organizationId || !title || !documentType) {
+		return { ok: false, message: "Complete the required document fields." };
+	}
+
+	const [documentRow] = await db
+		.select({ patientId: patientDocument.patientId })
+		.from(patientDocument)
+		.innerJoin(patient, eq(patientDocument.patientId, patient.id))
+		.where(and(eq(patientDocument.id, documentId), eq(patient.organizationId, organizationId)))
+		.limit(1);
+
+	if (!documentRow) return { ok: false, message: "Document could not be found." };
+
+	await db
+		.update(patientDocument)
+		.set({
+			title,
+			documentType,
+			clinicalNotes: clinicalNotes || null,
+			updatedAt: new Date(),
+		})
+		.where(eq(patientDocument.id, documentId));
+	updateTag(`patient-documents-${organizationId}-${documentRow.patientId}`);
+	updateTag(`patient-document-details-${organizationId}-${documentId}`);
+
+	return { ok: true };
+}
+
+export async function removePatientDocumentAction(documentId: string) {
+	const organizationId = await getOrganizationId();
+	if (!organizationId) return { ok: false, message: "Unable to verify your hospital." };
+
+	const [documentRow] = await db
+		.select({ patientId: patientDocument.patientId })
+		.from(patientDocument)
+		.innerJoin(patient, eq(patientDocument.patientId, patient.id))
+		.where(and(eq(patientDocument.id, documentId), eq(patient.organizationId, organizationId)))
+		.limit(1);
+	if (!documentRow) return { ok: false, message: "Document could not be found." };
+
+	await db.delete(patientDocument).where(eq(patientDocument.id, documentId));
+	updateTag(`patient-documents-${organizationId}-${documentRow.patientId}`);
+	updateTag(`patient-document-details-${organizationId}-${documentId}`);
+	return { ok: true };
 }
 
 export async function getPatientAllergiesTableAction({

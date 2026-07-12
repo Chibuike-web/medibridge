@@ -23,6 +23,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ChooseFileCard } from "@/components/choose-file-card";
 import {
 	AttachmentFormFields,
 	type AttachmentFormRow,
@@ -30,6 +31,7 @@ import {
 import { RiAddLine, RiCalendarLine, RiCloseLine } from "@remixicon/react";
 import { format } from "date-fns";
 import { useId, useRef, useState } from "react";
+import { CreateSelectedFiles } from "@/components/create-selected-files";
 
 type CreateImagingDrawerProps = {
 	open: boolean;
@@ -47,6 +49,22 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 	const nextAttachmentRowNumberRef = useRef(0);
 	const [orderedAt, setOrderedAt] = useState<Date | undefined>();
 	const [imagingAttachmentRows, setImagingAttachmentRows] = useState<AttachmentFormRow[]>([]);
+	const imagingFileInputRef = useRef<HTMLInputElement>(null);
+	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+	function handleFilesSelected(event: React.ChangeEvent<HTMLInputElement>) {
+		const nextFiles = Array.from(event.target.files ?? []);
+
+		setSelectedFiles((previousFiles) => [...previousFiles, ...nextFiles]);
+
+		event.target.value = "";
+	}
+
+	function handleRemoveFile(file: File) {
+		setSelectedFiles((previousFiles) =>
+			previousFiles.filter((previousFile) => previousFile !== file),
+		);
+	}
 
 	function handleAddImagingAttachmentRow() {
 		nextAttachmentRowNumberRef.current += 1;
@@ -109,10 +127,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 								Modality<span className={imagingRequiredLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-modality`}
-									className={`${imagingFieldControlClassName} w-full`}
-								>
+								<SelectTrigger id={`${generatedFormId}-modality`} className="w-full">
 									<SelectValue placeholder="Select modality" />
 								</SelectTrigger>
 								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
@@ -152,7 +167,10 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 						</div>
 
 						<div className="flex flex-col gap-2">
-							<Label htmlFor={`${generatedFormId}-ordered-by`} className={imagingFieldLabelClassName}>
+							<Label
+								htmlFor={`${generatedFormId}-ordered-by`}
+								className={imagingFieldLabelClassName}
+							>
 								Ordered by<span className={imagingRequiredLabelClassName}>(required)</span>
 							</Label>
 							<Input
@@ -167,10 +185,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 								Status<span className={imagingRequiredLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-status`}
-									className={`${imagingFieldControlClassName} w-full`}
-								>
+								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
@@ -180,7 +195,10 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 						</div>
 
 						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label htmlFor={`${generatedFormId}-impression`} className={imagingFieldLabelClassName}>
+							<Label
+								htmlFor={`${generatedFormId}-impression`}
+								className={imagingFieldLabelClassName}
+							>
 								Impression<span className={imagingRequiredLabelClassName}>(required)</span>
 							</Label>
 							<Textarea
@@ -191,7 +209,10 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 						</div>
 
 						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label htmlFor={`${generatedFormId}-clinical-notes`} className={imagingFieldLabelClassName}>
+							<Label
+								htmlFor={`${generatedFormId}-clinical-notes`}
+								className={imagingFieldLabelClassName}
+							>
 								Clinical notes<span className={imagingRequiredLabelClassName}>(optional)</span>
 							</Label>
 							<Textarea
@@ -200,6 +221,31 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 								className="min-h-20 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
 							/>
 						</div>
+					</div>
+
+					<div className="flex flex-col gap-3 sm:col-span-2">
+						<Label className={imagingFieldLabelClassName}>
+							Files<span className={imagingRequiredLabelClassName}>(optional)</span>
+						</Label>
+						{selectedFiles.length > 0 ? (
+							<CreateSelectedFiles
+								files={selectedFiles}
+								fileInputRef={imagingFileInputRef}
+								onFilesSelected={handleFilesSelected}
+								onRemoveFile={handleRemoveFile}
+							/>
+						) : (
+							<ChooseFileCard
+								onFilesSelected={handleFilesSelected}
+								fileInputRef={imagingFileInputRef}
+								title="Choose one or more files or drag and drop them here."
+								description="JPEG, PNG, and PDF, up to 50 MB."
+								browseLabel="Browse files"
+								accept="image/jpeg,image/png,application/pdf"
+								inputId="files"
+								multiple
+							/>
+						)}
 					</div>
 
 					<div className="flex flex-col gap-6">

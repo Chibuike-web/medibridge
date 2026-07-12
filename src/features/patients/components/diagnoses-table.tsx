@@ -997,9 +997,7 @@ function getDiagnosesColumns({
 					<IndeterminateCheckbox
 						checked={table.getIsAllPageRowsSelected()}
 						indeterminate={table.getIsSomePageRowsSelected()}
-						onCheckedChange={(value) => {
-							table.toggleAllPageRowsSelected(!!value);
-						}}
+						onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
 					/>
 				</div>
 			),

@@ -1,6 +1,7 @@
 "use client";
 
 import { CopyIdButton } from "@/components/copy-id-button";
+import { ChooseFileCard } from "@/components/choose-file-card";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -28,6 +29,7 @@ import {
 } from "@/features/patients/components/create-imaging-drawer";
 import type { ImagingDetailsHistoryEvent, ImagingType } from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
+import { getDocumentFileIcon } from "@/lib/utils/document-file-icon";
 import {
 	RiAddLine,
 	RiArrowDownSLine,
@@ -37,6 +39,7 @@ import {
 } from "@remixicon/react";
 import { format } from "date-fns";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import Image from "next/image";
 import { useId, useRef, useState } from "react";
 
 type ImagingDetailsDrawerProps = {
@@ -74,47 +77,39 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 					<DrawerClose aria-label="Close imaging details drawer">
 						<RiCloseLine className="size-6" aria-hidden="true" />
 					</DrawerClose>
-						<DrawerDescription className="sr-only">
-							{isEditingImagingDetails
-								? "Edit the selected imaging details."
-								: "Showing details for the imaging study you selected."}
-						</DrawerDescription>
-					</DrawerHeader>
+					<DrawerDescription className="sr-only">
+						{isEditingImagingDetails
+							? "Edit the selected imaging details."
+							: "Showing details for the imaging study you selected."}
+					</DrawerDescription>
+				</DrawerHeader>
 
-					<div className="min-h-0 overflow-y-auto px-6 py-8 text-sm">
-						{isEditingImagingDetails && imaging ? (
-							<ImagingDetailsEditForm imaging={imaging} />
-						) : imaging ? (
-							<div className="flex flex-col gap-10">
-								<ImagingDetailsOverview
-									imaging={imaging}
-									onEditImagingDetails={() => setImagingDetailsMode("edit")}
-								/>
-								<ImagingHistorySection history={imaging.history} />
-							</div>
-						) : (
-							<div className="rounded-2xl border border-gray-200 p-5 text-gray-500">
-								Imaging details could not be found.
-							</div>
-						)}
-					</div>
+				<div className="min-h-0 overflow-y-auto px-6 py-8 text-sm">
+					{isEditingImagingDetails && imaging ? (
+						<ImagingDetailsEditForm imaging={imaging} />
+					) : imaging ? (
+						<div className="flex flex-col gap-10">
+							<ImagingDetailsOverview
+								imaging={imaging}
+								onEditImagingDetails={() => setImagingDetailsMode("edit")}
+							/>
+							<ImagingFilesSection files={imaging.files} />
+							<ImagingHistorySection history={imaging.history} />
+						</div>
+					) : (
+						<div className="rounded-2xl border border-gray-200 p-5 text-gray-500">
+							Imaging details could not be found.
+						</div>
+					)}
+				</div>
 
 				<DrawerFooter className="border-t border-gray-200 px-6 py-5 text-sm">
 					{isEditingImagingDetails ? (
 						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
-							<Button
-								type="button"
-								variant="outline"
-								className="text-sm"
-								onClick={() => setImagingDetailsMode("view")}
-							>
+							<Button type="button" variant="outline" onClick={() => setImagingDetailsMode("view")}>
 								Cancel
 							</Button>
-							<Button
-								type="button"
-								className="bg-gray-800 text-sm"
-								onClick={() => setImagingDetailsMode("view")}
-							>
+							<Button type="button" onClick={() => setImagingDetailsMode("view")}>
 								Save Changes
 							</Button>
 						</div>
@@ -125,9 +120,7 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 									Cancel
 								</Button>
 							</DrawerClose>
-							<Button type="button" className="bg-gray-800 text-sm">
-								Archive Imaging
-							</Button>
+							<Button type="button">Archive Imaging</Button>
 						</div>
 					)}
 				</DrawerFooter>
@@ -204,6 +197,58 @@ function ImagingDetailItem({ label, value }: { label: string; value: string }) {
 	);
 }
 
+function ImagingFilesSection({ files }: { files: ImagingType["files"] }) {
+	const [areImagingFilesExpanded, setAreImagingFilesExpanded] = useState(false);
+	const visibleFiles = areImagingFilesExpanded ? files : files.slice(0, 3);
+
+	if (files.length === 0) return null;
+
+	return (
+		<div className="flex flex-col gap-[14px]">
+			<div className="flex w-full items-center justify-between">
+				<p className="text-[18px] font-semibold text-gray-800">Files</p>
+				{files.length > 3 ? (
+					<button
+						type="button"
+						className="text-gray-400"
+						onClick={() => setAreImagingFilesExpanded((previousValue) => !previousValue)}
+					>
+						{areImagingFilesExpanded ? "View less" : "View more"}
+					</button>
+				) : null}
+			</div>
+			<div className="space-y-3">
+				{visibleFiles.map((file) => (
+					<div
+						key={file.url}
+						className="flex items-center gap-4 rounded-2xl border border-gray-200 p-4"
+					>
+						<Image
+							src={getDocumentFileIcon(file.name, file.type)}
+							alt=""
+							width={44}
+							height={44}
+							className="size-11 shrink-0"
+						/>
+						<div className="min-w-0 flex-1">
+							<p className="truncate font-semibold text-gray-800">{file.name}</p>
+							<p className="text-gray-400">
+								{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}
+							</p>
+						</div>
+						<div className="flex shrink-0 items-center gap-2">
+							<Button type="button" variant="outline">Download</Button>
+							<Button asChild type="button">
+								<a href={file.url}>Open</a>
+							</Button>
+						</div>
+					</div>
+				))}
+			</div>
+		</div>
+	);
+}
+
 function ImagingHistorySection({ history }: { history: ImagingDetailsHistoryEvent[] }) {
 	return (
 		<div className="flex flex-col gap-[14px]">
@@ -247,41 +292,41 @@ function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHist
 					)}
 					aria-hidden="true"
 				/>
-				</button>
-				<AnimatePresence initial={false}>
-					{isImagingHistoryExpanded ? (
-						<motion.div
-							id={panelId}
-							initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-							animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-							exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-							transition={
-								shouldReduceMotion
-									? { duration: 0.12 }
-									: {
-											height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-											opacity: { duration: 0.16, ease: "easeOut" },
-										}
-							}
-							className="overflow-hidden"
+			</button>
+			<AnimatePresence initial={false}>
+				{isImagingHistoryExpanded ? (
+					<motion.div
+						id={panelId}
+						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+						transition={
+							shouldReduceMotion
+								? { duration: 0.12 }
+								: {
+										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
+										opacity: { duration: 0.16, ease: "easeOut" },
+									}
+						}
+						className="overflow-hidden"
+					>
+						<div
+							aria-labelledby={titleId}
+							className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
 						>
-							<div
-								aria-labelledby={titleId}
-								className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
-							>
-								{historyEvent.items.map((item) => (
-									<ImagingDetailItem
-										key={`${historyEvent.id}-${item.label}`}
-										label={item.label}
-										value={item.value}
-									/>
-								))}
-							</div>
-						</motion.div>
-					) : null}
-				</AnimatePresence>
-			</section>
-		);
+							{historyEvent.items.map((item) => (
+								<ImagingDetailItem
+									key={`${historyEvent.id}-${item.label}`}
+									label={item.label}
+									value={item.value}
+								/>
+							))}
+						</div>
+					</motion.div>
+				) : null}
+			</AnimatePresence>
+		</section>
+	);
 }
 
 function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
@@ -289,6 +334,9 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 	const nextAttachmentRowNumberRef = useRef(0);
 	const [orderedAt, setOrderedAt] = useState<Date | undefined>();
 	const [imagingAttachmentRows, setImagingAttachmentRows] = useState<AttachmentFormRow[]>([]);
+	const imagingFileInputRef = useRef<HTMLInputElement>(null);
+	const [editableImagingFiles, setEditableImagingFiles] = useState(imaging.files ?? []);
+	const hasImagingFiles = editableImagingFiles.length > 0;
 	const selectedModalityValue = getImagingSelectValue(imaging.modality);
 	const selectedStatusValue = imaging.status.toLowerCase();
 	const orderedAtDisplayValue = orderedAt
@@ -314,6 +362,26 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 		setImagingAttachmentRows((prev) =>
 			prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId),
 		);
+	}
+
+	function handleRemoveImagingFile(fileUrl: string) {
+		setEditableImagingFiles((previousFiles) =>
+			previousFiles.filter((previousFile) => previousFile.url !== fileUrl),
+		);
+	}
+
+	function handleImagingFilesChange(event: React.ChangeEvent<HTMLInputElement>) {
+		const selectedFiles = Array.from(event.target.files ?? []);
+		const nextFiles = selectedFiles.map((file) => ({
+			name: file.name,
+			type: file.type,
+			url: URL.createObjectURL(file),
+			size: `${Math.round(file.size / 1024)}KB`,
+			uploadedAt: new Date().toISOString(),
+		}));
+
+		setEditableImagingFiles((previousFiles) => [...previousFiles, ...nextFiles]);
+		event.target.value = "";
 	}
 
 	return (
@@ -460,6 +528,49 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 				</div>
 			</div>
 
+			<div className="space-y-3">
+				<Label className={imagingDetailsFieldLabelClassName}>
+					Files<span className={imagingDetailsRequiredLabelClassName}>(optional)</span>
+				</Label>
+
+				{hasImagingFiles ? (
+					<>
+						<div className="space-y-3">
+							{editableImagingFiles.map((file) => (
+								<div key={file.url} className="flex items-center gap-4 rounded-2xl border border-gray-200 p-4">
+									<Image src={getDocumentFileIcon(file.name, file.type)} alt="" width={44} height={44} className="size-11 shrink-0" />
+									<div className="min-w-0 flex-1">
+										<p className="truncate font-semibold text-gray-800">{file.name}</p>
+										<p className="text-gray-400">{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}</p>
+									</div>
+									<Button type="button" variant="outline" onClick={() => handleRemoveImagingFile(file.url)}>
+										Remove
+									</Button>
+									<Button asChild type="button"><a href={file.url} target="_blank" rel="noreferrer">Open</a></Button>
+								</div>
+							))}
+						</div>
+
+						<input ref={imagingFileInputRef} type="file" multiple accept="image/jpeg,image/png,application/pdf" className="sr-only" onChange={handleImagingFilesChange} />
+						<Button type="button" variant="outline" onClick={() => imagingFileInputRef.current?.click()}>
+							<RiAddLine className="size-5" aria-hidden="true" />
+							Add files
+						</Button>
+					</>
+				) : (
+					<ChooseFileCard
+						onFilesSelected={handleImagingFilesChange}
+						fileInputRef={imagingFileInputRef}
+						title="Choose one or more files or drag and drop them here."
+						description="JPEG, PNG, and PDF, up to 50 MB."
+						browseLabel="Browse files"
+						accept="image/jpeg,image/png,application/pdf"
+						inputId="imaging-files"
+						multiple
+					/>
+				)}
+			</div>
+
 			<div className="flex flex-col gap-6">
 				{imagingAttachmentRows.map((attachmentRow, attachmentIndex) => (
 					<AttachmentFormFields
@@ -474,12 +585,7 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 				))}
 
 				<div>
-					<Button
-						type="button"
-						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
-						onClick={handleAddImagingAttachmentRow}
-					>
+					<Button type="button" variant="outline" onClick={handleAddImagingAttachmentRow}>
 						<RiAddLine className="size-5" aria-hidden="true" />
 						Add related record
 					</Button>

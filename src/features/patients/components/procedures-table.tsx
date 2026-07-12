@@ -154,8 +154,9 @@ export function ProceduresTable({
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [activeFilterSubmenu, setActiveFilterSubmenu] =
-		useState<ProcedureFilterSubmenu | null>(null);
+	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<ProcedureFilterSubmenu | null>(
+		null,
+	);
 	const procedureDetailsQuery = useSWR(
 		selectedId ? (["patient-procedure-details", selectedId] as const) : null,
 		([, selectedId]) => fetchPatientProcedureDetails(selectedId),
@@ -314,11 +315,7 @@ export function ProceduresTable({
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button
-					className="text-sm"
-					type="button"
-					onClick={() => setIsCreateDrawerOpen(true)}
-				>
+				<Button className="text-sm" type="button" onClick={() => setIsCreateDrawerOpen(true)}>
 					Add procedure
 				</Button>
 			</div>
@@ -455,20 +452,17 @@ export function ProceduresTable({
 						</div>
 					</div>
 				</div>
-				</div>
-				<CreateProcedureDrawer
-					open={isCreateDrawerOpen}
-					onOpenChange={setIsCreateDrawerOpen}
-				/>
-				<ProcedureDetailsDrawer
-					open={isDetailsDrawerOpen}
-					onOpenChange={setIsDetailsDrawerOpen}
-					procedure={procedureDetailsQuery.data ?? null}
-					isLoading={procedureDetailsQuery.isLoading}
-				/>
 			</div>
-		);
-	}
+			<CreateProcedureDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
+			<ProcedureDetailsDrawer
+				open={isDetailsDrawerOpen}
+				onOpenChange={setIsDetailsDrawerOpen}
+				procedure={procedureDetailsQuery.data ?? null}
+				isLoading={procedureDetailsQuery.isLoading}
+			/>
+		</div>
+	);
+}
 
 function ProcedureActiveFilterPills({
 	createdFrom,
@@ -503,9 +497,7 @@ function ProcedureActiveFilterPills({
 						label={`Status: ${statusOption?.label ?? formatProcedureFilterValue(statusFilter)}`}
 						onRemove={() => {
 							onStatusFiltersChange(
-								statusFilters.filter(
-									(currentStatusFilter) => currentStatusFilter !== statusFilter,
-								),
+								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
 							);
 						}}
 					/>
@@ -597,19 +589,6 @@ function ProcedureDatePresetList({
 					/>
 				);
 			})}
-			<DropdownMenuItem
-				onSelect={(event) => {
-					event.preventDefault();
-				}}
-				className="mt-1 flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
-			>
-				<span>Custom range</span>
-				{selectedProcedureDateRange && !isPresetDateRangeSelected ? (
-					<RiCheckLine className="size-5 text-gray-700" aria-hidden="true" />
-				) : (
-					<RiArrowRightLine className="size-5 text-gray-400" aria-hidden="true" />
-				)}
-			</DropdownMenuItem>
 		</>
 	);
 }
@@ -749,7 +728,6 @@ function getDateRangeFromParams(from: string, to: string): DateRange | undefined
 	return { from: parsedFromDate, to: parsedToDate };
 }
 
-
 function isSameDateRange(range: DateRange | undefined, presetRange: ProcedureDateCompleteRange) {
 	if (!range?.from || !range.to) return false;
 
@@ -765,9 +743,7 @@ function formatProcedureFilterValue(value: string) {
 }
 
 async function fetchPatientProcedureDetails(selectedId: string) {
-	const response = await fetch(
-		`/api/patient-procedure-details/${encodeURIComponent(selectedId)}`,
-	);
+	const response = await fetch(`/api/patient-procedure-details/${encodeURIComponent(selectedId)}`);
 
 	if (!response.ok) {
 		throw new Error("Unable to load procedure details.");
@@ -885,10 +861,10 @@ function getProceduresColumns({
 									<RiEyeLine className="text-white" />
 									<span>View details</span>
 								</DropdownMenuItem>
-							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-								<RiShare2Line className="text-white" />
-								<span>Export</span>
-							</DropdownMenuItem>
+								<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<RiShare2Line className="text-white" />
+									<span>Export</span>
+								</DropdownMenuItem>
 								{canUpdateProcedureStatus ? (
 									<>
 										<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">

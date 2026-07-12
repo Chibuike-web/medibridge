@@ -1,54 +1,72 @@
-import { Button } from "./ui/button";
-import { Label } from "./ui/label";
-import { ChangeEvent, RefObject } from "react";
-import { cn } from "@/lib/utils/cn";
-import { RiUploadCloudLine } from "@remixicon/react";
+"use client";
 
-type ChooseFileCardPropsType = {
-	handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import type { ChangeEvent, RefObject } from "react";
+import { cn } from "@/lib/utils/cn";
+import { RiUploadCloud2Line } from "@remixicon/react";
+
+type FileUploadCardProps = {
+	inputId: string;
 	fileInputRef: RefObject<HTMLInputElement | null>;
+	onFilesSelected: (event: ChangeEvent<HTMLInputElement>) => void;
+	title: string;
+	description: string;
+	browseLabel: string;
+	accept?: string;
+	multiple?: boolean;
 	error?: string;
-	errorId?: string;
 };
 
 export function ChooseFileCard({
-	handleFileChange,
+	inputId,
 	fileInputRef,
+	onFilesSelected,
+	title,
+	description,
+	browseLabel,
+	accept,
+	multiple = true,
 	error,
-	errorId,
-}: ChooseFileCardPropsType) {
+}: FileUploadCardProps) {
 	return (
 		<div
 			className={cn(
-				"relative w-full flex flex-col items-center",
-				" p-8 border border-dashed border-gray-200 gap-5 rounded-lg",
+				"relative flex w-full flex-col items-center gap-5 rounded-lg border border-dashed border-gray-200 p-8",
 				error && "border-red-500",
 			)}
 		>
-			<Label htmlFor="file-upload">
-				<input
-					type="file"
-					id="file-upload"
-					ref={fileInputRef}
-					onChange={handleFileChange}
-					className="opacity-0 absolute inset-0"
-					multiple
-					aria-invalid={!!error}
-					aria-describedby={error ? errorId : undefined}
-					aria-label="Upload hospital accreditation or license document"
-				/>
+			<Label htmlFor={inputId} className="sr-only">
+				{title}
 			</Label>
-			<RiUploadCloudLine className="text-gray-600 size-5" />
-			<div className="flex flex-col gap-1.5 items-center">
-				<p className="font-medium text-gray-800 text-sm text-center">
-					Choose a file or drag & drop it here.
-				</p>
-				<p className="text-gray-600 text-xs text-center">JPEG, PNG, and PDF, up to 50 MB.</p>
+
+			<input
+				id={inputId}
+				ref={fileInputRef}
+				type="file"
+				accept={accept}
+				multiple={multiple}
+				onChange={onFilesSelected}
+				className="sr-only"
+				aria-describedby={error ? `${inputId}-error` : undefined}
+			/>
+
+			<RiUploadCloud2Line className="size-5 text-gray-600" aria-hidden="true" />
+
+			<div className="flex flex-col items-center gap-1.5 text-center">
+				<p className="text-sm font-medium text-gray-800">{title}</p>
+				<p className="text-xs text-gray-600">{description}</p>
 			</div>
-			<Button variant="outline" type="button" onClick={() => fileInputRef.current?.click()}>
-				Browse File
+
+			<Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+				{browseLabel}
 			</Button>
+
+			{error ? (
+				<p id={`${inputId}-error`} className="text-xs text-red-600">
+					{error}
+				</p>
+			) : null}
 		</div>
 	);
 }
-

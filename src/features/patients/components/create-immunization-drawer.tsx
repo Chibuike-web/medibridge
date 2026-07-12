@@ -37,10 +37,7 @@ const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400 text-sm h-9";
 
-export function CreateImmunizationDrawer({
-	open,
-	onOpenChange,
-}: CreateImmunizationDrawerProps) {
+export function CreateImmunizationDrawer({ open, onOpenChange }: CreateImmunizationDrawerProps) {
 	const generatedFormId = useId();
 	const [administeredAt, setAdministeredAt] = useState<Date | undefined>();
 
@@ -77,10 +74,7 @@ export function CreateImmunizationDrawer({
 								Series Type<span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-series-type`}
-									className={`${fieldControlClassName} w-full`}
-								>
+								<SelectTrigger id={`${generatedFormId}-series-type`} className="w-full">
 									<SelectValue placeholder="Select series type" />
 								</SelectTrigger>
 								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
@@ -123,10 +117,7 @@ export function CreateImmunizationDrawer({
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-status`}
-									className={`${fieldControlClassName} w-full`}
-								>
+								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
@@ -166,9 +157,7 @@ export function CreateImmunizationDrawer({
 										data-empty={!administeredAt}
 										className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
 									>
-										{administeredAt
-											? format(administeredAt, "PPP")
-											: "Select administration date"}
+										{administeredAt ? format(administeredAt, "PPP") : "Select administration date"}
 										<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
 									</Button>
 								</PopoverTrigger>
@@ -204,7 +193,6 @@ export function CreateImmunizationDrawer({
 								className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
 							/>
 						</div>
-
 					</div>
 				</form>
 

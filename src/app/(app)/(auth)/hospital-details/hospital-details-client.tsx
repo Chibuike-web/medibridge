@@ -99,15 +99,15 @@ export function HospitalDetailsClient() {
 		});
 	}
 
-		return (
-			<form className="w-full" onSubmit={handleSubmit(onSubmit)}>
-				<div className="mb-6">
-					<Label htmlFor="hospitalName" className="block mb-2 text-sm">
-						Hospital Name
-					</Label>
-					<Input
-						id="hospitalName"
-						type="text"
+	return (
+		<form className="w-full" onSubmit={handleSubmit(onSubmit)}>
+			<div className="mb-6">
+				<Label htmlFor="hospitalName" className="block mb-2 text-sm">
+					Hospital Name
+				</Label>
+				<Input
+					id="hospitalName"
+					type="text"
 					placeholder="eg., St. Mary's General Hospital"
 					{...register("hospitalName")}
 					aria-describedby={errors.hospitalName ? "hospital-name-error" : undefined}
@@ -117,15 +117,15 @@ export function HospitalDetailsClient() {
 					<p id="hospital-name-error" className="font-medium text-red-500 mt-2 text-sm">
 						{errors.hospitalName.message}
 					</p>
-					)}
-				</div>
-				<div className="mb-6">
-					<Label htmlFor="hospitalAddress" className="block mb-2 text-sm">
-						Hospital Address
-					</Label>
-					<Input
-						id="hospitalAddress"
-						type="text"
+				)}
+			</div>
+			<div className="mb-6">
+				<Label htmlFor="hospitalAddress" className="block mb-2 text-sm">
+					Hospital Address
+				</Label>
+				<Input
+					id="hospitalAddress"
+					type="text"
 					placeholder="eg., 123 Healthway Blvd, Springfield, IL"
 					{...register("hospitalAddress")}
 					aria-describedby={errors.hospitalAddress ? "hospital-address-error" : undefined}
@@ -151,10 +151,15 @@ export function HospitalDetailsClient() {
 				/>
 			) : (
 				<ChooseFileCard
-					handleFileChange={handleFileChange}
+					onFilesSelected={handleFileChange}
+					title="Choose a file or drag & drop it here."
+					description="JPEG, PNG, and PDF, up to 50 MB."
+					browseLabel="Browse File"
 					fileInputRef={fileInputRef}
 					error={uploadError}
-					errorId="file-upload-error"
+					accept="image/jpeg,image/png,application/pdf"
+					multiple
+					inputId="hospital-file"
 				/>
 			)}
 			{uploadError && (

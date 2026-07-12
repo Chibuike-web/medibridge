@@ -61,7 +61,9 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 	}
 
 	function handleRemoveAttachmentRow(attachmentRowId: string) {
-		setAttachmentRows((prev) => prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId));
+		setAttachmentRows((prev) =>
+			prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId),
+		);
 	}
 
 	return (
@@ -106,7 +108,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger id={`${generatedFormId}-status`} className={`${fieldControlClassName} w-full`}>
+								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
@@ -174,10 +176,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 								Assistants<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-assistants`}
-									className={`${fieldControlClassName} w-full`}
-								>
+								<SelectTrigger id={`${generatedFormId}-assistants`} className="w-full">
 									<SelectValue placeholder="Enter assistants" />
 								</SelectTrigger>
 								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
@@ -217,7 +216,6 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 								className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
 							/>
 						</div>
-
 					</div>
 
 					<div className="flex flex-col gap-6">

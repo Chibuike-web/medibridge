@@ -254,11 +254,7 @@ export type EncounterType = {
 	updatedAtSortValue: string;
 	createdBy: string;
 	updatedBy: string;
-	encounterType:
-		| "Emergency Visit"
-		| "Routine Checkup"
-		| "Follow-up Visit"
-		| "Outpatient Visit";
+	encounterType: "Emergency Visit" | "Routine Checkup" | "Follow-up Visit" | "Outpatient Visit";
 	encounterId: string;
 	department: string;
 	physician: string;
@@ -289,6 +285,15 @@ export type LabTestDetailsHistoryEvent = {
 	}[];
 };
 
+export type LabTestFile = {
+	id: string;
+	name: string;
+	url: string;
+	type: string;
+	size: string;
+	uploadedAtLabel: string;
+};
+
 export type LabTestType = {
 	test: string;
 	testName: string;
@@ -315,6 +320,7 @@ export type LabTestType = {
 	fileUrl: string;
 	fileSize: string;
 	fileType: string;
+	files: LabTestFile[];
 	history: LabTestDetailsHistoryEvent[];
 };
 
@@ -360,6 +366,7 @@ export type ImagingType = {
 	fileUrl: string;
 	fileSize: string;
 	fileType: string;
+	files: DocumentFileType[];
 	createdBy: string;
 	updatedBy: string;
 	createdAtLabel: string;
@@ -371,6 +378,27 @@ export type ImagingStatusFilter = "pending" | "completed" | "cancelled";
 
 export type ImagingModalityFilter = "ct" | "mri" | "ultrasound" | "x-ray";
 
+export type DocumentFileType = {
+	name: string;
+	type: string;
+	url: string;
+	size: string;
+	uploadedAt: string;
+};
+
+export type DocumentType = {
+	documentId: string;
+	encounterId: string;
+	title: string;
+	documentType: string;
+	clinicalNotes: string;
+	files: DocumentFileType[];
+	createdBy: string;
+	updatedBy: string;
+	createdAtLabel: string;
+	updatedAtLabel: string;
+	createdAtSortValue: string;
+};
 export type PatientSectionProps = {
 	section: string;
 	patientId: string;

@@ -9,6 +9,7 @@ import { SectionTabs, type PatientSection } from "@/features/patients/components
 import { PatientOverviewSection } from "@/features/patients/components/patient-overview-section";
 import { PatientDetailsSection } from "@/features/patients/components/patient-details-section/patient-details-section";
 import { PatientAvatarMenu } from "@/features/patients/components/patient-avatar-menu";
+import { DocumentsTable } from "@/features/patients/components/documents-table";
 import {
 	CreateAllergyEmptyStateAction,
 	CreateDiagnosisEmptyStateAction,
@@ -24,6 +25,7 @@ import {
 import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
+import { getPatientDocuments } from "@/lib/api/get-patient-documents";
 import { getPatientEncounters } from "@/lib/api/get-patient-encounters";
 import { getPatientImaging } from "@/lib/api/get-patient-imaging";
 import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
@@ -42,6 +44,7 @@ import {
 	MedicationsClient,
 	ProceduresClient,
 } from "./patient-section-table-clients";
+import { DocumentsClient } from "./patient-section-table-clients/documents-client";
 
 export const metadata = {
 	title: "Patient",
@@ -414,8 +417,8 @@ async function ImagingSection({ patientId }: { patientId: string }) {
 	);
 }
 
-function DocumentsSection({ patientId }: { patientId: string }) {
-	const documents: unknown[] = [];
+async function DocumentsSection({ patientId }: { patientId: string }) {
+	const { documents, totalDocuments } = await getPatientDocuments(patientId);
 
 	if (documents.length === 0) {
 		return renderEmptyState({
@@ -425,7 +428,15 @@ function DocumentsSection({ patientId }: { patientId: string }) {
 		});
 	}
 
-	return <div className="px-6 py-3">{patientId} documents table</div>;
+	return (
+		<DocumentsClient
+			patientId={patientId}
+			documents={documents}
+			page={1}
+			limit={14}
+			totalPages={Math.ceil(totalDocuments / 14) || 1}
+		/>
+	);
 }
 
 function renderEmptyState({
@@ -448,11 +459,11 @@ function renderEmptyState({
 					height={336}
 					className="h-auto w-[31.25rem] max-w-full"
 				/>
-					<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
-						<h2 className="mb-2 text-xl font-semibold text-gray-800">{title}</h2>
-						<p className="mb-6 max-w-[32rem] text-sm text-pretty text-gray-500">{description}</p>
-						{action}
-					</div>
+				<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
+					<h2 className="mb-2 text-xl font-semibold text-gray-800">{title}</h2>
+					<p className="mb-6 max-w-[32rem] text-sm text-pretty text-gray-500">{description}</p>
+					{action}
+				</div>
 			</div>
 		</div>
 	);
