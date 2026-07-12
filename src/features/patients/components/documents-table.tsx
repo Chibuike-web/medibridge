@@ -6,6 +6,7 @@ import { CreateDocumentDrawer as CreateDocumentDrawerComponent } from "@/feature
 import { DocumentDetailsDrawer as DocumentDetailsDrawerComponent } from "@/features/patients/components/document-details-drawer";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
 	Drawer,
 	DrawerClose,
@@ -52,17 +53,23 @@ import {
 	updatePatientDocumentAction,
 } from "@/features/patients/server/actions";
 import { cn } from "@/lib/utils/cn";
+import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {
 	type ColumnDef,
 	flexRender,
 	getCoreRowModel,
 	getSortedRowModel,
+	type RowSelectionState,
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
 import {
 	RiArrowDownSLine,
+	RiArrowRightLine,
 	RiArrowUpSLine,
+	RiArchiveLine,
+	RiCalendarLine,
+	RiCheckLine,
 	RiCloseLine,
 	RiEditLine,
 	RiEyeLine,
@@ -73,13 +80,43 @@ import {
 	RiShare2Line,
 	RiUploadCloud2Line,
 } from "@remixicon/react";
+import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
+import type { DateRange } from "react-day-picker";
 import pdfFileFormat from "@/assets/file-formats/pdf.svg";
 import pngFileFormat from "@/assets/file-formats/png.svg";
 import jpgFileFormat from "@/assets/file-formats/jpg.svg";
 import docFileFormat from "@/assets/file-formats/doc.svg";
 import { CopyIdButton } from "@/components/copy-id-button";
+import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
+
+type DocumentDateFilterPreset = {
+	label: string;
+	getRange: (today: Date) => DocumentDateCompleteRange;
+};
+
+type DocumentDateCompleteRange = {
+	from: Date;
+	to: Date;
+};
+
+type DocumentFilterSubmenu = "document-type" | "created-at";
+
+const documentDateFilterPresets: DocumentDateFilterPreset[] = [
+	{
+		label: "Today",
+		getRange: (today) => ({ from: startOfDay(today), to: endOfDay(today) }),
+	},
+	{
+		label: "Last 7 days",
+		getRange: (today) => ({ from: startOfDay(subDays(today, 6)), to: endOfDay(today) }),
+	},
+	{
+		label: "Last 30 days",
+		getRange: (today) => ({ from: startOfDay(subDays(today, 29)), to: endOfDay(today) }),
+	},
+];
 const fileFormat: Record<string, string> = {
 	pdf: pdfFileFormat,
 	jpg: jpgFileFormat,
@@ -124,16 +161,23 @@ export function DocumentsTable({
 	limit,
 	totalPages,
 	query,
+	createdFrom,
+	createdTo,
 	documentTypeFilters,
 	isPending,
 	onQueryChange,
 	onDocumentTypeFiltersChange,
+	onCreatedAtRangeApply,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
 	onDocumentsChanged,
 }: DocumentsTableProps) {
 	const [sorting, setSorting] = useState<SortingState>([]);
+	const [selectedDocumentRows, setSelectedDocumentRows] = useState<RowSelectionState>({});
+	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<DocumentFilterSubmenu | null>(
+		null,
+	);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
@@ -155,11 +199,14 @@ export function DocumentsTable({
 		data: documents,
 		columns,
 		enableRowSelection: true,
+		getRowId: (row) => row.documentId,
 		onSortingChange: setSorting,
+		onRowSelectionChange: setSelectedDocumentRows,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		state: { sorting },
+		state: { sorting, rowSelection: selectedDocumentRows },
 	});
+	const selectedDocuments = table.getSelectedRowModel().rows.map((row) => row.original);
 
 	return (
 		<div className="px-6 py-8 text-sm">
@@ -189,7 +236,16 @@ export function DocumentsTable({
 						align="end"
 						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 					>
-						<DropdownMenuSub>
+						<DropdownMenuSub
+							open={activeFilterSubmenu === "document-type"}
+							onOpenChange={(isDocumentTypeSubmenuOpen) => {
+								setActiveFilterSubmenu((prev) => {
+									if (isDocumentTypeSubmenuOpen) return "document-type";
+									if (prev === "document-type") return null;
+									return prev;
+								});
+							}}
+						>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 								<RiFileTextLine className="size-4.5" />
 								<span>Document Type </span>
@@ -229,6 +285,32 @@ export function DocumentsTable({
 								})}
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
+						<DropdownMenuSub
+							open={activeFilterSubmenu === "created-at"}
+							onOpenChange={(isCreatedAtSubmenuOpen) => {
+								setActiveFilterSubmenu((prev) => {
+									if (isCreatedAtSubmenuOpen) return "created-at";
+									if (prev === "created-at") return null;
+									return prev;
+								});
+							}}
+						>
+							<DropdownMenuSubTrigger className="rounded-lg py-2 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
+								<RiCalendarLine className="size-4.5" />
+								<span>Created at</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								alignOffset={-5}
+								className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
+							>
+								<DocumentDateFilterContent
+									from={createdFrom}
+									to={createdTo}
+									isPending={isPending}
+									onDateRangeApply={onCreatedAtRangeApply}
+								/>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
 					</DropdownMenuContent>
 				</DropdownMenu>
 				<Button
@@ -246,6 +328,13 @@ export function DocumentsTable({
 					Add document
 				</Button>
 			</div>
+			<DocumentActiveFilterPills
+				createdFrom={createdFrom}
+				createdTo={createdTo}
+				documentTypeFilters={documentTypeFilters}
+				onCreatedAtRangeApply={onCreatedAtRangeApply}
+				onDocumentTypeFiltersChange={onDocumentTypeFiltersChange}
+			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[58rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="h-12 text-sm font-semibold text-gray-600">
@@ -297,8 +386,9 @@ export function DocumentsTable({
 								{row.getVisibleCells().map((cell) => (
 									<TableCell
 										key={cell.id}
-										className={cn(
-											"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
+									className={cn(
+											"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
+											row.getIsSelected() ? "bg-gray-100" : "bg-white",
 											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 										)}
 									>
@@ -368,6 +458,11 @@ export function DocumentsTable({
 					</div>
 				</div>
 			</div>
+			<DocumentsBulkActionBar
+				selectedDocuments={selectedDocuments}
+				onClearSelection={() => table.resetRowSelection()}
+				onViewDocumentDetails={handleViewDocumentDetails}
+			/>
 			<DocumentDetailsDrawerComponent
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}
@@ -386,6 +481,298 @@ export function DocumentsTable({
 			/>
 		</div>
 	);
+}
+
+function DocumentsBulkActionBar({
+	selectedDocuments,
+	onClearSelection,
+	onViewDocumentDetails,
+}: {
+	selectedDocuments: DocumentType[];
+	onClearSelection: () => void;
+	onViewDocumentDetails: (documentId: string) => void;
+}) {
+	const selectedDocumentCount = selectedDocuments.length;
+	const singleSelectedDocument = selectedDocumentCount === 1 ? selectedDocuments[0] : undefined;
+
+	if (selectedDocumentCount === 0) return null;
+
+	return (
+		<div className="no-scrollbar fixed right-4 bottom-6 left-4 z-50 flex h-12 items-center gap-4 overflow-x-auto rounded-xl border border-white/20 bg-gray-800 pl-4 pr-2 text-white shadow-[0_1rem_2.5rem_rgba(15,23,42,0.35)] ring ring-gray-800 sm:right-auto sm:left-1/2 sm:w-max sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2">
+			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
+				{selectedDocumentCount} {selectedDocumentCount === 1 ? "item" : "items"} selected
+			</span>
+			<TableBulkActionSeparator />
+			<div className="flex items-center">
+				{singleSelectedDocument ? (
+					<button
+						type="button"
+						onClick={() => onViewDocumentDetails(singleSelectedDocument.documentId)}
+						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+					>
+						<RiEyeLine className="size-5" aria-hidden />
+						<span>View details</span>
+					</button>
+				) : null}
+				<button
+					type="button"
+					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				>
+					<RiShare2Line className="size-5" aria-hidden />
+					<span>Export {selectedDocumentCount > 1 ? "all" : null}</span>
+				</button>
+				<button
+					type="button"
+					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				>
+					<RiArchiveLine className="size-5" aria-hidden />
+					<span>Archive {selectedDocumentCount > 1 ? "all" : null}</span>
+				</button>
+			</div>
+			<button
+				type="button"
+				onClick={onClearSelection}
+				className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				aria-label="Clear selected documents"
+			>
+				<RiCloseLine className="size-5" aria-hidden />
+			</button>
+		</div>
+	);
+}
+
+function DocumentActiveFilterPills({
+	createdFrom,
+	createdTo,
+	documentTypeFilters,
+	onCreatedAtRangeApply,
+	onDocumentTypeFiltersChange,
+}: {
+	createdFrom: string;
+	createdTo: string;
+	documentTypeFilters: string[];
+	onCreatedAtRangeApply: (from: string, to: string) => void;
+	onDocumentTypeFiltersChange: (documentTypes: string[]) => void;
+}) {
+	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
+	const hasDocumentTypeFilters = documentTypeFilters.length > 0;
+
+	if (!hasCreatedAtFilter && !hasDocumentTypeFilters) return null;
+
+	return (
+		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+			{documentTypeFilters.map((documentType) => (
+				<DocumentFilterPill
+					key={documentType}
+					label={`Document type: ${documentType}`}
+					onRemove={() => {
+						onDocumentTypeFiltersChange(
+							documentTypeFilters.filter((currentDocumentType) => currentDocumentType !== documentType),
+						);
+					}}
+				/>
+			))}
+			{hasCreatedAtFilter ? (
+				<DocumentFilterPill
+					label={`Created: ${formatDocumentDateRangeFilterLabel(createdFrom, createdTo)}`}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
+		</div>
+	);
+}
+
+function DocumentFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
+	return (
+		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
+			<span>{label}</span>
+			<button
+				type="button"
+				onClick={onRemove}
+				className="flex size-5 items-center justify-center rounded-full bg-gray-800 text-white transition hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+				aria-label={`Remove ${label} filter`}
+			>
+				<RiCloseLine className="size-4" aria-hidden="true" />
+			</button>
+		</span>
+	);
+}
+
+function DocumentDateFilterContent({
+	from,
+	to,
+	isPending,
+	onDateRangeApply,
+}: {
+	from: string;
+	to: string;
+	isPending: boolean;
+	onDateRangeApply: (from: string, to: string) => void;
+}) {
+	return (
+		<div className="flex w-max">
+			<div className="flex w-50 shrink-0 flex-col p-1 text-sm text-gray-600">
+				<DocumentDatePresetList from={from} to={to} onDateRangeApply={onDateRangeApply} />
+			</div>
+			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
+				<DocumentCustomRangeCalendarPanel
+					key={`${from}:${to}`}
+					from={from}
+					to={to}
+					isPending={isPending}
+					onDateRangeApply={onDateRangeApply}
+				/>
+			</div>
+		</div>
+	);
+}
+
+function DocumentDatePresetList({
+	from,
+	to,
+	onDateRangeApply,
+}: {
+	from: string;
+	to: string;
+	onDateRangeApply: (from: string, to: string) => void;
+}) {
+	const selectedDocumentDateRange = getDocumentDateRangeFromParams(from, to);
+	const today = new Date();
+
+	return documentDateFilterPresets.map((preset) => {
+		const presetRange = preset.getRange(today);
+		const isSelected = isSameDocumentDateRange(selectedDocumentDateRange, presetRange);
+
+		return (
+			<DropdownMenuItem
+				key={preset.label}
+				onSelect={(event) => {
+					event.preventDefault();
+					onDateRangeApply(formatDocumentUrlDate(presetRange.from), formatDocumentUrlDate(presetRange.to));
+				}}
+				className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
+			>
+				<span>{preset.label}</span>
+				{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}
+			</DropdownMenuItem>
+		);
+	});
+}
+
+function DocumentCustomRangeCalendarPanel({
+	from,
+	to,
+	isPending,
+	onDateRangeApply,
+}: {
+	from: string;
+	to: string;
+	isPending: boolean;
+	onDateRangeApply: (from: string, to: string) => void;
+}) {
+	const selectedDocumentDateRange = getDocumentDateRangeFromParams(from, to);
+	const [draftDocumentDateRange, setDraftDocumentDateRange] = useState<DateRange | undefined>(
+		selectedDocumentDateRange,
+	);
+
+	return (
+		<div className="flex min-w-0 flex-col">
+			<div className="flex items-center gap-3">
+				<DocumentDateFieldPlaceholder value={draftDocumentDateRange?.from} label="Start date" />
+				<RiArrowRightLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
+				<DocumentDateFieldPlaceholder value={draftDocumentDateRange?.to} label="End date" />
+			</div>
+			<Calendar
+				mode="range"
+				selected={draftDocumentDateRange}
+				onSelect={setDraftDocumentDateRange}
+				numberOfMonths={1}
+				className="mt-4 p-0"
+				classNames={{
+					month_caption: "flex h-9 w-full items-center justify-center px-9",
+					caption_label: "text-sm font-semibold text-gray-800",
+					weekday: "flex-1 rounded-md text-sm font-medium text-gray-700 select-none",
+					day_button: "rounded-lg text-sm",
+				}}
+				disabled={isPending}
+			/>
+			<div className="mt-7 flex justify-end gap-3">
+				<Button
+					type="button"
+					variant="outline"
+					className="min-w-28 text-sm"
+					disabled={isPending}
+					onClick={() => {
+						setDraftDocumentDateRange(undefined);
+						onDateRangeApply("", "");
+					}}
+				>
+					Reset
+				</Button>
+				<Button
+					type="button"
+					className="min-w-40 flex-1 text-sm"
+					disabled={!draftDocumentDateRange?.from || !draftDocumentDateRange?.to || isPending}
+					onClick={() => {
+						if (!draftDocumentDateRange?.from || !draftDocumentDateRange?.to) return;
+
+						onDateRangeApply(
+							formatDocumentUrlDate(draftDocumentDateRange.from),
+							formatDocumentUrlDate(draftDocumentDateRange.to),
+						);
+					}}
+				>
+					Apply
+				</Button>
+			</div>
+		</div>
+	);
+}
+
+function DocumentDateFieldPlaceholder({ label, value }: { label: string; value?: Date }) {
+	return (
+		<div className="flex h-9 min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left text-sm font-medium text-gray-500">
+			<RiCalendarLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
+			<span className="sr-only">{label}</span>
+			<span className="truncate">{value ? format(value, "dd/MM/yyyy") : "DD/MM/YYYY"}</span>
+		</div>
+	);
+}
+
+function formatDocumentDateRangeFilterLabel(from: string, to: string) {
+	const parsedFromDate = parseDateParam(from);
+	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate) {
+		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedFromDate) return `From ${format(parsedFromDate, "MMM d, yyyy")}`;
+	if (parsedToDate) return `Until ${format(parsedToDate, "MMM d, yyyy")}`;
+
+	return "Any date";
+}
+
+function getDocumentDateRangeFromParams(from: string, to: string): DateRange | undefined {
+	const parsedFromDate = parseDateParam(from);
+	const parsedToDate = parseDateParam(to);
+
+	if (!parsedFromDate && !parsedToDate) return undefined;
+
+	return { from: parsedFromDate, to: parsedToDate };
+}
+
+function isSameDocumentDateRange(
+	range: DateRange | undefined,
+	presetRange: DocumentDateCompleteRange,
+) {
+	if (!range?.from || !range.to) return false;
+
+	return isSameDay(range.from, presetRange.from) && isSameDay(range.to, presetRange.to);
+}
+
+function formatDocumentUrlDate(date: Date) {
+	return format(date, "yyyy-MM-dd");
 }
 
 function getDocumentColumns({

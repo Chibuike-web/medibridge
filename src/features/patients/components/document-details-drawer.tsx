@@ -104,7 +104,7 @@ export function DocumentDetailsDrawer({
 						Selected patient document details.
 					</DrawerDescription>
 				</DrawerHeader>
-				<div className="min-h-0 overflow-y-auto px-6 py-8">
+				<div className="min-h-0 overflow-y-auto px-6 py-8 text-sm">
 					{isLoading ? (
 						<DcoumentDetailsFallback />
 					) : document ? (
@@ -174,7 +174,7 @@ function DocumentDetailsOverview({
 
 	return (
 		<div className="flex flex-col gap-10">
-			<div className="flex flex-wrap gap-x-8 gap-y-3">
+			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
 					<span className="text-gray-400">Document ID:</span>
 					<CopyIdButton id={document.documentId} />
@@ -186,39 +186,41 @@ function DocumentDetailsOverview({
 					</div>
 				) : null}
 			</div>
-			<div className="flex items-center justify-between gap-4">
-				<h2 className="text-xl font-semibold text-gray-800">{document.title}</h2>
-				<button
-					type="button"
-					onClick={onEditDocumentDetails}
-					className="inline-flex items-center gap-2 text-sm font-medium text-gray-400 transition hover:text-gray-700"
-				>
-					<RiEditLine className="size-4" />
-					Edit
-				</button>
-			</div>
-			<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
-				<DocumentDetailItem label="Document type" value={document.documentType} />
-				<DocumentDetailItem label="Clinical notes" value={document.clinicalNotes} />
-				<DocumentDetailItem label="Created by" value={document.createdBy} />
-				<DocumentDetailItem label="Created at" value={document.createdAtLabel} />
-				<DocumentDetailItem label="Updated by" value={document.updatedBy} />
-				<DocumentDetailItem label="Updated at" value={document.updatedAtLabel} />
-			</div>
-			<div>
-				<div className="mb-4 flex items-center justify-between">
-					<h3 className="text-lg font-semibold text-gray-800">Files</h3>
-					{document.files.length > 3 ? (
-						<button
-							type="button"
-							className="text-gray-400"
-							onClick={() => setAreDocumentFilesExpanded((previousValue) => !previousValue)}
-						>
-							{areDocumentFilesExpanded ? "View less" : "View more"}
-						</button>
-					) : null}
+			<div className="flex flex-col gap-6">
+				<div className="flex flex-wrap items-center justify-between gap-4">
+					<h2 className="text-xl font-semibold text-gray-800">{document.title}</h2>
+					<button
+						type="button"
+						onClick={onEditDocumentDetails}
+						className="inline-flex items-center gap-2 text-sm font-medium text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+					>
+						<RiEditLine className="size-4" aria-hidden="true" />
+						Edit
+					</button>
 				</div>
-				{document.files.length ? (
+				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
+					<DocumentDetailItem label="Document type" value={document.documentType} />
+					<DocumentDetailItem label="Clinical notes" value={document.clinicalNotes} />
+					<DocumentDetailItem label="Created by" value={document.createdBy} />
+					<DocumentDetailItem label="Created at" value={document.createdAtLabel} />
+					<DocumentDetailItem label="Updated by" value={document.updatedBy} />
+					<DocumentDetailItem label="Updated at" value={document.updatedAtLabel} />
+				</div>
+			</div>
+			{document.files.length ? (
+				<div className="flex flex-col gap-[14px]">
+					<div className="flex w-full items-center justify-between">
+						<p className="text-[18px] font-semibold text-gray-800">Files</p>
+						{document.files.length > 3 ? (
+							<button
+								type="button"
+								className="text-gray-400"
+								onClick={() => setAreDocumentFilesExpanded((prev) => !prev)}
+							>
+								{areDocumentFilesExpanded ? "View less" : "View more"}
+							</button>
+						) : null}
+					</div>
 					<div className="space-y-3">
 						{visibleDocumentFiles.map((file) => (
 							<div
@@ -234,21 +236,21 @@ function DocumentDetailsOverview({
 								/>
 								<div className="min-w-0 flex-1">
 									<p className="truncate font-semibold text-gray-800">{file.name}</p>
-									<p className="text-gray-400">
+									<p className="mt-1 truncate text-gray-400">
 										{file.size} • Uploaded on {file.uploadedAt.slice(0, 10)}
 									</p>
 								</div>
-								<Button variant="outline">Download</Button>
-								<Button asChild>
-									<a href={file.url}>Open</a>
-								</Button>
+								<div className="flex shrink-0 items-center gap-2">
+									<Button type="button" variant="outline">Download</Button>
+									<Button asChild type="button">
+										<a href={file.url}>Open</a>
+									</Button>
+								</div>
 							</div>
 						))}
 					</div>
-				) : (
-					<p className="text-gray-500">No uploaded files.</p>
-				)}
-			</div>
+				</div>
+			) : null}
 		</div>
 	);
 }
