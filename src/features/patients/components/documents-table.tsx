@@ -195,7 +195,7 @@ export function DocumentsTable({
 								<span>Document Type </span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
-								// alignOffset={-5}
+								alignOffset={-5}
 								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
 								{DOCUMENT_TYPE.map((documentType) => {
