@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { MultiSelectItem } from "@/components/multi-select-item";
 import { clinicalRecords } from "@/features/transfers/data";
 import { useAttachClinicalRecords } from "@/features/transfers/stores/use-attach-clinical-records";
-import type { ClinicalRecordItem } from "@/features/transfers/types";
+import type { ClinicalRecordItem, ClinicalRecordType } from "@/features/transfers/types";
 import { cn } from "@/lib/utils/cn";
 
 type ClinicalRecordOptionsData = {
@@ -25,16 +25,14 @@ type ClinicalRecordOptionsData = {
 const clinicalRecordOptionsLimit = 8;
 
 export function AttachClinicalRecords({ activePatient }: { activePatient: string }) {
-	const { attachedClinicalRecordsByPatientId, toggleAttachedClinicalRecordForPatient } =
-		useAttachClinicalRecords();
+	const { attachedClinicalRecordsByPatientId, toggleAttachedClinicalRecordForPatient } = useAttachClinicalRecords();
 	const [activeTabId, setActiveTabId] = useState(clinicalRecords[0].id);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [clinicalRecordOptionsPage, setClinicalRecordOptionsPage] = useState(1);
 	const shouldReduceMotion = useReducedMotion();
 
 	const allSelectedRecordsForPatient = attachedClinicalRecordsByPatientId[activePatient] ?? [];
-	const activeTab =
-		clinicalRecords.find((record) => record.id === activeTabId) ?? clinicalRecords[0];
+	const activeTab = clinicalRecords.find((record) => record.id === activeTabId) ?? clinicalRecords[0];
 	const normalizedSearchQuery = searchQuery.trim().toLowerCase();
 
 	const clinicalRecordOptionsQuery = useSWR(
@@ -64,12 +62,8 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 		() => new Set(allSelectedRecordsForPatient.map((record) => record.id)),
 		[allSelectedRecordsForPatient],
 	);
-	const selectedRecordsForActiveTab = allSelectedRecordsForPatient.filter(
-		(record) => record.type === activeTab.label,
-	);
-	const selectedVisibleRecordsCount = recordsForActiveTab.filter((record) =>
-		selectedRecordIds.has(record.id),
-	).length;
+	const selectedRecordsForActiveTab = allSelectedRecordsForPatient.filter((record) => record.type === activeTab.id);
+	const selectedVisibleRecordsCount = recordsForActiveTab.filter((record) => selectedRecordIds.has(record.id)).length;
 	const areAllVisibleRecordsSelected =
 		recordsForActiveTab.length > 0 && selectedVisibleRecordsCount === recordsForActiveTab.length;
 	const areSomeVisibleRecordsSelected =
@@ -80,13 +74,17 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 			const isSelected = selectedRecordIds.has(id);
 
 			if (areAllVisibleRecordsSelected ? isSelected : !isSelected) {
-				toggleAttachedClinicalRecordForPatient(activePatient, { id, name, type: activeTab.label });
+				toggleAttachedClinicalRecordForPatient(activePatient, {
+					id,
+					name,
+					type: activeTab.id,
+				});
 			}
 		});
 	}
 
 	function handleTabChange(nextActiveTabId: string) {
-		setActiveTabId(nextActiveTabId);
+		setActiveTabId(nextActiveTabId as ClinicalRecordType);
 		setClinicalRecordOptionsPage(1);
 	}
 
@@ -125,11 +123,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 									<motion.span
 										layoutId="attach-record-tab"
 										className="absolute inset-0 rounded-full bg-gray-800"
-										transition={
-											shouldReduceMotion
-												? { duration: 0 }
-												: { type: "spring", duration: 0.24, bounce: 0.05 }
-										}
+										transition={shouldReduceMotion ? { duration: 0 } : { type: "spring", duration: 0.24, bounce: 0.05 }}
 									/>
 								)}
 								<span className="relative z-10">{record.label}</span>
@@ -142,9 +136,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 			<Popover>
 				<PopoverTrigger className="group mt-3 flex h-9 w-full items-center justify-between gap-4 rounded-md border border-input px-4 py-2 text-left outline-0 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50">
 					{selectedRecordsForActiveTab.length === 0 ? (
-						<span className="truncate text-sm text-gray-500">
-							Select {activeTab.label.toLowerCase()} records
-						</span>
+						<span className="truncate text-sm text-gray-500">Select {activeTab.label.toLowerCase()} records</span>
 					) : (
 						<span className="truncate text-sm text-foreground">
 							{selectedRecordsForActiveTab.length} selected in {activeTab.label}
@@ -173,10 +165,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 					>
 						<Label className="h-full w-full">
 							<Checkbox
-								checked={
-									areAllVisibleRecordsSelected ||
-									(areSomeVisibleRecordsSelected && "indeterminate")
-								}
+								checked={areAllVisibleRecordsSelected || (areSomeVisibleRecordsSelected && "indeterminate")}
 								aria-label={`Select all ${activeTab.label.toLowerCase()} records`}
 								disabled={recordsForActiveTab.length === 0}
 								onCheckedChange={handleSelectAllVisibleRecords}
@@ -193,10 +182,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 							{isUpdatingClinicalRecordOptions &&
 								recordsForActiveTab.length === 0 &&
 								Array.from({ length: 5 }).map((_, index) => (
-									<div
-										key={index}
-										className="h-9 w-full animate-pulse rounded-md bg-gray-100"
-									/>
+									<div key={index} className="h-9 w-full animate-pulse rounded-md bg-gray-100" />
 								))}
 
 							{!isUpdatingClinicalRecordOptions && recordsForActiveTab.length === 0 && (
@@ -215,15 +201,13 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 										toggleAttachedClinicalRecordForPatient(activePatient, {
 											id,
 											name,
-											type: activeTab.label,
+											type: activeTab.id,
 										})
 									}
 								>
 									<span className="flex min-w-0 flex-col">
 										<span className="truncate">{name}</span>
-										{createdAt ? (
-											<span className="text-xs font-normal text-gray-400">{createdAt}</span>
-										) : null}
+										{createdAt ? <span className="text-xs font-normal text-gray-400">{createdAt}</span> : null}
 									</span>
 								</MultiSelectItem>
 							))}
@@ -242,17 +226,13 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 						</Button>
 						<span className="justify-self-center text-center text-sm font-medium text-gray-600">
 							Page {clinicalRecordOptionsPage} of {currentTotalPages}
-							<span className="block text-xs font-normal text-gray-400">
-								{totalRecordsForActiveTab} total
-							</span>
+							<span className="block text-xs font-normal text-gray-400">{totalRecordsForActiveTab} total</span>
 						</span>
 						<Button
 							type="button"
 							variant="outline"
 							onClick={() => handlePageChange(clinicalRecordOptionsPage + 1)}
-							disabled={
-								clinicalRecordOptionsPage >= currentTotalPages || isUpdatingClinicalRecordOptions
-							}
+							disabled={clinicalRecordOptionsPage >= currentTotalPages || isUpdatingClinicalRecordOptions}
 							className="justify-self-end border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Next

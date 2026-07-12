@@ -2,13 +2,14 @@
 
 import bcrypt from "bcrypt";
 import { randomInt, randomUUID } from "crypto";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath, revalidateTag } from "next/cache";
 import {
 	patientRecordAccess,
 	patientRecordAccessVerification,
 	patientTransfer,
 	patientTransferContent,
+	patientTransferProgress,
 	type PatientRecordAccessPermissions,
 	type PatientRecordAccessSection,
 	type PatientRecordAccessSelectedRecord,
@@ -16,6 +17,7 @@ import {
 import { db } from "@/lib/better-auth/auth";
 import { sendAccessCodeEmail } from "@/lib/utils/send-access-code-email";
 import { ENV } from "@/lib/utils/env";
+import { verifyTransferApprovalToken } from "@/lib/api/transfer-approval-token";
 
 const transferContentTypeToAccessSection = {
 	diagnoses: "diagnoses",
@@ -50,9 +52,7 @@ async function getTransferForAction(transferId: string) {
 }
 
 function getAccessSectionFromTransferContentType(contentType: string) {
-	return transferContentTypeToAccessSection[
-		contentType as keyof typeof transferContentTypeToAccessSection
-	];
+	return transferContentTypeToAccessSection[contentType as keyof typeof transferContentTypeToAccessSection];
 }
 
 function buildAccessPermissions(
@@ -113,15 +113,23 @@ function revalidateTransferApproval({
 	revalidateTag(`transfer-details-${sourceOrganizationId}-${transferId}`, "max");
 }
 
-export async function approvePatientTransferAction(transferId: string) {
+export async function approvePatientTransferAction(transferId: string, approvalToken: string) {
 	const transfer = await getTransferForAction(transferId);
+	const tokenPayload = await verifyTransferApprovalToken(approvalToken, transferId);
 
-	if (!transfer) {
-		return { success: false, message: "This transfer request could not be found." };
+	if (!transfer || tokenPayload?.patientId !== transfer.patientId) {
+		return {
+			success: false,
+			message: "This transfer request could not be found.",
+		};
 	}
 
 	if (transfer.patientApprovalStatus === "approved") {
-		return { success: true, status: "approved", message: "This transfer is already approved." };
+		return {
+			success: true,
+			status: "approved",
+			message: "This transfer is already approved.",
+		};
 	}
 
 	if (!transfer.createdBy && !transfer.requestedBy) {
@@ -164,9 +172,7 @@ export async function approvePatientTransferAction(transferId: string) {
 				recordId: transferContent.recordId,
 			} satisfies PatientRecordAccessSelectedRecord;
 		})
-		.filter((selectedRecord): selectedRecord is PatientRecordAccessSelectedRecord =>
-			Boolean(selectedRecord),
-		);
+		.filter((selectedRecord): selectedRecord is PatientRecordAccessSelectedRecord => Boolean(selectedRecord));
 
 	if (selectedRecordIds.length === 0) {
 		return {
@@ -197,6 +203,19 @@ export async function approvePatientTransferAction(transferId: string) {
 			updatedAt: new Date(),
 		})
 		.where(eq(patientTransfer.id, transfer.transferId));
+
+	await db
+		.update(patientTransferProgress)
+		.set({
+			status: "approved",
+			description: "Patient approved the transfer request.",
+		})
+		.where(
+			and(
+				eq(patientTransferProgress.transferId, transfer.transferId),
+				eq(patientTransferProgress.title, "Patient approval"),
+			),
+		);
 
 	if (!existingAccess) {
 		await db.insert(patientRecordAccess).values({
@@ -233,23 +252,54 @@ export async function approvePatientTransferAction(transferId: string) {
 		await db
 			.update(patientTransfer)
 			.set({
+				status: emailResult.error ? "failed" : "completed",
 				deliveryStatus: emailResult.error ? "failed" : "sent",
 				sentAt: emailResult.error ? null : now,
+				completedAt: emailResult.error ? null : now,
 				failedAt: emailResult.error ? now : null,
 				updatedAt: now,
 			})
 			.where(eq(patientTransfer.id, transfer.transferId));
+
+		await db
+			.update(patientTransferProgress)
+			.set({
+				status: emailResult.error ? "failed" : "completed",
+				description: emailResult.error
+					? "The receiving hospital access email could not be sent."
+					: "Selected records were sent to the receiving hospital.",
+			})
+			.where(
+				and(
+					eq(patientTransferProgress.transferId, transfer.transferId),
+					eq(patientTransferProgress.title, "Clinical packet sent"),
+				),
+			);
 	} catch (error) {
 		console.error(error);
 
 		await db
 			.update(patientTransfer)
 			.set({
+				status: "failed",
 				deliveryStatus: "failed",
 				failedAt: now,
 				updatedAt: now,
 			})
 			.where(eq(patientTransfer.id, transfer.transferId));
+
+		await db
+			.update(patientTransferProgress)
+			.set({
+				status: "failed",
+				description: "The receiving hospital access email could not be sent.",
+			})
+			.where(
+				and(
+					eq(patientTransferProgress.transferId, transfer.transferId),
+					eq(patientTransferProgress.title, "Clinical packet sent"),
+				),
+			);
 	}
 
 	revalidateTransferApproval(transfer);
@@ -263,20 +313,29 @@ export async function approvePatientTransferAction(transferId: string) {
 
 export async function rejectPatientTransferAction({
 	transferId,
+	approvalToken,
 	reason,
 }: {
 	transferId: string;
+	approvalToken: string;
 	reason: string;
 }) {
 	const transfer = await getTransferForAction(transferId);
+	const tokenPayload = await verifyTransferApprovalToken(approvalToken, transferId);
 	const rejectionReason = reason.trim();
 
-	if (!transfer) {
-		return { success: false, message: "This transfer request could not be found." };
+	if (!transfer || tokenPayload?.patientId !== transfer.patientId) {
+		return {
+			success: false,
+			message: "This transfer request could not be found.",
+		};
 	}
 
 	if (!rejectionReason) {
-		return { success: false, message: "Please enter a reason for rejecting this transfer." };
+		return {
+			success: false,
+			message: "Please enter a reason for rejecting this transfer.",
+		};
 	}
 
 	if (transfer.patientApprovalStatus === "approved") {
@@ -287,7 +346,11 @@ export async function rejectPatientTransferAction({
 	}
 
 	if (transfer.patientApprovalStatus === "rejected" || transfer.status === "rejected") {
-		return { success: true, status: "rejected", message: "This transfer is already rejected." };
+		return {
+			success: true,
+			status: "rejected",
+			message: "This transfer is already rejected.",
+		};
 	}
 
 	await db
@@ -299,6 +362,19 @@ export async function rejectPatientTransferAction({
 			updatedAt: new Date(),
 		})
 		.where(eq(patientTransfer.id, transfer.transferId));
+
+	await db
+		.update(patientTransferProgress)
+		.set({
+			status: "rejected",
+			description: `Patient rejected the transfer request: ${rejectionReason}`,
+		})
+		.where(
+			and(
+				eq(patientTransferProgress.transferId, transfer.transferId),
+				eq(patientTransferProgress.title, "Patient approval"),
+			),
+		);
 
 	revalidateTransferApproval(transfer);
 

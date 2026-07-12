@@ -1,39 +1,42 @@
 import { Suspense } from "react";
 import { TransferApprovalClient } from "./transfer-approval-client";
 import { getTransferApproval } from "@/lib/api/get-transfer-approval";
+import { verifyTransferApprovalToken } from "@/lib/api/transfer-approval-token";
 
 export const metadata = {
 	title: "Transfer Approval",
 };
 
 type TransferApprovalPageProps = PageProps<"/transfer-approval/[transferId]">;
-type TransferApprovalParamsProps = Pick<TransferApprovalPageProps, "params">;
+type TransferApprovalParamsProps = Pick<TransferApprovalPageProps, "params"> & {
+	searchParams: Promise<{ token?: string }>;
+};
 
-export default function TransferApprovalPage({ params }: TransferApprovalPageProps) {
+export default function TransferApprovalPage({ params, searchParams }: TransferApprovalParamsProps) {
 	return (
 		<Suspense fallback={<TransferApprovalPageSkeleton />}>
-			<TransferApprovalContent params={params} />
+			<TransferApprovalContent params={params} searchParams={searchParams} />
 		</Suspense>
 	);
 }
 
-async function TransferApprovalContent({ params }: TransferApprovalParamsProps) {
-	const { transferId } = await params;
-	const transfer = await getTransferApproval(transferId);
+async function TransferApprovalContent({ params, searchParams }: TransferApprovalParamsProps) {
+	const [{ transferId }, { token = "" }] = await Promise.all([params, searchParams]);
+	const approvalToken = await verifyTransferApprovalToken(token, transferId);
+	const transfer = approvalToken ? await getTransferApproval(transferId) : null;
 
 	return (
 		<main className="bg-white px-6 py-10">
 			{transfer ? (
 				<div className="mx-auto w-full max-w-3xl">
-					<TransferApprovalClient transfer={transfer} />
+					<TransferApprovalClient transfer={transfer} approvalToken={token} />
 				</div>
 			) : (
 				<section className="mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-3xl items-center justify-center text-center">
 					<div>
 						<h1 className="text-2xl font-semibold text-gray-800">Invalid transfer link</h1>
 						<p className="mt-4 text-sm text-gray-600">
-							This patient transfer approval link is invalid. Contact the requesting hospital for a
-							new link.
+							This patient transfer approval link is invalid. Contact the requesting hospital for a new link.
 						</p>
 					</div>
 				</section>

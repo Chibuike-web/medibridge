@@ -9,9 +9,10 @@ import { Tabs } from "radix-ui";
 
 type SharedTabsClientProps = {
 	activeSection: SharedSection;
+	availableSections: readonly SharedSection[];
 };
 
-export function SharedTabs({ activeSection }: SharedTabsClientProps) {
+export function SharedTabs({ activeSection, availableSections }: SharedTabsClientProps) {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const shouldReduceMotion = useReducedMotion();
@@ -32,33 +33,31 @@ export function SharedTabs({ activeSection }: SharedTabsClientProps) {
 	return (
 		<Tabs.Root value={optimisticSelectedSharedRecordSection} onValueChange={handleClick}>
 			<Tabs.List className="no-scrollbar relative  mx-auto flex w-full max-w-7xl overflow-x-auto border-b px-6 whitespace-nowrap">
-				{sharedSections.map((section) => {
-					const isActive = optimisticSelectedSharedRecordSection === section.id;
+				{sharedSections
+					.filter((section) => availableSections.includes(section.id))
+					.map((section) => {
+						const isActive = optimisticSelectedSharedRecordSection === section.id;
 
-					return (
-						<Tabs.Trigger
-							key={section.id}
-							value={section.id}
-							className={cn(
-								"relative shrink-0 px-6 py-3 text-sm transition-colors",
-								isActive ? "font-medium text-gray-800" : "font-normal text-gray-400",
-							)}
-						>
-							{section.label}
-							{isActive && (
-								<motion.div
-									layoutId="tab-indicator"
-									className="absolute right-0 bottom-0 left-0 h-0.5 bg-black"
-									transition={
-										shouldReduceMotion
-											? { duration: 0 }
-											: { type: "spring", duration: 0.22, bounce: 0 }
-									}
-								/>
-							)}
-						</Tabs.Trigger>
-					);
-				})}
+						return (
+							<Tabs.Trigger
+								key={section.id}
+								value={section.id}
+								className={cn(
+									"relative shrink-0 px-6 py-3 text-sm transition-colors",
+									isActive ? "font-medium text-gray-800" : "font-normal text-gray-400",
+								)}
+							>
+								{section.label}
+								{isActive && (
+									<motion.div
+										layoutId="tab-indicator"
+										className="absolute right-0 bottom-0 left-0 h-0.5 bg-black"
+										transition={shouldReduceMotion ? { duration: 0 } : { type: "spring", duration: 0.22, bounce: 0 }}
+									/>
+								)}
+							</Tabs.Trigger>
+						);
+					})}
 			</Tabs.List>
 		</Tabs.Root>
 	);

@@ -34,13 +34,17 @@ const useAttachClinicalRecordsStore = create<AttachClinicalRecordsStore>()(
 						...state.attachedClinicalRecordsByPatientId,
 					};
 					delete nextAttachedClinicalRecordsByPatientId[patientId];
-					return { attachedClinicalRecordsByPatientId: nextAttachedClinicalRecordsByPatientId };
+					return {
+						attachedClinicalRecordsByPatientId: nextAttachedClinicalRecordsByPatientId,
+					};
 				}),
 			clearAttachedClinicalRecords: () => set({ attachedClinicalRecordsByPatientId: {} }),
 		}),
 		{
 			name: "attached-clinical-records",
 			storage: createJSONStorage(() => localStorage),
+			version: 2,
+			migrate: () => ({ attachedClinicalRecordsByPatientId: {} }),
 		},
 	),
 );
@@ -55,9 +59,7 @@ export const useAttachClinicalRecords = () => {
 	const removeAttachedClinicalRecordsForPatient = useAttachClinicalRecordsStore(
 		(state) => state.removeAttachedClinicalRecordsForPatient,
 	);
-	const clearAttachedClinicalRecords = useAttachClinicalRecordsStore(
-		(state) => state.clearAttachedClinicalRecords,
-	);
+	const clearAttachedClinicalRecords = useAttachClinicalRecordsStore((state) => state.clearAttachedClinicalRecords);
 
 	return {
 		attachedClinicalRecordsByPatientId,

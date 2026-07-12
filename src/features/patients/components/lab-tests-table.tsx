@@ -388,7 +388,19 @@ export function LabTestsTable({
 					</TableHeader>
 					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
 						{table.getRowModel().rows.map((row, rowPosition) => (
-							<TableRow key={row.id} className="group min-h-14">
+							<TableRow
+								key={row.id}
+								role="button"
+								tabIndex={0}
+								onClick={() => handleViewLabTestDetails(row.original)}
+								onKeyDown={(event) => {
+									if (event.key === "Enter" || event.key === " ") {
+										event.preventDefault();
+										handleViewLabTestDetails(row.original);
+									}
+								}}
+								className="group min-h-14 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
+							>
 								{row.getVisibleCells().map((cell) => (
 									<TableCell
 										key={cell.id}
@@ -833,7 +845,11 @@ function getLabTestsColumns({
 				</div>
 			),
 			cell: ({ row }) => (
-				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+				<div
+					className="w-max"
+					onClick={(event) => event.stopPropagation()}
+					onKeyDown={(event) => event.stopPropagation()}
+				>
 					<IndeterminateCheckbox
 						checked={row.getIsSelected()}
 						disabled={!row.getCanSelect()}
@@ -850,37 +866,62 @@ function getLabTestsColumns({
 			header: "Test",
 			accessorKey: "test",
 			enableSorting: true,
-			cell: ({ row }) => <span className="font-medium text-gray-800">{row.original.test}</span>,
+			cell: ({ row }) => (
+				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+					<span className="font-medium text-gray-800">{row.original.test}</span>
+				</div>
+			),
 		},
 		{
 			header: "Lab ID",
 			accessorKey: "labId",
 			enableSorting: false,
-			cell: ({ row }) => <CopyIdButton id={row.original.labId} />,
+			cell: ({ row }) => (
+				<div onKeyDown={(event) => event.stopPropagation()}>
+					<CopyIdButton id={row.original.labId} />
+				</div>
+			),
 		},
 		{
 			header: "Reference Range",
 			accessorKey: "referenceRange",
 			enableSorting: false,
+			cell: ({ row }) => (
+				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+					{row.original.referenceRange}
+				</div>
+			),
 		},
 			{
 				header: "Flag",
 				accessorKey: "flag",
 				enableSorting: true,
-				cell: ({ row }) => row.original.flag || row.original.interpretation,
+				cell: ({ row }) => (
+					<div className="w-max" onClick={(event) => event.stopPropagation()}>
+						{row.original.flag || row.original.interpretation}
+					</div>
+				),
 			},
 		{
 			id: "createdAt",
 			header: "Created at",
 			accessorFn: (row) => row.createdAtSortValue,
 			enableSorting: true,
-			cell: ({ row }) => row.original.createdAtLabel,
+			cell: ({ row }) => (
+				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+					{row.original.createdAtLabel}
+				</div>
+			),
 		},
 		{
 			header: "Status",
 			accessorKey: "status",
 			enableSorting: false,
-			cell: ({ row }) => <StatusBadge status={row.original.status} />,
+			cell: ({ row }) => (
+				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+					<StatusBadge status={row.original.status} />
+				</div>
+			),
 		},
 		{
 			id: "actions",
@@ -890,7 +931,11 @@ function getLabTestsColumns({
 				const canUpdateLabTestStatus = row.original.status === "Pending";
 
 				return (
-					<div className="flex justify-end">
+					<div
+						className="flex justify-end"
+						onClick={(event) => event.stopPropagation()}
+						onKeyDown={(event) => event.stopPropagation()}
+					>
 						<DropdownMenu>
 							<DropdownMenuTrigger
 								type="button"

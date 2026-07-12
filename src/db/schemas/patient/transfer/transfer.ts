@@ -13,15 +13,17 @@ export const patientTransfer = pgTable("patient_transfer", {
 		.notNull()
 		.references(() => organization.id, { onDelete: "cascade" }),
 
-	targetOrganizationId: text("target_organization_id")
-		.notNull()
-		.references(() => organization.id, { onDelete: "cascade" }),
+	// The destination may not have a MediBridge organization yet. This opaque
+	// identifier is created with the transfer and is confirmed by the patient.
+	targetOrganizationId: text("target_organization_id").notNull(),
 
 	targetHospitalName: text("target_hospital_name").notNull(),
 
 	targetHospitalAdminName: text("target_hospital_admin_name"),
 
 	targetHospitalAdminEmail: text("target_hospital_admin_email"),
+
+	notes: text("notes"),
 
 	status: text("status").notNull(),
 	// pending | rejected | completed | failed | cancelled

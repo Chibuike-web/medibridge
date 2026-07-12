@@ -362,6 +362,10 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 
 	const labTestFileInputRef = useRef<HTMLInputElement>(null);
 	const [editableLabTestFiles, setEditableLabTestFiles] = useState(labTest.files ?? []);
+	const [pendingLabTestFileRemovalId, setPendingLabTestFileRemovalId] = useState<string | null>(
+		null,
+	);
+	const shouldReduceMotion = useReducedMotion();
 
 	const hasLabTestFiles = editableLabTestFiles.length > 0;
 
@@ -369,6 +373,7 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 		setEditableLabTestFiles((previousFiles) =>
 			previousFiles.filter((previousFile) => previousFile.id !== fileId),
 		);
+		setPendingLabTestFileRemovalId(null);
 	}
 	function handleLabTestFilesChange(event: React.ChangeEvent<HTMLInputElement>) {
 		const selectedFiles = Array.from(event.target.files ?? []);
@@ -575,18 +580,24 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 							{editableLabTestFiles.map((file) => (
 								<div
 									key={file.id}
-									className="flex items-center gap-4 rounded-2xl border border-gray-200 p-4"
+									className={cn(
+										"rounded-2xl border p-4",
+										pendingLabTestFileRemovalId === file.id ? "border-red-500" : "border-gray-200",
+									)}
 								>
+									<div className="flex items-center gap-4">
 									<Image
 										src={getLabTestFileIcon(file.name, file.type)}
 										alt=""
 										width={44}
 										height={44}
-										className="size-11 shrink-0"
+										className={`size-11 shrink-0 transition-opacity duration-200 ${pendingLabTestFileRemovalId === file.id ? "opacity-40" : "opacity-100"}`}
 										aria-hidden="true"
 									/>
 
-									<div className="min-w-0 flex-1">
+									<div
+										className={`min-w-0 flex-1 transition-opacity duration-200 ${pendingLabTestFileRemovalId === file.id ? "opacity-40" : "opacity-100"}`}
+									>
 										<p className="truncate font-semibold text-gray-800">{file.name}</p>
 
 										<p className="text-gray-400">
@@ -594,19 +605,59 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 										</p>
 									</div>
 
-									<Button
-										type="button"
-										variant="outline"
-										onClick={() => handleRemoveLabTestFile(file.id)}
-									>
-										Remove
-									</Button>
-
-									<Button asChild type="button">
-										<a href={file.url} target="_blank" rel="noreferrer">
-											Open
-										</a>
-									</Button>
+									{pendingLabTestFileRemovalId !== file.id ? (
+										<div className="flex shrink-0 items-center gap-2">
+											<Button
+												type="button"
+												variant="outline"
+												onClick={() => setPendingLabTestFileRemovalId(file.id)}
+											>
+												Remove
+											</Button>
+											<Button asChild type="button">
+												<a href={file.url} target="_blank" rel="noreferrer">
+													Open
+												</a>
+											</Button>
+										</div>
+									) : null}
+									</div>
+									<AnimatePresence initial={false}>
+										{pendingLabTestFileRemovalId === file.id ? (
+											<motion.div
+												initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+												animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+												exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+												transition={
+													shouldReduceMotion
+														? { duration: 0.12 }
+														: {
+																height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
+																opacity: { duration: 0.16, ease: "easeOut" },
+															}
+													}
+												className="overflow-hidden"
+											>
+												<div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+													<p className="max-w-md text-sm font-medium text-gray-700">
+														Remove {file.name} from this lab test?
+													</p>
+													<div className="ml-auto flex shrink-0 items-center gap-3">
+														<Button type="button" variant="outline" onClick={() => setPendingLabTestFileRemovalId(null)}>
+															Cancel
+														</Button>
+														<Button
+															type="button"
+															className="bg-red-500 hover:bg-red-600 focus-visible:ring-red-300"
+															onClick={() => handleRemoveLabTestFile(file.id)}
+														>
+															Remove file
+														</Button>
+													</div>
+												</div>
+											</motion.div>
+										) : null}
+									</AnimatePresence>
 								</div>
 							))}
 						</div>

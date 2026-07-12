@@ -233,7 +233,19 @@ function TransferTableContent({
 					<TableBody className="rounded-t-xl outline outline-gray-200">
 						{table.getRowModel().rows.length > 0 ? (
 							table.getRowModel().rows.map((row, rowPosition) => (
-								<TableRow key={row.id} className="h-14 group">
+								<TableRow
+									key={row.id}
+									role="button"
+									tabIndex={0}
+									onClick={() => onViewTransferDetails(row.original.id)}
+									onKeyDown={(event) => {
+										if (event.key === "Enter" || event.key === " ") {
+											event.preventDefault();
+											onViewTransferDetails(row.original.id);
+										}
+									}}
+									className="group h-14 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
+								>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell
 											key={cell.id}
@@ -243,7 +255,13 @@ function TransferTableContent({
 												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 											)}
 										>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											<div
+												className="inline-block max-w-full"
+												onClick={(event) => event.stopPropagation()}
+												onKeyDown={(event) => event.stopPropagation()}
+											>
+												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											</div>
 										</TableCell>
 									))}
 								</TableRow>

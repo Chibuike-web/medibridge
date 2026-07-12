@@ -409,7 +409,19 @@ export function ImagingTable({
 					</TableHeader>
 					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
 						{table.getRowModel().rows.map((row, rowPosition) => (
-							<TableRow key={row.id} className="group min-h-14">
+							<TableRow
+								key={row.id}
+								role="button"
+								tabIndex={0}
+								onClick={() => handleViewImagingDetails(row.original)}
+								onKeyDown={(event) => {
+									if (event.key === "Enter" || event.key === " ") {
+										event.preventDefault();
+										handleViewImagingDetails(row.original);
+									}
+								}}
+								className="group min-h-14 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
+							>
 								{row.getVisibleCells().map((cell) => (
 									<TableCell
 										key={cell.id}
@@ -873,7 +885,11 @@ function getImagingColumns({
 				</div>
 			),
 			cell: ({ row }) => (
-				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+				<div
+					className="w-max"
+					onClick={(event) => event.stopPropagation()}
+					onKeyDown={(event) => event.stopPropagation()}
+				>
 					<IndeterminateCheckbox
 						checked={row.getIsSelected()}
 						disabled={!row.getCanSelect()}
@@ -890,30 +906,53 @@ function getImagingColumns({
 			header: "Study",
 			accessorKey: "study",
 			enableSorting: true,
-			cell: ({ row }) => <span className="font-medium text-gray-800">{row.original.study}</span>,
+			cell: ({ row }) => (
+				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+					<span className="font-medium text-gray-800">{row.original.study}</span>
+				</div>
+			),
 		},
 		{
 			header: "Imaging ID",
 			accessorKey: "imagingId",
 			enableSorting: false,
-			cell: ({ row }) => <CopyIdButton id={row.original.imagingId} />,
+			cell: ({ row }) => (
+				<div onKeyDown={(event) => event.stopPropagation()}>
+					<CopyIdButton id={row.original.imagingId} />
+				</div>
+			),
 		},
 		{
 			header: "Modality",
 			accessorKey: "modality",
 			enableSorting: true,
+			cell: ({ row }) => (
+				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+					{row.original.modality}
+				</div>
+			),
 		},
 		{
 			header: "Region",
 			accessorKey: "region",
 			enableSorting: true,
+			cell: ({ row }) => (
+				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+					{row.original.region}
+				</div>
+			),
 		},
 		{
 			header: "Impression",
 			accessorKey: "impression",
 			enableSorting: false,
 			cell: ({ row }) => (
-				<span className="block max-w-[18rem] whitespace-normal">{row.original.impression}</span>
+				<div
+					className="max-w-[18rem] whitespace-normal"
+					onClick={(event) => event.stopPropagation()}
+				>
+					{row.original.impression}
+				</div>
 			),
 		},
 		{
@@ -921,13 +960,21 @@ function getImagingColumns({
 			header: "Ordered At",
 			accessorFn: (row) => row.orderedAtSortValue,
 			enableSorting: true,
-			cell: ({ row }) => row.original.orderedAtLabel,
+			cell: ({ row }) => (
+				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+					{row.original.orderedAtLabel}
+				</div>
+			),
 		},
 		{
 			header: "Status",
 			accessorKey: "status",
 			enableSorting: false,
-			cell: ({ row }) => <StatusBadge status={row.original.status} />,
+			cell: ({ row }) => (
+				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+					<StatusBadge status={row.original.status} />
+				</div>
+			),
 		},
 		{
 			id: "actions",
@@ -937,7 +984,11 @@ function getImagingColumns({
 				const canUpdateImagingStatus = row.original.status === "Pending";
 
 				return (
-					<div className="flex justify-end">
+					<div
+						className="flex justify-end"
+						onClick={(event) => event.stopPropagation()}
+						onKeyDown={(event) => event.stopPropagation()}
+					>
 						<DropdownMenu>
 							<DropdownMenuTrigger
 								type="button"

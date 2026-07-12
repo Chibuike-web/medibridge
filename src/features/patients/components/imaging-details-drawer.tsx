@@ -336,6 +336,10 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 	const [imagingAttachmentRows, setImagingAttachmentRows] = useState<AttachmentFormRow[]>([]);
 	const imagingFileInputRef = useRef<HTMLInputElement>(null);
 	const [editableImagingFiles, setEditableImagingFiles] = useState(imaging.files ?? []);
+	const [pendingImagingFileRemovalUrl, setPendingImagingFileRemovalUrl] = useState<string | null>(
+		null,
+	);
+	const shouldReduceMotion = useReducedMotion();
 	const hasImagingFiles = editableImagingFiles.length > 0;
 	const selectedModalityValue = getImagingSelectValue(imaging.modality);
 	const selectedStatusValue = imaging.status.toLowerCase();
@@ -368,6 +372,7 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 		setEditableImagingFiles((previousFiles) =>
 			previousFiles.filter((previousFile) => previousFile.url !== fileUrl),
 		);
+		setPendingImagingFileRemovalUrl(null);
 	}
 
 	function handleImagingFilesChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -537,16 +542,80 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 					<>
 						<div className="space-y-3">
 							{editableImagingFiles.map((file) => (
-								<div key={file.url} className="flex items-center gap-4 rounded-2xl border border-gray-200 p-4">
-									<Image src={getDocumentFileIcon(file.name, file.type)} alt="" width={44} height={44} className="size-11 shrink-0" />
-									<div className="min-w-0 flex-1">
+								<div
+									key={file.url}
+									className={cn(
+										"rounded-2xl border p-4",
+										pendingImagingFileRemovalUrl === file.url ? "border-red-500" : "border-gray-200",
+									)}
+								>
+									<div className="flex items-center gap-4">
+										<Image
+											src={getDocumentFileIcon(file.name, file.type)}
+											alt=""
+											width={44}
+											height={44}
+											className={`size-11 shrink-0 transition-opacity duration-200 ${pendingImagingFileRemovalUrl === file.url ? "opacity-40" : "opacity-100"}`}
+										/>
+										<div
+											className={`min-w-0 flex-1 transition-opacity duration-200 ${pendingImagingFileRemovalUrl === file.url ? "opacity-40" : "opacity-100"}`}
+										>
 										<p className="truncate font-semibold text-gray-800">{file.name}</p>
 										<p className="text-gray-400">{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}</p>
 									</div>
-									<Button type="button" variant="outline" onClick={() => handleRemoveImagingFile(file.url)}>
-										Remove
-									</Button>
-									<Button asChild type="button"><a href={file.url} target="_blank" rel="noreferrer">Open</a></Button>
+										{pendingImagingFileRemovalUrl !== file.url ? (
+											<div className="flex shrink-0 items-center gap-2">
+												<Button
+													type="button"
+													variant="outline"
+													onClick={() => setPendingImagingFileRemovalUrl(file.url)}
+												>
+													Remove
+												</Button>
+												<Button asChild type="button">
+													<a href={file.url} target="_blank" rel="noreferrer">
+														Open
+													</a>
+												</Button>
+											</div>
+										) : null}
+									</div>
+									<AnimatePresence initial={false}>
+										{pendingImagingFileRemovalUrl === file.url ? (
+											<motion.div
+												initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+												animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+												exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+												transition={
+													shouldReduceMotion
+														? { duration: 0.12 }
+														: {
+																height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
+																opacity: { duration: 0.16, ease: "easeOut" },
+															}
+													}
+												className="overflow-hidden"
+											>
+												<div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+													<p className="max-w-md text-sm font-medium text-gray-700">
+														Remove {file.name} from this imaging record?
+													</p>
+													<div className="ml-auto flex shrink-0 items-center gap-3">
+														<Button type="button" variant="outline" onClick={() => setPendingImagingFileRemovalUrl(null)}>
+															Cancel
+														</Button>
+														<Button
+															type="button"
+															className="bg-red-500 hover:bg-red-600 focus-visible:ring-red-300"
+															onClick={() => handleRemoveImagingFile(file.url)}
+														>
+															Remove file
+														</Button>
+													</div>
+												</div>
+											</motion.div>
+										) : null}
+									</AnimatePresence>
 								</div>
 							))}
 						</div>

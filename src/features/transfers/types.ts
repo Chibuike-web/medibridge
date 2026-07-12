@@ -1,12 +1,15 @@
 export type ClinicalRecord = {
-	id: string;
+	id: ClinicalRecordType;
 	label: string;
 };
+
+export type ClinicalRecordType =
+	"diagnoses" | "allergies" | "immunizations" | "procedures" | "medications" | "lab-tests" | "imaging";
 
 export type ClinicalRecordItem = {
 	id: string;
 	name: string;
-	type?: string;
+	type: ClinicalRecordType;
 	createdAt?: string;
 };
 

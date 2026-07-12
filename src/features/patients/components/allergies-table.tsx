@@ -331,6 +331,7 @@ export function AllergiesTable({
 				totalPages={totalPages}
 				isPending={isPending}
 				hasActiveFilters={hasActiveFilters}
+				onViewAllergyDetails={handleViewAllergyDetails}
 				onPreviousPage={onPreviousPage}
 				onNextPage={onNextPage}
 				onLimitChange={onLimitChange}
@@ -356,6 +357,7 @@ function AllergiesTableContent({
 	totalPages,
 	isPending,
 	hasActiveFilters,
+	onViewAllergyDetails,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -369,6 +371,7 @@ function AllergiesTableContent({
 	totalPages: number;
 	isPending: boolean;
 	hasActiveFilters: boolean;
+	onViewAllergyDetails: (allergyId: string) => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -443,7 +446,19 @@ function AllergiesTableContent({
 				<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
 					{table.getRowModel().rows.length > 0 ? (
 						table.getRowModel().rows.map((row, rowPosition) => (
-							<TableRow key={row.id} className="group min-h-14">
+							<TableRow
+								key={row.id}
+								role="button"
+								tabIndex={0}
+								onClick={() => onViewAllergyDetails(row.original.allergyId)}
+								onKeyDown={(event) => {
+									if (event.key === "Enter" || event.key === " ") {
+										event.preventDefault();
+										onViewAllergyDetails(row.original.allergyId);
+									}
+								}}
+								className="group min-h-14 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
+							>
 								{row.getVisibleCells().map((cell) => (
 									<TableCell
 										key={cell.id}
@@ -452,7 +467,13 @@ function AllergiesTableContent({
 											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 										)}
 									>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+										<div
+											className="inline-block max-w-full"
+											onClick={(event) => event.stopPropagation()}
+											onKeyDown={(event) => event.stopPropagation()}
+										>
+											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+										</div>
 									</TableCell>
 								))}
 							</TableRow>

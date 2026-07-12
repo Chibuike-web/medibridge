@@ -2,6 +2,7 @@
 
 import { CopyIdButton } from "@/components/copy-id-button";
 import { getDocumentFileIcon } from "@/lib/utils/document-file-icon";
+import { cn } from "@/lib/utils/cn";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +30,7 @@ import {
 } from "@/features/patients/server/actions";
 import type { DocumentType } from "@/features/patients/types";
 import { RiAddLine, RiCloseLine, RiEditLine } from "@remixicon/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRef, useState, useTransition } from "react";
 import { ChooseFileCard } from "@/components/choose-file-card";
 
@@ -264,6 +266,8 @@ function DocumentDetailsEditForm({
 }) {
 	const documentFileInputRef = useRef<HTMLInputElement>(null);
 	const [editableFiles, setEditableFiles] = useState(document.files);
+	const [pendingDocumentFileRemovalUrl, setPendingDocumentFileRemovalUrl] = useState<string | null>(null);
+	const shouldReduceMotion = useReducedMotion();
 
 	const hasFiles = editableFiles.length > 0;
 
@@ -285,6 +289,7 @@ function DocumentDetailsEditForm({
 
 	function handleRemoveDocumentFile(fileUrl: string) {
 		setEditableFiles((previousFiles) => previousFiles.filter((file) => file.url !== fileUrl));
+		setPendingDocumentFileRemovalUrl(null);
 	}
 	const defaultDocumentType = documentTypes.includes(document.documentType)
 		? document.documentType
@@ -336,17 +341,23 @@ function DocumentDetailsEditForm({
 							{editableFiles.map((file) => (
 								<div
 									key={file.url}
-									className="flex items-center gap-4 rounded-2xl border border-gray-200 p-4"
+									className={cn(
+										"rounded-2xl border p-4",
+										pendingDocumentFileRemovalUrl === file.url ? "border-red-500" : "border-gray-200",
+									)}
 								>
-									<Image
-										src={getDocumentFileIcon(file.name, file.type)}
-										alt=""
-										width={44}
-										height={44}
-										className="size-11 shrink-0"
-									/>
+									<div className="flex items-center gap-4">
+										<Image
+											src={getDocumentFileIcon(file.name, file.type)}
+											alt=""
+											width={44}
+											height={44}
+											className={`size-11 shrink-0 transition-opacity duration-200 ${pendingDocumentFileRemovalUrl === file.url ? "opacity-40" : "opacity-100"}`}
+										/>
 
-									<div className="min-w-0 flex-1">
+										<div
+											className={`min-w-0 flex-1 transition-opacity duration-200 ${pendingDocumentFileRemovalUrl === file.url ? "opacity-40" : "opacity-100"}`}
+										>
 										<p className="truncate font-semibold text-gray-800">{file.name}</p>
 
 										<p className="text-gray-400">
@@ -354,20 +365,64 @@ function DocumentDetailsEditForm({
 										</p>
 									</div>
 
-									<Button
-										type="button"
-										variant="outline"
-										onClick={() => handleRemoveDocumentFile(file.url)}
-									>
-										Remove
-									</Button>
-
-									<Button asChild type="button">
-										<a href={file.url} target="_blank" rel="noreferrer">
-											Open
-										</a>
-									</Button>
+									{pendingDocumentFileRemovalUrl !== file.url ? (
+										<div className="flex shrink-0 items-center gap-2">
+												<Button
+													type="button"
+													variant="outline"
+													onClick={() => setPendingDocumentFileRemovalUrl(file.url)}
+												>
+													Remove
+												</Button>
+												<Button asChild type="button">
+													<a href={file.url} target="_blank" rel="noreferrer">
+														Open
+													</a>
+												</Button>
+										</div>
+									) : null}
 								</div>
+								<AnimatePresence initial={false}>
+									{pendingDocumentFileRemovalUrl === file.url ? (
+										<motion.div
+											initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+											animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
+											exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+											transition={
+												shouldReduceMotion
+													? { duration: 0.12 }
+													: {
+															height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
+															opacity: { duration: 0.16, ease: "easeOut" },
+														}
+											}
+											className="overflow-hidden"
+										>
+											<div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+												<p className="max-w-md text-sm font-medium text-gray-700">
+													Remove {file.name} from this document?
+												</p>
+												<div className="ml-auto flex shrink-0 items-center gap-3">
+													<Button
+														type="button"
+														variant="outline"
+														onClick={() => setPendingDocumentFileRemovalUrl(null)}
+													>
+														Cancel
+													</Button>
+													<Button
+														type="button"
+														className="bg-red-500 hover:bg-red-600 focus-visible:ring-red-300"
+														onClick={() => handleRemoveDocumentFile(file.url)}
+													>
+														Remove file
+													</Button>
+												</div>
+											</div>
+										</motion.div>
+									) : null}
+								</AnimatePresence>
+							</div>
 							))}
 						</div>
 

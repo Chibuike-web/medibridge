@@ -9,35 +9,26 @@ import { formatDate } from "@/lib/utils/format-date";
 
 type TransferApprovalClientProps = {
 	transfer: TransferApprovalRecord;
+	approvalToken: string;
 };
 
-export function TransferApprovalClient({ transfer }: TransferApprovalClientProps) {
-	const [rejectionReason, setRejectionReason] = useState(
-		transfer.patientRejectionReason ?? "",
-	);
-	const [approvalSubmissionError, setApprovalSubmissionError] = useState<string | null>(
-		null,
-	);
-	const [rejectionSubmissionError, setRejectionSubmissionError] = useState<
-		string | null
-	>(null);
-	const [currentPatientApprovalStatus, setCurrentPatientApprovalStatus] = useState(
-		transfer.patientApprovalStatus,
-	);
+export function TransferApprovalClient({ transfer, approvalToken }: TransferApprovalClientProps) {
+	const [rejectionReason, setRejectionReason] = useState(transfer.patientRejectionReason ?? "");
+	const [approvalSubmissionError, setApprovalSubmissionError] = useState<string | null>(null);
+	const [rejectionSubmissionError, setRejectionSubmissionError] = useState<string | null>(null);
+	const [currentPatientApprovalStatus, setCurrentPatientApprovalStatus] = useState(transfer.patientApprovalStatus);
 	const [isRejectionReasonFormOpen, setIsRejectionReasonFormOpen] = useState(false);
-	const [isSubmittingApprovalOrRejection, startApprovalOrRejectionSubmission] =
-		useTransition();
+	const [isSubmittingApprovalOrRejection, startApprovalOrRejectionSubmission] = useTransition();
 	const hasPatientApprovedTransfer = currentPatientApprovalStatus === "approved";
 	const hasPatientRejectedTransfer = currentPatientApprovalStatus === "rejected";
-	const canPatientStillApproveOrRejectTransfer =
-		!hasPatientApprovedTransfer && !hasPatientRejectedTransfer;
+	const canPatientStillApproveOrRejectTransfer = !hasPatientApprovedTransfer && !hasPatientRejectedTransfer;
 
 	function handleApprove() {
 		setApprovalSubmissionError(null);
 		setRejectionSubmissionError(null);
 
 		startApprovalOrRejectionSubmission(async () => {
-			const result = await approvePatientTransferAction(transfer.transferId);
+			const result = await approvePatientTransferAction(transfer.transferId, approvalToken);
 
 			if (result.success) {
 				setCurrentPatientApprovalStatus("approved");
@@ -54,15 +45,14 @@ export function TransferApprovalClient({ transfer }: TransferApprovalClientProps
 		setRejectionSubmissionError(null);
 
 		if (!rejectionReason.trim()) {
-			setRejectionSubmissionError(
-				"Please enter a reason for rejecting the transfer request.",
-			);
+			setRejectionSubmissionError("Please enter a reason for rejecting the transfer request.");
 			return;
 		}
 
 		startApprovalOrRejectionSubmission(async () => {
 			const result = await rejectPatientTransferAction({
 				transferId: transfer.transferId,
+				approvalToken,
 				reason: rejectionReason,
 			});
 
@@ -82,8 +72,8 @@ export function TransferApprovalClient({ transfer }: TransferApprovalClientProps
 				<p className="text-sm font-medium text-gray-500">Patient transfer request</p>
 				<h1 className="mt-2 text-2xl font-semibold text-gray-900">Review shared record request</h1>
 				<p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
-					{transfer.sourceHospitalName} wants to share selected patient records with{" "}
-					{transfer.targetHospitalName}. Please review the request before approving.
+					{transfer.sourceHospitalName} wants to share selected patient records with {transfer.targetHospitalName}.
+					Please review the request before approving.
 				</p>
 			</div>
 
@@ -93,6 +83,10 @@ export function TransferApprovalClient({ transfer }: TransferApprovalClientProps
 					<DetailItem label="Patient ID" value={transfer.patientId} />
 					<DetailItem label="Source Hospital" value={transfer.sourceHospitalName} />
 					<DetailItem label="Target Hospital" value={transfer.targetHospitalName} />
+					<DetailItem
+						label="Target Hospital Email"
+						value={transfer.targetHospitalAdminEmail || "-"}
+					/>
 					<DetailItem label="Requested By" value={transfer.requestedBy || "-"} />
 					<DetailItem label="Requested At" value={formatDate(transfer.requestedAt)} />
 				</div>
@@ -192,21 +186,15 @@ export function TransferApprovalClient({ transfer }: TransferApprovalClientProps
 								handleReject();
 							}}
 						>
-							{isSubmittingApprovalOrRejection && isRejectionReasonFormOpen
-								? "Rejecting..."
-								: "Reject"}
+							{isSubmittingApprovalOrRejection && isRejectionReasonFormOpen ? "Rejecting..." : "Reject"}
 						</Button>
 						<Button
 							type="button"
 							className="h-auto px-6 py-3"
-							disabled={
-								isSubmittingApprovalOrRejection || isRejectionReasonFormOpen
-							}
+							disabled={isSubmittingApprovalOrRejection || isRejectionReasonFormOpen}
 							onClick={handleApprove}
 						>
-							{isSubmittingApprovalOrRejection && !isRejectionReasonFormOpen
-								? "Approving..."
-								: "Approve"}
+							{isSubmittingApprovalOrRejection && !isRejectionReasonFormOpen ? "Approving..." : "Approve"}
 						</Button>
 					</div>
 				) : null}

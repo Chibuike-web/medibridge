@@ -382,7 +382,19 @@ export function DocumentsTable({
 					</TableHeader>
 					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
 						{table.getRowModel().rows.map((row, rowPosition) => (
-							<TableRow key={row.id} className="group min-h-14">
+							<TableRow
+								key={row.id}
+								role="button"
+								tabIndex={0}
+								onClick={() => handleViewDocumentDetails(row.original.documentId)}
+								onKeyDown={(event) => {
+									if (event.key === "Enter" || event.key === " ") {
+										event.preventDefault();
+										handleViewDocumentDetails(row.original.documentId);
+									}
+								}}
+								className="group min-h-14 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
+							>
 								{row.getVisibleCells().map((cell) => (
 									<TableCell
 										key={cell.id}
@@ -796,7 +808,11 @@ function getDocumentColumns({
 				</div>
 			),
 			cell: ({ row }) => (
-				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+				<div
+					className="w-max"
+					onClick={(event) => event.stopPropagation()}
+					onKeyDown={(event) => event.stopPropagation()}
+				>
 					<IndeterminateCheckbox
 						checked={row.getIsSelected()}
 						disabled={!row.getCanSelect()}
@@ -811,32 +827,53 @@ function getDocumentColumns({
 			header: "Document",
 			accessorKey: "title",
 			enableSorting: true,
-			cell: ({ row }) => <span className="font-medium text-gray-800">{row.original.title}</span>,
+			cell: ({ row }) => (
+				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+					<span className="font-medium text-gray-800">{row.original.title}</span>
+				</div>
+			),
 		},
 		{
 			header: "Document ID",
 			accessorKey: "documentId",
 			enableSorting: false,
-			cell: ({ row }) => <CopyIdButton id={row.original.documentId} />,
+			cell: ({ row }) => (
+				<div onKeyDown={(event) => event.stopPropagation()}>
+					<CopyIdButton id={row.original.documentId} />
+				</div>
+			),
 		},
 		{
 			header: "Document Type",
 			accessorKey: "documentType",
 			enableSorting: true,
+			cell: ({ row }) => (
+				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+					{row.original.documentType}
+				</div>
+			),
 		},
 		{
 			id: "createdAt",
 			header: "Created At",
 			accessorFn: (row) => row.createdAtSortValue,
 			enableSorting: true,
-			cell: ({ row }) => row.original.createdAtLabel,
+			cell: ({ row }) => (
+				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+					{row.original.createdAtLabel}
+				</div>
+			),
 		},
 		{
 			id: "actions",
 			header: "",
 			enableSorting: false,
 			cell: ({ row }) => (
-				<div className="flex justify-end">
+				<div
+					className="flex justify-end"
+					onClick={(event) => event.stopPropagation()}
+					onKeyDown={(event) => event.stopPropagation()}
+				>
 					<DropdownMenu>
 						<DropdownMenuTrigger
 							type="button"

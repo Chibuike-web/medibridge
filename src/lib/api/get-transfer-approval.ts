@@ -14,6 +14,7 @@ export type TransferApprovalRecord = {
 	patientId: string;
 	sourceHospitalName: string;
 	targetHospitalName: string;
+	targetHospitalAdminEmail: string | null;
 	requestedBy: string | null;
 	requestedAt: string;
 	status: string;
@@ -59,6 +60,7 @@ export async function getTransferApproval(
 			requestedBy: patientTransfer.requestedBy,
 			sourceHospitalName: organization.name,
 			targetHospitalName: patientTransfer.targetHospitalName,
+			targetHospitalAdminEmail: patientTransfer.targetHospitalAdminEmail,
 			firstName: patientPersonalInformation.firstName,
 			middleName: patientPersonalInformation.middleName,
 			lastName: patientPersonalInformation.lastName,
@@ -88,6 +90,7 @@ export async function getTransferApproval(
 		patientId: transfer.patientId,
 		sourceHospitalName: transfer.sourceHospitalName,
 		targetHospitalName: transfer.targetHospitalName,
+		targetHospitalAdminEmail: transfer.targetHospitalAdminEmail,
 		requestedBy: transfer.requestedBy,
 		requestedAt: transfer.requestedAt.toISOString(),
 		status: transfer.status,

@@ -1,17 +1,14 @@
 import { Suspense } from "react";
 import { RiInformationLine } from "@remixicon/react";
 import { SharedRecordsClient } from "./shared-records-client";
-import {
-	getSharedSection,
-	type SharedPatient,
-	type SharedPatientDetailSection,
-	type SharedSection,
-} from "./shared-record-sections";
+import { getSharedSection, type SharedPatient } from "./shared-record-sections";
 import { SharedTabs } from "./shared-tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { hasVerifiedExternalAccessSession } from "@/lib/api/external-access-session";
 import { getInitials } from "@/lib/utils/get-initials";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { getSharedRecord } from "@/lib/api/get-shared-record";
+import { formatDate } from "@/lib/utils/format-date";
 
 export const metadata = {
 	title: "Shared Patient Record",
@@ -39,83 +36,37 @@ async function SharedRecordsContent({ params, searchParams }: SharedRecordsPageP
 		redirect(`/verify-access/${accessId}`);
 	}
 
-	const activeSection = getSharedSection(section);
 	const sharedRecord = await getSharedRecord(accessId);
+	if (!sharedRecord) notFound();
+
+	const activeSection = getSharedSection(section, sharedRecord.availableSections);
 
 	return (
 		<>
-			<SharedAccessBanner />
+			<SharedAccessBanner
+				sourceOrganizationName={sharedRecord.sourceOrganizationName}
+				expiresAt={sharedRecord.expiresAt}
+			/>
 			<PatientHeader patient={sharedRecord.patient} />
 			<nav className="border-b border-gray-200" aria-label="Shared record sections">
-				<SharedTabs activeSection={activeSection} />
+				<SharedTabs activeSection={activeSection} availableSections={sharedRecord.availableSections} />
 			</nav>
 			<SharedRecordsClient
 				patientDetailsSections={sharedRecord.patientDetailsSections}
+				records={sharedRecord.records}
 				activeSection={activeSection}
 			/>
 		</>
 	);
 }
 
-async function getSharedRecord(accessId: string): Promise<{
-	patient: SharedPatient;
-	patientDetailsSections: SharedPatientDetailSection[];
-}> {
-	return {
-		patient: {
-			name: "Chibuike T. Maduabuchi",
-			sex: "Male",
-			email: "chibuikemaduabuchi2023@gmail.com",
-			phoneNumber: "1234567890",
-			address: "12 Allen Avenue, Ikeja, Lagos, Nigeria",
-		},
-		patientDetailsSections: [
-			{
-				title: "Personal Information",
-				items: [
-					{ label: "First Name", value: "Chibuike" },
-					{ label: "Middle Name", value: "T." },
-					{ label: "Last Name", value: "Maduabuchi" },
-					{ label: "Access ID", value: accessId },
-					{ label: "Age", value: 32 },
-					{ label: "Date of Birth", value: "1994-02-10" },
-					{ label: "Sex", value: "Male" },
-					{ label: "Marital Status", value: "Single" },
-				],
-			},
-			{
-				title: "Contact Information",
-				items: [
-					{ label: "Phone Number", value: "1234567890" },
-					{ label: "Email Address", value: "chibuikemaduabuchi2023@gmail.com" },
-					{ label: "Residential Address", value: "12 Allen Avenue, Ikeja, Lagos, Nigeria" },
-					{ label: "State of Origin", value: "Lagos State" },
-					{ label: "Country of Origin", value: "Nigeria" },
-				],
-			},
-			{
-				title: "Emergency Contact",
-				items: [
-					{ label: "First Name", value: "Emmanuel" },
-					{ label: "Last Name", value: "Okafor" },
-					{ label: "Relationship", value: "Brother" },
-					{ label: "Phone Number", value: "+2348098765432" },
-				],
-			},
-			{
-				title: "Physical Information",
-				items: [
-					{ label: "Height", value: "175 cm" },
-					{ label: "Weight", value: "68 kg" },
-					{ label: "Blood Group", value: "O+" },
-					{ label: "Genotype", value: "AA" },
-				],
-			},
-		],
-	};
-}
-
-function SharedAccessBanner() {
+function SharedAccessBanner({
+	sourceOrganizationName,
+	expiresAt,
+}: {
+	sourceOrganizationName: string;
+	expiresAt: string;
+}) {
 	return (
 		<div className="bg-[#fff3c4] text-[#b94600]">
 			<div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-6 py-4 ">
@@ -124,9 +75,9 @@ function SharedAccessBanner() {
 					<p className="font-semibold">Shared Patient Record</p>
 					<p>
 						You are viewing a patient record securely shared by{" "}
-						<span className="font-semibold">Lagos State University Teaching Hospital.</span> This
-						session is <span className="font-semibold">view-only</span> and expires on{" "}
-						<span className="font-semibold">12 Jan 2027 at 11:59 PM.</span>
+						<span className="font-semibold">{sourceOrganizationName}.</span> This session is{" "}
+						<span className="font-semibold">view-only</span> and expires on{" "}
+						<span className="font-semibold">{formatDate(expiresAt)}.</span>
 					</p>
 				</div>
 			</div>

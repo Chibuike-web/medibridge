@@ -1,4 +1,5 @@
 import { clinicalRecords } from "@/features/transfers/data";
+import type { ClinicalRecordType } from "@/features/transfers/types";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
 import { getPatientImaging } from "@/lib/api/get-patient-imaging";
@@ -12,7 +13,7 @@ import { NextResponse, type NextRequest } from "next/server";
 type ClinicalRecordOption = {
 	id: string;
 	name: string;
-	type: string;
+	type: ClinicalRecordType;
 	createdAt?: string;
 };
 
@@ -27,16 +28,13 @@ export async function GET(request: NextRequest) {
 	const type = request.nextUrl.searchParams.get("type") ?? "";
 	const query = request.nextUrl.searchParams.get("query") ?? "";
 	const page = parsePositiveInteger(request.nextUrl.searchParams.get("page") ?? "1", 1);
-	const limit = Math.min(
-		parsePositiveInteger(request.nextUrl.searchParams.get("limit") ?? "8", 8),
-		50,
-	);
+	const limit = Math.min(parsePositiveInteger(request.nextUrl.searchParams.get("limit") ?? "8", 8), 50);
 
 	if (!patientId) {
 		return NextResponse.json({ error: "Missing patient ID." }, { status: 400 });
 	}
 
-	if (!clinicalRecordTypeLabels.has(type)) {
+	if (!clinicalRecordTypeLabels.has(type as ClinicalRecordType)) {
 		return NextResponse.json({ error: "Invalid clinical record type." }, { status: 400 });
 	}
 
@@ -69,7 +67,7 @@ async function getClinicalRecordOptions({
 	limit: number;
 	query: string;
 }): Promise<{ records: ClinicalRecordOption[]; totalRecords: number }> {
-	const label = clinicalRecordTypeLabels.get(type) ?? "";
+	const recordType = type as ClinicalRecordType;
 
 	if (type === "diagnoses") {
 		const { diagnoses, totalDiagnoses } = await getPatientDiagnoses(patientId, page, limit, query);
@@ -79,7 +77,7 @@ async function getClinicalRecordOptions({
 			records: diagnoses.map((diagnosis) => ({
 				id: diagnosis.diagnosisId,
 				name: diagnosis.name,
-				type: label,
+				type: recordType,
 				createdAt: diagnosis.createdAtLabel,
 			})),
 		};
@@ -93,70 +91,55 @@ async function getClinicalRecordOptions({
 			records: allergies.map((allergy) => ({
 				id: allergy.allergyId,
 				name: allergy.allergen,
-				type: label,
+				type: recordType,
 				createdAt: allergy.createdAtLabel,
 			})),
 		};
 	}
 
 	if (type === "immunizations") {
-		const { immunizations, totalImmunizations } = await getPatientImmunizations(
-			patientId,
-			page,
-			limit,
-			query,
-		);
+		const { immunizations, totalImmunizations } = await getPatientImmunizations(patientId, page, limit, query);
 
 		return {
 			totalRecords: totalImmunizations,
 			records: immunizations.map((immunization) => ({
 				id: immunization.immunizationId,
 				name: immunization.vaccineName,
-				type: label,
+				type: recordType,
 				createdAt: immunization.createdAtLabel,
 			})),
 		};
 	}
 
 	if (type === "procedures") {
-		const { procedures, totalProcedures } = await getPatientProcedures(
-			patientId,
-			page,
-			limit,
-			query,
-		);
+		const { procedures, totalProcedures } = await getPatientProcedures(patientId, page, limit, query);
 
 		return {
 			totalRecords: totalProcedures,
 			records: procedures.map((procedure) => ({
 				id: procedure.procedureId,
 				name: procedure.procedure,
-				type: label,
+				type: recordType,
 				createdAt: procedure.createdAtLabel,
 			})),
 		};
 	}
 
 	if (type === "medications") {
-		const { medications, totalMedications } = await getPatientMedications(
-			patientId,
-			page,
-			limit,
-			query,
-		);
+		const { medications, totalMedications } = await getPatientMedications(patientId, page, limit, query);
 
 		return {
 			totalRecords: totalMedications,
 			records: medications.map((medication) => ({
 				id: medication.medicationId,
 				name: medication.medication,
-				type: label,
+				type: recordType,
 				createdAt: medication.createdAtLabel,
 			})),
 		};
 	}
 
-	if (type === "labs") {
+	if (type === "lab-tests") {
 		const { labTests, totalLabTests } = await getPatientLabTests(patientId, page, limit, query);
 
 		return {
@@ -164,25 +147,20 @@ async function getClinicalRecordOptions({
 			records: labTests.map((labTest) => ({
 				id: labTest.labId,
 				name: labTest.test,
-				type: label,
+				type: recordType,
 				createdAt: labTest.createdAtLabel,
 			})),
 		};
 	}
 
-	const { imagingStudies, totalImagingStudies } = await getPatientImaging(
-		patientId,
-		page,
-		limit,
-		query,
-	);
+	const { imagingStudies, totalImagingStudies } = await getPatientImaging(patientId, page, limit, query);
 
 	return {
 		totalRecords: totalImagingStudies,
 		records: imagingStudies.map((imaging) => ({
 			id: imaging.imagingId,
 			name: imaging.study,
-			type: label,
+			type: recordType,
 			createdAt: imaging.createdAtLabel,
 		})),
 	};
