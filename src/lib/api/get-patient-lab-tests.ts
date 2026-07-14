@@ -129,10 +129,6 @@ export async function getPatientLabTestsForOrganization(
 					orderedAt: patientLabTest.orderedAt,
 					orderedBy: patientLabTest.orderedBy,
 					clinicalNote: patientLabTest.clinicalNote,
-					fileName: patientLabTest.fileName,
-					fileUrl: patientLabTest.fileUrl,
-					fileSize: patientLabTest.fileSize,
-					fileType: patientLabTest.fileType,
 					createdBy: patientLabTest.createdBy,
 					updatedBy: patientLabTest.updatedBy,
 					createdAt: patientLabTest.createdAt,
@@ -150,14 +146,14 @@ export async function getPatientLabTestsForOrganization(
 		? await db
 				.select()
 				.from(patientLabTestFile)
-				.where(inArray(patientLabTestFile.labTestId, rows.map((row) => row.labId)))
+				.where(inArray(patientLabTestFile.parentRecordId, rows.map((row) => row.labId)))
 		: [];
 	const filesByLabTestId = new Map<string, typeof labTestFiles>();
 
 	for (const file of labTestFiles) {
-		const filesForLabTest = filesByLabTestId.get(file.labTestId) ?? [];
+		const filesForLabTest = filesByLabTestId.get(file.parentRecordId) ?? [];
 		filesForLabTest.push(file);
-		filesByLabTestId.set(file.labTestId, filesForLabTest);
+		filesByLabTestId.set(file.parentRecordId, filesForLabTest);
 	}
 
 	return {
@@ -176,27 +172,14 @@ export async function getPatientLabTestsForOrganization(
 			const updatedBy = labTest.updatedBy ?? "";
 			const clinicalNote = labTest.clinicalNote ?? "";
 			const persistedFiles = filesByLabTestId.get(labTest.labId) ?? [];
-			const files = persistedFiles.length > 0
-				? persistedFiles.map((file) => ({
+			const files = persistedFiles.map((file) => ({
 						id: file.id,
 						name: file.name,
 						url: file.url ?? "",
 						type: file.type ?? "",
 						size: file.size ?? "",
 						uploadedAtLabel: formatDateTime(file.uploadedAt),
-					}))
-				: labTest.fileName
-					? [
-						{
-							id: `${labTest.labId}-file`,
-							name: labTest.fileName,
-							url: labTest.fileUrl ?? "",
-							type: labTest.fileType ?? "",
-							size: labTest.fileSize ?? "",
-							uploadedAtLabel: updatedAtLabel,
-						},
-					]
-				: [];
+					}));
 
 			return {
 				test: formatTestName(labTest.testName, labTest.result),
@@ -220,10 +203,6 @@ export async function getPatientLabTestsForOrganization(
 				updatedBy,
 				status,
 				clinicalNote,
-				fileName: labTest.fileName ?? "",
-				fileUrl: labTest.fileUrl ?? "",
-				fileSize: labTest.fileSize ?? "",
-				fileType: labTest.fileType ?? "",
 				files,
 				history: [
 					{

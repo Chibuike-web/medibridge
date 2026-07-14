@@ -493,7 +493,7 @@ function getProcedureAttachmentRows(procedure: ProcedureDetailsType): Attachment
 
 function ProcedureDetailItem({ label, value }: { label: string; value: string }) {
 	return (
-		<div className="flex flex-col gap-2">
+		<div className="flex flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
 			{label === "Status" ? (
 				<StatusBadge status={value || EMPTY_VALUE} className="w-max" />
@@ -506,7 +506,7 @@ function ProcedureDetailItem({ label, value }: { label: string; value: string })
 
 function ProcedureDetailListItem({ label, values }: { label: string; values: string[] }) {
 	return (
-		<div className="flex flex-col gap-2">
+		<div className="flex flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
 			{values.length > 0 ? (
 				<ul className="list-disc pl-5 font-semibold text-gray-600">

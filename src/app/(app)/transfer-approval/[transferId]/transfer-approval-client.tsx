@@ -85,7 +85,7 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 					<DetailItem label="Target Hospital" value={transfer.targetHospitalName} />
 					<DetailItem
 						label="Target Hospital Email"
-						value={transfer.targetHospitalAdminEmail || "-"}
+						value={transfer.targetHospitalEmail}
 					/>
 					<DetailItem label="Requested By" value={transfer.requestedBy || "-"} />
 					<DetailItem label="Requested At" value={formatDate(transfer.requestedAt)} />

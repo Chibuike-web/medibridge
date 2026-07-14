@@ -3,7 +3,11 @@
 import bcrypt from "bcrypt";
 import { randomInt, randomUUID } from "crypto";
 import { desc, eq, sql } from "drizzle-orm";
-import { patientRecordAccess, patientRecordAccessVerification } from "@/db/schemas";
+import {
+	patientRecordAccess,
+	patientRecordAccessVerification,
+	patientTransfer,
+} from "@/db/schemas";
 import { db } from "@/lib/better-auth/auth";
 import { createExternalAccessSession } from "@/lib/api/external-access-session";
 import { sendAccessCodeEmail } from "@/lib/utils/send-access-code-email";
@@ -16,11 +20,13 @@ export async function requestAccessCodeAction(accessId: string) {
 	const [access] = await db
 		.select({
 			id: patientRecordAccess.id,
-			recipientEmail: patientRecordAccess.recipientEmail,
+			targetHospitalEmail: patientTransfer.targetHospitalEmail,
+			targetHospitalName: patientTransfer.targetHospitalName,
 			status: patientRecordAccess.status,
 			expiresAt: patientRecordAccess.expiresAt,
 		})
 		.from(patientRecordAccess)
+		.innerJoin(patientTransfer, eq(patientRecordAccess.patientTransferId, patientTransfer.id))
 		.where(eq(patientRecordAccess.id, accessId));
 
 	if (!access) {
@@ -38,8 +44,7 @@ export async function requestAccessCodeAction(accessId: string) {
 	const [latestVerification] = await db
 		.select({
 			codeExpiresAt: patientRecordAccessVerification.codeExpiresAt,
-			targetHospitalAdminEmail: patientRecordAccessVerification.targetHospitalAdminEmail,
-			targetHospitalAdminName: patientRecordAccessVerification.targetHospitalAdminName,
+			targetHospitalEmail: patientRecordAccessVerification.targetHospitalEmail,
 		})
 		.from(patientRecordAccessVerification)
 		.where(eq(patientRecordAccessVerification.accessId, access.id))
@@ -53,8 +58,7 @@ export async function requestAccessCodeAction(accessId: string) {
 	const code = randomInt(100000, 1000000).toString();
 	const codeHash = await bcrypt.hash(code, 10);
 	const codeExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
-	const targetHospitalAdminEmail =
-		latestVerification?.targetHospitalAdminEmail || access.recipientEmail;
+	const targetHospitalEmail = latestVerification?.targetHospitalEmail || access.targetHospitalEmail;
 	const verificationId = randomUUID();
 
 	await db.insert(patientRecordAccessVerification).values({
@@ -62,13 +66,13 @@ export async function requestAccessCodeAction(accessId: string) {
 		accessId: access.id,
 		codeHash,
 		codeExpiresAt,
-		targetHospitalAdminEmail,
-		targetHospitalAdminName: latestVerification?.targetHospitalAdminName ?? null,
+		targetHospitalEmail,
+		targetHospitalName: access.targetHospitalName,
 	});
 
 	try {
 		const emailResult = await sendAccessCodeEmail({
-			email: targetHospitalAdminEmail,
+			email: targetHospitalEmail,
 			code,
 		});
 

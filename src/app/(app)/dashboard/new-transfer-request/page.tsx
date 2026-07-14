@@ -4,6 +4,7 @@ import { RiArrowLeftLine } from "@remixicon/react";
 import { Suspense } from "react";
 import { verifySession } from "@/lib/api/verify-session";
 import { getPatients } from "@/lib/api/get-patients";
+import { getStringParam } from "@/lib/utils/search-params";
 import type { Route } from "next";
 
 export const metadata = {
@@ -12,16 +13,14 @@ export const metadata = {
 
 const PATIENT_OPTIONS_LIMIT = 20;
 
-type NewTransferRequestSearchParams = {
-	patientId?: string | string[];
-	returnTo?: string;
-};
+type NewTransferRequestPageProps = Pick<
+	PageProps<"/dashboard/new-transfer-request">,
+	"searchParams"
+>;
 
 export default async function NewTransferRequest({
 	searchParams,
-}: {
-	searchParams: Promise<NewTransferRequestSearchParams>;
-}) {
+}: NewTransferRequestPageProps) {
 	return (
 		<Suspense>
 			<NewTransferRequestContent searchParams={searchParams} />
@@ -31,12 +30,10 @@ export default async function NewTransferRequest({
 
 async function NewTransferRequestContent({
 	searchParams,
-}: {
-	searchParams: Promise<NewTransferRequestSearchParams>;
-}) {
+}: NewTransferRequestPageProps) {
 	await verifySession();
 	const { returnTo } = await searchParams;
-	const safeReturnTo = getSafeReturnTo(returnTo);
+	const safeReturnTo = getSafeReturnTo(getStringParam(returnTo));
 	const { patients, totalPatients } = await getPatients(1, PATIENT_OPTIONS_LIMIT);
 	const totalPatientPages = Math.max(1, Math.ceil(totalPatients / PATIENT_OPTIONS_LIMIT));
 

@@ -107,15 +107,22 @@ export function AddNewPatientClient() {
 					</div>
 				) : (
 					<ChooseFileCard
-						handleFileChange={(e) => {
-							const lists = e.target.files;
+						onFilesSelected={(event) => {
+							const lists = event.target.files;
 							if (!lists || lists.length === 0) {
 								return;
 							}
 							handleFiles(Array.from(lists));
-							e.target.value = "";
+							event.target.value = "";
 						}}
 						fileInputRef={fileInputRef}
+						title="Choose files or drag and drop them here."
+						description="PDF, PNG, JPG, DOC, and DOCX, up to 50 MB."
+						browseLabel="Browse files"
+						inputId="patient-record-files"
+						accept="application/pdf,image/png,image/jpeg,.doc,.docx"
+						multiple
+						error={uploadError}
 					/>
 				)}
 				{uploadError ? (

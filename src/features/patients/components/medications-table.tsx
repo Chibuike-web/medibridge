@@ -183,7 +183,7 @@ export function MedicationsTable({
 
 	return (
 		<div className="px-6 py-8 text-sm">
-			<h1 className="mx-auto max-w-7xl text-xl font-semibold">Medications</h1>
+			<h1 className="mx-auto max-w-7xl text-xl font-semibold no-line-height">Medications</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl items-center gap-2">
 				<div className="relative w-full">
 					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
@@ -295,9 +295,9 @@ export function MedicationsTable({
 			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left">
-					<TableHeader className="h-12 text-sm font-semibold text-gray-600">
+					<TableHeader className="text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id} className="h-12">
+							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => (
 									<TableHead
 										key={header.id}
@@ -308,7 +308,7 @@ export function MedicationsTable({
 											}
 										}}
 										className={cn(
-											"z-10 h-12 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
+											"z-10 h-10 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
 											header.column.getCanSort() ? "cursor-pointer select-none" : "",
 										)}
 									>
@@ -387,7 +387,7 @@ export function MedicationsTable({
 						)}
 					</TableBody>
 				</Table>
-				<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 items-center justify-between">
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select

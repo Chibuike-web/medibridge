@@ -1,4 +1,4 @@
-import { patient, patientDocument } from "@/db/schemas";
+import { patient, patientDocument, patientDocumentFile } from "@/db/schemas";
 import type { DocumentType } from "@/features/patients/types";
 import { db } from "@/lib/better-auth/auth";
 import { formatDate } from "@/lib/utils/format-date";
@@ -28,7 +28,6 @@ async function getPatientDocumentDetailsForOrganization(
 			title: patientDocument.title,
 			documentType: patientDocument.documentType,
 			clinicalNotes: patientDocument.clinicalNotes,
-			files: patientDocument.files,
 			createdBy: patientDocument.createdBy,
 			updatedBy: patientDocument.updatedBy,
 			createdAt: patientDocument.createdAt,
@@ -40,6 +39,10 @@ async function getPatientDocumentDetailsForOrganization(
 		.limit(1);
 
 	if (!document) return null;
+	const files = await db
+		.select()
+		.from(patientDocumentFile)
+		.where(eq(patientDocumentFile.parentRecordId, document.documentId));
 
 	return {
 		documentId: document.documentId,
@@ -47,7 +50,13 @@ async function getPatientDocumentDetailsForOrganization(
 		title: document.title,
 		documentType: document.documentType,
 		clinicalNotes: document.clinicalNotes ?? "-",
-		files: document.files,
+		files: files.map((file) => ({
+			name: file.name,
+			type: file.type ?? "",
+			url: file.url ?? "",
+			size: file.size ?? "",
+			uploadedAt: file.uploadedAt.toISOString(),
+		})),
 		createdBy: document.createdBy ?? "-",
 		updatedBy: document.updatedBy ?? document.createdBy ?? "-",
 		createdAtLabel: formatDate(document.createdAt.toISOString()),

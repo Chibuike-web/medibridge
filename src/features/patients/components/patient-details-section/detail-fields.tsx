@@ -11,7 +11,7 @@ export function DetailsSection({
 }) {
 	return (
 		<section className="overflow-hidden rounded-xl bg-gray-50 ring-1 ring-gray-200">
-			<div className="flex min-h-11 items-center justify-between gap-4 px-4 h-11">
+			<div className="flex items-center justify-between gap-4 px-4 h-10">
 				<h3 className="font-semibold text-gray-700">{title}</h3>
 				{action}
 			</div>

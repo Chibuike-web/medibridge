@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { VerifyAccessClient } from "./verify-access-client";
-import { getAccessVerificationState } from "@/lib/api/get-access-verification-state";
+import { getAccessVerificationState } from "@/lib/api/get-record-access-verification-state";
 
 export const metadata = {
 	title: "Verify Access",

@@ -90,14 +90,10 @@ export function TransferDetailsDrawer({
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 									<DetailItem label="Patient Name:" value={transfer?.patientName} />
 									<DetailItem label="Target Hospital:" value={transfer?.targetHospitalName} />
-									<DetailItem
-										label="Target Hospital Admin Name"
-										value={transfer?.targetHospitalAdminName}
-									/>
-									<DetailItem
-										label="Target Hospital Admin Email"
-										value={transfer?.targetHospitalAdminEmail}
-									/>
+					<DetailItem
+						label="Target Hospital Email"
+						value={transfer?.targetHospitalEmail}
+					/>
 									<DetailItem
 										label="Requested At"
 										value={transfer ? formatDate(transfer.requestedAt) : null}
@@ -264,7 +260,7 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 
 function DetailItem({ label, value }: { label: string; value?: string | null }) {
 	return (
-		<div className="flex flex-col gap-2 shrink-0">
+		<div className="flex flex-col gap-2 shrink-0 no-line-height">
 			<span className="text-gray-400">{label}</span>
 			<span className="text-gray-600 font-semibold">{value || EMPTY_VALUE}</span>
 		</div>

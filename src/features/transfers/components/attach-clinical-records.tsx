@@ -101,12 +101,12 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 
 	return (
 		<div className="mt-8">
-			<span className="mb-2 block text-sm font-medium text-gray-600">
-				Attach Clinical Records <span className="text-gray-400 font-normal">(required)</span>
+			<span className="mb-2 block text-sm font-medium text-foreground/70">
+				Attach Clinical Records <span className="font-normal text-muted-foreground">(required)</span>
 			</span>
 
 			<Tabs.Root value={activeTabId} onValueChange={handleTabChange} className="w-full">
-				<Tabs.List className="flex w-full flex-wrap gap-1.5">
+				<Tabs.List className="grid w-full grid-cols-2 gap-1.5 sm:grid-cols-4">
 					{clinicalRecords.map((record) => {
 						const isActive = activeTabId === record.id;
 
@@ -115,8 +115,8 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 								key={record.id}
 								value={record.id}
 								className={cn(
-									"relative shrink-0 rounded-full p-2.5 text-sm leading-none transition-colors",
-									isActive ? "text-white" : "text-gray-500 hover:text-gray-800",
+									"relative w-full rounded-full p-2.5 text-sm leading-none transition-colors",
+									isActive ? "text-white" : "text-foreground/70 hover:text-foreground",
 								)}
 							>
 								{isActive && (
@@ -136,13 +136,13 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 			<Popover>
 				<PopoverTrigger className="group mt-3 flex h-9 w-full items-center justify-between gap-4 rounded-md border border-input px-4 py-2 text-left outline-0 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50">
 					{selectedRecordsForActiveTab.length === 0 ? (
-						<span className="truncate text-sm text-gray-500">Select {activeTab.label.toLowerCase()} records</span>
+					<span className="truncate text-sm text-muted-foreground">Select {activeTab.label.toLowerCase()} records</span>
 					) : (
 						<span className="truncate text-sm text-foreground">
 							{selectedRecordsForActiveTab.length} selected in {activeTab.label}
 						</span>
 					)}
-					<RiArrowDownSLine className="size-5 shrink-0 text-gray-400 transition-transform group-data-[state=open]:rotate-180" />
+					<RiArrowDownSLine className="size-5 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
 				</PopoverTrigger>
 
 				<PopoverContent sideOffset={8} className="flex h-[24rem] flex-col rounded-2xl p-0">

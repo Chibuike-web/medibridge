@@ -46,7 +46,9 @@ export async function PatientOverviewSection({ patientId }: { patientId: string 
 	return (
 		<div className="p-8">
 			<div className="mx-auto max-w-7xl">
-				<h1 className="mb-6 text-xl font-semibold text-gray-800">Patient Overview</h1>
+				<h1 className="mb-6 text-xl font-semibold text-gray-800 no-line-height">
+					Patient Overview
+				</h1>
 				<div className="flex flex-col gap-10">
 					<DetailsSection title="Personal Information">
 						{profile.overviewPersonalInformation.map((p) => (
@@ -69,13 +71,13 @@ export async function PatientOverviewSection({ patientId }: { patientId: string 
 function RecentDiagnoses({ recentDiagnoses }: { recentDiagnoses: RecentDiagnosis[] }) {
 	return (
 		<div className="flex flex-col gap-4">
-			<h2 className="font-semibold text-lg text-gray-600 no-line-height">Recent Diagnoses</h2>
+			<h2 className="text-base font-semibold text-gray-600 no-line-height">Recent Diagnoses</h2>
 			<div className="overflow-hidden rounded-xl ring ring-gray-200">
 				<Table className="border-separate border-spacing-0 bg-white">
 					<TableHeader className="bg-gray-50">
 						<TableRow className="hover:bg-transparent">
 							{recentDiagnosisHeaders.map((h) => (
-								<TableHead key={h.key} className="h-12 px-4 text-sm text-gray-600">
+								<TableHead key={h.key} className="h-10 px-4 text-sm text-gray-600">
 									{h.label}
 								</TableHead>
 							))}
@@ -111,13 +113,13 @@ function RecentDiagnoses({ recentDiagnoses }: { recentDiagnoses: RecentDiagnosis
 function RecentAllergies({ recentAllergies }: { recentAllergies: RecentAllergy[] }) {
 	return (
 		<div className="flex flex-col gap-4">
-			<h2 className="font-semibold text-lg text-gray-600 no-line-height">Recent Allergies</h2>
+			<h2 className="font-semibold text-base text-gray-600 no-line-height">Recent Allergies</h2>
 			<div className="overflow-hidden rounded-xl ring ring-gray-200">
 				<Table className="border-separate border-spacing-0 bg-white">
 					<TableHeader className="bg-gray-50">
 						<TableRow className="hover:bg-transparent">
 							{recentAllergyHeaders.map((h) => (
-								<TableHead key={h.key} className="h-12 px-4 text-sm text-gray-600">
+								<TableHead key={h.key} className="h-10 px-4 text-sm text-gray-600">
 									{h.label}
 								</TableHead>
 							))}

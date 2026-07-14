@@ -9,14 +9,16 @@ import { getInitials } from "@/lib/utils/get-initials";
 import { notFound, redirect } from "next/navigation";
 import { getSharedRecord } from "@/lib/api/get-shared-record";
 import { formatDate } from "@/lib/utils/format-date";
+import { getStringParam } from "@/lib/utils/search-params";
 
 export const metadata = {
 	title: "Shared Patient Record",
 };
 
-type SharedRecordsPageProps = Pick<PageProps<"/shared-records/[accessId]">, "params"> & {
-	searchParams: Promise<{ section?: string }>;
-};
+type SharedRecordsPageProps = Pick<
+	PageProps<"/shared-records/[accessId]">,
+	"params" | "searchParams"
+>;
 
 export default async function SharedRecordsPage({ params, searchParams }: SharedRecordsPageProps) {
 	return (
@@ -29,7 +31,8 @@ export default async function SharedRecordsPage({ params, searchParams }: Shared
 }
 
 async function SharedRecordsContent({ params, searchParams }: SharedRecordsPageProps) {
-	const [{ accessId }, { section }] = await Promise.all([params, searchParams]);
+	const [{ accessId }, { section: sectionParam }] = await Promise.all([params, searchParams]);
+	const section = getStringParam(sectionParam);
 	const hasVerifiedAccessSession = await hasVerifiedExternalAccessSession(accessId);
 
 	if (!hasVerifiedAccessSession) {

@@ -1,5 +1,5 @@
 import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { patientRecordAccess } from "./access";
+import { patientRecordAccess } from "./record-access";
 
 export const patientRecordAccessVerification = pgTable("patient_record_access_verification", {
 	id: text("id").primaryKey(),
@@ -16,9 +16,9 @@ export const patientRecordAccessVerification = pgTable("patient_record_access_ve
 
 	attempts: integer("attempts").default(0).notNull(),
 
-	targetHospitalAdminEmail: text("target_hospital_admin_email").notNull(),
+	targetHospitalEmail: text("target_hospital_email").notNull(),
 
-	targetHospitalAdminName: text("target_hospital_admin_name"),
+	targetHospitalName: text("target_hospital_name").notNull(),
 
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });

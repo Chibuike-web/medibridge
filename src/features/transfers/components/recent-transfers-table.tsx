@@ -61,12 +61,12 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 
 	return (
 		<div className="mt-12 max-w-7xl">
-			<h1 className="mb-4 text-lg font-semibold">Recent Transfers</h1>
+			<h1 className="mb-4 text-base font-semibold">Recent Transfers</h1>
 			<div className="overflow-x-auto rounded-xl border border-gray-200">
 				<Table className="min-w-[50rem] border-separate border-spacing-0 bg-gray-50 text-left">
-					<TableHeader className="h-12 text-sm font-semibold text-gray-500">
+					<TableHeader className="text-sm font-semibold text-gray-500">
 						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id} className="h-12">
+							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => (
 									<TableHead
 										key={header.id}
@@ -77,7 +77,7 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 											}
 										}}
 										className={cn(
-											"z-10 h-12  px-3 py-0 whitespace-nowrap text-gray-600",
+											"z-10 h-10 px-3 py-0 whitespace-nowrap text-gray-600",
 											header.column.getCanSort() ? "cursor-pointer select-none" : "",
 										)}
 									>
@@ -130,7 +130,7 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 						))}
 					</TableBody>
 				</Table>
-				<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 items-center justify-between">
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select

@@ -19,9 +19,7 @@ export const patientTransfer = pgTable("patient_transfer", {
 
 	targetHospitalName: text("target_hospital_name").notNull(),
 
-	targetHospitalAdminName: text("target_hospital_admin_name"),
-
-	targetHospitalAdminEmail: text("target_hospital_admin_email"),
+	targetHospitalEmail: text("target_hospital_email").notNull(),
 
 	notes: text("notes"),
 

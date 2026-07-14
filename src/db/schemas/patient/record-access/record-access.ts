@@ -32,9 +32,9 @@ export type PatientRecordAccessSelectedRecord = {
 export const patientRecordAccess = pgTable("patient_record_access", {
 	id: text("id").primaryKey(),
 
-	patientTransferId: text("patient_transfer_id").references(() => patientTransfer.id, {
-		onDelete: "set null",
-	}),
+	patientTransferId: text("patient_transfer_id")
+		.notNull()
+		.references(() => patientTransfer.id, { onDelete: "cascade" }),
 
 	patientId: text("patient_id")
 		.notNull()
@@ -47,10 +47,6 @@ export const patientRecordAccess = pgTable("patient_record_access", {
 	createdByUserId: text("created_by_user_id")
 		.notNull()
 		.references(() => user.id, { onDelete: "cascade" }),
-
-	recipientEmail: text("recipient_email").notNull(),
-
-	recipientOrganizationName: text("recipient_organization_name"),
 
 	status: text("status").notNull(),
 	// pending | active | expired | revoked

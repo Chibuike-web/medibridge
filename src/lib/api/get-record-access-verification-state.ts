@@ -1,29 +1,33 @@
 import { desc, eq } from "drizzle-orm";
-import { patientRecordAccess, patientRecordAccessVerification } from "@/db/schemas";
+import {
+	patientRecordAccess,
+	patientRecordAccessVerification,
+	patientTransfer,
+} from "@/db/schemas";
 import { db } from "@/lib/better-auth/auth";
 
 export type AccessVerificationState =
 	| {
 			status: "ready";
-			recipientEmail: string;
-			targetHospitalAdminName: string | null;
+			targetHospitalEmail: string;
+			targetHospitalName: string;
 			codeExpiresAt: string;
 	  }
 	| {
 			status: "code-expired";
-			recipientEmail: string;
-			targetHospitalAdminName: string | null;
+			targetHospitalEmail: string;
+			targetHospitalName: string;
 			codeExpiresAt: string;
 	  }
 	| {
 			status: "no-code";
-			recipientEmail: string;
-			targetHospitalAdminName: string | null;
+			targetHospitalEmail: string;
+			targetHospitalName: string;
 	  }
 	| {
 			status: "access-expired" | "revoked" | "invalid";
-			recipientEmail: string | null;
-			targetHospitalAdminName: string | null;
+			targetHospitalEmail: string | null;
+			targetHospitalName: string | null;
 	  };
 
 export async function getAccessVerificationState(
@@ -32,42 +36,44 @@ export async function getAccessVerificationState(
 	const [access] = await db
 		.select({
 			id: patientRecordAccess.id,
-			recipientEmail: patientRecordAccess.recipientEmail,
+			targetHospitalEmail: patientTransfer.targetHospitalEmail,
+			targetHospitalName: patientTransfer.targetHospitalName,
 			status: patientRecordAccess.status,
 			expiresAt: patientRecordAccess.expiresAt,
 		})
 		.from(patientRecordAccess)
+		.innerJoin(patientTransfer, eq(patientRecordAccess.patientTransferId, patientTransfer.id))
 		.where(eq(patientRecordAccess.id, accessId));
 
 	if (!access) {
 		return {
 			status: "invalid",
-			recipientEmail: null,
-			targetHospitalAdminName: null,
+			targetHospitalEmail: null,
+			targetHospitalName: null,
 		};
 	}
 
 	if (access.status === "revoked") {
 		return {
 			status: "revoked",
-			recipientEmail: access.recipientEmail,
-			targetHospitalAdminName: null,
+			targetHospitalEmail: access.targetHospitalEmail,
+			targetHospitalName: access.targetHospitalName,
 		};
 	}
 
 	if (access.expiresAt.getTime() <= Date.now() || access.status === "expired") {
 		return {
 			status: "access-expired",
-			recipientEmail: access.recipientEmail,
-			targetHospitalAdminName: null,
+			targetHospitalEmail: access.targetHospitalEmail,
+			targetHospitalName: access.targetHospitalName,
 		};
 	}
 
 	const [verification] = await db
 		.select({
 			codeExpiresAt: patientRecordAccessVerification.codeExpiresAt,
-			targetHospitalAdminEmail: patientRecordAccessVerification.targetHospitalAdminEmail,
-			targetHospitalAdminName: patientRecordAccessVerification.targetHospitalAdminName,
+			targetHospitalEmail: patientRecordAccessVerification.targetHospitalEmail,
+			targetHospitalName: patientRecordAccessVerification.targetHospitalName,
 		})
 		.from(patientRecordAccessVerification)
 		.where(eq(patientRecordAccessVerification.accessId, access.id))
@@ -77,27 +83,27 @@ export async function getAccessVerificationState(
 	if (!verification) {
 		return {
 			status: "no-code",
-			recipientEmail: access.recipientEmail,
-			targetHospitalAdminName: null,
+			targetHospitalEmail: access.targetHospitalEmail,
+			targetHospitalName: access.targetHospitalName,
 		};
 	}
 
 	const codeExpiresAt = verification.codeExpiresAt.toISOString();
-	const recipientEmail = verification.targetHospitalAdminEmail || access.recipientEmail;
+	const targetHospitalEmail = verification.targetHospitalEmail || access.targetHospitalEmail;
 
 	if (verification.codeExpiresAt.getTime() <= Date.now()) {
 		return {
 			status: "code-expired",
-			recipientEmail,
-			targetHospitalAdminName: verification.targetHospitalAdminName,
+			targetHospitalEmail,
+			targetHospitalName: verification.targetHospitalName,
 			codeExpiresAt,
 		};
 	}
 
 	return {
 		status: "ready",
-		recipientEmail,
-		targetHospitalAdminName: verification.targetHospitalAdminName,
+		targetHospitalEmail,
+		targetHospitalName: verification.targetHospitalName,
 		codeExpiresAt,
 	};
 }

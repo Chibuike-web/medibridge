@@ -186,7 +186,7 @@ function ImagingDetailsOverview({
 
 function ImagingDetailItem({ label, value }: { label: string; value: string }) {
 	return (
-		<div className="flex flex-col gap-2">
+		<div className="flex flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
 			{label === "Status" ? (
 				<StatusBadge status={value || "Pending"} className="w-max" />

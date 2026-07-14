@@ -84,8 +84,7 @@ async function seedSharedRecord() {
 				createdBy: schema.patientTransfer.createdBy,
 				requestedBy: schema.patientTransfer.requestedBy,
 				targetHospitalName: schema.patientTransfer.targetHospitalName,
-				targetHospitalAdminEmail:
-					schema.patientTransfer.targetHospitalAdminEmail,
+				targetHospitalEmail: schema.patientTransfer.targetHospitalEmail,
 			})
 			.from(schema.patientTransfer)
 			.orderBy(asc(schema.patientTransfer.requestedAt))
@@ -150,10 +149,6 @@ async function seedSharedRecord() {
 					patientId: selectedTransfer.patientId,
 					createdByOrganizationId: selectedTransfer.sourceOrganizationId,
 					createdByUserId,
-					recipientEmail:
-						selectedTransfer.targetHospitalAdminEmail ??
-						"recipient@example.com",
-					recipientOrganizationName: selectedTransfer.targetHospitalName,
 					status: "pending",
 					expiresAt: accessExpiresAt,
 					verifiedAt: null,
@@ -169,10 +164,6 @@ async function seedSharedRecord() {
 						patientId: selectedTransfer.patientId,
 						createdByOrganizationId: selectedTransfer.sourceOrganizationId,
 						createdByUserId,
-						recipientEmail:
-							selectedTransfer.targetHospitalAdminEmail ??
-							"recipient@example.com",
-						recipientOrganizationName: selectedTransfer.targetHospitalName,
 						status: "pending",
 						expiresAt: accessExpiresAt,
 						verifiedAt: null,
@@ -197,8 +188,8 @@ async function seedSharedRecord() {
 				accessId: DEVELOPMENT_ACCESS_ID,
 				codeHash,
 				codeExpiresAt,
-				targetHospitalAdminEmail:
-					selectedTransfer.targetHospitalAdminEmail ?? "recipient@example.com",
+				targetHospitalEmail: selectedTransfer.targetHospitalEmail ?? "recipient@example.com",
+				targetHospitalName: selectedTransfer.targetHospitalName,
 			});
 		});
 

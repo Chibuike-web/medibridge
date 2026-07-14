@@ -356,7 +356,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 
 function AllergyDetailItem({ label, value }: { label: string; value: string }) {
 	return (
-		<div className="flex flex-col gap-2">
+		<div className="flex flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
 			{label === "Status" ? (
 				<StatusBadge status={value || EMPTY_VALUE} className="w-max" />

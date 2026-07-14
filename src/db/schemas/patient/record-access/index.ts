@@ -1,2 +1,2 @@
-export * from "./access";
-export * from "./access-verification";
+export * from "./record-access";
+export * from "./record-access-verification";

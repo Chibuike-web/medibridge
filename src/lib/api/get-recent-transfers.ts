@@ -59,8 +59,7 @@ export async function getRecentTransfersForOrganization(organizationId: string) 
 			createdBy: patientTransfer.createdBy,
 			updatedBy: patientTransfer.updatedBy,
 			targetHospitalName: patientTransfer.targetHospitalName,
-			targetHospitalAdminName: patientTransfer.targetHospitalAdminName,
-			targetHospitalAdminEmail: patientTransfer.targetHospitalAdminEmail,
+			targetHospitalEmail: patientTransfer.targetHospitalEmail,
 			firstName: patientPersonalInformation.firstName,
 			middleName: patientPersonalInformation.middleName,
 			lastName: patientPersonalInformation.lastName,
@@ -87,8 +86,7 @@ export async function getRecentTransfersForOrganization(organizationId: string) 
 		createdBy: row.createdBy,
 		updatedBy: row.updatedBy,
 		targetHospitalName: row.targetHospitalName,
-		targetHospitalAdminName: row.targetHospitalAdminName,
-		targetHospitalAdminEmail: row.targetHospitalAdminEmail,
+		targetHospitalEmail: row.targetHospitalEmail,
 		transferContent: [],
 	}));
 }

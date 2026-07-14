@@ -152,7 +152,7 @@ export function SharedImmunizationsTable({ rows }: { rows: SharedImmunizationRow
 											if (event.key === "Enter") header.column.getToggleSortingHandler()?.(event);
 										}}
 										className={cn(
-											"h-12 whitespace-nowrap bg-gray-50 px-3 py-0 text-gray-600",
+											"h-10 whitespace-nowrap bg-gray-50 px-3 py-0 text-gray-600",
 											header.column.getCanSort() && "cursor-pointer select-none",
 										)}
 									>

@@ -11,7 +11,7 @@ export const metadata = {
 	title: "Patients",
 };
 
-type PatientsPagePageProps = Pick<PageProps<"/dashboard/transfers">, "searchParams">;
+type PatientsPagePageProps = Pick<PageProps<"/dashboard/patients">, "searchParams">;
 
 export default function PatientsPage({ searchParams }: PatientsPagePageProps) {
 	return (

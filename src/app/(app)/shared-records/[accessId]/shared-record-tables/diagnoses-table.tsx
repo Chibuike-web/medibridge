@@ -159,7 +159,7 @@ export function SharedDiagnosesTable({ rows }: { rows: SharedDiagnosisRow[] }) {
 											}
 										}}
 										className={cn(
-											"h-12 whitespace-nowrap bg-gray-50 px-3 py-0 text-gray-600",
+											"h-10 whitespace-nowrap bg-gray-50 px-3 py-0 text-gray-600",
 											header.column.getCanSort() && "cursor-pointer select-none",
 										)}
 									>

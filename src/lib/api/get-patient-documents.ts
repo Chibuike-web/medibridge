@@ -2,7 +2,7 @@ import { cache } from "react";
 import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
 import { cacheLife, cacheTag } from "next/cache";
-import { patient, patientDocument } from "@/db/schemas";
+import { patient, patientDocument, patientDocumentFile } from "@/db/schemas";
 import type { DocumentType } from "@/features/patients/types";
 import { db } from "@/lib/better-auth/auth";
 import { formatDate } from "@/lib/utils/format-date";
@@ -88,7 +88,6 @@ export async function getPatientDocumentsForOrganization(
 				title: patientDocument.title,
 				documentType: patientDocument.documentType,
 				clinicalNotes: patientDocument.clinicalNotes,
-				files: patientDocument.files,
 				createdBy: patientDocument.createdBy,
 				updatedBy: patientDocument.updatedBy,
 				createdAt: patientDocument.createdAt,
@@ -101,6 +100,19 @@ export async function getPatientDocumentsForOrganization(
 			.limit(limit)
 			.offset(offset),
 	]);
+	const documentFiles = rows.length
+		? await db
+				.select()
+				.from(patientDocumentFile)
+				.where(inArray(patientDocumentFile.parentRecordId, rows.map((row) => row.documentId)))
+		: [];
+	const filesByDocumentId = new Map<string, typeof documentFiles>();
+
+	for (const file of documentFiles) {
+		const filesForDocument = filesByDocumentId.get(file.parentRecordId) ?? [];
+		filesForDocument.push(file);
+		filesByDocumentId.set(file.parentRecordId, filesForDocument);
+	}
 
 	return {
 		totalDocuments: countRows[0]?.value ?? 0,
@@ -110,7 +122,13 @@ export async function getPatientDocumentsForOrganization(
 			title: document.title,
 			documentType: document.documentType,
 			clinicalNotes: document.clinicalNotes ?? "-",
-			files: document.files,
+			files: (filesByDocumentId.get(document.documentId) ?? []).map((file) => ({
+				name: file.name,
+				type: file.type ?? "",
+				url: file.url ?? "",
+				size: file.size ?? "",
+				uploadedAt: file.uploadedAt.toISOString(),
+			})),
 			createdBy: document.createdBy ?? "-",
 			updatedBy: document.updatedBy ?? document.createdBy ?? "-",
 			createdAtLabel: formatDate(document.createdAt.toISOString()),

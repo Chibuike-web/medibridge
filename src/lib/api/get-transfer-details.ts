@@ -311,8 +311,7 @@ export async function getTransferDetailsForOrganization(
 			createdBy: patientTransfer.createdBy,
 			updatedBy: patientTransfer.updatedBy,
 			targetHospitalName: patientTransfer.targetHospitalName,
-			targetHospitalAdminName: patientTransfer.targetHospitalAdminName,
-			targetHospitalAdminEmail: patientTransfer.targetHospitalAdminEmail,
+			targetHospitalEmail: patientTransfer.targetHospitalEmail,
 			firstName: patientPersonalInformation.firstName,
 			middleName: patientPersonalInformation.middleName,
 			lastName: patientPersonalInformation.lastName,
@@ -357,8 +356,7 @@ export async function getTransferDetailsForOrganization(
 		createdBy: transfer.createdBy,
 		updatedBy: transfer.updatedBy,
 		targetHospitalName: transfer.targetHospitalName,
-		targetHospitalAdminName: transfer.targetHospitalAdminName,
-		targetHospitalAdminEmail: transfer.targetHospitalAdminEmail,
+		targetHospitalEmail: transfer.targetHospitalEmail,
 		transferContent: transferContent.map((content) => {
 			const metadata = transferContentMetadata.get(content.recordId);
 

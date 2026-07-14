@@ -248,7 +248,7 @@ export async function createTransferRequestsAction(
 				sourceOrganizationId: organizationId,
 				targetOrganizationId: transfer.targetOrganizationId,
 				targetHospitalName: transfer.targetHospitalName,
-				targetHospitalAdminEmail: transfer.targetHospitalEmail,
+			targetHospitalEmail: transfer.targetHospitalEmail,
 				notes: transfer.notes || null,
 				status: "pending",
 				patientApprovalStatus: "waiting",

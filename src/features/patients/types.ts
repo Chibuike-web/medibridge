@@ -316,10 +316,6 @@ export type LabTestType = {
 	updatedBy: string;
 	status: "Pending" | "Completed" | "Cancelled";
 	clinicalNote: string;
-	fileName: string;
-	fileUrl: string;
-	fileSize: string;
-	fileType: string;
 	files: LabTestFile[];
 	history: LabTestDetailsHistoryEvent[];
 };
@@ -362,10 +358,6 @@ export type ImagingType = {
 	reportedBy: string;
 	status: "Pending" | "Completed" | "Cancelled";
 	clinicalNote: string;
-	fileName: string;
-	fileUrl: string;
-	fileSize: string;
-	fileType: string;
 	files: DocumentFileType[];
 	createdBy: string;
 	updatedBy: string;

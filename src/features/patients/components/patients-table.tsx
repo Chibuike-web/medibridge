@@ -142,9 +142,9 @@ function PatientsTableContent({
 		<>
 			<div className="overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[62.5rem] border-separate border-spacing-0 bg-gray-50 text-left">
-					<TableHeader className="h-12 text-sm text-gray-600">
+					<TableHeader className="text-sm text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id} className="h-12">
+							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => (
 									<TableHead
 										key={header.id}
@@ -155,7 +155,7 @@ function PatientsTableContent({
 											}
 										}}
 										className={cn(
-											"z-10 h-12 px-3 py-0 whitespace-nowrap text-gray-600 bg-gray-50",
+											"z-10 h-10 px-3 py-0 whitespace-nowrap text-gray-600 bg-gray-50",
 											header.column.getCanSort() ? "cursor-pointer select-none" : "",
 										)}
 									>
@@ -192,7 +192,7 @@ function PatientsTableContent({
 							table.getRowModel().rows.map((row, rowPosition) => (
 								<TableRow
 									key={row.id}
-									className="h-14 group"
+									className="h-14 group cursor-pointer"
 									role="link"
 									tabIndex={0}
 									onClick={(e) => {
@@ -233,7 +233,7 @@ function PatientsTableContent({
 						)}
 					</TableBody>
 				</Table>
-				<div className="flex flex-col gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 items-center justify-between">
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select value={limit.toString()} onValueChange={onLimitChange} disabled={isPending}>

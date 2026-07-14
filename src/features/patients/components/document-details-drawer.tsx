@@ -463,7 +463,7 @@ function DocumentDetailsEditForm({
 
 function DocumentDetailItem({ label, value }: { label: string; value: string }) {
 	return (
-		<div className="flex flex-col gap-2">
+		<div className="flex flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
 			<span className="font-semibold text-gray-600">{value || "-"}</span>
 		</div>

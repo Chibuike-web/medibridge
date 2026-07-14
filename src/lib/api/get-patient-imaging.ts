@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
-import { patient, patientImaging } from "@/db/schemas";
+import { patient, patientImaging, patientImagingFile } from "@/db/schemas";
 import type {
 	ImagingModalityFilter,
 	ImagingStatusFilter,
@@ -149,10 +149,6 @@ export async function getPatientImagingForOrganization(
 				reportedBy: patientImaging.reportedBy,
 				status: patientImaging.status,
 				clinicalNote: patientImaging.clinicalNote,
-				fileName: patientImaging.fileName,
-				fileUrl: patientImaging.fileUrl,
-				fileType: patientImaging.fileType,
-				fileSize: patientImaging.fileSize,
 				createdBy: patientImaging.createdBy,
 				updatedBy: patientImaging.updatedBy,
 				createdAt: patientImaging.createdAt,
@@ -165,6 +161,19 @@ export async function getPatientImagingForOrganization(
 			.limit(limit)
 			.offset(offset),
 	]);
+	const imagingFiles = rows.length
+		? await db
+				.select()
+				.from(patientImagingFile)
+				.where(inArray(patientImagingFile.parentRecordId, rows.map((row) => row.imagingId)))
+		: [];
+	const filesByImagingId = new Map<string, typeof imagingFiles>();
+
+	for (const file of imagingFiles) {
+		const filesForImaging = filesByImagingId.get(file.parentRecordId) ?? [];
+		filesForImaging.push(file);
+		filesByImagingId.set(file.parentRecordId, filesForImaging);
+	}
 
 	return {
 		totalImagingStudies: countRows[0]?.value ?? 0,
@@ -195,21 +204,13 @@ export async function getPatientImagingForOrganization(
 				reportedBy,
 				status,
 				clinicalNote,
-				fileName: imaging.fileName ?? "",
-				fileUrl: imaging.fileUrl ?? "",
-				fileType: imaging.fileType ?? "pdf",
-				fileSize: imaging.fileSize ?? "120KB",
-				files: imaging.fileName
-					? [
-							{
-								name: imaging.fileName,
-								type: imaging.fileType ?? "pdf",
-								url: imaging.fileUrl ?? "",
-								size: imaging.fileSize ?? "120KB",
-								uploadedAt: imaging.updatedAt.toISOString(),
-							},
-						]
-					: [],
+				files: (filesByImagingId.get(imaging.imagingId) ?? []).map((file) => ({
+					name: file.name,
+					type: file.type ?? "",
+					url: file.url ?? "",
+					size: file.size ?? "",
+					uploadedAt: file.uploadedAt.toISOString(),
+				})),
 				createdBy,
 				updatedBy,
 				createdAtLabel,

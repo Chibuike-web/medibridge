@@ -473,7 +473,6 @@ export async function createPatientDocumentAction(patientId: string, formData: F
 		title,
 		documentType,
 		clinicalNotes: clinicalNotes || null,
-		files: [],
 	});
 	updateTag(`patient-documents-${organizationId}-${patientId}`);
 

@@ -2,15 +2,17 @@ import { Suspense } from "react";
 import { TransferApprovalClient } from "./transfer-approval-client";
 import { getTransferApproval } from "@/lib/api/get-transfer-approval";
 import { verifyTransferApprovalToken } from "@/lib/api/transfer-approval-token";
+import { getStringParam } from "@/lib/utils/search-params";
 
 export const metadata = {
 	title: "Transfer Approval",
 };
 
 type TransferApprovalPageProps = PageProps<"/transfer-approval/[transferId]">;
-type TransferApprovalParamsProps = Pick<TransferApprovalPageProps, "params"> & {
-	searchParams: Promise<{ token?: string }>;
-};
+type TransferApprovalParamsProps = Pick<
+	TransferApprovalPageProps,
+	"params" | "searchParams"
+>;
 
 export default function TransferApprovalPage({ params, searchParams }: TransferApprovalParamsProps) {
 	return (
@@ -21,7 +23,8 @@ export default function TransferApprovalPage({ params, searchParams }: TransferA
 }
 
 async function TransferApprovalContent({ params, searchParams }: TransferApprovalParamsProps) {
-	const [{ transferId }, { token = "" }] = await Promise.all([params, searchParams]);
+	const [{ transferId }, { token: tokenParam }] = await Promise.all([params, searchParams]);
+	const token = getStringParam(tokenParam);
 	const approvalToken = await verifyTransferApprovalToken(token, transferId);
 	const transfer = approvalToken ? await getTransferApproval(transferId) : null;
 

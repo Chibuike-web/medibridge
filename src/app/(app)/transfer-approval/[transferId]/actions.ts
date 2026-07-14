@@ -37,8 +37,7 @@ async function getTransferForAction(transferId: string) {
 			transferId: patientTransfer.id,
 			patientId: patientTransfer.patientId,
 			sourceOrganizationId: patientTransfer.sourceOrganizationId,
-			targetHospitalAdminEmail: patientTransfer.targetHospitalAdminEmail,
-			targetHospitalAdminName: patientTransfer.targetHospitalAdminName,
+			targetHospitalEmail: patientTransfer.targetHospitalEmail,
 			targetHospitalName: patientTransfer.targetHospitalName,
 			createdBy: patientTransfer.createdBy,
 			requestedBy: patientTransfer.requestedBy,
@@ -52,7 +51,9 @@ async function getTransferForAction(transferId: string) {
 }
 
 function getAccessSectionFromTransferContentType(contentType: string) {
-	return transferContentTypeToAccessSection[contentType as keyof typeof transferContentTypeToAccessSection];
+	return transferContentTypeToAccessSection[
+		contentType as keyof typeof transferContentTypeToAccessSection
+	];
 }
 
 function buildAccessPermissions(
@@ -139,13 +140,6 @@ export async function approvePatientTransferAction(transferId: string, approvalT
 		};
 	}
 
-	if (!transfer.targetHospitalAdminEmail) {
-		return {
-			success: false,
-			message: "This transfer does not have a target hospital admin email.",
-		};
-	}
-
 	if (transfer.patientApprovalStatus === "rejected" || transfer.status === "rejected") {
 		return {
 			success: false,
@@ -172,7 +166,9 @@ export async function approvePatientTransferAction(transferId: string, approvalT
 				recordId: transferContent.recordId,
 			} satisfies PatientRecordAccessSelectedRecord;
 		})
-		.filter((selectedRecord): selectedRecord is PatientRecordAccessSelectedRecord => Boolean(selectedRecord));
+		.filter((selectedRecord): selectedRecord is PatientRecordAccessSelectedRecord =>
+			Boolean(selectedRecord),
+		);
 
 	if (selectedRecordIds.length === 0) {
 		return {
@@ -224,8 +220,6 @@ export async function approvePatientTransferAction(transferId: string, approvalT
 			patientId: transfer.patientId,
 			createdByOrganizationId: transfer.sourceOrganizationId,
 			createdByUserId: transfer.createdBy ?? transfer.requestedBy!,
-			recipientEmail: transfer.targetHospitalAdminEmail,
-			recipientOrganizationName: transfer.targetHospitalName,
 			status: "pending",
 			expiresAt: accessExpiresAt,
 			permissions: buildAccessPermissions(selectedRecordIds),
@@ -238,13 +232,13 @@ export async function approvePatientTransferAction(transferId: string, approvalT
 		accessId,
 		codeHash: verificationCodeHash,
 		codeExpiresAt: verificationCodeExpiresAt,
-		targetHospitalAdminEmail: transfer.targetHospitalAdminEmail,
-		targetHospitalAdminName: transfer.targetHospitalAdminName,
+		targetHospitalEmail: transfer.targetHospitalEmail,
+		targetHospitalName: transfer.targetHospitalName,
 	});
 
 	try {
 		const emailResult = await sendAccessCodeEmail({
-			email: transfer.targetHospitalAdminEmail,
+			email: transfer.targetHospitalEmail,
 			code: verificationCode,
 			accessUrl: buildVerifyAccessUrl(accessId),
 		});

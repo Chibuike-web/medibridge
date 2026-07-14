@@ -25,11 +25,6 @@ export const patientLabTest = pgTable("patient_lab_test", {
 	status: text("status").notNull(),
 	clinicalNote: text("clinical_note"),
 
-	fileName: text("file_name"),
-	fileUrl: text("file_url"),
-	fileType: text("file_type"),
-	fileSize: text("file_size"),
-
 	createdBy: text("created_by"),
 	updatedBy: text("updated_by"),
 

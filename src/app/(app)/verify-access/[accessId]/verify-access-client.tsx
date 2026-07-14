@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import type { AccessVerificationState } from "@/lib/api/get-access-verification-state";
+import type { AccessVerificationState } from "@/lib/api/get-record-access-verification-state";
 import { useRouter } from "next/navigation";
 import { requestAccessCodeAction, verifyAccessCodeAction } from "./actions";
 
@@ -17,10 +17,8 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 	const [enteredVerificationCode, setEnteredVerificationCode] = useState("");
 	const [requestAccessCodeError, setRequestAccessCodeError] = useState("");
 	const [verifyAccessCodeError, setVerifyAccessCodeError] = useState("");
-	const [isRequestingNewAccessCode, startRequestNewAccessCodeTransition] =
-		useTransition();
-	const [isVerifyingEnteredAccessCode, startVerifyEnteredAccessCodeTransition] =
-		useTransition();
+	const [isRequestingNewAccessCode, startRequestNewAccessCodeTransition] = useTransition();
+	const [isVerifyingEnteredAccessCode, startVerifyEnteredAccessCodeTransition] = useTransition();
 
 	if (verificationState.status === "invalid") {
 		return (
@@ -59,8 +57,8 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 				</h1>
 				<p className="mt-4 text-sm leading-6 text-gray-600">
 					{verificationState.status === "code-expired"
-						? `The verification code sent to ${verificationState.recipientEmail} has expired. Request a new code to continue.`
-						: `No active verification code was found for ${verificationState.recipientEmail}. Request a code to continue.`}
+						? `The verification code sent to ${verificationState.targetHospitalEmail} for ${verificationState.targetHospitalName} has expired. Request a new code to continue.`
+						: `No active verification code was found for ${verificationState.targetHospitalEmail} for ${verificationState.targetHospitalName}. Request a code to continue.`}
 				</p>
 				{requestAccessCodeError ? (
 					<p className="mt-4 text-sm text-red-600">{requestAccessCodeError}</p>
@@ -97,8 +95,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 		<section className="flex w-full max-w-[31.25rem] flex-col items-center text-center">
 			<h1 className="text-2xl font-semibold leading-[1.2] text-gray-800">Verify Access</h1>
 			<p className="mt-4 text-sm leading-6 text-gray-600">
-				Enter the verification code sent to {verificationState.recipientEmail} to access the
-				shared patient record.
+				Enter the verification code sent to {verificationState.targetHospitalEmail} for {verificationState.targetHospitalName} to access the shared patient record.
 			</p>
 
 			<InputOTP
@@ -152,13 +149,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 	);
 }
 
-function VerifyAccessMessage({
-	title,
-	description,
-}: {
-	title: string;
-	description: string;
-}) {
+function VerifyAccessMessage({ title, description }: { title: string; description: string }) {
 	return (
 		<section className="flex w-full max-w-[31.25rem] flex-col items-center text-center">
 			<h1 className="text-2xl font-semibold leading-[1.2] text-gray-800">{title}</h1>

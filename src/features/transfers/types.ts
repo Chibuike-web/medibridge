@@ -44,8 +44,7 @@ export type TransferType = {
 	status: "pending" | "rejected" | "completed" | "failed" | "cancelled";
 	requestedAt: string;
 	targetHospitalName: string;
-	targetHospitalAdminName: string | null;
-	targetHospitalAdminEmail: string | null;
+	targetHospitalEmail: string;
 };
 
 export type TransferStatusFilter = TransferType["status"];
