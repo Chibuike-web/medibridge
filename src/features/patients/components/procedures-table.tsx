@@ -192,7 +192,7 @@ export function ProceduresTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by procedure, indication, facility, status, or procedure ID"
+						placeholder="Search by procedure, indication, facility, status, procedure ID, or encounter ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>

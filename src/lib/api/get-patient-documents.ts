@@ -69,6 +69,7 @@ export async function getPatientDocumentsForOrganization(
 			: undefined,
 		or(
 			ilike(patientDocument.id, searchPattern),
+			ilike(patientDocument.encounterId, searchPattern),
 			ilike(patientDocument.title, searchPattern),
 			ilike(patientDocument.documentType, searchPattern),
 			ilike(patientDocument.documentType, searchPattern),

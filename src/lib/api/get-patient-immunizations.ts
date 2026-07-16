@@ -85,6 +85,7 @@ export async function getPatientImmunizationsForOrganization(
 		or(
 			ilike(patientImmunization.vaccineName, searchPattern),
 			ilike(patientImmunization.id, searchPattern),
+			ilike(patientImmunization.encounterId, searchPattern),
 			ilike(patientImmunization.status, searchPattern),
 		),
 	);

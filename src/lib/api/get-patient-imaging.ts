@@ -123,6 +123,7 @@ export async function getPatientImagingForOrganization(
 		or(
 			ilike(patientImaging.study, searchPattern),
 			ilike(patientImaging.id, searchPattern),
+			ilike(patientImaging.encounterId, searchPattern),
 			ilike(patientImaging.modality, searchPattern),
 			ilike(patientImaging.region, searchPattern),
 			ilike(patientImaging.impression, searchPattern),

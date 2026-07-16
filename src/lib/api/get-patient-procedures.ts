@@ -76,6 +76,7 @@ export async function getPatientProceduresForOrganization(
 		or(
 			ilike(patientProcedure.procedureName, searchPattern),
 			ilike(patientProcedure.id, searchPattern),
+			ilike(patientProcedure.encounterId, searchPattern),
 			ilike(patientProcedure.indication, searchPattern),
 			ilike(patientProcedure.facility, searchPattern),
 			ilike(patientProcedure.status, searchPattern),

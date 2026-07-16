@@ -44,8 +44,8 @@ export function TransferDetailsDrawer({
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
 				<DrawerHeader className="border-b border-gray-200 px-6 py-5 text-left flex-row justify-between items-center">
-					<DrawerTitle className="text-lg text-gray-800 leading-[1.2]">
-						Transfer details
+					<DrawerTitle className="text-base text-gray-800 leading-[1.2]">
+						View transfer details
 					</DrawerTitle>
 					<DrawerClose aria-label="Close transfer details">
 						<RiCloseLine className="size-6" aria-hidden="true" />

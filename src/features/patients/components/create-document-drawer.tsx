@@ -87,7 +87,7 @@ export function CreateDocumentDrawer({
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
-					<DrawerTitle className="text-lg text-gray-800">Add document</DrawerTitle>
+					<DrawerTitle className="text-base text-gray-800">Add document</DrawerTitle>
 					<DrawerClose aria-label="Close add document">
 						<RiCloseLine className="size-5" />
 					</DrawerClose>

@@ -104,6 +104,7 @@ export async function getPatientLabTestsForOrganization(
 			ilike(patientLabTest.testName, searchPattern),
 			ilike(patientLabTest.result, searchPattern),
 			ilike(patientLabTest.id, searchPattern),
+			ilike(patientLabTest.encounterId, searchPattern),
 			ilike(patientLabTest.referenceRange, searchPattern),
 			ilike(patientLabTest.interpretation, searchPattern),
 			ilike(patientLabTest.status, searchPattern),

@@ -1070,7 +1070,6 @@ async function seedHospitals() {
 			const procedureId = procedureIdByPatientId.get(patientRowId);
 			const labTestId = labTestIdByPatientId.get(patientRowId);
 			const imagingId = imagingIdByPatientId.get(patientRowId);
-			const encounterId = firstEncounterIdByPatientId.get(patientRowId);
 
 			seededTransfers.push({
 				id: transferId,
@@ -1110,7 +1109,6 @@ async function seedHospitals() {
 				{ contentType: "medications", recordId: medicationId },
 				{ contentType: "lab-tests", recordId: labTestId },
 				{ contentType: "imaging", recordId: imagingId },
-				{ contentType: "encounters", recordId: encounterId },
 			].filter(
 				(content): content is { contentType: string; recordId: string } =>
 					typeof content.recordId === "string",

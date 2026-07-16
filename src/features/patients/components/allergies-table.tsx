@@ -190,7 +190,7 @@ export function AllergiesTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by allergen, reaction, severity, status, or allergy ID"
+						placeholder="Search by allergen, reaction, severity, status, allergy ID, or encounter ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>

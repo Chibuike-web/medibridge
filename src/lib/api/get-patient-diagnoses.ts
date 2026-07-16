@@ -105,6 +105,7 @@ export async function getPatientDiagnosesForOrganization(
 			: undefined,
 		or(
 			ilike(patientDiagnosis.id, searchPattern),
+			ilike(patientDiagnosis.encounterId, searchPattern),
 			ilike(patientDiagnosis.diagnosisName, searchPattern),
 			ilike(patientDiagnosis.status, searchPattern),
 		),

@@ -82,7 +82,7 @@ export function MedicationDetailsDrawer({
 		<Drawer open={open} onOpenChange={handleMedicationDetailsOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
-					<DrawerTitle className="text-lg leading-[1.2] text-gray-800">
+					<DrawerTitle className="text-base leading-[1.2] text-gray-800">
 						{isEditingMedicationDetails ? "Edit medication details" : "View medication details"}
 					</DrawerTitle>
 					<DrawerClose aria-label="Close medication details">
@@ -185,7 +185,7 @@ function MedicationDetailsOverview({
 			<div className="flex flex-col gap-6">
 				<div className="flex flex-wrap items-center justify-between gap-4">
 					<div className="flex items-center gap-3">
-						<h2 className="text-xl font-semibold text-gray-800">{medication.name}</h2>
+						<h2 className="text-lg font-semibold text-gray-800">{medication.name}</h2>
 						<StatusBadge status={medication.status} />
 					</div>
 					<button
@@ -481,7 +481,7 @@ function MedicationHistorySection({ history }: { history: MedicationDetailsHisto
 	return (
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
-				<p className="text-[18px] font-semibold">History</p>
+				<p className="text-base font-semibold">History</p>
 				<button className="text-gray-400">View more</button>
 			</div>
 			{history.map((historyEvent) => (

@@ -79,6 +79,7 @@ export async function getPatientMedicationsForOrganization(
 		or(
 			ilike(patientMedication.medicationName, searchPattern),
 			ilike(patientMedication.id, searchPattern),
+			ilike(patientMedication.encounterId, searchPattern),
 			ilike(patientMedication.dose, searchPattern),
 			ilike(patientMedication.route, searchPattern),
 			ilike(patientMedication.indication, searchPattern),

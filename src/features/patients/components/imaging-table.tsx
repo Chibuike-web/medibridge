@@ -200,7 +200,7 @@ export function ImagingTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by study, modality, region, impression, status, or imaging ID"
+						placeholder="Search by study, modality, region, impression, status, imaging ID, or encounter ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>

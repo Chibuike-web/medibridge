@@ -5,7 +5,6 @@ import {
 	patient,
 	patientAllergy,
 	patientDiagnosis,
-	patientEncounter,
 	patientImaging,
 	patientImmunization,
 	patientLabTest,
@@ -129,10 +128,6 @@ async function getTransferContentMetadata(
 		"labtests",
 	]);
 	const imagingRecordIds = getRecordIdsForContentType(transferContent, ["imaging"]);
-	const encounterRecordIds = getRecordIdsForContentType(transferContent, [
-		"encounter",
-		"encounters",
-	]);
 
 	const [
 		diagnoses,
@@ -142,7 +137,6 @@ async function getTransferContentMetadata(
 		medications,
 		labs,
 		imaging,
-		encounters,
 	] = await Promise.all([
 		diagnosisRecordIds.length > 0
 			? db
@@ -249,20 +243,6 @@ async function getTransferContentMetadata(
 						),
 					)
 			: [],
-		encounterRecordIds.length > 0
-			? db
-					.select({
-						recordId: patientEncounter.id,
-						recordName: patientEncounter.encounterType,
-					})
-					.from(patientEncounter)
-					.where(
-						and(
-							eq(patientEncounter.patientId, patientId),
-							inArray(patientEncounter.id, encounterRecordIds),
-						),
-					)
-			: [],
 	]);
 
 	addRecordMetadata(metadataByRecordId, diagnoses);
@@ -272,13 +252,6 @@ async function getTransferContentMetadata(
 	addRecordMetadata(metadataByRecordId, medications);
 	addRecordMetadata(metadataByRecordId, labs);
 	addRecordMetadata(metadataByRecordId, imaging);
-	addRecordMetadata(
-		metadataByRecordId,
-		encounters.map((encounter) => ({
-			...encounter,
-			status: null,
-		})),
-	);
 
 	return metadataByRecordId;
 }
@@ -338,8 +311,14 @@ export async function getTransferDetailsForOrganization(
 		})
 		.from(patientTransferContent)
 		.where(eq(patientTransferContent.transferId, transfer.transferId));
+	const shareableTransferContent = transferContent.filter(
+		(content) =>
+			!["encounter", "encounters"].includes(
+				getNormalizedContentType(content.contentType),
+			),
+	);
 	const transferContentMetadata = await getTransferContentMetadata(
-		transferContent,
+		shareableTransferContent,
 		transfer.patientId,
 	);
 
@@ -357,7 +336,7 @@ export async function getTransferDetailsForOrganization(
 		updatedBy: transfer.updatedBy,
 		targetHospitalName: transfer.targetHospitalName,
 		targetHospitalEmail: transfer.targetHospitalEmail,
-		transferContent: transferContent.map((content) => {
+		transferContent: shareableTransferContent.map((content) => {
 			const metadata = transferContentMetadata.get(content.recordId);
 
 			return {

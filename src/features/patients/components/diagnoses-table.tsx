@@ -201,7 +201,7 @@ export function DiagnosesTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by diagnosis, status, or diagnosis ID"
+						placeholder="Search by diagnosis, status, diagnosis ID, or encounter ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>

@@ -91,6 +91,7 @@ export async function getPatientAllergiesForOrganization(
 		or(
 			ilike(patientAllergy.allergen, searchPattern),
 			ilike(patientAllergy.id, searchPattern),
+			ilike(patientAllergy.encounterId, searchPattern),
 			ilike(patientAllergy.reaction, searchPattern),
 			ilike(patientAllergy.severity, searchPattern),
 			ilike(patientAllergy.status, searchPattern),
