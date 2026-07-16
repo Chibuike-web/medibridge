@@ -270,7 +270,7 @@ export function SharedDiagnosesTable({
             type="search"
             value={recordSearchQuery}
             onChange={(event) => handleQueryChange(event.target.value)}
-            placeholder="Search by diagnosis, status, or diagnosis ID"
+            placeholder="Search by diagnosis or diagnosis ID"
             className="pl-10"
           />
         </div>

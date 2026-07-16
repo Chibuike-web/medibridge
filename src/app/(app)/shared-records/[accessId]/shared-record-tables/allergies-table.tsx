@@ -243,7 +243,7 @@ export function SharedAllergiesTable({
             type="search"
             value={recordSearchQuery}
             onChange={(event) => handleQueryChange(event.target.value)}
-            placeholder="Search by allergen, reaction, severity, status, or allergy ID"
+            placeholder="Search by allergen, reaction, severity, or allergy ID"
             className="pl-10"
           />
         </div>

@@ -185,7 +185,7 @@ export function MedicationsTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by medication, dose, route, indication, status, medication ID, or encounter ID"
+						placeholder="Search by medication, dose, route, indication, medication ID, or encounter ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>

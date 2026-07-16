@@ -256,7 +256,7 @@ export function SharedLabTestsTable({
             type="search"
             value={recordSearchQuery}
             onChange={(event) => handleQueryChange(event.target.value)}
-            placeholder="Search by test, result, status, or lab ID"
+            placeholder="Search by test, result, or lab ID"
             className="pl-10"
           />
         </div>

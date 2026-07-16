@@ -205,7 +205,7 @@ export function LabTestsTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by test, result, status, lab ID, or encounter ID"
+						placeholder="Search by test, result, lab ID, or encounter ID"
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>

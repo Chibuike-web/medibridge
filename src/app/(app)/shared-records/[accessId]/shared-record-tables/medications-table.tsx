@@ -225,7 +225,7 @@ export function SharedMedicationsTable({
             type="search"
             value={recordSearchQuery}
             onChange={(event) => handleQueryChange(event.target.value)}
-            placeholder="Search by medication, dose, route, indication, status, or medication ID"
+            placeholder="Search by medication, dose, route, indication, or medication ID"
             className="pl-10"
           />
         </div>

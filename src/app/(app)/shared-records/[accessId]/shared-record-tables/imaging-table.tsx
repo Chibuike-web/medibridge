@@ -265,7 +265,7 @@ export function SharedImagingTable({
             type="search"
             value={recordSearchQuery}
             onChange={(event) => handleQueryChange(event.target.value)}
-            placeholder="Search by study, modality, region, impression, status, or imaging ID"
+            placeholder="Search by study, modality, region, impression, or imaging ID"
             className="pl-10"
           />
         </div>

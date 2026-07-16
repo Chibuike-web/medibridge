@@ -222,7 +222,7 @@ export function SharedProceduresTable({
             type="search"
             value={recordSearchQuery}
             onChange={(event) => handleQueryChange(event.target.value)}
-            placeholder="Search by procedure, indication, facility, status, or procedure ID"
+            placeholder="Search by procedure, indication, facility, or procedure ID"
             className="pl-10"
           />
         </div>

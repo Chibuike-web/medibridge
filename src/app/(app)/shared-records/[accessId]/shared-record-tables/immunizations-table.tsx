@@ -227,7 +227,7 @@ export function SharedImmunizationsTable({
             type="search"
             value={recordSearchQuery}
             onChange={(event) => handleQueryChange(event.target.value)}
-            placeholder="Search by immunization, status, or immunization ID"
+            placeholder="Search by vaccine name or immunization ID"
             className="pl-10"
           />
         </div>
