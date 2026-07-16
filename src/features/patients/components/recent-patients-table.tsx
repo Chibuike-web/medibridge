@@ -95,12 +95,18 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 										}}
 										className={cn(
 											"h-10 px-3 py-0 whitespace-nowrap z-10 text-gray-600 bg-gray-50",
+											header.column.id === "age" && "text-right",
 											header.column.getCanSort()
 												? "cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
 												: "",
 										)}
 									>
-										<div className="flex items-center justify-between">
+										<div
+											className={cn(
+												"flex items-center gap-3",
+												header.column.id === "age" ? "justify-end" : "justify-between",
+											)}
+										>
 											{header.isPlaceholder
 												? null
 												: flexRender(header.column.columnDef.header, header.getContext())}{" "}
@@ -140,6 +146,7 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 												rowPosition === 0 && cell.column.getIsFirstColumn() && "rounded-tl-lg",
 												rowPosition === 0 && cell.column.getIsLastColumn() && "rounded-tr-lg",
+												cell.column.id === "age" && "text-right",
 											)}
 										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}

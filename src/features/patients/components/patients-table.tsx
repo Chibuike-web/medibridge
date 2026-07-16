@@ -171,12 +171,18 @@ function PatientsTableContent({
 										}}
 										className={cn(
 											"z-10 h-10 px-3 py-0 whitespace-nowrap text-gray-600 bg-gray-50",
+											header.column.id === "age" && "text-right",
 											header.column.getCanSort()
 												? "cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
 												: "",
 										)}
 									>
-										<div className="flex items-center justify-between gap-3">
+										<div
+											className={cn(
+												"flex items-center gap-3",
+												header.column.id === "age" ? "justify-end" : "justify-between",
+											)}
+										>
 											{header.isPlaceholder
 												? null
 												: flexRender(header.column.columnDef.header, header.getContext())}
@@ -231,6 +237,7 @@ function PatientsTableContent({
 												"h-14 border-b border-gray-200 px-3 py-0 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
 												row.getIsSelected() ? "bg-gray-100" : "bg-white",
 												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
+												cell.column.id === "age" && "text-right",
 											)}
 										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -454,7 +461,7 @@ function getPatientsColumns(
 					onClick={(e) => {
 						e.stopPropagation();
 					}}
-					className="w-max"
+					className="ml-auto w-max"
 				>
 					{row.original.age}
 				</div>

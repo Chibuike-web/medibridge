@@ -307,11 +307,19 @@ export function SharedMedicationsTable({
                     }}
                     className={cn(
                       "h-10 whitespace-nowrap bg-gray-50 px-3 py-0 text-gray-600",
+                      header.column.id === "dose" && "text-right",
                       header.column.getCanSort() &&
                         "cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400",
                     )}
                   >
-                    <div className="flex items-center justify-between gap-3">
+                    <div
+                      className={cn(
+                        "flex items-center gap-3",
+                        header.column.id === "dose"
+                          ? "justify-end"
+                          : "justify-between",
+                      )}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -351,7 +359,12 @@ export function SharedMedicationsTable({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        cell.column.id === "dose" && "text-right",
+                      )}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

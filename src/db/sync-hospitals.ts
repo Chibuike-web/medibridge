@@ -648,11 +648,11 @@ async function seedHospitals() {
 		{ allergen: "Shellfish", reaction: "Hives", severity: "Severe" },
 	];
 	const immunizationTemplates = [
-		{ vaccineName: "Hepatitis B", currentDose: "3", totalDoses: "3" },
-		{ vaccineName: "Tetanus", currentDose: "1", totalDoses: "1" },
-		{ vaccineName: "Influenza", currentDose: "1", totalDoses: "1" },
-		{ vaccineName: "COVID-19", currentDose: "2", totalDoses: "2" },
-		{ vaccineName: "Yellow Fever", currentDose: "1", totalDoses: "1" },
+		{ vaccineName: "Hepatitis B", currentDose: "3rd dose", totalDoses: "3" },
+		{ vaccineName: "Tetanus", currentDose: "Booster", totalDoses: "1" },
+		{ vaccineName: "Influenza", currentDose: "Single dose", totalDoses: "1" },
+		{ vaccineName: "COVID-19", currentDose: "2nd dose", totalDoses: "2" },
+		{ vaccineName: "Yellow Fever", currentDose: "Single dose", totalDoses: "1" },
 	];
 	const procedureTemplates = [
 		{ name: "Electrocardiogram", indication: "Cardiac assessment" },

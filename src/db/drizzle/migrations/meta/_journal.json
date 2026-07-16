@@ -127,6 +127,13 @@
 			"when": 1784200000000,
 			"tag": "0017_remove_encounter_transfer_content",
 			"breakpoints": true
+		},
+		{
+			"idx": 18,
+			"version": "7",
+			"when": 1784210000000,
+			"tag": "0018_normalize_immunization_dose_labels",
+			"breakpoints": true
 		}
   ]
 }

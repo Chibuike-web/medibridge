@@ -369,12 +369,20 @@ export function LabTestsTable({
 										}}
 										className={cn(
 											"z-10 h-10 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
+											header.column.id === "referenceRange" && "text-right",
 											header.column.getCanSort()
 												? "cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
 												: "",
 										)}
 									>
-										<div className="flex items-center justify-between gap-3">
+										<div
+											className={cn(
+												"flex items-center gap-3",
+												header.column.id === "referenceRange"
+													? "justify-end"
+													: "justify-between",
+											)}
+										>
 											{header.isPlaceholder
 												? null
 												: flexRender(header.column.columnDef.header, header.getContext())}
@@ -424,6 +432,7 @@ export function LabTestsTable({
 											className={cn(
 												"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
 												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
+												cell.column.id === "referenceRange" && "text-right",
 											)}
 										>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -914,7 +923,7 @@ function getLabTestsColumns({
 			accessorKey: "referenceRange",
 			enableSorting: false,
 			cell: ({ row }) => (
-				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+				<div className="ml-auto w-max" onClick={(event) => event.stopPropagation()}>
 					{row.original.referenceRange}
 				</div>
 			),
