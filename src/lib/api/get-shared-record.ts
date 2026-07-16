@@ -30,20 +30,18 @@ function formatTimestamp(value: Date | null) {
 	return value ? formatDate(value.toISOString()) : "-";
 }
 
+function toDateFilterValue(value: Date | string | null) {
+	if (!value) return "";
+	const date = new Date(value);
+	return Number.isNaN(date.getTime()) ? "" : date.toISOString();
+}
+
 function activeOrResolved(value: string): "Active" | "Resolved" {
 	return value.toLowerCase() === "active" ? "Active" : "Resolved";
 }
 
 function activeOrInactive(value: string): "Active" | "Inactive" {
 	return value.toLowerCase() === "active" ? "Active" : "Inactive";
-}
-
-function completedOrPending(value: string): "Completed" | "Pending" {
-	return value.toLowerCase() === "completed" ? "Completed" : "Pending";
-}
-
-function activeOrCompleted(value: string): "Active" | "Completed" {
-	return value.toLowerCase() === "active" ? "Active" : "Completed";
 }
 
 function allergySeverity(value: string): "Mild" | "Moderate" | "Severe" {
@@ -58,6 +56,41 @@ function imagingModality(value: string): "CT" | "MRI" | "Ultrasound" | "X-ray" {
 	if (normalizedValue === "mri") return "MRI";
 	if (normalizedValue === "ultrasound") return "Ultrasound";
 	return "X-ray";
+}
+
+function immunizationStatus(
+	value: string,
+): "Active" | "Completed" | "Cancelled" | "Discontinued" {
+	if (value === "completed") return "Completed";
+	if (value === "cancelled") return "Cancelled";
+	if (value === "discontinued") return "Discontinued";
+	return "Active";
+}
+
+function procedureStatus(value: string): "Pending" | "Completed" | "Cancelled" {
+	if (value === "completed") return "Completed";
+	if (value === "cancelled") return "Cancelled";
+	return "Pending";
+}
+
+function medicationStatus(
+	value: string,
+): "Active" | "Completed" | "Discontinued" {
+	if (value === "completed") return "Completed";
+	if (value === "discontinued") return "Discontinued";
+	return "Active";
+}
+
+function labTestStatus(value: string): "Pending" | "Completed" | "Cancelled" {
+	if (value === "completed") return "Completed";
+	if (value === "cancelled") return "Cancelled";
+	return "Pending";
+}
+
+function imagingStatus(value: string): "Pending" | "Completed" | "Cancelled" {
+	if (value === "completed") return "Completed";
+	if (value === "cancelled") return "Cancelled";
+	return "Pending";
 }
 
 export async function getSharedRecord(accessId: string) {
@@ -320,9 +353,12 @@ export async function getSharedRecord(accessId: string) {
 			diagnoses: diagnoses.map((record) => ({
 				name: record.diagnosisName,
 				diagnosedAt: String(display(record.diagnosedAt)),
+				diagnosedAtValue: toDateFilterValue(record.diagnosedAt),
 				lastReviewed: String(display(record.lastReviewedAt)),
+				lastReviewedValue: toDateFilterValue(record.lastReviewedAt),
 				diagnosisId: record.id,
 				createdAt: formatTimestamp(record.createdAt),
+				createdAtValue: toDateFilterValue(record.createdAt),
 				status: activeOrResolved(record.status),
 			})),
 			allergies: allergies.map((record) => ({
@@ -330,6 +366,7 @@ export async function getSharedRecord(accessId: string) {
 				allergyId: record.id,
 				reaction: record.reaction,
 				createdAt: formatTimestamp(record.createdAt),
+				createdAtValue: toDateFilterValue(record.createdAt),
 				severity: allergySeverity(record.severity),
 				status: activeOrInactive(record.status),
 			})),
@@ -338,7 +375,8 @@ export async function getSharedRecord(accessId: string) {
 				dose: String(display(record.currentDose)),
 				immunizationId: record.id,
 				createdAt: formatTimestamp(record.createdAt),
-				status: completedOrPending(record.status),
+				createdAtValue: toDateFilterValue(record.createdAt),
+				status: immunizationStatus(record.status),
 			})),
 			procedures: procedures.map((record) => ({
 				procedure: record.procedureName,
@@ -346,7 +384,8 @@ export async function getSharedRecord(accessId: string) {
 				facility: String(display(record.facility ?? record.plannedFacility)),
 				procedureId: record.id,
 				createdAt: formatTimestamp(record.createdAt),
-				status: completedOrPending(record.status),
+				createdAtValue: toDateFilterValue(record.createdAt),
+				status: procedureStatus(record.status),
 			})),
 			medications: medications.map((record) => ({
 				medication: record.medicationName,
@@ -355,15 +394,18 @@ export async function getSharedRecord(accessId: string) {
 				indication: String(display(record.indication)),
 				medicationId: record.id,
 				createdAt: formatTimestamp(record.createdAt),
-				status: activeOrCompleted(record.status),
+				createdAtValue: toDateFilterValue(record.createdAt),
+				status: medicationStatus(record.status),
 			})),
 			labTests: labTests.map((record) => ({
 				test: record.testName,
+				result: String(display(record.result)),
 				labId: record.id,
 				referenceRange: String(display(record.referenceRange)),
 				interpretation: String(display(record.flag ?? record.interpretation)),
 				createdAt: formatTimestamp(record.createdAt),
-				status: completedOrPending(record.status),
+				createdAtValue: toDateFilterValue(record.createdAt),
+				status: labTestStatus(record.status),
 			})),
 			imaging: imaging.map((record) => ({
 				study: record.study,
@@ -371,8 +413,11 @@ export async function getSharedRecord(accessId: string) {
 				region: record.region,
 				impression: String(display(record.impression)),
 				orderedAt: formatTimestamp(record.orderedAt),
+				orderedAtValue: toDateFilterValue(record.orderedAt),
+				createdAt: formatTimestamp(record.createdAt),
+				createdAtValue: toDateFilterValue(record.createdAt),
 				imagingId: record.id,
-				status: completedOrPending(record.status),
+				status: imagingStatus(record.status),
 			})),
 		},
 	};

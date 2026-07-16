@@ -16,7 +16,7 @@ export function PatientAvatarMenu({ patientName }: { patientName: string }) {
 			<DropdownMenuTrigger asChild>
 				<button className="relative">
 					<Avatar className="size-16 border border-gray-200 bg-gray-100 text-gray-700">
-						<AvatarFallback className="bg-gray-100 text-2xl font-semibold text-gray-700">
+						<AvatarFallback className="bg-gray-100 text-xl font-semibold text-gray-700">
 							{getInitials(patientName ?? "")}
 						</AvatarFallback>
 					</Avatar>

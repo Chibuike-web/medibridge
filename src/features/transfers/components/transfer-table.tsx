@@ -191,15 +191,32 @@ function TransferTableContent({
 								{headerGroup.headers.map((header) => (
 									<TableHead
 										key={header.id}
-										onClick={header.column.getToggleSortingHandler()}
+										tabIndex={header.column.getCanSort() ? 0 : undefined}
+										aria-sort={
+											header.column.getCanSort()
+												? header.column.getIsSorted() === "asc"
+													? "ascending"
+													: header.column.getIsSorted() === "desc"
+														? "descending"
+														: "none"
+												: undefined
+										}
+										onClick={
+											header.column.getCanSort()
+												? header.column.getToggleSortingHandler()
+												: undefined
+										}
 										onKeyDown={(event) => {
-											if (event.key === "Enter") {
+											if (header.column.getCanSort() && (event.key === "Enter" || event.key === " ")) {
+												event.preventDefault();
 												header.column.getToggleSortingHandler()?.(event);
 											}
 										}}
 										className={cn(
 											"z-10 h-10 px-3 py-0 whitespace-nowrap text-gray-600 bg-gray-50",
-											header.column.getCanSort() ? "cursor-pointer select-none" : "",
+											header.column.getCanSort()
+												? "cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
+												: "",
 										)}
 									>
 										<div className="flex items-center justify-between gap-3">

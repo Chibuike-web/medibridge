@@ -58,6 +58,7 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 			pagination,
 		},
 	});
+	const pageCount = Math.max(table.getPageCount(), 1);
 
 	return (
 		<div className="mt-12 max-w-7xl">
@@ -70,15 +71,32 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 								{headerGroup.headers.map((header) => (
 									<TableHead
 										key={header.id}
-										onClick={header.column.getToggleSortingHandler()}
+										tabIndex={header.column.getCanSort() ? 0 : undefined}
+										aria-sort={
+											header.column.getCanSort()
+												? header.column.getIsSorted() === "asc"
+													? "ascending"
+													: header.column.getIsSorted() === "desc"
+														? "descending"
+														: "none"
+												: undefined
+										}
+										onClick={
+											header.column.getCanSort()
+												? header.column.getToggleSortingHandler()
+												: undefined
+										}
 										onKeyDown={(event) => {
-											if (event.key === "Enter") {
+											if (header.column.getCanSort() && (event.key === "Enter" || event.key === " ")) {
+												event.preventDefault();
 												header.column.getToggleSortingHandler()?.(event);
 											}
 										}}
 										className={cn(
 											"z-10 h-10 px-3 py-0 whitespace-nowrap text-gray-600",
-											header.column.getCanSort() ? "cursor-pointer select-none" : "",
+											header.column.getCanSort()
+												? "cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
+												: "",
 										)}
 									>
 										<div className="flex items-center justify-between gap-3">
@@ -110,24 +128,34 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 						))}
 					</TableHeader>
 					<TableBody className="rounded-t-xl outline outline-gray-200">
-						{table.getRowModel().rows.map((row, rowPosition) => (
-							<TableRow key={row.id} className="h-14">
-								{row.getVisibleCells().map((cell) => (
-									<TableCell
-										key={cell.id}
-										className={cn(
-											"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
-											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
-											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
-											rowPosition === 0 && cell.column.getIsFirstColumn() && "rounded-tl-lg",
-											rowPosition === 0 && cell.column.getIsLastColumn() && "rounded-tr-lg",
-										)}
-									>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
-									</TableCell>
-								))}
+						{table.getRowModel().rows.length > 0 ? (
+							table.getRowModel().rows.map((row, rowPosition) => (
+								<TableRow key={row.id} className="h-14">
+									{row.getVisibleCells().map((cell) => (
+										<TableCell
+											key={cell.id}
+											className={cn(
+												"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
+												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
+												rowPosition === 0 && cell.column.getIsFirstColumn() && "rounded-tl-lg",
+												rowPosition === 0 && cell.column.getIsLastColumn() && "rounded-tr-lg",
+											)}
+										>
+											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+										</TableCell>
+									))}
+								</TableRow>
+							))
+						) : (
+							<TableRow>
+								<TableCell
+									colSpan={recentTransfersColumns.length}
+									className="h-32 bg-white px-3 py-0 text-center text-sm text-gray-500"
+								>
+									No recent transfers found.
+								</TableCell>
 							</TableRow>
-						))}
+						)}
 					</TableBody>
 				</Table>
 				<div className="flex gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 items-center justify-between">
@@ -153,7 +181,7 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 					</div>
 					<div className="flex items-center gap-3">
 						<span>
-							Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+							Page {table.getState().pagination.pageIndex + 1} of {pageCount}
 						</span>
 						<div className="flex items-center gap-2">
 							<Button

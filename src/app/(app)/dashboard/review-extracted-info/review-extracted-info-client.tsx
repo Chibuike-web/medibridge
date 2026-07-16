@@ -88,7 +88,7 @@ export function ReviewExtractedInfoClient() {
 
 	if (!patientData || patientData.length === 0) {
 		return (
-			<h1 className="grid min-h-dvh place-items-center text-2xl font-semibold text-gray-800">
+			<h1 className="grid min-h-dvh place-items-center text-xl font-semibold text-gray-800">
 				No patient data extracted
 			</h1>
 		);
@@ -96,7 +96,7 @@ export function ReviewExtractedInfoClient() {
 	return (
 		<main className="mx-auto my-30 max-w-[37.5rem]">
 			<div className="w-full">
-				<h1 className="mt-10 mb-4 text-center text-2xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
+				<h1 className="mt-10 mb-4 text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
 					Review Patient Information
 				</h1>
 				<div className="mb-10 text-center text-gray-600">

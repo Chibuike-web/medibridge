@@ -11,7 +11,7 @@ export default function Verify() {
 			<div className="flex flex-col items-center">
 				<Image src="/assets/verification-icon.svg" width={160} height={160} alt="" />
 
-				<h1 className="text-[1.8rem] text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] mt-10">
+				<h1 className="mt-10 text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
 					Verification In Progress
 				</h1>
 				<p className="text-gray-600 font-medium text-center mt-6">

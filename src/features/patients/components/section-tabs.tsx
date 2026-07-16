@@ -79,7 +79,7 @@ export const sections = [
 	{ id: "vitals", label: "Vitals" },
 	{ id: "diagnoses", label: "Diagnoses" },
 	{ id: "allergies", label: "Allergies" },
-	{ id: "immunization", label: "Immunization" },
+	{ id: "immunization", label: "Immunizations" },
 	{ id: "procedures", label: "Procedures" },
 	{ id: "medications", label: "Medications" },
 	{ id: "encounters", label: "Encounters" },

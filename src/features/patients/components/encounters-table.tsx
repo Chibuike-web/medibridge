@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { Route } from "next";
+import { useRouter } from "next/navigation";
 import type {
 	EncounterDepartmentFilter,
 	EncounterType,
@@ -169,24 +170,12 @@ export function EncountersTable({
 	onNextPage,
 	onLimitChange,
 }: EncountersTableProps) {
+	const router = useRouter();
 	const columns = useMemo(() => getEncountersColumns(patientId), [patientId]);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<EncounterFilterSubmenu | null>(
 		null,
 	);
-	const hasActiveFilters = Boolean(
-		query ||
-		encounterFrom ||
-		encounterTo ||
-		createdFrom ||
-		createdTo ||
-		encounterTypeFilters.length > 0 ||
-		departmentFilters.length > 0,
-	);
-	const emptyMessage = hasActiveFilters
-		? "No encounters match the current filters."
-		: "No encounters found.";
-
 	const table = useReactTable({
 		data: encounters,
 		columns,
@@ -371,15 +360,32 @@ export function EncountersTable({
 								{headerGroup.headers.map((header) => (
 									<TableHead
 										key={header.id}
-										onClick={header.column.getToggleSortingHandler()}
+										tabIndex={header.column.getCanSort() ? 0 : undefined}
+										aria-sort={
+											header.column.getCanSort()
+												? header.column.getIsSorted() === "asc"
+													? "ascending"
+													: header.column.getIsSorted() === "desc"
+														? "descending"
+														: "none"
+												: undefined
+										}
+										onClick={
+											header.column.getCanSort()
+												? header.column.getToggleSortingHandler()
+												: undefined
+										}
 										onKeyDown={(event) => {
-											if (event.key === "Enter") {
+											if (header.column.getCanSort() && (event.key === "Enter" || event.key === " ")) {
+												event.preventDefault();
 												header.column.getToggleSortingHandler()?.(event);
 											}
 										}}
 										className={cn(
 											"z-10 h-10 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
-											header.column.getCanSort() ? "cursor-pointer select-none" : "",
+											header.column.getCanSort()
+												? "cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
+												: "",
 										)}
 									>
 										<div className="flex items-center justify-between gap-3">
@@ -413,12 +419,38 @@ export function EncountersTable({
 					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
 						{table.getRowModel().rows.length > 0 ? (
 							table.getRowModel().rows.map((row, rowPosition) => (
-								<TableRow key={row.id} className="group min-h-14">
+								<TableRow
+									key={row.id}
+									role="link"
+									tabIndex={0}
+									onClick={() =>
+										router.push(
+											`/dashboard/patients/${patientId}/encounters/${row.original.encounterId}` as Route,
+										)
+									}
+									onKeyDown={(event) => {
+										if (
+											event.target === event.currentTarget &&
+											(event.key === "Enter" || event.key === " ")
+										) {
+											event.preventDefault();
+											router.push(
+												`/dashboard/patients/${patientId}/encounters/${row.original.encounterId}` as Route,
+											);
+										}
+									}}
+									onMouseEnter={() =>
+										router.prefetch(
+											`/dashboard/patients/${patientId}/encounters/${row.original.encounterId}` as Route,
+										)
+									}
+									className="group min-h-14 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
+								>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell
 											key={cell.id}
 											className={cn(
-												"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
+												"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
 												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 											)}
 										>
@@ -433,7 +465,7 @@ export function EncountersTable({
 									colSpan={columns.length}
 									className="h-32 bg-white px-3 py-0 text-center text-sm text-gray-500"
 								>
-									{emptyMessage}
+									No matching encounters found.
 								</TableCell>
 							</TableRow>
 						)}
@@ -932,7 +964,7 @@ function getEncountersColumns(patientId: string): ColumnDef<EncounterType>[] {
 			header: "",
 			enableSorting: false,
 			cell: ({ row }) => (
-				<div className="flex justify-end">
+				<div className="flex justify-end" onClick={(event) => event.stopPropagation()}>
 					<DropdownMenu>
 						<DropdownMenuTrigger
 							type="button"

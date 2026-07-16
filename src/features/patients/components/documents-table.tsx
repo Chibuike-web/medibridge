@@ -343,13 +343,31 @@ export function DocumentsTable({
 								{headerGroup.headers.map((header) => (
 									<TableHead
 										key={header.id}
-										onClick={header.column.getToggleSortingHandler()}
+										tabIndex={header.column.getCanSort() ? 0 : undefined}
+										aria-sort={
+											header.column.getCanSort()
+												? header.column.getIsSorted() === "asc"
+													? "ascending"
+													: header.column.getIsSorted() === "desc"
+														? "descending"
+														: "none"
+												: undefined
+										}
+										onClick={
+											header.column.getCanSort()
+												? header.column.getToggleSortingHandler()
+												: undefined
+										}
 										onKeyDown={(event) => {
-											if (event.key === "Enter") header.column.getToggleSortingHandler()?.(event);
+											if (header.column.getCanSort() && (event.key === "Enter" || event.key === " ")) {
+												event.preventDefault();
+												header.column.getToggleSortingHandler()?.(event);
+											}
 										}}
 										className={cn(
 											"z-10 h-10 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
-											header.column.getCanSort() && "cursor-pointer select-none",
+											header.column.getCanSort() &&
+												"cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400",
 										)}
 									>
 										<div className="flex items-center justify-between gap-3">
@@ -411,8 +429,11 @@ export function DocumentsTable({
 						))}
 						{table.getRowModel().rows.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={6} className="bg-white px-3 py-12 text-center text-gray-500">
-									No documents match the current filters.
+								<TableCell
+									colSpan={columns.length}
+									className="h-32 bg-white px-3 py-0 text-center text-sm text-gray-500"
+								>
+									No matching documents found.
 								</TableCell>
 							</TableRow>
 						) : null}

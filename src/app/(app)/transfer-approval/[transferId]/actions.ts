@@ -27,7 +27,6 @@ const transferContentTypeToAccessSection = {
 	procedures: "procedures",
 	medications: "medications",
 	"lab-tests": "lab-tests",
-	encounters: "encounters",
 	imaging: "imaging",
 } satisfies Record<string, PatientRecordAccessSection>;
 
@@ -84,10 +83,6 @@ function buildAccessPermissions(
 
 		if (selectedRecord.section === "lab-tests") {
 			permissions.labTests = true;
-		}
-
-		if (selectedRecord.section === "encounters") {
-			permissions.encounters = true;
 		}
 
 		if (selectedRecord.section === "imaging") {

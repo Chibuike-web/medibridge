@@ -9,7 +9,7 @@ export default function Owner() {
 		<main className="max-w-[37.5rem] mx-auto min-h-dvh grid place-items-center my-10">
 			<div className="w-full px-6 md:px-0">
 				<div className="mb-10">
-					<h1 className="text-[1.5rem] text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] mb-4">
+					<h1 className="mb-4 text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
 						Owner Account Setup
 					</h1>
 					<p className="text-center text-gray-600">

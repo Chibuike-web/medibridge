@@ -394,16 +394,6 @@ export function DiagnosesTable({
 				limit={limit}
 				totalPages={totalPages}
 				isPending={isPending}
-				hasActiveFilters={Boolean(
-					query ||
-					createdFrom ||
-					createdTo ||
-					diagnosedFrom ||
-					diagnosedTo ||
-					lastReviewedFrom ||
-					lastReviewedTo ||
-					statusFilters.length > 0,
-				)}
 				onViewDiagnosisDetails={handleViewDiagnosisDetails}
 				onPreviousPage={onPreviousPage}
 				onNextPage={onNextPage}
@@ -429,7 +419,6 @@ function DiagnosesTableContent({
 	limit,
 	totalPages,
 	isPending,
-	hasActiveFilters,
 	onViewDiagnosisDetails,
 	onPreviousPage,
 	onNextPage,
@@ -443,7 +432,6 @@ function DiagnosesTableContent({
 	limit: number;
 	totalPages: number;
 	isPending: boolean;
-	hasActiveFilters: boolean;
 	onViewDiagnosisDetails: (diagnosisId: string) => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
@@ -465,10 +453,6 @@ function DiagnosesTableContent({
 		},
 	});
 	const selectedDiagnoses = table.getSelectedRowModel().rows.map((row) => row.original);
-	const emptyMessage = hasActiveFilters
-		? "No diagnoses match the current filters."
-		: "No diagnoses found.";
-
 	return (
 		<>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
@@ -479,15 +463,32 @@ function DiagnosesTableContent({
 								{headerGroup.headers.map((header) => (
 									<TableHead
 										key={header.id}
-										onClick={header.column.getToggleSortingHandler()}
+										tabIndex={header.column.getCanSort() ? 0 : undefined}
+										aria-sort={
+											header.column.getCanSort()
+												? header.column.getIsSorted() === "asc"
+													? "ascending"
+													: header.column.getIsSorted() === "desc"
+														? "descending"
+														: "none"
+												: undefined
+										}
+										onClick={
+											header.column.getCanSort()
+												? header.column.getToggleSortingHandler()
+												: undefined
+										}
 										onKeyDown={(event) => {
-											if (event.key === "Enter") {
+											if (header.column.getCanSort() && (event.key === "Enter" || event.key === " ")) {
+												event.preventDefault();
 												header.column.getToggleSortingHandler()?.(event);
 											}
 										}}
 										className={cn(
 											"z-10 h-10 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
-											header.column.getCanSort() ? "cursor-pointer select-none" : "",
+											header.column.getCanSort()
+												? "cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
+												: "",
 										)}
 									>
 										<div className="flex items-center justify-between gap-3">
@@ -560,7 +561,7 @@ function DiagnosesTableContent({
 									colSpan={columns.length}
 									className="h-32 bg-white px-3 py-0 text-center text-sm text-gray-500"
 								>
-									{emptyMessage}
+									No matching diagnoses found.
 								</TableCell>
 							</TableRow>
 						)}

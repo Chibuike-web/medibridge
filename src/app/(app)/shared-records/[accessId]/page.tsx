@@ -20,7 +20,10 @@ type SharedRecordsPageProps = Pick<
 	"params" | "searchParams"
 >;
 
-export default async function SharedRecordsPage({ params, searchParams }: SharedRecordsPageProps) {
+export default async function SharedRecordsPage({
+	params,
+	searchParams,
+}: SharedRecordsPageProps) {
 	return (
 		<div className="min-h-dvh bg-white text-gray-800">
 			<Suspense fallback={<SharedRecordsPageSkeleton />}>
@@ -30,10 +33,17 @@ export default async function SharedRecordsPage({ params, searchParams }: Shared
 	);
 }
 
-async function SharedRecordsContent({ params, searchParams }: SharedRecordsPageProps) {
-	const [{ accessId }, { section: sectionParam }] = await Promise.all([params, searchParams]);
+async function SharedRecordsContent({
+	params,
+	searchParams,
+}: SharedRecordsPageProps) {
+	const [{ accessId }, { section: sectionParam }] = await Promise.all([
+		params,
+		searchParams,
+	]);
 	const section = getStringParam(sectionParam);
-	const hasVerifiedAccessSession = await hasVerifiedExternalAccessSession(accessId);
+	const hasVerifiedAccessSession =
+		await hasVerifiedExternalAccessSession(accessId);
 
 	if (!hasVerifiedAccessSession) {
 		redirect(`/verify-access/${accessId}`);
@@ -42,7 +52,10 @@ async function SharedRecordsContent({ params, searchParams }: SharedRecordsPageP
 	const sharedRecord = await getSharedRecord(accessId);
 	if (!sharedRecord) notFound();
 
-	const activeSection = getSharedSection(section, sharedRecord.availableSections);
+	const activeSection = getSharedSection(
+		section,
+		sharedRecord.availableSections,
+	);
 
 	return (
 		<>
@@ -51,10 +64,17 @@ async function SharedRecordsContent({ params, searchParams }: SharedRecordsPageP
 				expiresAt={sharedRecord.expiresAt}
 			/>
 			<PatientHeader patient={sharedRecord.patient} />
-			<nav className="border-b border-gray-200" aria-label="Shared record sections">
-				<SharedTabs activeSection={activeSection} availableSections={sharedRecord.availableSections} />
+			<nav
+				className="border-b border-gray-200"
+				aria-label="Shared record sections"
+			>
+				<SharedTabs
+					activeSection={activeSection}
+					availableSections={sharedRecord.availableSections}
+				/>
 			</nav>
 			<SharedRecordsClient
+				accessId={accessId}
 				patientDetailsSections={sharedRecord.patientDetailsSections}
 				records={sharedRecord.records}
 				activeSection={activeSection}
@@ -78,8 +98,9 @@ function SharedAccessBanner({
 					<p className="font-semibold">Shared Patient Record</p>
 					<p>
 						You are viewing a patient record securely shared by{" "}
-						<span className="font-semibold">{sourceOrganizationName}.</span> This session is{" "}
-						<span className="font-semibold">view-only</span> and expires on{" "}
+						<span className="font-semibold">{sourceOrganizationName}.</span>{" "}
+						This session is <span className="font-semibold">view-only</span> and
+						expires on{" "}
 						<span className="font-semibold">{formatDate(expiresAt)}.</span>
 					</p>
 				</div>
@@ -93,13 +114,15 @@ function PatientHeader({ patient }: { patient: SharedPatient }) {
 		<header className="border-b border-gray-200">
 			<div className="mx-auto flex w-full max-w-7xl items-center gap-5 px-6 py-3.5">
 				<Avatar className="size-16 border border-gray-200 bg-gray-100 text-gray-700">
-					<AvatarFallback className="bg-gray-100 text-2xl font-semibold text-gray-700">
+					<AvatarFallback className="bg-gray-100 text-xl font-semibold text-gray-700">
 						{getInitials(patient.name)}
 					</AvatarFallback>
 				</Avatar>
 
 				<div className="min-w-0">
-					<h1 className="text-xl font-semibold text-gray-900">{patient.name}</h1>
+					<h1 className="text-xl font-semibold text-gray-900">
+						{patient.name}
+					</h1>
 					<div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
 						<HeaderMeta label="Sex" value={patient.sex} />
 						<HeaderMeta label="Email" value={patient.email} />

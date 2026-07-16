@@ -50,7 +50,7 @@ async function seedSharedRecord() {
 			selectedRecord: PatientRecordAccessSelectedRecord,
 			patientId: string,
 		) {
-			if (selectedRecord.section === "encounters") return false;
+			if (String(selectedRecord.section) === "encounters") return false;
 
 			const tableBySection = {
 				diagnoses: schema.patientDiagnosis,

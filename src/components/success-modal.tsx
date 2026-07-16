@@ -23,7 +23,7 @@ export function SuccessModal({
 				<div className="flex flex-col gap-6 items-center py-16 px-12">
 					<Image src="/assets/success-icon.svg" width={160} height={160} alt="" />
 					<div className="flex flex-col items-center gap-4">
-						<DialogTitle className="text-[clamp(1.125rem,5vw,1.5rem)]">
+						<DialogTitle className="text-xl">
 							{heading}
 						</DialogTitle>
 						<DialogDescription className="text-center">{description}</DialogDescription>

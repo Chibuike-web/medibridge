@@ -80,7 +80,7 @@ export function AddNewPatientClient() {
 				aria-hidden={!active}
 			>
 				<div className="px-5 py-4 text-center">
-					<p className="text-2xl font-medium text-gray-800">Drop files here</p>
+					<p className="text-xl font-medium text-gray-800">Drop files here</p>
 					<p className="mt-1 text-sm text-gray-500">PDF, PNG, JPG, DOC, DOCX up to 50MB</p>
 				</div>
 			</div>

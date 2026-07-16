@@ -21,11 +21,11 @@ export default function Home() {
 				/>
 			</div>
 			<div className="w-full sm:w-[31.25rem] flex shrink-0 flex-col items-center mx-6 xl:mx-40">
-				<span className="font-bold text-[1.5rem] leading-[1.2em] tracking-[-0.02em] text-gray-800">
+				<span className="font-bold text-xl leading-[1.2em] tracking-[-0.02em] text-gray-800">
 					MediBridge
 				</span>
 
-				<h1 className="font-bold text-[3.5rem] w-full text-gray-800 text-center leading-[1.2em] tracking-[-0.02em] mt-[6.25rem]">
+				<h1 className="mt-[6.25rem] w-full text-center text-xl font-bold leading-[1.2em] tracking-[-0.02em] text-gray-800">
 					Welcome to MediBridge
 				</h1>
 				<p className="text-gray-600 font-medium text-center leading-[1.4em] tracking-[-0.02em] text-lg mt-6 text-balance">

@@ -34,7 +34,7 @@ const InvalidOrExpired = ({ type }: { type: "invalid_token" | "expired_token" })
 	return (
 		<main className="min-h-screen flex items-center justify-center bg-white px-6">
 			<div className="w-full max-w-md text-center">
-				<h1 className="text-2xl font-semibold text-red-600">{title}</h1>
+				<h1 className="text-xl font-semibold text-red-600">{title}</h1>
 				<p className="text-foreground/70 mt-3">{description}</p>
 
 				<div className="mt-8">
@@ -70,7 +70,7 @@ const NoSession = () => {
 	return (
 		<main className="min-h-dvh flex items-center justify-center bg-white px-6">
 			<div className="max-w-md text-center">
-				<h1 className="text-2xl font-semibold text-yellow-600">You are not signed in</h1>
+				<h1 className="text-xl font-semibold text-yellow-600">You are not signed in</h1>
 
 				<p className="text-foreground/70 mt-3">
 					We could not verify your email because you are not logged in. Please sign in and try
@@ -89,7 +89,7 @@ const Valid = () => {
 	return (
 		<main className="min-h-screen flex items-center justify-center bg-white px-6">
 			<div className="max-w-md text-center">
-				<h1 className="text-2xl font-semibold text-green-600">Email verified</h1>
+				<h1 className="text-xl font-semibold text-green-600">Email verified</h1>
 				<p className="text-foreground/70 mt-3">
 					Your email has been successfully verified. You can now continue.
 				</p>

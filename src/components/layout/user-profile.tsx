@@ -13,7 +13,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTransition } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
-import { useRouter } from "next/navigation";
 import {
 	RiExpandUpDownLine,
 	RiLoaderLine,
@@ -34,7 +33,6 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 		.join("");
 
 	const [isPending, startTransition] = useTransition();
-	const router = useRouter();
 
 	return (
 		<div className="w-full mt-auto p-2 flex justify-center">
@@ -97,7 +95,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 							startTransition(async () => {
 								try {
 									await authClient.signOut();
-									router.replace("/sign-in");
+									window.location.replace("/sign-in");
 								} catch (error) {
 									console.error(error);
 								}

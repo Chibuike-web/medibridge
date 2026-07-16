@@ -18,7 +18,7 @@ export default function ForgotPassword() {
 			<div className="max-w-[37.5rem] mx-auto min-h-[calc(100dvh-5.625rem)] grid place-items-center px-6 md:px-0">
 				<div className="w-full">
 					<div>
-						<h1 className="text-2xl text-gray-800 tracking-[-0.02em] text-center font-semibold leading-[1.2] ">
+						<h1 className="text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
 							Forgot Your Password?
 						</h1>
 						<p className="text-center mt-4 text-gray-600 font-medium">

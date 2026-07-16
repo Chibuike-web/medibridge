@@ -10,7 +10,6 @@ export type PatientRecordAccessSection =
 	| "procedures"
 	| "medications"
 	| "lab-tests"
-	| "encounters"
 	| "imaging";
 
 export type PatientRecordAccessPermissions = {
@@ -20,7 +19,6 @@ export type PatientRecordAccessPermissions = {
 	labTests?: boolean;
 	procedures?: boolean;
 	immunizations?: boolean;
-	encounters?: boolean;
 	imaging?: boolean;
 };
 

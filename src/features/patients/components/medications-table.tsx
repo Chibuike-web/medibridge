@@ -176,11 +176,6 @@ export function MedicationsTable({
 			sorting,
 		},
 	});
-	const hasActiveFilters = Boolean(query || createdFrom || createdTo || statusFilters.length > 0);
-	const emptyMessage = hasActiveFilters
-		? "No medications match the current filters."
-		: "No medications found.";
-
 	return (
 		<div className="px-6 py-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-xl font-semibold no-line-height">Medications</h1>
@@ -301,15 +296,32 @@ export function MedicationsTable({
 								{headerGroup.headers.map((header) => (
 									<TableHead
 										key={header.id}
-										onClick={header.column.getToggleSortingHandler()}
+										tabIndex={header.column.getCanSort() ? 0 : undefined}
+										aria-sort={
+											header.column.getCanSort()
+												? header.column.getIsSorted() === "asc"
+													? "ascending"
+													: header.column.getIsSorted() === "desc"
+														? "descending"
+														: "none"
+												: undefined
+										}
+										onClick={
+											header.column.getCanSort()
+												? header.column.getToggleSortingHandler()
+												: undefined
+										}
 										onKeyDown={(event) => {
-											if (event.key === "Enter") {
+											if (header.column.getCanSort() && (event.key === "Enter" || event.key === " ")) {
+												event.preventDefault();
 												header.column.getToggleSortingHandler()?.(event);
 											}
 										}}
 										className={cn(
 											"z-10 h-10 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
-											header.column.getCanSort() ? "cursor-pointer select-none" : "",
+											header.column.getCanSort()
+												? "cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
+												: "",
 										)}
 									>
 										<div className="flex items-center justify-between gap-3">
@@ -379,9 +391,9 @@ export function MedicationsTable({
 							<TableRow>
 								<TableCell
 									colSpan={columns.length}
-									className="h-28 border-b border-gray-200 bg-white px-3 text-center text-sm text-gray-500"
+									className="h-32 bg-white px-3 py-0 text-center text-sm text-gray-500"
 								>
-									{emptyMessage}
+									No matching medications found.
 								</TableCell>
 							</TableRow>
 						)}
