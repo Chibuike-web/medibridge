@@ -59,7 +59,7 @@ const procedureDetailsFieldLabelClassName =
 	"inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const procedureDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const procedureDetailsFieldControlClassName =
-	"h-9 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400";
+	"h-9 border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400";
 
 export function ProcedureDetailsDrawer({
 	open,
@@ -310,7 +310,7 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 							>
 								<SelectValue placeholder="Select status" />
 							</SelectTrigger>
-							<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+							<SelectContent className="rounded-[0.625rem] p-1">
 								<SelectGroup>
 									<SelectItem value="pending" className="h-9 rounded-md px-3">
 										Pending
@@ -390,7 +390,7 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 							>
 								<SelectValue placeholder="Enter assistants" />
 							</SelectTrigger>
-							<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+							<SelectContent className="rounded-[0.625rem] p-1">
 								<SelectGroup>
 									{[...new Set([...procedure.assistants, ...procedure.plannedAssistants])]
 										.filter(Boolean)
@@ -433,7 +433,7 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 							id="edit-procedure-clinical-note"
 							name="clinicalNote"
 							defaultValue={procedure.clinicalNote}
-							className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+							className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 						/>
 					</div>
 				</div>
@@ -456,7 +456,7 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+						className="border-gray-200 bg-white text-sm text-gray-600 "
 						onClick={handleAddProcedureAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />

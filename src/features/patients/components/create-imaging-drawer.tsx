@@ -42,7 +42,7 @@ const imagingFieldLabelClassName =
 	"inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const imagingRequiredLabelClassName = "font-normal text-gray-400";
 const imagingFieldControlClassName =
-	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400 text-sm h-9";
+	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
 export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerProps) {
 	const generatedFormId = useId();
@@ -204,7 +204,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 							<Textarea
 								id={`${generatedFormId}-impression`}
 								placeholder="e.g. Suspicious liver lesion identified in the right hepatic lobe"
-								className="min-h-20 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+								className="min-h-20 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 							/>
 						</div>
 
@@ -218,7 +218,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 							<Textarea
 								id={`${generatedFormId}-clinical-notes`}
 								placeholder="Add additional findings, preparation instructions, or radiology notes"
-								className="min-h-20 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+								className="min-h-20 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 							/>
 						</div>
 					</div>
@@ -265,7 +265,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 							<Button
 								type="button"
 								variant="outline"
-								className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+								className="border-gray-200 bg-white text-sm text-gray-600 "
 								onClick={handleAddImagingAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />

@@ -59,7 +59,7 @@ const diagnosisDetailsFieldLabelClassName =
 	"inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const diagnosisDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const diagnosisDetailsFieldControlClassName =
-	"h-9 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400";
+	"h-9 border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400";
 
 export function DiagnosisDetailsDrawer({
 	open,
@@ -377,7 +377,7 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 							id="edit-diagnosis-clinical-note"
 							name="clinicalNote"
 							defaultValue={diagnosis.clinicalNote}
-							className="border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+							className="bg-white text-sm text-gray-700 placeholder:text-gray-400"
 						/>
 					</div>
 				</div>
@@ -400,7 +400,7 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+						className="border-gray-200 bg-white text-sm text-gray-600 "
 						onClick={handleAddDiagnosisAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />

@@ -41,7 +41,7 @@ type CreateLabTestDrawerProps = {
 const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
-	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400 text-sm h-9";
+	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
 export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerProps) {
 	const generatedFormId = useId();
@@ -219,7 +219,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 							<Textarea
 								id={`${generatedFormId}-interpretation`}
 								placeholder="e.g. Elevated white blood cell count suggesting possible infection"
-								className="min-h-20 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+								className="min-h-20 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 							/>
 						</div>
 
@@ -230,7 +230,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 							<Textarea
 								id={`${generatedFormId}-clinical-notes`}
 								placeholder="Add additional laboratory observations or recommendations"
-								className="min-h-20 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+								className="min-h-20 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 							/>
 						</div>
 						<div className="flex flex-col gap-3 sm:col-span-2">
@@ -277,7 +277,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 							<Button
 								type="button"
 								variant="outline"
-								className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+								className="border-gray-200 bg-white text-sm text-gray-600 "
 								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />

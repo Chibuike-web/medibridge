@@ -39,7 +39,7 @@ export function AttachmentFormFields({
 					variant="ghost"
 					size="icon"
 					aria-label={`Remove related record ${attachmentIndex + 1}`}
-					className="size-6 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+					className="size-6 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 flex items-center justify-center"
 					onClick={() => onRemoveAttachmentRow(attachmentRow.id)}
 				>
 					<RiCloseLine className="size-4" aria-hidden="true" />

@@ -85,10 +85,12 @@ export function ContactInformation({
 		<DropdownMenu>
 			<DropdownMenuTrigger
 				type="button"
-				className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+				className="group inline-flex size-9 items-center justify-center text-gray-500"
 				aria-label="Open actions for Contact Information"
 			>
-				<RiMore2Fill className="size-5" aria-hidden />
+				<span className="inline-flex size-8 items-center justify-center rounded-md transition-colors group-hover:bg-gray-100 group-hover:text-gray-800">
+					<RiMore2Fill className="size-5" aria-hidden />
+				</span>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="end"

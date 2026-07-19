@@ -27,7 +27,7 @@ import {
 	AttachmentFormFields,
 	type AttachmentFormRow,
 } from "@/features/patients/components/attachment-form-fields";
-import { RiAddLine, RiCalendarLine, RiCloseLine } from "@remixicon/react";
+import { RiAddLine, RiArrowDownSLine, RiCalendarLine, RiCloseLine } from "@remixicon/react";
 import { format } from "date-fns";
 import { useId, useRef, useState } from "react";
 
@@ -36,16 +36,28 @@ type CreateProcedureDrawerProps = {
 	onOpenChange: (open: boolean) => void;
 };
 
+type AssistantFormRow = {
+	id: string;
+	name: string;
+};
+
 const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
-	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400 text-sm h-9";
+	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
 export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDrawerProps) {
 	const generatedFormId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
+	const nextAssistantRowNumberRef = useRef(0);
 	const [procedureDate, setProcedureDate] = useState<Date | undefined>();
 	const [attachmentRows, setAttachmentRows] = useState<AttachmentFormRow[]>([]);
+	const [assistantRows, setAssistantRows] = useState<AssistantFormRow[]>([]);
+	const enteredAssistants = assistantRows.filter((assistantRow) => assistantRow.name.trim());
+	const selectedAssistantSummary =
+		enteredAssistants.length > 1
+			? `${enteredAssistants[0].name.trim()} +${enteredAssistants.length - 1} more`
+			: enteredAssistants[0]?.name.trim();
 
 	function handleAddAttachmentRow() {
 		nextAttachmentRowNumberRef.current += 1;
@@ -64,6 +76,30 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 		setAttachmentRows((prev) =>
 			prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId),
 		);
+	}
+
+	function handleAddAssistantRow() {
+		nextAssistantRowNumberRef.current += 1;
+
+		setAssistantRows((prev) => [
+			...prev,
+			{
+				id: `${generatedFormId}-assistant-${nextAssistantRowNumberRef.current}`,
+				name: "",
+			},
+		]);
+	}
+
+	function handleAssistantNameChange(assistantRowId: string, name: string) {
+		setAssistantRows((prev) =>
+			prev.map((assistantRow) =>
+				assistantRow.id === assistantRowId ? { ...assistantRow, name } : assistantRow,
+			),
+		);
+	}
+
+	function handleRemoveAssistantRow(assistantRowId: string) {
+		setAssistantRows((prev) => prev.filter((assistantRow) => assistantRow.id !== assistantRowId));
 	}
 
 	return (
@@ -111,7 +147,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent className="rounded-[0.625rem] p-1">
 									<SelectGroup>
 										<SelectItem value="pending" className="rounded-md px-3 h-9">
 											Pending
@@ -175,24 +211,75 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 							<Label htmlFor={`${generatedFormId}-assistants`} className={fieldLabelClassName}>
 								Assistants<span className={optionalLabelClassName}>(required)</span>
 							</Label>
-							<Select>
-								<SelectTrigger id={`${generatedFormId}-assistants`} className="w-full">
-									<SelectValue placeholder="Enter assistants" />
-								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
-									<SelectGroup>
-										<SelectItem value="dr-adebayo" className="rounded-md px-3 h-9">
-											Dr. Adebayo
-										</SelectItem>
-										<SelectItem value="dr-ekene" className="rounded-md px-3 h-9">
-											Dr. Ekene
-										</SelectItem>
-										<SelectItem value="dr-manny" className="rounded-md px-3 h-9">
-											Dr. Manny
-										</SelectItem>
-									</SelectGroup>
-								</SelectContent>
-							</Select>
+							<input
+								type="hidden"
+								name="assistants"
+								value={enteredAssistants.map((assistantRow) => assistantRow.name.trim()).join(", ")}
+							/>
+							<Popover>
+								<PopoverTrigger
+									id={`${generatedFormId}-assistants`}
+									className={`${fieldControlClassName} group flex w-full items-center justify-between gap-4 rounded-md border px-3 py-2 text-left outline-none focus-visible:border-gray-400 focus-visible:ring-3 focus-visible:ring-gray-100`}
+								>
+									<span
+										className={
+											selectedAssistantSummary
+												? "truncate text-sm text-gray-700"
+												: "truncate text-sm text-gray-400"
+										}
+									>
+										{selectedAssistantSummary ?? "Enter assistants"}
+									</span>
+									<RiArrowDownSLine
+										className="size-5 shrink-0 text-gray-500 transition-transform group-data-[state=open]:rotate-180"
+										aria-hidden="true"
+									/>
+								</PopoverTrigger>
+								<PopoverContent
+									align="start"
+									sideOffset={8}
+									className="flex flex-col gap-2 rounded-[0.625rem] p-1 text-sm text-gray-600"
+								>
+									{assistantRows.map((assistantRow, assistantIndex) => (
+										<div
+											key={assistantRow.id}
+											className="flex h-9 items-center justify-between rounded-md border border-gray-200 pl-3 pr-1.5"
+										>
+											<input
+												type="text"
+												aria-label={`Assistant ${assistantIndex + 1} name`}
+												placeholder="Enter assistant name"
+												value={assistantRow.name}
+												autoFocus={assistantIndex === assistantRows.length - 1}
+												onChange={(event) =>
+													handleAssistantNameChange(assistantRow.id, event.target.value)
+												}
+												className="min-w-0 flex-1 bg-transparent  text-sm text-gray-700 outline-none placeholder:text-gray-400"
+											/>
+
+											<Button
+												type="button"
+												variant="ghost"
+												size="icon"
+												aria-label={`Remove assistant ${assistantIndex + 1}`}
+												onClick={() => handleRemoveAssistantRow(assistantRow.id)}
+												className="size-6 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+											>
+												<RiCloseLine className="size-4" aria-hidden="true" />
+											</Button>
+										</div>
+									))}
+
+									<button
+										type="button"
+										onClick={handleAddAssistantRow}
+										className="flex h-9 w-full items-center justify-between rounded-md bg-gray-100 px-3 text-left text-sm text-gray-600 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+									>
+										<span>Add more</span>
+										<RiAddLine className="size-5" aria-hidden="true" />
+									</button>
+								</PopoverContent>
+							</Popover>
 						</div>
 
 						<div className="flex flex-col gap-2">
@@ -213,7 +300,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 							<Textarea
 								id={`${generatedFormId}-clinical-notes`}
 								placeholder="Add additional instructions or patient response"
-								className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+								className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 							/>
 						</div>
 					</div>
@@ -235,7 +322,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 							<Button
 								type="button"
 								variant="outline"
-								className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+								className="border-gray-200 bg-white text-sm text-gray-600 "
 								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />

@@ -21,18 +21,22 @@ import {
 } from "@remixicon/react";
 
 export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
-	const dummyUser = {
-		name: "John Doe",
-		email: "john.doe@example.com",
-		image: "https://api.dicebear.com/7.x/initials/svg?seed=John%20Doe",
-	};
+	const { data: session, isPending: isLoadingUserSession } = authClient.useSession();
+	const user = session?.user;
+	const [isSigningOut, startSignOutTransition] = useTransition();
 
-	const initials = dummyUser.name
+	if (isLoadingUserSession) {
+		return <UserProfileSkeleton isCollapsed={isCollapsed} />;
+	}
+
+	if (!user) {
+		return null;
+	}
+
+	const initials = user.name
 		.split(" ")
 		.map((namePart) => namePart.charAt(0).toUpperCase())
 		.join("");
-
-	const [isPending, startTransition] = useTransition();
 
 	return (
 		<div className="w-full mt-auto p-2 flex justify-center">
@@ -46,7 +50,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					)}
 				>
 					<Avatar>
-						<AvatarImage src={dummyUser.image} alt="profile image" />
+						<AvatarImage src={user.image ?? undefined} alt={`${user.name} profile image`} />
 						<AvatarFallback>{initials}</AvatarFallback>
 					</Avatar>
 
@@ -54,10 +58,10 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 						<div className="flex min-w-0 items-center w-full justify-between">
 							<div className="flex min-w-0 flex-1 flex-col items-start">
 								<span className="w-full truncate text-left text-sm font-medium">
-									{dummyUser.name}
+									{user.name}
 								</span>
 								<span className="text-xs text-foreground/60 text-left truncate w-full">
-									{dummyUser.email}
+									{user.email}
 								</span>
 							</div>
 
@@ -73,12 +77,16 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					<DropdownMenuLabel className="p-0 font-normal">
 						<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 							<Avatar className="h-8 w-8">
-								<AvatarImage src={dummyUser.image} alt="profile image" className="rounded-full" />
+								<AvatarImage
+									src={user.image ?? undefined}
+									alt={`${user.name} profile image`}
+									className="rounded-full"
+								/>
 								<AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
 							</Avatar>
 							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-medium">{dummyUser.name}</span>
-								<span className="truncate text-xs">{dummyUser.email}</span>
+								<span className="truncate font-medium">{user.name}</span>
+								<span className="truncate text-xs">{user.email}</span>
 							</div>
 						</div>
 					</DropdownMenuLabel>
@@ -92,7 +100,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
 						onClick={() => {
-							startTransition(async () => {
+							startSignOutTransition(async () => {
 								try {
 									await authClient.signOut();
 									window.location.replace("/sign-in");
@@ -109,7 +117,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 				</DropdownMenuContent>
 			</DropdownMenu>
 
-			{isPending && (
+			{isSigningOut && (
 				<div className="fixed inset-0 z-[100] bg-white/80 backdrop-blur-sm grid place-items-center">
 					<div className="flex flex-col gap-2 items-center">
 						<RiLoaderLine className="size-6 animate-spin" />
@@ -117,6 +125,27 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					</div>
 				</div>
 			)}
+		</div>
+	);
+}
+
+function UserProfileSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
+	return (
+		<div className="mt-auto flex w-full justify-center p-2" aria-hidden="true">
+			<div
+				className={cn(
+					"flex w-full min-w-0 items-center rounded-lg p-3",
+					isCollapsed ? "justify-center" : "gap-2",
+				)}
+			>
+				<div className="size-10 shrink-0 animate-pulse rounded-full bg-gray-200" />
+				{!isCollapsed ? (
+					<div className="flex min-w-0 flex-1 flex-col gap-2">
+						<div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+						<div className="h-2.5 w-36 animate-pulse rounded bg-gray-100" />
+					</div>
+				) : null}
+			</div>
 		</div>
 	);
 }

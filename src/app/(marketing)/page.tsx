@@ -25,7 +25,7 @@ export default function Home() {
 					MediBridge
 				</span>
 
-				<h1 className="mt-[6.25rem] w-full text-center text-xl font-bold leading-[1.2em] tracking-[-0.02em] text-gray-800">
+				<h1 className="mt-[6.25rem] w-full text-center text-4xl font-bold leading-[1.2em] tracking-[-0.02em] text-gray-800">
 					Welcome to MediBridge
 				</h1>
 				<p className="text-gray-600 font-medium text-center leading-[1.4em] tracking-[-0.02em] text-lg mt-6 text-balance">

@@ -36,7 +36,7 @@ type CreateAllergyDrawerProps = {
 const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
-	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400 text-sm h-9";
+	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
 export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerProps) {
 	const generatedFormId = useId();
@@ -144,7 +144,7 @@ export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerP
 							<Textarea
 								id={`${generatedFormId}-reaction`}
 								placeholder="e.g. Skin rash, Swelling, Difficulty breathing"
-								className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+								className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 							/>
 						</div>
 
@@ -155,7 +155,7 @@ export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerP
 							<Textarea
 								id={`${generatedFormId}-clinical-notes`}
 								placeholder="Add additional allergy history, observations, or treatment notes"
-								className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+								className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 							/>
 						</div>
 
@@ -178,7 +178,7 @@ export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerP
 							<Button
 								type="button"
 								variant="outline"
-								className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+								className="border-gray-200 bg-white text-sm text-gray-600 "
 								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />

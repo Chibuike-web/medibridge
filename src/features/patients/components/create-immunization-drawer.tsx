@@ -35,7 +35,7 @@ type CreateImmunizationDrawerProps = {
 const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
-	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400 text-sm h-9";
+	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
 export function CreateImmunizationDrawer({ open, onOpenChange }: CreateImmunizationDrawerProps) {
 	const generatedFormId = useId();
@@ -190,7 +190,7 @@ export function CreateImmunizationDrawer({ open, onOpenChange }: CreateImmunizat
 							<Textarea
 								id={`${generatedFormId}-clinical-notes`}
 								placeholder="Add vaccination notes, patient response, or follow-up instructions"
-								className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+								className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 							/>
 						</div>
 					</div>

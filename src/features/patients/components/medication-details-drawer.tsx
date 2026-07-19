@@ -58,7 +58,7 @@ const medicationDetailsFieldLabelClassName =
 	"inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const medicationDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const medicationDetailsFieldControlClassName =
-	"h-9 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400";
+	"h-9 border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400";
 
 export function MedicationDetailsDrawer({
 	open,
@@ -429,7 +429,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 						<Textarea
 							id="edit-medication-clinical-note"
 							defaultValue={medication.clinicalNote}
-							className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+							className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 						/>
 					</div>
 				</div>
@@ -452,7 +452,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+						className="border-gray-200 bg-white text-sm text-gray-600 "
 						onClick={handleAddMedicationAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />

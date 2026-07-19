@@ -19,7 +19,7 @@ export async function PatientDetailsSection({
 	return (
 		<div className="p-8">
 			<div className="mx-auto max-w-7xl">
-				<h1 className="mb-6 text-xl font-semibold text-gray-800">
+				<h1 className="mb-6 text-xl font-semibold text-gray-800 no-line-height">
 					Patient Details
 				</h1>
 				<div className="flex flex-col gap-10">

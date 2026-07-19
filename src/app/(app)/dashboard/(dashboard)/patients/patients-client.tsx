@@ -232,7 +232,7 @@ export function PatientsClient({
 					/>
 					<Button
 						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50"
+						className="bg-white text-sm text-gray-600 hover:bg-gray-50"
 					>
 						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 						Export

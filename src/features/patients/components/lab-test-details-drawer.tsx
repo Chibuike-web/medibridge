@@ -57,7 +57,7 @@ type LabTestDetailsDrawerProps = {
 const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
-	"border-gray-200 bg-white text-gray-700 shadow-xs placeholder:text-gray-400 text-sm h-9";
+	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
 export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDetailsDrawerProps) {
 	const [labTestDetailsMode, setLabTestDetailsMode] = useState<"view" | "edit">("view");
@@ -553,7 +553,7 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 						name="interpretation"
 						defaultValue={labTest.interpretation === "-" ? "" : labTest.interpretation}
 						placeholder="e.g. Elevated white blood cell count suggesting possible infection"
-						className="min-h-20 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+						className="min-h-20 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 					/>
 				</div>
 
@@ -566,7 +566,7 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 						name="clinicalNote"
 						defaultValue={labTest.clinicalNote}
 						placeholder="Add additional laboratory observations or recommendations"
-						className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+						className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 					/>
 				</div>
 			</div>
@@ -710,7 +710,7 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+						className="border-gray-200 bg-white text-sm text-gray-600 "
 						onClick={handleAddLabTestAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />

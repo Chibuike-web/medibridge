@@ -424,7 +424,7 @@ async function DocumentsSection({ patientId }: { patientId: string }) {
 		return renderEmptyState({
 			title: "No documents yet",
 			description: "No documents have been recorded for this patient.",
-			action: <CreateDocumentEmptyStateAction />,
+			action: <CreateDocumentEmptyStateAction patientId={patientId} />,
 		});
 	}
 

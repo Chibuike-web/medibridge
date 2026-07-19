@@ -48,7 +48,7 @@ const immunizationDetailsFieldLabelClassName =
 	"inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const immunizationDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const immunizationDetailsFieldControlClassName =
-	"h-9 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400";
+	"h-9 border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400";
 
 export function ImmunizationDetailsDrawer({
 	open,
@@ -393,7 +393,7 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 							id="edit-immunization-clinical-note"
 							name="clinicalNote"
 							defaultValue={immunization.clinicalNote}
-							className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+							className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 						/>
 					</div>
 				</div>

@@ -46,7 +46,7 @@ const allergyDetailsFieldLabelClassName =
 	"inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const allergyDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const allergyDetailsFieldControlClassName =
-	"h-9 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400";
+	"h-9 border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400";
 
 export function AllergyDetailsDrawer({
 	open,
@@ -303,7 +303,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 							id="edit-allergy-reaction"
 							name="reaction"
 							defaultValue={allergy.reaction}
-							className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+							className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 						/>
 					</div>
 
@@ -319,7 +319,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 							id="edit-allergy-clinical-note"
 							name="clinicalNote"
 							defaultValue={allergy.clinicalNote}
-							className="min-h-28 border-gray-200 bg-white text-sm text-gray-700 shadow-xs placeholder:text-gray-400"
+							className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 						/>
 					</div>
 				</div>
@@ -342,7 +342,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 shadow-xs"
+						className="border-gray-200 bg-white text-sm text-gray-600 "
 						onClick={handleAddAllergyAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />

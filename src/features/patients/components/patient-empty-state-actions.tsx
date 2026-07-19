@@ -4,11 +4,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CreateAllergyDrawer } from "@/features/patients/components/create-allergy-drawer";
 import { CreateDiagnosisDrawer } from "@/features/patients/components/create-diagnosis-drawer";
+import { CreateDocumentDrawer } from "@/features/patients/components/create-document-drawer";
 import { CreateImmunizationDrawer } from "@/features/patients/components/create-immunization-drawer";
 import { CreateImagingDrawer } from "@/features/patients/components/create-imaging-drawer";
 import { CreateLabTestDrawer } from "@/features/patients/components/create-lab-test-drawer";
 import { CreateMedicationDrawer } from "@/features/patients/components/create-medication-drawer";
 import { CreateProcedureDrawer } from "@/features/patients/components/create-procedure-drawer";
+import { useRouter } from "next/navigation";
 
 export function CreateDiagnosisEmptyStateAction() {
 	const [isCreateDiagnosisDrawerOpen, setIsCreateDiagnosisDrawerOpen] = useState(false);
@@ -184,7 +186,8 @@ export function CreateImagingEmptyStateAction() {
 	);
 }
 
-export function CreateDocumentEmptyStateAction() {
+export function CreateDocumentEmptyStateAction({ patientId }: { patientId: string }) {
+	const router = useRouter();
 	const [isCreateDocumentDrawerOpen, setIsCreateDocumentDrawerOpen] = useState(false);
 
 	return (
@@ -196,7 +199,12 @@ export function CreateDocumentEmptyStateAction() {
 			>
 				Add document
 			</Button>
-			<PendingCreateDrawer open={isCreateDocumentDrawerOpen} />
+			<CreateDocumentDrawer
+				open={isCreateDocumentDrawerOpen}
+				onOpenChange={setIsCreateDocumentDrawerOpen}
+				patientId={patientId}
+				onCreated={() => router.refresh()}
+			/>
 		</>
 	);
 }
