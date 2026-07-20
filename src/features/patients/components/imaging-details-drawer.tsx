@@ -440,7 +440,7 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 						>
 							<SelectValue placeholder="Select modality" />
 						</SelectTrigger>
-						<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+						<SelectContent>
 							<ImagingModalityOptions />
 						</SelectContent>
 					</Select>
@@ -497,7 +497,7 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 						>
 							<SelectValue placeholder="Select status" />
 						</SelectTrigger>
-						<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+						<SelectContent>
 							<ImagingStatusOptions />
 						</SelectContent>
 					</Select>

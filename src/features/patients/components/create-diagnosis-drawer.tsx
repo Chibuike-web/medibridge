@@ -100,24 +100,24 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 								<SelectTrigger id={`${generatedFormId}-severity`} className="w-full">
 									<SelectValue placeholder="Select severity or stage" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="mild" className="rounded-md px-3 h-9">
+										<SelectItem value="mild">
 											Mild
 										</SelectItem>
-										<SelectItem value="moderate" className="rounded-md px-3 h-9">
+										<SelectItem value="moderate">
 											Moderate
 										</SelectItem>
-										<SelectItem value="severe" className="rounded-md px-3 h-9">
+										<SelectItem value="severe">
 											Severe
 										</SelectItem>
-										<SelectItem value="stage-1" className="rounded-md px-3 h-9">
+										<SelectItem value="stage-1">
 											Stage 1
 										</SelectItem>
-										<SelectItem value="stage-2" className="rounded-md px-3 h-9">
+										<SelectItem value="stage-2">
 											Stage 2
 										</SelectItem>
-										<SelectItem value="stage-3" className="rounded-md px-3 h-9">
+										<SelectItem value="stage-3">
 											Stage 3
 										</SelectItem>
 									</SelectGroup>
@@ -133,12 +133,12 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="active" className="rounded-md px-3 h-9">
+										<SelectItem value="active">
 											Active
 										</SelectItem>
-										<SelectItem value="resolved" className="rounded-md px-3 h-9">
+										<SelectItem value="resolved">
 											Resolved
 										</SelectItem>
 									</SelectGroup>

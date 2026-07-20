@@ -77,12 +77,12 @@ export function CreateImmunizationDrawer({ open, onOpenChange }: CreateImmunizat
 								<SelectTrigger id={`${generatedFormId}-series-type`} className="w-full">
 									<SelectValue placeholder="Select series type" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="primary" className="rounded-md px-3 h-9">
+										<SelectItem value="primary">
 											Primary
 										</SelectItem>
-										<SelectItem value="booster" className="rounded-md px-3 h-9">
+										<SelectItem value="booster">
 											Booster
 										</SelectItem>
 									</SelectGroup>
@@ -120,18 +120,18 @@ export function CreateImmunizationDrawer({ open, onOpenChange }: CreateImmunizat
 								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="active" className="rounded-md px-3 h-9">
+										<SelectItem value="active">
 											Active
 										</SelectItem>
-										<SelectItem value="completed" className="rounded-md px-3 h-9">
+										<SelectItem value="completed">
 											Completed
 										</SelectItem>
-										<SelectItem value="cancelled" className="rounded-md px-3 h-9">
+										<SelectItem value="cancelled">
 											Cancelled
 										</SelectItem>
-										<SelectItem value="discontinued" className="rounded-md px-3 h-9">
+										<SelectItem value="discontinued">
 											Discontinued
 										</SelectItem>
 									</SelectGroup>

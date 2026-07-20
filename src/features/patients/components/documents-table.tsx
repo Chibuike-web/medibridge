@@ -1223,7 +1223,7 @@ function LegacyCreateDocumentDrawer({
 								<SelectTrigger className="w-full">
 									<SelectValue placeholder="Select document type" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									{DOCUMENT_TYPE.map((documentType) => (
 										<SelectItem
 											value={documentType}

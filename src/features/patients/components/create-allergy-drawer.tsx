@@ -97,15 +97,15 @@ export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerP
 								>
 									<SelectValue placeholder="Select severity" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="mild" className="rounded-md px-3 h-9">
+										<SelectItem value="mild">
 											Mild
 										</SelectItem>
-										<SelectItem value="moderate" className="rounded-md px-3 h-9">
+										<SelectItem value="moderate">
 											Moderate
 										</SelectItem>
-										<SelectItem value="severe" className="rounded-md px-3 h-9">
+										<SelectItem value="severe">
 											Severe
 										</SelectItem>
 									</SelectGroup>
@@ -124,12 +124,12 @@ export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerP
 								>
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="active" className="rounded-md px-3 h-9">
+										<SelectItem value="active">
 											Active
 										</SelectItem>
-										<SelectItem value="inactive" className="rounded-md px-3 h-9">
+										<SelectItem value="inactive">
 											Inactive
 										</SelectItem>
 									</SelectGroup>

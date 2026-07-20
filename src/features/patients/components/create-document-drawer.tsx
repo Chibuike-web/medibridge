@@ -120,10 +120,10 @@ export function CreateDocumentDrawer({
 								<SelectTrigger className="w-full">
 									<SelectValue placeholder="Select document type" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									<SelectGroup>
 										{documentTypes.map((type) => (
-											<SelectItem key={type} value={type} className="rounded-md px-3 h-9">
+											<SelectItem key={type} value={type}>
 												{type}
 											</SelectItem>
 										))}

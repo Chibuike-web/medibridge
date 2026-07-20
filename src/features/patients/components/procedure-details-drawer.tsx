@@ -310,15 +310,15 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 							>
 								<SelectValue placeholder="Select status" />
 							</SelectTrigger>
-							<SelectContent className="rounded-[0.625rem] p-1">
+							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="pending" className="h-9 rounded-md px-3">
+									<SelectItem value="pending">
 										Pending
 									</SelectItem>
-									<SelectItem value="completed" className="h-9 rounded-md px-3">
+									<SelectItem value="completed">
 										Completed
 									</SelectItem>
-									<SelectItem value="cancelled" className="h-9 rounded-md px-3">
+									<SelectItem value="cancelled">
 										Cancelled
 									</SelectItem>
 								</SelectGroup>
@@ -390,12 +390,12 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 							>
 								<SelectValue placeholder="Enter assistants" />
 							</SelectTrigger>
-							<SelectContent className="rounded-[0.625rem] p-1">
+							<SelectContent>
 								<SelectGroup>
 									{[...new Set([...procedure.assistants, ...procedure.plannedAssistants])]
 										.filter(Boolean)
 										.map((assistant) => (
-											<SelectItem key={assistant} value={assistant} className="h-9 rounded-md px-3">
+											<SelectItem key={assistant} value={assistant}>
 												{assistant}
 											</SelectItem>
 										))}

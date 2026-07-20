@@ -262,15 +262,15 @@ export function PersonalInformation({
 								<SelectTrigger className="h-9 w-full">
 									<SelectValue placeholder="Select sex" />
 								</SelectTrigger>
-								<SelectContent className="p-1 rounded-[0.625rem]">
+								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="male" className="rounded-md px-3 h-9">
+										<SelectItem value="male">
 											Male
 										</SelectItem>
-										<SelectItem value="female" className="rounded-md px-3 h-9">
+										<SelectItem value="female">
 											Female
 										</SelectItem>
-										<SelectItem value="other" className="rounded-md px-3 h-9">
+										<SelectItem value="other">
 											Other
 										</SelectItem>
 									</SelectGroup>
@@ -286,18 +286,18 @@ export function PersonalInformation({
 									<SelectValue placeholder="Select marital status" />
 								</SelectTrigger>
 
-								<SelectContent className="p-1 rounded-[0.625rem]">
+								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="single" className="rounded-md px-3 h-9">
+										<SelectItem value="single">
 											Single
 										</SelectItem>
-										<SelectItem value="married" className="rounded-md px-3 h-9">
+										<SelectItem value="married">
 											Married
 										</SelectItem>
-										<SelectItem value="divorced" className="rounded-md px-3 h-9">
+										<SelectItem value="divorced">
 											Divorced
 										</SelectItem>
-										<SelectItem value="widowed" className="rounded-md px-3 h-9">
+										<SelectItem value="widowed">
 											Widowed
 										</SelectItem>
 									</SelectGroup>

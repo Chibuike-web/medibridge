@@ -111,15 +111,15 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="active" className="rounded-md px-3 h-9">
+										<SelectItem value="active">
 											Active
 										</SelectItem>
-										<SelectItem value="completed" className="rounded-md px-3 h-9">
+										<SelectItem value="completed">
 											Completed
 										</SelectItem>
-										<SelectItem value="discontinued" className="rounded-md px-3 h-9">
+										<SelectItem value="discontinued">
 											Discontinued
 										</SelectItem>
 									</SelectGroup>
@@ -146,15 +146,15 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 								<SelectTrigger id={`${generatedFormId}-route`} className="w-full">
 									<SelectValue placeholder="Select route" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="oral" className="rounded-md px-3 h-9">
+										<SelectItem value="oral">
 											Oral
 										</SelectItem>
-										<SelectItem value="iv" className="rounded-md px-3 h-9">
+										<SelectItem value="iv">
 											IV
 										</SelectItem>
-										<SelectItem value="inhalation" className="rounded-md px-3 h-9">
+										<SelectItem value="inhalation">
 											Inhalation
 										</SelectItem>
 									</SelectGroup>

@@ -193,7 +193,7 @@ export function PhysicalInformation({
 								<SelectTrigger className="w-full">
 									<SelectValue placeholder="Select blood group" />
 								</SelectTrigger>
-								<SelectContent className="p-1 rounded-[0.625rem]">
+								<SelectContent>
 									<SelectGroup>
 										<SelectItem value="A+">A+</SelectItem>
 										<SelectItem value="A-">A-</SelectItem>
@@ -220,7 +220,7 @@ export function PhysicalInformation({
 								<SelectTrigger className="w-full">
 									<SelectValue placeholder="Select genotype" />
 								</SelectTrigger>
-								<SelectContent className="p-1 rounded-[0.625rem]">
+								<SelectContent>
 									<SelectGroup>
 										<SelectItem value="AA">AA</SelectItem>
 										<SelectItem value="AS">AS</SelectItem>

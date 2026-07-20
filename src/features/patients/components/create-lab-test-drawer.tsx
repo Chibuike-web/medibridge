@@ -118,7 +118,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 								<SelectTrigger id={`${generatedFormId}-flag`} className="w-full">
 									<SelectValue placeholder="Select flag" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									<LabTestFlagOptions />
 								</SelectContent>
 							</Select>
@@ -132,7 +132,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									<LabTestStatusOptions />
 								</SelectContent>
 							</Select>
@@ -307,22 +307,22 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 function LabTestFlagOptions() {
 	return (
 		<SelectGroup>
-			<SelectItem value="within-range" className="rounded-md px-3 h-9">
+			<SelectItem value="within-range">
 				Within range
 			</SelectItem>
-			<SelectItem value="low" className="rounded-md px-3 h-9">
+			<SelectItem value="low">
 				Low
 			</SelectItem>
-			<SelectItem value="high" className="rounded-md px-3 h-9">
+			<SelectItem value="high">
 				High
 			</SelectItem>
-			<SelectItem value="critical" className="rounded-md px-3 h-9">
+			<SelectItem value="critical">
 				Critical
 			</SelectItem>
-			<SelectItem value="abnormal" className="rounded-md px-3 h-9">
+			<SelectItem value="abnormal">
 				Abnormal
 			</SelectItem>
-			<SelectItem value="inconclusive" className="rounded-md px-3 h-9">
+			<SelectItem value="inconclusive">
 				Inconclusive
 			</SelectItem>
 		</SelectGroup>
@@ -332,13 +332,13 @@ function LabTestFlagOptions() {
 function LabTestStatusOptions() {
 	return (
 		<SelectGroup>
-			<SelectItem value="pending" className="rounded-md px-3 h-9">
+			<SelectItem value="pending">
 				Pending
 			</SelectItem>
-			<SelectItem value="completed" className="rounded-md px-3 h-9">
+			<SelectItem value="completed">
 				Completed
 			</SelectItem>
-			<SelectItem value="cancelled" className="rounded-md px-3 h-9">
+			<SelectItem value="cancelled">
 				Cancelled
 			</SelectItem>
 		</SelectGroup>

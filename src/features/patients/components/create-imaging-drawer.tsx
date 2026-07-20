@@ -130,7 +130,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 								<SelectTrigger id={`${generatedFormId}-modality`} className="w-full">
 									<SelectValue placeholder="Select modality" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									<ImagingModalityOptions />
 								</SelectContent>
 							</Select>
@@ -188,7 +188,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
-								<SelectContent className="rounded-xl border-gray-200 p-1 text-sm text-gray-700 shadow-xl">
+								<SelectContent>
 									<ImagingStatusOptions />
 								</SelectContent>
 							</Select>
@@ -295,16 +295,16 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 export function ImagingModalityOptions() {
 	return (
 		<SelectGroup>
-			<SelectItem value="ct" className="rounded-md px-3 h-9">
+			<SelectItem value="ct">
 				CT
 			</SelectItem>
-			<SelectItem value="mri" className="rounded-md px-3 h-9">
+			<SelectItem value="mri">
 				MRI
 			</SelectItem>
-			<SelectItem value="ultrasound" className="rounded-md px-3 h-9">
+			<SelectItem value="ultrasound">
 				Ultrasound
 			</SelectItem>
-			<SelectItem value="x-ray" className="rounded-md px-3 h-9">
+			<SelectItem value="x-ray">
 				X-ray
 			</SelectItem>
 		</SelectGroup>
@@ -314,13 +314,13 @@ export function ImagingModalityOptions() {
 export function ImagingStatusOptions() {
 	return (
 		<SelectGroup>
-			<SelectItem value="pending" className="rounded-md px-3 h-9">
+			<SelectItem value="pending">
 				Pending
 			</SelectItem>
-			<SelectItem value="completed" className="rounded-md px-3 h-9">
+			<SelectItem value="completed">
 				Completed
 			</SelectItem>
-			<SelectItem value="cancelled" className="rounded-md px-3 h-9">
+			<SelectItem value="cancelled">
 				Cancelled
 			</SelectItem>
 		</SelectGroup>

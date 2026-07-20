@@ -147,15 +147,15 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
-								<SelectContent className="rounded-[0.625rem] p-1">
+								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="pending" className="rounded-md px-3 h-9">
+										<SelectItem value="pending">
 											Pending
 										</SelectItem>
-										<SelectItem value="completed" className="rounded-md px-3 h-9">
+										<SelectItem value="completed">
 											Completed
 										</SelectItem>
-										<SelectItem value="cancelled" className="rounded-md px-3 h-9">
+										<SelectItem value="cancelled">
 											Cancelled
 										</SelectItem>
 									</SelectGroup>
@@ -238,12 +238,12 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 								<PopoverContent
 									align="start"
 									sideOffset={8}
-									className="flex flex-col gap-2 rounded-[0.625rem] p-1 text-sm text-gray-600"
+									className="flex flex-col gap-2 rounded-[0.625rem] p-1.5 text-sm text-gray-600"
 								>
 									{assistantRows.map((assistantRow, assistantIndex) => (
 										<div
 											key={assistantRow.id}
-											className="flex h-9 items-center justify-between rounded-md border border-gray-200 pl-3 pr-1.5"
+											className="flex h-9 items-center justify-between rounded-[0.375rem] border border-gray-200 pl-3 pr-1.5"
 										>
 											<input
 												type="text"
