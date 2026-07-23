@@ -11,6 +11,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import {
@@ -21,6 +22,7 @@ import {
 } from "@remixicon/react";
 
 export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
+	const router = useRouter();
 	const { data: session, isPending: isLoadingUserSession } = authClient.useSession();
 	const user = session?.user;
 	const [isSigningOut, startSignOutTransition] = useTransition();
@@ -103,7 +105,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 							startSignOutTransition(async () => {
 								try {
 									await authClient.signOut();
-									window.location.replace("/sign-in");
+									router.replace("/sign-in");
 								} catch (error) {
 									console.error(error);
 								}

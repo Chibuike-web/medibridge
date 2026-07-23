@@ -3,7 +3,6 @@
 import {
 	Select,
 	SelectContent,
-	SelectGroup,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
@@ -168,14 +167,12 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 							<SelectTrigger className="h-8 w-16 border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
-							<SelectContent>
-								<SelectGroup className="p-1">
-									{[4, 8, 12].map((pageSize) => (
-										<SelectItem key={pageSize} value={String(pageSize)}>
-											{pageSize}
-										</SelectItem>
-									))}
-								</SelectGroup>
+							<SelectContent className="w-20" align="start">
+								{[4, 8, 12].map((pageSize) => (
+									<SelectItem key={pageSize} value={String(pageSize)}>
+										{pageSize}
+									</SelectItem>
+								))}
 							</SelectContent>
 						</Select>
 					</div>

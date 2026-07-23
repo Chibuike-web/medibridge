@@ -27,7 +27,6 @@ import { Input } from "@/components/ui/input";
 import {
 	Select,
 	SelectContent,
-	SelectGroup,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
@@ -456,14 +455,12 @@ export function ImmunizationsTable({
 							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
-							<SelectContent>
-								<SelectGroup className="p-1">
-									{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
-										<SelectItem key={pageSize} value={String(pageSize)}>
-											{pageSize}
-										</SelectItem>
-									))}
-								</SelectGroup>
+							<SelectContent className="w-20" align="start">
+								{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
+									<SelectItem key={pageSize} value={String(pageSize)}>
+										{pageSize}
+									</SelectItem>
+								))}
 							</SelectContent>
 						</Select>
 					</div>
