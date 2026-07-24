@@ -93,7 +93,7 @@ export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerP
 							<Select>
 								<SelectTrigger
 									id={`${generatedFormId}-severity`}
-									className={`${fieldControlClassName} w-full`}
+									className={`${fieldControlClassName} w-full data-[placeholder]:text-gray-400`}
 								>
 									<SelectValue placeholder="Select severity" />
 								</SelectTrigger>
@@ -120,7 +120,7 @@ export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerP
 							<Select>
 								<SelectTrigger
 									id={`${generatedFormId}-status`}
-									className={`${fieldControlClassName} w-full`}
+									className={`${fieldControlClassName} w-full data-[placeholder]:text-gray-400`}
 								>
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>

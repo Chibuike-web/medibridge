@@ -19,6 +19,7 @@ import {
 	RiEyeOffLine,
 	RiInformationLine,
 } from "@remixicon/react";
+import { authClient } from "@/lib/better-auth/auth.client";
 
 export function SignInClient() {
 	const router = useRouter();
@@ -53,8 +54,38 @@ export function SignInClient() {
 			);
 			return;
 		}
+		const { data: organizations, error: listOrganizationsError } =
+			await authClient.organization.list();
+
+		if (listOrganizationsError) {
+			setSignInError(listOrganizationsError.message ?? "Can't find any organization");
+			return;
+		}
+
+		if (!organizations || organizations.length === 0) {
+			setSignInError("No hospital organization is associated with this account.");
+			return;
+		}
+
+		if (organizations.length > 1) {
+			// Eventually navigate to an organization-selection screen.
+			setSignInError("Please select the hospital you want to access.");
+			return;
+		}
+
+		const [organization] = organizations;
+
+		const { error: setActiveOrganizationError } = await authClient.organization.setActive({
+			organizationId: organization.id,
+		});
+
+		if (setActiveOrganizationError) {
+			setSignInError(setActiveOrganizationError.message ?? "No active organization");
+			return;
+		}
+		router.replace("/dashboard/overview");
+
 		startTransition(() => {
-			router.replace("/dashboard/overview");
 			reset();
 		});
 	};

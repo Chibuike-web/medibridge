@@ -108,7 +108,10 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
+								<SelectTrigger
+									id={`${generatedFormId}-status`}
+									className="w-full data-[placeholder]:text-gray-400"
+								>
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent>
@@ -143,7 +146,10 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 								Route<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger id={`${generatedFormId}-route`} className="w-full">
+								<SelectTrigger
+									id={`${generatedFormId}-route`}
+									className="w-full data-[placeholder]:text-gray-400"
+								>
 									<SelectValue placeholder="Select route" />
 								</SelectTrigger>
 								<SelectContent>

@@ -117,7 +117,7 @@ export function CreateDocumentDrawer({
 								Document type <span className={documentRequiredLabelClassName}>(required)</span>
 							</Label>
 							<Select name="documentType" required>
-								<SelectTrigger className="w-full">
+								<SelectTrigger className="w-full data-[placeholder]:text-gray-400">
 									<SelectValue placeholder="Select document type" />
 								</SelectTrigger>
 								<SelectContent>

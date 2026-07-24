@@ -74,7 +74,10 @@ export function CreateImmunizationDrawer({ open, onOpenChange }: CreateImmunizat
 								Series Type<span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Select>
-								<SelectTrigger id={`${generatedFormId}-series-type`} className="w-full">
+								<SelectTrigger
+									id={`${generatedFormId}-series-type`}
+									className="w-full data-[placeholder]:text-gray-400"
+								>
 									<SelectValue placeholder="Select series type" />
 								</SelectTrigger>
 								<SelectContent>
@@ -117,7 +120,10 @@ export function CreateImmunizationDrawer({ open, onOpenChange }: CreateImmunizat
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
+								<SelectTrigger
+									id={`${generatedFormId}-status`}
+									className="w-full data-[placeholder]:text-gray-400"
+								>
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent>

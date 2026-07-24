@@ -11,6 +11,7 @@ import { ProcedureDetailsDrawer } from "@/features/patients/components/procedure
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
+import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -47,6 +48,7 @@ import {
 	flexRender,
 	getCoreRowModel,
 	getSortedRowModel,
+	type RowSelectionState,
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
@@ -153,6 +155,7 @@ export function ProceduresTable({
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [sorting, setSorting] = useState<SortingState>([]);
+	const [selectedProcedureRows, setSelectedProcedureRows] = useState<RowSelectionState>({});
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<ProcedureFilterSubmenu | null>(
 		null,
 	);
@@ -175,13 +178,18 @@ export function ProceduresTable({
 		data: procedures,
 		columns,
 		enableRowSelection: true,
+		getRowId: (row) => row.procedureId,
 		onSortingChange: setSorting,
+		onRowSelectionChange: setSelectedProcedureRows,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		state: {
 			sorting,
+			rowSelection: selectedProcedureRows,
 		},
 	});
+	const selectedProcedures = table.getSelectedRowModel().rows.map((row) => row.original);
+
 	return (
 		<div className="px-6 py-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-xl font-semibold no-line-height">Procedures</h1>
@@ -403,7 +411,8 @@ export function ProceduresTable({
 										<TableCell
 											key={cell.id}
 											className={cn(
-												"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
+											"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
+											row.getIsSelected() ? "bg-gray-100" : "bg-white",
 												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 											)}
 										>
@@ -479,6 +488,11 @@ export function ProceduresTable({
 					</div>
 				</div>
 			</div>
+			<ProceduresBulkActionBar
+				selectedProcedures={selectedProcedures}
+				onClearSelection={() => table.resetRowSelection()}
+				onViewProcedureDetails={handleViewProcedureDetails}
+			/>
 			<CreateProcedureDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
 			<ProcedureDetailsDrawer
 				open={isDetailsDrawerOpen}
@@ -486,6 +500,58 @@ export function ProceduresTable({
 				procedure={procedureDetailsQuery.data ?? null}
 				isLoading={procedureDetailsQuery.isLoading}
 			/>
+		</div>
+	);
+}
+
+function ProceduresBulkActionBar({
+	selectedProcedures,
+	onClearSelection,
+	onViewProcedureDetails,
+}: {
+	selectedProcedures: ProcedureType[];
+	onClearSelection: () => void;
+	onViewProcedureDetails: (procedureId: string) => void;
+}) {
+	const selectedProcedureCount = selectedProcedures.length;
+	const singleSelectedProcedure = selectedProcedureCount === 1 ? selectedProcedures[0] : undefined;
+
+	if (selectedProcedureCount === 0) return null;
+
+	return (
+		<div className="no-scrollbar fixed right-4 bottom-6 left-4 z-50 flex h-12 items-center gap-4 overflow-x-auto rounded-xl border border-white/20 bg-gray-800 pl-4 pr-2 text-white shadow-[0_1rem_2.5rem_rgba(15,23,42,0.35)] ring ring-gray-800 sm:right-auto sm:left-1/2 sm:w-max sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2">
+			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
+				{selectedProcedureCount} {selectedProcedureCount === 1 ? "item" : "items"} selected
+			</span>
+			<TableBulkActionSeparator />
+			<div className="flex items-center">
+				{singleSelectedProcedure ? (
+					<button
+						type="button"
+						onClick={() => onViewProcedureDetails(singleSelectedProcedure.procedureId)}
+						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+					>
+						<RiEyeLine className="size-5" aria-hidden />
+						<span>View details</span>
+					</button>
+				) : null}
+				<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+					<RiShare2Line className="size-5" aria-hidden />
+					<span>Export {selectedProcedureCount > 1 ? "all" : null}</span>
+				</button>
+				<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+					<RiArchiveLine className="size-5" aria-hidden />
+					<span>Archive {selectedProcedureCount > 1 ? "all" : null}</span>
+				</button>
+			</div>
+			<button
+				type="button"
+				onClick={onClearSelection}
+				className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				aria-label="Clear selected procedures"
+			>
+				<RiCloseLine className="size-5" aria-hidden />
+			</button>
 		</div>
 	);
 }

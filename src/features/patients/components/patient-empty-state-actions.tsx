@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CreateAllergyDrawer } from "@/features/patients/components/create-allergy-drawer";
+import { CreateEncounterDrawer } from "@/features/patients/components/create-encounter-drawer";
 import { CreateDiagnosisDrawer } from "@/features/patients/components/create-diagnosis-drawer";
 import { CreateDocumentDrawer } from "@/features/patients/components/create-document-drawer";
 import { CreateImmunizationDrawer } from "@/features/patients/components/create-immunization-drawer";
@@ -141,7 +142,10 @@ export function CreateEncounterEmptyStateAction() {
 			>
 				Add encounter
 			</Button>
-			<PendingCreateDrawer open={isCreateEncounterDrawerOpen} />
+			<CreateEncounterDrawer
+				open={isCreateEncounterDrawerOpen}
+				onOpenChange={setIsCreateEncounterDrawerOpen}
+			/>
 		</>
 	);
 }

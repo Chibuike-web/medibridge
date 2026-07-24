@@ -11,6 +11,7 @@ import { CreateLabTestDrawer } from "@/features/patients/components/create-lab-t
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { LabTestDetailsDrawer } from "@/features/patients/components/lab-test-details-drawer";
 import { StatusBadge } from "@/components/status-badge";
+import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -48,6 +49,7 @@ import {
 	flexRender,
 	getCoreRowModel,
 	getSortedRowModel,
+	type RowSelectionState,
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
@@ -168,6 +170,7 @@ export function LabTestsTable({
 	void patientId;
 
 	const [sorting, setSorting] = useState<SortingState>([]);
+	const [selectedLabTestRows, setSelectedLabTestRows] = useState<RowSelectionState>({});
 	const [activeFilterSubmenu, setActiveFilterSubmenu] =
 		useState<LabTestFilterSubmenu | null>(null);
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
@@ -188,13 +191,18 @@ export function LabTestsTable({
 		data: labTests,
 		columns,
 		enableRowSelection: true,
+		getRowId: (row) => row.labId,
 		onSortingChange: setSorting,
+		onRowSelectionChange: setSelectedLabTestRows,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		state: {
 			sorting,
+			rowSelection: selectedLabTestRows,
 		},
 	});
+	const selectedLabTests = table.getSelectedRowModel().rows.map((row) => row.original);
+
 	return (
 		<div className="px-6 py-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-xl font-semibold no-line-height">Lab Tests</h1>
@@ -429,7 +437,8 @@ export function LabTestsTable({
 										<TableCell
 											key={cell.id}
 											className={cn(
-												"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
+											"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
+											row.getIsSelected() ? "bg-gray-100" : "bg-white",
 												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 												cell.column.id === "referenceRange" && "text-right",
 											)}
@@ -499,8 +508,13 @@ export function LabTestsTable({
 						</div>
 					</div>
 				</div>
-				</div>
-				<CreateLabTestDrawer
+			</div>
+			<LabTestsBulkActionBar
+				selectedLabTests={selectedLabTests}
+				onClearSelection={() => table.resetRowSelection()}
+				onViewLabTestDetails={handleViewLabTestDetails}
+			/>
+			<CreateLabTestDrawer
 					open={isCreateDrawerOpen}
 					onOpenChange={setIsCreateDrawerOpen}
 				/>
@@ -563,6 +577,58 @@ function LabTestCheckboxFilterList<TValue extends string>({
 				);
 			})}
 		</>
+	);
+}
+
+function LabTestsBulkActionBar({
+	selectedLabTests,
+	onClearSelection,
+	onViewLabTestDetails,
+}: {
+	selectedLabTests: LabTestType[];
+	onClearSelection: () => void;
+	onViewLabTestDetails: (labTest: LabTestType) => void;
+}) {
+	const selectedLabTestCount = selectedLabTests.length;
+	const singleSelectedLabTest = selectedLabTestCount === 1 ? selectedLabTests[0] : undefined;
+
+	if (selectedLabTestCount === 0) return null;
+
+	return (
+		<div className="no-scrollbar fixed right-4 bottom-6 left-4 z-50 flex h-12 items-center gap-4 overflow-x-auto rounded-xl border border-white/20 bg-gray-800 pl-4 pr-2 text-white shadow-[0_1rem_2.5rem_rgba(15,23,42,0.35)] ring ring-gray-800 sm:right-auto sm:left-1/2 sm:w-max sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2">
+			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
+				{selectedLabTestCount} {selectedLabTestCount === 1 ? "item" : "items"} selected
+			</span>
+			<TableBulkActionSeparator />
+			<div className="flex items-center">
+				{singleSelectedLabTest ? (
+					<button
+						type="button"
+						onClick={() => onViewLabTestDetails(singleSelectedLabTest)}
+						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+					>
+						<RiEyeLine className="size-5" aria-hidden />
+						<span>View details</span>
+					</button>
+				) : null}
+				<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+					<RiShare2Line className="size-5" aria-hidden />
+					<span>Export {selectedLabTestCount > 1 ? "all" : null}</span>
+				</button>
+				<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+					<RiArchiveLine className="size-5" aria-hidden />
+					<span>Archive {selectedLabTestCount > 1 ? "all" : null}</span>
+				</button>
+			</div>
+			<button
+				type="button"
+				onClick={onClearSelection}
+				className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				aria-label="Clear selected lab tests"
+			>
+				<RiCloseLine className="size-5" aria-hidden />
+			</button>
+		</div>
 	);
 }
 

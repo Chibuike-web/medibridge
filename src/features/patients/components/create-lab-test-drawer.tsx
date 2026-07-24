@@ -115,7 +115,10 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 								Flag<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger id={`${generatedFormId}-flag`} className="w-full">
+								<SelectTrigger
+									id={`${generatedFormId}-flag`}
+									className="w-full data-[placeholder]:text-gray-400"
+								>
 									<SelectValue placeholder="Select flag" />
 								</SelectTrigger>
 								<SelectContent>
@@ -129,7 +132,10 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
+								<SelectTrigger
+									id={`${generatedFormId}-status`}
+									className="w-full data-[placeholder]:text-gray-400"
+								>
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent>

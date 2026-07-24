@@ -2,6 +2,7 @@
 ## Project preferences
 
 - Bias toward brainstorming before making changes, especially for UI/product decisions. Keep the user in the loop by discussing the intended direction, tradeoffs, and what has already changed before continuing with implementation.
+- When discussing, planning, or reviewing UI, use ASCII art frequently to visually explain the proposed interface, including wireframes, layouts, component placement, states, and interaction flows.
 - Before implementing a feature, first check whether the same or a closely related feature already exists elsewhere in the codebase. When it does, follow the established sibling pattern for structure, naming, state flow, helper boundaries, and UI behavior so related files stay consistent and easy to read. Only diverge when the new feature has a real requirement the existing pattern cannot cover, and keep that difference explicit.
 - Prefer straightforward repetition when an abstraction would add complexity or make related files harder to read. Before introducing a new shared abstraction for repeated feature code, ask the user for permission.
 - For spacing, sizing, and other style values, default to rem-based values or Tailwind scale utilities instead of raw pixel values unless exact pixels are required by an external asset or spec.

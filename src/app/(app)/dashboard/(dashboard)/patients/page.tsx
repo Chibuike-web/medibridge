@@ -11,6 +11,9 @@ export const metadata = {
 	title: "Patients",
 };
 
+export const prefetch = "allow-runtime";
+export const unstable_dynamicStaleTime = 300;
+
 type PatientsPagePageProps = Pick<PageProps<"/dashboard/patients">, "searchParams">;
 
 export default function PatientsPage({ searchParams }: PatientsPagePageProps) {

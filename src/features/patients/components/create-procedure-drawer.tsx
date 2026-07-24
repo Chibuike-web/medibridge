@@ -144,7 +144,10 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
+								<SelectTrigger
+									id={`${generatedFormId}-status`}
+									className="w-full data-[placeholder]:text-gray-400"
+								>
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent>

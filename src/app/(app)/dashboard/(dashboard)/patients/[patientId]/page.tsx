@@ -50,6 +50,9 @@ export const metadata = {
 	title: "Patient",
 };
 
+export const prefetch = "allow-runtime";
+export const unstable_dynamicStaleTime = 300;
+
 type PatientPageProps = Pick<
 	PageProps<"/dashboard/patients/[patientId]">,
 	"params" | "searchParams"

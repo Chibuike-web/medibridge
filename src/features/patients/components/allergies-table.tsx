@@ -12,6 +12,7 @@ import { CreateAllergyDrawer } from "@/features/patients/components/create-aller
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
+import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -383,8 +384,11 @@ function AllergiesTableContent({
 			rowSelection: selectedAllergyRows,
 		},
 	});
+	const selectedAllergies = table.getSelectedRowModel().rows.map((row) => row.original);
+
 	return (
-		<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
+		<>
+			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 			<Table className="min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left">
 				<TableHeader className="text-sm font-semibold text-gray-600">
 					{table.getHeaderGroups().map((headerGroup) => (
@@ -468,7 +472,8 @@ function AllergiesTableContent({
 									<TableCell
 										key={cell.id}
 										className={cn(
-											"border-b border-gray-200 bg-white px-3 py-3 text-sm text-gray-600",
+										"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
+										row.getIsSelected() ? "bg-gray-100" : "bg-white",
 											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 										)}
 									>
@@ -543,6 +548,64 @@ function AllergiesTableContent({
 					</div>
 				</div>
 			</div>
+			</div>
+			<AllergiesBulkActionBar
+				selectedAllergies={selectedAllergies}
+				onClearSelection={() => table.resetRowSelection()}
+				onViewAllergyDetails={onViewAllergyDetails}
+			/>
+		</>
+	);
+}
+
+function AllergiesBulkActionBar({
+	selectedAllergies,
+	onClearSelection,
+	onViewAllergyDetails,
+}: {
+	selectedAllergies: AllergyType[];
+	onClearSelection: () => void;
+	onViewAllergyDetails: (allergyId: string) => void;
+}) {
+	const selectedAllergyCount = selectedAllergies.length;
+	const singleSelectedAllergy = selectedAllergyCount === 1 ? selectedAllergies[0] : undefined;
+
+	if (selectedAllergyCount === 0) return null;
+
+	return (
+		<div className="no-scrollbar fixed right-4 bottom-6 left-4 z-50 flex h-12 items-center gap-4 overflow-x-auto rounded-xl border border-white/20 bg-gray-800 pl-4 pr-2 text-white shadow-[0_1rem_2.5rem_rgba(15,23,42,0.35)] ring ring-gray-800 sm:right-auto sm:left-1/2 sm:w-max sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2">
+			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
+				{selectedAllergyCount} {selectedAllergyCount === 1 ? "item" : "items"} selected
+			</span>
+			<TableBulkActionSeparator />
+			<div className="flex items-center">
+				{singleSelectedAllergy ? (
+					<button
+						type="button"
+						onClick={() => onViewAllergyDetails(singleSelectedAllergy.allergyId)}
+						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+					>
+						<RiEyeLine className="size-5" aria-hidden />
+						<span>View details</span>
+					</button>
+				) : null}
+				<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+					<RiShare2Line className="size-5" aria-hidden />
+					<span>Export {selectedAllergyCount > 1 ? "all" : null}</span>
+				</button>
+				<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+					<RiArchiveLine className="size-5" aria-hidden />
+					<span>Archive {selectedAllergyCount > 1 ? "all" : null}</span>
+				</button>
+			</div>
+			<button
+				type="button"
+				onClick={onClearSelection}
+				className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				aria-label="Clear selected allergies"
+			>
+				<RiCloseLine className="size-5" aria-hidden />
+			</button>
 		</div>
 	);
 }

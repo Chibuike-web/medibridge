@@ -127,7 +127,10 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 								Modality<span className={imagingRequiredLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger id={`${generatedFormId}-modality`} className="w-full">
+								<SelectTrigger
+									id={`${generatedFormId}-modality`}
+									className="w-full data-[placeholder]:text-gray-400"
+								>
 									<SelectValue placeholder="Select modality" />
 								</SelectTrigger>
 								<SelectContent>
@@ -185,7 +188,10 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 								Status<span className={imagingRequiredLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
+								<SelectTrigger
+									id={`${generatedFormId}-status`}
+									className="w-full data-[placeholder]:text-gray-400"
+								>
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent>

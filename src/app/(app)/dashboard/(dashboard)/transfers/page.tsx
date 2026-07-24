@@ -12,6 +12,9 @@ export const metadata = {
 	title: "Transfers",
 };
 
+export const prefetch = "allow-runtime";
+export const unstable_dynamicStaleTime = 300;
+
 const TRANSFER_STATUS_FILTERS = [
 	"pending",
 	"rejected",
