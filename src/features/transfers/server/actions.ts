@@ -22,7 +22,7 @@ import {
 	createTransferRequestsSchema,
 	type CreateTransferRequestsInput,
 } from "../schemas";
-import type { ClinicalRecordType } from "../types";
+import type { ClinicalRecordType, TransferStatusFilter } from "../types";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getTransfers } from "@/lib/api/get-transfers";
 import { createTransferApprovalToken } from "@/lib/api/transfer-approval-token";
@@ -356,6 +356,7 @@ export async function getTransfersTableAction({
 	limit,
 	query = "",
 	requestedAtFilter = {},
+	statusFilters = [],
 }: {
 	page: number | string;
 	limit: number | string;
@@ -364,6 +365,7 @@ export async function getTransfersTableAction({
 		from?: Date;
 		to?: Date;
 	};
+	statusFilters?: TransferStatusFilter[];
 }) {
 	await verifySession();
 
@@ -374,6 +376,7 @@ export async function getTransfersTableAction({
 		currentLimit,
 		query,
 		requestedAtFilter,
+		statusFilters,
 	);
 
 	return {

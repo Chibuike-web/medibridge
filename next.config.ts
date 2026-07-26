@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
 	logging: { fetches: { fullUrl: true } },
 	serverExternalPackages: ["tesseract.js", "pdf-parse", "mammoth"],
 	experimental: {
-		cachedNavigations: true,
 		turbopackFileSystemCacheForDev: true,
 		turbopackFileSystemCacheForBuild: true,
 

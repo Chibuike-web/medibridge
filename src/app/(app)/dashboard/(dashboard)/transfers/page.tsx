@@ -13,7 +13,6 @@ export const metadata = {
 };
 
 export const prefetch = "allow-runtime";
-export const unstable_dynamicStaleTime = 300;
 
 const TRANSFER_STATUS_FILTERS = [
 	"pending",
@@ -63,6 +62,7 @@ async function TransfersContent({ searchParams }: TransferPageSearchParamsProps)
 
 	return hasTransfers ? (
 		<TransfersClient
+			key={`${currentPage}:${currentLimit}:${currentQuery}:${currentRequestedFrom}:${currentRequestedTo}:${currentStatusFilters.join(",")}`}
 			transfers={transfers}
 			page={currentPage}
 			limit={currentLimit}
@@ -82,12 +82,12 @@ async function TransfersContent({ searchParams }: TransferPageSearchParamsProps)
 					width={500}
 					height={336}
 					className="h-auto w-[31.25rem] max-w-full"
-					/>
-					<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
-						<h1 className="mb-2 text-center text-xl font-semibold">No transfers yet</h1>
-						<p className="mb-6 text-center text-sm">
-							Start by creating your first transfer request to move patients securely.
-						</p>
+				/>
+				<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
+					<h1 className="mb-2 text-center text-xl font-semibold">No transfers yet</h1>
+					<p className="mb-6 text-center text-sm">
+						Start by creating your first transfer request to move patients securely.
+					</p>
 					<Button asChild className="text-sm">
 						<Link href="/dashboard/new-transfer-request">Create transfer request</Link>
 					</Button>

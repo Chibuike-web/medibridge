@@ -51,7 +51,6 @@ export const metadata = {
 };
 
 export const prefetch = "allow-runtime";
-export const unstable_dynamicStaleTime = 300;
 
 type PatientPageProps = Pick<
 	PageProps<"/dashboard/patients/[patientId]">,
@@ -499,7 +498,7 @@ function PatientPageSkeleton() {
 			<div className="flex min-h-0 flex-1 flex-col">
 				<SectionTabsSkeleton />
 				<div className="min-h-0 flex-1 overflow-y-auto">
-					<TableSectionSkeleton />
+					<PatientOverviewSkeleton />
 				</div>
 			</div>
 		</div>

@@ -12,7 +12,6 @@ export const metadata = {
 };
 
 export const prefetch = "allow-runtime";
-export const unstable_dynamicStaleTime = 300;
 
 type PatientsPagePageProps = Pick<PageProps<"/dashboard/patients">, "searchParams">;
 
@@ -49,6 +48,7 @@ async function PatientsPageContent({ searchParams }: PatientsPagePageProps) {
 
 	return hasPatients ? (
 		<PatientsClient
+			key={`${currentPage}:${currentLimit}:${currentQuery}:${currentCreatedFrom}:${currentCreatedTo}:${currentGenderFilter}:${currentAgeGroupFilter}`}
 			patients={patients}
 			page={currentPage}
 			limit={currentLimit}
@@ -69,12 +69,12 @@ async function PatientsPageContent({ searchParams }: PatientsPagePageProps) {
 					width={500}
 					height={336}
 					className="h-auto w-[31.25rem] max-w-full"
-					/>
-					<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
-						<h1 className="mb-2 text-center text-xl font-semibold">No patient records available</h1>
-						<p className="mb-6 text-center text-sm">
-							Patient records will appear here once patients have been added to the system.
-						</p>
+				/>
+				<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
+					<h1 className="mb-2 text-center text-xl font-semibold">No patient records available</h1>
+					<p className="mb-6 text-center text-sm">
+						Patient records will appear here once patients have been added to the system.
+					</p>
 					<Button asChild className="text-sm">
 						<Link href="/dashboard/add-new-patient"> Add patient</Link>
 					</Button>

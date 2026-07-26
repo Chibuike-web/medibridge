@@ -36,6 +36,7 @@ import {
 } from "./schemas";
 import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatients } from "@/lib/api/get-patients";
+import type { PatientCreatedAtFilter, PatientFilterOptions } from "@/lib/api/get-patients";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
 import { getPatientDocuments } from "@/lib/api/get-patient-documents";
@@ -344,14 +345,24 @@ export async function getPatientsTableAction({
 	page,
 	limit,
 	query = "",
+	createdAtFilter = {},
+	patientFilterOptions = {},
 }: {
 	page: number | string;
 	limit: number | string;
 	query?: string;
+	createdAtFilter?: PatientCreatedAtFilter;
+	patientFilterOptions?: PatientFilterOptions;
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
-	const { patients, totalPatients } = await getPatients(currentPage, currentLimit, query);
+	const { patients, totalPatients } = await getPatients(
+		currentPage,
+		currentLimit,
+		query,
+		createdAtFilter,
+		patientFilterOptions,
+	);
 
 	return {
 		patients,

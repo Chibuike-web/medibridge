@@ -4,15 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FilterButton } from "@/features/transfers/components/filter-button";
 import { TransferTable } from "@/features/transfers/components/transfer-table";
+import { getTransfersTableAction } from "@/features/transfers/server/actions";
 import type { TransferStatusFilter, TransferType } from "@/features/transfers/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
+import { parseDateBoundaryParam } from "@/lib/utils/search-params";
 import { format } from "date-fns";
 import { RiCloseLine, RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useRef, useState, useTransition } from "react";
 
 type TransfersClientProps = {
 	transfers: TransferType[];
@@ -47,31 +49,52 @@ export function TransfersClient({
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const [transferSearchQuery, setTransferSearchQuery] = useState(searchQuery);
-	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
-	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [tableData, setTableData] = useState({ transfers, page, limit, totalPages });
+	const [optimisticPage, setOptimisticPage] = useOptimistic(tableData.page);
+	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
 	const [isPending, startTransition] = useTransition();
 	const [optimisticRequestedAtRange, setOptimisticRequestedAtRange] = useOptimistic({
 		requestedFrom,
 		requestedTo,
 	});
 	const [optimisticStatusFilters, setOptimisticStatusFilters] = useOptimistic(statusFilters);
-
-	if (searchQuery !== previousSearchQuery) {
-		setPreviousSearchQuery(searchQuery);
-		setTransferSearchQuery(searchQuery);
-	}
+	const latestTransfersTableRequestIdRef = useRef(0);
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		latestTransfersTableRequestIdRef.current += 1;
+		const transfersTableRequestId = latestTransfersTableRequestIdRef.current;
+
 		startTransition(async () => {
 			setOptimisticPage(1);
+
+			const result = await getTransfersTableAction({
+				page: 1,
+				limit: tableData.limit,
+				query: nextQuery,
+				requestedAtFilter: {
+					from: parseDateBoundaryParam(optimisticRequestedAtRange.requestedFrom, "start"),
+					to: parseDateBoundaryParam(optimisticRequestedAtRange.requestedTo, "end"),
+				},
+				statusFilters: optimisticStatusFilters,
+			});
+
+			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
+				return;
+			}
+
+			setTableData({
+				transfers: result.transfers,
+				page: result.page,
+				limit: result.limit,
+				totalPages: result.totalPages,
+			});
 
 			router.push(
 				(pathname +
 					"?" +
 					createQueryString({
 						page: "1",
-						limit: String(limit),
+						limit: String(tableData.limit),
 						query: nextQuery,
 					})) as Route,
 			);
@@ -228,10 +251,10 @@ export function TransfersClient({
 						onStatusFiltersChange={handleStatusFiltersChange}
 					/>
 					<TransferTable
-						data={transfers}
+						data={tableData.transfers}
 						page={optimisticPage}
 						limit={optimisticLimit}
-						totalPages={totalPages}
+						totalPages={tableData.totalPages}
 						isPending={isPending}
 						onPreviousPage={handlePreviousPage}
 						onNextPage={handleNextPage}

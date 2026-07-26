@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FilterButton } from "@/features/patients/components/filter-button";
 import { PatientsTable } from "@/features/patients/components/patients-table";
+import { getPatientsTableAction } from "@/features/patients/server/actions";
 import type {
 	PatientAgeGroupFilter,
 	PatientGenderFilter,
@@ -11,12 +12,13 @@ import type {
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
+import { parseDateBoundaryParam } from "@/lib/utils/search-params";
 import { format } from "date-fns";
 import { RiCloseLine, RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useRef, useState, useTransition } from "react";
 
 type PatientsClientProps = {
 	patients: PatientListItemType[];
@@ -58,9 +60,14 @@ export function PatientsClient({
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const [patientSearchQuery, setPatientSearchQuery] = useState(searchQuery);
-	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
-	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [tableData, setTableData] = useState({
+		patients,
+		page,
+		limit,
+		totalPages,
+	});
+	const [optimisticPage, setOptimisticPage] = useOptimistic(tableData.page);
+	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
 	const [optimisticCreatedAtRange, setOptimisticCreatedAtRange] = useOptimistic({
 		createdFrom,
 		createdTo,
@@ -68,22 +75,46 @@ export function PatientsClient({
 	const [optimisticAgeGroupFilter, setOptimisticAgeGroupFilter] = useOptimistic(ageGroupFilter);
 	const [optimisticGenderFilter, setOptimisticGenderFilter] = useOptimistic(genderFilter);
 	const [isPending, startTransition] = useTransition();
-
-	if (searchQuery !== previousSearchQuery) {
-		setPreviousSearchQuery(searchQuery);
-		setPatientSearchQuery(searchQuery);
-	}
+	const latestPatientsTableRequestIdRef = useRef(0);
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		latestPatientsTableRequestIdRef.current += 1;
+		const patientsTableRequestId = latestPatientsTableRequestIdRef.current;
+
 		startTransition(async () => {
 			setOptimisticPage(1);
+
+			const result = await getPatientsTableAction({
+				page: 1,
+				limit: tableData.limit,
+				query: nextQuery,
+				createdAtFilter: {
+					from: parseDateBoundaryParam(optimisticCreatedAtRange.createdFrom, "start"),
+					to: parseDateBoundaryParam(optimisticCreatedAtRange.createdTo, "end"),
+				},
+				patientFilterOptions: {
+					gender: optimisticGenderFilter || undefined,
+					ageRange: getPatientAgeRange(optimisticAgeGroupFilter),
+				},
+			});
+
+			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
+				return;
+			}
+
+			setTableData({
+				patients: result.patients,
+				page: result.page,
+				limit: result.limit,
+				totalPages: result.totalPages,
+			});
 
 			router.push(
 				(pathname +
 					"?" +
 					createQueryString({
 						page: "1",
-						limit: String(limit),
+						limit: String(tableData.limit),
 						query: nextQuery,
 					})) as Route,
 			);
@@ -230,10 +261,7 @@ export function PatientsClient({
 						onCreatedAtRangeApply={handleCreatedAtRangeApply}
 						onGenderFilterChange={handleGenderFilterChange}
 					/>
-					<Button
-						variant="outline"
-						className="bg-white text-sm text-gray-600 hover:bg-gray-50"
-					>
+					<Button variant="outline" className="bg-white text-sm text-gray-600 hover:bg-gray-50">
 						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 						Export
 					</Button>
@@ -256,10 +284,10 @@ export function PatientsClient({
 						onGenderFilterChange={handleGenderFilterChange}
 					/>
 					<PatientsTable
-						patients={patients}
+						patients={tableData.patients}
 						page={optimisticPage}
 						limit={optimisticLimit}
-						totalPages={totalPages}
+						totalPages={tableData.totalPages}
 						isPending={isPending}
 						onPreviousPage={handlePreviousPage}
 						onNextPage={handleNextPage}
@@ -351,4 +379,26 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 	}
 
 	return "Any date";
+}
+
+function getPatientAgeRange(ageGroup: PatientAgeGroupFilter) {
+	switch (ageGroup) {
+		case "children":
+			return { min: 0, max: 12 };
+
+		case "teenagers":
+			return { min: 13, max: 17 };
+
+		case "young-adults":
+			return { min: 18, max: 35 };
+
+		case "adults":
+			return { min: 36, max: 59 };
+
+		case "seniors":
+			return { min: 60 };
+
+		default:
+			return undefined;
+	}
 }
