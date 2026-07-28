@@ -13,8 +13,6 @@ export const metadata = {
 	title: "Overview",
 };
 
-export const prefetch = "allow-runtime";
-
 export default async function Overview() {
 	const statsPromise = getOverviewStats();
 

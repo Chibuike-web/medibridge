@@ -122,18 +122,44 @@ export function TransfersClient({
 	}
 
 	function handleRequestedAtRangeApply(nextRequestedFrom: string, nextRequestedTo: string) {
+		latestTransfersTableRequestIdRef.current += 1;
+		const transfersTableRequestId = latestTransfersTableRequestIdRef.current;
+
 		startTransition(async () => {
 			setOptimisticPage(1);
 			setOptimisticRequestedAtRange({
 				requestedFrom: nextRequestedFrom,
 				requestedTo: nextRequestedTo,
 			});
+
+			const result = await getTransfersTableAction({
+				page: 1,
+				limit: tableData.limit,
+				query: transferSearchQuery,
+				requestedAtFilter: {
+					from: parseDateBoundaryParam(nextRequestedFrom, "start"),
+					to: parseDateBoundaryParam(nextRequestedTo, "end"),
+				},
+				statusFilters: optimisticStatusFilters,
+			});
+
+			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
+				return;
+			}
+
+			setTableData({
+				transfers: result.transfers,
+				page: result.page,
+				limit: result.limit,
+				totalPages: result.totalPages,
+			});
+
 			router.push(
 				(pathname +
 					"?" +
 					createQueryString({
 						page: "1",
-						limit: String(limit),
+						limit: String(tableData.limit),
 						requestedFrom: nextRequestedFrom,
 						requestedTo: nextRequestedTo,
 					})) as Route,
@@ -142,16 +168,41 @@ export function TransfersClient({
 	}
 
 	function handleStatusFiltersChange(nextStatusFilters: TransferStatusFilter[]) {
+		latestTransfersTableRequestIdRef.current += 1;
+		const transfersTableRequestId = latestTransfersTableRequestIdRef.current;
+
 		startTransition(async () => {
 			setOptimisticPage(1);
 			setOptimisticStatusFilters(nextStatusFilters);
+
+			const result = await getTransfersTableAction({
+				page: 1,
+				limit: tableData.limit,
+				query: transferSearchQuery,
+				requestedAtFilter: {
+					from: parseDateBoundaryParam(optimisticRequestedAtRange.requestedFrom, "start"),
+					to: parseDateBoundaryParam(optimisticRequestedAtRange.requestedTo, "end"),
+				},
+				statusFilters: nextStatusFilters,
+			});
+
+			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
+				return;
+			}
+
+			setTableData({
+				transfers: result.transfers,
+				page: result.page,
+				limit: result.limit,
+				totalPages: result.totalPages,
+			});
 
 			router.push(
 				(pathname +
 					"?" +
 					createQueryString({
 						page: "1",
-						limit: String(limit),
+						limit: String(tableData.limit),
 						status: nextStatusFilters.join(","),
 					})) as Route,
 			);
@@ -159,41 +210,123 @@ export function TransfersClient({
 	}
 
 	function handlePreviousPage() {
+		latestTransfersTableRequestIdRef.current += 1;
+		const transfersTableRequestId = latestTransfersTableRequestIdRef.current;
+		const previousPage = tableData.page - 1;
+
 		startTransition(async () => {
-			setOptimisticPage(page - 1);
+			setOptimisticPage(previousPage);
+
+			const result = await getTransfersTableAction({
+				page: previousPage,
+				limit: tableData.limit,
+				query: transferSearchQuery,
+				requestedAtFilter: {
+					from: parseDateBoundaryParam(optimisticRequestedAtRange.requestedFrom, "start"),
+					to: parseDateBoundaryParam(optimisticRequestedAtRange.requestedTo, "end"),
+				},
+				statusFilters: optimisticStatusFilters,
+			});
+
+			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
+				return;
+			}
+
+			setTableData({
+				transfers: result.transfers,
+				page: result.page,
+				limit: result.limit,
+				totalPages: result.totalPages,
+			});
 
 			router.push(
 				(pathname +
 					"?" +
 					createQueryString({
-						page: String(page - 1),
-						limit: String(limit),
+						page: String(result.page),
+						limit: String(result.limit),
 					})) as Route,
 			);
 		});
 	}
 
 	function handleNextPage() {
+		latestTransfersTableRequestIdRef.current += 1;
+		const transfersTableRequestId = latestTransfersTableRequestIdRef.current;
+		const nextPage = tableData.page + 1;
+
 		startTransition(async () => {
-			setOptimisticPage(page + 1);
+			setOptimisticPage(nextPage);
+
+			const result = await getTransfersTableAction({
+				page: nextPage,
+				limit: tableData.limit,
+				query: transferSearchQuery,
+				requestedAtFilter: {
+					from: parseDateBoundaryParam(optimisticRequestedAtRange.requestedFrom, "start"),
+					to: parseDateBoundaryParam(optimisticRequestedAtRange.requestedTo, "end"),
+				},
+				statusFilters: optimisticStatusFilters,
+			});
+
+			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
+				return;
+			}
+
+			setTableData({
+				transfers: result.transfers,
+				page: result.page,
+				limit: result.limit,
+				totalPages: result.totalPages,
+			});
 
 			router.push(
 				(pathname +
 					"?" +
 					createQueryString({
-						page: String(page + 1),
-						limit: String(limit),
+						page: String(result.page),
+						limit: String(result.limit),
 					})) as Route,
 			);
 		});
 	}
 
 	function handleLimitChange(value: string) {
+		latestTransfersTableRequestIdRef.current += 1;
+		const transfersTableRequestId = latestTransfersTableRequestIdRef.current;
+		const nextLimit = Number(value);
+
 		startTransition(async () => {
 			setOptimisticPage(1);
-			setOptimisticLimit(Number(value));
+			setOptimisticLimit(nextLimit);
 
-			router.push((pathname + "?" + createQueryString({ page: "1", limit: value })) as Route);
+			const result = await getTransfersTableAction({
+				page: 1,
+				limit: nextLimit,
+				query: transferSearchQuery,
+				requestedAtFilter: {
+					from: parseDateBoundaryParam(optimisticRequestedAtRange.requestedFrom, "start"),
+					to: parseDateBoundaryParam(optimisticRequestedAtRange.requestedTo, "end"),
+				},
+				statusFilters: optimisticStatusFilters,
+			});
+
+			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
+				return;
+			}
+
+			setTableData({
+				transfers: result.transfers,
+				page: result.page,
+				limit: result.limit,
+				totalPages: result.totalPages,
+			});
+
+			router.push(
+				(pathname +
+					"?" +
+					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
+			);
 		});
 	}
 

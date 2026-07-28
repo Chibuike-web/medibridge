@@ -11,8 +11,6 @@ export const metadata = {
 	title: "Patients",
 };
 
-export const prefetch = "allow-runtime";
-
 type PatientsPagePageProps = Pick<PageProps<"/dashboard/patients">, "searchParams">;
 
 export default function PatientsPage({ searchParams }: PatientsPagePageProps) {
@@ -48,7 +46,6 @@ async function PatientsPageContent({ searchParams }: PatientsPagePageProps) {
 
 	return hasPatients ? (
 		<PatientsClient
-			key={`${currentPage}:${currentLimit}:${currentQuery}:${currentCreatedFrom}:${currentCreatedTo}:${currentGenderFilter}:${currentAgeGroupFilter}`}
 			patients={patients}
 			page={currentPage}
 			limit={currentLimit}

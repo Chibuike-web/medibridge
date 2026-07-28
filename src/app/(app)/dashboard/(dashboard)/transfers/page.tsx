@@ -12,8 +12,6 @@ export const metadata = {
 	title: "Transfers",
 };
 
-export const prefetch = "allow-runtime";
-
 const TRANSFER_STATUS_FILTERS = [
 	"pending",
 	"rejected",
@@ -36,7 +34,11 @@ type TransferPageProps = PageProps<"/dashboard/transfers">;
 type TransferPageSearchParamsProps = Pick<TransferPageProps, "searchParams">;
 
 export default function Transfers({ searchParams }: TransferPageProps) {
-	return <TransfersContent searchParams={searchParams} />;
+	return (
+		<Suspense fallback={<TransfersPageSkeleton />}>
+			<TransfersContent searchParams={searchParams} />
+		</Suspense>
+	);
 }
 
 async function TransfersContent({ searchParams }: TransferPageSearchParamsProps) {
@@ -62,7 +64,6 @@ async function TransfersContent({ searchParams }: TransferPageSearchParamsProps)
 
 	return hasTransfers ? (
 		<TransfersClient
-			key={`${currentPage}:${currentLimit}:${currentQuery}:${currentRequestedFrom}:${currentRequestedTo}:${currentStatusFilters.join(",")}`}
 			transfers={transfers}
 			page={currentPage}
 			limit={currentLimit}
