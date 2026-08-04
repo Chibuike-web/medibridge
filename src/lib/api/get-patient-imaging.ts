@@ -68,6 +68,7 @@ export const getPatientImaging = cache(async (
 	dateFilters: ImagingDateFilters = {},
 	statusFilters: ImagingStatusFilter[] = [],
 	modalityFilters: ImagingModalityFilter[] = [],
+	encounterId?: string,
 ): Promise<{ imagingStudies: ImagingType[]; totalImagingStudies: number }> => {
 	const organizationId = await getOrganizationId();
 
@@ -82,6 +83,7 @@ export const getPatientImaging = cache(async (
 		dateFilters,
 		statusFilters,
 		modalityFilters,
+		encounterId,
 	);
 });
 
@@ -94,6 +96,7 @@ export async function getPatientImagingForOrganization(
 	dateFilters: ImagingDateFilters,
 	statusFilters: ImagingStatusFilter[],
 	modalityFilters: ImagingModalityFilter[],
+	encounterId?: string,
 ): Promise<{ imagingStudies: ImagingType[]; totalImagingStudies: number }> {
 	"use cache";
 	cacheLife("max");
@@ -110,6 +113,7 @@ export async function getPatientImagingForOrganization(
 	const imagingFilter = and(
 		eq(patientImaging.patientId, patientId),
 		eq(patient.organizationId, organizationId),
+		encounterId ? eq(patientImaging.encounterId, encounterId) : undefined,
 		orderedFromDate ? gte(patientImaging.orderedAt, startOfDay(orderedFromDate)) : undefined,
 		orderedToDate ? lte(patientImaging.orderedAt, endOfDay(orderedToDate)) : undefined,
 		createdFromDate ? gte(patientImaging.createdAt, startOfDay(createdFromDate)) : undefined,
@@ -123,7 +127,7 @@ export async function getPatientImagingForOrganization(
 		or(
 			ilike(patientImaging.study, searchPattern),
 			ilike(patientImaging.id, searchPattern),
-			ilike(patientImaging.encounterId, searchPattern),
+			encounterId ? undefined : ilike(patientImaging.encounterId, searchPattern),
 			ilike(patientImaging.modality, searchPattern),
 			ilike(patientImaging.region, searchPattern),
 			ilike(patientImaging.impression, searchPattern),

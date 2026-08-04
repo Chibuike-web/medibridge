@@ -29,6 +29,7 @@ import {
 	type AttachmentFormRow,
 } from "@/features/patients/components/attachment-form-fields";
 import { cn } from "@/lib/utils/cn";
+import { ArchiveAction } from "./archive-action";
 import { RiAddLine, RiArrowDownSLine, RiCloseLine, RiEditLine } from "@remixicon/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useId, useRef, useState } from "react";
@@ -130,7 +131,9 @@ export function AllergyDetailsDrawer({
 									Cancel
 								</Button>
 							</DrawerClose>
-							<Button className="bg-gray-800 text-sm">Archive allergy</Button>
+			<ArchiveAction>
+				<Button className="bg-gray-800 text-sm">Archive allergy</Button>
+			</ArchiveAction>
 						</div>
 					)}
 				</DrawerFooter>

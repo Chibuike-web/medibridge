@@ -59,9 +59,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					{!isCollapsed ? (
 						<div className="flex min-w-0 items-center w-full justify-between">
 							<div className="flex min-w-0 flex-1 flex-col items-start">
-								<span className="w-full truncate text-left text-sm font-medium">
-									{user.name}
-								</span>
+								<span className="w-full truncate text-left text-sm font-medium">{user.name}</span>
 								<span className="text-xs text-foreground/60 text-left truncate w-full">
 									{user.email}
 								</span>
@@ -101,6 +99,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					</DropdownMenuGroup>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
+						variant="destructive"
 						onClick={() => {
 							startSignOutTransition(async () => {
 								try {
@@ -114,7 +113,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 						className="py-2"
 					>
 						<RiLogoutBoxLine />
-						Log out
+						Sign out
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>

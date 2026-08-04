@@ -19,12 +19,14 @@ type SectionTableState<T> = {
 
 export function ImagingClient({
 	patientId,
+	encounterId,
 	imagingStudies,
 	page,
 	limit,
 	totalPages,
 }: {
 	patientId: string;
+	encounterId?: string;
 	imagingStudies: ImagingType[];
 	page: number;
 	limit: number;
@@ -78,6 +80,7 @@ export function ImagingClient({
 
 			const result = await getPatientImagingTableAction({
 				patientId,
+				encounterId,
 				page: nextPage,
 				limit: nextLimit,
 				query: nextQuery,
@@ -149,6 +152,7 @@ export function ImagingClient({
 
 	return (
 		<ImagingTable
+			isEncounterScoped={Boolean(encounterId)}
 			imagingStudies={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}

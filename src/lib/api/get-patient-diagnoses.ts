@@ -45,6 +45,7 @@ export const getPatientDiagnoses = cache(async (
 	query = "",
 	dateFilters: DiagnosisDateFilters = {},
 	statusFilters: DiagnosisStatusFilter[] = [],
+	encounterId?: string,
 ): Promise<{ diagnoses: DiagnosisType[]; totalDiagnoses: number }> => {
 	const organizationId = await getOrganizationId();
 	const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
@@ -61,6 +62,7 @@ export const getPatientDiagnoses = cache(async (
 		normalizedQuery,
 		dateFilters,
 		statusFilters,
+		encounterId,
 	);
 });
 
@@ -72,6 +74,7 @@ export async function getPatientDiagnosesForOrganization(
 	normalizedQuery: string,
 	dateFilters: DiagnosisDateFilters,
 	statusFilters: DiagnosisStatusFilter[],
+	encounterId?: string,
 ): Promise<{ diagnoses: DiagnosisType[]; totalDiagnoses: number }> {
 	"use cache";
 	cacheLife("max");
@@ -92,6 +95,7 @@ export async function getPatientDiagnosesForOrganization(
 	const diagnosisFilter = and(
 		eq(patientDiagnosis.patientId, patientId),
 		eq(patient.organizationId, organizationId ?? ""),
+		encounterId ? eq(patientDiagnosis.encounterId, encounterId) : undefined,
 		createdFromDate ? gte(patientDiagnosis.createdAt, startOfDay(createdFromDate)) : undefined,
 		createdToDate ? lte(patientDiagnosis.createdAt, endOfDay(createdToDate)) : undefined,
 		lastReviewedFromDate
@@ -105,7 +109,7 @@ export async function getPatientDiagnosesForOrganization(
 			: undefined,
 		or(
 			ilike(patientDiagnosis.id, searchPattern),
-			ilike(patientDiagnosis.encounterId, searchPattern),
+			encounterId ? undefined : ilike(patientDiagnosis.encounterId, searchPattern),
 			ilike(patientDiagnosis.diagnosisName, searchPattern),
 			ilike(patientDiagnosis.status, searchPattern),
 		),

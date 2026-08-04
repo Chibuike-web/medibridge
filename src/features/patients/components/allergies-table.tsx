@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ArchiveAction } from "./archive-action";
 import type {
 	AllergyDetailsType,
 	AllergySeverityFilter,
@@ -123,6 +124,7 @@ const allergyDateFilterPresets: AllergyDateFilterPreset[] = [
 
 type AllergiesTableProps = {
 	allergies: AllergyType[];
+	isEncounterScoped?: boolean;
 	page: number;
 	limit: number;
 	totalPages: number;
@@ -143,6 +145,7 @@ type AllergiesTableProps = {
 
 export function AllergiesTable({
 	allergies,
+	isEncounterScoped = false,
 	page,
 	limit,
 	totalPages,
@@ -190,7 +193,11 @@ export function AllergiesTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by allergen, reaction, severity, allergy ID, or encounter ID"
+						placeholder={
+							isEncounterScoped
+								? "Search by allergen, reaction, severity, or allergy ID"
+								: "Search by allergen, reaction, severity, allergy ID, or encounter ID"
+						}
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
@@ -593,10 +600,12 @@ function AllergiesBulkActionBar({
 					<RiShare2Line className="size-5" aria-hidden />
 					<span>Export {selectedAllergyCount > 1 ? "all" : null}</span>
 				</button>
-				<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
-					<RiArchiveLine className="size-5" aria-hidden />
-					<span>Archive {selectedAllergyCount > 1 ? "all" : null}</span>
-				</button>
+				<ArchiveAction>
+					<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+						<RiArchiveLine className="size-5" aria-hidden />
+						<span>Archive {selectedAllergyCount > 1 ? "all" : null}</span>
+					</button>
+				</ArchiveAction>
 			</div>
 			<button
 				type="button"
@@ -1063,10 +1072,12 @@ function getAllergiesColumns({
 								<span>Export</span>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator className="bg-white/20" />
-							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-								<RiArchiveLine className="text-white" />
-								<span>Archive</span>
-							</DropdownMenuItem>
+							<ArchiveAction>
+								<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<RiArchiveLine className="text-white" />
+									<span>Archive</span>
+								</DropdownMenuItem>
+							</ArchiveAction>
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>

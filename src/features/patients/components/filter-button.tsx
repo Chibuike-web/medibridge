@@ -86,10 +86,7 @@ export function FilterButton({
 			}}
 		>
 			<DropdownMenuTrigger asChild>
-				<Button
-					variant="outline"
-					className="bg-white text-sm text-gray-600 hover:bg-gray-50"
-				>
+				<Button variant="outline" className="bg-white text-sm text-gray-600 hover:bg-gray-50">
 					<RiFilter3Line aria-hidden className="size-4 text-gray-600" />
 					Filter
 				</Button>
@@ -109,7 +106,7 @@ export function FilterButton({
 						});
 					}}
 				>
-						<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 data-[state=open]:bg-gray-100">
+					<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 data-[state=open]:bg-gray-100">
 						<RiMenLine className="size-4.5" />
 						<span className="block">Gender</span>
 					</DropdownMenuSubTrigger>
@@ -128,7 +125,7 @@ export function FilterButton({
 							className="flex flex-col gap-0"
 							disabled={isPending}
 						>
-								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="all" id="patient-gender-all" />
 								<Label
 									htmlFor="patient-gender-all"
@@ -138,7 +135,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="male" id="patient-gender-male" />
 								<Label
 									htmlFor="patient-gender-male"
@@ -148,7 +145,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="female" id="patient-gender-female" />
 								<Label
 									htmlFor="patient-gender-female"
@@ -171,7 +168,7 @@ export function FilterButton({
 						});
 					}}
 				>
-						<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
+					<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 						<RiCalendarView className="size-4.5" /> <span className="block">Age</span>
 					</DropdownMenuSubTrigger>
 
@@ -191,7 +188,7 @@ export function FilterButton({
 							className="flex flex-col gap-0"
 							disabled={isPending}
 						>
-								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="any-age" id="patient-age-any" />
 								<Label
 									htmlFor="patient-age-any"
@@ -201,7 +198,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="children" id="patient-age-children" />
 								<Label
 									htmlFor="patient-age-children"
@@ -211,7 +208,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="teenagers" id="patient-age-teenagers" />
 								<Label
 									htmlFor="patient-age-teenagers"
@@ -221,7 +218,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="young-adults" id="patient-age-young-adults" />
 								<Label
 									htmlFor="patient-age-young-adults"
@@ -231,7 +228,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="adults" id="patient-age-adults" />
 								<Label
 									htmlFor="patient-age-adults"
@@ -241,7 +238,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-								<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="seniors" id="patient-age-seniors" />
 								<Label
 									htmlFor="patient-age-seniors"
@@ -264,7 +261,7 @@ export function FilterButton({
 						});
 					}}
 				>
-						<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
+					<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
 						<RiCalendarLine className="size-4.5" /> <span className="block">Created at</span>
 					</DropdownMenuSubTrigger>
 
@@ -450,7 +447,6 @@ function getDateRangeFromParams(createdFrom: string, createdTo: string): DateRan
 
 	return { from, to };
 }
-
 
 function isSameDateRange(range: DateRange | undefined, presetRange: PatientCreatedAtCompleteRange) {
 	if (!range?.from || !range.to) return false;

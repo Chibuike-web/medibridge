@@ -39,6 +39,7 @@ export const getPatientAllergies = cache(async (
 	dateFilters: AllergyDateFilters = {},
 	statusFilters: AllergyStatusFilter[] = [],
 	severityFilters: AllergySeverityFilter[] = [],
+	encounterId?: string,
 ): Promise<{ allergies: AllergyType[]; totalAllergies: number }> => {
 	const organizationId = await getOrganizationId();
 
@@ -53,6 +54,7 @@ export const getPatientAllergies = cache(async (
 		dateFilters,
 		statusFilters,
 		severityFilters,
+		encounterId,
 	);
 });
 
@@ -65,6 +67,7 @@ export async function getPatientAllergiesForOrganization(
 	dateFilters: AllergyDateFilters,
 	statusFilters: AllergyStatusFilter[],
 	severityFilters: AllergySeverityFilter[],
+	encounterId?: string,
 ): Promise<{ allergies: AllergyType[]; totalAllergies: number }> {
 	"use cache";
 	cacheLife("max");
@@ -80,6 +83,7 @@ export async function getPatientAllergiesForOrganization(
 	const allergyFilter = and(
 		eq(patientAllergy.patientId, patientId),
 		eq(patient.organizationId, organizationId),
+		encounterId ? eq(patientAllergy.encounterId, encounterId) : undefined,
 		createdFromDate ? gte(patientAllergy.createdAt, startOfDay(createdFromDate)) : undefined,
 		createdToDate ? lte(patientAllergy.createdAt, endOfDay(createdToDate)) : undefined,
 		databaseStatusFilters.length > 0
@@ -91,7 +95,7 @@ export async function getPatientAllergiesForOrganization(
 		or(
 			ilike(patientAllergy.allergen, searchPattern),
 			ilike(patientAllergy.id, searchPattern),
-			ilike(patientAllergy.encounterId, searchPattern),
+			encounterId ? undefined : ilike(patientAllergy.encounterId, searchPattern),
 			ilike(patientAllergy.reaction, searchPattern),
 			ilike(patientAllergy.severity, searchPattern),
 			ilike(patientAllergy.status, searchPattern),

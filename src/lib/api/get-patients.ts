@@ -19,31 +19,33 @@ export type PatientFilterOptions = {
 	};
 };
 
-export const getPatients = cache(async (
-	page: number,
-	limit: number,
-	query = "",
-	createdAtFilter: PatientCreatedAtFilter = {},
-	patientFilterOptions: PatientFilterOptions = {},
-) => {
-	const organizationId = await getOrganizationId();
-	const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
-	const currentLimit = Number.isFinite(limit) && limit > 0 ? limit : 14;
-	const normalizedQuery = query.trim();
+export const getPatients = cache(
+	async (
+		page: number,
+		limit: number,
+		query = "",
+		createdAtFilter: PatientCreatedAtFilter = {},
+		patientFilterOptions: PatientFilterOptions = {},
+	) => {
+		const organizationId = await getOrganizationId();
+		const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
+		const currentLimit = Number.isFinite(limit) && limit > 0 ? limit : 14;
+		const normalizedQuery = query.trim();
 
-	if (!organizationId) {
-		return { totalPatients: 0, patientCreatedAt: [], patients: [], hasPatients: false };
-	}
+		if (!organizationId) {
+			return { totalPatients: 0, patientCreatedAt: [], patients: [], hasPatients: false };
+		}
 
-	return getPatientsForOrganization(
-		organizationId,
-		currentPage,
-		currentLimit,
-		normalizedQuery,
-		createdAtFilter,
-		patientFilterOptions,
-	);
-});
+		return getPatientsForOrganization(
+			organizationId,
+			currentPage,
+			currentLimit,
+			normalizedQuery,
+			createdAtFilter,
+			patientFilterOptions,
+		);
+	},
+);
 
 export async function getPatientsForOrganization(
 	organizationId: string,

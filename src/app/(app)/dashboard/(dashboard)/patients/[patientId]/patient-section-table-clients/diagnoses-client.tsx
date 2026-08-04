@@ -15,12 +15,14 @@ type SectionTableState<T> = {
 
 export function DiagnosesClient({
 	patientId,
+	encounterId,
 	diagnoses,
 	page,
 	limit,
 	totalPages,
 }: {
 	patientId: string;
+	encounterId?: string;
 	diagnoses: DiagnosisType[];
 	page: number;
 	limit: number;
@@ -76,6 +78,7 @@ export function DiagnosesClient({
 			setOptimisticLimit(nextLimit);
 			const result = await getPatientDiagnosesTableAction({
 				patientId,
+				encounterId,
 				page: nextPage,
 				limit: nextLimit,
 				query: nextQuery,
@@ -149,6 +152,7 @@ export function DiagnosesClient({
 
 	return (
 		<DiagnosesTable
+			isEncounterScoped={Boolean(encounterId)}
 			diagnoses={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}

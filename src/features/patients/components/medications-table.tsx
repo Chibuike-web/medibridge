@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ArchiveAction } from "./archive-action";
 import type {
 	MedicationDetailsType,
 	MedicationStatusFilter,
@@ -112,6 +113,7 @@ const medicationDateFilterPresets: MedicationDateFilterPreset[] = [
 
 type MedicationsTableProps = {
 	medications: MedicationType[];
+	isEncounterScoped?: boolean;
 	page: number;
 	limit: number;
 	totalPages: number;
@@ -130,6 +132,7 @@ type MedicationsTableProps = {
 
 export function MedicationsTable({
 	medications,
+	isEncounterScoped = false,
 	page,
 	limit,
 	totalPages,
@@ -192,7 +195,11 @@ export function MedicationsTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by medication, dose, route, indication, medication ID, or encounter ID"
+						placeholder={
+							isEncounterScoped
+								? "Search by medication, dose, route, indication, or medication ID"
+								: "Search by medication, dose, route, indication, medication ID, or encounter ID"
+						}
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
@@ -518,10 +525,12 @@ function MedicationsBulkActionBar({
 					<RiShare2Line className="size-5" aria-hidden />
 					<span>Export {selectedMedicationCount > 1 ? "all" : null}</span>
 				</button>
-				<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
-					<RiArchiveLine className="size-5" aria-hidden />
-					<span>Archive {selectedMedicationCount > 1 ? "all" : null}</span>
-				</button>
+				<ArchiveAction>
+					<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+						<RiArchiveLine className="size-5" aria-hidden />
+						<span>Archive {selectedMedicationCount > 1 ? "all" : null}</span>
+					</button>
+				</ArchiveAction>
 			</div>
 			<button
 				type="button"
@@ -1005,10 +1014,12 @@ function getMedicationsColumns({
 									</>
 								) : null}
 								<DropdownMenuSeparator className="bg-white/20" />
+								<ArchiveAction>
 								<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 									<RiArchiveLine className="text-white" />
 									<span>Archive</span>
 								</DropdownMenuItem>
+								</ArchiveAction>
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</div>

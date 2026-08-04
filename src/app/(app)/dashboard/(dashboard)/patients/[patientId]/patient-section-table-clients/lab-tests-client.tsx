@@ -19,12 +19,14 @@ type SectionTableState<T> = {
 
 export function LabTestsClient({
 	patientId,
+	encounterId,
 	labTests,
 	page,
 	limit,
 	totalPages,
 }: {
 	patientId: string;
+	encounterId?: string;
 	labTests: LabTestType[];
 	page: number;
 	limit: number;
@@ -72,6 +74,7 @@ export function LabTestsClient({
 
 			const result = await getPatientLabTestsTableAction({
 				patientId,
+				encounterId,
 				page: nextPage,
 				limit: nextLimit,
 				query: nextQuery,
@@ -136,6 +139,7 @@ export function LabTestsClient({
 	return (
 		<LabTestsTable
 			patientId={patientId}
+			isEncounterScoped={Boolean(encounterId)}
 			labTests={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}

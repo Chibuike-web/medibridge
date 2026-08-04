@@ -52,6 +52,7 @@ export const getPatientLabTests = cache(async (
 	dateFilters: LabTestDateFilters = {},
 	statusFilters: LabTestStatusFilter[] = [],
 	flagFilters: LabTestFlagFilter[] = [],
+	encounterId?: string,
 ): Promise<{ labTests: LabTestType[]; totalLabTests: number }> => {
 	const organizationId = await getOrganizationId();
 
@@ -66,6 +67,7 @@ export const getPatientLabTests = cache(async (
 		dateFilters,
 		statusFilters,
 		flagFilters,
+		encounterId,
 	);
 });
 
@@ -78,6 +80,7 @@ export async function getPatientLabTestsForOrganization(
 	dateFilters: LabTestDateFilters,
 	statusFilters: LabTestStatusFilter[],
 	flagFilters: LabTestFlagFilter[],
+	encounterId?: string,
 ): Promise<{ labTests: LabTestType[]; totalLabTests: number }> {
 	"use cache";
 	cacheLife("max");
@@ -92,6 +95,7 @@ export async function getPatientLabTestsForOrganization(
 	const labTestFilter = and(
 		or(eq(patient.id, patientId), eq(patient.patientId, patientId)),
 		eq(patient.organizationId, organizationId),
+		encounterId ? eq(patientLabTest.encounterId, encounterId) : undefined,
 		createdFromDate ? gte(patientLabTest.createdAt, startOfDay(createdFromDate)) : undefined,
 		createdToDate ? lte(patientLabTest.createdAt, endOfDay(createdToDate)) : undefined,
 		databaseStatusFilters.length > 0
@@ -104,7 +108,7 @@ export async function getPatientLabTestsForOrganization(
 			ilike(patientLabTest.testName, searchPattern),
 			ilike(patientLabTest.result, searchPattern),
 			ilike(patientLabTest.id, searchPattern),
-			ilike(patientLabTest.encounterId, searchPattern),
+			encounterId ? undefined : ilike(patientLabTest.encounterId, searchPattern),
 			ilike(patientLabTest.referenceRange, searchPattern),
 			ilike(patientLabTest.interpretation, searchPattern),
 			ilike(patientLabTest.status, searchPattern),

@@ -22,6 +22,7 @@ export const getPatientDocuments = cache(
 		query = "",
 		dateFilters: DocumentDateFilters = {},
 		documentTypeFilters: string[] = [],
+		encounterId?: string,
 	): Promise<{ documents: DocumentType[]; totalDocuments: number }> => {
 		const organizationId = await getOrganizationId();
 		const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
@@ -37,6 +38,7 @@ export const getPatientDocuments = cache(
 			normalizedQuery,
 			dateFilters,
 			documentTypeFilters,
+			encounterId,
 		);
 	},
 );
@@ -49,6 +51,7 @@ export async function getPatientDocumentsForOrganization(
 	normalizedQuery: string,
 	dateFilters: DocumentDateFilters,
 	documentTypeFilters: string[],
+	encounterId?: string,
 ): Promise<{ documents: DocumentType[]; totalDocuments: number }> {
 	"use cache";
 	cacheLife("max");
@@ -62,6 +65,7 @@ export async function getPatientDocumentsForOrganization(
 	const documentFilter = and(
 		eq(patientDocument.patientId, patientId),
 		eq(patient.organizationId, organizationId),
+		encounterId ? eq(patientDocument.encounterId, encounterId) : undefined,
 		createdFromDate ? gte(patientDocument.createdAt, startOfDay(createdFromDate)) : undefined,
 		createdToDate ? lte(patientDocument.createdAt, endOfDay(createdToDate)) : undefined,
 		documentTypeFilters.length > 0
@@ -69,7 +73,7 @@ export async function getPatientDocumentsForOrganization(
 			: undefined,
 		or(
 			ilike(patientDocument.id, searchPattern),
-			ilike(patientDocument.encounterId, searchPattern),
+			encounterId ? undefined : ilike(patientDocument.encounterId, searchPattern),
 			ilike(patientDocument.title, searchPattern),
 			ilike(patientDocument.documentType, searchPattern),
 			ilike(patientDocument.documentType, searchPattern),

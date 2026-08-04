@@ -59,6 +59,7 @@ import {
 import type { TransferDetailsType, TransferType } from "../types";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import useSWR from "swr";
+import { authClient } from "@/lib/better-auth/auth.client";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
@@ -84,6 +85,8 @@ export function TransferTable({
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
+	const { data: activeMemberRole } = authClient.useActiveMemberRole();
+	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const returnTo = getCurrentRoute(pathname, searchParams);
 	const visibleTransferRowIds = useMemo(
 		() => data.map((transfer) => transfer.id).join(","),
@@ -101,8 +104,8 @@ export function TransferTable({
 	}, []);
 
 	const columns = useMemo(() => {
-		return getTransferColumns(onViewTransferDetails, router, returnTo);
-	}, [onViewTransferDetails, router, returnTo]);
+		return getTransferColumns(onViewTransferDetails, router, returnTo, canArchive);
+	}, [canArchive, onViewTransferDetails, router, returnTo]);
 
 	return (
 		<>
@@ -116,6 +119,7 @@ export function TransferTable({
 				limit={limit}
 				totalPages={totalPages}
 				isPending={isPending}
+				canArchive={canArchive}
 				onPreviousPage={onPreviousPage}
 				onNextPage={onNextPage}
 				onLimitChange={onLimitChange}
@@ -144,6 +148,7 @@ function TransferTableContent({
 	limit,
 	totalPages,
 	isPending,
+	canArchive,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -157,6 +162,7 @@ function TransferTableContent({
 	limit: number;
 	totalPages: number;
 	isPending: boolean;
+	canArchive: boolean;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (value: string) => void;
@@ -341,6 +347,7 @@ function TransferTableContent({
 			</div>
 			<TransferBulkActionBar
 				selectedTransfers={selectedTransfers}
+				canArchive={canArchive}
 				onClearSelection={() => table.resetRowSelection()}
 				onViewTransferDetails={onViewTransferDetails}
 			/>
@@ -350,10 +357,12 @@ function TransferTableContent({
 
 function TransferBulkActionBar({
 	selectedTransfers,
+	canArchive,
 	onClearSelection,
 	onViewTransferDetails,
 }: {
 	selectedTransfers: TransferType[];
+	canArchive: boolean;
 	onClearSelection: () => void;
 	onViewTransferDetails: (transferId: string) => void;
 }) {
@@ -390,13 +399,15 @@ function TransferBulkActionBar({
 					<RiShare2Line className="size-5" aria-hidden={true} />
 					<span>Export {selectedTransferCount > 1 ? "all" : null}</span>
 				</button>
-				<button
-					type="button"
-					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-				>
-					<RiArchiveLine className="size-5" aria-hidden={true} />
-					<span>Archive {selectedTransferCount > 1 ? "all" : null}</span>
-				</button>
+				{canArchive ? (
+					<button
+						type="button"
+						className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+					>
+						<RiArchiveLine className="size-5" aria-hidden={true} />
+						<span>Archive {selectedTransferCount > 1 ? "all" : null}</span>
+					</button>
+				) : null}
 			</div>
 			<button
 				type="button"
@@ -414,6 +425,7 @@ function getTransferColumns(
 	onViewTransferDetails: (transferId: string) => void,
 	router: ReturnType<typeof useRouter>,
 	returnTo: string,
+	canArchive: boolean,
 ): ColumnDef<TransferType>[] {
 	return [
 		{
@@ -534,11 +546,15 @@ function getTransferColumns(
 									>
 										<RiEdit2Line className="text-white" /> <span>Edit and resend request</span>
 									</DropdownMenuItem>
-									<DropdownMenuSeparator className="bg-white/20" />
-									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-										<RiArchiveLine className="text-white" />
-										<span>Archive</span>
-									</DropdownMenuItem>
+									{canArchive ? (
+										<>
+											<DropdownMenuSeparator className="bg-white/20" />
+											<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+												<RiArchiveLine className="text-white" />
+												<span>Archive</span>
+											</DropdownMenuItem>
+										</>
+									) : null}
 								</>
 							) : row.original.status.toLowerCase() === "completed" ? (
 								<>
@@ -549,11 +565,15 @@ function getTransferColumns(
 										<RiEyeLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
-									<DropdownMenuSeparator className="bg-white/20" />
-									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-										<RiArchiveLine className="text-white" />
-										<span>Archive</span>
-									</DropdownMenuItem>
+									{canArchive ? (
+										<>
+											<DropdownMenuSeparator className="bg-white/20" />
+											<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+												<RiArchiveLine className="text-white" />
+												<span>Archive</span>
+											</DropdownMenuItem>
+										</>
+									) : null}
 								</>
 							) : row.original.status.toLowerCase() === "failed" ? (
 								<>
@@ -567,11 +587,15 @@ function getTransferColumns(
 									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 										<RiCornerDownLeftFill className="text-whte" /> <span>Retry transfer</span>
 									</DropdownMenuItem>
-									<DropdownMenuSeparator className="bg-white/20" />
-									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-										<RiArchiveLine className="text-white" />
-										<span>Archive</span>
-									</DropdownMenuItem>
+									{canArchive ? (
+										<>
+											<DropdownMenuSeparator className="bg-white/20" />
+											<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+												<RiArchiveLine className="text-white" />
+												<span>Archive</span>
+											</DropdownMenuItem>
+										</>
+									) : null}
 								</>
 							) : row.original.status.toLowerCase() === "cancelled" ? (
 								<>
@@ -592,11 +616,15 @@ function getTransferColumns(
 									>
 										<RiAddLine className="text-whte" /> <span>Start new transfer</span>
 									</DropdownMenuItem>
-									<DropdownMenuSeparator className="bg-white/20" />
-									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-										<RiArchiveLine className="text-white" />
-										<span>Archive</span>
-									</DropdownMenuItem>
+									{canArchive ? (
+										<>
+											<DropdownMenuSeparator className="bg-white/20" />
+											<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+												<RiArchiveLine className="text-white" />
+												<span>Archive</span>
+											</DropdownMenuItem>
+										</>
+									) : null}
 								</>
 							) : null}
 						</DropdownMenuContent>

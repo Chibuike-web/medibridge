@@ -40,6 +40,7 @@ export const getPatientImmunizations = cache(async (
 	query = "",
 	dateFilters: ImmunizationDateFilters = {},
 	statusFilters: ImmunizationStatusFilter[] = [],
+	encounterId?: string,
 ): Promise<{ immunizations: ImmunizationType[]; totalImmunizations: number }> => {
 	const organizationId = await getOrganizationId();
 
@@ -53,6 +54,7 @@ export const getPatientImmunizations = cache(async (
 		query.trim(),
 		dateFilters,
 		statusFilters,
+		encounterId,
 	);
 });
 
@@ -64,6 +66,7 @@ export async function getPatientImmunizationsForOrganization(
 	normalizedQuery: string,
 	dateFilters: ImmunizationDateFilters,
 	statusFilters: ImmunizationStatusFilter[],
+	encounterId?: string,
 ): Promise<{ immunizations: ImmunizationType[]; totalImmunizations: number }> {
 	"use cache";
 	cacheLife("max");
@@ -77,6 +80,7 @@ export async function getPatientImmunizationsForOrganization(
 	const immunizationFilter = and(
 		eq(patientImmunization.patientId, patientId),
 		eq(patient.organizationId, organizationId),
+		encounterId ? eq(patientImmunization.encounterId, encounterId) : undefined,
 		createdFromDate ? gte(patientImmunization.createdAt, startOfDay(createdFromDate)) : undefined,
 		createdToDate ? lte(patientImmunization.createdAt, endOfDay(createdToDate)) : undefined,
 		databaseStatusFilters.length > 0
@@ -85,7 +89,7 @@ export async function getPatientImmunizationsForOrganization(
 		or(
 			ilike(patientImmunization.vaccineName, searchPattern),
 			ilike(patientImmunization.id, searchPattern),
-			ilike(patientImmunization.encounterId, searchPattern),
+			encounterId ? undefined : ilike(patientImmunization.encounterId, searchPattern),
 			ilike(patientImmunization.status, searchPattern),
 		),
 	);

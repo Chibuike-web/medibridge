@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { ArchiveAction } from "./archive-action";
 import useSWR from "swr";
 import { CreateDocumentDrawer as CreateDocumentDrawerComponent } from "@/features/patients/components/create-document-drawer";
 import { DocumentDetailsDrawer as DocumentDetailsDrawerComponent } from "@/features/patients/components/document-details-drawer";
@@ -126,6 +127,8 @@ const fileFormat: Record<string, string> = {
 
 type DocumentsTableProps = {
 	patientId: string;
+	encounterId?: string;
+	isEncounterScoped?: boolean;
 	documents: DocumentType[];
 	page: number;
 	limit: number;
@@ -155,6 +158,8 @@ const DOCUMENT_TYPE = [
 
 export function DocumentsTable({
 	patientId,
+	encounterId,
+	isEncounterScoped = false,
 	documents,
 	page,
 	limit,
@@ -216,7 +221,11 @@ export function DocumentsTable({
 					<Input
 						type="search"
 						className="pl-8"
-						placeholder="Search by name, document ID, or encounter ID"
+						placeholder={
+							isEncounterScoped
+								? "Search by name or document ID"
+								: "Search by name, document ID, or encounter ID"
+						}
 						value={query}
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
@@ -507,6 +516,7 @@ export function DocumentsTable({
 				open={isCreateDrawerOpen}
 				onOpenChange={setIsCreateDrawerOpen}
 				patientId={patientId}
+				encounterId={encounterId}
 				onCreated={onDocumentsChanged}
 			/>
 		</div>
@@ -551,13 +561,15 @@ function DocumentsBulkActionBar({
 					<RiShare2Line className="size-5" aria-hidden />
 					<span>Export {selectedDocumentCount > 1 ? "all" : null}</span>
 				</button>
-				<button
-					type="button"
-					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-				>
-					<RiArchiveLine className="size-5" aria-hidden />
-					<span>Archive {selectedDocumentCount > 1 ? "all" : null}</span>
-				</button>
+				<ArchiveAction>
+					<button
+						type="button"
+						className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+					>
+						<RiArchiveLine className="size-5" aria-hidden />
+						<span>Archive {selectedDocumentCount > 1 ? "all" : null}</span>
+					</button>
+				</ArchiveAction>
 			</div>
 			<button
 				type="button"

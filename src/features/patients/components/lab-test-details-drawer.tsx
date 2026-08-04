@@ -31,6 +31,7 @@ import {
 } from "@/features/patients/components/attachment-form-fields";
 import type { LabTestDetailsHistoryEvent, LabTestType } from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
+import { ArchiveAction } from "./archive-action";
 import docFileIcon from "@/assets/file-formats/doc.svg";
 import jpgFileIcon from "@/assets/file-formats/jpg.svg";
 import pdfFileIcon from "@/assets/file-formats/pdf.svg";
@@ -134,9 +135,11 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 									Cancel
 								</Button>
 							</DrawerClose>
-							<Button type="button" className="bg-gray-800 text-sm">
-								Archive Lab result
-							</Button>
+							<ArchiveAction>
+								<Button type="button" className="bg-gray-800 text-sm">
+									Archive Lab result
+								</Button>
+							</ArchiveAction>
 						</div>
 					)}
 				</DrawerFooter>

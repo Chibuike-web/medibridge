@@ -34,6 +34,7 @@ import {
 	type AttachmentFormRow,
 } from "@/features/patients/components/attachment-form-fields";
 import { cn } from "@/lib/utils/cn";
+import { ArchiveAction } from "./archive-action";
 import {
 	RiAddLine,
 	RiArrowDownSLine,
@@ -151,7 +152,9 @@ export function MedicationDetailsDrawer({
 									Cancel
 								</Button>
 							</DrawerClose>
-							<Button className="bg-gray-800 text-sm">Archive medication</Button>
+							<ArchiveAction>
+								<Button className="bg-gray-800 text-sm">Archive medication</Button>
+							</ArchiveAction>
 						</div>
 					)}
 				</DrawerFooter>

@@ -5,6 +5,7 @@ import {
 	patientContactInformation,
 	patientDocument,
 	patientEmergencyContact,
+	patientEncounter,
 	patientPersonalInformation,
 	patientPhysicalInformation,
 } from "@/db/schemas";
@@ -374,6 +375,7 @@ export async function getPatientsTableAction({
 
 export async function getPatientDiagnosesTableAction({
 	patientId,
+	encounterId,
 	page,
 	limit,
 	query = "",
@@ -386,6 +388,7 @@ export async function getPatientDiagnosesTableAction({
 	statusFilters = [],
 }: {
 	patientId: string;
+	encounterId?: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
@@ -413,6 +416,7 @@ export async function getPatientDiagnosesTableAction({
 			lastReviewedTo,
 		},
 		statusFilters,
+		encounterId,
 	);
 
 	return {
@@ -425,6 +429,7 @@ export async function getPatientDiagnosesTableAction({
 
 export async function getPatientDocumentsTableAction({
 	patientId,
+	encounterId,
 	page,
 	limit,
 	query = "",
@@ -433,6 +438,7 @@ export async function getPatientDocumentsTableAction({
 	documentTypeFilters = [],
 }: {
 	patientId: string;
+	encounterId?: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
@@ -449,6 +455,7 @@ export async function getPatientDocumentsTableAction({
 		query,
 		{ createdFrom, createdTo },
 		documentTypeFilters,
+		encounterId,
 	);
 
 	return {
@@ -459,7 +466,11 @@ export async function getPatientDocumentsTableAction({
 	};
 }
 
-export async function createPatientDocumentAction(patientId: string, formData: FormData) {
+export async function createPatientDocumentAction(
+	patientId: string,
+	formData: FormData,
+	encounterId?: string,
+) {
 	const organizationId = await getOrganizationId();
 	const title = String(formData.get("title") ?? "").trim();
 	const documentType = String(formData.get("documentType") ?? "").trim();
@@ -477,10 +488,30 @@ export async function createPatientDocumentAction(patientId: string, formData: F
 
 	if (!patientRow) return { ok: false, message: "Patient could not be found." };
 
+	if (encounterId) {
+		const [encounterRow] = await db
+			.select({ id: patientEncounter.id })
+			.from(patientEncounter)
+			.innerJoin(patient, eq(patientEncounter.patientId, patient.id))
+			.where(
+				and(
+					eq(patientEncounter.id, encounterId),
+					eq(patientEncounter.patientId, patientId),
+					eq(patient.organizationId, organizationId),
+				),
+			)
+			.limit(1);
+
+		if (!encounterRow) {
+			return { ok: false, message: "Encounter could not be found." };
+		}
+	}
+
 	const documentId = `DOC-${crypto.randomUUID()}`;
 	await db.insert(patientDocument).values({
 		id: documentId,
 		patientId,
+		encounterId: encounterId ?? null,
 		title,
 		documentType,
 		clinicalNotes: clinicalNotes || null,
@@ -544,6 +575,7 @@ export async function removePatientDocumentAction(documentId: string) {
 
 export async function getPatientAllergiesTableAction({
 	patientId,
+	encounterId,
 	page,
 	limit,
 	query = "",
@@ -553,6 +585,7 @@ export async function getPatientAllergiesTableAction({
 	severityFilters = [],
 }: {
 	patientId: string;
+	encounterId?: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
@@ -571,6 +604,7 @@ export async function getPatientAllergiesTableAction({
 		{ createdFrom, createdTo },
 		statusFilters,
 		severityFilters,
+		encounterId,
 	);
 
 	return {
@@ -583,6 +617,7 @@ export async function getPatientAllergiesTableAction({
 
 export async function getPatientImmunizationsTableAction({
 	patientId,
+	encounterId,
 	page,
 	limit,
 	query = "",
@@ -591,6 +626,7 @@ export async function getPatientImmunizationsTableAction({
 	statusFilters = [],
 }: {
 	patientId: string;
+	encounterId?: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
@@ -607,6 +643,7 @@ export async function getPatientImmunizationsTableAction({
 		query,
 		{ createdFrom, createdTo },
 		statusFilters,
+		encounterId,
 	);
 
 	return {
@@ -619,6 +656,7 @@ export async function getPatientImmunizationsTableAction({
 
 export async function getPatientProceduresTableAction({
 	patientId,
+	encounterId,
 	page,
 	limit,
 	query = "",
@@ -627,6 +665,7 @@ export async function getPatientProceduresTableAction({
 	statusFilters = [],
 }: {
 	patientId: string;
+	encounterId?: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
@@ -643,6 +682,7 @@ export async function getPatientProceduresTableAction({
 		query,
 		{ createdFrom, createdTo },
 		statusFilters,
+		encounterId,
 	);
 
 	return {
@@ -655,6 +695,7 @@ export async function getPatientProceduresTableAction({
 
 export async function getPatientMedicationsTableAction({
 	patientId,
+	encounterId,
 	page,
 	limit,
 	query = "",
@@ -663,6 +704,7 @@ export async function getPatientMedicationsTableAction({
 	statusFilters = [],
 }: {
 	patientId: string;
+	encounterId?: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
@@ -679,6 +721,7 @@ export async function getPatientMedicationsTableAction({
 		query,
 		{ createdFrom, createdTo },
 		statusFilters,
+		encounterId,
 	);
 
 	return {
@@ -734,6 +777,7 @@ export async function getPatientEncountersTableAction({
 
 export async function getPatientLabTestsTableAction({
 	patientId,
+	encounterId,
 	page,
 	limit,
 	query = "",
@@ -743,6 +787,7 @@ export async function getPatientLabTestsTableAction({
 	flagFilters = [],
 }: {
 	patientId: string;
+	encounterId?: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
@@ -761,6 +806,7 @@ export async function getPatientLabTestsTableAction({
 		{ createdFrom, createdTo },
 		statusFilters,
 		flagFilters,
+		encounterId,
 	);
 
 	return {
@@ -773,6 +819,7 @@ export async function getPatientLabTestsTableAction({
 
 export async function getPatientImagingTableAction({
 	patientId,
+	encounterId,
 	page,
 	limit,
 	query = "",
@@ -784,6 +831,7 @@ export async function getPatientImagingTableAction({
 	modalityFilters = [],
 }: {
 	patientId: string;
+	encounterId?: string;
 	page: number | string;
 	limit: number | string;
 	query?: string;
@@ -804,6 +852,7 @@ export async function getPatientImagingTableAction({
 		{ orderedFrom, orderedTo, createdFrom, createdTo },
 		statusFilters,
 		modalityFilters,
+		encounterId,
 	);
 
 	return {

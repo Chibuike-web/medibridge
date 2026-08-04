@@ -29,6 +29,7 @@ import {
 } from "@/features/patients/components/create-imaging-drawer";
 import type { ImagingDetailsHistoryEvent, ImagingType } from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
+import { ArchiveAction } from "./archive-action";
 import { getDocumentFileIcon } from "@/lib/utils/document-file-icon";
 import {
 	RiAddLine,
@@ -120,7 +121,9 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 									Cancel
 								</Button>
 							</DrawerClose>
-							<Button type="button">Archive Imaging</Button>
+							<ArchiveAction>
+								<Button type="button">Archive Imaging</Button>
+							</ArchiveAction>
 						</div>
 					)}
 				</DrawerFooter>

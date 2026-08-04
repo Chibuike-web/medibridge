@@ -19,12 +19,14 @@ type SectionTableState<T> = {
 
 export function AllergiesClient({
 	patientId,
+	encounterId,
 	allergies,
 	page,
 	limit,
 	totalPages,
 }: {
 	patientId: string;
+	encounterId?: string;
 	allergies: AllergyType[];
 	page: number;
 	limit: number;
@@ -72,6 +74,7 @@ export function AllergiesClient({
 
 			const result = await getPatientAllergiesTableAction({
 				patientId,
+				encounterId,
 				page: nextPage,
 				limit: nextLimit,
 				query: nextQuery,
@@ -134,6 +137,7 @@ export function AllergiesClient({
 
 	return (
 		<AllergiesTable
+			isEncounterScoped={Boolean(encounterId)}
 			allergies={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}

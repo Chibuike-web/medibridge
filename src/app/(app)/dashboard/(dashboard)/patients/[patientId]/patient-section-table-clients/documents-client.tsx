@@ -15,12 +15,14 @@ type DocumentsTableState = {
 
 export function DocumentsClient({
 	patientId,
+	encounterId,
 	documents,
 	page,
 	limit,
 	totalPages,
 }: {
 	patientId: string;
+	encounterId?: string;
 	documents: DocumentType[];
 	page: number;
 	limit: number;
@@ -63,6 +65,7 @@ export function DocumentsClient({
 			setOptimisticLimit(nextLimit);
 			const result = await getPatientDocumentsTableAction({
 				patientId,
+				encounterId,
 				page: nextPage,
 				limit: nextLimit,
 				query: nextQuery,
@@ -117,6 +120,8 @@ export function DocumentsClient({
 	return (
 		<DocumentsTable
 			patientId={patientId}
+			encounterId={encounterId}
+			isEncounterScoped={Boolean(encounterId)}
 			documents={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}

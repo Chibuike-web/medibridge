@@ -31,6 +31,7 @@ export const getPatientProcedures = cache(async (
 	query = "",
 	createdAtFilter: { createdFrom?: string; createdTo?: string } = {},
 	statusFilters: ProcedureStatusFilter[] = [],
+	encounterId?: string,
 ): Promise<{ procedures: ProcedureType[]; totalProcedures: number }> => {
 	const organizationId = await getOrganizationId();
 
@@ -44,6 +45,7 @@ export const getPatientProcedures = cache(async (
 		query.trim(),
 		createdAtFilter,
 		statusFilters,
+		encounterId,
 	);
 });
 
@@ -55,6 +57,7 @@ export async function getPatientProceduresForOrganization(
 	normalizedQuery: string,
 	createdAtFilter: { createdFrom?: string; createdTo?: string },
 	statusFilters: ProcedureStatusFilter[],
+	encounterId?: string,
 ): Promise<{ procedures: ProcedureType[]; totalProcedures: number }> {
 	"use cache";
 	cacheLife("max");
@@ -71,12 +74,13 @@ export async function getPatientProceduresForOrganization(
 	const procedureFilter = and(
 		eq(patientProcedure.patientId, patientId),
 		eq(patient.organizationId, organizationId),
+		encounterId ? eq(patientProcedure.encounterId, encounterId) : undefined,
 		...createdAtConditions,
 		...(statusFilters.length > 0 ? [inArray(patientProcedure.status, statusFilters)] : []),
 		or(
 			ilike(patientProcedure.procedureName, searchPattern),
 			ilike(patientProcedure.id, searchPattern),
-			ilike(patientProcedure.encounterId, searchPattern),
+			encounterId ? undefined : ilike(patientProcedure.encounterId, searchPattern),
 			ilike(patientProcedure.indication, searchPattern),
 			ilike(patientProcedure.facility, searchPattern),
 			ilike(patientProcedure.status, searchPattern),

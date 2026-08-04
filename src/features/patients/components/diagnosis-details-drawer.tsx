@@ -35,6 +35,7 @@ import type {
 	DiagnosisDetailsType,
 } from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
+import { ArchiveAction } from "./archive-action";
 import {
 	RiAddLine,
 	RiArrowDownSLine,
@@ -144,7 +145,9 @@ export function DiagnosisDetailsDrawer({
 									Cancel
 								</Button>
 							</DrawerClose>
-							<Button className="bg-gray-800 text-sm">Archive diagnosis</Button>
+							<ArchiveAction>
+								<Button className="bg-gray-800 text-sm">Archive diagnosis</Button>
+							</ArchiveAction>
 						</div>
 					)}
 				</DrawerFooter>

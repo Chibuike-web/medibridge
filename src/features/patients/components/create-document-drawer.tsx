@@ -44,11 +44,13 @@ export function CreateDocumentDrawer({
 	open,
 	onOpenChange,
 	patientId,
+	encounterId,
 	onCreated,
 }: {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	patientId: string;
+	encounterId?: string;
 	onCreated: () => void;
 }) {
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -58,7 +60,7 @@ export function CreateDocumentDrawer({
 	function handleCreate(formData: FormData) {
 		setFormError("");
 		startTransition(async () => {
-			const result = await createPatientDocumentAction(patientId, formData);
+			const result = await createPatientDocumentAction(patientId, formData, encounterId);
 			if (!result.ok) {
 				setFormError(result.message ?? "Unable to add document.");
 				return;

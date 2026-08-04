@@ -15,12 +15,14 @@ type SectionTableState<T> = {
 
 export function ImmunizationsClient({
 	patientId,
+	encounterId,
 	immunizations,
 	page,
 	limit,
 	totalPages,
 }: {
 	patientId: string;
+	encounterId?: string;
 	immunizations: ImmunizationType[];
 	page: number;
 	limit: number;
@@ -65,6 +67,7 @@ export function ImmunizationsClient({
 
 			const result = await getPatientImmunizationsTableAction({
 				patientId,
+				encounterId,
 				page: nextPage,
 				limit: nextLimit,
 				query: nextQuery,
@@ -122,6 +125,7 @@ export function ImmunizationsClient({
 
 	return (
 		<ImmunizationsTable
+			isEncounterScoped={Boolean(encounterId)}
 			immunizations={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}
