@@ -3,26 +3,32 @@ import Link from "next/link";
 import { RiArrowLeftLine } from "@remixicon/react";
 import { verifySession } from "@/lib/api/verify-session";
 import { Suspense } from "react";
+import { Route } from "next";
+import { getStringParam } from "@/lib/utils/search-params";
 
 export const metadata = {
 	title: "Add New Patient",
 };
 
-export default async function AddNewPatient() {
+type AddNewPatientPageProps = Pick<PageProps<"/dashboard/add-new-patient">, "searchParams">;
+
+export default async function AddNewPatient({ searchParams }: AddNewPatientPageProps) {
 	return (
 		<Suspense>
-			<AddNewPatientContent />
+			<AddNewPatientContent searchParams={searchParams} />
 		</Suspense>
 	);
 }
 
-async function AddNewPatientContent() {
+async function AddNewPatientContent({ searchParams }: AddNewPatientPageProps) {
+	const { returnTo } = await searchParams;
+	const safeReturnTo = getSafeReturnTo(getStringParam(returnTo));
 	await verifySession();
 
 	return (
 		<>
 			<nav className="w-full h-14 flex items-center sticky z-1 top-0 bg-white border-b border-gray-300 px-6">
-				<Link href="/dashboard/overview" className="flex gap-2 w-max items-center text-foreground">
+				<Link href={safeReturnTo} className="flex gap-2 w-max items-center text-foreground">
 					<RiArrowLeftLine className="size-4" /> <span className="sr-only">Back</span>
 				</Link>
 			</nav>
@@ -39,4 +45,12 @@ async function AddNewPatientContent() {
 			</main>
 		</>
 	);
+}
+
+function getSafeReturnTo(value: string | undefined): Route {
+	if (!value) return "/dashboard/transfers";
+	if (!value.startsWith("/dashboard/")) return "/dashboard/transfers";
+	if (value.startsWith("//")) return "/dashboard/transfers";
+
+	return value as Route;
 }

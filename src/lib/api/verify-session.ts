@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getSessionData } from "@/lib/api/get-session-data";
 
 export const verifySession = cache(async () => {
+	"use cache: private";
 	const session = await getSessionData();
 
 	if (!session) {

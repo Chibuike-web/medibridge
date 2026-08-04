@@ -18,9 +18,7 @@ type NewTransferRequestPageProps = Pick<
 	"searchParams"
 >;
 
-export default async function NewTransferRequest({
-	searchParams,
-}: NewTransferRequestPageProps) {
+export default async function NewTransferRequest({ searchParams }: NewTransferRequestPageProps) {
 	return (
 		<Suspense>
 			<NewTransferRequestContent searchParams={searchParams} />
@@ -28,9 +26,7 @@ export default async function NewTransferRequest({
 	);
 }
 
-async function NewTransferRequestContent({
-	searchParams,
-}: NewTransferRequestPageProps) {
+async function NewTransferRequestContent({ searchParams }: NewTransferRequestPageProps) {
 	await verifySession();
 	const { returnTo } = await searchParams;
 	const safeReturnTo = getSafeReturnTo(getStringParam(returnTo));

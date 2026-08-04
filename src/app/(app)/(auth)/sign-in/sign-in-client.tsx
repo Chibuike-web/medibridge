@@ -83,9 +83,9 @@ export function SignInClient() {
 			setSignInError(setActiveOrganizationError.message ?? "No active organization");
 			return;
 		}
-		router.replace("/dashboard/overview");
 
 		startTransition(() => {
+			router.replace("/dashboard/overview");
 			reset();
 		});
 	};

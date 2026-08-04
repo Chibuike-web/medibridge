@@ -408,6 +408,10 @@ export function PatientsClient({
 		});
 	}
 
+	const returnTo = getCurrentRoute(pathname, searchParams);
+	const addNewPatientHref =
+		`/dashboard/add-new-patient?returnTo=${encodeURIComponent(returnTo)}` as Route;
+
 	return (
 		<div className="flex h-full flex-col">
 			<header className="border-b border-gray-200 bg-white px-6 h-14 flex items-center sticky top-0 z-20 shrink-0 text-sm">
@@ -442,7 +446,7 @@ export function PatientsClient({
 					</Button>
 
 					<Button className="text-sm" asChild>
-						<Link href="/dashboard/add-new-patient">Add patient</Link>
+						<Link href={addNewPatientHref}>Add patient</Link>
 					</Button>
 				</div>
 			</header>
@@ -576,4 +580,10 @@ function getPatientAgeRange(ageGroup: PatientAgeGroupFilter) {
 		default:
 			return undefined;
 	}
+}
+
+function getCurrentRoute(pathname: string, searchParams: URLSearchParams) {
+	const queryString = searchParams.toString();
+
+	return queryString ? `${pathname}?${queryString}` : pathname;
 }

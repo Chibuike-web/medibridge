@@ -1,13 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-	reactCompiler: false,
+	reactCompiler: true,
+	partialPrefetching: true,
 	cacheComponents: true,
 	logging: { fetches: { fullUrl: true } },
 	serverExternalPackages: ["tesseract.js", "pdf-parse", "mammoth"],
 	experimental: {
 		turbopackFileSystemCacheForBuild: true,
-
+		turbopackRustReactCompiler: true,
 		optimizePackageImports: [
 			"@radix-ui/react-label",
 			"@radix-ui/react-dropdown-menu",
