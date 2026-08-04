@@ -30,7 +30,7 @@ import type { SyntheticEvent } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { updatePatientPersonalInformationAction } from "@/features/patients/server/actions";
+import { updatePatientPersonalInformationAction } from "@/features/patients/server/update-patient-personal-information-action";
 import {
 	Select,
 	SelectContent,

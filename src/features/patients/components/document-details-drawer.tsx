@@ -24,10 +24,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-	removePatientDocumentAction,
-	updatePatientDocumentAction,
-} from "@/features/patients/server/actions";
+import { removePatientDocumentAction } from "@/features/patients/server/remove-patient-document-action";
+import { updatePatientDocumentAction } from "@/features/patients/server/update-patient-document-action";
 import type { DocumentType } from "@/features/patients/types";
 import { RiAddLine, RiCloseLine, RiEditLine } from "@remixicon/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";

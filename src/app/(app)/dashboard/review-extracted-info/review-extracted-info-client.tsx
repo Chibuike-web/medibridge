@@ -1,7 +1,7 @@
 "use client";
 
 import { PatientRecord, PatientType } from "@/features/patients/schemas/patient-schema";
-import { savePatientsAction } from "@/features/patients/server/actions";
+import { savePatientsAction } from "@/features/patients/server/save-patients-action";
 import { SuccessModal } from "@/components/success-modal";
 import { Button } from "@/components/ui/button";
 import {

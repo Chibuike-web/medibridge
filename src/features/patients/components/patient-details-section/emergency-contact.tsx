@@ -26,7 +26,7 @@ import { RiEditLine, RiMore2Fill, RiShare2Line, RiCloseLine } from "@remixicon/r
 import { useOptimistic, useState, useTransition } from "react";
 import type { SyntheticEvent } from "react";
 import { DetailItem, DetailsSection } from "./detail-fields";
-import { updatePatientEmergencyContactAction } from "@/features/patients/server/actions";
+import { updatePatientEmergencyContactAction } from "@/features/patients/server/update-patient-emergency-contact-action";
 
 type EmergencyContactItem = {
 	label: string;

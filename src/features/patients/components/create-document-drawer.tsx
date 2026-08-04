@@ -23,7 +23,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { createPatientDocumentAction } from "@/features/patients/server/actions";
+import { createPatientDocumentAction } from "@/features/patients/server/create-patient-document-action";
 import { RiCloseLine } from "@remixicon/react";
 import { useRef, useState, useTransition } from "react";
 

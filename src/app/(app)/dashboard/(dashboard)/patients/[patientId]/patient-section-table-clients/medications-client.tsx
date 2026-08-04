@@ -1,7 +1,7 @@
 "use client";
 
 import { MedicationsTable } from "@/features/patients/components/medications-table";
-import { getPatientMedicationsTableAction } from "@/features/patients/server/actions";
+import { getPatientMedicationsTableAction } from "@/features/patients/server/get-patient-medications-table-action";
 import type { MedicationStatusFilter, MedicationType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useRef, useState, useTransition } from "react";

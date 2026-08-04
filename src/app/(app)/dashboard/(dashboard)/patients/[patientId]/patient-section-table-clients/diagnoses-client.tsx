@@ -1,7 +1,7 @@
 "use client";
 
 import { DiagnosesTable } from "@/features/patients/components/diagnoses-table";
-import { getPatientDiagnosesTableAction } from "@/features/patients/server/actions";
+import { getPatientDiagnosesTableAction } from "@/features/patients/server/get-patient-diagnoses-table-action";
 import type { DiagnosisStatusFilter, DiagnosisType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useRef, useState, useTransition } from "react";

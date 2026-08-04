@@ -1,7 +1,7 @@
 "use client";
 
 import { ProceduresTable } from "@/features/patients/components/procedures-table";
-import { getPatientProceduresTableAction } from "@/features/patients/server/actions";
+import { getPatientProceduresTableAction } from "@/features/patients/server/get-patient-procedures-table-action";
 import type { ProcedureStatusFilter, ProcedureType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useRef, useState, useTransition } from "react";

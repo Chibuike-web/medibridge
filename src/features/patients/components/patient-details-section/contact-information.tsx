@@ -23,7 +23,7 @@ import { useOptimistic, useState, useTransition } from "react";
 import type { SyntheticEvent } from "react";
 import { RiCloseLine, RiEditLine, RiMore2Fill, RiShare2Line } from "@remixicon/react";
 import { DetailItem, DetailsSection } from "./detail-fields";
-import { updatePatientContactInformationAction } from "@/features/patients/server/actions";
+import { updatePatientContactInformationAction } from "@/features/patients/server/update-patient-contact-information-action";
 
 type ContactInformationItem = {
 	label: string;

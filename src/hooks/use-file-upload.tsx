@@ -1,6 +1,6 @@
 "use client";
 
-import { deletePatientUploadAction } from "@/features/patients/server/actions";
+import { deletePatientUploadAction } from "@/features/patients/server/delete-patient-upload-action";
 import { useExtractedPatient } from "@/features/patients/store/use-extracted-patient-store";
 import { ExtractionResult, SelectedFile } from "@/lib/types/upload";
 import { startTransition, useState } from "react";

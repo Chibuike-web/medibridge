@@ -47,11 +47,9 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import type { DocumentType } from "@/features/patients/types";
-import {
-	createPatientDocumentAction,
-	removePatientDocumentAction,
-	updatePatientDocumentAction,
-} from "@/features/patients/server/actions";
+import { createPatientDocumentAction } from "@/features/patients/server/create-patient-document-action";
+import { removePatientDocumentAction } from "@/features/patients/server/remove-patient-document-action";
+import { updatePatientDocumentAction } from "@/features/patients/server/update-patient-document-action";
 import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {

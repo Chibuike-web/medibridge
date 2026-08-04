@@ -34,7 +34,7 @@ import { RiEditLine, RiMore2Fill, RiShare2Line, RiCloseLine } from "@remixicon/r
 import { useOptimistic, useState, useTransition } from "react";
 import type { SyntheticEvent } from "react";
 import { DetailItem, DetailsSection } from "./detail-fields";
-import { updatePatientPhysicalInformationAction } from "@/features/patients/server/actions";
+import { updatePatientPhysicalInformationAction } from "@/features/patients/server/update-patient-physical-information-action";
 
 type PhysicalInformationItem = {
 	label: string;

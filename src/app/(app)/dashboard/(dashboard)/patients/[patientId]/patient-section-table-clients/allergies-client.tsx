@@ -1,7 +1,7 @@
 "use client";
 
 import { AllergiesTable } from "@/features/patients/components/allergies-table";
-import { getPatientAllergiesTableAction } from "@/features/patients/server/actions";
+import { getPatientAllergiesTableAction } from "@/features/patients/server/get-patient-allergies-table-action";
 import type {
 	AllergySeverityFilter,
 	AllergyStatusFilter,

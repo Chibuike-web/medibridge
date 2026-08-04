@@ -27,7 +27,7 @@ import { usePatientTransferData } from "@/features/transfers/stores/use-patient-
 import { useShowSuccess } from "@/hooks/use-show-success";
 import { SuccessModal } from "@/components/success-modal";
 import { useAttachClinicalRecords } from "@/features/transfers/stores/use-attach-clinical-records";
-import { getPatientByIdAction } from "@/features/patients/server/actions";
+import { getPatientByIdAction } from "@/features/patients/server/get-patient-by-id-action";
 import type { SelectedTransferPatient } from "@/features/transfers/stores/use-selected-transfer-patients";
 import { truncateId } from "@/lib/utils/truncate-id";
 import type { Route } from "next";

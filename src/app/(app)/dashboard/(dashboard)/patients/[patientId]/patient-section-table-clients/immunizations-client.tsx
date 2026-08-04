@@ -1,7 +1,7 @@
 "use client";
 
 import { ImmunizationsTable } from "@/features/patients/components/immunizations-table";
-import { getPatientImmunizationsTableAction } from "@/features/patients/server/actions";
+import { getPatientImmunizationsTableAction } from "@/features/patients/server/get-patient-immunizations-table-action";
 import type { ImmunizationStatusFilter, ImmunizationType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useRef, useState, useTransition } from "react";

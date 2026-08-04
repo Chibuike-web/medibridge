@@ -1,7 +1,7 @@
 "use client";
 
 import { DocumentsTable } from "@/features/patients/components/documents-table";
-import { getPatientDocumentsTableAction } from "@/features/patients/server/actions";
+import { getPatientDocumentsTableAction } from "@/features/patients/server/get-patient-documents-table-action";
 import type { DocumentType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useRef, useState, useTransition } from "react";

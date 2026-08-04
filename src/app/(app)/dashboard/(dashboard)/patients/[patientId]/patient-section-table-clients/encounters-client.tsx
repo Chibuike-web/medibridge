@@ -1,7 +1,7 @@
 "use client";
 
 import { EncountersTable } from "@/features/patients/components/encounters-table";
-import { getPatientEncountersTableAction } from "@/features/patients/server/actions";
+import { getPatientEncountersTableAction } from "@/features/patients/server/get-patient-encounters-table-action";
 import type {
 	EncounterDepartmentFilter,
 	EncounterType,

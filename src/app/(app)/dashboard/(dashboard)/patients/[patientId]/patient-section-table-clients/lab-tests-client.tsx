@@ -1,7 +1,7 @@
 "use client";
 
 import { LabTestsTable } from "@/features/patients/components/lab-tests-table";
-import { getPatientLabTestsTableAction } from "@/features/patients/server/actions";
+import { getPatientLabTestsTableAction } from "@/features/patients/server/get-patient-lab-tests-table-action";
 import type {
 	LabTestFlagFilter,
 	LabTestStatusFilter,

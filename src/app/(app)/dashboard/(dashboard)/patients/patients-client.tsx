@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FilterButton } from "@/features/patients/components/filter-button";
 import { PatientsTable } from "@/features/patients/components/patients-table";
-import { getPatientsTableAction } from "@/features/patients/server/actions";
+import { getPatientsTableAction } from "@/features/patients/server/get-patients-table-action";
 import type {
 	PatientAgeGroupFilter,
 	PatientGenderFilter,

@@ -1,7 +1,7 @@
 "use client";
 
 import { ImagingTable } from "@/features/patients/components/imaging-table";
-import { getPatientImagingTableAction } from "@/features/patients/server/actions";
+import { getPatientImagingTableAction } from "@/features/patients/server/get-patient-imaging-table-action";
 import type {
 	ImagingModalityFilter,
 	ImagingStatusFilter,
