@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils/cn";
 const TOTAL_PATIENTS_LABEL = "Total No. of Patients";
 const TRANSFERRED_RECORDS_LABEL = "Transferred Records";
 const PENDING_TRANSFERS_LABEL = "Pending Transfers";
-const NEW_ENCOUNTERS_LABEL = "No of New Encounters";
+const NEW_ENCOUNTERS_LABEL = "New Encounter";
 
 function getComparison(currentCount: number, previousCount: number) {
 	const difference = currentCount - previousCount;

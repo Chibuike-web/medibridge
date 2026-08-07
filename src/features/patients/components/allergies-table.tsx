@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArchiveAction } from "./archive-action";
+import { authClient } from "@/lib/better-auth/auth.client";
 import type {
 	AllergyDetailsType,
 	AllergySeverityFilter,
@@ -163,6 +163,8 @@ export function AllergiesTable({
 	onNextPage,
 	onLimitChange,
 }: AllergiesTableProps) {
+	const { data: activeMemberRole } = authClient.useActiveMemberRole();
+	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const visibleAllergyRowIds = useMemo(
 		() => allergies.map((allergy) => allergy.allergyId).join(","),
 		[allergies],
@@ -181,8 +183,8 @@ export function AllergiesTable({
 		setIsDetailsDrawerOpen(true);
 	}
 	const columns = useMemo(
-		() => getAllergiesColumns({ onViewAllergyDetails: handleViewAllergyDetails }),
-		[],
+		() => getAllergiesColumns({ canArchive, onViewAllergyDetails: handleViewAllergyDetails }),
+		[canArchive],
 	);
 	return (
 		<div className="px-6 py-8 text-sm">
@@ -325,6 +327,7 @@ export function AllergiesTable({
 			/>
 			<AllergiesTableContent
 				key={visibleAllergyRowIds}
+				canArchive={canArchive}
 				allergies={allergies}
 				columns={columns}
 				sorting={sorting}
@@ -350,6 +353,7 @@ export function AllergiesTable({
 }
 
 function AllergiesTableContent({
+	canArchive,
 	allergies,
 	columns,
 	sorting,
@@ -363,6 +367,7 @@ function AllergiesTableContent({
 	onNextPage,
 	onLimitChange,
 }: {
+	canArchive: boolean;
 	allergies: AllergyType[];
 	columns: ColumnDef<AllergyType>[];
 	sorting: SortingState;
@@ -557,6 +562,7 @@ function AllergiesTableContent({
 			</div>
 			</div>
 			<AllergiesBulkActionBar
+				canArchive={canArchive}
 				selectedAllergies={selectedAllergies}
 				onClearSelection={() => table.resetRowSelection()}
 				onViewAllergyDetails={onViewAllergyDetails}
@@ -566,10 +572,12 @@ function AllergiesTableContent({
 }
 
 function AllergiesBulkActionBar({
+	canArchive,
 	selectedAllergies,
 	onClearSelection,
 	onViewAllergyDetails,
 }: {
+	canArchive: boolean;
 	selectedAllergies: AllergyType[];
 	onClearSelection: () => void;
 	onViewAllergyDetails: (allergyId: string) => void;
@@ -600,12 +608,12 @@ function AllergiesBulkActionBar({
 					<RiShare2Line className="size-5" aria-hidden />
 					<span>Export {selectedAllergyCount > 1 ? "all" : null}</span>
 				</button>
-				<ArchiveAction>
+				{canArchive ? (
 					<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
 						<RiArchiveLine className="size-5" aria-hidden />
 						<span>Archive {selectedAllergyCount > 1 ? "all" : null}</span>
 					</button>
-				</ArchiveAction>
+				) : null}
 			</div>
 			<button
 				type="button"
@@ -972,8 +980,10 @@ async function fetchPatientAllergyDetails(selectedId: string) {
 }
 
 function getAllergiesColumns({
+	canArchive,
 	onViewAllergyDetails,
 }: {
+	canArchive: boolean;
 	onViewAllergyDetails: (allergyId: string) => void;
 }): ColumnDef<AllergyType>[] {
 	return [
@@ -1071,13 +1081,15 @@ function getAllergiesColumns({
 								<RiShare2Line className="text-white" />
 								<span>Export</span>
 							</DropdownMenuItem>
-							<DropdownMenuSeparator className="bg-white/20" />
-							<ArchiveAction>
-								<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-									<RiArchiveLine className="text-white" />
-									<span>Archive</span>
-								</DropdownMenuItem>
-							</ArchiveAction>
+							{canArchive ? (
+								<>
+									<DropdownMenuSeparator className="bg-white/20" />
+									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+										<RiArchiveLine className="text-white" />
+										<span>Archive</span>
+									</DropdownMenuItem>
+								</>
+							) : null}
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>

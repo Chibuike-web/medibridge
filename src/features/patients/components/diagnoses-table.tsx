@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArchiveAction } from "./archive-action";
+import { authClient } from "@/lib/better-auth/auth.client";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
@@ -168,6 +168,8 @@ export function DiagnosesTable({
 	onLimitChange,
 	onStatusFiltersChange,
 }: DiagnosesTableProps) {
+	const { data: activeMemberRole } = authClient.useActiveMemberRole();
+	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const visibleDiagnosisRowIds = useMemo(
 		() => diagnoses.map((diagnosis) => diagnosis.diagnosisId).join(","),
 		[diagnoses],
@@ -190,8 +192,8 @@ export function DiagnosesTable({
 	}
 
 	const columns = useMemo(
-		() => getDiagnosesColumns({ onViewDiagnosisDetails: handleViewDiagnosisDetails }),
-		[],
+		() => getDiagnosesColumns({ canArchive, onViewDiagnosisDetails: handleViewDiagnosisDetails }),
+		[canArchive],
 	);
 
 	return (
@@ -392,6 +394,7 @@ export function DiagnosesTable({
 			/>
 			<DiagnosesTableContent
 				key={visibleDiagnosisRowIds}
+				canArchive={canArchive}
 				diagnoses={diagnoses}
 				columns={columns}
 				sorting={sorting}
@@ -417,6 +420,7 @@ export function DiagnosesTable({
 }
 
 function DiagnosesTableContent({
+	canArchive,
 	diagnoses,
 	columns,
 	sorting,
@@ -430,6 +434,7 @@ function DiagnosesTableContent({
 	onNextPage,
 	onLimitChange,
 }: {
+	canArchive: boolean;
 	diagnoses: DiagnosisType[];
 	columns: ColumnDef<DiagnosisType>[];
 	sorting: SortingState;
@@ -623,6 +628,7 @@ function DiagnosesTableContent({
 				</div>
 			</div>
 			<DiagnosesBulkActionBar
+				canArchive={canArchive}
 				selectedDiagnoses={selectedDiagnoses}
 				onClearSelection={() => table.resetRowSelection()}
 				onViewDiagnosisDetails={onViewDiagnosisDetails}
@@ -632,10 +638,12 @@ function DiagnosesTableContent({
 }
 
 function DiagnosesBulkActionBar({
+	canArchive,
 	selectedDiagnoses,
 	onClearSelection,
 	onViewDiagnosisDetails,
 }: {
+	canArchive: boolean;
 	selectedDiagnoses: DiagnosisType[];
 	onClearSelection: () => void;
 	onViewDiagnosisDetails: (diagnosisId: string) => void;
@@ -675,7 +683,7 @@ function DiagnosesBulkActionBar({
 					<RiShare2Line className="size-5" aria-hidden={true} />
 					<span>Export {selectedDiagnosisCount > 1 ? "all" : null}</span>
 				</button>
-				<ArchiveAction>
+				{canArchive ? (
 					<button
 						type="button"
 						className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
@@ -683,7 +691,7 @@ function DiagnosesBulkActionBar({
 						<RiArchiveLine className="size-5" aria-hidden={true} />
 						<span>Archive {selectedDiagnosisCount > 1 ? "all" : null}</span>
 					</button>
-				</ArchiveAction>
+				) : null}
 			</div>
 			<button
 				type="button"
@@ -1007,8 +1015,10 @@ async function fetchPatientDiagnosisDetails(selectedId: string) {
 }
 
 function getDiagnosesColumns({
+	canArchive,
 	onViewDiagnosisDetails,
 }: {
+	canArchive: boolean;
 	onViewDiagnosisDetails: (diagnosisId: string) => void;
 }): ColumnDef<DiagnosisType>[] {
 	return [
@@ -1110,13 +1120,15 @@ function getDiagnosesColumns({
 								<RiShare2Line className="text-white" />
 								<span>Export</span>
 							</DropdownMenuItem>
-							<DropdownMenuSeparator className="bg-white/20" />
-							<ArchiveAction>
-								<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-									<RiArchiveLine className="text-white" />
-									<span>Archive</span>
-								</DropdownMenuItem>
-							</ArchiveAction>
+							{canArchive ? (
+								<>
+									<DropdownMenuSeparator className="bg-white/20" />
+									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+										<RiArchiveLine className="text-white" />
+										<span>Archive</span>
+									</DropdownMenuItem>
+								</>
+							) : null}
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>

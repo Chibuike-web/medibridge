@@ -29,7 +29,7 @@ import {
 	type AttachmentFormRow,
 } from "@/features/patients/components/attachment-form-fields";
 import { cn } from "@/lib/utils/cn";
-import { ArchiveAction } from "./archive-action";
+import { authClient } from "@/lib/better-auth/auth.client";
 import { RiAddLine, RiArrowDownSLine, RiCloseLine, RiEditLine } from "@remixicon/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useId, useRef, useState } from "react";
@@ -55,6 +55,8 @@ export function AllergyDetailsDrawer({
 	allergy,
 	isLoading,
 }: AllergyDetailsDrawerProps) {
+	const { data: activeMemberRole } = authClient.useActiveMemberRole();
+	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [allergyDetailsMode, setAllergyDetailsMode] = useState<"view" | "edit">("view");
 
 	function handleAllergyDetailsOpenChange(nextOpen: boolean) {
@@ -131,9 +133,9 @@ export function AllergyDetailsDrawer({
 									Cancel
 								</Button>
 							</DrawerClose>
-			<ArchiveAction>
-				<Button className="bg-gray-800 text-sm">Archive allergy</Button>
-			</ArchiveAction>
+							{canArchive ? (
+								<Button className="bg-gray-800 text-sm">Archive allergy</Button>
+							) : null}
 						</div>
 					)}
 				</DrawerFooter>

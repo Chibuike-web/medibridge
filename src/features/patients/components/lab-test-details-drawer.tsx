@@ -31,7 +31,7 @@ import {
 } from "@/features/patients/components/attachment-form-fields";
 import type { LabTestDetailsHistoryEvent, LabTestType } from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
-import { ArchiveAction } from "./archive-action";
+import { authClient } from "@/lib/better-auth/auth.client";
 import docFileIcon from "@/assets/file-formats/doc.svg";
 import jpgFileIcon from "@/assets/file-formats/jpg.svg";
 import pdfFileIcon from "@/assets/file-formats/pdf.svg";
@@ -61,6 +61,8 @@ const fieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
 export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDetailsDrawerProps) {
+	const { data: activeMemberRole } = authClient.useActiveMemberRole();
+	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [labTestDetailsMode, setLabTestDetailsMode] = useState<"view" | "edit">("view");
 
 	function handleLabTestDetailsOpenChange(nextOpen: boolean) {
@@ -135,11 +137,11 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 									Cancel
 								</Button>
 							</DrawerClose>
-							<ArchiveAction>
+							{canArchive ? (
 								<Button type="button" className="bg-gray-800 text-sm">
 									Archive Lab result
 								</Button>
-							</ArchiveAction>
+							) : null}
 						</div>
 					)}
 				</DrawerFooter>

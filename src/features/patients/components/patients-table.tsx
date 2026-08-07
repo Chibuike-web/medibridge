@@ -53,6 +53,7 @@ import {
 } from "@remixicon/react";
 import { PatientListItemType } from "../types";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
+import { authClient } from "@/lib/better-auth/auth.client";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
@@ -103,8 +104,13 @@ function PatientsTableContent({
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
+	const { data: activeMemberRole } = authClient.useActiveMemberRole();
+	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const returnTo = getCurrentRoute(pathname, searchParams);
-	const columns = useMemo(() => getPatientsColumns(router, returnTo), [router, returnTo]);
+	const columns = useMemo(
+		() => getPatientsColumns(router, returnTo, canArchive),
+		[canArchive, router, returnTo],
+	);
 	const [selectedPatientRows, setSelectedPatientRows] = useState<RowSelectionState>({});
 
 	const table = useReactTable({
@@ -303,6 +309,7 @@ function PatientsTableContent({
 			</div>
 			<PatientBulkActionBar
 				selectedPatients={selectedPatients}
+				canArchive={canArchive}
 				onClearSelection={() => table.resetRowSelection()}
 				onViewPatient={handleViewSelectedPatient}
 				onTransferPatients={handleTransferSelectedPatients}
@@ -313,11 +320,13 @@ function PatientsTableContent({
 
 function PatientBulkActionBar({
 	selectedPatients,
+	canArchive,
 	onClearSelection,
 	onViewPatient,
 	onTransferPatients,
 }: {
 	selectedPatients: PatientListItemType[];
+	canArchive: boolean;
 	onClearSelection: () => void;
 	onViewPatient: (patient: PatientListItemType) => void;
 	onTransferPatients: (patients: PatientListItemType[]) => void;
@@ -363,13 +372,15 @@ function PatientBulkActionBar({
 					<RiShareBoxLine className="size-5" aria-hidden={true} />
 					<span>Transfer {selectedPatientCount === 1 ? "" : "patients"}</span>
 				</button>
-				<button
-					type="button"
-					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-				>
-					<RiArchiveLine className="size-5" aria-hidden={true} />
-					<span>Archive {selectedPatientCount > 1 ? "all" : null}</span>
-				</button>
+				{canArchive ? (
+					<button
+						type="button"
+						className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+					>
+						<RiArchiveLine className="size-5" aria-hidden={true} />
+						<span>Archive {selectedPatientCount > 1 ? "all" : null}</span>
+					</button>
+				) : null}
 			</div>
 			<button
 				type="button"
@@ -386,6 +397,7 @@ function PatientBulkActionBar({
 function getPatientsColumns(
 	router: ReturnType<typeof useRouter>,
 	returnTo: string,
+	canArchive: boolean,
 ): ColumnDef<PatientListItemType>[] {
 	return [
 		{
@@ -526,11 +538,15 @@ function getPatientsColumns(
 							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiShare2Line className="text-white" /> <span> Export record</span>
 							</DropdownMenuItem>
-							<DropdownMenuSeparator className="bg-white/20" />
-							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-								<RiArchiveLine className="text-white" />
-								<span>Archive</span>
-							</DropdownMenuItem>
+							{canArchive ? (
+								<>
+									<DropdownMenuSeparator className="bg-white/20" />
+									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+										<RiArchiveLine className="text-white" />
+										<span>Archive</span>
+									</DropdownMenuItem>
+								</>
+							) : null}
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>

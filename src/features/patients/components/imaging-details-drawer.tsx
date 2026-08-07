@@ -29,7 +29,7 @@ import {
 } from "@/features/patients/components/create-imaging-drawer";
 import type { ImagingDetailsHistoryEvent, ImagingType } from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
-import { ArchiveAction } from "./archive-action";
+import { authClient } from "@/lib/better-auth/auth.client";
 import { getDocumentFileIcon } from "@/lib/utils/document-file-icon";
 import {
 	RiAddLine,
@@ -56,6 +56,8 @@ const imagingDetailsFieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
 export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDetailsDrawerProps) {
+	const { data: activeMemberRole } = authClient.useActiveMemberRole();
+	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [imagingDetailsMode, setImagingDetailsMode] = useState<"view" | "edit">("view");
 
 	function handleImagingDetailsOpenChange(nextOpen: boolean) {
@@ -121,9 +123,9 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 									Cancel
 								</Button>
 							</DrawerClose>
-							<ArchiveAction>
+							{canArchive ? (
 								<Button type="button">Archive Imaging</Button>
-							</ArchiveAction>
+							) : null}
 						</div>
 					)}
 				</DrawerFooter>

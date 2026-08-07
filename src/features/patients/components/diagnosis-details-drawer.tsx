@@ -35,7 +35,7 @@ import type {
 	DiagnosisDetailsType,
 } from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
-import { ArchiveAction } from "./archive-action";
+import { authClient } from "@/lib/better-auth/auth.client";
 import {
 	RiAddLine,
 	RiArrowDownSLine,
@@ -68,6 +68,8 @@ export function DiagnosisDetailsDrawer({
 	diagnosis,
 	isLoading,
 }: DiagnosisDetailsDrawerProps) {
+	const { data: activeMemberRole } = authClient.useActiveMemberRole();
+	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [diagnosisDetailsMode, setDiagnosisDetailsMode] = useState<"view" | "edit">("view");
 
 	function handleDiagnosisDetailsOpenChange(nextOpen: boolean) {
@@ -145,9 +147,9 @@ export function DiagnosisDetailsDrawer({
 									Cancel
 								</Button>
 							</DrawerClose>
-							<ArchiveAction>
+							{canArchive ? (
 								<Button className="bg-gray-800 text-sm">Archive diagnosis</Button>
-							</ArchiveAction>
+							) : null}
 						</div>
 					)}
 				</DrawerFooter>

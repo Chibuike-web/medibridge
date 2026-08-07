@@ -34,7 +34,7 @@ import {
 	type AttachmentFormRow,
 } from "@/features/patients/components/attachment-form-fields";
 import { cn } from "@/lib/utils/cn";
-import { ArchiveAction } from "./archive-action";
+import { authClient } from "@/lib/better-auth/auth.client";
 import {
 	RiAddLine,
 	RiArrowDownSLine,
@@ -67,6 +67,8 @@ export function MedicationDetailsDrawer({
 	medication,
 	isLoading,
 }: MedicationDetailsDrawerProps) {
+	const { data: activeMemberRole } = authClient.useActiveMemberRole();
+	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [medicationDetailsMode, setMedicationDetailsMode] = useState<"view" | "edit">("view");
 
 	function handleMedicationDetailsOpenChange(nextOpen: boolean) {
@@ -152,9 +154,9 @@ export function MedicationDetailsDrawer({
 									Cancel
 								</Button>
 							</DrawerClose>
-							<ArchiveAction>
+							{canArchive ? (
 								<Button className="bg-gray-800 text-sm">Archive medication</Button>
-							</ArchiveAction>
+							) : null}
 						</div>
 					)}
 				</DrawerFooter>

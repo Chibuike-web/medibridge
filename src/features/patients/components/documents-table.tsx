@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { ArchiveAction } from "./archive-action";
+import { authClient } from "@/lib/better-auth/auth.client";
 import useSWR from "swr";
 import { CreateDocumentDrawer as CreateDocumentDrawerComponent } from "@/features/patients/components/create-document-drawer";
 import { DocumentDetailsDrawer as DocumentDetailsDrawerComponent } from "@/features/patients/components/document-details-drawer";
@@ -175,6 +175,8 @@ export function DocumentsTable({
 	onLimitChange,
 	onDocumentsChanged,
 }: DocumentsTableProps) {
+	const { data: activeMemberRole } = authClient.useActiveMemberRole();
+	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [selectedDocumentRows, setSelectedDocumentRows] = useState<RowSelectionState>({});
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<DocumentFilterSubmenu | null>(
@@ -496,6 +498,7 @@ export function DocumentsTable({
 				</div>
 			</div>
 			<DocumentsBulkActionBar
+				canArchive={canArchive}
 				selectedDocuments={selectedDocuments}
 				onClearSelection={() => table.resetRowSelection()}
 				onViewDocumentDetails={handleViewDocumentDetails}
@@ -522,10 +525,12 @@ export function DocumentsTable({
 }
 
 function DocumentsBulkActionBar({
+	canArchive,
 	selectedDocuments,
 	onClearSelection,
 	onViewDocumentDetails,
 }: {
+	canArchive: boolean;
 	selectedDocuments: DocumentType[];
 	onClearSelection: () => void;
 	onViewDocumentDetails: (documentId: string) => void;
@@ -559,7 +564,7 @@ function DocumentsBulkActionBar({
 					<RiShare2Line className="size-5" aria-hidden />
 					<span>Export {selectedDocumentCount > 1 ? "all" : null}</span>
 				</button>
-				<ArchiveAction>
+				{canArchive ? (
 					<button
 						type="button"
 						className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
@@ -567,7 +572,7 @@ function DocumentsBulkActionBar({
 						<RiArchiveLine className="size-5" aria-hidden />
 						<span>Archive {selectedDocumentCount > 1 ? "all" : null}</span>
 					</button>
-				</ArchiveAction>
+				) : null}
 			</div>
 			<button
 				type="button"
