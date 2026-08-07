@@ -2,16 +2,15 @@
 
 import { countRecordsWithinRange } from "@/lib/utils/count-records-within-range";
 import { formatStat } from "@/lib/utils/format-stat";
-import { getRangeLabel } from "@/lib/utils/get-range-label";
-import { OverviewStats } from "@/services/patient/types";
+import type { OverviewStats } from "@/services/patient/types";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils/cn";
-import { RiArrowDownLine, RiArrowUpLine } from "@remixicon/react";
 
 const TOTAL_PATIENTS_LABEL = "Total No. of Patients";
 const TRANSFERRED_RECORDS_LABEL = "Transferred Records";
 const PENDING_TRANSFERS_LABEL = "Pending Transfers";
-const DEFAULT_CARD_DURATION = "This Month";
+const NEW_ENCOUNTERS_LABEL = "No of New Encounters";
+
 function getComparison(currentCount: number, previousCount: number) {
 	const difference = currentCount - previousCount;
 	const percentChange =
@@ -25,6 +24,7 @@ function getOverviewCards(
 	patientCreatedAt: Date[],
 	patientTransferredAt: Date[],
 	pendingTransferredAt: Date[],
+	encounterCreatedAt: Date[],
 ) {
 	const thisMonthPatients = countRecordsWithinRange(patientCreatedAt, "This Month");
 	const lastMonthPatients = countRecordsWithinRange(patientCreatedAt, "Last Month");
@@ -38,25 +38,30 @@ function getOverviewCards(
 		thisMonthPendingTransfers,
 		lastMonthPendingTransfers,
 	);
+	const thisMonthEncounters = countRecordsWithinRange(encounterCreatedAt, "This Month");
+	const lastMonthEncounters = countRecordsWithinRange(encounterCreatedAt, "Last Month");
+	const encounterGrowth = getComparison(thisMonthEncounters, lastMonthEncounters);
 
 	return [
 		{
 			label: TOTAL_PATIENTS_LABEL,
 			value: stats.totalPatients,
 			growth: patientGrowth,
-			rangeLabel: getRangeLabel(DEFAULT_CARD_DURATION),
 		},
 		{
 			label: TRANSFERRED_RECORDS_LABEL,
 			value: stats.transferredRecords,
 			growth: transferredGrowth,
-			rangeLabel: getRangeLabel(DEFAULT_CARD_DURATION),
 		},
 		{
 			label: PENDING_TRANSFERS_LABEL,
 			value: stats.pendingTransfers,
 			growth: pendingTransfersGrowth,
-			rangeLabel: getRangeLabel(DEFAULT_CARD_DURATION),
+		},
+		{
+			label: NEW_ENCOUNTERS_LABEL,
+			value: thisMonthEncounters,
+			growth: encounterGrowth,
 		},
 	];
 }
@@ -71,41 +76,42 @@ export function Cards({ stats }: { stats: OverviewStats }) {
 	const [pendingTransferredAt] = useState(() =>
 		stats.pendingTransferredAt.map((transferredAt) => new Date(transferredAt)),
 	);
+	const [encounterCreatedAt] = useState(() =>
+		stats.encounterCreatedAt.map((createdAt) => new Date(createdAt)),
+	);
 
 	const cards = useMemo(() => {
-		return getOverviewCards(stats, patientCreatedAt, patientTransferredAt, pendingTransferredAt);
-	}, [stats, patientCreatedAt, patientTransferredAt, pendingTransferredAt]);
+		return getOverviewCards(
+			stats,
+			patientCreatedAt,
+			patientTransferredAt,
+			pendingTransferredAt,
+			encounterCreatedAt,
+		);
+	}, [stats, patientCreatedAt, patientTransferredAt, pendingTransferredAt, encounterCreatedAt]);
 
 	return (
-		<div className="grid gap-4 xl:grid-cols-3">
+		<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 			{cards.map((card) => {
 				const diff = card.growth?.difference ?? 0;
 
 				return (
 					<div key={card.label} className="rounded-xl bg-gray-50 ring ring-gray-200">
-						<div className="px-3 h-10 flex items-center">
+						<div className="flex h-9 items-center px-3">
 							<p className="text-sm text-gray-400">{card.label}</p>
 						</div>
-						<div className="rounded-xl bg-white px-3 pt-6 ring ring-gray-200">
-							<p className="text-4xl font-semibold text-gray-800">{formatStat(card.value)}</p>
-							<div className="mt-4 border-t border-gray-200 py-3.5 text-sm text-pretty text-gray-600">
-								<div className="flex items-center justify-between gap-3 font-medium">
-									<p className="text-gray-400">{card.rangeLabel}</p>
-									<span
-										className={cn(
-											"inline-flex items-center gap-1",
-											diff > 0 ? "text-emerald-600" : diff < 0 ? "text-red-600" : "text-gray-400",
-										)}
-									>
-										{diff > 0 ? "+" : ""}
-										{card.growth?.percentChange}%
-										{diff > 0 ? (
-											<RiArrowUpLine className="size-4" />
-										) : diff < 0 ? (
-											<RiArrowDownLine className="size-4" />
-										) : null}
-									</span>
-								</div>
+						<div className="rounded-xl bg-white px-3 py-4 ring ring-gray-200">
+							<p className="text-[2rem] font-semibold text-gray-800">{formatStat(card.value)}</p>
+							<div className="mt-2 flex items-center gap-2 text-sm font-medium">
+								<span
+									className={cn(
+										diff > 0 ? "text-emerald-600" : diff < 0 ? "text-red-600" : "text-gray-400",
+									)}
+								>
+									{diff > 0 ? "+" : ""}
+									{card.growth?.percentChange}%
+								</span>
+								<span className="text-gray-400">vs last month</span>
 							</div>
 						</div>
 					</div>

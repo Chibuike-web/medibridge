@@ -219,19 +219,12 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 					const isActive = pathname.startsWith(href);
 
 					return (
-						<li
-							key={id}
-							className={cn(
-								"hover:bg-gray-100 font-medium h-8 px-2.5 flex items-center",
-								isActive && "bg-gray-200",
-								isCollapsed ? "justify-center rounded-md" : "rounded-md",
-							)}
-						>
+						<li key={id}>
 							<Link
 								href={href}
-								prefetch={true}
 								className={cn(
-									"flex w-full items-center gap-2",
+									"flex h-8 w-full items-center gap-2 rounded-lg px-2.5 font-medium transition-[background-color,box-shadow] hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
+									isActive && "bg-gray-200",
 									isCollapsed ? "justify-center" : "justify-start",
 								)}
 								aria-label={isCollapsed ? text : undefined}

@@ -18,7 +18,7 @@ import { RiCloseLine, RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useOptimistic, useRef, useState, useTransition } from "react";
+import { useLayoutEffect, useOptimistic, useRef, useState, useTransition } from "react";
 
 type PatientsClientProps = {
 	patients: PatientListItemType[];
@@ -411,6 +411,10 @@ export function PatientsClient({
 	const returnTo = getCurrentRoute(pathname, searchParams);
 	const addNewPatientHref =
 		`/dashboard/add-new-patient?returnTo=${encodeURIComponent(returnTo)}` as Route;
+
+	useLayoutEffect(() => {
+		setTableData({ patients, page, limit, totalPages });
+	}, [patients, page, limit, totalPages]);
 
 	return (
 		<div className="flex h-full flex-col">

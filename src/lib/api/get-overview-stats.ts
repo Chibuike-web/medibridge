@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import { count, eq } from "drizzle-orm";
-import { patient, patientTransfer } from "@/db/schemas";
+import { patient, patientEncounter, patientTransfer } from "@/db/schemas";
 import { db } from "../better-auth/auth";
 import { getOrganizationId } from "./get-organization-id";
 
@@ -16,6 +16,7 @@ export const getOverviewStats = cache(async () => {
 			patientCreatedAt: [],
 			patientTransferredAt: [],
 			pendingTransferredAt: [],
+			encounterCreatedAt: [],
 			hasPatients: false,
 		};
 	}
@@ -35,6 +36,7 @@ export async function getOverviewStatsForOrganization(organizationId: string) {
 		patientRows,
 		transferRows,
 		pendingRows,
+		encounterRows,
 	] = await Promise.all([
 		db.select({ value: count() }).from(patient).where(eq(patient.organizationId, organizationId)),
 
@@ -62,6 +64,12 @@ export async function getOverviewStatsForOrganization(organizationId: string) {
 			.select({ createdAt: patientTransfer.createdAt })
 			.from(patientTransfer)
 			.where(eq(patientTransfer.targetOrganizationId, organizationId)),
+
+		db
+			.select({ createdAt: patientEncounter.createdAt })
+			.from(patientEncounter)
+			.innerJoin(patient, eq(patientEncounter.patientId, patient.id))
+			.where(eq(patient.organizationId, organizationId)),
 	]);
 
 	const totalPatients = patientCountRows[0]?.value ?? 0;
@@ -73,6 +81,7 @@ export async function getOverviewStatsForOrganization(organizationId: string) {
 		patientCreatedAt: patientRows.map((row) => row.createdAt.toISOString()),
 		patientTransferredAt: transferRows.map((row) => row.createdAt.toISOString()),
 		pendingTransferredAt: pendingRows.map((row) => row.createdAt.toISOString()),
+		encounterCreatedAt: encounterRows.map((row) => row.createdAt.toISOString()),
 		hasPatients: totalPatients > 0,
 	};
 }

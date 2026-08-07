@@ -15,5 +15,6 @@ export type OverviewStats = {
 	patientCreatedAt: string[];
 	patientTransferredAt: string[];
 	pendingTransferredAt: string[];
+	encounterCreatedAt: string[];
 	hasPatients: boolean;
 };
