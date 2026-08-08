@@ -11,6 +11,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SettingsDialog } from "@/components/layout/settings-dialog";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
@@ -18,7 +19,6 @@ import {
 	RiExpandUpDownLine,
 	RiLoaderLine,
 	RiLogoutBoxLine,
-	RiVerifiedBadgeLine,
 } from "@remixicon/react";
 
 export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
@@ -45,7 +45,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 			<DropdownMenu>
 				<DropdownMenuTrigger
 					className={cn(
-						"flex w-full min-w-0 items-center rounded-lg p-3",
+						"flex w-full min-w-0 items-center rounded-lg border border-transparent p-3 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
 						isCollapsed
 							? "justify-center"
 							: "gap-2 cursor-pointer overflow-hidden hover:bg-gray-200",
@@ -92,10 +92,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					<DropdownMenuGroup>
-						<DropdownMenuItem className="py-2">
-							<RiVerifiedBadgeLine className="size-4" />
-							Account
-						</DropdownMenuItem>
+						<SettingsDialog user={user} />
 					</DropdownMenuGroup>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem

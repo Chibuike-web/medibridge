@@ -112,7 +112,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							onClick={toggleSidebar}
 							aria-label="Expand sidebar"
 							className={cn(
-								"absolute inset-0 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-[opacity,filter,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none motion-reduce:blur-0",
+								"absolute inset-0 flex items-center justify-center rounded-lg border border-transparent hover:bg-gray-100 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100 transition-[opacity,filter,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none motion-reduce:blur-0",
 								isHovered ? "opacity-100 blur-0" : "opacity-0 blur-sm",
 							)}
 						>
@@ -132,7 +132,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 						<button
 							onClick={toggleSidebar}
 							aria-label="Collapse sidebar"
-							className="flex size-10 items-center justify-center rounded-lg hover:bg-gray-100"
+							className="flex size-10 items-center justify-center rounded-lg border border-transparent hover:bg-gray-100 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
 						>
 							<RiContractLeftLine className="size-5 shrink-0" aria-hidden />
 						</button>
@@ -147,7 +147,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							<button
 								type="button"
 								className={cn(
-									"flex w-full items-center gap-2 rounded-lg hover:bg-gray-100 px-2.5 h-8",
+									"flex h-8 w-full items-center gap-2 rounded-lg border border-transparent px-2.5 hover:bg-gray-100 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
 									isCollapsed ? "justify-center" : "",
 								)}
 								aria-label="Search chats"
@@ -223,7 +223,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							<Link
 								href={href}
 								className={cn(
-									"flex h-8 w-full items-center gap-2 rounded-lg px-2.5 font-medium transition-[background-color,box-shadow] hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
+									"flex h-8 w-full items-center gap-2 rounded-lg border border-transparent px-2.5 font-medium transition-[background-color,box-shadow] hover:bg-gray-100 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
 									isActive && "bg-gray-200",
 									isCollapsed ? "justify-center" : "justify-start",
 								)}
