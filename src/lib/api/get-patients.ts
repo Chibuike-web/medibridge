@@ -82,7 +82,6 @@ export async function getPatientsForOrganization(
 		...patientInformationConditions,
 		or(
 			ilike(patient.id, searchPattern),
-			ilike(patient.patientId, searchPattern),
 			ilike(patientPersonalInformation.firstName, searchPattern),
 			ilike(patientPersonalInformation.lastName, searchPattern),
 		),

@@ -93,7 +93,7 @@ export async function getPatientLabTestsForOrganization(
 	const databaseStatusFilters = statusFilters.map((statusFilter) => statusFilter.toLowerCase());
 	const databaseFlagFilters = flagFilters.map(toDatabaseFlagFilter);
 	const labTestFilter = and(
-		or(eq(patient.id, patientId), eq(patient.patientId, patientId)),
+		eq(patient.id, patientId),
 		eq(patient.organizationId, organizationId),
 		encounterId ? eq(patientLabTest.encounterId, encounterId) : undefined,
 		createdFromDate ? gte(patientLabTest.createdAt, startOfDay(createdFromDate)) : undefined,

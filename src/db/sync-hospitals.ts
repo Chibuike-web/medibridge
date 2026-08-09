@@ -430,7 +430,6 @@ async function seedHospitals() {
 			seededPatients.push({
 				id: patientRowId,
 				organizationId,
-				patientId: patientRowId,
 				createdAt,
 				updatedAt: createdAt,
 			});

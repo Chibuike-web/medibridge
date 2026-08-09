@@ -57,7 +57,7 @@ export function SectionTabs({ activeSection }: { activeSection: PatientSection }
 							{isActive && (
 								<motion.div
 									layoutId="tab-indicator"
-									className="absolute right-0 bottom-0 left-0 h-0.5 bg-black"
+									className="absolute right-0 bottom-0 left-0 h-0.5 bg-gray-800"
 									transition={
 										shouldReduceMotion
 											? { duration: 0 }

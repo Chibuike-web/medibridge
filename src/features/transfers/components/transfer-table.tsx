@@ -385,7 +385,7 @@ function TransferBulkActionBar({
 						<button
 							type="button"
 							onClick={() => onViewTransferDetails(singleSelectedTransfer.id)}
-							className="inline-flex h89 shrink-0 items-center gap-2 rounded-lg px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+							className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
 						>
 							<RiEyeLine className="size-5" aria-hidden={true} />
 							<span>View transfer details</span>

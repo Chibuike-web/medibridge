@@ -3,11 +3,16 @@
 import { useState, type ComponentType } from "react";
 import {
 	RiBankCardLine,
+	RiBankCardFill,
+	RiBuildingFill,
 	RiBuildingLine,
 	RiCloseLine,
+	RiMoonFill,
 	RiMoonLine,
 	RiSettingsLine,
+	RiTeamFill,
 	RiTeamLine,
+	RiUserFill,
 	RiUserLine,
 } from "@remixicon/react";
 
@@ -19,6 +24,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils/cn";
+import { authClient } from "@/lib/better-auth/auth.client";
 
 type SettingsSectionId = "profile" | "account" | "appearance" | "billing" | "members";
 
@@ -26,14 +32,15 @@ type SettingsSection = {
 	id: SettingsSectionId;
 	label: string;
 	icon: ComponentType<{ className?: string }>;
+	activeIcon: ComponentType<{ className?: string }>;
 };
 
 const settingsSections: SettingsSection[] = [
-	{ id: "profile", label: "Profile", icon: RiUserLine },
-	{ id: "account", label: "Account", icon: RiBuildingLine },
-	{ id: "appearance", label: "Appearance", icon: RiMoonLine },
-	{ id: "billing", label: "Billing", icon: RiBankCardLine },
-	{ id: "members", label: "Manage members", icon: RiTeamLine },
+	{ id: "profile", label: "Profile", icon: RiUserLine, activeIcon: RiUserFill },
+	{ id: "account", label: "Account", icon: RiBuildingLine, activeIcon: RiBuildingFill },
+	{ id: "appearance", label: "Appearance", icon: RiMoonLine, activeIcon: RiMoonFill },
+	{ id: "billing", label: "Billing", icon: RiBankCardLine, activeIcon: RiBankCardFill },
+	{ id: "members", label: "Manage members", icon: RiTeamLine, activeIcon: RiTeamFill },
 ];
 
 type SettingsDialogProps = {
@@ -42,26 +49,25 @@ type SettingsDialogProps = {
 		email: string;
 		image?: string | null;
 	};
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
 };
 
-export function SettingsDialog({ user }: SettingsDialogProps) {
-	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps) {
 	const [selectedSettingsSection, setSelectedSettingsSection] =
 		useState<SettingsSectionId>("profile");
+	const { data: activeMemberRole } = authClient.useActiveMemberRole();
+	const canManageOrganization =
+		activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
+	const visibleSettingsSections = settingsSections.filter(
+		({ id }) => canManageOrganization || (id !== "billing" && id !== "members"),
+	);
 
 	return (
-		<Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-			<button
-				type="button"
-				className="flex h-8 w-full items-center gap-2 rounded-lg border border-transparent px-2.5 text-sm outline-none transition-[background-color,box-shadow] hover:bg-gray-100 focus:bg-gray-100 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
-			onClick={() => setIsSettingsOpen(true)}
-		>
-			<RiSettingsLine className="size-4" />
-			Settings
-		</button>
-			<DialogContent className="h-[43.75rem] max-h-[calc(100vh-2rem)] max-w-[50rem] overflow-hidden rounded-2xl p-0">
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="h-[43.75rem] max-h-[calc(100vh-2rem)] max-w-[50rem] overflow-hidden p-0">
 				<div className="flex h-full min-h-0">
-					<aside className="w-[12.5rem] shrink-0 border-r bg-gray-50/70 p-3">
+					<aside className="w-[12.5rem] shrink-0 border-r bg-gray-50/70 p-2">
 						<div className="flex h-10 items-center px-2">
 							<DialogTitle className="text-base">Settings</DialogTitle>
 							<DialogDescription className="sr-only">
@@ -69,19 +75,23 @@ export function SettingsDialog({ user }: SettingsDialogProps) {
 							</DialogDescription>
 						</div>
 						<nav aria-label="Settings sections" className="mt-3 flex flex-col gap-px">
-							{settingsSections.map(({ id, label, icon: Icon }) => (
+							{visibleSettingsSections.map(({ id, label, icon: Icon, activeIcon: ActiveIcon }) => (
 								<button
 									key={id}
 									type="button"
 									className={cn(
 										"flex h-8 w-full items-center gap-2 rounded-lg border border-transparent px-2.5 text-left text-sm transition-[background-color,box-shadow] focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
 										selectedSettingsSection === id
-											? "bg-gray-200 font-medium text-foreground"
-											: "text-foreground/70 hover:bg-gray-100 hover:text-foreground",
+											? "bg-gray-200 font-medium text-gray-800"
+											: "text-gray-600 hover:bg-gray-100 hover:text-gray-800",
 									)}
 									onClick={() => setSelectedSettingsSection(id)}
 								>
-									<Icon className="size-4 shrink-0" />
+									{selectedSettingsSection === id ? (
+										<ActiveIcon className="size-4 shrink-0" />
+									) : (
+										<Icon className="size-4 shrink-0" />
+									)}
 									<span>{label}</span>
 								</button>
 							))}
@@ -91,7 +101,7 @@ export function SettingsDialog({ user }: SettingsDialogProps) {
 					<section className="min-w-0 flex-1 overflow-y-auto">
 						<div className="flex items-center justify-between border-b px-6 py-4">
 							<h2 className="text-base font-semibold">
-								{settingsSections.find(({ id }) => id === selectedSettingsSection)?.label}
+								{visibleSettingsSections.find(({ id }) => id === selectedSettingsSection)?.label}
 							</h2>
 							<DialogClose
 								className="rounded-md p-1.5 text-foreground/60 transition-colors hover:bg-gray-100 hover:text-foreground"
@@ -101,9 +111,7 @@ export function SettingsDialog({ user }: SettingsDialogProps) {
 							</DialogClose>
 						</div>
 						<div className="space-y-6 p-6">
-							{selectedSettingsSection === "profile" ? (
-								<ProfileSettings user={user} />
-							) : null}
+							{selectedSettingsSection === "profile" ? <ProfileSettings user={user} /> : null}
 							{selectedSettingsSection === "account" ? <AccountSettings /> : null}
 							{selectedSettingsSection === "appearance" ? <AppearanceSettings /> : null}
 							{selectedSettingsSection === "billing" ? <BillingSettings /> : null}
@@ -138,9 +146,13 @@ function AccountSettings() {
 			<div className="border-t pt-5">
 				<p className="text-sm font-medium text-red-600">Danger zone</p>
 				<p className="mt-1 text-sm text-foreground/60">
-					Deleting an account is permanent and may require transferring organization ownership first.
+					Deleting an account is permanent and may require transferring organization ownership
+					first.
 				</p>
-				<button type="button" className="mt-4 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">
+				<button
+					type="button"
+					className="mt-4 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+				>
 					Delete account
 				</button>
 			</div>
@@ -178,7 +190,10 @@ function MembersSettings() {
 					<p className="font-medium">Hospital team</p>
 					<p className="text-sm text-foreground/60">Manage members and their roles.</p>
 				</div>
-				<button type="button" className="rounded-lg bg-foreground px-3 py-2 text-sm font-medium text-background hover:opacity-90">
+				<button
+					type="button"
+					className="rounded-lg bg-foreground px-3 py-2 text-sm font-medium text-background hover:opacity-90"
+				>
 					Invite member
 				</button>
 			</div>

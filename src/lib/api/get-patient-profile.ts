@@ -71,7 +71,7 @@ export async function getPatientProfileForOrganization(patientId: string, organi
 	const [profile] = await db
 		.select({
 			id: patient.id,
-			patientId: patient.patientId,
+			patientId: patient.id,
 			firstName: patientPersonalInformation.firstName,
 			middleName: patientPersonalInformation.middleName,
 			lastName: patientPersonalInformation.lastName,

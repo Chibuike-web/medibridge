@@ -82,7 +82,7 @@ export async function getTransfersForOrganization(
 	statusFilters: TransferStatusFilter[],
 ): Promise<GetTransfersResult> {
 	"use cache";
-	cacheLife("max");
+	cacheLife("seconds");
 	cacheTag(`transfers-list-${organizationId}`);
 
 	const offset = (page - 1) * limit;

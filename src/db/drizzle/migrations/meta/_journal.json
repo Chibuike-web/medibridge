@@ -134,6 +134,13 @@
 			"when": 1784210000000,
 			"tag": "0018_normalize_immunization_dose_labels",
 			"breakpoints": true
+		},
+		{
+			"idx": 19,
+			"version": "7",
+			"when": 1786193031944,
+			"tag": "0019_drop_patient_duplicate_id",
+			"breakpoints": true
 		}
   ]
 }

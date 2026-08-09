@@ -13,15 +13,18 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SettingsDialog } from "@/components/layout/settings-dialog";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import {
 	RiExpandUpDownLine,
 	RiLoaderLine,
 	RiLogoutBoxLine,
+	RiSettingsLine,
 } from "@remixicon/react";
 
 export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
+	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
 	const router = useRouter();
 	const { data: session, isPending: isLoadingUserSession } = authClient.useSession();
 	const user = session?.user;
@@ -70,7 +73,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					) : null}
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
-					className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+					className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-md"
 					align="end"
 					sideOffset={4}
 				>
@@ -91,9 +94,10 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 						</div>
 					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
-					<DropdownMenuGroup>
-						<SettingsDialog user={user} />
-					</DropdownMenuGroup>
+					<DropdownMenuItem onSelect={() => setIsSettingsOpen(true)}>
+						<RiSettingsLine />
+						Settings
+					</DropdownMenuItem>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
 						variant="destructive"
@@ -107,7 +111,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 								}
 							});
 						}}
-						className="py-2"
+						className="h-8"
 					>
 						<RiLogoutBoxLine />
 						Sign out
@@ -123,6 +127,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					</div>
 				</div>
 			)}
+			<SettingsDialog user={user} open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 		</div>
 	);
 }

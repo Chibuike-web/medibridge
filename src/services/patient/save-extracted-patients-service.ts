@@ -70,7 +70,7 @@ export async function saveExtractedPatientsService(
 
 		await db.transaction(async (tx) => {
 			for (const record of records) {
-				const patientRowId = crypto.randomUUID();
+				const patientRowId = record.personalInfo.patientId!.trim();
 				const personalInformationId = crypto.randomUUID();
 				const contactInformationId = crypto.randomUUID();
 				const emergencyContactId = crypto.randomUUID();
@@ -79,7 +79,6 @@ export async function saveExtractedPatientsService(
 				await tx.insert(patient).values({
 					id: patientRowId,
 					organizationId,
-					patientId: record.personalInfo.patientId!.trim(),
 				});
 
 				await tx.insert(patientPersonalInformation).values({

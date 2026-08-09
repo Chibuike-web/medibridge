@@ -33,7 +33,7 @@ export async function getPatientByIdForOrganization(patientId: string, organizat
 
 	const rows = await db
 		.select({
-			patientId: patient.patientId,
+			patientId: patient.id,
 			firstName: patientPersonalInformation.firstName,
 			lastName: patientPersonalInformation.lastName,
 			sex: patientPersonalInformation.sex,

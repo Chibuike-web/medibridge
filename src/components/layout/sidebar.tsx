@@ -17,7 +17,7 @@ import {
 	RiFunctionLine,
 	RiSearchLine,
 } from "@remixicon/react";
-import { useEffect, useRef, useState } from "react";
+import { ComponentType, useEffect, useRef, useState } from "react";
 import {
 	Dialog,
 	DialogClose,
@@ -38,6 +38,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 	const [width, setWidth] = useState(
 		parsedWidth >= MIN_WIDTH && parsedWidth <= MAX_WIDTH ? parsedWidth : MAX_WIDTH,
 	);
+	const [activeItem, setActiveItem] = useState("overview");
 	const pathname = usePathname();
 	const [isResizing, setIsResizing] = useState(false);
 	const [isHovered, setIsHovered] = useState(false);
@@ -147,7 +148,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							<button
 								type="button"
 								className={cn(
-									"flex h-8 w-full items-center gap-2 rounded-lg border border-transparent px-2.5 hover:bg-gray-100 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
+									"flex h-8 w-full items-center gap-2 rounded-lg border border-transparent px-2.5 text-gray-600 hover:bg-gray-100 hover:text-gray-800 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
 									isCollapsed ? "justify-center" : "",
 								)}
 								aria-label="Search chats"
@@ -215,7 +216,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 						</DialogContent>
 					</Dialog>
 				</li>
-				{menus.map(({ id, href, text }) => {
+				{menus.map(({ id, href, label, icon: Icon, activeIcon: ActiveIcon }) => {
 					const isActive = pathname.startsWith(href);
 
 					return (
@@ -223,34 +224,21 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							<Link
 								href={href}
 								className={cn(
-									"flex h-8 w-full items-center gap-2 rounded-lg border border-transparent px-2.5 font-medium transition-[background-color,box-shadow] hover:bg-gray-100 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
-									isActive && "bg-gray-200",
+									"flex h-8 w-full items-center gap-2 rounded-lg border border-transparent px-2.5 font-medium text-gray-600 transition-[background-color,box-shadow] hover:bg-gray-100 hover:text-gray-800 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
+									isActive && "bg-gray-200 text-gray-800",
 									isCollapsed ? "justify-center" : "justify-start",
 								)}
-								aria-label={isCollapsed ? text : undefined}
+								aria-label={isCollapsed ? label : undefined}
+								onClick={() => setActiveItem(id)}
 							>
 								<span className="shrink-0">
-									{id === "overview" ? (
-										isActive ? (
-											<RiFunctionFill className="size-4 shrink-0" />
-										) : (
-											<RiFunctionLine className="size-4 shrink-0" />
-										)
-									) : id === "patients" ? (
-										isActive ? (
-											<RiFileList3Fill className="size-4 shrink-0" />
-										) : (
-											<RiFileList3Line className="size-4 shrink-0" />
-										)
-									) : id === "transfers" ? (
-										isActive ? (
-											<RiFileTransferFill className="size-4 shrink-0" />
-										) : (
-											<RiFileTransferLine className="size-4 shrink-0" />
-										)
-									) : null}
+									{activeItem === id && isActive ? (
+										<ActiveIcon className="size-4 shrink-0" />
+									) : (
+										<Icon className="size-4 shrink-0" />
+									)}
 								</span>
-								{!isCollapsed ? <span className="whitespace-nowrap">{text}</span> : null}
+								{!isCollapsed ? <span className="whitespace-nowrap">{label}</span> : null}
 							</Link>
 						</li>
 					);
@@ -270,11 +258,38 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 	);
 }
 
-const menus = [
-	{ id: "overview", text: "Overview", href: "/dashboard/overview" },
-	{ id: "patients", text: "Patients", href: "/dashboard/patients" },
-	{ id: "transfers", text: "Transfers", href: "/dashboard/transfers" },
-] as const;
+type MenuId = "overview" | "patients" | "transfers";
+
+type Menu = {
+	id: MenuId;
+	label: string;
+	href: Route;
+	icon: ComponentType<{ className?: string }>;
+	activeIcon: ComponentType<{ className?: string }>;
+};
+const menus: Menu[] = [
+	{
+		id: "overview",
+		label: "Overview",
+		href: "/dashboard/overview",
+		icon: RiFunctionLine,
+		activeIcon: RiFunctionFill,
+	},
+	{
+		id: "patients",
+		label: "Patients",
+		href: "/dashboard/patients",
+		icon: RiFileList3Line,
+		activeIcon: RiFileList3Fill,
+	},
+	{
+		id: "transfers",
+		label: "Transfers",
+		href: "/dashboard/transfers",
+		icon: RiFileTransferLine,
+		activeIcon: RiFileTransferFill,
+	},
+];
 
 type SearchSection = {
 	label: string;
