@@ -14,6 +14,10 @@ import {
 	RiTeamLine,
 	RiUserFill,
 	RiUserLine,
+	RiUpload2Line,
+	RiDeleteBin2Line,
+	RiEdit2Line,
+	RiArrowLeftLine,
 } from "@remixicon/react";
 
 import {
@@ -25,6 +29,16 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils/cn";
 import { authClient } from "@/lib/better-auth/auth.client";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import { getInitials } from "@/lib/utils/get-initials";
+import { Button } from "../ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 type SettingsSectionId = "profile" | "account" | "appearance" | "billing" | "members";
 
@@ -33,6 +47,14 @@ type SettingsSection = {
 	label: string;
 	icon: ComponentType<{ className?: string }>;
 	activeIcon: ComponentType<{ className?: string }>;
+};
+
+type SettingsSubView = "organization" | "active-session" | "change-password";
+
+const settingsSubViewLabels: Record<SettingsSubView, string> = {
+	organization: "Organization",
+	"active-session": "Active sessions",
+	"change-password": "Change password",
 };
 
 const settingsSections: SettingsSection[] = [
@@ -63,6 +85,11 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 		({ id }) => canManageOrganization || (id !== "billing" && id !== "members"),
 	);
 
+	const [activeSettingsSubView, setActiveSettingsSubView] = useState<SettingsSubView | null>(null);
+	const selectedSettingsSectionLabel = visibleSettingsSections.find(
+		({ id }) => id === selectedSettingsSection,
+	)?.label;
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="h-[43.75rem] max-h-[calc(100vh-2rem)] max-w-[50rem] overflow-hidden p-0">
@@ -85,7 +112,10 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 											? "bg-gray-200 font-medium text-gray-800"
 											: "text-gray-600 hover:bg-gray-100 hover:text-gray-800",
 									)}
-									onClick={() => setSelectedSettingsSection(id)}
+									onClick={() => {
+										setSelectedSettingsSection(id);
+										setActiveSettingsSubView(null);
+									}}
 								>
 									{selectedSettingsSection === id ? (
 										<ActiveIcon className="size-4 shrink-0" />
@@ -98,11 +128,21 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 						</nav>
 					</aside>
 
-					<section className="min-w-0 flex-1 overflow-y-auto">
+					<section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
 						<div className="flex items-center justify-between border-b px-6 py-4">
-							<h2 className="text-base font-semibold">
-								{visibleSettingsSections.find(({ id }) => id === selectedSettingsSection)?.label}
-							</h2>
+							{activeSettingsSubView ? (
+								<button
+									type="button"
+									className="flex items-center gap-2 rounded-md font-semibold text-gray-800 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+									aria-label="Back to account settings"
+									onClick={() => setActiveSettingsSubView(null)}
+								>
+									<RiArrowLeftLine className="size-5" aria-hidden="true" />
+									<span>{settingsSubViewLabels[activeSettingsSubView]}</span>
+								</button>
+							) : (
+								<h2 className="text-base font-semibold">{selectedSettingsSectionLabel}</h2>
+							)}
 							<DialogClose
 								className="rounded-md p-1.5 text-foreground/60 transition-colors hover:bg-gray-100 hover:text-foreground"
 								aria-label="Close settings"
@@ -110,9 +150,14 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 								<RiCloseLine className="size-5" />
 							</DialogClose>
 						</div>
-						<div className="space-y-6 p-6">
+						<div className="flex-1 overflow-y-auto">
 							{selectedSettingsSection === "profile" ? <ProfileSettings user={user} /> : null}
-							{selectedSettingsSection === "account" ? <AccountSettings /> : null}
+							{selectedSettingsSection === "account" ? (
+								<AccountSettings
+									activeSettingsSubView={activeSettingsSubView}
+									onSettingsSubViewChange={setActiveSettingsSubView}
+								/>
+							) : null}
 							{selectedSettingsSection === "appearance" ? <AppearanceSettings /> : null}
 							{selectedSettingsSection === "billing" ? <BillingSettings /> : null}
 							{selectedSettingsSection === "members" ? <MembersSettings /> : null}
@@ -126,45 +171,281 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 
 function ProfileSettings({ user }: { user: SettingsDialogProps["user"] }) {
 	return (
-		<div className="space-y-5">
-			<SettingsRow label="Full name" value={user.name} />
-			<SettingsRow label="Email address" value={user.email} />
-		</div>
-	);
-}
-
-function AccountSettings() {
-	return (
-		<div className="space-y-5">
-			<SettingsRow label="Hospital information" value="Organization details" />
-			<SettingsRow label="Verification status" value="Verified organization" />
-			<SettingsRow
-				label="Account security"
-				value="Password and active sessions"
-				showBorder={false}
-			/>
-			<div className="border-t pt-5">
-				<p className="text-sm font-medium text-red-600">Danger zone</p>
-				<p className="mt-1 text-sm text-foreground/60">
-					Deleting an account is permanent and may require transferring organization ownership
-					first.
-				</p>
-				<button
-					type="button"
-					className="mt-4 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
-				>
-					Delete account
-				</button>
+		<div className="flex h-full flex-col items-center gap-16 pt-6">
+			<PatientAvatarMenu patientName={user.name} />
+			<dl className="w-full px-6">
+				<div className="flex h-16 items-center justify-between gap-4 border-b">
+					<dt className="text-sm text-gray-400 font-medium">
+						<label htmlFor="settings-full-name">Full name</label>
+					</dt>
+					<dd>
+						<input
+							id="settings-full-name"
+							name="fullName"
+							type="text"
+							defaultValue={user.name}
+							className="text-right text-sm font-semibold focus:border-0 focus-visible:border-0 focus:outline-0"
+						/>
+					</dd>
+				</div>
+				<div className="flex h-16 items-center justify-between gap-4 border-b opacity-50">
+					<dt className="text-sm text-gray-400 font-medium">Email</dt>
+					<dd className="text-sm font-semibold text-gray-800">{user.email}</dd>
+				</div>
+			</dl>
+			<div className="mt-auto flex w-full shrink-0 gap-2 border-t px-6 py-5">
+				<Button variant="outline" className="text-sm ml-auto">
+					Cancel
+				</Button>
+				<Button className="text-sm">Save</Button>
 			</div>
 		</div>
 	);
 }
 
-function AppearanceSettings() {
+function PatientAvatarMenu({ patientName }: { patientName: string }) {
 	return (
-		<div className="space-y-5">
-			<SettingsRow label="Theme" value="System" />
-			<SettingsRow label="Contrast" value="Default" />
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<button className="relative w-max">
+					<Avatar className="size-[146px] border border-gray-200 bg-gray-100 text-gray-700">
+						<AvatarFallback className="bg-gray-100 text-4xl font-semibold text-gray-700">
+							{getInitials(patientName ?? "")}
+						</AvatarFallback>
+					</Avatar>
+					<div className="absolute right-[3px] bottom-[3px] size-[28px] border border-white/20 text-white bg-gray-800 flex items-center justify-center rounded-full ring ring-gray-800">
+						<RiEdit2Line className="size-[18px]" />
+					</div>
+				</button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent
+				align="center"
+				sideOffset={12}
+				className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+			>
+				<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+					<RiUpload2Line className="text-white" />
+					<span>Upload image</span>
+				</DropdownMenuItem>
+				<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+					<RiDeleteBin2Line className="text-white" />
+					<span>Remove image</span>
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+}
+
+function AccountSettings({
+	activeSettingsSubView,
+	onSettingsSubViewChange,
+}: {
+	activeSettingsSubView: SettingsSubView | null;
+	onSettingsSubViewChange: (view: SettingsSubView | null) => void;
+}) {
+	if (activeSettingsSubView === "organization") {
+		return (
+			<div className="flex flex-col gap-6 px-6 pt-4">
+				<section aria-labelledby="organization-details-heading">
+					<h3 id="organization-details-heading" className="font-semibold">
+						Organization details
+					</h3>
+					<dl>
+						<div className="grid h-16 grid-cols-[1fr_auto] grid-rows-2 items-center border-b">
+							<dt className="col-start-1 row-start-1 self-end text-sm font-medium text-gray-400">
+								Organization name
+							</dt>
+							<dd className="col-start-1 row-start-2 self-start text-sm font-semibold text-gray-600">
+								Medicare General Hospital
+							</dd>
+						</div>
+					</dl>
+				</section>
+			</div>
+		);
+	}
+
+	if (activeSettingsSubView === "change-password") {
+		return (
+			<div className="flex flex-col gap-6 px-6 pt-4">
+				<section aria-labelledby="change-password-heading">
+					<h3 id="change-password-heading" className="font-semibold">
+						Change password
+					</h3>
+					<p className="mt-1 text-sm text-gray-400">
+						Update the password used to sign in to your account.
+					</p>
+				</section>
+			</div>
+		);
+	}
+
+	if (activeSettingsSubView === "active-session") {
+		return (
+			<div className="flex flex-col gap-6 px-6 pt-4">
+				<section aria-labelledby="active-sessions-heading">
+					<h3 id="active-sessions-heading" className="font-semibold">
+						Active sessions
+					</h3>
+					<p className="mt-1 text-sm text-gray-400">3 devices are currently signed in.</p>
+				</section>
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex h-full flex-col gap-6 pt-4">
+			<section aria-labelledby="organization-settings-heading" className="px-6">
+				<h3 id="organization-settings-heading" className="font-semibold">
+					Organization
+				</h3>
+				<dl>
+					<div className="grid h-16 grid-cols-[1fr_auto] grid-rows-2 items-center border-b">
+						<dt className="col-start-1 row-start-1 self-end text-sm font-medium text-gray-400">
+							Organization name
+						</dt>
+						<dd className="col-start-1 row-start-2 self-start text-sm font-semibold text-gray-600">
+							Medicare General Hospital
+						</dd>
+						<dd className="col-start-2 row-span-2 self-center">
+							<Button
+								type="button"
+								className="text-sm font-medium text-gray-400"
+								variant="ghost"
+								onClick={() => onSettingsSubViewChange("organization")}
+							>
+								View
+							</Button>
+						</dd>
+					</div>
+				</dl>
+			</section>
+			<section aria-labelledby="account-security-heading" className="px-6">
+				<h3 id="account-security-heading" className="font-semibold">
+					Account security
+				</h3>
+				<dl>
+					<div className="grid h-16 grid-cols-[1fr_auto] grid-rows-2 items-center">
+						<dt className="col-start-1 row-start-1 self-end text-sm font-medium text-gray-400">
+							Password
+						</dt>
+						<dd className="col-start-1 row-start-2 self-start text-sm font-semibold text-gray-600">
+							************
+						</dd>
+						<dd className="col-start-2 row-span-2 self-center">
+							<Button
+								type="button"
+								className="text-sm font-medium text-gray-400"
+								variant="ghost"
+								onClick={() => onSettingsSubViewChange("change-password")}
+							>
+								Change
+							</Button>
+						</dd>
+					</div>
+					<div className="grid h-16 grid-cols-[1fr_auto] grid-rows-2 items-center border-b">
+						<dt className="col-start-1 row-start-1 self-end text-sm font-medium text-gray-400">
+							Active session
+						</dt>
+						<dd className="col-start-1 row-start-2 self-start text-sm font-semibold text-gray-600">
+							3 devices currently signed in
+						</dd>
+						<dd className="col-start-2 row-span-2 self-center">
+							<Button
+								type="button"
+								className="text-sm font-medium text-gray-400"
+								variant="ghost"
+								onClick={() => onSettingsSubViewChange("active-session")}
+							>
+								View
+							</Button>
+						</dd>
+					</div>
+				</dl>
+			</section>
+			<section
+				aria-labelledby="danger-zone-heading"
+				className="flex items-center justify-between px-6"
+			>
+				<div className="flex flex-col gap-[6px]">
+					<h3 id="danger-zone-heading" className="font-semibold text-destructive">
+						Danger zone
+					</h3>
+					<p className="w-full max-w-[430px] text-gray-400">
+						Deleting an account is permanent and may require transferring organization ownership
+						first
+					</p>
+				</div>
+				<Button
+					type="button"
+					variant="outline"
+					className="border-destructive text-sm text-destructive"
+				>
+					Delete account
+				</Button>
+			</section>
+		</div>
+	);
+}
+
+function Organization() {
+	return <div></div>;
+}
+function ChangePassword() {
+	return <div></div>;
+}
+function ActiveSession() {
+	return <div></div>;
+}
+
+function AppearanceSettings() {
+	const [selectedTheme, setSelectedTheme] = useState("system");
+	const [selectedContrast, setSelectedContrast] = useState("system");
+
+	return (
+		<div className="px-6">
+			<dl>
+				<div className="flex h-16 items-center justify-between gap-4 border-b">
+					<dt id="theme-setting-label" className="text-sm text-gray-400">
+						Theme
+					</dt>
+					<dd>
+						<Select value={selectedTheme} onValueChange={setSelectedTheme}>
+							<SelectTrigger
+								aria-labelledby="theme-setting-label"
+								className="h-9 border-transparent px-3 text-gray-800 font-semibold hover:bg-gray-100"
+							>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent align="end" className="min-w-[220px]">
+								<SelectItem value="system">System</SelectItem>
+								<SelectItem value="dark">Dark</SelectItem>
+								<SelectItem value="light">Light</SelectItem>
+							</SelectContent>
+						</Select>
+					</dd>
+				</div>
+				<div className="flex h-16 items-center justify-between gap-4 border-b">
+					<dt id="contrast-setting-label" className="text-sm text-gray-400">
+						Contrast
+					</dt>
+					<dd>
+						<Select value={selectedContrast} onValueChange={setSelectedContrast}>
+							<SelectTrigger
+								aria-labelledby="contrast-setting-label"
+								className="h-9 border-transparent px-3 text-gray-800 font-semibold hover:bg-gray-100"
+							>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent align="end" className="min-w-[220px]">
+								<SelectItem value="system">System</SelectItem>
+								<SelectItem value="medium">Medium</SelectItem>
+								<SelectItem value="increased">Increased</SelectItem>
+							</SelectContent>
+						</Select>
+					</dd>
+				</div>
+			</dl>
 		</div>
 	);
 }
@@ -213,7 +494,7 @@ function SettingsRow({
 	showBorder?: boolean;
 }) {
 	return (
-		<div className={cn("flex items-center justify-between gap-4 py-4", showBorder && "border-b")}>
+		<div className={cn("flex items-center justify-between gap-4 h-16", showBorder && "border-b")}>
 			<span className="text-sm text-foreground/70">{label}</span>
 			<span className="text-right text-sm font-medium">{value}</span>
 		</div>

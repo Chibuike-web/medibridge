@@ -64,12 +64,14 @@ export function PersonalInformation({
 		optimisticPersonalInformation,
 		"Date of birth",
 	);
-	const currentSex = getSelectValue(
-		getPersonalInformationValue(optimisticPersonalInformation, "Sex"),
-	);
-	const currentMaritalStatus = getSelectValue(
-		getPersonalInformationValue(optimisticPersonalInformation, "Marital status"),
-	);
+	const currentSex = getPersonalInformationValue(
+		optimisticPersonalInformation,
+		"Sex",
+	).toLowerCase();
+	const currentMaritalStatus = getPersonalInformationValue(
+		optimisticPersonalInformation,
+		"Marital status",
+	).toLowerCase();
 	const [dob, setDob] = useState<Date | undefined>(getDateFromDisplayValue(currentDateOfBirth));
 	const [selectedSex, setSelectedSex] = useState(currentSex);
 	const [selectedMaritalStatus, setSelectedMaritalStatus] = useState(currentMaritalStatus);
@@ -264,15 +266,9 @@ export function PersonalInformation({
 								</SelectTrigger>
 								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="male">
-											Male
-										</SelectItem>
-										<SelectItem value="female">
-											Female
-										</SelectItem>
-										<SelectItem value="other">
-											Other
-										</SelectItem>
+										<SelectItem value="male">Male</SelectItem>
+										<SelectItem value="female">Female</SelectItem>
+										<SelectItem value="other">Other</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>
@@ -288,18 +284,10 @@ export function PersonalInformation({
 
 								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="single">
-											Single
-										</SelectItem>
-										<SelectItem value="married">
-											Married
-										</SelectItem>
-										<SelectItem value="divorced">
-											Divorced
-										</SelectItem>
-										<SelectItem value="widowed">
-											Widowed
-										</SelectItem>
+										<SelectItem value="single">Single</SelectItem>
+										<SelectItem value="married">Married</SelectItem>
+										<SelectItem value="divorced">Divorced</SelectItem>
+										<SelectItem value="widowed">Widowed</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>
@@ -343,32 +331,32 @@ export function PersonalInformation({
 }
 
 function getNextPersonalInformation(formData: FormData): PersonalInformationItem[] {
-	const firstName = getFormValue(formData, "firstName");
-	const middleName = getFormValue(formData, "middleName");
-	const lastName = getFormValue(formData, "lastName");
-	const patientDisplayId = getFormValue(formData, "patientDisplayId");
-	const age = getFormValue(formData, "age");
-	const dateOfBirth = getFormValue(formData, "dateOfBirth");
-	const sex = getFormValue(formData, "sex");
-	const maritalStatus = getFormValue(formData, "maritalStatus");
-	const nationalId = getFormValue(formData, "nationalId");
+	const firstName = String(formData.get("firstName") ?? "").trim();
+	const middleName = String(formData.get("middleName") ?? "").trim();
+	const lastName = String(formData.get("lastName") ?? "").trim();
+	const patientDisplayId = String(formData.get("patientDisplayId") ?? "").trim();
+	const age = String(formData.get("age") ?? "").trim();
+	const dateOfBirth = String(formData.get("dateOfBirth") ?? "").trim();
+	const sex = String(formData.get("sex") ?? "").trim();
+	const maritalStatus = String(formData.get("maritalStatus") ?? "").trim();
+	const nationalId = String(formData.get("nationalId") ?? "").trim();
 
 	return [
 		{ label: "First name", value: firstName },
-		{ label: "Middle name", value: emptyDisplayValue(middleName) },
+		{ label: "Middle name", value: middleName || "-" },
 		{ label: "Last name", value: lastName },
 		{ label: "Patient ID", value: patientDisplayId },
-		{ label: "Age", value: emptyDisplayValue(age) },
-		{ label: "Date of birth", value: emptyDisplayValue(dateOfBirth) },
+		{ label: "Age", value: age || "-" },
+		{ label: "Date of birth", value: dateOfBirth || "-" },
 		{ label: "Sex", value: formatDisplayValue(sex) },
 		{ label: "Marital status", value: formatDisplayValue(maritalStatus) },
-		{ label: "National ID", value: emptyDisplayValue(nationalId) },
+		{ label: "National ID", value: nationalId || "-" },
 	];
 }
 
 function validatePersonalInformationFormData(formData: FormData) {
-	const firstName = getFormValue(formData, "firstName");
-	const lastName = getFormValue(formData, "lastName");
+	const firstName = String(formData.get("firstName") ?? "").trim();
+	const lastName = String(formData.get("lastName") ?? "").trim();
 
 	if (!firstName) return "First name is required.";
 	if (!lastName) return "Last name is required.";
@@ -387,28 +375,12 @@ function getPersonalInformationValue(
 	return String(value);
 }
 
-function getFormValue(formData: FormData, name: string) {
-	const value = formData.get(name);
-
-	return typeof value === "string" ? value.trim() : "";
-}
-
 function getDateFromDisplayValue(value: string) {
 	if (!value) return undefined;
 
 	const date = new Date(value);
 
 	return Number.isNaN(date.getTime()) ? undefined : date;
-}
-
-function getSelectValue(value: string) {
-	if (!value) return "";
-
-	return value.toLowerCase().replaceAll(" ", "_");
-}
-
-function emptyDisplayValue(value: string) {
-	return value || "-";
 }
 
 function formatDisplayValue(value: string) {

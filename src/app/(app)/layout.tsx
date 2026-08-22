@@ -7,11 +7,7 @@ export const metadata: Metadata = {
 		template: "%s | MediBridge",
 	},
 	description: "Manage your hospital operations on MediBridge.",
-
-	robots: {
-		index: false,
-		follow: false,
-	},
+	robots: { index: false, follow: false },
 };
 
 export default function AppLayout({

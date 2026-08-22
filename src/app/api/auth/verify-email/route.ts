@@ -1,11 +1,11 @@
 import { auth } from "@/lib/better-auth/auth";
 import { APIError } from "better-auth";
 import { headers } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const base = process.env.NEXT_PUBLIC_URL;
-export async function GET(req: Request) {
-	const { searchParams } = new URL(req.url);
+export async function GET(req: NextRequest) {
+	const searchParams = req.nextUrl.searchParams;
 	const token = searchParams.get("token");
 	if (!token) {
 		return NextResponse.redirect(`${base}/email-verified?error=invalid_token}`);
