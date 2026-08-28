@@ -21,12 +21,12 @@ export function SuccessModal({
 		<Dialog open={isOpen} onOpenChange={() => setIsOpen(!isOpen)}>
 			<DialogContent>
 				<div className="flex flex-col gap-6 items-center py-16 px-12">
-					<Image src="/assets/success-icon.svg" width={160} height={160} alt="" />
+					<Image src="/assets/success-icon.svg" width={120} height={120} alt="" />
 					<div className="flex flex-col items-center gap-4">
-						<DialogTitle className="text-xl">
+						<DialogTitle className="text-lg">
 							{heading}
 						</DialogTitle>
-						<DialogDescription className="text-center">{description}</DialogDescription>
+						<DialogDescription className="text-center text-sm">{description}</DialogDescription>
 					</div>
 				</div>
 				{children}

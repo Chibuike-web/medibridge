@@ -106,7 +106,7 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 					)}
 				</div>
 
-				<DrawerFooter className="border-t border-gray-200 px-6 py-5 text-sm">
+				<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
 					{isEditingImagingDetails ? (
 						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
 							<Button type="button" variant="outline" onClick={() => setImagingDetailsMode("view")}>

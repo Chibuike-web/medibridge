@@ -181,10 +181,10 @@ export function ReviewExtractedInfoClient() {
 							description="The patient's information has been securely saved. You may now proceed with additional documentation or return to the dashboard."
 						>
 							<DialogFooter className="w-full border-t border-gray-200 text-sm">
-								<Button className="text-sm" variant="outline" onClick={closeModal}>
+								<Button className="h-9 text-sm" variant="outline" onClick={closeModal}>
 									Return to Dashboard
 								</Button>
-								<Button className="text-sm" asChild>
+								<Button className="h-9 text-sm" asChild>
 									<Link href="/dashboard/add-new-patient">Add Another Record</Link>
 								</Button>
 							</DialogFooter>

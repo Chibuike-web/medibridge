@@ -1028,7 +1028,7 @@ function LegacyDocumentDetailsDrawer({
 					)}
 					{actionError ? <p className="px-6 pb-2 text-sm text-red-600">{actionError}</p> : null}
 				</div>
-				<DrawerFooter className="border-t border-gray-200 px-6 py-5">
+				<DrawerFooter className="border-t border-gray-200 p-5">
 					{isEditing ? (
 						<div className="ml-auto flex gap-4">
 							<Button type="button" variant="outline" onClick={() => setMode("view")}>
@@ -1307,7 +1307,7 @@ function LegacyCreateDocumentDrawer({
 					</div>
 					{formError ? <p className="text-red-600">{formError}</p> : null}
 				</form>
-				<DrawerFooter className="border-t border-gray-200 px-6 py-5">
+				<DrawerFooter className="border-t border-gray-200 p-5">
 					<div className="ml-auto flex gap-4">
 						<DrawerClose asChild>
 							<Button variant="outline">Cancel</Button>

@@ -125,7 +125,7 @@ export function DocumentDetailsDrawer({
 					)}
 					{actionError ? <p className="mt-4 text-red-600">{actionError}</p> : null}
 				</div>
-				<DrawerFooter className="border-t border-gray-200 px-6 py-5">
+				<DrawerFooter className="border-t border-gray-200 p-5">
 					{isEditingDocumentDetails ? (
 						<div className="ml-auto flex gap-4">
 							<Button variant="outline" onClick={() => setDocumentDetailsMode("view")}>

@@ -8,4 +8,5 @@ export const statusStyles = {
 	cancelled: "bg-gray-100 text-gray-600",
 	active: "bg-blue-100 text-blue-800",
 	resolved: "bg-green-100 text-green-800",
+	verified: "bg-green-100 text-green-800",
 };

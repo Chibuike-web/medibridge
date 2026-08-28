@@ -171,7 +171,7 @@ export function CreateDocumentDrawer({
 					</div>
 					{formError ? <p className="text-red-600">{formError}</p> : null}
 				</form>
-				<DrawerFooter className="border-t border-gray-200 px-6 py-5">
+				<DrawerFooter className="border-t border-gray-200 p-5">
 					<div className="ml-auto flex gap-4">
 						<DrawerClose asChild>
 							<Button variant="outline">Cancel</Button>

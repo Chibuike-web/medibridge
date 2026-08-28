@@ -229,7 +229,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 					</div>
 				</form>
 
-				<DrawerFooter className="border-t border-gray-200 px-6 py-5 text-sm">
+				<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
 					<div className="flex flex-col lg:flex-row gap-x-4 gap-y-2 lg:self-end">
 						<DrawerClose asChild>
 							<Button type="button" variant="outline" className="text-sm">

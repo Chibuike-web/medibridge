@@ -7,12 +7,10 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuSub,
-	DropdownMenuSubContent,
-	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import { useState } from "react";
@@ -21,6 +19,7 @@ import type { TransferStatusFilter } from "../types";
 
 import {
 	RiArrowRightLine,
+	RiArrowRightSLine,
 	RiCalendarLine,
 	RiCheckLine,
 	RiFilter3Line,
@@ -77,14 +76,17 @@ export function FilterButton({
 	onStatusFiltersChange: (statusFilters: TransferStatusFilter[]) => void;
 	statusFilters: TransferStatusFilter[];
 }) {
-	const [activeTransferFilterSubmenu, setActiveTransferFilterSubmenu] =
-		useState<TransferFilterSubmenu | null>(null);
+	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<TransferFilterSubmenu | null>(null);
+	const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
 	return (
 		<DropdownMenu
-			onOpenChange={(isTransferFilterMenuOpen) => {
-				if (!isTransferFilterMenuOpen) {
-					setActiveTransferFilterSubmenu(null);
+			open={isFilterMenuOpen}
+			onOpenChange={(nextIsFilterMenuOpen) => {
+				setIsFilterMenuOpen(nextIsFilterMenuOpen);
+
+				if (!nextIsFilterMenuOpen) {
+					setActiveFilterSubmenu(null);
 				}
 			}}
 		>
@@ -99,87 +101,80 @@ export function FilterButton({
 			</DropdownMenuTrigger>
 
 			<DropdownMenuContent
+				onPointerLeave={() => setActiveFilterSubmenu(null)}
 				align="end"
-				className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+				className="relative w-[13.75rem] overflow-visible rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 			>
-					<DropdownMenuSub
-						open={activeTransferFilterSubmenu === "status"}
-						onOpenChange={(isStatusSubmenuOpen) => {
-							setActiveTransferFilterSubmenu((prev) => {
-								if (isStatusSubmenuOpen) return "status";
-								if (prev === "status") return null;
-								return prev;
-							});
-						}}
-					>
-					<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-						<RiMenLine className="size-4.5" /> <span className="block">Status</span>
-					</DropdownMenuSubTrigger>
+				<DropdownMenuItem
+					data-active={activeFilterSubmenu === "status"}
+					onFocus={() => setActiveFilterSubmenu("status")}
+					onPointerEnter={() => setActiveFilterSubmenu("status")}
+					onSelect={(event) => event.preventDefault()}
+					className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
+				>
+					<RiMenLine className="size-4.5" />
+					<span>Status</span>
+					<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+				</DropdownMenuItem>
 
-					<DropdownMenuSubContent
-						alignOffset={-5}
-						className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
-					>
+				<DropdownMenuItem
+					data-active={activeFilterSubmenu === "requested-at"}
+					onFocus={() => setActiveFilterSubmenu("requested-at")}
+					onPointerEnter={() => setActiveFilterSubmenu("requested-at")}
+					onSelect={(event) => event.preventDefault()}
+					className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
+				>
+					<RiCalendarLine className="size-4.5" />
+					<span>Requested at</span>
+					<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+				</DropdownMenuItem>
+
+				<div
+					id="transfer-filter-submenu-panel"
+					aria-hidden={activeFilterSubmenu === null}
+					className={cn(
+						"absolute top-0 right-[100%] z-50 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						activeFilterSubmenu === "requested-at" ? "w-max" : "w-[13.75rem]",
+						activeFilterSubmenu === "requested-at" ? "translate-y-9" : "translate-y-0",
+						activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
+					)}
+				>
+					<div hidden={activeFilterSubmenu !== "status"} className="p-1">
 						{transferStatusFilterOptions.map((statusOption) => {
 							const isStatusSelected = statusFilters.includes(statusOption.value);
 							const statusOptionId = `status-${statusOption.value}`;
 
 							return (
-								<DropdownMenuItem
+								<Label
 									key={statusOption.value}
-									className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
-									onSelect={(event) => {
-										event.preventDefault();
-									}}
+									htmlFor={statusOptionId}
+									className="flex h-9 w-full cursor-pointer items-center gap-2 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
 								>
-									<Label
-										htmlFor={statusOptionId}
-										className="flex h-9 w-full cursor-pointer items-center gap-2 px-2 leading-normal font-normal"
-									>
-										<Checkbox
-											id={statusOptionId}
-											checked={isStatusSelected}
-											disabled={isPending}
-											onCheckedChange={(checked) => {
-												onStatusFiltersChange(
-													checked === true
-														? [...statusFilters, statusOption.value]
-														: statusFilters.filter(
-																(statusFilter) => statusFilter !== statusOption.value,
-															),
+									<Checkbox
+										id={statusOptionId}
+										checked={isStatusSelected}
+										disabled={isPending}
+										onCheckedChange={(checked) => {
+											onStatusFiltersChange(
+												checked === true
+													? [...statusFilters, statusOption.value]
+													: statusFilters.filter(
+															(statusFilter) => statusFilter !== statusOption.value,
+														),
 												);
 											}}
-											className="[&_svg]:!text-current"
-										/>
-										<span>{statusOption.label}</span>
-									</Label>
-								</DropdownMenuItem>
+										className="[&_svg]:!text-current"
+									/>
+									<span>{statusOption.label}</span>
+								</Label>
 							);
 						})}
-					</DropdownMenuSubContent>
-				</DropdownMenuSub>
+					</div>
 
-					<DropdownMenuSub
-						open={activeTransferFilterSubmenu === "requested-at"}
-						onOpenChange={(isRequestedAtSubmenuOpen) => {
-							setActiveTransferFilterSubmenu((prev) => {
-								if (isRequestedAtSubmenuOpen) return "requested-at";
-								if (prev === "requested-at") return null;
-								return prev;
-							});
-						}}
-					>
-					<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-						<RiCalendarLine className="size-4.5" /> <span className="block">Requested at</span>
-					</DropdownMenuSubTrigger>
-
-					<DropdownMenuSubContent
-						alignOffset={-5}
-						className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
-					>
+					<div hidden={activeFilterSubmenu !== "requested-at"}>
 						<RequestedAtFilterContent />
-					</DropdownMenuSubContent>
-				</DropdownMenuSub>
+					</div>
+				</div>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
@@ -285,10 +280,10 @@ function CustomRangeCalendarPanel({
 			/>
 
 			<div className="mt-7 flex justify-end gap-3">
-					<Button
-						type="button"
-						variant="outline"
-						className="min-w-28 text-sm"
+				<Button
+					type="button"
+					variant="outline"
+					className="min-w-28 text-sm"
 					disabled={isPending}
 					onClick={() => {
 						setDraftRequestedAtRange(undefined);
@@ -297,9 +292,9 @@ function CustomRangeCalendarPanel({
 				>
 					Reset
 				</Button>
-					<Button
-						type="button"
-						className="min-w-40 flex-1 text-sm"
+				<Button
+					type="button"
+					className="min-w-40 flex-1 text-sm"
 					disabled={!draftRequestedAtRange?.from || !draftRequestedAtRange?.to || isPending}
 					onClick={() => {
 						if (!draftRequestedAtRange?.from || !draftRequestedAtRange?.to) return;
@@ -325,18 +320,16 @@ function DatePresetButton({
 	isSelected: boolean;
 	label: string;
 	onSelect: () => void;
-}) {
+	}) {
 	return (
-		<DropdownMenuItem
-			onSelect={(event) => {
-				event.preventDefault();
-				onSelect();
-			}}
-			className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
+		<button
+			type="button"
+			onClick={onSelect}
+			className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 hover:bg-gray-100 focus-visible:bg-gray-50 focus-visible:outline-none"
 		>
 			<span>{label}</span>
 			{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}
-		</DropdownMenuItem>
+		</button>
 	);
 }
 

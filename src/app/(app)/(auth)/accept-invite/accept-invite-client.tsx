@@ -125,7 +125,7 @@ export function AcceptInviteClient() {
 				>
 					<DialogFooter className="border-t border-gray-200 w-full text-sm">
 						<Button
-							className="w-full text-sm"
+							className="h-9 w-full text-sm"
 							onClick={() => router.push("/dashboard")}
 						>
 							Continue to Dashboard

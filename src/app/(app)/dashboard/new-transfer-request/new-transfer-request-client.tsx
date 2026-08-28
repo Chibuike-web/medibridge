@@ -471,13 +471,13 @@ export function NewTransferRequestClient({
 					<DialogFooter className="border-t border-gray-200 text-sm">
 						<Button
 							variant="outline"
-							className="text-sm"
+							className="h-9 text-sm"
 							onClick={() => router.push("/dashboard/overview")}
 						>
 							Return to Dashboard
 						</Button>
 						<Button
-							className="text-sm"
+							className="h-9 text-sm"
 							onClick={() => {
 								setIsSuccessModalOpen(false);
 								setCurrentTransferRequestStep(1);

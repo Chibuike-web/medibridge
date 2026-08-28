@@ -6,14 +6,12 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuSub,
-	DropdownMenuSubContent,
-	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
+import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
@@ -21,6 +19,7 @@ import type { PatientAgeGroupFilter, PatientGenderFilter } from "../types";
 
 import {
 	RiArrowRightLine,
+	RiArrowRightSLine,
 	RiCalendarLine,
 	RiCalendarView,
 	RiCheckLine,
@@ -74,47 +73,83 @@ export function FilterButton({
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onGenderFilterChange: (genderFilter: PatientGenderFilter) => void;
 }) {
-	const [activePatientFilterSubmenu, setActivePatientFilterSubmenu] =
-		useState<PatientFilterSubmenu | null>(null);
+	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<PatientFilterSubmenu | null>(null);
+	const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
 	return (
 		<DropdownMenu
-			onOpenChange={(isPatientFilterMenuOpen) => {
-				if (!isPatientFilterMenuOpen) {
-					setActivePatientFilterSubmenu(null);
+			open={isFilterMenuOpen}
+			onOpenChange={(nextIsFilterMenuOpen) => {
+				setIsFilterMenuOpen(nextIsFilterMenuOpen);
+
+				if (!nextIsFilterMenuOpen) {
+					setActiveFilterSubmenu(null);
 				}
 			}}
 		>
 			<DropdownMenuTrigger asChild>
-				<Button variant="outline" className="bg-white text-sm text-gray-600 hover:bg-gray-50">
+				<Button variant="outline" className="bg-white text-sm text-gray-600 hover:bg-gray-100">
 					<RiFilter3Line aria-hidden className="size-4 text-gray-600" />
 					Filter
 				</Button>
 			</DropdownMenuTrigger>
 
 			<DropdownMenuContent
+				onPointerLeave={() => setActiveFilterSubmenu(null)}
 				align="end"
-				className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+				className="relative w-[13.75rem] overflow-visible rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
 			>
-				<DropdownMenuSub
-					open={activePatientFilterSubmenu === "gender"}
-					onOpenChange={(isGenderSubmenuOpen) => {
-						setActivePatientFilterSubmenu((prev) => {
-							if (isGenderSubmenuOpen) return "gender";
-							if (prev === "gender") return null;
-							return prev;
-						});
-					}}
+				<DropdownMenuItem
+					data-active={activeFilterSubmenu === "gender"}
+					onFocus={() => setActiveFilterSubmenu("gender")}
+					onPointerEnter={() => setActiveFilterSubmenu("gender")}
+					onSelect={(event) => event.preventDefault()}
+					className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 data-[active=true]:bg-gray-100"
 				>
-					<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 data-[state=open]:bg-gray-100">
-						<RiMenLine className="size-4.5" />
-						<span className="block">Gender</span>
-					</DropdownMenuSubTrigger>
+					<RiMenLine className="size-4.5" />
+					<span>Gender</span>
+					<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+				</DropdownMenuItem>
 
-					<DropdownMenuSubContent
-						alignOffset={-5}
-						className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
-					>
+				<DropdownMenuItem
+					data-active={activeFilterSubmenu === "age"}
+					onFocus={() => setActiveFilterSubmenu("age")}
+					onPointerEnter={() => setActiveFilterSubmenu("age")}
+					onSelect={(event) => event.preventDefault()}
+					className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
+				>
+					<RiCalendarView className="size-4.5" />
+					<span>Age</span>
+					<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+				</DropdownMenuItem>
+
+				<DropdownMenuItem
+					data-active={activeFilterSubmenu === "created-at"}
+					onFocus={() => setActiveFilterSubmenu("created-at")}
+					onPointerEnter={() => setActiveFilterSubmenu("created-at")}
+					onSelect={(event) => event.preventDefault()}
+					className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
+				>
+					<RiCalendarLine className="size-4.5" />
+					<span>Created at</span>
+					<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+				</DropdownMenuItem>
+
+				<div
+					id="patient-filter-submenu-panel"
+					aria-hidden={activeFilterSubmenu === null}
+					className={cn(
+						"absolute top-0 right-[100%] z-50 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						activeFilterSubmenu === "created-at" ? "w-max" : "w-[13.75rem]",
+						activeFilterSubmenu === "age"
+							? "translate-y-9"
+							: activeFilterSubmenu === "created-at"
+								? "translate-y-18"
+								: "translate-y-0",
+						activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
+					)}
+				>
+					<div hidden={activeFilterSubmenu !== "gender"} className="p-1">
 						<RadioGroup
 							value={genderFilter || "all"}
 							onValueChange={(nextGenderFilter) => {
@@ -155,27 +190,9 @@ export function FilterButton({
 								</Label>
 							</div>
 						</RadioGroup>
-					</DropdownMenuSubContent>
-				</DropdownMenuSub>
+					</div>
 
-				<DropdownMenuSub
-					open={activePatientFilterSubmenu === "age"}
-					onOpenChange={(isAgeSubmenuOpen) => {
-						setActivePatientFilterSubmenu((prev) => {
-							if (isAgeSubmenuOpen) return "age";
-							if (prev === "age") return null;
-							return prev;
-						});
-					}}
-				>
-					<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-						<RiCalendarView className="size-4.5" /> <span className="block">Age</span>
-					</DropdownMenuSubTrigger>
-
-					<DropdownMenuSubContent
-						alignOffset={-5}
-						className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
-					>
+					<div hidden={activeFilterSubmenu !== "age"} className="p-1">
 						<RadioGroup
 							value={ageGroupFilter || "any-age"}
 							onValueChange={(nextAgeGroupFilter) => {
@@ -248,30 +265,12 @@ export function FilterButton({
 								</Label>
 							</div>
 						</RadioGroup>
-					</DropdownMenuSubContent>
-				</DropdownMenuSub>
+					</div>
 
-				<DropdownMenuSub
-					open={activePatientFilterSubmenu === "created-at"}
-					onOpenChange={(isCreatedAtSubmenuOpen) => {
-						setActivePatientFilterSubmenu((prev) => {
-							if (isCreatedAtSubmenuOpen) return "created-at";
-							if (prev === "created-at") return null;
-							return prev;
-						});
-					}}
-				>
-					<DropdownMenuSubTrigger className="h-9 rounded-lg py-0 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-						<RiCalendarLine className="size-4.5" /> <span className="block">Created at</span>
-					</DropdownMenuSubTrigger>
-
-					<DropdownMenuSubContent
-						alignOffset={-5}
-						className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
-					>
+					<div hidden={activeFilterSubmenu !== "created-at"}>
 						<CreatedAtFilterContent />
-					</DropdownMenuSubContent>
-				</DropdownMenuSub>
+					</div>
+				</div>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
@@ -416,16 +415,14 @@ function DatePresetButton({
 	onSelect: () => void;
 }) {
 	return (
-		<DropdownMenuItem
-			onSelect={(event) => {
-				event.preventDefault();
-				onSelect();
-			}}
-			className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
+		<button
+			type="button"
+			onClick={onSelect}
+			className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 hover:bg-gray-100 focus-visible:bg-gray-100 focus-visible:outline-none"
 		>
 			<span>{label}</span>
 			{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}
-		</DropdownMenuItem>
+		</button>
 	);
 }
 
