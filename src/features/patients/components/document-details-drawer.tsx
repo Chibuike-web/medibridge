@@ -28,7 +28,6 @@ import { removePatientDocumentAction } from "@/features/patients/server/remove-p
 import { updatePatientDocumentAction } from "@/features/patients/server/update-patient-document-action";
 import type { DocumentType } from "@/features/patients/types";
 import { RiAddLine, RiCloseLine, RiEditLine } from "@remixicon/react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRef, useState, useTransition } from "react";
 import { ChooseFileCard } from "@/components/choose-file-card";
 
@@ -265,7 +264,6 @@ function DocumentDetailsEditForm({
 	const documentFileInputRef = useRef<HTMLInputElement>(null);
 	const [editableFiles, setEditableFiles] = useState(document.files);
 	const [pendingDocumentFileRemovalUrl, setPendingDocumentFileRemovalUrl] = useState<string | null>(null);
-	const shouldReduceMotion = useReducedMotion();
 
 	const hasFiles = editableFiles.length > 0;
 
@@ -358,7 +356,7 @@ function DocumentDetailsEditForm({
 										>
 										<p className="truncate font-semibold text-gray-800">{file.name}</p>
 
-										<p className="text-gray-400">
+										<p className="truncate text-gray-400">
 											{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}
 										</p>
 									</div>
@@ -380,22 +378,17 @@ function DocumentDetailsEditForm({
 										</div>
 									) : null}
 								</div>
-								<AnimatePresence initial={false}>
-									{pendingDocumentFileRemovalUrl === file.url ? (
-										<motion.div
-											initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-											animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-											exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-											transition={
-												shouldReduceMotion
-													? { duration: 0.12 }
-													: {
-															height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-															opacity: { duration: 0.16, ease: "easeOut" },
-														}
-											}
-											className="overflow-hidden"
-										>
+								<div
+									className={cn(
+										"grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none",
+										pendingDocumentFileRemovalUrl === file.url
+											? "grid-rows-[1fr] opacity-100"
+											: "grid-rows-[0fr] opacity-0",
+									)}
+									aria-hidden={pendingDocumentFileRemovalUrl !== file.url}
+									inert={pendingDocumentFileRemovalUrl !== file.url}
+								>
+									<div className="min-h-0 overflow-hidden">
 											<div className="mt-6 flex flex-wrap items-center justify-between gap-4">
 												<p className="max-w-md text-sm font-medium text-gray-700">
 													Remove {file.name} from this document?
@@ -417,9 +410,8 @@ function DocumentDetailsEditForm({
 													</Button>
 												</div>
 											</div>
-										</motion.div>
-									) : null}
-								</AnimatePresence>
+									</div>
+								</div>
 							</div>
 							))}
 						</div>

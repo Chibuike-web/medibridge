@@ -32,11 +32,11 @@ export default function Home() {
 					Securely connect your institution to the MediBridge network.
 				</p>
 				<div className="flex flex-col gap-4 w-full mt-[6.25rem] mb-[6.25rem] xl:mb-0">
-					<Button asChild className="w-full text-sm">
+					<Button asChild className="w-full">
 						<Link href="/owner">Begin Registration</Link>
 					</Button>
 
-					<Button asChild className="w-full text-sm" variant="outline">
+					<Button asChild className="w-full" variant="outline">
 						<Link href="/sign-in">Sign in</Link>
 					</Button>
 				</div>

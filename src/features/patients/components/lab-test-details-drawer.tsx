@@ -44,7 +44,6 @@ import {
 	RiEditLine,
 } from "@remixicon/react";
 import { format } from "date-fns";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import { useId, useRef, useState } from "react";
 import { ChooseFileCard } from "@/components/choose-file-card";
@@ -117,14 +116,14 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 							<Button
 								type="button"
 								variant="outline"
-								className="text-sm"
+
 								onClick={() => setLabTestDetailsMode("view")}
 							>
 								Cancel
 							</Button>
 							<Button
 								type="button"
-								className="bg-gray-800 text-sm"
+								className="bg-gray-800"
 								onClick={() => setLabTestDetailsMode("view")}
 							>
 								Save changes
@@ -133,12 +132,12 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 					) : (
 						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
 							<DrawerClose asChild>
-								<Button type="button" variant="outline" className="text-sm">
+								<Button type="button" variant="outline">
 									Cancel
 								</Button>
 							</DrawerClose>
 							{canArchive ? (
-								<Button type="button" className="bg-gray-800 text-sm">
+								<Button type="button" className="bg-gray-800">
 									Archive Lab result
 								</Button>
 							) : null}
@@ -288,7 +287,6 @@ function LabTestHistorySection({ history }: { history: LabTestDetailsHistoryEven
 
 function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHistoryEvent }) {
 	const [isLabTestHistoryExpanded, setIsLabTestHistoryExpanded] = useState(true);
-	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
@@ -316,25 +314,19 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 					aria-hidden="true"
 				/>
 			</button>
-			<AnimatePresence initial={false}>
-				{isLabTestHistoryExpanded ? (
-					<motion.div
-						id={panelId}
-						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						transition={
-							shouldReduceMotion
-								? { duration: 0.12 }
-								: {
-										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-										opacity: { duration: 0.16, ease: "easeOut" },
-									}
-						}
-						className="overflow-hidden"
-					>
-						<div
-							aria-labelledby={titleId}
+			<div
+				id={panelId}
+				className={cn(
+					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+					isLabTestHistoryExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+				)}
+				aria-hidden={!isLabTestHistoryExpanded}
+				inert={!isLabTestHistoryExpanded}
+			>
+				<div className="min-h-0 overflow-hidden">
+					<div
+						role="region"
+						aria-labelledby={titleId}
 							className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
 						>
 							{historyEvent.items.map((item) => (
@@ -344,10 +336,9 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 									value={item.value}
 								/>
 							))}
-						</div>
-					</motion.div>
-				) : null}
-			</AnimatePresence>
+					</div>
+				</div>
+			</div>
 		</section>
 	);
 }
@@ -370,7 +361,6 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 	const [pendingLabTestFileRemovalId, setPendingLabTestFileRemovalId] = useState<string | null>(
 		null,
 	);
-	const shouldReduceMotion = useReducedMotion();
 
 	const hasLabTestFiles = editableLabTestFiles.length > 0;
 
@@ -605,7 +595,7 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 									>
 										<p className="truncate font-semibold text-gray-800">{file.name}</p>
 
-										<p className="text-gray-400">
+										<p className="truncate text-gray-400">
 											{file.size} · Uploaded on {file.uploadedAtLabel}
 										</p>
 									</div>
@@ -627,22 +617,17 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 										</div>
 									) : null}
 									</div>
-									<AnimatePresence initial={false}>
-										{pendingLabTestFileRemovalId === file.id ? (
-											<motion.div
-												initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-												animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-												exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-												transition={
-													shouldReduceMotion
-														? { duration: 0.12 }
-														: {
-																height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-																opacity: { duration: 0.16, ease: "easeOut" },
-															}
-													}
-												className="overflow-hidden"
-											>
+									<div
+										className={cn(
+											"grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none",
+											pendingLabTestFileRemovalId === file.id
+												? "grid-rows-[1fr] opacity-100"
+												: "grid-rows-[0fr] opacity-0",
+										)}
+										aria-hidden={pendingLabTestFileRemovalId !== file.id}
+										inert={pendingLabTestFileRemovalId !== file.id}
+									>
+										<div className="min-h-0 overflow-hidden">
 												<div className="mt-6 flex flex-wrap items-center justify-between gap-4">
 													<p className="max-w-md text-sm font-medium text-gray-700">
 														Remove {file.name} from this lab test?
@@ -660,9 +645,8 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 														</Button>
 													</div>
 												</div>
-											</motion.div>
-										) : null}
-									</AnimatePresence>
+										</div>
+									</div>
 								</div>
 							))}
 						</div>
@@ -715,7 +699,7 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 "
+						className="border-gray-200 bg-white text-gray-600"
 						onClick={handleAddLabTestAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />

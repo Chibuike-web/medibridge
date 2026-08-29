@@ -31,7 +31,6 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { RiAddLine, RiArrowDownSLine, RiCloseLine, RiEditLine } from "@remixicon/react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useId, useRef, useState } from "react";
 
 type AllergyDetailsDrawerProps = {
@@ -112,7 +111,7 @@ export function AllergyDetailsDrawer({
 							<Button
 								type="button"
 								variant="outline"
-								className="text-sm"
+
 								onClick={() => setAllergyDetailsMode("view")}
 							>
 								Cancel
@@ -120,7 +119,7 @@ export function AllergyDetailsDrawer({
 							<Button
 								type="button"
 								form={allergyDetailsFormId}
-								className="bg-gray-800 text-sm"
+								className="bg-gray-800"
 								onClick={() => setAllergyDetailsMode("view")}
 							>
 								Save changes
@@ -129,12 +128,12 @@ export function AllergyDetailsDrawer({
 					) : (
 						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
 							<DrawerClose asChild>
-								<Button variant="outline" className="text-sm">
+								<Button variant="outline">
 									Cancel
 								</Button>
 							</DrawerClose>
 							{canArchive ? (
-								<Button className="bg-gray-800 text-sm">Archive allergy</Button>
+								<Button className="bg-gray-800">Archive allergy</Button>
 							) : null}
 						</div>
 					)}
@@ -347,7 +346,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 "
+						className="border-gray-200 bg-white text-gray-600"
 						onClick={handleAddAllergyAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
@@ -388,7 +387,6 @@ function AllergyHistorySection({ history }: { history: AllergyDetailsHistoryEven
 
 function AllergyHistoryCard({ historyEvent }: { historyEvent: AllergyDetailsHistoryEvent }) {
 	const [isAllergyHistoryExpanded, setIsAllergyHistoryExpanded] = useState(true);
-	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
@@ -416,25 +414,19 @@ function AllergyHistoryCard({ historyEvent }: { historyEvent: AllergyDetailsHist
 					aria-hidden="true"
 				/>
 			</button>
-			<AnimatePresence initial={false}>
-				{isAllergyHistoryExpanded ? (
-					<motion.div
-						id={panelId}
-						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						transition={
-							shouldReduceMotion
-								? { duration: 0.12 }
-								: {
-										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-										opacity: { duration: 0.16, ease: "easeOut" },
-									}
-						}
-						className="overflow-hidden"
-					>
-						<div
-							aria-labelledby={titleId}
+			<div
+				id={panelId}
+				className={cn(
+					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+					isAllergyHistoryExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+				)}
+				aria-hidden={!isAllergyHistoryExpanded}
+				inert={!isAllergyHistoryExpanded}
+			>
+				<div className="min-h-0 overflow-hidden">
+					<div
+						role="region"
+						aria-labelledby={titleId}
 							className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
 						>
 							{historyEvent.items.map((item) => (
@@ -444,10 +436,9 @@ function AllergyHistoryCard({ historyEvent }: { historyEvent: AllergyDetailsHist
 									value={item.value}
 								/>
 							))}
-						</div>
-					</motion.div>
-				) : null}
-			</AnimatePresence>
+					</div>
+				</div>
+			</div>
 		</section>
 	);
 }

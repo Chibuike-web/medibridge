@@ -73,8 +73,11 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 	const [selectedSettingsSection, setSelectedSettingsSection] =
 		useState<SettingsSectionId>("profile");
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
-	const canManageOrganization =
-		activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
+	const manageableOrganizationRole =
+		activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin"
+			? activeMemberRole.role
+			: null;
+	const canManageOrganization = manageableOrganizationRole !== null;
 	const visibleSettingsSections = settingsSections.filter(
 		({ id }) => canManageOrganization || (id !== "billing" && id !== "members"),
 	);
@@ -163,7 +166,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 								<h2 className="text-base font-semibold">{selectedSettingsSectionLabel}</h2>
 							)}
 							<DialogClose
-								className="rounded-md p-1.5 text-foreground/60 transition-colors hover:bg-gray-100 hover:text-foreground"
+								className="rounded-md border border-transparent p-1.5 text-foreground/60 transition-colors hover:bg-gray-100 hover:text-foreground focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
 								aria-label="Close settings"
 							>
 								<RiCloseLine className="size-5" aria-hidden="true" />
@@ -186,7 +189,9 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 									onSettingsSubViewChange={setActiveSettingsSubView}
 								/>
 							) : null}
-							{selectedSettingsSection === "members" ? <MembersSettings /> : null}
+							{selectedSettingsSection === "members" && manageableOrganizationRole ? (
+								<MembersSettings currentUser={user} viewerRole={manageableOrganizationRole} />
+							) : null}
 						</div>
 					</section>
 				</div>

@@ -214,7 +214,7 @@ export function AllergiesTable({
 					<DropdownMenuTrigger asChild>
 						<Button
 							variant="outline"
-							className="bg-white text-sm text-gray-600 hover:bg-gray-50"
+							className="bg-white text-gray-600 hover:bg-gray-50"
 						>
 							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 							Filter
@@ -307,12 +307,12 @@ export function AllergiesTable({
 				</DropdownMenu>
 				<Button
 					variant="outline"
-					className="bg-white text-sm text-gray-600 hover:bg-gray-50"
+					className="bg-white text-gray-600 hover:bg-gray-50"
 				>
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button className="text-sm" type="button" onClick={() => setIsCreateDrawerOpen(true)}>
+				<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
 					Add allergy
 				</Button>
 			</div>
@@ -863,7 +863,7 @@ function AllergyCustomRangeCalendarPanel({
 				<Button
 					type="button"
 					variant="outline"
-					className="min-w-28 text-sm"
+					className="min-w-28"
 					disabled={isPending}
 					onClick={() => {
 						setDraftAllergyDateRange(undefined);
@@ -874,7 +874,7 @@ function AllergyCustomRangeCalendarPanel({
 				</Button>
 				<Button
 					type="button"
-					className="min-w-40 flex-1 text-sm"
+					className="min-w-40 flex-1"
 					disabled={!draftAllergyDateRange?.from || !draftAllergyDateRange?.to || isPending}
 					onClick={() => {
 						if (!draftAllergyDateRange?.from || !draftAllergyDateRange?.to) return;

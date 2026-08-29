@@ -39,7 +39,6 @@ import {
 	RiEditLine,
 } from "@remixicon/react";
 import { format } from "date-fns";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import { useId, useRef, useState } from "react";
 
@@ -119,7 +118,7 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 					) : (
 						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
 							<DrawerClose asChild>
-								<Button type="button" variant="outline" className="text-sm">
+								<Button type="button" variant="outline">
 									Cancel
 								</Button>
 							</DrawerClose>
@@ -237,7 +236,7 @@ function ImagingFilesSection({ files }: { files: ImagingType["files"] }) {
 						/>
 						<div className="min-w-0 flex-1">
 							<p className="truncate font-semibold text-gray-800">{file.name}</p>
-							<p className="text-gray-400">
+							<p className="truncate text-gray-400">
 								{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}
 							</p>
 						</div>
@@ -270,7 +269,6 @@ function ImagingHistorySection({ history }: { history: ImagingDetailsHistoryEven
 
 function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHistoryEvent }) {
 	const [isImagingHistoryExpanded, setIsImagingHistoryExpanded] = useState(true);
-	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
@@ -298,25 +296,19 @@ function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHist
 					aria-hidden="true"
 				/>
 			</button>
-			<AnimatePresence initial={false}>
-				{isImagingHistoryExpanded ? (
-					<motion.div
-						id={panelId}
-						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						transition={
-							shouldReduceMotion
-								? { duration: 0.12 }
-								: {
-										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-										opacity: { duration: 0.16, ease: "easeOut" },
-									}
-						}
-						className="overflow-hidden"
-					>
-						<div
-							aria-labelledby={titleId}
+			<div
+				id={panelId}
+				className={cn(
+					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+					isImagingHistoryExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+				)}
+				aria-hidden={!isImagingHistoryExpanded}
+				inert={!isImagingHistoryExpanded}
+			>
+				<div className="min-h-0 overflow-hidden">
+					<div
+						role="region"
+						aria-labelledby={titleId}
 							className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
 						>
 							{historyEvent.items.map((item) => (
@@ -326,10 +318,9 @@ function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHist
 									value={item.value}
 								/>
 							))}
-						</div>
-					</motion.div>
-				) : null}
-			</AnimatePresence>
+					</div>
+				</div>
+			</div>
 		</section>
 	);
 }
@@ -344,7 +335,6 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 	const [pendingImagingFileRemovalUrl, setPendingImagingFileRemovalUrl] = useState<string | null>(
 		null,
 	);
-	const shouldReduceMotion = useReducedMotion();
 	const hasImagingFiles = editableImagingFiles.length > 0;
 	const selectedModalityValue = getImagingSelectValue(imaging.modality);
 	const selectedStatusValue = imaging.status.toLowerCase();
@@ -566,7 +556,7 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 											className={`min-w-0 flex-1 transition-opacity duration-200 ${pendingImagingFileRemovalUrl === file.url ? "opacity-40" : "opacity-100"}`}
 										>
 										<p className="truncate font-semibold text-gray-800">{file.name}</p>
-										<p className="text-gray-400">{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}</p>
+										<p className="truncate text-gray-400">{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}</p>
 									</div>
 										{pendingImagingFileRemovalUrl !== file.url ? (
 											<div className="flex shrink-0 items-center gap-2">
@@ -585,22 +575,17 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 											</div>
 										) : null}
 									</div>
-									<AnimatePresence initial={false}>
-										{pendingImagingFileRemovalUrl === file.url ? (
-											<motion.div
-												initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-												animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-												exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-												transition={
-													shouldReduceMotion
-														? { duration: 0.12 }
-														: {
-																height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-																opacity: { duration: 0.16, ease: "easeOut" },
-															}
-													}
-												className="overflow-hidden"
-											>
+									<div
+										className={cn(
+											"grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none",
+											pendingImagingFileRemovalUrl === file.url
+												? "grid-rows-[1fr] opacity-100"
+												: "grid-rows-[0fr] opacity-0",
+										)}
+										aria-hidden={pendingImagingFileRemovalUrl !== file.url}
+										inert={pendingImagingFileRemovalUrl !== file.url}
+									>
+										<div className="min-h-0 overflow-hidden">
 												<div className="mt-6 flex flex-wrap items-center justify-between gap-4">
 													<p className="max-w-md text-sm font-medium text-gray-700">
 														Remove {file.name} from this imaging record?
@@ -618,9 +603,8 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 														</Button>
 													</div>
 												</div>
-											</motion.div>
-										) : null}
-									</AnimatePresence>
+										</div>
+									</div>
 								</div>
 							))}
 						</div>

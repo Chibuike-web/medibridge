@@ -21,7 +21,6 @@ import {
 import { CopyIdButton } from "@/components/copy-id-button";
 import { cn } from "@/lib/utils/cn";
 import { useId, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { TransferDetailsType } from "@/features/transfers/types";
 import { formatDate } from "@/lib/utils/format-date";
 
@@ -90,10 +89,7 @@ export function TransferDetailsDrawer({
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 									<DetailItem label="Patient Name:" value={transfer?.patientName} />
 									<DetailItem label="Target Hospital:" value={transfer?.targetHospitalName} />
-					<DetailItem
-						label="Target Hospital Email"
-						value={transfer?.targetHospitalEmail}
-					/>
+									<DetailItem label="Target Hospital Email" value={transfer?.targetHospitalEmail} />
 									<DetailItem
 										label="Requested At"
 										value={transfer ? formatDate(transfer.requestedAt) : null}
@@ -113,11 +109,11 @@ export function TransferDetailsDrawer({
 				<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
 					<div className="flex flex-col lg:flex-row gap-x-4 gap-y-2 lg:self-end">
 						<DrawerClose asChild>
-							<Button className="bg-[#FB3748] text-sm" variant="destructive">
+							<Button className="bg-[#FB3748]" variant="destructive">
 								Cancel transfer
 							</Button>
 						</DrawerClose>
-						<Button className="text-sm">Resend approval request</Button>
+						<Button>Resend approval request</Button>
 					</div>
 				</DrawerFooter>
 			</DrawerContent>
@@ -191,7 +187,6 @@ function groupTransferContentByType(
 
 function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentGroupType }) {
 	const [isTransferContentGroupExpanded, setIsTransferContentGroupExpanded] = useState(false);
-	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
@@ -216,44 +211,37 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 					aria-hidden="true"
 				/>
 			</button>
-			<AnimatePresence>
-				{isTransferContentGroupExpanded && (
-					<motion.div
-						id={panelId}
-						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						transition={
-							shouldReduceMotion
-								? { duration: 0.12 }
-								: {
-										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-										opacity: { duration: 0.16, ease: "easeOut" },
-									}
-						}
-						className="overflow-hidden"
-					>
-						<div aria-labelledby={titleId} className="mt-4 flex flex-col gap-3">
-							{contentGroup.transferContent.map((content) => (
-								<div
-									key={`${content.contentType}-${content.recordId}`}
-									className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
-								>
-									<div className="flex min-w-0 flex-wrap items-center gap-2">
-										<span className="min-w-0 truncate font-semibold text-gray-600">
-											{content.recordName ?? content.recordId}
-										</span>
-										{content.status ? (
-											<StatusBadge status={content.status} className="shrink-0" />
-										) : null}
-									</div>
-									<CopyIdButton id={content.recordId} className="text-sm" />
-								</div>
-							))}
-						</div>
-					</motion.div>
+
+			<div
+				id={panelId}
+				className={cn(
+					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+					isTransferContentGroupExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
 				)}
-			</AnimatePresence>
+				aria-hidden={!isTransferContentGroupExpanded}
+				inert={!isTransferContentGroupExpanded}
+			>
+				<div className="min-h-0 overflow-hidden">
+					<div role="region" aria-labelledby={titleId} className="mt-4 flex flex-col gap-3">
+						{contentGroup.transferContent.map((content) => (
+							<div
+								key={`${content.contentType}-${content.recordId}`}
+								className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+							>
+								<div className="flex min-w-0 flex-wrap items-center gap-2">
+									<span className="min-w-0 truncate font-semibold text-gray-600">
+										{content.recordName ?? content.recordId}
+									</span>
+									{content.status ? (
+										<StatusBadge status={content.status} className="shrink-0" />
+									) : null}
+								</div>
+								<CopyIdButton id={content.recordId} className="text-sm" />
+							</div>
+						))}
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }
@@ -269,7 +257,6 @@ function DetailItem({ label, value }: { label: string; value?: string | null }) 
 
 function TransferProgress() {
 	const [isTransferProgressExpanded, setIsTransferProgressExpanded] = useState(false);
-	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
@@ -297,23 +284,17 @@ function TransferProgress() {
 					aria-hidden="true"
 				/>
 			</button>
-			<AnimatePresence>
-				{isTransferProgressExpanded && (
-					<motion.div
-						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						transition={
-							shouldReduceMotion
-								? { duration: 0.12 }
-								: {
-										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-										opacity: { duration: 0.16, ease: "easeOut" },
-									}
-						}
-						className="overflow-hidden"
-					>
-						<div aria-labelledby={titleId} className="flex flex-col px-2 gap-1 mt-4">
+			<div
+				id={panelId}
+				className={cn(
+					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+					isTransferProgressExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+				)}
+				aria-hidden={!isTransferProgressExpanded}
+				inert={!isTransferProgressExpanded}
+			>
+				<div className="min-h-0 overflow-hidden">
+					<div role="region" aria-labelledby={titleId} className="mt-4 flex flex-col gap-1 px-2">
 							{/* Item */}
 							<div className="grid grid-cols-[auto_1fr] gap-3">
 								{/* Left column */}
@@ -356,10 +337,9 @@ function TransferProgress() {
 									<p className="text-gray-400">Not started</p>
 								</div>
 							</div>
-						</div>
-					</motion.div>
-				)}
-			</AnimatePresence>
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }

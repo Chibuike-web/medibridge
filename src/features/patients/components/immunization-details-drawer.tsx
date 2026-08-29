@@ -31,7 +31,6 @@ import type {
 } from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
 import { RiArrowDownSLine, RiCalendarLine, RiCloseLine, RiEditLine } from "@remixicon/react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { format } from "date-fns";
 import { useId, useState } from "react";
 
@@ -113,7 +112,7 @@ export function ImmunizationDetailsDrawer({
 							<Button
 								type="button"
 								variant="outline"
-								className="text-sm"
+
 								onClick={() => setImmunizationDetailsMode("view")}
 							>
 								Cancel
@@ -121,7 +120,7 @@ export function ImmunizationDetailsDrawer({
 							<Button
 								type="button"
 								form={immunizationDetailsFormId}
-								className="bg-gray-800 text-sm"
+								className="bg-gray-800"
 								onClick={() => setImmunizationDetailsMode("view")}
 							>
 								Save changes
@@ -129,10 +128,10 @@ export function ImmunizationDetailsDrawer({
 						</div>
 					) : (
 						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
-							<Button type="button" variant="outline" className="text-sm">
+							<Button type="button" variant="outline">
 								Mark as completed
 							</Button>
-							<Button className="bg-rose-500 text-sm text-white hover:bg-rose-600">
+							<Button className="bg-rose-500 text-white hover:bg-rose-600">
 								Discontinue immunization
 							</Button>
 						</div>
@@ -435,7 +434,6 @@ function ImmunizationHistoryCard({
 	historyEvent: ImmunizationDetailsHistoryEvent;
 }) {
 	const [isImmunizationHistoryExpanded, setIsImmunizationHistoryExpanded] = useState(true);
-	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
@@ -463,25 +461,19 @@ function ImmunizationHistoryCard({
 					aria-hidden="true"
 				/>
 			</button>
-			<AnimatePresence initial={false}>
-				{isImmunizationHistoryExpanded ? (
-					<motion.div
-						id={panelId}
-						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						transition={
-							shouldReduceMotion
-								? { duration: 0.12 }
-								: {
-										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-										opacity: { duration: 0.16, ease: "easeOut" },
-									}
-						}
-						className="overflow-hidden"
-					>
-						<div
-							aria-labelledby={titleId}
+			<div
+				id={panelId}
+				className={cn(
+					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+					isImmunizationHistoryExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+				)}
+				aria-hidden={!isImmunizationHistoryExpanded}
+				inert={!isImmunizationHistoryExpanded}
+			>
+				<div className="min-h-0 overflow-hidden">
+					<div
+						role="region"
+						aria-labelledby={titleId}
 							className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
 						>
 							{historyEvent.items.map((item) => (
@@ -491,10 +483,9 @@ function ImmunizationHistoryCard({
 									value={item.value}
 								/>
 							))}
-						</div>
-					</motion.div>
-				) : null}
-			</AnimatePresence>
+					</div>
+				</div>
+			</div>
 		</section>
 	);
 }

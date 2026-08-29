@@ -42,7 +42,6 @@ import {
 	RiCloseLine,
 	RiEditLine,
 } from "@remixicon/react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { format } from "date-fns";
 import { useId, useRef, useState } from "react";
 
@@ -124,7 +123,7 @@ export function MedicationDetailsDrawer({
 							<Button
 								type="button"
 								variant="outline"
-								className="text-sm"
+
 								onClick={() => setMedicationDetailsMode("view")}
 							>
 								Cancel
@@ -132,7 +131,7 @@ export function MedicationDetailsDrawer({
 							<Button
 								type="button"
 								form={medicationDetailsFormId}
-								className="bg-gray-800 text-sm"
+								className="bg-gray-800"
 								onClick={() => setMedicationDetailsMode("view")}
 							>
 								Save changes
@@ -140,22 +139,22 @@ export function MedicationDetailsDrawer({
 						</div>
 					) : medication?.status === "Active" ? (
 						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
-							<Button type="button" variant="outline" className="text-sm">
+							<Button type="button" variant="outline">
 								Mark as completed
 							</Button>
-							<Button className="bg-rose-500 text-sm text-white hover:bg-rose-600">
+							<Button className="bg-rose-500 text-white hover:bg-rose-600">
 								Discontinue medication
 							</Button>
 						</div>
 					) : (
 						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
 							<DrawerClose asChild>
-								<Button variant="outline" className="text-sm">
+								<Button variant="outline">
 									Cancel
 								</Button>
 							</DrawerClose>
 							{canArchive ? (
-								<Button className="bg-gray-800 text-sm">Archive medication</Button>
+								<Button className="bg-gray-800">Archive medication</Button>
 							) : null}
 						</div>
 					)}
@@ -457,7 +456,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 "
+						className="border-gray-200 bg-white text-gray-600"
 						onClick={handleAddMedicationAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
@@ -498,7 +497,6 @@ function MedicationHistorySection({ history }: { history: MedicationDetailsHisto
 
 function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetailsHistoryEvent }) {
 	const [isMedicationHistoryExpanded, setIsMedicationHistoryExpanded] = useState(true);
-	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
@@ -526,25 +524,19 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 					aria-hidden="true"
 				/>
 			</button>
-			<AnimatePresence initial={false}>
-				{isMedicationHistoryExpanded ? (
-					<motion.div
-						id={panelId}
-						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						transition={
-							shouldReduceMotion
-								? { duration: 0.12 }
-								: {
-										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-										opacity: { duration: 0.16, ease: "easeOut" },
-									}
-						}
-						className="overflow-hidden"
-					>
-						<div
-							aria-labelledby={titleId}
+			<div
+				id={panelId}
+				className={cn(
+					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+					isMedicationHistoryExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+				)}
+				aria-hidden={!isMedicationHistoryExpanded}
+				inert={!isMedicationHistoryExpanded}
+			>
+				<div className="min-h-0 overflow-hidden">
+					<div
+						role="region"
+						aria-labelledby={titleId}
 							className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
 						>
 							{historyEvent.items.map((item) => (
@@ -554,10 +546,9 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 									value={item.value}
 								/>
 							))}
-						</div>
-					</motion.div>
-				) : null}
-			</AnimatePresence>
+					</div>
+				</div>
+			</div>
 		</section>
 	);
 }

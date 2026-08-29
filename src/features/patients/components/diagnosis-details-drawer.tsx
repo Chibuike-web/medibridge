@@ -43,7 +43,6 @@ import {
 	RiCloseLine,
 	RiEditLine,
 } from "@remixicon/react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useId, useState } from "react";
 import { format } from "date-fns";
 
@@ -126,7 +125,7 @@ export function DiagnosisDetailsDrawer({
 							<Button
 								type="button"
 								variant="outline"
-								className="text-sm"
+
 								onClick={() => setDiagnosisDetailsMode("view")}
 							>
 								Cancel
@@ -134,7 +133,7 @@ export function DiagnosisDetailsDrawer({
 							<Button
 								type="button"
 								form={diagnosisDetailsFormId}
-								className="bg-gray-800 text-sm"
+								className="bg-gray-800"
 								onClick={() => setDiagnosisDetailsMode("view")}
 							>
 								Save changes
@@ -143,12 +142,12 @@ export function DiagnosisDetailsDrawer({
 					) : (
 						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
 							<DrawerClose asChild>
-								<Button variant="outline" className="text-sm">
+								<Button variant="outline">
 									Cancel
 								</Button>
 							</DrawerClose>
 							{canArchive ? (
-								<Button className="bg-gray-800 text-sm">Archive diagnosis</Button>
+								<Button className="bg-gray-800">Archive diagnosis</Button>
 							) : null}
 						</div>
 					)}
@@ -405,7 +404,7 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 "
+						className="border-gray-200 bg-white text-gray-600"
 						onClick={handleAddDiagnosisAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
@@ -477,7 +476,6 @@ function DiagnosisHistorySection({ history }: { history: DiagnosisDetailsHistory
 
 function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetailsHistoryEvent }) {
 	const [isDiagnosisHistoryExpanded, setIsDiagnosisHistoryExpanded] = useState(true);
-	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
@@ -505,25 +503,19 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 					aria-hidden="true"
 				/>
 			</button>
-			<AnimatePresence initial={false}>
-				{isDiagnosisHistoryExpanded ? (
-					<motion.div
-						id={panelId}
-						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						transition={
-							shouldReduceMotion
-								? { duration: 0.12 }
-								: {
-										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-										opacity: { duration: 0.16, ease: "easeOut" },
-									}
-						}
-						className="overflow-hidden"
-					>
-						<div
-							aria-labelledby={titleId}
+			<div
+				id={panelId}
+				className={cn(
+					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+					isDiagnosisHistoryExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+				)}
+				aria-hidden={!isDiagnosisHistoryExpanded}
+				inert={!isDiagnosisHistoryExpanded}
+			>
+				<div className="min-h-0 overflow-hidden">
+					<div
+						role="region"
+						aria-labelledby={titleId}
 							className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
 						>
 							{historyEvent.items.map((item) => (
@@ -533,10 +525,9 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 									value={item.value}
 								/>
 							))}
-						</div>
-					</motion.div>
-				) : null}
-			</AnimatePresence>
+					</div>
+				</div>
+			</div>
 		</section>
 	);
 }
@@ -584,7 +575,6 @@ function DiagnosisRelatedRecordSection({
 	records: DiagnosisDetailsRelatedRecord[];
 }) {
 	const [isRelatedRecordSectionExpanded, setIsRelatedRecordSectionExpanded] = useState(true);
-	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
@@ -609,24 +599,17 @@ function DiagnosisRelatedRecordSection({
 					aria-hidden="true"
 				/>
 			</button>
-			<AnimatePresence initial={false}>
-				{isRelatedRecordSectionExpanded ? (
-					<motion.div
-						id={panelId}
-						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						transition={
-							shouldReduceMotion
-								? { duration: 0.12 }
-								: {
-										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-										opacity: { duration: 0.16, ease: "easeOut" },
-									}
-						}
-						className="overflow-hidden"
-					>
-						<div aria-labelledby={titleId} className="mt-5 flex flex-col gap-4">
+			<div
+				id={panelId}
+				className={cn(
+					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+					isRelatedRecordSectionExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+				)}
+				aria-hidden={!isRelatedRecordSectionExpanded}
+				inert={!isRelatedRecordSectionExpanded}
+			>
+				<div className="min-h-0 overflow-hidden">
+					<div role="region" aria-labelledby={titleId} className="mt-5 flex flex-col gap-4">
 							{records.map((record) => (
 								<div
 									key={record.id}
@@ -641,10 +624,9 @@ function DiagnosisRelatedRecordSection({
 									<CopyIdButton id={record.id} className="text-sm" />
 								</div>
 							))}
-						</div>
-					</motion.div>
-				) : null}
-			</AnimatePresence>
+					</div>
+				</div>
+			</div>
 		</section>
 	);
 }

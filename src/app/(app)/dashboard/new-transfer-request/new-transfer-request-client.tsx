@@ -222,7 +222,7 @@ export function NewTransferRequestClient({
 							totalPages={totalPatientPages}
 						/>
 						<Button
-							className="mt-16 w-full text-sm"
+							className="mt-16 w-full"
 							type="button"
 							onClick={() => {
 								if (selectedTransferPatients.length > 0) {
@@ -364,7 +364,7 @@ export function NewTransferRequestClient({
 							<Button
 								variant="outline"
 								type="button"
-								className="text-sm"
+
 								onClick={() => setCurrentTransferRequestStep(1)}
 							>
 								Back
@@ -380,12 +380,12 @@ export function NewTransferRequestClient({
 								}}
 							>
 								<DialogTrigger asChild>
-									<Button type="button" className="text-sm" disabled={!isComplete}>
+									<Button type="button" disabled={!isComplete}>
 										Continue
 									</Button>
 								</DialogTrigger>
 								<DialogContent>
-									<DialogHeader className="h-16 px-6 border-b border-gray-200">
+									<DialogHeader>
 										<DialogTitle className="text-xl">Confirm Transfer Request</DialogTitle>
 										<DialogDescription className="sr-only">
 											Review the selected patients and attached clinical records before submitting
@@ -438,15 +438,15 @@ export function NewTransferRequestClient({
 											{transferSubmissionError}
 										</p>
 									) : null}
-									<DialogFooter className="mt-16 border-t border-gray-200 text-sm">
+									<DialogFooter className="mt-16 text-sm">
 										<div className="flex gap-4 ml-auto">
 											<DialogClose asChild>
-												<Button variant="outline" className="text-sm" type="button">
+												<Button variant="outline" type="button">
 													Cancel
 												</Button>
 											</DialogClose>
 											<Button
-												className="text-sm"
+
 												type="button"
 												disabled={isSubmittingTransferRequests || !isTransferConfirmationChecked}
 												onClick={handleSubmitTransferRequests}
@@ -468,16 +468,16 @@ export function NewTransferRequestClient({
 					heading="Transfer Request Sent"
 					description={transferSubmissionMessage}
 				>
-					<DialogFooter className="border-t border-gray-200 text-sm">
+					<DialogFooter className="text-sm">
 						<Button
 							variant="outline"
-							className="h-9 text-sm"
+							className="h-9"
 							onClick={() => router.push("/dashboard/overview")}
 						>
 							Return to Dashboard
 						</Button>
 						<Button
-							className="h-9 text-sm"
+							className="h-9"
 							onClick={() => {
 								setIsSuccessModalOpen(false);
 								setCurrentTransferRequestStep(1);

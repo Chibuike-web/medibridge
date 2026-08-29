@@ -104,7 +104,7 @@ export function AcceptInviteClient() {
 						<span>{error}</span>
 					</div>
 				)}
-				<Button className="mt-16 w-full text-sm" type="submit" disabled={isSubmitting}>
+				<Button className="mt-16 w-full" type="submit" disabled={isSubmitting}>
 					{isSubmitting ? (
 						<span className="flex items-center gap-2">
 							<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -123,9 +123,9 @@ export function AcceptInviteClient() {
 					heading="Account Set up Completed"
 					description="You have successfully setup your account. Your designated role is administrator  for this organization"
 				>
-					<DialogFooter className="border-t border-gray-200 w-full text-sm">
+				<DialogFooter className="w-full text-sm">
 						<Button
-							className="h-9 w-full text-sm"
+							className="h-9 w-full"
 							onClick={() => router.push("/dashboard")}
 						>
 							Continue to Dashboard

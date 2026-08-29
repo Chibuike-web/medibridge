@@ -19,7 +19,7 @@ export function CreateDiagnosisEmptyStateAction() {
 	return (
 		<>
 			<Button
-				className="text-sm"
+
 				type="button"
 				onClick={() => setIsCreateDiagnosisDrawerOpen(true)}
 			>
@@ -39,7 +39,7 @@ export function CreateVitalsEmptyStateAction() {
 	return (
 		<>
 			<Button
-				className="text-sm"
+
 				type="button"
 				onClick={() => setIsCreateVitalsDrawerOpen(true)}
 			>
@@ -56,7 +56,7 @@ export function CreateAllergyEmptyStateAction() {
 	return (
 		<>
 			<Button
-				className="text-sm"
+
 				type="button"
 				onClick={() => setIsCreateAllergyDrawerOpen(true)}
 			>
@@ -76,7 +76,7 @@ export function CreateImmunizationEmptyStateAction() {
 	return (
 		<>
 			<Button
-				className="text-sm"
+
 				type="button"
 				onClick={() => setIsCreateImmunizationDrawerOpen(true)}
 			>
@@ -96,7 +96,7 @@ export function CreateProcedureEmptyStateAction() {
 	return (
 		<>
 			<Button
-				className="text-sm"
+
 				type="button"
 				onClick={() => setIsCreateProcedureDrawerOpen(true)}
 				>
@@ -116,7 +116,7 @@ export function CreateMedicationEmptyStateAction() {
 	return (
 		<>
 			<Button
-				className="text-sm"
+
 				type="button"
 				onClick={() => setIsCreateMedicationDrawerOpen(true)}
 				>
@@ -136,7 +136,7 @@ export function CreateEncounterEmptyStateAction() {
 	return (
 		<>
 			<Button
-				className="text-sm"
+
 				type="button"
 				onClick={() => setIsCreateEncounterDrawerOpen(true)}
 			>
@@ -156,7 +156,7 @@ export function CreateLabTestEmptyStateAction() {
 	return (
 		<>
 			<Button
-				className="text-sm"
+
 				type="button"
 				onClick={() => setIsCreateLabTestDrawerOpen(true)}
 			>
@@ -176,7 +176,7 @@ export function CreateImagingEmptyStateAction() {
 	return (
 		<>
 			<Button
-				className="text-sm"
+
 				type="button"
 				onClick={() => setIsCreateImagingDrawerOpen(true)}
 			>
@@ -197,7 +197,7 @@ export function CreateDocumentEmptyStateAction({ patientId }: { patientId: strin
 	return (
 		<>
 			<Button
-				className="text-sm"
+
 				type="button"
 				onClick={() => setIsCreateDocumentDrawerOpen(true)}
 			>

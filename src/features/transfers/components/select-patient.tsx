@@ -158,7 +158,7 @@ export function SelectPatient({
 							variant="outline"
 							onClick={() => handlePageChange(selectedPatientOptionsPage - 1)}
 							disabled={selectedPatientOptionsPage <= 1 || isUpdatingPatientOptionsPage}
-							className="justify-self-start text-sm border-gray-200 px-3 text-gray-700 shadow-none transition"
+							className="justify-self-start border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Previous
 						</Button>
@@ -170,7 +170,7 @@ export function SelectPatient({
 							variant="outline"
 							onClick={() => handlePageChange(selectedPatientOptionsPage + 1)}
 							disabled={selectedPatientOptionsPage >= currentTotalPages || isUpdatingPatientOptionsPage}
-							className="justify-self-end text-sm border-gray-200 px-3 text-gray-700 shadow-none transition"
+							className="justify-self-end border-gray-200 px-3 text-gray-700 shadow-none transition"
 						>
 							Next
 						</Button>

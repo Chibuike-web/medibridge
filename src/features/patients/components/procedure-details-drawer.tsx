@@ -43,7 +43,6 @@ import {
 	RiCloseLine,
 	RiEditLine,
 } from "@remixicon/react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { format } from "date-fns";
 import { useId, useRef, useState } from "react";
 
@@ -126,7 +125,7 @@ export function ProcedureDetailsDrawer({
 							<Button
 								type="button"
 								variant="outline"
-								className="text-sm"
+
 								onClick={() => setProcedureDetailsMode("view")}
 							>
 								Cancel
@@ -134,7 +133,7 @@ export function ProcedureDetailsDrawer({
 							<Button
 								type="button"
 								form={procedureDetailsFormId}
-								className="bg-gray-800 text-sm"
+								className="bg-gray-800"
 								onClick={() => setProcedureDetailsMode("view")}
 							>
 								Save changes
@@ -142,20 +141,20 @@ export function ProcedureDetailsDrawer({
 						</div>
 					) : procedure?.status === "Pending" ? (
 						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
-							<Button type="button" variant="outline" className="text-sm">
+							<Button type="button" variant="outline">
 								Cancel procedure
 							</Button>
-							<Button className="bg-gray-800 text-sm">Mark as completed</Button>
+							<Button className="bg-gray-800">Mark as completed</Button>
 						</div>
 					) : (
 						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
 							<DrawerClose asChild>
-								<Button variant="outline" className="text-sm">
+								<Button variant="outline">
 									Cancel
 								</Button>
 							</DrawerClose>
 							{canArchive ? (
-								<Button className="bg-gray-800 text-sm">Archive procedure</Button>
+								<Button className="bg-gray-800">Archive procedure</Button>
 							) : null}
 						</div>
 					)}
@@ -461,7 +460,7 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 "
+						className="border-gray-200 bg-white text-gray-600"
 						onClick={handleAddProcedureAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
@@ -563,7 +562,6 @@ function ProcedureRelatedRecordSection({
 	record: ProcedureDetailsRelatedRecord;
 }) {
 	const [isRelatedProcedureRecordExpanded, setIsRelatedProcedureRecordExpanded] = useState(true);
-	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
@@ -588,25 +586,19 @@ function ProcedureRelatedRecordSection({
 					aria-hidden="true"
 				/>
 			</button>
-			<AnimatePresence initial={false}>
-				{isRelatedProcedureRecordExpanded ? (
-					<motion.div
-						id={panelId}
-						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						transition={
-							shouldReduceMotion
-								? { duration: 0.12 }
-								: {
-										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-										opacity: { duration: 0.16, ease: "easeOut" },
-									}
-						}
-						className="overflow-hidden"
-					>
-						<div
-							aria-labelledby={titleId}
+			<div
+				id={panelId}
+				className={cn(
+					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+					isRelatedProcedureRecordExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+				)}
+				aria-hidden={!isRelatedProcedureRecordExpanded}
+				inert={!isRelatedProcedureRecordExpanded}
+			>
+				<div className="min-h-0 overflow-hidden">
+					<div
+						role="region"
+						aria-labelledby={titleId}
 							className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
 						>
 							<div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -614,10 +606,9 @@ function ProcedureRelatedRecordSection({
 								<StatusBadge status={record.status} className="shrink-0" />
 							</div>
 							<CopyIdButton id={record.id} className="text-sm" />
-						</div>
-					</motion.div>
-				) : null}
-			</AnimatePresence>
+					</div>
+				</div>
+			</div>
 		</section>
 	);
 }
@@ -638,7 +629,6 @@ function ProcedureHistorySection({ history }: { history: ProcedureDetailsHistory
 
 function ProcedureHistoryCard({ historyEvent }: { historyEvent: ProcedureDetailsHistoryEvent }) {
 	const [isProcedureHistoryExpanded, setIsProcedureHistoryExpanded] = useState(true);
-	const shouldReduceMotion = useReducedMotion();
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
@@ -667,25 +657,19 @@ function ProcedureHistoryCard({ historyEvent }: { historyEvent: ProcedureDetails
 					aria-hidden="true"
 				/>
 			</button>
-			<AnimatePresence initial={false}>
-				{isProcedureHistoryExpanded ? (
-					<motion.div
-						id={panelId}
-						initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						animate={shouldReduceMotion ? { opacity: 1 } : { height: "auto", opacity: 1 }}
-						exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-						transition={
-							shouldReduceMotion
-								? { duration: 0.12 }
-								: {
-										height: { duration: 0.22, ease: [0.23, 1, 0.32, 1] },
-										opacity: { duration: 0.16, ease: "easeOut" },
-									}
-						}
-						className="overflow-hidden"
-					>
-						<div
-							aria-labelledby={titleId}
+			<div
+				id={panelId}
+				className={cn(
+					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+					isProcedureHistoryExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+				)}
+				aria-hidden={!isProcedureHistoryExpanded}
+				inert={!isProcedureHistoryExpanded}
+			>
+				<div className="min-h-0 overflow-hidden">
+					<div
+						role="region"
+						aria-labelledby={titleId}
 							className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
 						>
 							{historyEvent.items.map((item) =>
@@ -707,10 +691,9 @@ function ProcedureHistoryCard({ historyEvent }: { historyEvent: ProcedureDetails
 									/>
 								),
 							)}
-						</div>
-					</motion.div>
-				) : null}
-			</AnimatePresence>
+					</div>
+				</div>
+			</div>
 		</section>
 	);
 }

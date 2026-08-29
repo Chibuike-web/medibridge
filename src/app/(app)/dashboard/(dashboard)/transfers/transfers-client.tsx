@@ -371,13 +371,13 @@ export function TransfersClient({
 					/>
 					<Button
 						variant="outline"
-						className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50"
+						className="border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
 					>
 						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 						Export
 					</Button>
 
-					<Button className="text-sm" asChild>
+					<Button asChild>
 						<Link href={newTransferRequestHref}>New transfer request </Link>
 					</Button>
 				</div>

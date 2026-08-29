@@ -444,12 +444,12 @@ export function PatientsClient({
 						onCreatedAtRangeApply={handleCreatedAtRangeApply}
 						onGenderFilterChange={handleGenderFilterChange}
 					/>
-					<Button variant="outline" className="bg-white text-sm text-gray-600 hover:bg-gray-50">
+					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 						Export
 					</Button>
 
-					<Button className="text-sm" asChild>
+					<Button asChild>
 						<Link href={addNewPatientHref}>Add patient</Link>
 					</Button>
 				</div>

@@ -224,7 +224,7 @@ export function DiagnosesTable({
 					<DropdownMenuTrigger asChild>
 						<Button
 							variant="outline"
-							className="bg-white text-sm text-gray-600 hover:bg-gray-50"
+							className="bg-white text-gray-600 hover:bg-gray-50"
 						>
 							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 							Filter
@@ -370,12 +370,12 @@ export function DiagnosesTable({
 				</DropdownMenu>
 				<Button
 					variant="outline"
-					className="border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50"
+					className="border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
 				>
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button className="text-sm" type="button" onClick={() => setIsCreateDrawerOpen(true)}>
+				<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
 					Add diagnosis
 				</Button>
 			</div>
@@ -902,7 +902,7 @@ function DiagnosisCustomRangeCalendarPanel({
 				<Button
 					type="button"
 					variant="outline"
-					className="min-w-28 text-sm"
+					className="min-w-28"
 					disabled={isPending}
 					onClick={() => {
 						setDraftDiagnosisDateRange(undefined);
@@ -913,7 +913,7 @@ function DiagnosisCustomRangeCalendarPanel({
 				</Button>
 				<Button
 					type="button"
-					className="min-w-40 flex-1 text-sm"
+					className="min-w-40 flex-1"
 					disabled={!draftDiagnosisDateRange?.from || !draftDiagnosisDateRange?.to || isPending}
 					onClick={() => {
 						if (!draftDiagnosisDateRange?.from || !draftDiagnosisDateRange?.to) return;

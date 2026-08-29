@@ -126,7 +126,7 @@ export function ContactInformation({
 				onOpenChange={setIsContactInformationDialogOpen}
 			>
 				<DialogContent className="max-w-[50rem]">
-					<DialogHeader className="h-16 px-6 border-b border-gray-200">
+					<DialogHeader>
 						<DialogTitle>Edit Contact Information</DialogTitle>
 
 						<DialogDescription className="sr-only">
@@ -224,10 +224,10 @@ export function ContactInformation({
 						</div>
 					</form>
 
-					<DialogFooter className="mt-16 border-t border-gray-200 text-sm">
+					<DialogFooter className="mt-16 text-sm">
 						<div className="flex gap-4 ml-auto">
 							<DialogClose asChild>
-								<Button variant="outline" className="text-sm">
+								<Button variant="outline">
 									Cancel
 								</Button>
 							</DialogClose>
@@ -236,7 +236,7 @@ export function ContactInformation({
 								type="submit"
 								form={contactInformationFormId}
 								disabled={isUpdatingContactInformation}
-								className="text-sm"
+
 							>
 								Save changes
 							</Button>

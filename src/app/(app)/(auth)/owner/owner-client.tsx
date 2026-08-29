@@ -123,7 +123,7 @@ export function OwnerClient() {
 				</p>
 			)}
 
-			<Button className="w-full text-sm mt-16" type="submit">
+			<Button className="w-full mt-16" type="submit">
 				Continue
 			</Button>
 		</form>

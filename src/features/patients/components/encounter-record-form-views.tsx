@@ -420,7 +420,7 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 							/>
 						))}
 						<div>
-							<Button type="button" variant="outline" className="border-gray-200 bg-white text-sm text-gray-600" onClick={handleAddAttachmentRow}>
+							<Button type="button" variant="outline" className="border-gray-200 bg-white text-gray-600" onClick={handleAddAttachmentRow}>
 								<RiAddLine className="size-5" aria-hidden="true" />
 								Add related record
 							</Button>
@@ -432,9 +432,9 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 			<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
 				<div className="flex flex-col gap-2 lg:flex-row lg:self-end lg:gap-x-4">
 					<DrawerClose asChild>
-						<Button type="button" variant="outline" className="text-sm">Cancel</Button>
+						<Button type="button" variant="outline">Cancel</Button>
 					</DrawerClose>
-					<Button type="button" className="text-sm">{submitLabels[recordType]}</Button>
+					<Button type="button">{submitLabels[recordType]}</Button>
 				</div>
 			</DrawerFooter>
 		</>

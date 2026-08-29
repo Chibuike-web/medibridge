@@ -88,7 +88,7 @@ export function FilterButton({
 			}}
 		>
 			<DropdownMenuTrigger asChild>
-				<Button variant="outline" className="bg-white text-sm text-gray-600 hover:bg-gray-100">
+				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-100">
 					<RiFilter3Line aria-hidden className="size-4 text-gray-600" />
 					Filter
 				</Button>
@@ -376,7 +376,7 @@ function CustomRangeCalendarPanel({
 				<Button
 					type="button"
 					variant="outline"
-					className="min-w-28 text-sm"
+					className="min-w-28"
 					disabled={isPending}
 					onClick={() => {
 						setDraftCreatedAtRange(undefined);
@@ -387,7 +387,7 @@ function CustomRangeCalendarPanel({
 				</Button>
 				<Button
 					type="button"
-					className="min-w-40 flex-1 text-sm"
+					className="min-w-40 flex-1"
 					disabled={!draftCreatedAtRange?.from || !draftCreatedAtRange?.to || isPending}
 					onClick={() => {
 						if (!draftCreatedAtRange?.from || !draftCreatedAtRange?.to) return;

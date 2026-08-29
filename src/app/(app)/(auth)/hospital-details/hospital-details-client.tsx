@@ -184,7 +184,7 @@ export function HospitalDetailsClient() {
 					<span>{success}</span>
 				</div>
 			)}
-			<Button className="w-full mt-16 text-sm" type="submit" disabled={isPending}>
+			<Button className="w-full mt-16" type="submit" disabled={isPending}>
 				{isPending ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

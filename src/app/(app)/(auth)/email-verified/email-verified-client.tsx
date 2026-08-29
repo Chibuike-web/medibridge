@@ -77,7 +77,7 @@ const NoSession = () => {
 					again.
 				</p>
 
-				<Button className="text-sm mt-6">
+				<Button className="mt-6">
 					<Link href="/sign-in">Sign in</Link>
 				</Button>
 			</div>
@@ -93,7 +93,7 @@ const Valid = () => {
 				<p className="text-foreground/70 mt-3">
 					Your email has been successfully verified. You can now continue.
 				</p>
-				<Button className="text-sm mt-6">
+				<Button className="mt-6">
 					<Link href="/">Continue</Link>
 				</Button>
 			</div>

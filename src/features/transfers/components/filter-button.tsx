@@ -93,7 +93,7 @@ export function FilterButton({
 			<DropdownMenuTrigger asChild>
 				<Button
 					variant="outline"
-					className="bg-white text-sm text-gray-600 hover:bg-gray-50"
+					className="bg-white text-gray-600 hover:bg-gray-50"
 				>
 					<RiFilter3Line aria-hidden className="size-4 text-gray-600" />
 					Filter
@@ -283,7 +283,7 @@ function CustomRangeCalendarPanel({
 				<Button
 					type="button"
 					variant="outline"
-					className="min-w-28 text-sm"
+					className="min-w-28"
 					disabled={isPending}
 					onClick={() => {
 						setDraftRequestedAtRange(undefined);
@@ -294,7 +294,7 @@ function CustomRangeCalendarPanel({
 				</Button>
 				<Button
 					type="button"
-					className="min-w-40 flex-1 text-sm"
+					className="min-w-40 flex-1"
 					disabled={!draftRequestedAtRange?.from || !draftRequestedAtRange?.to || isPending}
 					onClick={() => {
 						if (!draftRequestedAtRange?.from || !draftRequestedAtRange?.to) return;

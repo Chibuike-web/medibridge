@@ -205,11 +205,11 @@ export function CreateImmunizationDrawer({ open, onOpenChange }: CreateImmunizat
 				<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
 					<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
 						<DrawerClose asChild>
-							<Button type="button" variant="outline" className="text-sm">
+							<Button type="button" variant="outline">
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="button" className="text-sm">
+						<Button type="button">
 							Add immunization
 						</Button>
 					</div>

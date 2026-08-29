@@ -43,10 +43,10 @@ export function ProfileSettings({ user }: { user: SettingsDialogUser }) {
 				</div>
 			</dl>
 			<div className="mt-auto flex w-full shrink-0 gap-2 border-t p-5">
-				<Button variant="outline" className="ml-auto text-sm">
+				<Button variant="outline" className="ml-auto">
 					Cancel
 				</Button>
-				<Button className="text-sm">Save</Button>
+				<Button>Save</Button>
 			</div>
 		</div>
 	);

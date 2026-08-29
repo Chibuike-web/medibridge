@@ -216,7 +216,7 @@ export function MedicationsTable({
 					<DropdownMenuTrigger asChild>
 						<Button
 							variant="outline"
-							className="bg-white text-sm text-gray-600 hover:bg-gray-50"
+							className="bg-white text-gray-600 hover:bg-gray-50"
 						>
 							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 							Filter
@@ -284,13 +284,13 @@ export function MedicationsTable({
 				</DropdownMenu>
 				<Button
 					variant="outline"
-					className="bg-white text-sm text-gray-600 hover:bg-gray-50"
+					className="bg-white text-gray-600 hover:bg-gray-50"
 				>
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
 				<Button
-					className="text-sm"
+
 					type="button"
 					onClick={() => setIsCreateDrawerOpen(true)}
 				>
@@ -774,7 +774,7 @@ function MedicationCustomRangeCalendarPanel({
 				<Button
 					type="button"
 					variant="outline"
-					className="min-w-28 text-sm"
+					className="min-w-28"
 					disabled={isPending}
 					onClick={() => {
 						setDraftMedicationDateRange(undefined);
@@ -785,7 +785,7 @@ function MedicationCustomRangeCalendarPanel({
 				</Button>
 				<Button
 					type="button"
-					className="min-w-40 flex-1 text-sm"
+					className="min-w-40 flex-1"
 					disabled={!draftMedicationDateRange?.from || !draftMedicationDateRange?.to || isPending}
 					onClick={() => {
 						if (!draftMedicationDateRange?.from || !draftMedicationDateRange?.to) return;

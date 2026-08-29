@@ -269,7 +269,7 @@ export function SharedLabTestsTable({
             <Button
               type="button"
               variant="outline"
-              className="bg-white text-sm text-gray-600 hover:bg-gray-50"
+              className="bg-white text-gray-600 hover:bg-gray-50"
             >
               <RiFilter3Line aria-hidden="true" />
               Filter
@@ -332,7 +332,7 @@ export function SharedLabTestsTable({
         <Button
           type="button"
           variant="outline"
-          className="bg-white text-sm text-gray-600 hover:bg-gray-50"
+          className="bg-white text-gray-600 hover:bg-gray-50"
         >
           <RiShare2Line aria-hidden="true" />
           Export
@@ -709,7 +709,7 @@ function CustomRangeCalendarPanel({
         <Button
           type="button"
           variant="outline"
-          className="min-w-28 text-sm"
+          className="min-w-28"
           disabled={isPending}
           onClick={() => {
             setDraftRange(undefined);
@@ -720,7 +720,7 @@ function CustomRangeCalendarPanel({
         </Button>
         <Button
           type="button"
-          className="min-w-40 flex-1 text-sm"
+          className="min-w-40 flex-1"
           disabled={!draftRange?.from || !draftRange?.to || isPending}
           onClick={() => {
             if (draftRange?.from && draftRange.to)

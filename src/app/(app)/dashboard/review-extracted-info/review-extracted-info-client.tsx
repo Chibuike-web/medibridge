@@ -119,7 +119,7 @@ export function ReviewExtractedInfoClient() {
 								</button>
 							</DialogTrigger>
 							<DialogContent className="flex flex-col">
-								<DialogHeader className="border-b border-gray-20 px-4 py-3">
+								<DialogHeader>
 									<div className="flex w-full items-center justify-between gap-4">
 										<DialogTitle className="text-lg text-gray-800">
 											{formatPatientLabel(record.personalInfo)}
@@ -169,7 +169,7 @@ export function ReviewExtractedInfoClient() {
 						<p className="text-sm font-medium text-red-600 text-pretty">{saveError}</p>
 					) : null}
 
-					<Button className="mt-8 w-full text-sm" onClick={handleSave} disabled={isPending}>
+					<Button className="mt-8 w-full" onClick={handleSave} disabled={isPending}>
 						{isPending ? "Saving..." : "Save Patient"}
 					</Button>
 
@@ -180,11 +180,11 @@ export function ReviewExtractedInfoClient() {
 							heading="Patient Saved Successfully"
 							description="The patient's information has been securely saved. You may now proceed with additional documentation or return to the dashboard."
 						>
-							<DialogFooter className="w-full border-t border-gray-200 text-sm">
-								<Button className="h-9 text-sm" variant="outline" onClick={closeModal}>
+							<DialogFooter className="w-full text-sm">
+								<Button className="h-9" variant="outline" onClick={closeModal}>
 									Return to Dashboard
 								</Button>
-								<Button className="h-9 text-sm" asChild>
+								<Button className="h-9" asChild>
 									<Link href="/dashboard/add-new-patient">Add Another Record</Link>
 								</Button>
 							</DialogFooter>

@@ -71,7 +71,7 @@ export function AdminInviteClient() {
 					)}
 				</div>
 
-				<Button className="w-full text-sm mt-16" type="submit" disabled={isSubmitting}>
+				<Button className="w-full mt-16" type="submit" disabled={isSubmitting}>
 					{isSubmitting ? (
 						<span className="flex items-center gap-2">
 							<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -89,9 +89,9 @@ export function AdminInviteClient() {
 					heading="Admin Invitation Sent"
 					description="The administrator has been successfully invited. They will receive an email to set up their account and start managing members."
 				>
-					<DialogFooter className="border-t border-gray-200 w-full text-sm">
+					<DialogFooter className="w-full text-sm">
 						<Button
-							className="h-9 w-full text-sm"
+							className="h-9 w-full"
 							onClick={() => router.push("/dashboard/overview")}
 						>
 							Continue to Dashboard

@@ -193,7 +193,7 @@ export function SignInClient() {
 					<span>{signInSuccess}</span>
 				</div>
 			)}
-			<Button className="w-full text-sm mt-16" type="submit" disabled={isSubmitting || isPending}>
+			<Button className="w-full mt-16" type="submit" disabled={isSubmitting || isPending}>
 				{isSubmitting ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

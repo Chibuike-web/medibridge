@@ -1,5 +1,19 @@
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import Image from "next/image";
 
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { RiCloseLine } from "@remixicon/react";
+
+import { BillingHistoryCard } from "./billing-history-card";
 import type { SettingsSubView } from "./types";
 
 type BillingPlan =
@@ -35,9 +49,106 @@ export function BillingSettings({
 }) {
 	switch (activeSettingsSubView) {
 		case "payment-method":
-			return <div>Payment method</div>;
+			return <PaymentMethodSettings />;
 		case "billing-history":
-			return <div>Billing History</div>;
+			return (
+				<div className="flex flex-col gap-4 px-6 py-6">
+					{[
+						{
+							amount: "₦22,100",
+							date: "Aug 22, 2026",
+							cardBrand: "visa" as const,
+							cardLastFour: "4242",
+							expires: "08/28",
+							status: "Paid",
+							breakdown: {
+								plan: "₦20,000",
+								includedCases: "1,000",
+								additionalCases: "84",
+								overage: "₦2,100",
+								total: "₦22,100",
+							},
+						},
+						{
+							amount: "₦18,500",
+							date: "Jul 22, 2026",
+							cardBrand: "mastercard" as const,
+							cardLastFour: "5555",
+							expires: "11/27",
+							status: "Paid",
+							breakdown: {
+								plan: "₦18,000",
+								includedCases: "900",
+								additionalCases: "10",
+								overage: "₦500",
+								total: "₦18,500",
+							},
+						},
+						{
+							amount: "₦25,000",
+							date: "Jun 22, 2026",
+							cardBrand: "verve" as const,
+							cardLastFour: "7788",
+							expires: "09/27",
+							status: "Paid",
+							breakdown: {
+								plan: "₦20,000",
+								includedCases: "1,000",
+								additionalCases: "200",
+								overage: "₦5,000",
+								total: "₦25,000",
+							},
+						},
+						{
+							amount: "₦15,000",
+							date: "May 22, 2026",
+							cardBrand: "mastercard" as const,
+							cardLastFour: "9012",
+							expires: "04/28",
+							status: "Paid",
+							breakdown: {
+								plan: "₦15,000",
+								includedCases: "750",
+								additionalCases: "0",
+								overage: "₦0",
+								total: "₦15,000",
+							},
+						},
+						{
+							amount: "₦24,500",
+							date: "Apr 22, 2026",
+							cardBrand: "verve" as const,
+							cardLastFour: "3344",
+							expires: "12/27",
+							status: "Paid",
+							breakdown: {
+								plan: "₦20,000",
+								includedCases: "1,000",
+								additionalCases: "180",
+								overage: "₦4,500",
+								total: "₦24,500",
+							},
+						},
+						{
+							amount: "₦21,750",
+							date: "Mar 22, 2026",
+							cardBrand: "visa" as const,
+							cardLastFour: "2468",
+							expires: "06/29",
+							status: "Paid",
+							breakdown: {
+								plan: "₦20,000",
+								includedCases: "1,000",
+								additionalCases: "70",
+								overage: "₦1,750",
+								total: "₦21,750",
+							},
+						},
+					].map((billingHistoryEntry) => (
+						<BillingHistoryCard key={`${billingHistoryEntry.date}-${billingHistoryEntry.cardLastFour}`} {...billingHistoryEntry} />
+					))}
+				</div>
+			);
 		case null:
 			return (
 				<div className="flex flex-col gap-6 px-6 py-6">
@@ -50,6 +161,73 @@ export function BillingSettings({
 		default:
 			return null;
 	}
+}
+
+function PaymentMethodSettings() {
+	const [isChangePaymentMethodOpen, setIsChangePaymentMethodOpen] = useState(false);
+
+	return (
+		<>
+			<div className="flex min-h-full flex-col gap-6 px-6 py-6">
+				<section
+					aria-labelledby="current-payment-method-heading"
+					className="rounded-2xl border border-gray-200 p-4"
+				>
+					<h3 id="current-payment-method-heading" className="text-base font-semibold text-gray-800">
+						Current payment method
+					</h3>
+					<div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-2">
+						<Image src="/assets/visa-logo.svg" width={40} height={13} alt="Visa" />
+						<span
+							className="text-sm font-medium text-gray-600"
+							aria-label="Card ending in 4242"
+						>
+							******** 4242
+						</span>
+						<span className="text-sm font-medium text-gray-400">Expires 08/28</span>
+					</div>
+					<p className="mt-4 text-sm font-medium text-gray-600">
+						Used for your Pro subscription and additional case charges.
+					</p>
+				</section>
+
+				<Button
+					type="button"
+					className="self-end"
+					onClick={() => setIsChangePaymentMethodOpen(true)}
+				>
+					Change payment method
+				</Button>
+			</div>
+
+			<Dialog open={isChangePaymentMethodOpen} onOpenChange={setIsChangePaymentMethodOpen}>
+				<DialogContent className="max-w-[37.5rem] gap-0 p-0">
+					<DialogHeader>
+						<DialogTitle className="text-lg">Change payment method</DialogTitle>
+						<DialogClose
+							className="rounded-md p-1.5 text-foreground/60 transition-colors hover:bg-gray-100 hover:text-foreground"
+							aria-label="Close change payment method dialog"
+						>
+							<RiCloseLine className="size-5" aria-hidden="true" />
+						</DialogClose>
+					</DialogHeader>
+					<DialogDescription className="px-6 py-6 text-sm font-medium text-gray-400">
+						You&apos;ll be redirected to Paystack to securely add and authorize your new payment
+						method.
+					</DialogDescription>
+					<DialogFooter className="sm:justify-end">
+						<Button
+							type="button"
+
+							onClick={() => setIsChangePaymentMethodOpen(false)}
+						>
+							Continue
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		</>
+	);
 }
 
 function BillingPlanCard({ plan }: { plan: BillingPlan }) {
@@ -70,10 +248,10 @@ function BillingPlanCard({ plan }: { plan: BillingPlan }) {
 					{plan.kind === "free" ? "FREE TRIAL" : "PRO"}
 				</span>
 			</div>
-			<p className="mt-2 text-base font-semibold leading-[1.2em] tabular-nums text-gray-800">
+			<p className="mt-2 text-base font-semibold leading-[1.2em] text-gray-800">
 				{plan.kind === "free" ? "Free" : PRO_MONTHLY_PRICE}
 			</p>
-			<div className="mt-3 flex items-center justify-between gap-4 text-sm font-medium tabular-nums text-gray-400">
+			<div className="mt-3 flex items-center justify-between gap-4 text-sm font-medium text-gray-400">
 				<span>
 					{plan.usedCases} of {plan.caseLimit.toLocaleString()} cases used
 				</span>
@@ -95,7 +273,7 @@ function BillingPlanCard({ plan }: { plan: BillingPlan }) {
 						<p className="text-sm font-medium text-gray-400">Trial ends</p>
 						<p className="mt-1 text-sm font-medium text-gray-600">{plan.trialEnds}</p>
 					</div>
-					<Button type="button" variant="outline" className="shrink-0 text-sm text-gray-600">
+					<Button type="button" variant="outline" className="shrink-0 text-gray-600">
 						Upgrade to Pro
 					</Button>
 				</div>
@@ -124,13 +302,19 @@ function PaidBillingDetails({
 				</h3>
 				<div className="flex h-16 items-center justify-between gap-4 border-b border-gray-200">
 					<p className="min-w-0 truncate text-sm font-medium text-gray-600">
-						<span className="font-bold text-blue-800">VISA</span>
-						<span aria-hidden="true">••••••</span> <span className="tabular-nums">4242</span>
+						<Image
+							src="/assets/visa-logo.svg"
+							width={40}
+							height={13}
+							alt="Visa"
+							className="inline-block align-middle"
+						/>
+						<span aria-hidden="true">••••••</span> <span>4242</span>
 					</p>
 					<Button
 						type="button"
 						variant="ghost"
-						className="shrink-0 text-sm text-gray-400"
+						className="shrink-0 text-gray-400"
 						onClick={() => onSettingsSubViewChange("payment-method")}
 					>
 						Manage
@@ -147,7 +331,7 @@ function PaidBillingDetails({
 					<Button
 						type="button"
 						variant="ghost"
-						className="shrink-0 text-sm text-gray-400"
+						className="shrink-0 text-gray-400"
 						onClick={() => onSettingsSubViewChange("billing-history")}
 					>
 						View
@@ -170,8 +354,8 @@ function PaidBillingDetails({
 				</div>
 				<Button
 					type="button"
-					variant="outline"
-					className="shrink-0 border-destructive text-destructive hover:bg-red-50 hover:text-red-700"
+					variant="destructive"
+					className="shrink-0 border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 dark:bg-transparent dark:hover:bg-destructive/10 dark:focus-visible:ring-destructive/40"
 				>
 					Cancel
 				</Button>

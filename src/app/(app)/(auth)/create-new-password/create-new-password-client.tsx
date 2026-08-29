@@ -69,7 +69,7 @@ export function CreateNewPasswordClient() {
 						</button>
 					</div>
 				</div>
-				<Button className="mt-16 w-full text-sm" type="submit">
+				<Button className="mt-16 w-full" type="submit">
 					Reset Password
 				</Button>
 		</form>

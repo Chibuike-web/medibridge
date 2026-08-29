@@ -31,7 +31,7 @@ export function ForgotPasswordClient() {
 						<span className="text-sm text-gray-400">Must be official verified hospital email</span>
 					</p>
 				</div>
-			<Button className="mt-16 w-full text-sm" type="submit">
+			<Button className="mt-16 w-full" type="submit">
 				Send Reset Link
 			</Button>
 		</form>

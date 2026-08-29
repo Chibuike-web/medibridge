@@ -72,7 +72,7 @@ async function PatientsPageContent({ searchParams }: PatientsPagePageProps) {
 					<p className="mb-6 text-center text-sm">
 						Patient records will appear here once patients have been added to the system.
 					</p>
-					<Button asChild className="text-sm">
+					<Button asChild>
 						<Link href="/dashboard/add-new-patient"> Add patient</Link>
 					</Button>
 				</div>

@@ -158,7 +158,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							</button>
 						</DialogTrigger>
 						<DialogContent className="max-w-[50rem] text-sm">
-							<DialogHeader className="h-16 px-6 border-b border-gray-200">
+							<DialogHeader>
 								<DialogTitle className="sr-only">Search chats</DialogTitle>
 								<DialogDescription className="sr-only">
 									Search patients, IDs, diagnoses, and other patient records.

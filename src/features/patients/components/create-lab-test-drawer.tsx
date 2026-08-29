@@ -283,7 +283,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 							<Button
 								type="button"
 								variant="outline"
-								className="border-gray-200 bg-white text-sm text-gray-600 "
+								className="border-gray-200 bg-white text-gray-600"
 								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />
@@ -296,11 +296,11 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 				<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
 					<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
 						<DrawerClose asChild>
-							<Button type="button" variant="outline" className="text-sm">
+							<Button type="button" variant="outline">
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="button" className="text-sm">
+						<Button type="button">
 							Add lab test
 						</Button>
 					</div>

@@ -139,7 +139,7 @@ export function AddNewPatientClient() {
 							type="button"
 							variant="ghost"
 							size="icon"
-							className="ml-auto h-6 w-6 rounded-full text-sm text-red-700 hover:bg-red-100 hover:text-red-700"
+							className="ml-auto h-6 w-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
 							aria-label="Dismiss upload error"
 							onClick={() => setUploadError("")}
 						>
@@ -252,7 +252,7 @@ function Footer({
 							</Button>
 						</DialogTrigger>
 						<DialogContent>
-							<DialogHeader className="h-16 px-6 border-b border-gray-200">
+						<DialogHeader>
 								<DialogTitle className="text-xl">
 									Confirm Transfer Request
 								</DialogTitle>
@@ -270,16 +270,16 @@ function Footer({
 									restarted.
 								</p>
 							</div>
-							<DialogFooter className="mt-16 border-t border-gray-200 text-sm">
+									<DialogFooter className="mt-16 text-sm">
 								<div className="flex gap-4 ml-auto">
 									<DialogClose asChild>
-										<Button variant="outline" className="text-sm">
+										<Button variant="outline">
 											Cancel
 										</Button>
 									</DialogClose>
 									<DialogClose asChild>
 										<Button
-											className="text-sm"
+
 											onClick={async () => {
 												await extractInfo();
 											}}
