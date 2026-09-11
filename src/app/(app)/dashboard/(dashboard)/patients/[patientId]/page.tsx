@@ -32,6 +32,7 @@ import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
 import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
 import { getPatientMedications } from "@/lib/api/get-patient-medications";
 import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
+import { getPatientVitalReadings, getPatientVitals } from "@/lib/api/get-patient-vitals";
 import { verifySession } from "@/lib/api/verify-session";
 import { getStringParam } from "@/lib/utils/search-params";
 import {
@@ -43,6 +44,7 @@ import {
 	LabTestsClient,
 	MedicationsClient,
 	ProceduresClient,
+	VitalsClient,
 } from "./patient-section-table-clients";
 import { DocumentsClient } from "./patient-section-table-clients/documents-client";
 
@@ -227,18 +229,39 @@ async function renderSectionContent(section: string, patientId: string) {
 	}
 }
 
-function VitalsSection({ patientId }: { patientId: string }) {
-	const vitals: unknown[] = [];
+async function VitalsSection({ patientId }: { patientId: string }) {
+	const [{ vitals, totalVitals }, readings, { encounters }] = await Promise.all([
+		getPatientVitals(patientId),
+		getPatientVitalReadings(patientId),
+		getPatientEncounters(patientId, 1, 100),
+	]);
+	const encounterOptions = encounters.map(({ encounterId, encounterType, encounterDateLabel }) => ({
+		encounterId,
+		encounterType,
+		encounterDateLabel,
+	}));
 
-	if (vitals.length === 0) {
+	if (readings.length === 0) {
 		return renderEmptyState({
 			title: "No vitals yet",
 			description: "No vitals have been recorded for this patient.",
-			action: <CreateVitalsEmptyStateAction />,
+			action: (
+				<CreateVitalsEmptyStateAction patientId={patientId} encounterOptions={encounterOptions} />
+			),
 		});
 	}
 
-	return <div className="px-6 py-3">{patientId} vitals table</div>;
+	return (
+		<VitalsClient
+			patientId={patientId}
+			encounterOptions={encounterOptions}
+			vitals={vitals}
+			readings={readings}
+			page={1}
+			limit={14}
+			totalPages={Math.ceil(totalVitals / 14) || 1}
+		/>
+	);
 }
 
 async function DiagnosesSection({ patientId }: { patientId: string }) {

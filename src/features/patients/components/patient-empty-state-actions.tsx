@@ -11,6 +11,8 @@ import { CreateImagingDrawer } from "@/features/patients/components/create-imagi
 import { CreateLabTestDrawer } from "@/features/patients/components/create-lab-test-drawer";
 import { CreateMedicationDrawer } from "@/features/patients/components/create-medication-drawer";
 import { CreateProcedureDrawer } from "@/features/patients/components/create-procedure-drawer";
+import { CreateVitalsDrawer } from "@/features/patients/components/create-vitals-drawer";
+import type { VitalEncounterOption } from "@/features/patients/types";
 import { useRouter } from "next/navigation";
 
 export function CreateDiagnosisEmptyStateAction() {
@@ -18,11 +20,7 @@ export function CreateDiagnosisEmptyStateAction() {
 
 	return (
 		<>
-			<Button
-
-				type="button"
-				onClick={() => setIsCreateDiagnosisDrawerOpen(true)}
-			>
+			<Button type="button" onClick={() => setIsCreateDiagnosisDrawerOpen(true)}>
 				Add diagnosis
 			</Button>
 			<CreateDiagnosisDrawer
@@ -33,19 +31,28 @@ export function CreateDiagnosisEmptyStateAction() {
 	);
 }
 
-export function CreateVitalsEmptyStateAction() {
+export function CreateVitalsEmptyStateAction({
+	patientId,
+	encounterOptions,
+}: {
+	patientId: string;
+	encounterOptions: VitalEncounterOption[];
+}) {
+	const router = useRouter();
 	const [isCreateVitalsDrawerOpen, setIsCreateVitalsDrawerOpen] = useState(false);
 
 	return (
 		<>
-			<Button
-
-				type="button"
-				onClick={() => setIsCreateVitalsDrawerOpen(true)}
-			>
+			<Button type="button" onClick={() => setIsCreateVitalsDrawerOpen(true)}>
 				Add vitals
 			</Button>
-			<PendingCreateDrawer open={isCreateVitalsDrawerOpen} />
+			<CreateVitalsDrawer
+				open={isCreateVitalsDrawerOpen}
+				onOpenChange={setIsCreateVitalsDrawerOpen}
+				patientId={patientId}
+				encounterOptions={encounterOptions}
+				onCreated={() => router.refresh()}
+			/>
 		</>
 	);
 }
@@ -55,11 +62,7 @@ export function CreateAllergyEmptyStateAction() {
 
 	return (
 		<>
-			<Button
-
-				type="button"
-				onClick={() => setIsCreateAllergyDrawerOpen(true)}
-			>
+			<Button type="button" onClick={() => setIsCreateAllergyDrawerOpen(true)}>
 				Add allergy
 			</Button>
 			<CreateAllergyDrawer
@@ -75,11 +78,7 @@ export function CreateImmunizationEmptyStateAction() {
 
 	return (
 		<>
-			<Button
-
-				type="button"
-				onClick={() => setIsCreateImmunizationDrawerOpen(true)}
-			>
+			<Button type="button" onClick={() => setIsCreateImmunizationDrawerOpen(true)}>
 				Add immunization
 			</Button>
 			<CreateImmunizationDrawer
@@ -95,19 +94,15 @@ export function CreateProcedureEmptyStateAction() {
 
 	return (
 		<>
-			<Button
-
-				type="button"
-				onClick={() => setIsCreateProcedureDrawerOpen(true)}
-				>
-					Add procedure
-				</Button>
-				<CreateProcedureDrawer
-					open={isCreateProcedureDrawerOpen}
-					onOpenChange={setIsCreateProcedureDrawerOpen}
-				/>
-			</>
-		);
+			<Button type="button" onClick={() => setIsCreateProcedureDrawerOpen(true)}>
+				Add procedure
+			</Button>
+			<CreateProcedureDrawer
+				open={isCreateProcedureDrawerOpen}
+				onOpenChange={setIsCreateProcedureDrawerOpen}
+			/>
+		</>
+	);
 }
 
 export function CreateMedicationEmptyStateAction() {
@@ -115,31 +110,23 @@ export function CreateMedicationEmptyStateAction() {
 
 	return (
 		<>
-			<Button
-
-				type="button"
-				onClick={() => setIsCreateMedicationDrawerOpen(true)}
-				>
-					Add medication
-				</Button>
-				<CreateMedicationDrawer
-					open={isCreateMedicationDrawerOpen}
-					onOpenChange={setIsCreateMedicationDrawerOpen}
-				/>
-			</>
-		);
-	}
+			<Button type="button" onClick={() => setIsCreateMedicationDrawerOpen(true)}>
+				Add medication
+			</Button>
+			<CreateMedicationDrawer
+				open={isCreateMedicationDrawerOpen}
+				onOpenChange={setIsCreateMedicationDrawerOpen}
+			/>
+		</>
+	);
+}
 
 export function CreateEncounterEmptyStateAction() {
 	const [isCreateEncounterDrawerOpen, setIsCreateEncounterDrawerOpen] = useState(false);
 
 	return (
 		<>
-			<Button
-
-				type="button"
-				onClick={() => setIsCreateEncounterDrawerOpen(true)}
-			>
+			<Button type="button" onClick={() => setIsCreateEncounterDrawerOpen(true)}>
 				Add encounter
 			</Button>
 			<CreateEncounterDrawer
@@ -155,17 +142,13 @@ export function CreateLabTestEmptyStateAction() {
 
 	return (
 		<>
-			<Button
-
-				type="button"
-				onClick={() => setIsCreateLabTestDrawerOpen(true)}
-			>
+			<Button type="button" onClick={() => setIsCreateLabTestDrawerOpen(true)}>
 				Add lab test
 			</Button>
-				<CreateLabTestDrawer
-					open={isCreateLabTestDrawerOpen}
-					onOpenChange={setIsCreateLabTestDrawerOpen}
-				/>
+			<CreateLabTestDrawer
+				open={isCreateLabTestDrawerOpen}
+				onOpenChange={setIsCreateLabTestDrawerOpen}
+			/>
 		</>
 	);
 }
@@ -175,11 +158,7 @@ export function CreateImagingEmptyStateAction() {
 
 	return (
 		<>
-			<Button
-
-				type="button"
-				onClick={() => setIsCreateImagingDrawerOpen(true)}
-			>
+			<Button type="button" onClick={() => setIsCreateImagingDrawerOpen(true)}>
 				Add imaging
 			</Button>
 			<CreateImagingDrawer
@@ -196,11 +175,7 @@ export function CreateDocumentEmptyStateAction({ patientId }: { patientId: strin
 
 	return (
 		<>
-			<Button
-
-				type="button"
-				onClick={() => setIsCreateDocumentDrawerOpen(true)}
-			>
+			<Button type="button" onClick={() => setIsCreateDocumentDrawerOpen(true)}>
 				Add document
 			</Button>
 			<CreateDocumentDrawer
@@ -211,10 +186,4 @@ export function CreateDocumentEmptyStateAction({ patientId }: { patientId: strin
 			/>
 		</>
 	);
-}
-
-function PendingCreateDrawer({ open }: { open: boolean }) {
-	if (!open) return null;
-
-	return null;
 }

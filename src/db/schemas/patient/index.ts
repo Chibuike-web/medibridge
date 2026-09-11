@@ -14,3 +14,4 @@ export * from "./lab-test";
 export * from "./document";
 export * from "./transfer";
 export * from "./record-access";
+export * from "./vital";

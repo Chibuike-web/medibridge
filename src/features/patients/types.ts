@@ -395,3 +395,26 @@ export type PatientSectionProps = {
 	section: string;
 	patientId: string;
 };
+
+export type VitalType = {
+	vitalId: string;
+	encounterId: string;
+	encounterType: EncounterType["encounterType"];
+	createdBy: string;
+	recordedAt: number;
+	createdAt: number;
+	systolic: number;
+	diastolic: number;
+	heartRate: number;
+	respiratoryRate: number;
+	temperature: number;
+	oxygenSaturation: number;
+	weight: number;
+	bmi: number;
+	notes: string;
+};
+
+export type VitalEncounterOption = Pick<
+	EncounterType,
+	"encounterId" | "encounterType" | "encounterDateLabel"
+>;
