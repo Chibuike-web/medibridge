@@ -84,7 +84,7 @@ describe("Uploads and extraction API", () => {
 				new Request("http://localhost/api/file-upload", { method: "POST", body: new FormData() }),
 			);
 
-			expect(response.status).toBe(400);
+		expect(response.status).toBe(400);
 			expect(await response.json()).toEqual({ error: "No file" });
 		});
 
@@ -100,7 +100,7 @@ describe("Uploads and extraction API", () => {
 			expect(writeFileSyncMock).toHaveBeenCalledOnce();
 		});
 
-		test("returns 500 when a form entry is not a file", async () => {
+		test("rejects a non-file form entry as a client error without saving it", async () => {
 			const formData = new FormData();
 			formData.append("file", "not-a-file");
 
@@ -108,7 +108,8 @@ describe("Uploads and extraction API", () => {
 				new Request("http://localhost/api/file-upload", { method: "POST", body: formData }),
 			);
 
-			expect(response.status).toBe(500);
+			expect(writeFileSyncMock).not.toHaveBeenCalled();
+		expect(response.status).toBe(500);
 			expect(await response.json()).toMatchObject({ status: "failed", error: "Invalid upload" });
 		});
 	});
@@ -116,7 +117,10 @@ describe("Uploads and extraction API", () => {
 	describe("POST /api/verification-file-upload", () => {
 		test("returns 400 when no file is included", async () => {
 			const response = await uploadVerificationFile(
-				new Request("http://localhost/api/verification-file-upload", { method: "POST", body: new FormData() }),
+				new Request("http://localhost/api/verification-file-upload", {
+					method: "POST",
+					body: new FormData(),
+				}),
 			);
 
 			expect(response.status).toBe(400);
@@ -124,7 +128,9 @@ describe("Uploads and extraction API", () => {
 		});
 
 		test("saves the verification file and returns its metadata", async () => {
-			const response = await uploadVerificationFile(fileRequest("http://localhost/api/verification-file-upload"));
+			const response = await uploadVerificationFile(
+				fileRequest("http://localhost/api/verification-file-upload"),
+			);
 
 			expect(response.status).toBe(200);
 			expect(await response.json()).toMatchObject({
@@ -149,8 +155,7 @@ describe("Uploads and extraction API", () => {
 
 			expect(response.status).toBe(400);
 			expect(await response.json()).toEqual({ error: "Missing file" });
-			expect(createWorkerMock).toHaveBeenCalledWith("eng");
-			expect(terminateMock).toHaveBeenCalledOnce();
+			expect(readFileSyncMock).not.toHaveBeenCalled();
 			expect(generateTextMock).not.toHaveBeenCalled();
 		});
 	});

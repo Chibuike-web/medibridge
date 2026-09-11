@@ -10,17 +10,17 @@ type CopyIdButtonProps = {
 };
 
 export function CopyIdButton({ id, className }: CopyIdButtonProps) {
-	const [copied, setCopied] = useState(false);
+	const [isCopied, setIsCopied] = useState(false);
 
 	async function handleCopy() {
 		try {
 			await navigator.clipboard.writeText(id);
-			setCopied(true);
+			setIsCopied(true);
 			setTimeout(() => {
-				setCopied(false);
+				setIsCopied(false);
 			}, 2000);
 		} catch {
-			setCopied(false);
+			setIsCopied(false);
 		}
 	}
 
@@ -32,15 +32,32 @@ export function CopyIdButton({ id, className }: CopyIdButtonProps) {
 				handleCopy();
 			}}
 			className={cn(
-				"flex w-25 shrink-0 items-center gap-1.5 rounded-md border border-gray-200 bg-gray-100 p-1 text-left text-gray-600 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
+				"flex w-25 shrink-0 items-center gap-1.5 rounded-md border border-gray-200 bg-gray-100 p-1 text-left text-gray-600 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
 				className,
 			)}
-			aria-label={copied ? `${id} copied` : `Copy ${id}`}
-			title={copied ? "Copied" : "Copy ID"}
+			aria-label={isCopied ? `${id} copied` : `Copy ${id}`}
+			title={isCopied ? "Copied" : "Copy ID"}
 		>
 			<span className="truncate font-medium">{id}</span>
-			<span className="inline-flex size-5 items-center justify-center rounded">
-				{copied ? <RiCheckLine className="size-4" /> : <RiFileCopyLine className="size-4" />}
+			<span className="relative inline-flex size-5 items-center justify-center rounded">
+				<span
+					aria-hidden={!isCopied}
+					className={cn(
+						"absolute inset-0 flex items-center justify-center transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale] motion-reduce:transition-none",
+						isCopied ? "scale-100 opacity-100 blur-0" : "blur-xs scale-[0.25] opacity-0",
+					)}
+				>
+					<RiCheckLine className="size-4" />
+				</span>
+				<span
+					aria-hidden={isCopied}
+					className={cn(
+						"flex items-center justify-center transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale] motion-reduce:transition-none",
+						isCopied ? "blur-xs scale-[0.25] opacity-0" : "scale-100 opacity-100 blur-0",
+					)}
+				>
+					<RiFileCopyLine className="size-4" />
+				</span>
 			</span>
 		</button>
 	);

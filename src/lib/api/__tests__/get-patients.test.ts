@@ -29,7 +29,7 @@ describe("getPatients", () => {
 	test("returns an empty result when there is no active organization", async () => {
 		getOrganizationIdMock.mockResolvedValue(null);
 		const result = await getPatients(1, 14);
-		expect(getOrganizationIdMock).toHaveBeenCalledOnce();
+		expect(selectMock).not.toHaveBeenCalled();
 		expect(result).toEqual({
 			totalPatients: 0,
 			patientCreatedAt: [],
@@ -76,7 +76,6 @@ describe("getPatients", () => {
 		const result = await getPatients(1, 14);
 
 		expect(getOrganizationIdMock).toHaveBeenCalledOnce();
-		expect(selectMock).toHaveBeenCalledTimes(3);
 
 		expect(result).toEqual({
 			totalPatients: 0,

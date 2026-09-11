@@ -179,7 +179,10 @@ The main seed command populates local development data across auth, hospital, pa
 | `bun run dev`                   | Start the development server on port 4300                               |
 | `bun run build`                 | Create a production build                                               |
 | `bun run start`                 | Start the production server                                             |
-| `bun run lint`                  | Run ESLint                                                              |
+| `bun run lint`                  | Run Oxlint                                                              |
+| `bun run lint:fix`              | Apply Oxlint fixes                                                      |
+| `bun run format`                | Format supported files with Oxfmt                                       |
+| `bun run format:check`          | Check formatting with Oxfmt                                            |
 | `bun run db:generate`           | Generate Drizzle migrations from the schemas                            |
 | `bun run db:push`               | Push the current schema to PostgreSQL                                   |
 | `bun run db:seed`               | Seed local development data                                             |

@@ -4,21 +4,31 @@ import { RiArrowRightSLine, RiDownloadLine } from "@remixicon/react";
 
 import { cn } from "@/lib/utils/cn";
 
+import { SettingsBadge, type SettingsBadgeTone } from "./settings-badge";
+
+type BillingHistoryStatus = "Paid" | "Pending" | "Failed";
+
 type BillingHistoryCardProps = {
 	amount: string;
 	date: string;
 	cardBrand: "visa" | "mastercard" | "verve";
 	cardLastFour: string;
 	expires: string;
-	status: string;
+	status: BillingHistoryStatus;
 	breakdown: {
-		plan: string;
+		billingPeriod: string;
 		includedCases: string;
-		additionalCases: string;
-		overage: string;
+		billableOverage: string;
+		ratePerAdditionalCase: string;
 		total: string;
 	};
 };
+
+const billingStatusBadgeTones = {
+	Paid: "success",
+	Pending: "warning",
+	Failed: "danger",
+} satisfies Record<BillingHistoryStatus, SettingsBadgeTone>;
 
 const cardBrandDetails = {
 	visa: { alt: "Visa", height: 13, src: "/assets/visa-logo.svg", width: 40 },
@@ -40,7 +50,12 @@ export function BillingHistoryCard({
 	const selectedCardBrand = cardBrandDetails[cardBrand];
 
 	return (
-		<article className="shrink-0 rounded-2xl border border-gray-200">
+		<article
+			className={cn(
+				"group/billing-card shrink-0 rounded-2xl border transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+				isBillingDetailsExpanded ? "border-gray-400" : "border-gray-200 hover:border-gray-400",
+			)}
+		>
 			<button
 				type="button"
 				className="block w-full rounded-2xl border border-transparent p-4 text-left focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
@@ -55,9 +70,7 @@ export function BillingHistoryCard({
 						<p className="text-sm font-semibold text-gray-600">{amount}</p>
 						<p className="text-sm font-medium text-gray-400">{date}</p>
 					</div>
-					<span className="rounded-md bg-blue-100 px-2 py-1 text-sm font-semibold text-blue-700">
-						{status}
-					</span>
+					<SettingsBadge tone={billingStatusBadgeTones[status]}>{status}</SettingsBadge>
 				</div>
 
 				<div className="mt-[14px] flex items-center justify-between gap-4">
@@ -77,12 +90,12 @@ export function BillingHistoryCard({
 						</span>
 						<span className="text-sm font-medium text-gray-400">Expires {expires}</span>
 					</div>
-					<span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-gray-400">
+					<span className="inline-flex shrink-0 items-center gap-0.5 text-sm font-medium text-gray-400">
 						{isBillingDetailsExpanded ? "View less" : "View more"}
 						<RiArrowRightSLine
 							className={cn(
-								"size-5 transition-transform duration-200 ease-out motion-reduce:transition-none",
-								isBillingDetailsExpanded && "rotate-90",
+								"size-5 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+								isBillingDetailsExpanded ? "rotate-90" : "group-hover/billing-card:translate-x-0.5",
 							)}
 							aria-hidden="true"
 						/>
@@ -99,24 +112,24 @@ export function BillingHistoryCard({
 				aria-hidden={!isBillingDetailsExpanded}
 				inert={!isBillingDetailsExpanded}
 			>
-				<div className="min-h-0 overflow-hidden">
+				<div className="min-h-0">
 					<div className="px-4 pb-4">
 						<dl className="flex flex-col gap-3 text-sm">
 							<div className="flex items-center justify-between gap-3">
-								<dt className="text-gray-400">Pro plan</dt>
-								<dd className="font-semibold text-gray-600">{breakdown.plan}</dd>
+								<dt className="text-gray-400">Billing period</dt>
+								<dd className="font-semibold text-gray-600">{breakdown.billingPeriod}</dd>
 							</div>
 							<div className="flex items-center justify-between gap-4">
-								<dt className="text-gray-400">Included cases</dt>
+								<dt className="text-gray-400">Included with Pro</dt>
 								<dd className="font-semibold text-gray-600">{breakdown.includedCases}</dd>
 							</div>
 							<div className="flex items-center justify-between gap-4">
-								<dt className="text-gray-400">Additional cases</dt>
-								<dd className="font-semibold text-gray-600">{breakdown.additionalCases}</dd>
+								<dt className="text-gray-400">Billable overage</dt>
+								<dd className="font-semibold text-gray-600">{breakdown.billableOverage}</dd>
 							</div>
 							<div className="flex items-center justify-between gap-4">
-								<dt className="text-gray-400">Overage</dt>
-								<dd className="font-semibold text-gray-600">{breakdown.overage}</dd>
+								<dt className="text-gray-400">Rate per additional case</dt>
+								<dd className="font-semibold text-gray-600">{breakdown.ratePerAdditionalCase}</dd>
 							</div>
 							<div className="flex items-center justify-between gap-4 border-t border-gray-200 pt-3">
 								<dt className="text-gray-400">Total</dt>
@@ -125,14 +138,14 @@ export function BillingHistoryCard({
 						</dl>
 
 						<div className="flex items-center justify-between gap-4 pt-5 text-sm">
-							<span className="font-medium text-gray-600">Receipt</span>
+							<span className="font-medium text-gray-600">Invoice</span>
 							<button
 								type="button"
 								className="inline-flex items-center gap-1 rounded-md border border-transparent font-medium text-gray-600 transition-colors hover:text-gray-800 focus-visible:border focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
 								tabIndex={isBillingDetailsExpanded ? 0 : -1}
 							>
 								Download
-								<RiDownloadLine className="size-5" aria-hidden="true" />
+								<RiDownloadLine className="size-4" aria-hidden="true" />
 							</button>
 						</div>
 					</div>

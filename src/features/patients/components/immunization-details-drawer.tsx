@@ -108,7 +108,7 @@ export function ImmunizationDetailsDrawer({
 
 				<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
 					{isEditingImmunizationDetails ? (
-						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
+						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<Button
 								type="button"
 								variant="outline"
@@ -127,7 +127,7 @@ export function ImmunizationDetailsDrawer({
 							</Button>
 						</div>
 					) : (
-						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
+						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<Button type="button" variant="outline">
 								Mark as completed
 							</Button>

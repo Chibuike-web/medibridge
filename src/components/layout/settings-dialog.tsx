@@ -23,6 +23,7 @@ import { MembersSettings } from "@/components/layout/settings/members-settings";
 import { ProfileSettings } from "@/components/layout/settings/profile-settings";
 import type {
 	ChangePasswordView,
+	PendingInvitation,
 	SettingsDialogUser,
 	SettingsSectionId,
 	SettingsSubView,
@@ -53,6 +54,8 @@ const settingsSubViewLabels: Record<SettingsSubView, string> = {
 	"change-password": "Change password",
 	"payment-method": "Payment method",
 	"billing-history": "Billing History",
+	"invite-member": "Invite new member",
+	"review-invitations": "Review invitations",
 };
 
 const settingsSections: SettingsSection[] = [
@@ -61,6 +64,22 @@ const settingsSections: SettingsSection[] = [
 	{ id: "appearance", label: "Appearance", icon: RiMoonLine, activeIcon: RiMoonFill },
 	{ id: "billing", label: "Billing", icon: RiBankCardLine, activeIcon: RiBankCardFill },
 	{ id: "members", label: "Manage members", icon: RiTeamLine, activeIcon: RiTeamFill },
+];
+
+function isOrganizationSettingsSection(sectionId: SettingsSectionId) {
+	return sectionId === "billing" || sectionId === "members";
+}
+
+const pendingInvitations: PendingInvitation[] = [
+	{
+		id: "invitation-grace-nwosu",
+		name: "Grace Nwosu",
+		email: "grace@example.com",
+		role: "member",
+		status: "pending",
+		sentAt: "Aug 15, 2026",
+		expiresAt: "Aug 24, 2026",
+	},
 ];
 
 type SettingsDialogProps = {
@@ -73,19 +92,25 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 	const [selectedSettingsSection, setSelectedSettingsSection] =
 		useState<SettingsSectionId>("profile");
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
+	const { data: activeOrganization } = authClient.useActiveOrganization();
 	const manageableOrganizationRole =
 		activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin"
 			? activeMemberRole.role
 			: null;
 	const canManageOrganization = manageableOrganizationRole !== null;
 	const visibleSettingsSections = settingsSections.filter(
-		({ id }) => canManageOrganization || (id !== "billing" && id !== "members"),
+		({ id }) => canManageOrganization || !isOrganizationSettingsSection(id),
 	);
 	const [activeSettingsSubView, setActiveSettingsSubView] = useState<SettingsSubView | null>(null);
 	const [changePasswordView, setChangePasswordView] =
 		useState<ChangePasswordView>("change-password");
 
 	const handleSettingsSubViewBack = () => {
+		if (activeSettingsSubView === "review-invitations") {
+			setActiveSettingsSubView("invite-member");
+			return;
+		}
+
 		if (activeSettingsSubView !== "change-password") {
 			setActiveSettingsSubView(null);
 			return;
@@ -107,11 +132,40 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 		({ id }) => id === selectedSettingsSection,
 	)?.label;
 
+	function getSettingsBackButtonLabel() {
+		if (activeSettingsSubView === "change-password") {
+			if (changePasswordView !== "change-password") {
+				return "Back to previous password step";
+			}
+			return "Back to account settings";
+		}
+		if (activeSettingsSubView === "active-session") {
+			return "Back to account settings";
+		}
+
+		if (activeSettingsSubView === "billing-history" || activeSettingsSubView === "payment-method") {
+			return "Back to billing settings";
+		}
+
+		if (activeSettingsSubView === "invite-member") {
+			return "Back to manage members";
+		}
+		if (activeSettingsSubView === "organization") {
+			return "Back to account settings";
+		}
+
+		if (activeSettingsSubView === "review-invitations") {
+			return "Back to invite new member";
+		}
+
+		return "Back to settings";
+	}
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="h-[43.75rem] max-h-[calc(100vh-2rem)] max-w-[50rem] overflow-hidden p-0">
 				<div className="flex h-full min-h-0">
-					<aside className="w-[12.5rem] shrink-0 border-r bg-gray-50/70 p-2">
+					<aside className="w-[12.5rem] shrink-0 border-r bg-white p-2">
 						<div className="flex h-10 items-center px-2">
 							<DialogTitle className="text-base">Settings</DialogTitle>
 							<DialogDescription className="sr-only">
@@ -148,20 +202,19 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 					<section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
 						<div className="flex items-center justify-between border-b px-6 py-4">
 							{activeSettingsSubView ? (
-								<button
-									type="button"
-									className="flex items-center gap-2 rounded-md font-semibold text-gray-800 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
-									aria-label={
-										activeSettingsSubView === "change-password" &&
-										changePasswordView !== "change-password"
-											? "Back to previous password step"
-											: "Back to account settings"
-									}
-									onClick={handleSettingsSubViewBack}
-								>
-									<RiArrowLeftLine className="size-5" aria-hidden="true" />
-									<span>{settingsSubViewLabels[activeSettingsSubView]}</span>
-								</button>
+								<div className="flex items-center gap-2">
+									<button
+										type="button"
+										className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-transparent text-gray-800 transition-colors hover:bg-gray-100 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+										aria-label={getSettingsBackButtonLabel()}
+										onClick={handleSettingsSubViewBack}
+									>
+										<RiArrowLeftLine className="size-5" aria-hidden="true" />
+									</button>
+									<h2 className="text-base font-semibold">
+										{settingsSubViewLabels[activeSettingsSubView]}
+									</h2>
+								</div>
 							) : (
 								<h2 className="text-base font-semibold">{selectedSettingsSectionLabel}</h2>
 							)}
@@ -176,6 +229,14 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 							{selectedSettingsSection === "profile" ? <ProfileSettings user={user} /> : null}
 							{selectedSettingsSection === "account" ? (
 								<AccountSettings
+									viewerRole={
+										activeMemberRole?.role === "owner" ||
+										activeMemberRole?.role === "admin" ||
+										activeMemberRole?.role === "member"
+											? activeMemberRole.role
+											: null
+									}
+									organizationName={activeOrganization?.name ?? null}
 									activeSettingsSubView={activeSettingsSubView}
 									changePasswordView={changePasswordView}
 									onChangePasswordView={setChangePasswordView}
@@ -190,7 +251,13 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 								/>
 							) : null}
 							{selectedSettingsSection === "members" && manageableOrganizationRole ? (
-								<MembersSettings currentUser={user} viewerRole={manageableOrganizationRole} />
+								<MembersSettings
+									activeSettingsSubView={activeSettingsSubView}
+									currentUser={user}
+									onSettingsSubViewChange={setActiveSettingsSubView}
+									pendingInvitations={pendingInvitations}
+									viewerRole={manageableOrganizationRole}
+								/>
 							) : null}
 						</div>
 					</section>

@@ -186,7 +186,7 @@ export function SelectPatient({
 						{s.name} - <span title={s.patientId}>{truncateId(s.patientId)}</span>
 						<button
 							type="button"
-							className="bg-gray-800 size-5 flex items-center justify-center text-white rounded-full active:scale-[0.90] transition-transform"
+							className="bg-gray-800 size-5 flex items-center justify-center text-white rounded-full active:scale-[0.99] transition-transform"
 							onClick={() => {
 								removeSelectedTransferPatient(s);
 

@@ -14,6 +14,7 @@ import {
 import { RiCloseLine } from "@remixicon/react";
 
 import { BillingHistoryCard } from "./billing-history-card";
+import { SettingsBadge } from "./settings-badge";
 import type { SettingsSubView } from "./types";
 
 type BillingPlan =
@@ -55,97 +56,100 @@ export function BillingSettings({
 				<div className="flex flex-col gap-4 px-6 py-6">
 					{[
 						{
-							amount: "₦22,100",
-							date: "Aug 22, 2026",
+							amount: "₦2,100",
+							date: "Aug 31, 2026",
 							cardBrand: "visa" as const,
 							cardLastFour: "4242",
 							expires: "08/28",
-							status: "Paid",
+							status: "Paid" as const,
 							breakdown: {
-								plan: "₦20,000",
+								billingPeriod: "Aug 1–31, 2026",
 								includedCases: "1,000",
-								additionalCases: "84",
-								overage: "₦2,100",
-								total: "₦22,100",
+								billableOverage: "84",
+								ratePerAdditionalCase: "₦25",
+								total: "₦2,100",
 							},
 						},
 						{
-							amount: "₦18,500",
-							date: "Jul 22, 2026",
+							amount: "₦500",
+							date: "Jul 31, 2026",
 							cardBrand: "mastercard" as const,
 							cardLastFour: "5555",
 							expires: "11/27",
-							status: "Paid",
+							status: "Paid" as const,
 							breakdown: {
-								plan: "₦18,000",
-								includedCases: "900",
-								additionalCases: "10",
-								overage: "₦500",
-								total: "₦18,500",
+								billingPeriod: "Jul 1–31, 2026",
+								includedCases: "1,000",
+								billableOverage: "20",
+								ratePerAdditionalCase: "₦25",
+								total: "₦500",
 							},
 						},
 						{
-							amount: "₦25,000",
-							date: "Jun 22, 2026",
+							amount: "₦5,000",
+							date: "Jun 30, 2026",
 							cardBrand: "verve" as const,
 							cardLastFour: "7788",
 							expires: "09/27",
-							status: "Paid",
+							status: "Paid" as const,
 							breakdown: {
-								plan: "₦20,000",
+								billingPeriod: "Jun 1–30, 2026",
 								includedCases: "1,000",
-								additionalCases: "200",
-								overage: "₦5,000",
-								total: "₦25,000",
+								billableOverage: "200",
+								ratePerAdditionalCase: "₦25",
+								total: "₦5,000",
 							},
 						},
 						{
-							amount: "₦15,000",
-							date: "May 22, 2026",
+							amount: "₦1,000",
+							date: "May 31, 2026",
 							cardBrand: "mastercard" as const,
 							cardLastFour: "9012",
 							expires: "04/28",
-							status: "Paid",
+							status: "Paid" as const,
 							breakdown: {
-								plan: "₦15,000",
-								includedCases: "750",
-								additionalCases: "0",
-								overage: "₦0",
-								total: "₦15,000",
+								billingPeriod: "May 1–31, 2026",
+								includedCases: "1,000",
+								billableOverage: "40",
+								ratePerAdditionalCase: "₦25",
+								total: "₦1,000",
 							},
 						},
 						{
-							amount: "₦24,500",
-							date: "Apr 22, 2026",
+							amount: "₦4,500",
+							date: "Apr 30, 2026",
 							cardBrand: "verve" as const,
 							cardLastFour: "3344",
 							expires: "12/27",
-							status: "Paid",
+							status: "Paid" as const,
 							breakdown: {
-								plan: "₦20,000",
+								billingPeriod: "Apr 1–30, 2026",
 								includedCases: "1,000",
-								additionalCases: "180",
-								overage: "₦4,500",
-								total: "₦24,500",
+								billableOverage: "180",
+								ratePerAdditionalCase: "₦25",
+								total: "₦4,500",
 							},
 						},
 						{
-							amount: "₦21,750",
-							date: "Mar 22, 2026",
+							amount: "₦1,750",
+							date: "Mar 31, 2026",
 							cardBrand: "visa" as const,
 							cardLastFour: "2468",
 							expires: "06/29",
-							status: "Paid",
+							status: "Paid" as const,
 							breakdown: {
-								plan: "₦20,000",
+								billingPeriod: "Mar 1–31, 2026",
 								includedCases: "1,000",
-								additionalCases: "70",
-								overage: "₦1,750",
-								total: "₦21,750",
+								billableOverage: "70",
+								ratePerAdditionalCase: "₦25",
+								total: "₦1,750",
 							},
 						},
 					].map((billingHistoryEntry) => (
-						<BillingHistoryCard key={`${billingHistoryEntry.date}-${billingHistoryEntry.cardLastFour}`} {...billingHistoryEntry} />
+						<BillingHistoryCard
+							key={`${billingHistoryEntry.date}-${billingHistoryEntry.cardLastFour}`}
+							{...billingHistoryEntry}
+						/>
 					))}
 				</div>
 			);
@@ -178,10 +182,7 @@ function PaymentMethodSettings() {
 					</h3>
 					<div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-2">
 						<Image src="/assets/visa-logo.svg" width={40} height={13} alt="Visa" />
-						<span
-							className="text-sm font-medium text-gray-600"
-							aria-label="Card ending in 4242"
-						>
+						<span className="text-sm font-medium text-gray-600" aria-label="Card ending in 4242">
 							******** 4242
 						</span>
 						<span className="text-sm font-medium text-gray-400">Expires 08/28</span>
@@ -244,9 +245,12 @@ function BillingPlanCard({ plan }: { plan: BillingPlan }) {
 				<h3 id="current-plan-heading" className="text-sm font-medium text-gray-400">
 					Current plan
 				</h3>
-				<span className="rounded-[6px] bg-blue-100 p-[6px] text-[12px] font-semibold text-blue-700 no-line-height">
+				<SettingsBadge
+					tone={plan.kind === "free" ? "neutral" : "premium"}
+					className="rounded-[6px] p-[6px] text-[12px] no-line-height"
+				>
 					{plan.kind === "free" ? "FREE TRIAL" : "PRO"}
-				</span>
+				</SettingsBadge>
 			</div>
 			<p className="mt-2 text-base font-semibold leading-[1.2em] text-gray-800">
 				{plan.kind === "free" ? "Free" : PRO_MONTHLY_PRICE}

@@ -126,7 +126,7 @@ export function DocumentDetailsDrawer({
 				</div>
 				<DrawerFooter className="border-t border-gray-200 p-5">
 					{isEditingDocumentDetails ? (
-						<div className="ml-auto flex gap-4">
+						<div className="ml-auto flex gap-2">
 							<Button variant="outline" onClick={() => setDocumentDetailsMode("view")}>
 								Cancel
 							</Button>
@@ -140,7 +140,7 @@ export function DocumentDetailsDrawer({
 							</Button>
 						</div>
 					) : (
-						<div className="ml-auto flex gap-4">
+						<div className="ml-auto flex gap-2">
 							<DrawerClose asChild>
 								<Button variant="outline">Cancel</Button>
 							</DrawerClose>

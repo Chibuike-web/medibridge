@@ -13,19 +13,26 @@ import { Label } from "@/components/ui/label";
 import type { ChangePasswordView, SettingsSubView } from "./types";
 import { SuccessModal } from "@/components/success-modal";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
+import { DeleteAccountDialog } from "./delete-account-dialog";
+import type { OrganizationRole } from "./types";
 
 export function AccountSettings({
 	activeSettingsSubView,
 	changePasswordView,
 	onChangePasswordView,
 	onSettingsSubViewChange,
+	viewerRole,
+	organizationName,
 }: {
+	viewerRole: OrganizationRole | null;
+	organizationName: string | null;
 	activeSettingsSubView: SettingsSubView | null;
 	changePasswordView: ChangePasswordView;
 	onChangePasswordView: (view: ChangePasswordView) => void;
 	onSettingsSubViewChange: (view: SettingsSubView | null) => void;
 }) {
-	const [isDialogOpen, setIsDialogOpen] = useState(true);
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
 	const handleSettingsSubViewChange = (view: SettingsSubView | null) => {
 		if (view === "change-password") {
 			onChangePasswordView("change-password");
@@ -49,7 +56,7 @@ export function AccountSettings({
 						<div className="flex h-16 items-center justify-between gap-4 border-b">
 							<dt className="text-sm font-medium text-gray-600">Verification status</dt>
 							<dd>
-								<StatusBadge className="text-sm" status="Verified" />
+								<StatusBadge className="no-line-height" status="Verified" />
 							</dd>
 						</div>
 						<div className="flex h-16 items-center justify-between gap-4 border-b">
@@ -169,12 +176,22 @@ export function AccountSettings({
 					<Button
 						type="button"
 						variant="destructive"
+						disabled={!viewerRole || !organizationName}
+						onClick={() => setIsDeleteAccountOpen(true)}
 						className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 dark:bg-transparent dark:hover:bg-destructive/10 dark:focus-visible:ring-destructive/40"
 					>
 						Delete account
 					</Button>
 				</section>
 			</div>
+			{viewerRole && organizationName && (
+				<DeleteAccountDialog
+					open={isDeleteAccountOpen}
+					onOpenChange={setIsDeleteAccountOpen}
+					viewerRole={viewerRole}
+					organizationName={organizationName}
+				/>
+			)}
 			<SuccessModal
 				heading="Password changed"
 				description="Your password has been successfully updated.

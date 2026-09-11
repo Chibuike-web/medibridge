@@ -121,7 +121,7 @@ export function ProcedureDetailsDrawer({
 
 				<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
 					{isEditingProcedureDetails ? (
-						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
+						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<Button
 								type="button"
 								variant="outline"
@@ -140,14 +140,14 @@ export function ProcedureDetailsDrawer({
 							</Button>
 						</div>
 					) : procedure?.status === "Pending" ? (
-						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
+						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<Button type="button" variant="outline">
 								Cancel procedure
 							</Button>
 							<Button className="bg-gray-800">Mark as completed</Button>
 						</div>
 					) : (
-						<div className="flex flex-col gap-x-4 gap-y-2 lg:flex-row lg:self-end">
+						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<DrawerClose asChild>
 								<Button variant="outline">
 									Cancel

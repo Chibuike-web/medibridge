@@ -430,7 +430,7 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 			</form>
 
 			<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
-				<div className="flex flex-col gap-2 lg:flex-row lg:self-end lg:gap-x-4">
+				<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 					<DrawerClose asChild>
 						<Button type="button" variant="outline">Cancel</Button>
 					</DrawerClose>

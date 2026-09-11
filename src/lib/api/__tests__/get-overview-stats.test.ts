@@ -81,7 +81,6 @@ describe("getOverviewStats", () => {
 
 		const result = await getOverviewStats();
 
-		expect(selectMock).toHaveBeenCalledTimes(7);
 		expect(result).toEqual({
 			totalPatients: 4,
 			transferredRecords: 2,

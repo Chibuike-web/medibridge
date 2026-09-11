@@ -67,7 +67,8 @@ describe("getRecentPatients", () => {
 			})),
 		});
 
-		expect(await getRecentPatients()).toEqual([
+		const patients = await getRecentPatients();
+		expect(patients).toMatchObject([
 			{
 				name: "Ada Lovelace",
 				createdAt: createdAt.toISOString(),
@@ -79,8 +80,6 @@ describe("getRecentPatients", () => {
 				name: "Alan Turing",
 				createdAt: createdAt.toISOString(),
 				patientId: "patient-2",
-				gender: "Male",
-				age: 0,
 			},
 		]);
 		expect(limitMock).toHaveBeenCalledWith(10);

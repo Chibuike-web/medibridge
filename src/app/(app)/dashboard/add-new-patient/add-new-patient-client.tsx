@@ -271,7 +271,7 @@ function Footer({
 								</p>
 							</div>
 									<DialogFooter className="mt-16 text-sm">
-								<div className="flex gap-4 ml-auto">
+								<div className="flex gap-2 ml-auto">
 									<DialogClose asChild>
 										<Button variant="outline">
 											Cancel

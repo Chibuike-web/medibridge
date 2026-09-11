@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
 	const searchParams = req.nextUrl.searchParams;
 	const token = searchParams.get("token");
 	if (!token) {
-		return NextResponse.redirect(`${base}/email-verified?error=invalid_token}`);
+		return NextResponse.redirect(`${base}/email-verified?error=invalid_token`);
 	}
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session) {
@@ -26,10 +26,10 @@ export async function GET(req: NextRequest) {
 					? "expired_token"
 					: "invalid_token";
 
-			return NextResponse.redirect(`${base}/email-verified?error=${errorType}}`);
+			return NextResponse.redirect(`${base}/email-verified?error=${errorType}`);
 		} else {
 			console.error(error);
-			return NextResponse.redirect(`${base}/email-verified?error=invalid_token}`);
+			return NextResponse.redirect(`${base}/email-verified?error=invalid_token`);
 		}
 	}
 }

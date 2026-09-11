@@ -1030,7 +1030,7 @@ function LegacyDocumentDetailsDrawer({
 				</div>
 				<DrawerFooter className="border-t border-gray-200 p-5">
 					{isEditing ? (
-						<div className="ml-auto flex gap-4">
+						<div className="ml-auto flex gap-2">
 							<Button type="button" variant="outline" onClick={() => setMode("view")}>
 								Cancel
 							</Button>
@@ -1043,7 +1043,7 @@ function LegacyDocumentDetailsDrawer({
 							</Button>
 						</div>
 					) : (
-						<div className="ml-auto flex gap-4">
+						<div className="ml-auto flex gap-2">
 							<DrawerClose asChild>
 								<Button type="button" variant="outline">
 									Cancel
@@ -1308,7 +1308,7 @@ function LegacyCreateDocumentDrawer({
 					{formError ? <p className="text-red-600">{formError}</p> : null}
 				</form>
 				<DrawerFooter className="border-t border-gray-200 p-5">
-					<div className="ml-auto flex gap-4">
+					<div className="ml-auto flex gap-2">
 						<DrawerClose asChild>
 							<Button variant="outline">Cancel</Button>
 						</DrawerClose>

@@ -1,5 +1,6 @@
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import { getPatientById } from "../get-patient-by-id";
+import { PgDialect } from "drizzle-orm/pg-core";
 
 const { getOrganizationIdMock, selectMock } = vi.hoisted(() => ({
 	getOrganizationIdMock: vi.fn(),
@@ -28,8 +29,8 @@ describe("getPatientById", () => {
 	});
 	test("returns an empty result when there is no active organization", async () => {
 		getOrganizationIdMock.mockResolvedValue(null);
-		const result = await getPatientById("org-1");
-		expect(getOrganizationIdMock).toHaveBeenCalledOnce();
+		const result = await getPatientById("patient-1");
+		expect(selectMock).not.toHaveBeenCalled();
 		expect(result).toBeNull();
 	});
 	test("return a patient when there is an active organization", async () => {
@@ -87,7 +88,7 @@ describe("getPatientById", () => {
 		expect(patient).toBeNull();
 	});
 
-	test("returns null for patient from another organization", async () => {
+	test("restricts the lookup to both the requested patient and active organization", async () => {
 		getOrganizationIdMock.mockResolvedValue("org-1");
 		selectMock.mockReturnValueOnce({
 			from: vi.fn(() => ({
@@ -103,6 +104,15 @@ describe("getPatientById", () => {
 		const patient = await getPatientById("patient-from-org-2");
 		expect(patient).toBeNull();
 		expect(getOrganizationIdMock).toHaveBeenCalledOnce();
+		const from = selectMock.mock.results[0].value.from;
+		const innerJoin = from.mock.results[0].value.innerJoin;
+		const leftJoin = innerJoin.mock.results[0].value.leftJoin;
+		const where = leftJoin.mock.results[0].value.where;
+		const query = new PgDialect().sqlToQuery(where.mock.calls[0][0]);
+		expect(query.params).toEqual(["patient-from-org-2", "org-1"]);
+		expect(query.sql).toContain('"patient"."id" = $1');
+		expect(query.sql).toContain('"patient"."organization_id" = $2');
+		expect(query.sql).toContain(" and ");
 	});
 
 	test("return - when sex is null", async () => {

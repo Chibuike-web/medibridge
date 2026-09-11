@@ -59,25 +59,37 @@ describe("Auth API", () => {
 	});
 
 	describe("/api/auth/[...all]", () => {
-		test("configures Better Auth's GET and POST handlers", () => {
-			expect(authGET).toBe(authGetHandlerMock);
-			expect(authPOST).toBe(authPostHandlerMock);
-		});
-
 		test("passes GET requests to Better Auth", async () => {
-			const response = new Response(JSON.stringify({ ok: true }));
+			const response = Response.json(
+				{ user: { id: "user-1" } },
+				{ headers: { "cache-control": "no-store" } },
+			);
 			authGetHandlerMock.mockResolvedValue(response);
-
-			expect(await authGET(new Request("http://localhost:4300/api/auth/session"))).toBe(response);
+			const request = new Request("http://localhost:4300/api/auth/session", {
+				headers: { cookie: "session=test-session" },
+			});
+			const result = await authGET(request);
+			expect(authGetHandlerMock).toHaveBeenCalledWith(request);
+			expect(result.status).toBe(200);
+			expect(result.headers.get("cache-control")).toBe("no-store");
+			expect(await result.json()).toEqual({ user: { id: "user-1" } });
 		});
 
 		test("passes POST requests to Better Auth", async () => {
-			const response = new Response(JSON.stringify({ ok: true }));
+			const response = Response.json(
+				{ ok: true },
+				{ headers: { "set-cookie": "session=new-session; HttpOnly" } },
+			);
 			authPostHandlerMock.mockResolvedValue(response);
-
-			expect(
-				await authPOST(new Request("http://localhost:4300/api/auth/sign-in", { method: "POST" })),
-			).toBe(response);
+			const request = new Request("http://localhost:4300/api/auth/sign-in", {
+				method: "POST",
+				body: JSON.stringify({ email: "user@example.com" }),
+			});
+			const result = await authPOST(request);
+			expect(authPostHandlerMock).toHaveBeenCalledWith(request);
+			expect(result.status).toBe(200);
+			expect(result.headers.get("set-cookie")).toBe("session=new-session; HttpOnly");
+			expect(await result.json()).toEqual({ ok: true });
 		});
 	});
 
@@ -88,7 +100,9 @@ describe("Auth API", () => {
 			);
 
 			expect(response.status).toBe(307);
-			expect(response.headers.get("location")).toContain("/email-verified?error=invalid_token");
+			expect(new URL(response.headers.get("location")!).searchParams.get("error")).toBe(
+				"invalid_token",
+			);
 			expect(getSessionMock).not.toHaveBeenCalled();
 		});
 
@@ -114,7 +128,7 @@ describe("Auth API", () => {
 
 			expect(response.status).toBe(307);
 			expect(response.headers.get("location")).toBe("http://localhost:4300/email-verified");
-			expect(headersMock).toHaveBeenCalledOnce();
+			expect(getSessionMock).toHaveBeenCalledWith({ headers: expect.any(Headers) });
 			expect(verifyEmailMock).toHaveBeenCalledWith({ query: { token: "token-1" } });
 		});
 
@@ -127,7 +141,9 @@ describe("Auth API", () => {
 			);
 
 			expect(response.status).toBe(307);
-			expect(response.headers.get("location")).toContain("/email-verified?error=invalid_token");
+			expect(new URL(response.headers.get("location")!).searchParams.get("error")).toBe(
+				"invalid_token",
+			);
 		});
 	});
 });
