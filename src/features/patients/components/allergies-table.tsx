@@ -188,7 +188,7 @@ export function AllergiesTable({
 	);
 	return (
 		<div className="px-6 py-8 text-sm">
-			<h1 className="mx-auto max-w-7xl text-xl font-semibold no-line-height">Allergies</h1>
+			<h1 className="mx-auto max-w-7xl text-lg font-semibold no-line-height">Allergies</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl items-center gap-2">
 				<div className="relative w-full">
 					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />

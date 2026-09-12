@@ -168,13 +168,13 @@ function DiagnosisDetailsOverview({
 		<div className="flex flex-col gap-10">
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
-					<span className="font-normal text-gray-400">Diagnosis ID:</span>
+					<span className="text-gray-400">Diagnosis ID:</span>
 					<CopyIdButton id={diagnosis.diagnosisId} className="text-sm" />
 				</div>
 				<div className="flex items-center gap-2">
 					{diagnosis.encounterId ? (
 						<>
-							<span className="font-normal text-gray-400">Encounter ID:</span>
+							<span className="text-gray-400">Encounter ID:</span>
 							<CopyIdButton id={diagnosis.encounterId} className="text-sm" />
 						</>
 					) : null}
@@ -190,7 +190,7 @@ function DiagnosisDetailsOverview({
 					<button
 						type="button"
 						onClick={onEditDiagnosisDetails}
-						className="inline-flex items-center gap-2 text-sm font-normal text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						className="inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
@@ -239,12 +239,12 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 			<div className="flex flex-col gap-8">
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
-						<span className="font-normal text-gray-400">Diagnosis ID:</span>
+						<span className="text-gray-400">Diagnosis ID:</span>
 						<CopyIdButton id={diagnosis.diagnosisId} className="text-sm" />
 					</div>
 					{diagnosis.encounterId ? (
 						<div className="flex items-center gap-2">
-							<span className="font-normal text-gray-400">Encounter ID:</span>
+							<span className="text-gray-400">Encounter ID:</span>
 							<CopyIdButton id={diagnosis.encounterId} className="text-sm" />
 						</div>
 					) : null}
@@ -445,7 +445,7 @@ function getDiagnosisSelectValue(value: string) {
 function DiagnosisDetailItem({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
-			<span className="font-normal text-gray-400">{label}</span>
+			<span className="text-gray-400">{label}</span>
 			{label === "Status" ? (
 				<StatusBadge status={value || EMPTY_VALUE} className="w-max" />
 			) : (
@@ -460,7 +460,7 @@ function DiagnosisHistorySection({ history }: { history: DiagnosisDetailsHistory
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
-				<button className="font-normal text-gray-400">View more</button>
+				<button className="text-gray-400">View more</button>
 			</div>
 			<div className="flex flex-col gap-4">
 				{history.map((historyEvent) => (
@@ -491,10 +491,10 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 						{historyEvent.title} by {historyEvent.actor}
 					</span>
 					{" "}
-					<span aria-hidden="true" className="font-normal text-gray-200">
+					<span aria-hidden="true" className="text-gray-200">
 						•
 					</span>{" "}
-					<span className="font-normal text-gray-400">{historyEvent.timestamp}</span>
+					<span className="text-gray-400">{historyEvent.timestamp}</span>
 				</p>
 				<RiArrowDownSLine
 					className={cn(
@@ -553,7 +553,7 @@ function DiagnosisRelatedRecords({
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Related records</h2>
-				<button className="font-normal text-gray-400">View more</button>
+				<button className="text-gray-400">View more</button>
 			</div>{" "}
 			<div className="flex flex-col gap-4">
 				{sections.map((section) => (

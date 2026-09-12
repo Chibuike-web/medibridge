@@ -175,12 +175,12 @@ function DocumentDetailsOverview({
 		<div className="flex flex-col gap-10">
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
-					<span className="font-normal text-gray-400">Document ID:</span>
+					<span className="text-gray-400">Document ID:</span>
 					<CopyIdButton id={document.documentId} />
 				</div>
 				{document.encounterId ? (
 					<div className="flex items-center gap-2">
-						<span className="font-normal text-gray-400">Encounter ID:</span>
+						<span className="text-gray-400">Encounter ID:</span>
 						<CopyIdButton id={document.encounterId} />
 					</div>
 				) : null}
@@ -191,7 +191,7 @@ function DocumentDetailsOverview({
 					<button
 						type="button"
 						onClick={onEditDocumentDetails}
-						className="inline-flex items-center gap-2 text-sm font-normal text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						className="inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
@@ -209,7 +209,7 @@ function DocumentDetailsOverview({
 						{document.files.length > 3 ? (
 							<button
 								type="button"
-								className="font-normal text-gray-400"
+								className="text-gray-400"
 								onClick={() => setAreDocumentFilesExpanded((prev) => !prev)}
 							>
 								{areDocumentFilesExpanded ? "View less" : "View more"}
@@ -231,7 +231,7 @@ function DocumentDetailsOverview({
 								/>
 								<div className="min-w-0 flex-1">
 									<p className="truncate font-semibold text-gray-800">{file.name}</p>
-									<p className="mt-1 truncate font-normal text-gray-400">
+									<p className="mt-1 truncate text-gray-400">
 										{file.size} • Uploaded on {file.uploadedAt.slice(0, 10)}
 									</p>
 								</div>
@@ -303,10 +303,10 @@ function DocumentActivityCard({
 					<span id={titleId} className="font-semibold text-gray-800">
 						{title} by {actor}
 					</span>{" "}
-					<span aria-hidden="true" className="font-normal text-gray-200">
+					<span aria-hidden="true" className="text-gray-200">
 						•
 					</span>{" "}
-					<span className="font-normal text-gray-400">{timestamp}</span>
+					<span className="text-gray-400">{timestamp}</span>
 				</p>
 				<RiArrowDownSLine
 					className={cn(
@@ -381,13 +381,13 @@ function DocumentDetailsEditForm({
 		<form id="document-details-form" action={handleUpdate} className="grid gap-6 sm:grid-cols-2">
 			<div className="space-y-2">
 				<Label htmlFor="document-title">
-					Document title <span className="font-normal text-gray-400">(required)</span>
+					Document title <span className="text-gray-400">(required)</span>
 				</Label>
 				<Input id="document-title" name="title" defaultValue={document.title} required />
 			</div>
 			<div className="space-y-2">
 				<Label>
-					Document type <span className="font-normal text-gray-400">(required)</span>
+					Document type <span className="text-gray-400">(required)</span>
 				</Label>
 				<Select key={document.documentId} defaultValue={defaultDocumentType}>
 					<SelectTrigger className="w-full">
@@ -404,7 +404,7 @@ function DocumentDetailsEditForm({
 			</div>
 			<div className="space-y-2 sm:col-span-2">
 				<Label htmlFor="document-notes">
-					Clinical notes <span className="font-normal text-gray-400">(optional)</span>
+					Clinical notes <span className="text-gray-400">(optional)</span>
 				</Label>
 				<Textarea
 					id="document-notes"
@@ -415,7 +415,7 @@ function DocumentDetailsEditForm({
 			</div>
 			<div className="space-y-3 sm:col-span-2">
 				<Label>
-					Files <span className="font-normal text-gray-400">(required)</span>
+					Files <span className="text-gray-400">(required)</span>
 				</Label>
 
 				{hasFiles ? (
@@ -443,7 +443,7 @@ function DocumentDetailsEditForm({
 										>
 										<p className="truncate font-semibold text-gray-800">{file.name}</p>
 
-										<p className="truncate font-normal text-gray-400">
+										<p className="truncate text-gray-400">
 											{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}
 										</p>
 									</div>
@@ -541,7 +541,7 @@ function DocumentDetailsEditForm({
 function DocumentDetailItem({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
-			<span className="font-normal text-gray-400">{label}</span>
+			<span className="text-gray-400">{label}</span>
 			<span className="font-semibold text-gray-600">{value || "-"}</span>
 		</div>
 	);

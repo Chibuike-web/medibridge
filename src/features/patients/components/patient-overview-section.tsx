@@ -46,7 +46,7 @@ export async function PatientOverviewSection({ patientId }: { patientId: string 
 	return (
 		<div className="p-8">
 			<div className="mx-auto max-w-7xl">
-				<h1 className="mb-6 text-xl font-semibold text-gray-800 no-line-height">
+				<h1 className="mb-6 text-lg font-semibold text-gray-800 no-line-height">
 					Patient Overview
 				</h1>
 				<div className="flex flex-col gap-10">

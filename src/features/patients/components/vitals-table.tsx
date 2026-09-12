@@ -195,7 +195,7 @@ export function VitalsTable({
 
 	return (
 		<div className="flex flex-col gap-5 px-6 py-8 text-sm">
-			<h1 className="mx-auto w-full max-w-7xl text-xl font-semibold no-line-height">Vitals</h1>
+			<h1 className="mx-auto w-full max-w-7xl text-lg font-semibold no-line-height">Vitals</h1>
 			<VitalsChart readings={readings} />
 			<div className="mx-auto flex w-full max-w-7xl items-center gap-2">
 				<div className="relative w-full">

@@ -160,7 +160,7 @@ function LabTestDetailsOverview({
 		<div className="flex flex-col gap-10">
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
-					<span className="font-normal text-gray-400">Lab ID</span>
+					<span className="text-gray-400">Lab ID</span>
 					<CopyIdButton id={labTest.labId} className="text-sm" />
 				</div>
 			</div>
@@ -174,7 +174,7 @@ function LabTestDetailsOverview({
 					<button
 						type="button"
 						onClick={onEditLabTestDetails}
-						className="inline-flex items-center gap-2 text-sm font-normal text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						className="inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
@@ -198,7 +198,7 @@ function LabTestDetailsOverview({
 function LabTestDetailItem({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
-			<span className="font-normal text-gray-400">{label}</span>
+			<span className="text-gray-400">{label}</span>
 			{label === "Status" ? (
 				<StatusBadge status={value || "Pending"} className="w-max" />
 			) : (
@@ -221,7 +221,7 @@ function LabTestFilesSection({ files }: { files: LabTestType["files"] }) {
 				{files.length > 3 ? (
 					<button
 						type="button"
-						className="font-normal text-gray-400"
+						className="text-gray-400"
 						onClick={() => setAreLabTestFilesExpanded((previousValue) => !previousValue)}
 					>
 						{areLabTestFilesExpanded ? "View less" : "View more"}
@@ -242,7 +242,7 @@ function LabTestFilesSection({ files }: { files: LabTestType["files"] }) {
 						/>
 						<div className="min-w-0 flex-1">
 							<p className="truncate font-semibold text-gray-800">{file.name}</p>
-							<p className="mt-1 truncate font-normal text-gray-400">
+							<p className="mt-1 truncate text-gray-400">
 								{file.size} - Uploaded on {file.uploadedAtLabel}
 							</p>
 						</div>
@@ -270,7 +270,7 @@ function LabTestHistorySection({ history }: { history: LabTestDetailsHistoryEven
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
-				<button className="font-normal text-gray-400">View more</button>
+				<button className="text-gray-400">View more</button>
 			</div>
 			{history.map((historyEvent) => (
 				<LabTestHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
@@ -298,10 +298,10 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 					<span id={titleId} className="font-semibold text-gray-800">
 						{historyEvent.title} by {historyEvent.actor}
 					</span>{" "}
-					<span aria-hidden="true" className="font-normal text-gray-200">
+					<span aria-hidden="true" className="text-gray-200">
 						•
 					</span>{" "}
-					<span className="font-normal text-gray-400">{historyEvent.timestamp}</span>
+					<span className="text-gray-400">{historyEvent.timestamp}</span>
 				</p>
 				<RiArrowDownSLine
 					className={cn(
@@ -406,12 +406,12 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 		<form className="flex flex-col gap-12">
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
-					<span className="font-normal text-gray-400">Lab ID:</span>
+					<span className="text-gray-400">Lab ID:</span>
 					<CopyIdButton id={labTest.labId} className="text-sm" />
 				</div>
 				{labTest.encounterId ? (
 					<div className="flex items-center gap-2">
-						<span className="font-normal text-gray-400">Encounter ID:</span>
+						<span className="text-gray-400">Encounter ID:</span>
 						<CopyIdButton id={labTest.encounterId} className="text-sm" />
 					</div>
 				) : null}
@@ -564,7 +564,7 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 			</div>
 			<div className="space-y-3 sm:col-span-2">
 				<Label className={fieldLabelClassName}>
-					Files <span className="font-normal text-gray-400">(required)</span>
+					Files <span className="text-gray-400">(required)</span>
 				</Label>
 				{hasLabTestFiles ? (
 					<>
@@ -592,7 +592,7 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 									>
 										<p className="truncate font-semibold text-gray-800">{file.name}</p>
 
-										<p className="truncate font-normal text-gray-400">
+										<p className="truncate text-gray-400">
 											{file.size} · Uploaded on {file.uploadedAtLabel}
 										</p>
 									</div>

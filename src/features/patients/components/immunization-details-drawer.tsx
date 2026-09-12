@@ -153,12 +153,12 @@ function ImmunizationDetailsOverview({
 		<div className="flex flex-col gap-10">
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
-					<span className="font-normal text-gray-400">Immunization ID:</span>
+					<span className="text-gray-400">Immunization ID:</span>
 					<CopyIdButton id={immunization.immunizationId} className="text-sm" />
 				</div>
 				{immunization.encounterId ? (
 					<div className="flex items-center gap-2">
-						<span className="font-normal text-gray-400">Encounter ID:</span>
+						<span className="text-gray-400">Encounter ID:</span>
 						<CopyIdButton id={immunization.encounterId} className="text-sm" />
 					</div>
 				) : null}
@@ -173,7 +173,7 @@ function ImmunizationDetailsOverview({
 					<button
 						type="button"
 						onClick={onEditImmunizationDetails}
-						className="inline-flex items-center gap-2 text-sm font-normal text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						className="inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
@@ -203,12 +203,12 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 			<div className="flex flex-col gap-8">
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
-						<span className="font-normal text-gray-400">Immunization ID:</span>
+						<span className="text-gray-400">Immunization ID:</span>
 						<CopyIdButton id={immunization.immunizationId} className="text-sm" />
 					</div>
 					{immunization.encounterId ? (
 						<div className="flex items-center gap-2">
-							<span className="font-normal text-gray-400">Encounter ID:</span>
+							<span className="text-gray-400">Encounter ID:</span>
 							<CopyIdButton id={immunization.encounterId} className="text-sm" />
 						</div>
 					) : null}
@@ -400,7 +400,7 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 function ImmunizationDetailItem({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
-			<span className="font-normal text-gray-400">{label}</span>
+			<span className="text-gray-400">{label}</span>
 			{label === "Status" ? (
 				<StatusBadge status={value || EMPTY_VALUE} className="w-max" />
 			) : (
@@ -415,7 +415,7 @@ function ImmunizationHistorySection({ history }: { history: ImmunizationDetailsH
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
-				<button className="font-normal text-gray-400">View more</button>
+				<button className="text-gray-400">View more</button>
 			</div>
 			{history.map((historyEvent) => (
 				<ImmunizationHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
@@ -447,10 +447,10 @@ function ImmunizationHistoryCard({
 					<span id={titleId} className="font-semibold text-gray-800">
 						{historyEvent.title} by {historyEvent.actor}
 					</span>{" "}
-					<span aria-hidden="true" className="font-normal text-gray-200">
+					<span aria-hidden="true" className="text-gray-200">
 						•
 					</span>{" "}
-					<span className="font-normal text-gray-400">{historyEvent.timestamp}</span>
+					<span className="text-gray-400">{historyEvent.timestamp}</span>
 				</p>
 				<RiArrowDownSLine
 					className={cn(

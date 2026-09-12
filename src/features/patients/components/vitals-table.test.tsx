@@ -188,9 +188,12 @@ describe("Vitals table", () => {
 		expect(within(dialog).getByRole("button", { name: "Archive vitals" })).toBeVisible();
 		expect(within(overview).getByText("118/79 mmHg")).toBeVisible();
 		expect(within(overview).getByText("Follow-up reading.")).toBeVisible();
-		expect(
-			within(dialog).getByRole("button", { name: /Created by Dr. Okafor/ }),
-		).toHaveAttribute("aria-expanded", "false");
+		const activityButton = within(dialog).getByRole("button", { name: /Created by Dr. Okafor/ });
+		expect(activityButton).toHaveAttribute("aria-expanded", "false");
+		await user.click(activityButton);
+		const activity = within(dialog).getByRole("region", { name: /Created by Dr. Okafor/ });
+		expect(within(activity).getByText("Encounter type")).toBeVisible();
+		expect(within(activity).getByText("Routine Checkup")).toBeVisible();
 		expect(within(dialog).getByRole("button", { name: "Copy ENC-newer" })).toBeVisible();
 	});
 

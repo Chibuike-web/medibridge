@@ -62,7 +62,7 @@ export function TransferDetailsDrawer({
 							<div className="flex flex-col gap-6">
 								<div className="flex items-center gap-x-6 gap-y-2 flex-wrap text-nowrap">
 									<div className="flex items-center gap-2 shrink-0">
-										<span className="font-normal text-gray-400">Transfer Status:</span>
+										<span className="text-gray-400">Transfer Status:</span>
 										{transfer ? (
 											<StatusBadge status={transfer.status} className="text-sm" />
 										) : (
@@ -70,7 +70,7 @@ export function TransferDetailsDrawer({
 										)}
 									</div>
 									<div className="flex items-center gap-2 shrink-0">
-										<span className="font-normal text-gray-400">Patient ID:</span>
+										<span className="text-gray-400">Patient ID:</span>
 										{transfer ? (
 											<CopyIdButton id={transfer.patientId} className="text-sm" />
 										) : (
@@ -78,7 +78,7 @@ export function TransferDetailsDrawer({
 										)}
 									</div>
 									<div className="flex items-center gap-2 shrink-0">
-										<span className="font-normal text-gray-400">Transfer ID:</span>
+										<span className="text-gray-400">Transfer ID:</span>
 										{transfer ? (
 											<CopyIdButton id={transfer.id} className="text-sm" />
 										) : (
@@ -130,7 +130,7 @@ function TransferContentSummary({
 
 	return (
 		<div className="flex flex-col gap-2">
-			<span className="font-normal text-gray-400">Transfer Content</span>
+			<span className="text-gray-400">Transfer Content</span>
 			{transferContentGroups.length > 0 ? (
 				<ul className="ml-5 list-disc space-y-2 text-gray-600 marker:text-gray-600">
 					{transferContentGroups.map((contentGroup) => (
@@ -249,7 +249,7 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 function DetailItem({ label, value }: { label: string; value?: string | null }) {
 	return (
 		<div className="flex flex-col gap-2 shrink-0 no-line-height">
-			<span className="font-normal text-gray-400">{label}</span>
+			<span className="text-gray-400">{label}</span>
 			<span className="text-gray-600 font-semibold">{value || EMPTY_VALUE}</span>
 		</div>
 	);
@@ -306,7 +306,7 @@ function TransferProgress() {
 								{/* Right column */}
 								<div>
 									<span className="font-semibold text-gray-600">Requested</span>
-									<p className="font-normal text-gray-400">Initiated by Dr. Adebayo</p>
+									<p className="text-gray-400">Initiated by Dr. Adebayo</p>
 								</div>
 							</div>
 
@@ -325,7 +325,7 @@ function TransferProgress() {
 
 								<div>
 									<span className="font-semibold text-gray-600">Patient Approval</span>
-									<p className="font-normal text-gray-400">Waiting for patient response</p>
+									<p className="text-gray-400">Waiting for patient response</p>
 								</div>
 							</div>
 
@@ -334,7 +334,7 @@ function TransferProgress() {
 								<RiCheckboxBlankCircleLine aria-hidden="true" className="text-gray-400" />
 								<div>
 									<span className="font-semibold text-gray-600">Sent</span>
-									<p className="font-normal text-gray-400">Not started</p>
+									<p className="text-gray-400">Not started</p>
 								</div>
 							</div>
 					</div>

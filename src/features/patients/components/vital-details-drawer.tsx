@@ -128,11 +128,11 @@ function VitalDetailsOverview({
 		<section className="flex flex-col gap-10" aria-labelledby="vital-details-heading">
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
-					<span className="font-normal text-gray-400">Vital ID:</span>
+					<span className="text-gray-400">Vital ID:</span>
 					<CopyIdButton id={vital.vitalId} className="text-sm" />
 				</div>
 				<div className="flex items-center gap-2">
-					<span className="font-normal text-gray-400">Encounter ID:</span>
+					<span className="text-gray-400">Encounter ID:</span>
 					<CopyIdButton id={vital.encounterId} className="text-sm" />
 				</div>
 			</div>
@@ -145,7 +145,7 @@ function VitalDetailsOverview({
 					<button
 						type="button"
 						onClick={onEditVitalDetails}
-						className="inline-flex items-center gap-2 text-sm font-normal text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						className="inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
@@ -172,11 +172,11 @@ function VitalDetailsEditForm({ vital }: { vital: VitalType }) {
 		<form id={vitalDetailsFormId} className="flex flex-col gap-8">
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
-					<span className="font-normal text-gray-400">Vital ID:</span>
+					<span className="text-gray-400">Vital ID:</span>
 					<CopyIdButton id={vital.vitalId} className="text-sm" />
 				</div>
 				<div className="flex items-center gap-2">
-					<span className="font-normal text-gray-400">Encounter ID:</span>
+					<span className="text-gray-400">Encounter ID:</span>
 					<CopyIdButton id={vital.encounterId} className="text-sm" />
 				</div>
 			</div>
@@ -292,10 +292,10 @@ function VitalHistoryCard({ vital }: { vital: VitalType }) {
 					<span id={titleId} className="font-semibold text-gray-800">
 						Created by {vital.createdBy}
 					</span>{" "}
-					<span aria-hidden="true" className="font-normal text-gray-200">
+					<span aria-hidden="true" className="text-gray-200">
 						•
 					</span>{" "}
-					<span className="font-normal text-gray-400">
+					<span className="text-gray-400">
 						{format(vital.createdAt, "d MMMM yyyy 'at' HH:mm")}
 					</span>
 				</p>
@@ -348,7 +348,7 @@ function VitalDetailItem({
 }) {
 	return (
 		<div className={cn("flex flex-col gap-2 no-line-height", className)}>
-			<span className="font-normal text-gray-400">{label}</span>
+			<span className="text-gray-400">{label}</span>
 			<span className="font-semibold text-gray-600">{value || EMPTY_VALUE}</span>
 		</div>
 	);
@@ -363,6 +363,7 @@ function getVitalDetailItems(vital: VitalType) {
 		{ label: "Oxygen saturation", value: `${vital.oxygenSaturation}%` },
 		{ label: "Weight", value: `${vital.weight} kg` },
 		{ label: "Body mass index", value: vital.bmi.toFixed(1) },
+		{ label: "Encounter type", value: vital.encounterType },
 		{ label: "Encounter date", value: format(vital.recordedAt, "d MMMM yyyy") },
 	];
 }
