@@ -72,8 +72,8 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 	return (
 		<Drawer open={open} onOpenChange={handleImagingDetailsOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
-				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
-					<DrawerTitle className="text-base leading-[1.2] text-gray-800">
+				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
+					<DrawerTitle className="leading-[1.2] text-gray-800">
 						{isEditingImagingDetails ? "Edit imaging details" : "View imaging details"}
 					</DrawerTitle>
 					<DrawerClose aria-label="Close imaging details drawer">
@@ -105,7 +105,7 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 					)}
 				</div>
 
-				<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
+				<DrawerFooter className="border-t border-gray-200 text-sm">
 					{isEditingImagingDetails ? (
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<Button type="button" variant="outline" onClick={() => setImagingDetailsMode("view")}>
@@ -144,12 +144,12 @@ function ImagingDetailsOverview({
 		<div className="flex flex-col gap-10">
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Imaging ID:</span>
+					<span className="font-normal text-gray-400">Imaging ID:</span>
 					<CopyIdButton id={imaging.imagingId} className="text-sm" />
 				</div>
 				{imaging.encounterId ? (
 					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
+						<span className="font-normal text-gray-400">Encounter ID:</span>
 						<CopyIdButton id={imaging.encounterId} className="text-sm" />
 					</div>
 				) : null}
@@ -164,7 +164,7 @@ function ImagingDetailsOverview({
 					<button
 						type="button"
 						onClick={onEditImagingDetails}
-						className="inline-flex items-center gap-2 text-sm font-medium text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						className="inline-flex items-center gap-2 text-sm font-normal text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
@@ -177,10 +177,6 @@ function ImagingDetailsOverview({
 					<ImagingDetailItem label="Modality" value={imaging.modality} />
 					<ImagingDetailItem label="Ordered at" value={imaging.orderedAtLabel} />
 					<ImagingDetailItem label="Ordered by" value={imaging.orderedBy} />
-					<ImagingDetailItem label="Created by" value={imaging.createdBy} />
-					<ImagingDetailItem label="Created at" value={imaging.createdAtLabel} />
-					<ImagingDetailItem label="Updated by" value={imaging.updatedBy} />
-					<ImagingDetailItem label="Updated at" value={imaging.updatedAtLabel} />
 					<ImagingDetailItem label="Clinical notes" value={imaging.clinicalNote} />
 				</div>
 			</div>
@@ -191,7 +187,7 @@ function ImagingDetailsOverview({
 function ImagingDetailItem({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
-			<span className="text-gray-400">{label}</span>
+			<span className="font-normal text-gray-400">{label}</span>
 			{label === "Status" ? (
 				<StatusBadge status={value || "Pending"} className="w-max" />
 			) : (
@@ -210,11 +206,11 @@ function ImagingFilesSection({ files }: { files: ImagingType["files"] }) {
 	return (
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex w-full items-center justify-between">
-				<p className="text-base font-semibold text-gray-800">Files</p>
+				<h2 className="text-sm font-semibold text-gray-800">Files</h2>
 				{files.length > 3 ? (
 					<button
 						type="button"
-						className="text-gray-400"
+						className="font-normal text-gray-400"
 						onClick={() => setAreImagingFilesExpanded((previousValue) => !previousValue)}
 					>
 						{areImagingFilesExpanded ? "View less" : "View more"}
@@ -225,18 +221,18 @@ function ImagingFilesSection({ files }: { files: ImagingType["files"] }) {
 				{visibleFiles.map((file) => (
 					<div
 						key={file.url}
-						className="flex items-center gap-4 rounded-2xl border border-gray-200 p-4"
+						className="flex items-center gap-4 rounded-xl border border-gray-200 p-4"
 					>
 						<Image
 							src={getDocumentFileIcon(file.name, file.type)}
 							alt=""
-							width={44}
-							height={44}
-							className="size-11 shrink-0"
+							width={36}
+							height={36}
+							className="size-9 shrink-0"
 						/>
 						<div className="min-w-0 flex-1">
 							<p className="truncate font-semibold text-gray-800">{file.name}</p>
-							<p className="truncate text-gray-400">
+							<p className="truncate font-normal text-gray-400">
 								{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}
 							</p>
 						</div>
@@ -257,8 +253,8 @@ function ImagingHistorySection({ history }: { history: ImagingDetailsHistoryEven
 	return (
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
-				<p className="text-base font-semibold">History</p>
-				<button className="text-gray-400">View more</button>
+				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
+				<button className="font-normal text-gray-400">View more</button>
 			</div>
 			{history.map((historyEvent) => (
 				<ImagingHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
@@ -268,13 +264,13 @@ function ImagingHistorySection({ history }: { history: ImagingDetailsHistoryEven
 }
 
 function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHistoryEvent }) {
-	const [isImagingHistoryExpanded, setIsImagingHistoryExpanded] = useState(true);
+	const [isImagingHistoryExpanded, setIsImagingHistoryExpanded] = useState(false);
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
 
 	return (
-		<section className="flex flex-col rounded-2xl border border-gray-200 p-5">
+		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
 			<button
 				type="button"
 				onClick={() => setIsImagingHistoryExpanded((prev) => !prev)}
@@ -282,11 +278,14 @@ function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHist
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<p>
+				<p className="min-w-0 text-sm">
 					<span id={titleId} className="font-semibold text-gray-800">
-						{historyEvent.title}
+						{historyEvent.title} by {historyEvent.actor}
 					</span>{" "}
-					<span className="text-sm text-gray-400">on {historyEvent.timestamp}</span>
+					<span aria-hidden="true" className="font-normal text-gray-200">
+						•
+					</span>{" "}
+					<span className="font-normal text-gray-400">{historyEvent.timestamp}</span>
 				</p>
 				<RiArrowDownSLine
 					className={cn(
@@ -388,12 +387,12 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 		<form className="flex flex-col gap-12">
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Imaging ID:</span>
+					<span className="font-normal text-gray-400">Imaging ID:</span>
 					<CopyIdButton id={imaging.imagingId} className="text-sm" />
 				</div>
 				{imaging.encounterId ? (
 					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
+						<span className="font-normal text-gray-400">Encounter ID:</span>
 						<CopyIdButton id={imaging.encounterId} className="text-sm" />
 					</div>
 				) : null}
@@ -540,7 +539,7 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 								<div
 									key={file.url}
 									className={cn(
-										"rounded-2xl border p-4",
+										"rounded-xl border p-4",
 										pendingImagingFileRemovalUrl === file.url ? "border-red-500" : "border-gray-200",
 									)}
 								>
@@ -548,15 +547,15 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 										<Image
 											src={getDocumentFileIcon(file.name, file.type)}
 											alt=""
-											width={44}
-											height={44}
-											className={`size-11 shrink-0 transition-opacity duration-200 ${pendingImagingFileRemovalUrl === file.url ? "opacity-40" : "opacity-100"}`}
+											width={36}
+											height={36}
+											className={`size-9 shrink-0 transition-opacity duration-200 ${pendingImagingFileRemovalUrl === file.url ? "opacity-40" : "opacity-100"}`}
 										/>
 										<div
 											className={`min-w-0 flex-1 transition-opacity duration-200 ${pendingImagingFileRemovalUrl === file.url ? "opacity-40" : "opacity-100"}`}
 										>
 										<p className="truncate font-semibold text-gray-800">{file.name}</p>
-										<p className="truncate text-gray-400">{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}</p>
+										<p className="truncate font-normal text-gray-400">{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}</p>
 									</div>
 										{pendingImagingFileRemovalUrl !== file.url ? (
 											<div className="flex shrink-0 items-center gap-2">

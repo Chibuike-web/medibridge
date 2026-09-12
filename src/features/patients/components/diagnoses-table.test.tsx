@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { addDays, format, startOfMonth, subDays } from "date-fns";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { DiagnosisDetailsType, DiagnosisType } from "@/features/patients/types";
 import { DiagnosesTable } from "./diagnoses-table";
 
@@ -163,7 +163,7 @@ describe("Diagnoses table", () => {
 		vi.unstubAllGlobals();
 	});
 
-	it("lists diagnoses alphabetically with their dates, IDs and statuses", () => {
+	test("lists diagnoses alphabetically with their dates, IDs and statuses", () => {
 		renderDiagnosesTable();
 
 		expect(screen.getByRole("heading", { name: "Diagnoses" })).toBeVisible();
@@ -192,7 +192,7 @@ describe("Diagnoses table", () => {
 		expect(within(asthmaRow).getByRole("button", { name: "Copy DX-asthma" })).toBeVisible();
 	});
 
-	it("re-orders rows when a sortable header is clicked", async () => {
+	test("re-orders rows when a sortable header is clicked", async () => {
 		const user = userEvent.setup();
 		renderDiagnosesTable();
 
@@ -215,7 +215,7 @@ describe("Diagnoses table", () => {
 		);
 	});
 
-	it("reports what the user types in the search box", async () => {
+	test("reports what the user types in the search box", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderDiagnosesTable({ query: "Hyper" });
 
@@ -229,7 +229,7 @@ describe("Diagnoses table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Hypert");
 	});
 
-	it("drops the encounter ID hint from the search box when scoped to an encounter", () => {
+	test("drops the encounter ID hint from the search box when scoped to an encounter", () => {
 		renderDiagnosesTable({ isEncounterScoped: true });
 
 		expect(screen.getByRole("searchbox")).toHaveAttribute(
@@ -238,7 +238,7 @@ describe("Diagnoses table", () => {
 		);
 	});
 
-	it("adds and removes status filters from the filter menu", async () => {
+	test("adds and removes status filters from the filter menu", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderDiagnosesTable({ statusFilters: ["active"] });
 
@@ -256,7 +256,7 @@ describe("Diagnoses table", () => {
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
-	it("applies date presets to the matching date filter", async () => {
+	test("applies date presets to the matching date filter", async () => {
 		const user = userEvent.setup();
 		const today = new Date();
 		const { onDiagnosedAtRangeApply, onLastReviewedRangeApply, onCreatedAtRangeApply } =
@@ -278,7 +278,7 @@ describe("Diagnoses table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(urlDate(subDays(today, 29)), urlDate(today));
 	});
 
-	it("applies a custom calendar range and can reset it", async () => {
+	test("applies a custom calendar range and can reset it", async () => {
 		const user = userEvent.setup();
 		const firstOfMonth = startOfMonth(new Date());
 		const thirdOfMonth = addDays(firstOfMonth, 2);
@@ -306,7 +306,7 @@ describe("Diagnoses table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith("", "");
 	});
 
-	it("shows active filters as pills that clear the matching filter", async () => {
+	test("shows active filters as pills that clear the matching filter", async () => {
 		const user = userEvent.setup();
 		const {
 			onStatusFiltersChange,
@@ -339,13 +339,13 @@ describe("Diagnoses table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
-	it("hides the filter pills when no filter is active", () => {
+	test("hides the filter pills when no filter is active", () => {
 		renderDiagnosesTable();
 
 		expect(screen.queryByRole("button", { name: /Remove .* filter/ })).not.toBeInTheDocument();
 	});
 
-	it("paginates through the callbacks", async () => {
+	test("paginates through the callbacks", async () => {
 		const user = userEvent.setup();
 		const { onNextPage, onPreviousPage } = renderDiagnosesTable({ page: 2, totalPages: 3 });
 
@@ -358,7 +358,7 @@ describe("Diagnoses table", () => {
 		expect(onPreviousPage).toHaveBeenCalledTimes(1);
 	});
 
-	it("disables paging at the bounds and while a request is pending", () => {
+	test("disables paging at the bounds and while a request is pending", () => {
 		const { rerender } = render(<DiagnosesTable {...buildProps({ page: 1, totalPages: 3 })} />);
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
@@ -372,7 +372,7 @@ describe("Diagnoses table", () => {
 		expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 	});
 
-	it("lets the user change the rows per page", async () => {
+	test("lets the user change the rows per page", async () => {
 		const user = userEvent.setup();
 		const { onLimitChange } = renderDiagnosesTable({ limit: 14 });
 
@@ -383,14 +383,14 @@ describe("Diagnoses table", () => {
 		expect(onLimitChange).toHaveBeenCalledWith(28);
 	});
 
-	it("shows an empty message when there are no diagnoses", () => {
+	test("shows an empty message when there are no diagnoses", () => {
 		renderDiagnosesTable({ diagnoses: [] });
 
 		expect(screen.getByRole("table")).toBeVisible();
 		expect(screen.getByText("No matching diagnoses found.")).toBeVisible();
 	});
 
-	it("opens the details drawer with the chosen row's data from the row actions", async () => {
+	test("opens the details drawer with the chosen row's data from the row actions", async () => {
 		const user = userEvent.setup();
 		renderDiagnosesTable();
 
@@ -407,7 +407,7 @@ describe("Diagnoses table", () => {
 		expect(within(dialog).queryByText("Hypertension")).not.toBeInTheDocument();
 	});
 
-	it("opens the details drawer when a row is activated with the keyboard", async () => {
+	test("opens the details drawer when a row is activated with the keyboard", async () => {
 		const user = userEvent.setup();
 		renderDiagnosesTable();
 
@@ -419,7 +419,7 @@ describe("Diagnoses table", () => {
 		expect(within(dialog).getByText("Blood pressure remains elevated.")).toBeVisible();
 	});
 
-	it("opens the add diagnosis drawer from the toolbar", async () => {
+	test("opens the add diagnosis drawer from the toolbar", async () => {
 		const user = userEvent.setup();
 		renderDiagnosesTable();
 
@@ -427,7 +427,7 @@ describe("Diagnoses table", () => {
 		expect(await screen.findByRole("dialog", { name: "Add diagnosis" })).toBeVisible();
 	});
 
-	it("offers bulk actions for the selected rows, including archive for an owner", async () => {
+	test("offers bulk actions for the selected rows, including archive for an owner", async () => {
 		const user = userEvent.setup();
 		renderDiagnosesTable();
 
@@ -442,7 +442,7 @@ describe("Diagnoses table", () => {
 		expect(screen.queryByText("2 items selected")).not.toBeInTheDocument();
 	});
 
-	it("hides archive actions from a member", async () => {
+	test("hides archive actions from a member", async () => {
 		auth.role = "member";
 		const user = userEvent.setup();
 		renderDiagnosesTable();

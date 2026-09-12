@@ -27,8 +27,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { removePatientDocumentAction } from "@/features/patients/server/remove-patient-document-action";
 import { updatePatientDocumentAction } from "@/features/patients/server/update-patient-document-action";
 import type { DocumentType } from "@/features/patients/types";
-import { RiAddLine, RiCloseLine, RiEditLine } from "@remixicon/react";
-import { useRef, useState, useTransition } from "react";
+import { RiAddLine, RiArrowDownSLine, RiCloseLine, RiEditLine } from "@remixicon/react";
+import { useId, useRef, useState, useTransition } from "react";
 import { ChooseFileCard } from "@/components/choose-file-card";
 
 const documentTypes = [
@@ -92,8 +92,8 @@ export function DocumentDetailsDrawer({
 	return (
 		<Drawer open={open} onOpenChange={handleOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
-				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
-					<DrawerTitle className="text-base text-gray-800">
+				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
+					<DrawerTitle className="text-gray-800">
 						{isEditingDocumentDetails ? "Edit document details" : "View document details"}
 					</DrawerTitle>
 					<DrawerClose aria-label="Close document details">
@@ -124,7 +124,7 @@ export function DocumentDetailsDrawer({
 					)}
 					{actionError ? <p className="mt-4 text-red-600">{actionError}</p> : null}
 				</div>
-				<DrawerFooter className="border-t border-gray-200 p-5">
+				<DrawerFooter className="border-t border-gray-200">
 					{isEditingDocumentDetails ? (
 						<div className="ml-auto flex gap-2">
 							<Button variant="outline" onClick={() => setDocumentDetailsMode("view")}>
@@ -175,12 +175,12 @@ function DocumentDetailsOverview({
 		<div className="flex flex-col gap-10">
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Document ID:</span>
+					<span className="font-normal text-gray-400">Document ID:</span>
 					<CopyIdButton id={document.documentId} />
 				</div>
 				{document.encounterId ? (
 					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
+						<span className="font-normal text-gray-400">Encounter ID:</span>
 						<CopyIdButton id={document.encounterId} />
 					</div>
 				) : null}
@@ -191,7 +191,7 @@ function DocumentDetailsOverview({
 					<button
 						type="button"
 						onClick={onEditDocumentDetails}
-						className="inline-flex items-center gap-2 text-sm font-medium text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						className="inline-flex items-center gap-2 text-sm font-normal text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
@@ -200,20 +200,16 @@ function DocumentDetailsOverview({
 				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
 					<DocumentDetailItem label="Document type" value={document.documentType} />
 					<DocumentDetailItem label="Clinical notes" value={document.clinicalNotes} />
-					<DocumentDetailItem label="Created by" value={document.createdBy} />
-					<DocumentDetailItem label="Created at" value={document.createdAtLabel} />
-					<DocumentDetailItem label="Updated by" value={document.updatedBy} />
-					<DocumentDetailItem label="Updated at" value={document.updatedAtLabel} />
 				</div>
 			</div>
 			{document.files.length ? (
 				<div className="flex flex-col gap-[14px]">
 					<div className="flex w-full items-center justify-between">
-						<p className="text-base font-semibold text-gray-800">Files</p>
+						<h2 className="text-sm font-semibold text-gray-800">Files</h2>
 						{document.files.length > 3 ? (
 							<button
 								type="button"
-								className="text-gray-400"
+								className="font-normal text-gray-400"
 								onClick={() => setAreDocumentFilesExpanded((prev) => !prev)}
 							>
 								{areDocumentFilesExpanded ? "View less" : "View more"}
@@ -224,18 +220,18 @@ function DocumentDetailsOverview({
 						{visibleDocumentFiles.map((file) => (
 							<div
 								key={file.url}
-								className="flex items-center gap-4 rounded-2xl border border-gray-200 p-4"
+								className="flex items-center gap-4 rounded-xl border border-gray-200 p-4"
 							>
 								<Image
 									src={getDocumentFileIcon(file.name, file.type)}
 									alt=""
-									width={44}
-									height={44}
-									className="size-11 shrink-0"
+									width={36}
+									height={36}
+									className="size-9 shrink-0"
 								/>
 								<div className="min-w-0 flex-1">
 									<p className="truncate font-semibold text-gray-800">{file.name}</p>
-									<p className="mt-1 truncate text-gray-400">
+									<p className="mt-1 truncate font-normal text-gray-400">
 										{file.size} • Uploaded on {file.uploadedAt.slice(0, 10)}
 									</p>
 								</div>
@@ -250,7 +246,98 @@ function DocumentDetailsOverview({
 					</div>
 				</div>
 			) : null}
+			<DocumentActivitySection document={document} />
 		</div>
+	);
+}
+
+function DocumentActivitySection({ document }: { document: DocumentType }) {
+	return (
+		<section className="flex flex-col gap-[14px]">
+			<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
+			<DocumentActivityCard
+				title="Updated"
+				actor={document.updatedBy}
+				timestamp={document.updatedAtLabel}
+				items={[
+					{ label: "Document type", value: document.documentType },
+					{ label: "Clinical notes", value: document.clinicalNotes },
+				]}
+			/>
+			<DocumentActivityCard
+				title="Created"
+				actor={document.createdBy}
+				timestamp={document.createdAtLabel}
+				items={[{ label: "Document type", value: document.documentType }]}
+			/>
+		</section>
+	);
+}
+
+function DocumentActivityCard({
+	title,
+	actor,
+	timestamp,
+	items,
+}: {
+	title: string;
+	actor: string;
+	timestamp: string;
+	items: { label: string; value: string }[];
+}) {
+	const [isDocumentActivityExpanded, setIsDocumentActivityExpanded] = useState(false);
+	const sectionId = useId();
+	const titleId = `${sectionId}-title`;
+	const panelId = `${sectionId}-panel`;
+
+	return (
+		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
+			<button
+				type="button"
+				onClick={() => setIsDocumentActivityExpanded((prev) => !prev)}
+				aria-expanded={isDocumentActivityExpanded}
+				aria-controls={panelId}
+				className="flex w-full items-center justify-between gap-4 text-left"
+			>
+				<p className="min-w-0 text-sm">
+					<span id={titleId} className="font-semibold text-gray-800">
+						{title} by {actor}
+					</span>{" "}
+					<span aria-hidden="true" className="font-normal text-gray-200">
+						•
+					</span>{" "}
+					<span className="font-normal text-gray-400">{timestamp}</span>
+				</p>
+				<RiArrowDownSLine
+					className={cn(
+						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						isDocumentActivityExpanded ? "rotate-180" : "",
+					)}
+					aria-hidden="true"
+				/>
+			</button>
+			<div
+				id={panelId}
+				className={cn(
+					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+					isDocumentActivityExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+				)}
+				aria-hidden={!isDocumentActivityExpanded}
+				inert={!isDocumentActivityExpanded}
+			>
+				<div className="min-h-0 overflow-hidden">
+					<div
+						role="region"
+						aria-labelledby={titleId}
+						className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
+					>
+						{items.map((item) => (
+							<DocumentDetailItem key={item.label} label={item.label} value={item.value} />
+						))}
+					</div>
+				</div>
+			</div>
+		</section>
 	);
 }
 
@@ -294,13 +381,13 @@ function DocumentDetailsEditForm({
 		<form id="document-details-form" action={handleUpdate} className="grid gap-6 sm:grid-cols-2">
 			<div className="space-y-2">
 				<Label htmlFor="document-title">
-					Document title <span className="text-gray-400">(required)</span>
+					Document title <span className="font-normal text-gray-400">(required)</span>
 				</Label>
 				<Input id="document-title" name="title" defaultValue={document.title} required />
 			</div>
 			<div className="space-y-2">
 				<Label>
-					Document type <span className="text-gray-400">(required)</span>
+					Document type <span className="font-normal text-gray-400">(required)</span>
 				</Label>
 				<Select key={document.documentId} defaultValue={defaultDocumentType}>
 					<SelectTrigger className="w-full">
@@ -317,7 +404,7 @@ function DocumentDetailsEditForm({
 			</div>
 			<div className="space-y-2 sm:col-span-2">
 				<Label htmlFor="document-notes">
-					Clinical notes <span className="text-gray-400">(optional)</span>
+					Clinical notes <span className="font-normal text-gray-400">(optional)</span>
 				</Label>
 				<Textarea
 					id="document-notes"
@@ -328,7 +415,7 @@ function DocumentDetailsEditForm({
 			</div>
 			<div className="space-y-3 sm:col-span-2">
 				<Label>
-					Files <span className="text-gray-400">(required)</span>
+					Files <span className="font-normal text-gray-400">(required)</span>
 				</Label>
 
 				{hasFiles ? (
@@ -338,7 +425,7 @@ function DocumentDetailsEditForm({
 								<div
 									key={file.url}
 									className={cn(
-										"rounded-2xl border p-4",
+										"rounded-xl border p-4",
 										pendingDocumentFileRemovalUrl === file.url ? "border-red-500" : "border-gray-200",
 									)}
 								>
@@ -346,9 +433,9 @@ function DocumentDetailsEditForm({
 										<Image
 											src={getDocumentFileIcon(file.name, file.type)}
 											alt=""
-											width={44}
-											height={44}
-											className={`size-11 shrink-0 transition-opacity duration-200 ${pendingDocumentFileRemovalUrl === file.url ? "opacity-40" : "opacity-100"}`}
+											width={36}
+											height={36}
+											className={`size-9 shrink-0 transition-opacity duration-200 ${pendingDocumentFileRemovalUrl === file.url ? "opacity-40" : "opacity-100"}`}
 										/>
 
 										<div
@@ -356,7 +443,7 @@ function DocumentDetailsEditForm({
 										>
 										<p className="truncate font-semibold text-gray-800">{file.name}</p>
 
-										<p className="truncate text-gray-400">
+										<p className="truncate font-normal text-gray-400">
 											{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}
 										</p>
 									</div>
@@ -454,7 +541,7 @@ function DocumentDetailsEditForm({
 function DocumentDetailItem({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
-			<span className="text-gray-400">{label}</span>
+			<span className="font-normal text-gray-400">{label}</span>
 			<span className="font-semibold text-gray-600">{value || "-"}</span>
 		</div>
 	);
@@ -478,7 +565,7 @@ function DcoumentDetailsFallback() {
 				</div>
 			</div>
 			{Array.from({ length: 2 }).map((_, index) => (
-				<div key={index} className="flex flex-col gap-4 rounded-2xl border border-gray-200 p-5">
+				<div key={index} className="flex flex-col gap-4 rounded-xl border border-gray-200 p-4">
 					<div className="h-5 w-48 animate-pulse rounded bg-gray-100" />
 					<div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
 						<div className="h-5 w-40 animate-pulse rounded bg-gray-100" />

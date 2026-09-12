@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { VitalType } from "@/features/patients/types";
 import { VitalsChart } from "./vitals-chart";
 
@@ -77,7 +77,7 @@ describe("VitalsChart", () => {
 		vi.restoreAllMocks();
 	});
 
-	it("summarises blood pressure over the last 30 days and ignores older readings", () => {
+	test("summarises blood pressure over the last 30 days and ignores older readings", () => {
 		render(<VitalsChart readings={readings} />);
 
 		expect(screen.getByRole("heading", { name: "Blood pressure" })).toBeInTheDocument();
@@ -90,7 +90,7 @@ describe("VitalsChart", () => {
 		expect(summary("Last measured")).toBe(format(yesterday.recordedAt, "dd MMM yyyy"));
 	});
 
-	it("plots systolic and diastolic points with a labelled 30-day axis", () => {
+	test("plots systolic and diastolic points with a labelled 30-day axis", () => {
 		render(<VitalsChart readings={readings} />);
 
 		expect(chartRegion()).toHaveAccessibleName(/Blood pressure readings/);
@@ -104,7 +104,7 @@ describe("VitalsChart", () => {
 		expect(ticks[3]).toBe(format(new Date(), "dMMM"));
 	});
 
-	it("switching the metric updates the heading, unit, figures, points and legend", async () => {
+	test("switching the metric updates the heading, unit, figures, points and legend", async () => {
 		render(<VitalsChart readings={readings} />);
 
 		await chooseOption("Vital measurement", "Heart rate");
@@ -122,7 +122,7 @@ describe("VitalsChart", () => {
 		expect(screen.queryByText("● Diastolic")).not.toBeInTheDocument();
 	});
 
-	it("choosing All time brings older readings back into the figures and the chart", async () => {
+	test("choosing All time brings older readings back into the figures and the chart", async () => {
 		render(<VitalsChart readings={readings} />);
 
 		await chooseOption("Chart period", "All time");
@@ -136,7 +136,7 @@ describe("VitalsChart", () => {
 		expect(xAxisTickLabels()).toHaveLength(8);
 	});
 
-	it("shows an empty state when nothing was recorded in the period", async () => {
+	test("shows an empty state when nothing was recorded in the period", async () => {
 		render(<VitalsChart readings={[twoMonthsAgo]} />);
 
 		expect(screen.getByText("No measurements in this period.")).toBeInTheDocument();
@@ -153,7 +153,7 @@ describe("VitalsChart", () => {
 		expect(plottedPoints()).toHaveLength(2);
 	});
 
-	it("shows the empty state when the patient has no vitals at all", () => {
+	test("shows the empty state when the patient has no vitals at all", () => {
 		render(<VitalsChart readings={[]} />);
 
 		expect(screen.getByText("No measurements in this period.")).toBeInTheDocument();

@@ -17,7 +17,7 @@ import {
 	RiFunctionLine,
 	RiSearchLine,
 } from "@remixicon/react";
-import { ComponentType, useEffect, useRef, useState } from "react";
+import { ComponentType, useCallback, useEffect, useRef, useState } from "react";
 import {
 	CommandDialog,
 	CommandEmpty,
@@ -28,6 +28,7 @@ import {
 } from "../ui/command";
 import { DialogClose, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import type { Route } from "next";
+import { Button } from "../ui/button";
 
 const MIN_WIDTH = 56;
 const MAX_WIDTH = 272;
@@ -44,6 +45,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedSearchTab, setSelectedSearchTab] = useState<SearchTab>("All");
+	const tabsRef = useRef<(HTMLElement | null)[]>([]);
 	const startXRef = useRef(0);
 	const startWidthRef = useRef(0);
 	const isCollapsed = width < COLLAPSE_THRESHOLD;
@@ -99,6 +101,40 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 		document.addEventListener("mousemove", handleMouseMove);
 		document.addEventListener("mouseup", handleMouseUp);
 	}
+
+	const activeIndex = searchTabs.findIndex((t) => t === selectedSearchTab);
+
+	const positionSearchIndicator = useCallback(
+		(indicator: HTMLSpanElement | null) => {
+			const container = indicator?.parentElement;
+			const activeTab = tabsRef.current[activeIndex];
+			if (!indicator || !container || !activeTab) return;
+
+			const updateIndicator = () => {
+				indicator.style.transform = `translate(${activeTab.offsetLeft}px, ${activeTab.offsetTop}px)`;
+				indicator.style.width = `${activeTab.offsetWidth}px`;
+				indicator.style.height = `${activeTab.offsetHeight}px`;
+			};
+
+			updateIndicator();
+
+			if (!indicator.dataset.positioned) {
+				// Commit the first position without a transition.
+				indicator.getBoundingClientRect();
+				indicator.dataset.positioned = "true";
+			}
+			if (typeof ResizeObserver === "undefined") return;
+
+			const resizeObserver = new ResizeObserver(updateIndicator);
+			resizeObserver.observe(container);
+			for (const tab of tabsRef.current) {
+				if (tab) resizeObserver.observe(tab);
+			}
+
+			return () => resizeObserver.disconnect();
+		},
+		[activeIndex],
+	);
 
 	return (
 		<aside
@@ -184,9 +220,9 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							}
 						}}
 						label="Search chats"
-  contentClassName="h-auto max-w-[50rem] overflow-hidden p-0 text-sm md:h-[35.875rem]"
+						contentClassName="h-auto max-w-[50rem] overflow-hidden p-0 text-sm md:h-[35.875rem]"
 					>
-						<DialogHeader className="px-6">
+						<DialogHeader>
 							<DialogTitle className="sr-only">Search chats</DialogTitle>
 							<DialogDescription className="sr-only">
 								Search patients, IDs, diagnoses, and other patient records.
@@ -197,19 +233,21 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								placeholder="Search patients, IDs, diagnoses..."
 							/>
 							{searchQuery.trim() ? (
-								<button
+								<Button
+									variant="ghost"
 									type="button"
-									className="rounded-full border border-transparent px-2.5 py-2.5 text-sm text-gray-600 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
 									onClick={() => {
 										setSearchQuery("");
 										setSelectedSearchTab("All");
 									}}
 								>
 									Clear
-								</button>
+								</Button>
 							) : null}
-							<DialogClose>
-								<RiCloseLine className="size-5" aria-hidden="true" />
+							<DialogClose asChild>
+								<Button variant="ghost" type="button" size="icon">
+									<RiCloseLine className="size-5" aria-hidden="true" />
+								</Button>
 							</DialogClose>
 						</DialogHeader>
 						<CommandList className="max-h-[31.25rem]">
@@ -223,25 +261,33 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							) : null}
 							{searchQuery.trim() ? (
 								<div
-									className="flex flex-wrap gap-1.5 px-4 pt-4 pb-2"
+									className="flex flex-wrap gap-1.5 px-4 pt-4 pb-2 relative"
 									role="tablist"
 									aria-label="Search result types"
 								>
-									{searchTabs.map((tab) => (
+									{searchTabs.map((tab, index) => (
 										<button
+											ref={(el) => {
+												tabsRef.current[index] = el;
+											}}
 											key={tab}
 											type="button"
 											role="tab"
 											aria-selected={selectedSearchTab === tab}
 											className={cn(
-												"rounded-full border border-transparent px-2.5 py-2.5 text-sm text-gray-600 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
-												selectedSearchTab === tab && "bg-gray-200 text-gray-800",
+												"relative z-10 rounded-full border border-transparent px-2.5 h-8 text-sm text-gray-600 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
+												selectedSearchTab === tab && "text-white",
 											)}
 											onClick={() => setSelectedSearchTab(tab)}
 										>
 											{tab}
 										</button>
 									))}
+									<span
+										ref={positionSearchIndicator}
+										aria-hidden="true"
+										className="pointer-events-none absolute left-0 top-0 rounded-full bg-gray-800 data-[positioned=true]:transition-[transform,width,height] data-[positioned=true]:duration-200 motion-reduce:transition-none"
+									/>
 								</div>
 							) : null}
 							<CommandEmpty>No matching results.</CommandEmpty>

@@ -121,7 +121,7 @@ export function ReviewExtractedInfoClient() {
 							<DialogContent className="flex flex-col">
 								<DialogHeader>
 									<div className="flex w-full items-center justify-between gap-4">
-										<DialogTitle className="text-lg text-gray-800">
+										<DialogTitle className="text-gray-800">
 											{formatPatientLabel(record.personalInfo)}
 										</DialogTitle>
 										<DialogClose asChild>

@@ -76,8 +76,8 @@ export function CreateVitalsDrawer({
 	return (
 		<Drawer direction="right" open={open} onOpenChange={onOpenChange}>
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
-				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
-					<DrawerTitle className="text-base leading-[1.2] text-gray-800">Add vitals</DrawerTitle>
+				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
+					<DrawerTitle className="leading-[1.2] text-gray-800">Add vitals</DrawerTitle>
 					<DrawerClose aria-label="Close add vitals drawer">
 						<RiCloseLine className="size-6" aria-hidden="true" />
 					</DrawerClose>
@@ -172,7 +172,7 @@ export function CreateVitalsDrawer({
 					</div>
 					{formError ? <p className="text-red-600 sm:col-span-2">{formError}</p> : null}
 				</form>
-				<DrawerFooter className="flex-col gap-2 border-t border-gray-200 p-5 text-sm lg:flex-row lg:justify-end">
+				<DrawerFooter className="flex-col gap-2 border-t border-gray-200 text-sm lg:flex-row lg:justify-end">
 					<DrawerClose asChild>
 						<Button type="button" variant="outline">
 							Cancel

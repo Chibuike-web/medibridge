@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { LabTestType } from "@/features/patients/types";
 import { LabTestsTable } from "./lab-tests-table";
 
@@ -123,7 +123,7 @@ describe("Lab tests table", () => {
 		activeMember.role = "owner";
 	});
 
-	it("shows each lab test with its reference range, flag, creation date and status", () => {
+	test("shows each lab test with its reference range, flag, creation date and status", () => {
 		renderLabTestsTable();
 
 		expect(screen.getByRole("heading", { name: "Lab Tests" })).toBeVisible();
@@ -144,14 +144,14 @@ describe("Lab tests table", () => {
 		expect(within(bmpRow).getByRole("button", { name: "Copy LAB-BMP" })).toBeVisible();
 	});
 
-	it("shows the empty state when there are no lab tests", () => {
+	test("shows the empty state when there are no lab tests", () => {
 		renderLabTestsTable({ labTests: [] });
 
 		expect(screen.getByText("No matching lab tests found.")).toBeVisible();
 		expect(bodyRows()).toHaveLength(1);
 	});
 
-	it("reports what the user types in the search box and shows the controlled query", async () => {
+	test("reports what the user types in the search box and shows the controlled query", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderLabTestsTable({ query: "Hemo" });
 
@@ -165,7 +165,7 @@ describe("Lab tests table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Hemog");
 	});
 
-	it("drops the encounter ID hint from the search box when scoped to an encounter", () => {
+	test("drops the encounter ID hint from the search box when scoped to an encounter", () => {
 		renderLabTestsTable({ isEncounterScoped: true });
 
 		expect(screen.getByRole("searchbox")).toHaveAttribute(
@@ -174,7 +174,7 @@ describe("Lab tests table", () => {
 		);
 	});
 
-	it("sorts rows by test name when the header is clicked, then reverses, then clears", async () => {
+	test("sorts rows by test name when the header is clicked, then reverses, then clears", async () => {
 		const user = userEvent.setup();
 		renderLabTestsTable();
 
@@ -194,7 +194,7 @@ describe("Lab tests table", () => {
 		expect(displayedLabIds()).toEqual(["LAB-A1C", "LAB-BMP"]);
 	});
 
-	it("sorts by creation date chronologically using the keyboard", async () => {
+	test("sorts by creation date chronologically using the keyboard", async () => {
 		const user = userEvent.setup();
 		renderLabTestsTable();
 
@@ -209,7 +209,7 @@ describe("Lab tests table", () => {
 		expect(displayedLabIds()).toEqual(["LAB-A1C", "LAB-BMP"]);
 	});
 
-	it("does not offer sorting on the lab ID, reference range or status columns", () => {
+	test("does not offer sorting on the lab ID, reference range or status columns", () => {
 		renderLabTestsTable();
 
 		for (const label of ["Lab ID", "Reference Range", "Status"]) {
@@ -217,7 +217,7 @@ describe("Lab tests table", () => {
 		}
 	});
 
-	it("adds a status filter when its checkbox is ticked", async () => {
+	test("adds a status filter when its checkbox is ticked", async () => {
 		const user = setupSubmenuUser();
 		const { onStatusFiltersChange } = renderLabTestsTable({ statusFilters: ["completed"] });
 
@@ -229,7 +229,7 @@ describe("Lab tests table", () => {
 		expect(onStatusFiltersChange).toHaveBeenCalledWith(["completed", "pending"]);
 	});
 
-	it("removes a status filter when its checkbox is unticked", async () => {
+	test("removes a status filter when its checkbox is unticked", async () => {
 		const user = setupSubmenuUser();
 		const { onStatusFiltersChange } = renderLabTestsTable({ statusFilters: ["completed"] });
 
@@ -238,7 +238,7 @@ describe("Lab tests table", () => {
 		expect(onStatusFiltersChange).toHaveBeenCalledWith([]);
 	});
 
-	it("offers every flag option and reports the chosen flags", async () => {
+	test("offers every flag option and reports the chosen flags", async () => {
 		const user = setupSubmenuUser();
 		const { onFlagFiltersChange } = renderLabTestsTable({ flagFilters: ["high"] });
 
@@ -265,7 +265,7 @@ describe("Lab tests table", () => {
 		expect(onFlagFiltersChange).toHaveBeenCalledWith(["high", "critical"]);
 	});
 
-	it("disables the filter checkboxes while a request is pending", async () => {
+	test("disables the filter checkboxes while a request is pending", async () => {
 		const user = setupSubmenuUser();
 		renderLabTestsTable({ isPending: true });
 
@@ -273,7 +273,7 @@ describe("Lab tests table", () => {
 		expect(await screen.findByRole("checkbox", { name: "Pending" })).toBeDisabled();
 	});
 
-	it("applies a creation date preset as a from/to range", async () => {
+	test("applies a creation date preset as a from/to range", async () => {
 		const user = setupSubmenuUser();
 		const { onCreatedAtRangeApply } = renderLabTestsTable();
 
@@ -287,7 +287,7 @@ describe("Lab tests table", () => {
 		);
 	});
 
-	it("applies a custom creation date range picked from the calendar", async () => {
+	test("applies a custom creation date range picked from the calendar", async () => {
 		const user = setupSubmenuUser();
 		const { onCreatedAtRangeApply } = renderLabTestsTable();
 
@@ -316,7 +316,7 @@ describe("Lab tests table", () => {
 		);
 	});
 
-	it("clears the creation date range from the calendar reset button", async () => {
+	test("clears the creation date range from the calendar reset button", async () => {
 		const user = setupSubmenuUser();
 		const { onCreatedAtRangeApply } = renderLabTestsTable({
 			createdFrom: "2020-01-01",
@@ -331,7 +331,7 @@ describe("Lab tests table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
-	it("shows active filters as pills that can be removed individually", async () => {
+	test("shows active filters as pills that can be removed individually", async () => {
 		const user = userEvent.setup();
 		const { onCreatedAtRangeApply, onStatusFiltersChange, onFlagFiltersChange } =
 			renderLabTestsTable({
@@ -358,19 +358,19 @@ describe("Lab tests table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
-	it("describes a one-sided date filter in the pill", () => {
+	test("describes a one-sided date filter in the pill", () => {
 		renderLabTestsTable({ createdFrom: "2020-01-01" });
 
 		expect(screen.getByText("Created: From Jan 1, 2020")).toBeVisible();
 	});
 
-	it("shows no filter pills when no filter is active", () => {
+	test("shows no filter pills when no filter is active", () => {
 		renderLabTestsTable();
 
 		expect(screen.queryByRole("button", { name: /^Remove .* filter$/ })).not.toBeInTheDocument();
 	});
 
-	it("moves between pages through the callbacks", async () => {
+	test("moves between pages through the callbacks", async () => {
 		const user = userEvent.setup();
 		const { onNextPage, onPreviousPage } = renderLabTestsTable({ page: 2, totalPages: 3 });
 
@@ -381,28 +381,28 @@ describe("Lab tests table", () => {
 		expect(onPreviousPage).toHaveBeenCalledTimes(1);
 	});
 
-	it("disables going back from the first page", () => {
+	test("disables going back from the first page", () => {
 		renderLabTestsTable({ page: 1, totalPages: 3 });
 
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
 	});
 
-	it("disables going forward from the last page", () => {
+	test("disables going forward from the last page", () => {
 		renderLabTestsTable({ page: 3, totalPages: 3 });
 
 		expect(screen.getByRole("button", { name: "Previous" })).toBeEnabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 	});
 
-	it("disables paging while a request is pending", () => {
+	test("disables paging while a request is pending", () => {
 		renderLabTestsTable({ page: 2, totalPages: 3, isPending: true });
 
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 	});
 
-	it("lets the user change the rows per page", async () => {
+	test("lets the user change the rows per page", async () => {
 		const user = userEvent.setup();
 		const { onLimitChange } = renderLabTestsTable({ limit: 14 });
 
@@ -413,7 +413,7 @@ describe("Lab tests table", () => {
 		expect(onLimitChange).toHaveBeenCalledWith(28);
 	});
 
-	it("opens the details drawer for the row chosen from its action menu", async () => {
+	test("opens the details drawer for the row chosen from its action menu", async () => {
 		const user = userEvent.setup();
 		renderLabTestsTable();
 
@@ -428,7 +428,7 @@ describe("Lab tests table", () => {
 		expect(within(dialog).queryByText("Basic Metabolic Panel")).not.toBeInTheDocument();
 	});
 
-	it("opens the details drawer when the row itself is activated with the keyboard", async () => {
+	test("opens the details drawer when the row itself is activated with the keyboard", async () => {
 		const user = userEvent.setup();
 		renderLabTestsTable();
 
@@ -440,7 +440,7 @@ describe("Lab tests table", () => {
 		expect(within(dialog).getByRole("heading", { name: "Basic Metabolic Panel" })).toBeVisible();
 	});
 
-	it("only offers status changes for pending lab tests", async () => {
+	test("only offers status changes for pending lab tests", async () => {
 		const user = userEvent.setup();
 		renderLabTestsTable();
 
@@ -457,7 +457,7 @@ describe("Lab tests table", () => {
 		expect(screen.queryByRole("menuitem", { name: "Cancel" })).not.toBeInTheDocument();
 	});
 
-	it("opens the create drawer from the add button", async () => {
+	test("opens the create drawer from the add button", async () => {
 		const user = userEvent.setup();
 		renderLabTestsTable();
 
@@ -465,7 +465,7 @@ describe("Lab tests table", () => {
 		expect(await screen.findByRole("dialog", { name: "Add lab test" })).toBeVisible();
 	});
 
-	it("shows archive actions to an owner", async () => {
+	test("shows archive actions to an owner", async () => {
 		const user = userEvent.setup();
 		renderLabTestsTable();
 
@@ -479,7 +479,7 @@ describe("Lab tests table", () => {
 		expect(within(bar).getByRole("button", { name: "Archive" })).toBeVisible();
 	});
 
-	it("shows archive actions to an admin", async () => {
+	test("shows archive actions to an admin", async () => {
 		activeMember.role = "admin";
 		const user = userEvent.setup();
 		renderLabTestsTable();
@@ -488,7 +488,7 @@ describe("Lab tests table", () => {
 		expect(await screen.findByRole("menuitem", { name: "Archive" })).toBeVisible();
 	});
 
-	it("hides archive actions from a member", async () => {
+	test("hides archive actions from a member", async () => {
 		activeMember.role = "member";
 		const user = userEvent.setup();
 		renderLabTestsTable();
@@ -505,7 +505,7 @@ describe("Lab tests table", () => {
 		expect(within(bar).queryByRole("button", { name: "Archive" })).not.toBeInTheDocument();
 	});
 
-	it("selects rows for bulk actions and clears the selection", async () => {
+	test("selects rows for bulk actions and clears the selection", async () => {
 		const user = userEvent.setup();
 		renderLabTestsTable();
 
@@ -523,7 +523,7 @@ describe("Lab tests table", () => {
 		expect(screen.queryByText(/items? selected/)).not.toBeInTheDocument();
 	});
 
-	it("opens the details drawer for a single selected row from the bulk bar", async () => {
+	test("opens the details drawer for a single selected row from the bulk bar", async () => {
 		const user = userEvent.setup();
 		renderLabTestsTable();
 

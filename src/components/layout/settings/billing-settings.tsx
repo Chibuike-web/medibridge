@@ -204,7 +204,7 @@ function PaymentMethodSettings() {
 			<Dialog open={isChangePaymentMethodOpen} onOpenChange={setIsChangePaymentMethodOpen}>
 				<DialogContent className="max-w-[37.5rem] gap-0 p-0">
 					<DialogHeader>
-						<DialogTitle className="text-lg">Change payment method</DialogTitle>
+						<DialogTitle>Change payment method</DialogTitle>
 						<DialogClose
 							className="rounded-md p-1.5 text-foreground/60 transition-colors hover:bg-gray-100 hover:text-foreground"
 							aria-label="Close change payment method dialog"

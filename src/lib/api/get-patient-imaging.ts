@@ -224,6 +224,7 @@ export async function getPatientImagingForOrganization(
 					{
 						id: `${imaging.imagingId}-updated`,
 						title: "Updated",
+						actor: updatedBy,
 						timestamp: updatedAtLabel,
 						items: [
 							{ label: "Impression", value: impression },
@@ -235,6 +236,7 @@ export async function getPatientImagingForOrganization(
 					{
 						id: `${imaging.imagingId}-created`,
 						title: "Created",
+						actor: createdBy,
 						timestamp: createdAtLabel,
 						items: [
 							{ label: "Status", value: "Pending" },
@@ -242,7 +244,6 @@ export async function getPatientImagingForOrganization(
 							{ label: "Modality", value: modality },
 							{ label: "Ordered by", value: orderedBy },
 							{ label: "Ordered at", value: orderedAtLabel },
-							{ label: "Created by", value: createdBy },
 						],
 					},
 				],

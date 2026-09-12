@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { ImagingType } from "@/features/patients/types";
 import { ImagingTable } from "./imaging-table";
 
@@ -117,7 +117,7 @@ describe("Imaging table", () => {
 		activeMember.role = "owner";
 	});
 
-	it("shows each study with its modality, region, impression, order date and status", () => {
+	test("shows each study with its modality, region, impression, order date and status", () => {
 		renderImagingTable();
 
 		expect(screen.getByRole("heading", { name: "Imaging" })).toBeVisible();
@@ -147,14 +147,14 @@ describe("Imaging table", () => {
 		expect(within(usaRow).getByRole("button", { name: "Copy IMG-USA" })).toBeVisible();
 	});
 
-	it("shows the empty state when there are no studies", () => {
+	test("shows the empty state when there are no studies", () => {
 		renderImagingTable({ imagingStudies: [] });
 
 		expect(screen.getByText("No matching imaging studies found.")).toBeVisible();
 		expect(bodyRows()).toHaveLength(1);
 	});
 
-	it("reports what the user types in the search box and shows the controlled query", async () => {
+	test("reports what the user types in the search box and shows the controlled query", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderImagingTable({ query: "Ches" });
 
@@ -168,7 +168,7 @@ describe("Imaging table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Chest");
 	});
 
-	it("drops the encounter ID hint from the search box when scoped to an encounter", () => {
+	test("drops the encounter ID hint from the search box when scoped to an encounter", () => {
 		renderImagingTable({ isEncounterScoped: true });
 
 		expect(screen.getByRole("searchbox")).toHaveAttribute(
@@ -177,7 +177,7 @@ describe("Imaging table", () => {
 		);
 	});
 
-	it("sorts rows by study name when the header is clicked, then reverses, then clears", async () => {
+	test("sorts rows by study name when the header is clicked, then reverses, then clears", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
 
@@ -197,7 +197,7 @@ describe("Imaging table", () => {
 		expect(displayedImagingIds()).toEqual(["IMG-CXR", "IMG-USA"]);
 	});
 
-	it("sorts by modality and region", async () => {
+	test("sorts by modality and region", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
 
@@ -216,7 +216,7 @@ describe("Imaging table", () => {
 		expect(displayedImagingIds()).toEqual(["IMG-USA", "IMG-CXR"]);
 	});
 
-	it("sorts by order date chronologically using the keyboard", async () => {
+	test("sorts by order date chronologically using the keyboard", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
 
@@ -231,7 +231,7 @@ describe("Imaging table", () => {
 		expect(displayedImagingIds()).toEqual(["IMG-CXR", "IMG-USA"]);
 	});
 
-	it("does not offer sorting on the imaging ID, impression or status columns", () => {
+	test("does not offer sorting on the imaging ID, impression or status columns", () => {
 		renderImagingTable();
 
 		for (const label of ["Imaging ID", "Impression", "Status"]) {
@@ -239,7 +239,7 @@ describe("Imaging table", () => {
 		}
 	});
 
-	it("adds and removes status filters from the checkbox list", async () => {
+	test("adds and removes status filters from the checkbox list", async () => {
 		const user = setupSubmenuUser();
 		const { onStatusFiltersChange } = renderImagingTable({ statusFilters: ["completed"] });
 
@@ -255,7 +255,7 @@ describe("Imaging table", () => {
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
-	it("offers every modality and reports the chosen modalities", async () => {
+	test("offers every modality and reports the chosen modalities", async () => {
 		const user = setupSubmenuUser();
 		const { onModalityFiltersChange } = renderImagingTable({ modalityFilters: ["mri"] });
 
@@ -270,7 +270,7 @@ describe("Imaging table", () => {
 		expect(onModalityFiltersChange).toHaveBeenCalledWith(["mri", "x-ray"]);
 	});
 
-	it("disables the filter checkboxes while a request is pending", async () => {
+	test("disables the filter checkboxes while a request is pending", async () => {
 		const user = setupSubmenuUser();
 		renderImagingTable({ isPending: true });
 
@@ -278,7 +278,7 @@ describe("Imaging table", () => {
 		expect(await screen.findByRole("checkbox", { name: "CT" })).toBeDisabled();
 	});
 
-	it("applies an order date preset to the ordered-at range only", async () => {
+	test("applies an order date preset to the ordered-at range only", async () => {
 		const user = setupSubmenuUser();
 		const { onOrderedAtRangeApply, onCreatedAtRangeApply } = renderImagingTable();
 
@@ -293,7 +293,7 @@ describe("Imaging table", () => {
 		expect(onCreatedAtRangeApply).not.toHaveBeenCalled();
 	});
 
-	it("applies a creation date preset to the created-at range only", async () => {
+	test("applies a creation date preset to the created-at range only", async () => {
 		const user = setupSubmenuUser();
 		const { onOrderedAtRangeApply, onCreatedAtRangeApply } = renderImagingTable();
 
@@ -305,7 +305,7 @@ describe("Imaging table", () => {
 		expect(onOrderedAtRangeApply).not.toHaveBeenCalled();
 	});
 
-	it("applies a custom order date range picked from the calendar", async () => {
+	test("applies a custom order date range picked from the calendar", async () => {
 		const user = setupSubmenuUser();
 		const { onOrderedAtRangeApply } = renderImagingTable();
 
@@ -334,7 +334,7 @@ describe("Imaging table", () => {
 		);
 	});
 
-	it("clears the order date range from the calendar reset button", async () => {
+	test("clears the order date range from the calendar reset button", async () => {
 		const user = setupSubmenuUser();
 		const { onOrderedAtRangeApply } = renderImagingTable({
 			orderedFrom: "2020-01-01",
@@ -349,7 +349,7 @@ describe("Imaging table", () => {
 		expect(onOrderedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
-	it("shows active filters as pills that can be removed individually", async () => {
+	test("shows active filters as pills that can be removed individually", async () => {
 		const user = userEvent.setup();
 		const {
 			onOrderedAtRangeApply,
@@ -388,17 +388,17 @@ describe("Imaging table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
-	it.todo(
+	test.todo(
 		"labels modality pills the same way as the filter options (pill shows 'Modality: Ct', 'Modality: Mri' and 'Modality: X Ray' for options labelled CT, MRI and X-ray)",
 	);
 
-	it("shows no filter pills when no filter is active", () => {
+	test("shows no filter pills when no filter is active", () => {
 		renderImagingTable();
 
 		expect(screen.queryByRole("button", { name: /^Remove .* filter$/ })).not.toBeInTheDocument();
 	});
 
-	it("moves between pages through the callbacks", async () => {
+	test("moves between pages through the callbacks", async () => {
 		const user = userEvent.setup();
 		const { onNextPage, onPreviousPage } = renderImagingTable({ page: 2, totalPages: 3 });
 
@@ -409,28 +409,28 @@ describe("Imaging table", () => {
 		expect(onPreviousPage).toHaveBeenCalledTimes(1);
 	});
 
-	it("disables going back from the first page", () => {
+	test("disables going back from the first page", () => {
 		renderImagingTable({ page: 1, totalPages: 3 });
 
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
 	});
 
-	it("disables going forward from the last page", () => {
+	test("disables going forward from the last page", () => {
 		renderImagingTable({ page: 3, totalPages: 3 });
 
 		expect(screen.getByRole("button", { name: "Previous" })).toBeEnabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 	});
 
-	it("disables paging while a request is pending", () => {
+	test("disables paging while a request is pending", () => {
 		renderImagingTable({ page: 2, totalPages: 3, isPending: true });
 
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 	});
 
-	it("lets the user change the rows per page", async () => {
+	test("lets the user change the rows per page", async () => {
 		const user = userEvent.setup();
 		const { onLimitChange } = renderImagingTable({ limit: 28 });
 
@@ -441,7 +441,7 @@ describe("Imaging table", () => {
 		expect(onLimitChange).toHaveBeenCalledWith(42);
 	});
 
-	it("opens the details drawer for the row chosen from its action menu", async () => {
+	test("opens the details drawer for the row chosen from its action menu", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
 
@@ -457,7 +457,7 @@ describe("Imaging table", () => {
 		expect(within(dialog).queryByText("Abdominal Ultrasound")).not.toBeInTheDocument();
 	});
 
-	it("opens the details drawer when the row itself is activated with the keyboard", async () => {
+	test("opens the details drawer when the row itself is activated with the keyboard", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
 
@@ -469,7 +469,7 @@ describe("Imaging table", () => {
 		expect(within(dialog).getByRole("heading", { name: "Abdominal Ultrasound" })).toBeVisible();
 	});
 
-	it("only offers status changes for pending studies", async () => {
+	test("only offers status changes for pending studies", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
 
@@ -484,7 +484,7 @@ describe("Imaging table", () => {
 		expect(screen.queryByRole("menuitem", { name: "Cancel" })).not.toBeInTheDocument();
 	});
 
-	it("opens the create drawer from the add button", async () => {
+	test("opens the create drawer from the add button", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
 
@@ -492,7 +492,7 @@ describe("Imaging table", () => {
 		expect(await screen.findByRole("dialog", { name: "Add imaging" })).toBeVisible();
 	});
 
-	it("shows archive actions to an owner", async () => {
+	test("shows archive actions to an owner", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
 
@@ -506,7 +506,7 @@ describe("Imaging table", () => {
 		expect(within(bar).getByRole("button", { name: "Archive" })).toBeVisible();
 	});
 
-	it("shows archive actions to an admin", async () => {
+	test("shows archive actions to an admin", async () => {
 		activeMember.role = "admin";
 		const user = userEvent.setup();
 		renderImagingTable();
@@ -515,7 +515,7 @@ describe("Imaging table", () => {
 		expect(await screen.findByRole("menuitem", { name: "Archive" })).toBeVisible();
 	});
 
-	it("hides archive actions from a member", async () => {
+	test("hides archive actions from a member", async () => {
 		activeMember.role = "member";
 		const user = userEvent.setup();
 		renderImagingTable();
@@ -532,7 +532,7 @@ describe("Imaging table", () => {
 		expect(within(bar).queryByRole("button", { name: "Archive" })).not.toBeInTheDocument();
 	});
 
-	it("selects rows for bulk actions and clears the selection", async () => {
+	test("selects rows for bulk actions and clears the selection", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
 
@@ -550,7 +550,7 @@ describe("Imaging table", () => {
 		expect(screen.queryByText(/items? selected/)).not.toBeInTheDocument();
 	});
 
-	it("opens the details drawer for a single selected row from the bulk bar", async () => {
+	test("opens the details drawer for a single selected row from the bulk bar", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
 

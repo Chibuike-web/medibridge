@@ -253,7 +253,7 @@ function Footer({
 						</DialogTrigger>
 						<DialogContent>
 						<DialogHeader>
-								<DialogTitle className="text-xl">
+								<DialogTitle>
 									Confirm Transfer Request
 								</DialogTitle>
 								<DialogDescription className="sr-only">

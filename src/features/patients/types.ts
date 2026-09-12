@@ -39,6 +39,7 @@ export type DiagnosisDetailsRelatedRecord = {
 export type DiagnosisDetailsHistoryEvent = {
 	id: string;
 	title: string;
+	actor: string;
 	timestamp: string;
 	items: {
 		label: string;
@@ -84,6 +85,7 @@ export type AllergyType = {
 export type AllergyDetailsHistoryEvent = {
 	id: string;
 	title: string;
+	actor: string;
 	timestamp: string;
 	items: {
 		label: string;
@@ -124,6 +126,7 @@ export type ImmunizationStatusFilter = "active" | "completed" | "cancelled" | "d
 export type ImmunizationDetailsHistoryEvent = {
 	id: string;
 	title: string;
+	actor: string;
 	timestamp: string;
 	items: {
 		label: string;
@@ -164,6 +167,7 @@ export type ProcedureStatusFilter = "pending" | "completed" | "cancelled";
 export type ProcedureDetailsHistoryEvent = {
 	id: string;
 	title: string;
+	actor: string;
 	timestamp: string;
 	items: {
 		label: string;
@@ -219,6 +223,7 @@ export type MedicationStatusFilter = "active" | "completed" | "discontinued";
 export type MedicationDetailsHistoryEvent = {
 	id: string;
 	title: string;
+	actor: string;
 	timestamp: string;
 	items: {
 		label: string;
@@ -278,6 +283,7 @@ export type EncounterDepartmentFilter =
 export type LabTestDetailsHistoryEvent = {
 	id: string;
 	title: string;
+	actor: string;
 	timestamp: string;
 	items: {
 		label: string;
@@ -337,6 +343,7 @@ export type LabTestFlagFilter =
 export type ImagingDetailsHistoryEvent = {
 	id: string;
 	title: string;
+	actor: string;
 	timestamp: string;
 	items: {
 		label: string;

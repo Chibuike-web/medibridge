@@ -67,7 +67,7 @@ function AlertDialogHeader({ className, ...props }: React.ComponentProps<"div">)
 	return (
 		<div
 			data-slot="alert-dialog-header"
-			className={cn("flex h-16 items-center justify-between border-b px-5", className)}
+			className={cn("flex items-center justify-between border-b p-4", className)}
 			{...props}
 		/>
 	);
@@ -78,7 +78,7 @@ function AlertDialogFooter({ className, ...props }: React.ComponentProps<"div">)
 		<div
 			data-slot="alert-dialog-footer"
 			className={cn(
-				"flex flex-col-reverse gap-2 border-t p-5 sm:flex-row sm:justify-between",
+				"flex flex-col-reverse gap-2 border-t p-4 sm:flex-row sm:justify-between",
 				className,
 			)}
 			{...props}
@@ -93,7 +93,7 @@ function AlertDialogTitle({
 	return (
 		<AlertDialogPrimitive.Title
 			data-slot="alert-dialog-title"
-			className={cn("text-base leading-snug font-semibold text-gray-800", className)}
+			className={cn("text-sm leading-snug font-semibold text-gray-800", className)}
 			{...props}
 		/>
 	);

@@ -83,8 +83,8 @@ export function MedicationDetailsDrawer({
 	return (
 		<Drawer open={open} onOpenChange={handleMedicationDetailsOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
-				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
-					<DrawerTitle className="text-base leading-[1.2] text-gray-800">
+				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
+					<DrawerTitle className="leading-[1.2] text-gray-800">
 						{isEditingMedicationDetails ? "Edit medication details" : "View medication details"}
 					</DrawerTitle>
 					<DrawerClose aria-label="Close medication details">
@@ -117,7 +117,7 @@ export function MedicationDetailsDrawer({
 					)}
 				</div>
 
-				<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
+				<DrawerFooter className="border-t border-gray-200 text-sm">
 					{isEditingMedicationDetails ? (
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<Button
@@ -175,12 +175,12 @@ function MedicationDetailsOverview({
 		<div className="flex flex-col gap-10">
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Medication ID:</span>
+					<span className="font-normal text-gray-400">Medication ID:</span>
 					<CopyIdButton id={medication.medicationId} className="text-sm" />
 				</div>
 				{medication.encounterId ? (
 					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
+						<span className="font-normal text-gray-400">Encounter ID:</span>
 						<CopyIdButton id={medication.encounterId} className="text-sm" />
 					</div>
 				) : null}
@@ -195,7 +195,7 @@ function MedicationDetailsOverview({
 					<button
 						type="button"
 						onClick={onEditMedicationDetails}
-						className="inline-flex items-center gap-2 text-sm font-medium text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						className="inline-flex items-center gap-2 text-sm font-normal text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
@@ -210,9 +210,6 @@ function MedicationDetailsOverview({
 					<MedicationDetailItem label="Prescribed by" value={medication.prescribedBy} />
 					<MedicationDetailItem label="Started at" value={medication.startedAt} />
 					<MedicationDetailItem label="Duration" value={medication.duration} />
-					<MedicationDetailItem label="Created by" value={medication.createdBy} />
-					<MedicationDetailItem label="Created at" value={medication.createdAt} />
-					<MedicationDetailItem label="Updated at" value={medication.updatedAt} />
 				</div>
 			</div>
 		</div>
@@ -249,12 +246,12 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 			<div className="flex flex-col gap-8">
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Medication ID:</span>
+						<span className="font-normal text-gray-400">Medication ID:</span>
 						<CopyIdButton id={medication.medicationId} className="text-sm" />
 					</div>
 					{medication.encounterId ? (
 						<div className="flex items-center gap-2">
-							<span className="text-gray-400">Encounter ID:</span>
+							<span className="font-normal text-gray-400">Encounter ID:</span>
 							<CopyIdButton id={medication.encounterId} className="text-sm" />
 						</div>
 					) : null}
@@ -471,7 +468,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 function MedicationDetailItem({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
-			<span className="text-gray-400">{label}</span>
+			<span className="font-normal text-gray-400">{label}</span>
 			{label === "Status" ? (
 				<StatusBadge status={value || EMPTY_VALUE} className="w-max" />
 			) : (
@@ -485,8 +482,8 @@ function MedicationHistorySection({ history }: { history: MedicationDetailsHisto
 	return (
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
-				<p className="text-base font-semibold">History</p>
-				<button className="text-gray-400">View more</button>
+				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
+				<button className="font-normal text-gray-400">View more</button>
 			</div>
 			{history.map((historyEvent) => (
 				<MedicationHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
@@ -496,13 +493,13 @@ function MedicationHistorySection({ history }: { history: MedicationDetailsHisto
 }
 
 function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetailsHistoryEvent }) {
-	const [isMedicationHistoryExpanded, setIsMedicationHistoryExpanded] = useState(true);
+	const [isMedicationHistoryExpanded, setIsMedicationHistoryExpanded] = useState(false);
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
 
 	return (
-		<section className="flex flex-col rounded-2xl border border-gray-200 p-5">
+		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
 			<button
 				type="button"
 				onClick={() => setIsMedicationHistoryExpanded((prev) => !prev)}
@@ -510,11 +507,14 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<p>
+				<p className="min-w-0 text-sm">
 					<span id={titleId} className="font-semibold text-gray-800">
-						{historyEvent.title}
+						{historyEvent.title} by {historyEvent.actor}
 					</span>{" "}
-					<span className="text-sm text-gray-400">on {historyEvent.timestamp}</span>
+					<span aria-hidden="true" className="font-normal text-gray-200">
+						•
+					</span>{" "}
+					<span className="font-normal text-gray-400">{historyEvent.timestamp}</span>
 				</p>
 				<RiArrowDownSLine
 					className={cn(
@@ -572,7 +572,7 @@ function MedicationDetailsFallback() {
 				</div>
 			</div>
 			{Array.from({ length: 3 }).map((_, index) => (
-				<div key={index} className="flex flex-col gap-4 rounded-2xl border border-gray-200 p-5">
+				<div key={index} className="flex flex-col gap-4 rounded-xl border border-gray-200 p-4">
 					<div className="h-5 w-48 animate-pulse rounded bg-gray-100" />
 					<div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
 						<div className="h-5 w-40 animate-pulse rounded bg-gray-100" />

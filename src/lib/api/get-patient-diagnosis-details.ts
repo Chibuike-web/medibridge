@@ -99,6 +99,7 @@ function buildCreatedHistoryEvent(diagnosis: {
 	return {
 		id: "created",
 		title: "Created",
+		actor: empty(diagnosis.diagnosedBy),
 		timestamp: formatTimelineTimestamp(diagnosis.createdAt),
 		items: [
 			{ label: "Severity/Stage", value: formatSentenceCaseValue(diagnosis.severityStage) },
@@ -117,10 +118,10 @@ function buildUpdatedHistoryEvent(diagnosis: {
 	return {
 		id: "updated",
 		title: "Updated",
+		actor: empty(diagnosis.updatedBy),
 		timestamp: formatTimelineTimestamp(diagnosis.updatedAt),
 		items: [
 			{ label: "Status", value: normalizeDiagnosisStatus(diagnosis.status) },
-			{ label: "Updated by", value: empty(diagnosis.updatedBy) },
 		],
 	};
 }
@@ -135,10 +136,10 @@ function mapHistoryEvent(history: {
 	return {
 		id: history.id,
 		title: "Updated",
+		actor: empty(history.updatedBy),
 		timestamp: formatTimelineTimestamp(history.createdAt),
 		items: [
 			{ label: formatSentenceCaseValue(history.fieldName), value: empty(history.newValue) },
-			{ label: "Updated by", value: empty(history.updatedBy) },
 		],
 	};
 }

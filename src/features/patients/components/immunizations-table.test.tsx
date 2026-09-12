@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format, setDate, startOfMonth, subDays } from "date-fns";
 import { SWRConfig } from "swr";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { ImmunizationDetailsType, ImmunizationType } from "@/features/patients/types";
 import { ImmunizationsTable } from "./immunizations-table";
 
@@ -152,7 +152,7 @@ describe("Immunizations table", () => {
 		vi.unstubAllGlobals();
 	});
 
-	it("shows each immunization's vaccine, ID, dose, creation date and status", () => {
+	test("shows each immunization's vaccine, ID, dose, creation date and status", () => {
 		renderImmunizationsTable();
 
 		for (const label of ["Vaccine name", "Immunization ID", "Dose", "Created At", "Status"]) {
@@ -172,14 +172,14 @@ describe("Immunizations table", () => {
 		expect(within(secondRow).getByText("Completed")).toBeVisible();
 	});
 
-	it("shows an empty message when there are no immunizations", () => {
+	test("shows an empty message when there are no immunizations", () => {
 		renderImmunizationsTable({ immunizations: [] });
 
 		expect(screen.getByText("No matching immunizations found.")).toBeVisible();
 		expect(bodyRows()).toHaveLength(1);
 	});
 
-	it("reports what the user types in the search box", async () => {
+	test("reports what the user types in the search box", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderImmunizationsTable({ query: "Hep" });
 
@@ -193,7 +193,7 @@ describe("Immunizations table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Hepa");
 	});
 
-	it("drops encounter ID from the search hint when scoped to an encounter", () => {
+	test("drops encounter ID from the search hint when scoped to an encounter", () => {
 		renderImmunizationsTable({ isEncounterScoped: true });
 
 		expect(screen.getByRole("searchbox")).toHaveAttribute(
@@ -202,7 +202,7 @@ describe("Immunizations table", () => {
 		);
 	});
 
-	it("re-orders rows when the user sorts by vaccine name", async () => {
+	test("re-orders rows when the user sorts by vaccine name", async () => {
 		const user = userEvent.setup();
 		renderImmunizationsTable();
 
@@ -218,7 +218,7 @@ describe("Immunizations table", () => {
 		expect(displayedIds()).toEqual(["IMM-3001", "IMM-1001"]);
 	});
 
-	it("sorts by creation date from the keyboard", async () => {
+	test("sorts by creation date from the keyboard", async () => {
 		const user = userEvent.setup();
 		renderImmunizationsTable();
 
@@ -232,7 +232,7 @@ describe("Immunizations table", () => {
 		expect(displayedIds()).toEqual(["IMM-3001", "IMM-1001"]);
 	});
 
-	it("does not allow sorting by immunization ID, dose or status", () => {
+	test("does not allow sorting by immunization ID, dose or status", () => {
 		renderImmunizationsTable();
 
 		for (const label of ["Immunization ID", "Dose", "Status"]) {
@@ -240,7 +240,7 @@ describe("Immunizations table", () => {
 		}
 	});
 
-	it("lists status and created-at filters", async () => {
+	test("lists status and created-at filters", async () => {
 		const user = userEvent.setup();
 		renderImmunizationsTable();
 
@@ -250,7 +250,7 @@ describe("Immunizations table", () => {
 		expect(screen.getByRole("menuitem", { name: "Created at" })).toBeVisible();
 	});
 
-	it("adds and removes status filters from the Status submenu", async () => {
+	test("adds and removes status filters from the Status submenu", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderImmunizationsTable({ statusFilters: ["active"] });
 
@@ -269,7 +269,7 @@ describe("Immunizations table", () => {
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
-	it("applies a created-at preset as a from/to range", async () => {
+	test("applies a created-at preset as a from/to range", async () => {
 		const user = userEvent.setup();
 		const { onCreatedAtRangeApply } = renderImmunizationsTable();
 
@@ -283,7 +283,7 @@ describe("Immunizations table", () => {
 		);
 	});
 
-	it("applies a custom created-at range picked on the calendar and can reset it", async () => {
+	test("applies a custom created-at range picked on the calendar and can reset it", async () => {
 		const user = userEvent.setup();
 		const { onCreatedAtRangeApply } = renderImmunizationsTable();
 
@@ -311,7 +311,7 @@ describe("Immunizations table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith("", "");
 	});
 
-	it("shows active filters as pills the user can remove", async () => {
+	test("shows active filters as pills the user can remove", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onCreatedAtRangeApply } = renderImmunizationsTable({
 			statusFilters: ["active", "discontinued"],
@@ -330,13 +330,13 @@ describe("Immunizations table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
-	it("shows no filter pills when no filters are active", () => {
+	test("shows no filter pills when no filters are active", () => {
 		renderImmunizationsTable();
 
 		expect(screen.queryByRole("button", { name: /^Remove / })).not.toBeInTheDocument();
 	});
 
-	it("paginates through the owner callbacks and shows the current page", async () => {
+	test("paginates through the owner callbacks and shows the current page", async () => {
 		const user = userEvent.setup();
 		const { onNextPage, onPreviousPage } = renderImmunizationsTable({ page: 3, totalPages: 5 });
 
@@ -347,14 +347,14 @@ describe("Immunizations table", () => {
 		expect(onPreviousPage).toHaveBeenCalledTimes(1);
 	});
 
-	it("disables Previous on the first page and Next on the last page", () => {
+	test("disables Previous on the first page and Next on the last page", () => {
 		renderImmunizationsTable({ page: 1, totalPages: 1 });
 
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 	});
 
-	it("disables paging and the rows-per-page picker while a request is pending", () => {
+	test("disables paging and the rows-per-page picker while a request is pending", () => {
 		renderImmunizationsTable({ page: 2, totalPages: 3, isPending: true });
 
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
@@ -362,7 +362,7 @@ describe("Immunizations table", () => {
 		expect(rowsPerPagePicker()).toBeDisabled();
 	});
 
-	it("lets the user change the rows per page", async () => {
+	test("lets the user change the rows per page", async () => {
 		const user = userEvent.setup();
 		const { onLimitChange } = renderImmunizationsTable();
 
@@ -373,7 +373,7 @@ describe("Immunizations table", () => {
 		expect(onLimitChange).toHaveBeenCalledWith(42);
 	});
 
-	it("opens the details drawer with that immunization's data from the row actions", async () => {
+	test("opens the details drawer with that immunization's data from the row actions", async () => {
 		const user = userEvent.setup();
 		renderImmunizationsTable();
 
@@ -389,7 +389,7 @@ describe("Immunizations table", () => {
 		expect(within(dialog).getByRole("button", { name: "Copy ENC-1001" })).toBeVisible();
 	});
 
-	it("opens the details drawer when a row is activated from the keyboard", async () => {
+	test("opens the details drawer when a row is activated from the keyboard", async () => {
 		const user = userEvent.setup();
 		renderImmunizationsTable();
 
@@ -403,7 +403,7 @@ describe("Immunizations table", () => {
 		expect(within(dialog).getByText("Nurse Kemi Ojo")).toBeVisible();
 	});
 
-	it("only offers status changes on active immunizations", async () => {
+	test("only offers status changes on active immunizations", async () => {
 		const user = userEvent.setup();
 		renderImmunizationsTable();
 
@@ -418,7 +418,7 @@ describe("Immunizations table", () => {
 		expect(screen.queryByRole("menuitem", { name: "Discontinue" })).not.toBeInTheDocument();
 	});
 
-	it("offers Archive to an admin in the row actions and the bulk bar", async () => {
+	test("offers Archive to an admin in the row actions and the bulk bar", async () => {
 		authState.role = "admin";
 		const user = userEvent.setup();
 		renderImmunizationsTable();
@@ -440,7 +440,7 @@ describe("Immunizations table", () => {
 		expect(screen.queryByText(/selected/)).not.toBeInTheDocument();
 	});
 
-	it("hides Archive from a member in the row actions and the bulk bar", async () => {
+	test("hides Archive from a member in the row actions and the bulk bar", async () => {
 		authState.role = "member";
 		const user = userEvent.setup();
 		renderImmunizationsTable();
@@ -456,7 +456,7 @@ describe("Immunizations table", () => {
 		expect(screen.queryByRole("button", { name: /Archive/ })).not.toBeInTheDocument();
 	});
 
-	it("opens the selected immunization's details from the bulk bar", async () => {
+	test("opens the selected immunization's details from the bulk bar", async () => {
 		const user = userEvent.setup();
 		renderImmunizationsTable();
 
@@ -468,7 +468,7 @@ describe("Immunizations table", () => {
 		expect(await within(dialog).findByRole("heading", { name: "Hepatitis B" })).toBeVisible();
 	});
 
-	it("opens the add immunization drawer from the Add immunization button", async () => {
+	test("opens the add immunization drawer from the Add immunization button", async () => {
 		const user = userEvent.setup();
 		renderImmunizationsTable();
 

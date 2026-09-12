@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { addDays, format, startOfMonth, subDays } from "date-fns";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { AllergyDetailsType, AllergyType } from "@/features/patients/types";
 import { AllergiesTable } from "./allergies-table";
 
@@ -47,7 +47,15 @@ const allergyDetails: Record<string, AllergyDetailsType> = {
 		createdBy: "Dr. Okafor",
 		updatedBy: "Dr. Bello",
 		clinicalNote: "Carries an epinephrine auto-injector.",
-		history: [],
+		history: [
+			{
+				id: "created",
+				title: "Created",
+				actor: "Dr. Okafor",
+				timestamp: "3 March 2021 at 09:00",
+				items: [{ label: "Severity", value: "Severe" }],
+			},
+		],
 	},
 	"AL-latex": {
 		allergyId: "AL-latex",
@@ -61,7 +69,15 @@ const allergyDetails: Record<string, AllergyDetailsType> = {
 		createdBy: "Nurse Chika",
 		updatedBy: "Dr. Adeyemi",
 		clinicalNote: "Avoid latex gloves.",
-		history: [],
+		history: [
+			{
+				id: "created",
+				title: "Created",
+				actor: "Nurse Chika",
+				timestamp: "9 January 2020 at 09:00",
+				items: [{ label: "Severity", value: "Mild" }],
+			},
+		],
 	},
 };
 
@@ -149,7 +165,7 @@ describe("Allergies table", () => {
 		vi.unstubAllGlobals();
 	});
 
-	it("lists allergies in the supplied order with reaction, date, severity and status", () => {
+	test("lists allergies in the supplied order with reaction, date, severity and status", () => {
 		renderAllergiesTable();
 
 		expect(screen.getByRole("heading", { name: "Allergies" })).toBeVisible();
@@ -179,7 +195,7 @@ describe("Allergies table", () => {
 		expect(within(latexRow).getByText("Inactive")).toBeVisible();
 	});
 
-	it("re-orders rows when a sortable header is clicked", async () => {
+	test("re-orders rows when a sortable header is clicked", async () => {
 		const user = userEvent.setup();
 		renderAllergiesTable();
 
@@ -205,7 +221,7 @@ describe("Allergies table", () => {
 		expect(screen.getByRole("columnheader", { name: "Reaction" })).not.toHaveAttribute("aria-sort");
 	});
 
-	it("reports what the user types in the search box", async () => {
+	test("reports what the user types in the search box", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderAllergiesTable({ query: "Pea" });
 
@@ -219,7 +235,7 @@ describe("Allergies table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Pean");
 	});
 
-	it("drops the encounter ID hint from the search box when scoped to an encounter", () => {
+	test("drops the encounter ID hint from the search box when scoped to an encounter", () => {
 		renderAllergiesTable({ isEncounterScoped: true });
 
 		expect(screen.getByRole("searchbox")).toHaveAttribute(
@@ -228,7 +244,7 @@ describe("Allergies table", () => {
 		);
 	});
 
-	it("adds and removes status filters from the filter menu", async () => {
+	test("adds and removes status filters from the filter menu", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderAllergiesTable({ statusFilters: ["active"] });
 
@@ -246,7 +262,7 @@ describe("Allergies table", () => {
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
-	it("adds and removes severity filters from the filter menu", async () => {
+	test("adds and removes severity filters from the filter menu", async () => {
 		const user = userEvent.setup();
 		const { onSeverityFiltersChange } = renderAllergiesTable({ severityFilters: ["mild"] });
 
@@ -263,7 +279,7 @@ describe("Allergies table", () => {
 		expect(onSeverityFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
-	it("applies created-at date presets", async () => {
+	test("applies created-at date presets", async () => {
 		const user = userEvent.setup();
 		const today = new Date();
 		const { onCreatedAtRangeApply } = renderAllergiesTable();
@@ -285,7 +301,7 @@ describe("Allergies table", () => {
 		);
 	});
 
-	it("applies a custom calendar range and can reset it", async () => {
+	test("applies a custom calendar range and can reset it", async () => {
 		const user = userEvent.setup();
 		const firstOfMonth = startOfMonth(new Date());
 		const thirdOfMonth = addDays(firstOfMonth, 2);
@@ -312,7 +328,7 @@ describe("Allergies table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith("", "");
 	});
 
-	it("shows active filters as pills that clear the matching filter", async () => {
+	test("shows active filters as pills that clear the matching filter", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onSeverityFiltersChange, onCreatedAtRangeApply } =
 			renderAllergiesTable({
@@ -335,13 +351,13 @@ describe("Allergies table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
-	it("hides the filter pills when no filter is active", () => {
+	test("hides the filter pills when no filter is active", () => {
 		renderAllergiesTable();
 
 		expect(screen.queryByRole("button", { name: /Remove .* filter/ })).not.toBeInTheDocument();
 	});
 
-	it("paginates through the callbacks", async () => {
+	test("paginates through the callbacks", async () => {
 		const user = userEvent.setup();
 		const { onNextPage, onPreviousPage } = renderAllergiesTable({ page: 2, totalPages: 3 });
 
@@ -354,7 +370,7 @@ describe("Allergies table", () => {
 		expect(onPreviousPage).toHaveBeenCalledTimes(1);
 	});
 
-	it("disables paging at the bounds and while a request is pending", () => {
+	test("disables paging at the bounds and while a request is pending", () => {
 		const { rerender } = render(<AllergiesTable {...buildProps({ page: 1, totalPages: 3 })} />);
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
@@ -368,7 +384,7 @@ describe("Allergies table", () => {
 		expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 	});
 
-	it("lets the user change the rows per page", async () => {
+	test("lets the user change the rows per page", async () => {
 		const user = userEvent.setup();
 		const { onLimitChange } = renderAllergiesTable({ limit: 14 });
 
@@ -379,14 +395,14 @@ describe("Allergies table", () => {
 		expect(onLimitChange).toHaveBeenCalledWith(42);
 	});
 
-	it("shows an empty message when there are no allergies", () => {
+	test("shows an empty message when there are no allergies", () => {
 		renderAllergiesTable({ allergies: [] });
 
 		expect(screen.getByRole("table")).toBeVisible();
 		expect(screen.getByText("No matching allergies found.")).toBeVisible();
 	});
 
-	it("opens the details drawer with the chosen row's data from the row actions", async () => {
+	test("opens the details drawer with the chosen row's data from the row actions", async () => {
 		const user = userEvent.setup();
 		renderAllergiesTable();
 
@@ -398,12 +414,15 @@ describe("Allergies table", () => {
 		const dialog = await screen.findByRole("dialog", { name: "View allergies details" });
 		expect(await within(dialog).findByRole("heading", { name: "Latex" })).toBeVisible();
 		expect(within(dialog).getByText("Contact rash on hands")).toBeVisible();
-		expect(within(dialog).getByText("Nurse Chika")).toBeVisible();
+		expect(within(dialog).getByRole("heading", { name: "Activity" })).toBeVisible();
+		expect(
+			within(dialog).getByRole("button", { name: /Created by Nurse Chika/ }),
+		).toHaveAttribute("aria-expanded", "false");
 		expect(within(dialog).getByText("Avoid latex gloves.")).toBeVisible();
 		expect(within(dialog).queryByText("Peanuts")).not.toBeInTheDocument();
 	});
 
-	it("opens the details drawer when a row is activated with the keyboard", async () => {
+	test("opens the details drawer when a row is activated with the keyboard", async () => {
 		const user = userEvent.setup();
 		renderAllergiesTable();
 
@@ -415,7 +434,7 @@ describe("Allergies table", () => {
 		expect(within(dialog).getByText("Carries an epinephrine auto-injector.")).toBeVisible();
 	});
 
-	it("opens the add allergy drawer from the toolbar", async () => {
+	test("opens the add allergy drawer from the toolbar", async () => {
 		const user = userEvent.setup();
 		renderAllergiesTable();
 
@@ -423,7 +442,7 @@ describe("Allergies table", () => {
 		expect(await screen.findByRole("dialog", { name: "Add allergy" })).toBeVisible();
 	});
 
-	it("offers bulk actions for the selected rows, including archive for an admin", async () => {
+	test("offers bulk actions for the selected rows, including archive for an admin", async () => {
 		auth.role = "admin";
 		const user = userEvent.setup();
 		renderAllergiesTable();
@@ -439,7 +458,7 @@ describe("Allergies table", () => {
 		expect(screen.queryByText("2 items selected")).not.toBeInTheDocument();
 	});
 
-	it("hides archive actions from a member", async () => {
+	test("hides archive actions from a member", async () => {
 		auth.role = "member";
 		const user = userEvent.setup();
 		renderAllergiesTable();

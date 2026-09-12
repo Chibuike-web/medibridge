@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { subDays } from "date-fns";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import type { VitalType } from "@/features/patients/types";
 import { VitalsTable } from "./vitals-table";
 
@@ -95,7 +95,7 @@ function displayedIds() {
 }
 
 describe("Vitals table", () => {
-	it("updates the chart and summary when the user changes the vital measurement", async () => {
+	test("updates the chart and summary when the user changes the vital measurement", async () => {
 		const user = userEvent.setup();
 		const now = Date.now();
 		const recentReadings = vitals.map((vital, index) => ({
@@ -114,7 +114,7 @@ describe("Vitals table", () => {
 		expect(within(screen.getByText("Current:").parentElement!).getByText("72 bpm")).toBeVisible();
 	});
 
-	it("shows supplied rows in order and sorts measurements numerically using the keyboard", async () => {
+	test("shows supplied rows in order and sorts measurements numerically using the keyboard", async () => {
 		const user = userEvent.setup();
 		renderVitalsTable();
 
@@ -132,7 +132,7 @@ describe("Vitals table", () => {
 		expect(displayedIds()).toEqual(["V-newer", "V-older"]);
 	});
 
-	it("reports search input to the owner and renders the controlled query", async () => {
+	test("reports search input to the owner and renders the controlled query", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderVitalsTable({ query: "V-old" });
 
@@ -142,7 +142,7 @@ describe("Vitals table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("V-olde");
 	});
 
-	it("offers encounter date, encounter type, and record creation filters", async () => {
+	test("offers encounter date, encounter type, and record creation filters", async () => {
 		const user = userEvent.setup();
 		renderVitalsTable();
 
@@ -158,7 +158,7 @@ describe("Vitals table", () => {
 		expect(screen.getByRole("checkbox", { name: "Routine Checkup" })).toBeVisible();
 	});
 
-	it("shows active date filters as removable pills", async () => {
+	test("shows active date filters as removable pills", async () => {
 		const user = userEvent.setup();
 		const { onRecordedAtRangeApply } = renderVitalsTable({
 			recordedFrom: "2020-01-01",
@@ -171,7 +171,7 @@ describe("Vitals table", () => {
 		expect(onRecordedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
-	it("opens the details drawer from the row actions available to an owner", async () => {
+	test("opens the details drawer from the row actions available to an owner", async () => {
 		const user = userEvent.setup();
 		renderVitalsTable();
 
@@ -184,16 +184,17 @@ describe("Vitals table", () => {
 		const overview = within(dialog).getByRole("region", { name: "Routine Checkup" });
 		expect(within(overview).getByRole("heading", { name: "Routine Checkup" })).toBeVisible();
 		expect(within(dialog).getByRole("button", { name: "Edit" })).toBeVisible();
-		expect(within(dialog).getByRole("heading", { name: "History" })).toBeVisible();
+		expect(within(dialog).getByRole("heading", { name: "Activity" })).toBeVisible();
 		expect(within(dialog).getByRole("button", { name: "Archive vitals" })).toBeVisible();
 		expect(within(overview).getByText("118/79 mmHg")).toBeVisible();
 		expect(within(overview).getByText("Follow-up reading.")).toBeVisible();
-		expect(within(overview).getByText("Created by")).toBeVisible();
-		expect(within(overview).getByText("Dr. Okafor")).toBeVisible();
+		expect(
+			within(dialog).getByRole("button", { name: /Created by Dr. Okafor/ }),
+		).toHaveAttribute("aria-expanded", "false");
 		expect(within(dialog).getByRole("button", { name: "Copy ENC-newer" })).toBeVisible();
 	});
 
-	it("requires an encounter before recording vitals", async () => {
+	test("requires an encounter before recording vitals", async () => {
 		const user = userEvent.setup();
 		renderVitalsTable();
 
@@ -204,7 +205,7 @@ describe("Vitals table", () => {
 		);
 	});
 
-	it("paginates through the owner callbacks", async () => {
+	test("paginates through the owner callbacks", async () => {
 		const user = userEvent.setup();
 		const { onNextPage, onPreviousPage } = renderVitalsTable({ page: 2, totalPages: 3 });
 
@@ -215,7 +216,7 @@ describe("Vitals table", () => {
 		expect(onPreviousPage).toHaveBeenCalledTimes(1);
 	});
 
-	it("does not fabricate readings for a patient with no vitals", () => {
+	test("does not fabricate readings for a patient with no vitals", () => {
 		renderVitalsTable({ vitals: [], readings: [] });
 
 		expect(screen.getByRole("table")).toBeVisible();

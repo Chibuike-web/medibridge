@@ -85,11 +85,11 @@ function buildCreatedHistoryEvent(allergy: {
 	return {
 		id: "created",
 		title: "Created",
+		actor: empty(allergy.createdBy),
 		timestamp: formatTimelineTimestamp(allergy.createdAt),
 		items: [
 			{ label: "Severity", value: normalizeSeverity(allergy.severity) },
 			{ label: "Reaction", value: empty(allergy.reaction) },
-			{ label: "Created by", value: empty(allergy.createdBy) },
 			{ label: "Status", value: normalizeStatus(allergy.status) },
 		],
 	};
@@ -104,9 +104,9 @@ function buildUpdatedHistoryEvent(allergy: {
 	return {
 		id: "updated",
 		title: "Updated",
+		actor: empty(allergy.updatedBy),
 		timestamp: formatTimelineTimestamp(allergy.updatedAt),
 		items: [
-			{ label: "Updated by", value: empty(allergy.updatedBy) },
 			{ label: "Status", value: normalizeStatus(allergy.status) },
 			{ label: "Clinical notes", value: empty(allergy.clinicalNote) },
 		],
@@ -123,10 +123,10 @@ function mapHistoryEvent(history: {
 	return {
 		id: history.id,
 		title: "Updated",
+		actor: empty(history.updatedBy),
 		timestamp: formatTimelineTimestamp(history.createdAt),
 		items: [
 			{ label: formatSentenceCaseValue(history.fieldName), value: empty(history.newValue) },
-			{ label: "Updated by", value: empty(history.updatedBy) },
 		],
 	};
 }

@@ -101,6 +101,7 @@ function buildCreatedHistoryEvent(procedure: {
 	return {
 		id: "created",
 		title: "Created",
+		actor: empty(procedure.createdBy),
 		timestamp: formatTimelineTimestamp(procedure.createdAt),
 		items: [
 			{ label: "Indication", value: empty(procedure.indication) },
@@ -108,7 +109,6 @@ function buildCreatedHistoryEvent(procedure: {
 			{ label: "Planned physician", value: empty(procedure.plannedPhysician) },
 			{ label: "Planned Assistants", value: empty(procedure.plannedAssistants) },
 			{ label: "Planned Facility", value: empty(procedure.plannedFacility) },
-			{ label: "Created by", value: empty(procedure.createdBy) },
 			{ label: "Status", value: normalizeStatus(procedure.status) },
 		],
 	};
@@ -126,6 +126,7 @@ function buildUpdatedHistoryEvent(procedure: {
 	return {
 		id: "updated",
 		title: "Updated",
+		actor: empty(procedure.updatedBy),
 		timestamp: formatTimelineTimestamp(procedure.updatedAt),
 		items: [
 			{ label: "Status", value: normalizeStatus(procedure.status) },
@@ -133,7 +134,6 @@ function buildUpdatedHistoryEvent(procedure: {
 			{ label: "Performed by", value: empty(procedure.performedBy) },
 			{ label: "Team/Assistants", value: empty(procedure.assistants) },
 			{ label: "Facility", value: empty(procedure.facility) },
-			{ label: "Updated by", value: empty(procedure.updatedBy) },
 		],
 	};
 }
@@ -148,10 +148,10 @@ function mapHistoryEvent(history: {
 	return {
 		id: history.id,
 		title: "Updated",
+		actor: empty(history.updatedBy),
 		timestamp: formatTimelineTimestamp(history.createdAt),
 		items: [
 			{ label: formatSentenceCaseValue(history.fieldName), value: empty(history.newValue) },
-			{ label: "Updated by", value: empty(history.updatedBy) },
 		],
 	};
 }

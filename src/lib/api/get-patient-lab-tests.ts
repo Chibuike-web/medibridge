@@ -213,19 +213,20 @@ export async function getPatientLabTestsForOrganization(
 					{
 						id: `${labTest.labId}-updated`,
 						title: "Updated",
+						actor: updatedBy || orderedBy,
 						timestamp: updatedAtLabel,
 						items: [
 							{ label: "Flag", value: flag || interpretation },
 							{ label: "Interpretation", value: interpretation },
 							{ label: "Result", value: result },
 							{ label: "Status", value: status },
-							{ label: "Updated by", value: updatedBy || orderedBy },
 							{ label: "Clinical notes", value: clinicalNote },
 						],
 					},
 					{
 						id: `${labTest.labId}-created`,
 						title: "Created",
+						actor: labTest.createdBy ?? orderedBy,
 						timestamp: createdAtLabel,
 						items: [
 							{ label: "Status", value: "Pending" },

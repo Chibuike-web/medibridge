@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { addDays, format, startOfMonth, subDays } from "date-fns";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { MedicationDetailsType, MedicationType } from "@/features/patients/types";
 import { MedicationsTable } from "./medications-table";
 
@@ -53,7 +53,15 @@ const medicationDetails: Record<string, MedicationDetailsType> = {
 		updatedAt: "Apr 9, 2021",
 		createdBy: "Nurse Chika",
 		clinicalNote: "Review renal function every six months.",
-		history: [],
+		history: [
+			{
+				id: "created",
+				title: "Prescribed",
+				actor: "Nurse Chika",
+				timestamp: "3 April 2021 at 09:00",
+				items: [{ label: "Dose", value: "500 mg" }],
+			},
+		],
 	},
 	"MED-amox": {
 		medicationId: "MED-amox",
@@ -71,7 +79,15 @@ const medicationDetails: Record<string, MedicationDetailsType> = {
 		updatedAt: "Feb 21, 2020",
 		createdBy: "Dr. Bello",
 		clinicalNote: "Course completed without side effects.",
-		history: [],
+		history: [
+			{
+				id: "created",
+				title: "Prescribed",
+				actor: "Dr. Bello",
+				timestamp: "15 February 2020 at 09:00",
+				items: [{ label: "Dose", value: "250 mg" }],
+			},
+		],
 	},
 };
 
@@ -157,7 +173,7 @@ describe("Medications table", () => {
 		vi.unstubAllGlobals();
 	});
 
-	it("lists medications in the supplied order with dose, route, indication, date and status", () => {
+	test("lists medications in the supplied order with dose, route, indication, date and status", () => {
 		renderMedicationsTable();
 
 		expect(screen.getByRole("heading", { name: "Medications" })).toBeVisible();
@@ -189,7 +205,7 @@ describe("Medications table", () => {
 		expect(within(amoxicillinRow).getByText("Completed")).toBeVisible();
 	});
 
-	it("re-orders rows when a sortable header is clicked", async () => {
+	test("re-orders rows when a sortable header is clicked", async () => {
 		const user = userEvent.setup();
 		renderMedicationsTable();
 
@@ -217,7 +233,7 @@ describe("Medications table", () => {
 		expect(screen.getByRole("columnheader", { name: "Status" })).not.toHaveAttribute("aria-sort");
 	});
 
-	it("reports what the user types in the search box", async () => {
+	test("reports what the user types in the search box", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderMedicationsTable({ query: "Met" });
 
@@ -231,7 +247,7 @@ describe("Medications table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Metf");
 	});
 
-	it("drops the encounter ID hint from the search box when scoped to an encounter", () => {
+	test("drops the encounter ID hint from the search box when scoped to an encounter", () => {
 		renderMedicationsTable({ isEncounterScoped: true });
 
 		expect(screen.getByRole("searchbox")).toHaveAttribute(
@@ -240,7 +256,7 @@ describe("Medications table", () => {
 		);
 	});
 
-	it("adds and removes status filters from the filter menu", async () => {
+	test("adds and removes status filters from the filter menu", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderMedicationsTable({ statusFilters: ["active"] });
 
@@ -258,7 +274,7 @@ describe("Medications table", () => {
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
-	it("applies created-at date presets", async () => {
+	test("applies created-at date presets", async () => {
 		const user = userEvent.setup();
 		const today = new Date();
 		const { onCreatedAtRangeApply } = renderMedicationsTable();
@@ -280,7 +296,7 @@ describe("Medications table", () => {
 		);
 	});
 
-	it("applies a custom calendar range and can reset it", async () => {
+	test("applies a custom calendar range and can reset it", async () => {
 		const user = userEvent.setup();
 		const firstOfMonth = startOfMonth(new Date());
 		const thirdOfMonth = addDays(firstOfMonth, 2);
@@ -307,7 +323,7 @@ describe("Medications table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith("", "");
 	});
 
-	it("shows active filters as pills that clear the matching filter", async () => {
+	test("shows active filters as pills that clear the matching filter", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onCreatedAtRangeApply } = renderMedicationsTable({
 			statusFilters: ["completed", "discontinued"],
@@ -325,13 +341,13 @@ describe("Medications table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
-	it("hides the filter pills when no filter is active", () => {
+	test("hides the filter pills when no filter is active", () => {
 		renderMedicationsTable();
 
 		expect(screen.queryByRole("button", { name: /Remove .* filter/ })).not.toBeInTheDocument();
 	});
 
-	it("paginates through the callbacks", async () => {
+	test("paginates through the callbacks", async () => {
 		const user = userEvent.setup();
 		const { onNextPage, onPreviousPage } = renderMedicationsTable({ page: 2, totalPages: 3 });
 
@@ -344,7 +360,7 @@ describe("Medications table", () => {
 		expect(onPreviousPage).toHaveBeenCalledTimes(1);
 	});
 
-	it("disables paging at the bounds and while a request is pending", () => {
+	test("disables paging at the bounds and while a request is pending", () => {
 		const { rerender } = render(<MedicationsTable {...buildProps({ page: 1, totalPages: 3 })} />);
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
@@ -358,7 +374,7 @@ describe("Medications table", () => {
 		expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 	});
 
-	it("lets the user change the rows per page", async () => {
+	test("lets the user change the rows per page", async () => {
 		const user = userEvent.setup();
 		const { onLimitChange } = renderMedicationsTable({ limit: 14 });
 
@@ -369,14 +385,14 @@ describe("Medications table", () => {
 		expect(onLimitChange).toHaveBeenCalledWith(28);
 	});
 
-	it("shows an empty message when there are no medications", () => {
+	test("shows an empty message when there are no medications", () => {
 		renderMedicationsTable({ medications: [] });
 
 		expect(screen.getByRole("table")).toBeVisible();
 		expect(screen.getByText("No matching medications found.")).toBeVisible();
 	});
 
-	it("opens the details drawer with the chosen row's data from the row actions", async () => {
+	test("opens the details drawer with the chosen row's data from the row actions", async () => {
 		const user = userEvent.setup();
 		renderMedicationsTable();
 
@@ -390,11 +406,14 @@ describe("Medications table", () => {
 		expect(within(dialog).getByText("Three times daily")).toBeVisible();
 		expect(within(dialog).getByText("7 days")).toBeVisible();
 		expect(within(dialog).getByText("Dr. Adeyemi")).toBeVisible();
-		expect(within(dialog).getByText("Dr. Bello")).toBeVisible();
+		expect(within(dialog).getByRole("heading", { name: "Activity" })).toBeVisible();
+		expect(
+			within(dialog).getByRole("button", { name: /Prescribed by Dr. Bello/ }),
+		).toHaveAttribute("aria-expanded", "false");
 		expect(within(dialog).queryByText("Metformin")).not.toBeInTheDocument();
 	});
 
-	it("opens the details drawer when a row is activated with the keyboard", async () => {
+	test("opens the details drawer when a row is activated with the keyboard", async () => {
 		const user = userEvent.setup();
 		renderMedicationsTable();
 
@@ -407,7 +426,7 @@ describe("Medications table", () => {
 		expect(within(dialog).getByText("Ongoing")).toBeVisible();
 	});
 
-	it("only offers status changes for active medications", async () => {
+	test("only offers status changes for active medications", async () => {
 		const user = userEvent.setup();
 		renderMedicationsTable();
 
@@ -422,7 +441,7 @@ describe("Medications table", () => {
 		expect(screen.queryByRole("menuitem", { name: "Discontinue" })).not.toBeInTheDocument();
 	});
 
-	it("opens the add medication drawer from the toolbar", async () => {
+	test("opens the add medication drawer from the toolbar", async () => {
 		const user = userEvent.setup();
 		renderMedicationsTable();
 
@@ -430,7 +449,7 @@ describe("Medications table", () => {
 		expect(await screen.findByRole("dialog", { name: "Add medication" })).toBeVisible();
 	});
 
-	it("offers bulk actions for the selected rows, including archive for an admin", async () => {
+	test("offers bulk actions for the selected rows, including archive for an admin", async () => {
 		auth.role = "admin";
 		const user = userEvent.setup();
 		renderMedicationsTable();
@@ -446,7 +465,7 @@ describe("Medications table", () => {
 		expect(screen.queryByText("2 items selected")).not.toBeInTheDocument();
 	});
 
-	it("hides archive actions from a member", async () => {
+	test("hides archive actions from a member", async () => {
 		auth.role = "member";
 		const user = userEvent.setup();
 		renderMedicationsTable();

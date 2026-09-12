@@ -386,7 +386,7 @@ export function NewTransferRequestClient({
 								</DialogTrigger>
 								<DialogContent>
 									<DialogHeader>
-										<DialogTitle className="text-xl">Confirm Transfer Request</DialogTitle>
+										<DialogTitle>Confirm Transfer Request</DialogTitle>
 										<DialogDescription className="sr-only">
 											Review the selected patients and attached clinical records before submitting
 											this transfer request.

@@ -167,7 +167,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 				<div className="flex h-full min-h-0">
 					<aside className="w-[12.5rem] shrink-0 border-r bg-white p-2">
 						<div className="flex h-10 items-center px-2">
-							<DialogTitle className="text-base">Settings</DialogTitle>
+							<DialogTitle>Settings</DialogTitle>
 							<DialogDescription className="sr-only">
 								Manage your MediBridge profile and organization settings.
 							</DialogDescription>

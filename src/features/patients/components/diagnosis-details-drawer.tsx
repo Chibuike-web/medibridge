@@ -84,8 +84,8 @@ export function DiagnosisDetailsDrawer({
 	return (
 		<Drawer open={open} onOpenChange={handleDiagnosisDetailsOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
-				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
-					<DrawerTitle className="text-base leading-[1.2] text-gray-800">
+				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
+					<DrawerTitle className="leading-[1.2] text-gray-800">
 						{isEditingDiagnosisDetails ? "Edit diagnosis details" : "View diagnosis details"}
 					</DrawerTitle>
 					<DrawerClose aria-label="Close diagnosis details">
@@ -119,7 +119,7 @@ export function DiagnosisDetailsDrawer({
 					)}
 				</div>
 
-				<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
+				<DrawerFooter className="border-t border-gray-200 text-sm">
 					{isEditingDiagnosisDetails ? (
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<Button
@@ -168,13 +168,13 @@ function DiagnosisDetailsOverview({
 		<div className="flex flex-col gap-10">
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Diagnosis ID:</span>
+					<span className="font-normal text-gray-400">Diagnosis ID:</span>
 					<CopyIdButton id={diagnosis.diagnosisId} className="text-sm" />
 				</div>
 				<div className="flex items-center gap-2">
 					{diagnosis.encounterId ? (
 						<>
-							<span className="text-gray-400">Encounter ID:</span>
+							<span className="font-normal text-gray-400">Encounter ID:</span>
 							<CopyIdButton id={diagnosis.encounterId} className="text-sm" />
 						</>
 					) : null}
@@ -190,7 +190,7 @@ function DiagnosisDetailsOverview({
 					<button
 						type="button"
 						onClick={onEditDiagnosisDetails}
-						className="inline-flex items-center gap-2 text-sm font-medium text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						className="inline-flex items-center gap-2 text-sm font-normal text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
@@ -200,10 +200,7 @@ function DiagnosisDetailsOverview({
 				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
 					<DiagnosisDetailItem label="Severity/Stage" value={diagnosis.severityStage} />
 					<DiagnosisDetailItem label="Diagnosed at" value={diagnosis.diagnosedAt} />
-					<DiagnosisDetailItem label="Created at" value={diagnosis.createdAt} />
 					<DiagnosisDetailItem label="Diagnosed by" value={diagnosis.diagnosedBy} />
-					<DiagnosisDetailItem label="Updated by" value={diagnosis.updatedBy} />
-					<DiagnosisDetailItem label="Updated At" value={diagnosis.updatedAt} />
 					<DiagnosisDetailItem label="Last reviewed" value={diagnosis.lastReviewedAt} />
 					<DiagnosisDetailItem label="Clinical note" value={diagnosis.clinicalNote} />
 				</div>
@@ -242,12 +239,12 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 			<div className="flex flex-col gap-8">
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Diagnosis ID:</span>
+						<span className="font-normal text-gray-400">Diagnosis ID:</span>
 						<CopyIdButton id={diagnosis.diagnosisId} className="text-sm" />
 					</div>
 					{diagnosis.encounterId ? (
 						<div className="flex items-center gap-2">
-							<span className="text-gray-400">Encounter ID:</span>
+							<span className="font-normal text-gray-400">Encounter ID:</span>
 							<CopyIdButton id={diagnosis.encounterId} className="text-sm" />
 						</div>
 					) : null}
@@ -448,7 +445,7 @@ function getDiagnosisSelectValue(value: string) {
 function DiagnosisDetailItem({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
-			<span className="text-gray-400">{label}</span>
+			<span className="font-normal text-gray-400">{label}</span>
 			{label === "Status" ? (
 				<StatusBadge status={value || EMPTY_VALUE} className="w-max" />
 			) : (
@@ -462,8 +459,8 @@ function DiagnosisHistorySection({ history }: { history: DiagnosisDetailsHistory
 	return (
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
-				<p className="text-base font-semibold">History</p>
-				<button className="text-gray-400">View more</button>
+				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
+				<button className="font-normal text-gray-400">View more</button>
 			</div>
 			<div className="flex flex-col gap-4">
 				{history.map((historyEvent) => (
@@ -475,13 +472,13 @@ function DiagnosisHistorySection({ history }: { history: DiagnosisDetailsHistory
 }
 
 function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetailsHistoryEvent }) {
-	const [isDiagnosisHistoryExpanded, setIsDiagnosisHistoryExpanded] = useState(true);
+	const [isDiagnosisHistoryExpanded, setIsDiagnosisHistoryExpanded] = useState(false);
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
 
 	return (
-		<section className="flex flex-col rounded-2xl border border-gray-200 p-5">
+		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
 			<button
 				type="button"
 				onClick={() => setIsDiagnosisHistoryExpanded((prev) => !prev)}
@@ -489,11 +486,15 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<p className="text-base">
+				<p className="min-w-0 text-sm">
 					<span id={titleId} className="font-semibold text-gray-800">
-						{historyEvent.title}{" "}
+						{historyEvent.title} by {historyEvent.actor}
 					</span>
-					<span className="text-gray-400">on {historyEvent.timestamp}</span>
+					{" "}
+					<span aria-hidden="true" className="font-normal text-gray-200">
+						•
+					</span>{" "}
+					<span className="font-normal text-gray-400">{historyEvent.timestamp}</span>
 				</p>
 				<RiArrowDownSLine
 					className={cn(
@@ -551,8 +552,8 @@ function DiagnosisRelatedRecords({
 	return (
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
-				<p className="text-base font-semibold">Related records</p>
-				<button className="text-gray-400">View more</button>
+				<h2 className="text-sm font-semibold text-gray-800">Related records</h2>
+				<button className="font-normal text-gray-400">View more</button>
 			</div>{" "}
 			<div className="flex flex-col gap-4">
 				{sections.map((section) => (
@@ -574,13 +575,13 @@ function DiagnosisRelatedRecordSection({
 	title: string;
 	records: DiagnosisDetailsRelatedRecord[];
 }) {
-	const [isRelatedRecordSectionExpanded, setIsRelatedRecordSectionExpanded] = useState(true);
+	const [isRelatedRecordSectionExpanded, setIsRelatedRecordSectionExpanded] = useState(false);
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
 
 	return (
-		<section className="flex flex-col rounded-2xl border border-gray-200 p-5">
+		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
 			<button
 				type="button"
 				onClick={() => setIsRelatedRecordSectionExpanded((prev) => !prev)}
@@ -588,7 +589,7 @@ function DiagnosisRelatedRecordSection({
 				aria-controls={panelId}
 				className="flex w-full items-center justify-between gap-4 text-left"
 			>
-				<span id={titleId} className="text-base font-semibold text-gray-800">
+				<span id={titleId} className="text-sm font-semibold text-gray-800">
 					{title}
 				</span>
 				<RiArrowDownSLine
@@ -650,7 +651,7 @@ function DiagnosisDetailsFallback() {
 				</div>
 			</div>
 			{Array.from({ length: 2 }).map((_, index) => (
-				<div key={index} className="flex flex-col gap-4 rounded-2xl border border-gray-200 p-5">
+				<div key={index} className="flex flex-col gap-4 rounded-xl border border-gray-200 p-4">
 					<div className="h-5 w-48 animate-pulse rounded bg-gray-100" />
 					<div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
 						<div className="h-5 w-40 animate-pulse rounded bg-gray-100" />

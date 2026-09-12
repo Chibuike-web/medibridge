@@ -86,10 +86,10 @@ function mapMedicationHistoryEvent(history: {
 	return {
 		id: history.id,
 		title: "Updated",
+		actor: empty(history.updatedBy),
 		timestamp: formatTimelineTimestamp(history.createdAt),
 		items: [
 			{ label: fieldName, value: empty(history.newValue) },
-			{ label: "Updated by", value: empty(history.updatedBy) },
 		],
 	};
 }
@@ -104,6 +104,7 @@ function buildCreatedHistoryEvent(medication: {
 	return {
 		id: "created",
 		title: "Prescribed",
+		actor: EMPTY_VALUE,
 		timestamp: formatTimelineTimestamp(medication.createdAt),
 		items: [
 			{ label: "Status", value: normalizeStatus(medication.status) },
@@ -123,6 +124,7 @@ function buildUpdatedHistoryEvent(medication: {
 	return {
 		id: "updated",
 		title: "Updated",
+		actor: EMPTY_VALUE,
 		timestamp: formatTimelineTimestamp(medication.updatedAt),
 		items: [
 			{ label: "Status", value: normalizeStatus(medication.status) },

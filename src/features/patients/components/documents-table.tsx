@@ -1,22 +1,13 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import useSWR from "swr";
-import { CreateDocumentDrawer as CreateDocumentDrawerComponent } from "@/features/patients/components/create-document-drawer";
-import { DocumentDetailsDrawer as DocumentDetailsDrawerComponent } from "@/features/patients/components/document-details-drawer";
+import { CreateDocumentDrawer } from "@/features/patients/components/create-document-drawer";
+import { DocumentDetailsDrawer } from "@/features/patients/components/document-details-drawer";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-	Drawer,
-	DrawerClose,
-	DrawerContent,
-	DrawerDescription,
-	DrawerFooter,
-	DrawerHeader,
-	DrawerTitle,
-} from "@/components/ui/drawer";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -45,11 +36,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
 import type { DocumentType } from "@/features/patients/types";
-import { createPatientDocumentAction } from "@/features/patients/server/create-patient-document-action";
-import { removePatientDocumentAction } from "@/features/patients/server/remove-patient-document-action";
-import { updatePatientDocumentAction } from "@/features/patients/server/update-patient-document-action";
 import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {
@@ -69,21 +56,15 @@ import {
 	RiCalendarLine,
 	RiCheckLine,
 	RiCloseLine,
-	RiEditLine,
 	RiEyeLine,
 	RiFileTextLine,
 	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
 	RiShare2Line,
-	RiUploadCloud2Line,
 } from "@remixicon/react";
 import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
-import pdfFileFormat from "@/assets/file-formats/pdf.svg";
-import pngFileFormat from "@/assets/file-formats/png.svg";
-import jpgFileFormat from "@/assets/file-formats/jpg.svg";
-import docFileFormat from "@/assets/file-formats/doc.svg";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 
@@ -115,14 +96,6 @@ const documentDateFilterPresets: DocumentDateFilterPreset[] = [
 		getRange: (today) => ({ from: startOfDay(subDays(today, 29)), to: endOfDay(today) }),
 	},
 ];
-const fileFormat: Record<string, string> = {
-	pdf: pdfFileFormat,
-	jpg: jpgFileFormat,
-	png: pngFileFormat,
-	doc: docFileFormat,
-	docx: docFileFormat,
-};
-
 type DocumentsTableProps = {
 	patientId: string;
 	encounterId?: string;
@@ -232,10 +205,7 @@ export function DocumentsTable({
 				</div>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<Button
-							variant="outline"
-							className="bg-white text-gray-600 hover:bg-gray-50"
-						>
+						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 							Filter
 						</Button>
@@ -328,11 +298,7 @@ export function DocumentsTable({
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button
-					type="button"
-					className="bg-gray-800"
-					onClick={() => setIsCreateDrawerOpen(true)}
-				>
+				<Button type="button" className="bg-gray-800" onClick={() => setIsCreateDrawerOpen(true)}>
 					Add document
 				</Button>
 			</div>
@@ -367,7 +333,10 @@ export function DocumentsTable({
 												: undefined
 										}
 										onKeyDown={(event) => {
-											if (header.column.getCanSort() && (event.key === "Enter" || event.key === " ")) {
+											if (
+												header.column.getCanSort() &&
+												(event.key === "Enter" || event.key === " ")
+											) {
 												event.preventDefault();
 												header.column.getToggleSortingHandler()?.(event);
 											}
@@ -424,7 +393,7 @@ export function DocumentsTable({
 								{row.getVisibleCells().map((cell) => (
 									<TableCell
 										key={cell.id}
-									className={cn(
+										className={cn(
 											"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
 											row.getIsSelected() ? "bg-gray-100" : "bg-white",
 											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
@@ -503,7 +472,7 @@ export function DocumentsTable({
 				onClearSelection={() => table.resetRowSelection()}
 				onViewDocumentDetails={handleViewDocumentDetails}
 			/>
-			<DocumentDetailsDrawerComponent
+			<DocumentDetailsDrawer
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}
 				document={documentDetailsQuery.data ?? null}
@@ -513,7 +482,7 @@ export function DocumentsTable({
 					onDocumentsChanged();
 				}}
 			/>
-			<CreateDocumentDrawerComponent
+			<CreateDocumentDrawer
 				open={isCreateDrawerOpen}
 				onOpenChange={setIsCreateDrawerOpen}
 				patientId={patientId}
@@ -612,7 +581,9 @@ function DocumentActiveFilterPills({
 					label={`Document type: ${documentType}`}
 					onRemove={() => {
 						onDocumentTypeFiltersChange(
-							documentTypeFilters.filter((currentDocumentType) => currentDocumentType !== documentType),
+							documentTypeFilters.filter(
+								(currentDocumentType) => currentDocumentType !== documentType,
+							),
 						);
 					}}
 				/>
@@ -693,7 +664,10 @@ function DocumentDatePresetList({
 				key={preset.label}
 				onSelect={(event) => {
 					event.preventDefault();
-					onDateRangeApply(formatDocumentUrlDate(presetRange.from), formatDocumentUrlDate(presetRange.to));
+					onDateRangeApply(
+						formatDocumentUrlDate(presetRange.from),
+						formatDocumentUrlDate(presetRange.to),
+					);
 				}}
 				className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
 			>
@@ -948,383 +922,6 @@ function getDocumentColumns({
 			),
 		},
 	];
-}
-
-function LegacyDocumentDetailsDrawer({
-	open,
-	onOpenChange,
-	document,
-	isLoading,
-}: {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	document: DocumentType | null;
-	isLoading: boolean;
-}) {
-	const [mode, setMode] = useState<"view" | "edit">("view");
-	const [actionError, setActionError] = useState("");
-	const [isDocumentActionPending, startDocumentActionTransition] = useTransition();
-	const isEditing = mode === "edit" && Boolean(document);
-
-	function handleOpenChange(nextOpen: boolean) {
-		if (!nextOpen) setMode("view");
-		onOpenChange(nextOpen);
-	}
-
-	function handleUpdateDocument(formData: FormData) {
-		if (!document) return;
-		setActionError("");
-		startDocumentActionTransition(async () => {
-			const result = await updatePatientDocumentAction(document.documentId, formData);
-			if (!result.ok) {
-				setActionError(result.message ?? "");
-				return;
-			}
-			setMode("view");
-		});
-	}
-
-	function handleRemoveDocument() {
-		if (!document) return;
-		setActionError("");
-		startDocumentActionTransition(async () => {
-			const result = await removePatientDocumentAction(document.documentId);
-			if (!result.ok) {
-				setActionError(result.message ?? "");
-				return;
-			}
-			onOpenChange(false);
-		});
-	}
-
-	return (
-		<Drawer open={open} onOpenChange={handleOpenChange} direction="right">
-			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
-				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
-					<DrawerTitle className="text-lg text-gray-800">
-						{isEditing ? "Edit document details" : "View document details"}
-					</DrawerTitle>
-					<DrawerClose aria-label="Close document details">
-						<RiCloseLine className="size-6" />
-					</DrawerClose>
-					<DrawerDescription className="sr-only">
-						Details for the selected patient document.
-					</DrawerDescription>
-				</DrawerHeader>
-				<div className="min-h-0 overflow-y-auto px-6 py-8">
-					{isLoading ? (
-						<div className="space-y-4" aria-busy="true">
-							<div className="h-6 w-48 animate-pulse rounded bg-gray-100" />
-							<div className="h-40 animate-pulse rounded-xl bg-gray-100" />
-						</div>
-					) : document ? (
-						isEditing ? (
-							<DocumentEditForm document={document} onSubmit={handleUpdateDocument} />
-						) : (
-							<DocumentOverview document={document} onEdit={() => setMode("edit")} />
-						)
-					) : (
-						<p className="text-gray-500">Document details could not be found.</p>
-					)}
-					{actionError ? <p className="px-6 pb-2 text-sm text-red-600">{actionError}</p> : null}
-				</div>
-				<DrawerFooter className="border-t border-gray-200 p-5">
-					{isEditing ? (
-						<div className="ml-auto flex gap-2">
-							<Button type="button" variant="outline" onClick={() => setMode("view")}>
-								Cancel
-							</Button>
-							<Button
-								type="submit"
-								form="document-details-edit-form"
-								disabled={isDocumentActionPending}
-							>
-								Save changes
-							</Button>
-						</div>
-					) : (
-						<div className="ml-auto flex gap-2">
-							<DrawerClose asChild>
-								<Button type="button" variant="outline">
-									Cancel
-								</Button>
-							</DrawerClose>
-							<Button
-								type="button"
-								className="bg-gray-800"
-								disabled={isDocumentActionPending}
-								onClick={handleRemoveDocument}
-							>
-								Remove document
-							</Button>
-						</div>
-					)}
-				</DrawerFooter>
-			</DrawerContent>
-		</Drawer>
-	);
-}
-
-function DocumentOverview({ document, onEdit }: { document: DocumentType; onEdit: () => void }) {
-	return (
-		<div className="flex flex-col gap-10">
-			<div className="flex flex-wrap gap-x-8 gap-y-3">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Document ID:</span>
-					<CopyIdButton id={document.documentId} />
-				</div>
-				{document.encounterId ? (
-					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
-						<CopyIdButton id={document.encounterId} />
-					</div>
-				) : null}
-			</div>
-			<div className="flex items-center justify-between gap-4">
-				<h2 className="text-xl font-semibold text-gray-800">{document.title}</h2>
-				<Button type="button" variant="ghost" onClick={onEdit} className="text-gray-500">
-					<RiEditLine className="size-4" />
-					Edit
-				</Button>
-			</div>
-			<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
-				<DocumentDetail label="Document type" value={document.documentType} />
-				<DocumentDetail label="Clinical notes" value={document.clinicalNotes} />
-				<DocumentDetail label="Created by" value={document.createdBy} />
-				<DocumentDetail label="Created at" value={document.createdAtLabel} />
-				<DocumentDetail label="Updated by" value={document.updatedBy} />
-				<DocumentDetail label="Updated at" value={document.updatedAtLabel} />
-			</div>
-			<div>
-				<h3 className="mb-4 text-lg font-semibold text-gray-800">Files</h3>
-				<div className="flex flex-col gap-3">
-					{document.files.map((file) => (
-						<div
-							key={file.url}
-							className="flex items-center gap-4 rounded-2xl border border-gray-200 p-4"
-						>
-							<div className="min-w-0 flex-1">
-								<p className="truncate font-semibold text-gray-800">{file.name}</p>
-								<p className="mt-1 truncate text-gray-400">
-									{file.size} - Uploaded on {file.uploadedAt.slice(0, 10)}
-								</p>
-							</div>
-							<Button asChild type="button">
-								<a href={file.url}>Open</a>
-							</Button>
-						</div>
-					))}
-				</div>
-			</div>
-		</div>
-	);
-}
-
-function DocumentDetail({ label, value }: { label: string; value: string }) {
-	return (
-		<div className="flex flex-col gap-2">
-			<span className="text-gray-400">{label}</span>
-			<span className="font-semibold text-gray-600">{value || "-"}</span>
-		</div>
-	);
-}
-
-function DocumentEditForm({
-	document,
-	onSubmit,
-}: {
-	document: DocumentType;
-	onSubmit: (formData: FormData) => void;
-}) {
-	return (
-		<form
-			id="document-details-edit-form"
-			action={onSubmit}
-			className="grid grid-cols-1 gap-6 sm:grid-cols-2"
-		>
-			<div className="flex flex-col gap-2">
-				<Label htmlFor="document-title">Document title</Label>
-				<Input id="document-title" name="title" defaultValue={document.title} required />
-			</div>
-			<div className="flex flex-col gap-2">
-				<Label>Document type</Label>
-				<Select name="documentType" defaultValue={document.documentType}>
-					<SelectTrigger>
-						<SelectValue />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value={document.documentType}>{document.documentType}</SelectItem>
-					</SelectContent>
-				</Select>
-			</div>
-
-			<div className="flex flex-col gap-2 sm:col-span-2">
-				<Label htmlFor="document-notes">Clinical notes</Label>
-				<Textarea
-					id="document-notes"
-					name="clinicalNotes"
-					defaultValue={document.clinicalNotes === "-" ? "" : document.clinicalNotes}
-					className="min-h-32"
-				/>
-			</div>
-		</form>
-	);
-}
-
-function LegacyCreateDocumentDrawer({
-	open,
-	onOpenChange,
-	patientId,
-}: {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	patientId: string;
-}) {
-	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-	const [formError, setFormError] = useState("");
-	const [isCreatingDocument, startCreateDocumentTransition] = useTransition();
-
-	function handleCreateDocument(formData: FormData) {
-		setFormError("");
-		startCreateDocumentTransition(async () => {
-			const result = await createPatientDocumentAction(patientId, formData);
-			if (!result.ok) {
-				setFormError(result.message ?? "");
-				return;
-			}
-			setSelectedFiles([]);
-			onOpenChange(false);
-		});
-	}
-
-	return (
-		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
-			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
-				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
-					<DrawerTitle className="text-lg text-gray-800">Add document</DrawerTitle>
-					<DrawerClose aria-label="Close add document">
-						<RiCloseLine className="size-5" />
-					</DrawerClose>
-					<DrawerDescription className="sr-only">
-						Add document metadata and choose mock local files.
-					</DrawerDescription>
-				</DrawerHeader>
-				<form
-					id="create-document-form"
-					action={handleCreateDocument}
-					className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-8"
-				>
-					<div className="grid gap-6 sm:grid-cols-2">
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="new-document-title">
-								Document title <span className="text-gray-400">(required)</span>
-							</Label>
-							<Input
-								id="new-document-title"
-								name="title"
-								placeholder="e.g. Complete Blood Count Report"
-								required
-							/>
-						</div>
-
-						<div className="flex flex-col gap-2">
-							<Label>
-								Document Type <span className="text-gray-400">(required)</span>
-							</Label>
-							<Select name="document type" required>
-								<SelectTrigger className="w-full">
-									<SelectValue placeholder="Select document type" />
-								</SelectTrigger>
-								<SelectContent>
-									{DOCUMENT_TYPE.map((documentType) => (
-										<SelectItem
-											value={documentType}
-											key={documentType}
-											className="rounded-md px-3 h-9"
-										>
-											{documentType}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-						<div className="space-y-2 sm:col-span-2">
-							<Label htmlFor="new-document-notes">
-								Clinical notes <span className="text-gray-400">(optional)</span>
-							</Label>
-							<Textarea
-								id="new-document-notes"
-								name="clinicalNotes"
-								className="min-h-32"
-								placeholder="Add notes or context about this document"
-							/>
-						</div>
-					</div>
-					<div className="space-y-3">
-						<Label htmlFor="mock-document-files">
-							Files <span className="text-gray-400">(mock only)</span>
-						</Label>
-						<label
-							htmlFor="mock-document-files"
-							className="flex min-h-44 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 p-6 text-center transition hover:bg-gray-50"
-						>
-							<RiUploadCloud2Line className="mb-3  text-gray-500" />
-							<span className="font-medium text-gray-800">
-								Choose one or more files or drag and drop them here.
-							</span>
-							<span className="mt-1 text-gray-500">
-								Supports JPEG, PNG, and PDF, up to 50 MB. Files are not uploaded.
-							</span>
-							<span className="mt-4 rounded-md border border-gray-200 bg-white px-4 py-2 font-medium text-gray-600 shadow-xs">
-								Browse files
-							</span>
-						</label>
-						<input
-							id="mock-document-files"
-							type="file"
-							accept="image/jpeg,image/png,application/pdf"
-							multiple
-							className="sr-only"
-							onChange={(event) => setSelectedFiles(Array.from(event.target.files ?? []))}
-						/>
-						{selectedFiles.map((file) => (
-							<div
-								key={`${file.name}-${file.lastModified}`}
-								className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3"
-							>
-								<span className="min-w-0 truncate font-medium text-gray-700">{file.name}</span>
-								<button
-									type="button"
-									className="text-gray-500 hover:text-gray-800"
-									onClick={() =>
-										setSelectedFiles((prev) => prev.filter((selectedFile) => selectedFile !== file))
-									}
-								>
-									Remove
-								</button>
-							</div>
-						))}
-					</div>
-					{formError ? <p className="text-red-600">{formError}</p> : null}
-				</form>
-				<DrawerFooter className="border-t border-gray-200 p-5">
-					<div className="ml-auto flex gap-2">
-						<DrawerClose asChild>
-							<Button variant="outline">Cancel</Button>
-						</DrawerClose>
-						<Button
-							type="submit"
-							form="create-document-form"
-							className="bg-gray-800"
-							disabled={isCreatingDocument}
-						>
-							Add document
-						</Button>
-					</div>
-				</DrawerFooter>
-			</DrawerContent>
-		</Drawer>
-	);
 }
 
 async function fetchPatientDocumentDetails(documentId: string) {

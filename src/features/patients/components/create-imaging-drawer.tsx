@@ -88,8 +88,8 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
-				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
-					<DrawerTitle className="text-base leading-[1.2] text-gray-800">Add imaging</DrawerTitle>
+				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
+					<DrawerTitle className="leading-[1.2] text-gray-800">Add imaging</DrawerTitle>
 					<DrawerClose aria-label="Close add imaging drawer">
 						<RiCloseLine className="size-6" aria-hidden="true" />
 					</DrawerClose>
@@ -281,7 +281,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 					</div>
 				</form>
 
-				<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
+				<DrawerFooter className="border-t border-gray-200 text-sm">
 					<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 						<DrawerClose asChild>
 							<Button type="button" variant="outline">

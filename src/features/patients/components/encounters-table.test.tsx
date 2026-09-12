@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format, setDate, startOfMonth, subDays } from "date-fns";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { EncounterType } from "@/features/patients/types";
 import { EncountersTable } from "./encounters-table";
 
@@ -118,7 +118,7 @@ describe("Encounters table", () => {
 		authState.role = "owner";
 	});
 
-	it("shows each encounter's date, type, ID, department and physician", () => {
+	test("shows each encounter's date, type, ID, department and physician", () => {
 		renderEncountersTable();
 
 		for (const label of [
@@ -143,14 +143,14 @@ describe("Encounters table", () => {
 		expect(within(secondRow).getByRole("button", { name: "Copy ENC-1001" })).toBeVisible();
 	});
 
-	it("shows an empty message when the patient has no encounters", () => {
+	test("shows an empty message when the patient has no encounters", () => {
 		renderEncountersTable({ encounters: [] });
 
 		expect(screen.getByText("No matching encounters found.")).toBeVisible();
 		expect(bodyRows()).toHaveLength(1);
 	});
 
-	it("reports what the user types in the search box", async () => {
+	test("reports what the user types in the search box", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderEncountersTable({ query: "Cardio" });
 
@@ -164,7 +164,7 @@ describe("Encounters table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Cardiol");
 	});
 
-	it("re-orders rows when the user sorts by encounter date", async () => {
+	test("re-orders rows when the user sorts by encounter date", async () => {
 		const user = userEvent.setup();
 		renderEncountersTable();
 
@@ -180,7 +180,7 @@ describe("Encounters table", () => {
 		expect(displayedIds()).toEqual(["ENC-2001", "ENC-1001"]);
 	});
 
-	it("sorts by physician from the keyboard", async () => {
+	test("sorts by physician from the keyboard", async () => {
 		const user = userEvent.setup();
 		renderEncountersTable();
 
@@ -193,7 +193,7 @@ describe("Encounters table", () => {
 		expect(displayedIds()).toEqual(["ENC-1001", "ENC-2001"]);
 	});
 
-	it("does not allow sorting by encounter ID", () => {
+	test("does not allow sorting by encounter ID", () => {
 		renderEncountersTable();
 
 		expect(screen.getByRole("columnheader", { name: "Encounter ID" })).not.toHaveAttribute(
@@ -201,7 +201,7 @@ describe("Encounters table", () => {
 		);
 	});
 
-	it("lists encounter, department, and date filters", async () => {
+	test("lists encounter, department, and date filters", async () => {
 		const user = userEvent.setup();
 		renderEncountersTable();
 
@@ -212,7 +212,7 @@ describe("Encounters table", () => {
 		}
 	});
 
-	it("adds and removes encounter type filters from the Encounter type submenu", async () => {
+	test("adds and removes encounter type filters from the Encounter type submenu", async () => {
 		const user = userEvent.setup();
 		const { onEncounterTypeFiltersChange } = renderEncountersTable({
 			encounterTypeFilters: ["emergency-visit"],
@@ -234,7 +234,7 @@ describe("Encounters table", () => {
 		expect(onEncounterTypeFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
-	it("adds department filters from the Department submenu", async () => {
+	test("adds department filters from the Department submenu", async () => {
 		const user = userEvent.setup();
 		const { onDepartmentFiltersChange } = renderEncountersTable();
 
@@ -244,7 +244,7 @@ describe("Encounters table", () => {
 		expect(onDepartmentFiltersChange).toHaveBeenCalledWith(["cardiology"]);
 	});
 
-	it("applies an encounter date preset as a from/to range", async () => {
+	test("applies an encounter date preset as a from/to range", async () => {
 		const user = userEvent.setup();
 		const { onEncounterDateRangeApply } = renderEncountersTable();
 
@@ -258,7 +258,7 @@ describe("Encounters table", () => {
 		);
 	});
 
-	it("applies a custom created-at range picked on the calendar and can reset it", async () => {
+	test("applies a custom created-at range picked on the calendar and can reset it", async () => {
 		const user = userEvent.setup();
 		const { onCreatedAtRangeApply } = renderEncountersTable();
 
@@ -286,7 +286,7 @@ describe("Encounters table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith("", "");
 	});
 
-	it("shows active filters as pills the user can remove", async () => {
+	test("shows active filters as pills the user can remove", async () => {
 		const user = userEvent.setup();
 		const {
 			onEncounterTypeFiltersChange,
@@ -321,13 +321,13 @@ describe("Encounters table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
-	it("shows no filter pills when no filters are active", () => {
+	test("shows no filter pills when no filters are active", () => {
 		renderEncountersTable();
 
 		expect(screen.queryByRole("button", { name: /^Remove / })).not.toBeInTheDocument();
 	});
 
-	it("paginates through the owner callbacks and shows the current page", async () => {
+	test("paginates through the owner callbacks and shows the current page", async () => {
 		const user = userEvent.setup();
 		const { onNextPage, onPreviousPage } = renderEncountersTable({ page: 2, totalPages: 3 });
 
@@ -338,14 +338,14 @@ describe("Encounters table", () => {
 		expect(onPreviousPage).toHaveBeenCalledTimes(1);
 	});
 
-	it("disables Previous on the first page and Next on the last page", () => {
+	test("disables Previous on the first page and Next on the last page", () => {
 		renderEncountersTable({ page: 1, totalPages: 1 });
 
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 	});
 
-	it("disables paging and the rows-per-page picker while a request is pending", () => {
+	test("disables paging and the rows-per-page picker while a request is pending", () => {
 		renderEncountersTable({ page: 2, totalPages: 3, isPending: true });
 
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
@@ -353,7 +353,7 @@ describe("Encounters table", () => {
 		expect(rowsPerPagePicker()).toBeDisabled();
 	});
 
-	it("lets the user change the rows per page", async () => {
+	test("lets the user change the rows per page", async () => {
 		const user = userEvent.setup();
 		const { onLimitChange } = renderEncountersTable();
 
@@ -364,7 +364,7 @@ describe("Encounters table", () => {
 		expect(onLimitChange).toHaveBeenCalledWith(28);
 	});
 
-	it("opens the encounter detail page when a row is activated", async () => {
+	test("opens the encounter detail page when a row is activated", async () => {
 		const user = userEvent.setup();
 		renderEncountersTable();
 
@@ -377,7 +377,7 @@ describe("Encounters table", () => {
 		expect(router.push).toHaveBeenCalledTimes(2);
 	});
 
-	it("links the row actions to that encounter's detail page and offers Archive to an owner", async () => {
+	test("links the row actions to that encounter's detail page and offers Archive to an owner", async () => {
 		const user = userEvent.setup();
 		renderEncountersTable();
 
@@ -392,7 +392,7 @@ describe("Encounters table", () => {
 		expect(screen.getByRole("menuitem", { name: "Archive" })).toBeVisible();
 	});
 
-	it("hides Archive from a member in the row actions and the bulk bar", async () => {
+	test("hides Archive from a member in the row actions and the bulk bar", async () => {
 		authState.role = "member";
 		const user = userEvent.setup();
 		renderEncountersTable();
@@ -408,7 +408,7 @@ describe("Encounters table", () => {
 		expect(screen.queryByRole("button", { name: /Archive/ })).not.toBeInTheDocument();
 	});
 
-	it("shows a bulk action bar for selected rows with Archive for an admin", async () => {
+	test("shows a bulk action bar for selected rows with Archive for an admin", async () => {
 		authState.role = "admin";
 		const user = userEvent.setup();
 		renderEncountersTable();
@@ -431,7 +431,7 @@ describe("Encounters table", () => {
 		expect(screen.queryByText(/selected/)).not.toBeInTheDocument();
 	});
 
-	it("opens the create encounter drawer from the Create encounter button", async () => {
+	test("opens the create encounter drawer from the Create encounter button", async () => {
 		const user = userEvent.setup();
 		renderEncountersTable();
 

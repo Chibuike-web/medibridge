@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { DocumentType } from "@/features/patients/types";
 import { DocumentsTable } from "./documents-table";
 
@@ -143,7 +143,7 @@ describe("Documents table", () => {
 		vi.unstubAllGlobals();
 	});
 
-	it("shows each document with its type and creation date", () => {
+	test("shows each document with its type and creation date", () => {
 		renderDocumentsTable();
 
 		expect(screen.getByRole("heading", { name: "Documents" })).toBeVisible();
@@ -163,14 +163,14 @@ describe("Documents table", () => {
 		expect(within(usiRow).getByText("Jan 2, 2020")).toBeVisible();
 	});
 
-	it("shows the empty state when there are no documents", () => {
+	test("shows the empty state when there are no documents", () => {
 		renderDocumentsTable({ documents: [] });
 
 		expect(screen.getByText("No matching documents found.")).toBeVisible();
 		expect(bodyRows()).toHaveLength(1);
 	});
 
-	it("reports what the user types in the search box and shows the controlled query", async () => {
+	test("reports what the user types in the search box and shows the controlled query", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderDocumentsTable({ query: "Bloo" });
 
@@ -181,7 +181,7 @@ describe("Documents table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Blood");
 	});
 
-	it("drops the encounter ID hint from the search box when scoped to an encounter", () => {
+	test("drops the encounter ID hint from the search box when scoped to an encounter", () => {
 		renderDocumentsTable({ isEncounterScoped: true });
 
 		expect(screen.getByRole("searchbox")).toHaveAttribute(
@@ -190,7 +190,7 @@ describe("Documents table", () => {
 		);
 	});
 
-	it("sorts rows by title when the header is clicked, then reverses, then clears", async () => {
+	test("sorts rows by title when the header is clicked, then reverses, then clears", async () => {
 		const user = userEvent.setup();
 		renderDocumentsTable();
 
@@ -210,7 +210,7 @@ describe("Documents table", () => {
 		expect(displayedDocumentIds()).toEqual(["DOC-CBC", "DOC-USI"]);
 	});
 
-	it("sorts by document type", async () => {
+	test("sorts by document type", async () => {
 		const user = userEvent.setup();
 		renderDocumentsTable();
 
@@ -220,7 +220,7 @@ describe("Documents table", () => {
 		expect(displayedDocumentIds()).toEqual(["DOC-USI", "DOC-CBC"]);
 	});
 
-	it("sorts by creation date chronologically using the keyboard", async () => {
+	test("sorts by creation date chronologically using the keyboard", async () => {
 		const user = userEvent.setup();
 		renderDocumentsTable();
 
@@ -235,7 +235,7 @@ describe("Documents table", () => {
 		expect(displayedDocumentIds()).toEqual(["DOC-CBC", "DOC-USI"]);
 	});
 
-	it("does not offer sorting on the document ID column", () => {
+	test("does not offer sorting on the document ID column", () => {
 		renderDocumentsTable();
 
 		expect(screen.getByRole("columnheader", { name: "Document ID" })).not.toHaveAttribute(
@@ -243,7 +243,7 @@ describe("Documents table", () => {
 		);
 	});
 
-	it("offers every document type and adds the ticked type to the filters", async () => {
+	test("offers every document type and adds the ticked type to the filters", async () => {
 		const user = setupSubmenuUser();
 		const { onDocumentTypeFiltersChange } = renderDocumentsTable({
 			documentTypeFilters: ["Imaging"],
@@ -268,7 +268,7 @@ describe("Documents table", () => {
 		expect(onDocumentTypeFiltersChange).toHaveBeenCalledWith(["Imaging", "Lab Report"]);
 	});
 
-	it("removes a document type filter when its checkbox is unticked", async () => {
+	test("removes a document type filter when its checkbox is unticked", async () => {
 		const user = setupSubmenuUser();
 		const { onDocumentTypeFiltersChange } = renderDocumentsTable({
 			documentTypeFilters: ["Imaging", "Referral"],
@@ -279,7 +279,7 @@ describe("Documents table", () => {
 		expect(onDocumentTypeFiltersChange).toHaveBeenCalledWith(["Referral"]);
 	});
 
-	it("applies a creation date preset as a from/to range", async () => {
+	test("applies a creation date preset as a from/to range", async () => {
 		const user = setupSubmenuUser();
 		const { onCreatedAtRangeApply } = renderDocumentsTable();
 
@@ -293,7 +293,7 @@ describe("Documents table", () => {
 		);
 	});
 
-	it("applies a custom creation date range picked from the calendar", async () => {
+	test("applies a custom creation date range picked from the calendar", async () => {
 		const user = setupSubmenuUser();
 		const { onCreatedAtRangeApply } = renderDocumentsTable();
 
@@ -322,7 +322,7 @@ describe("Documents table", () => {
 		);
 	});
 
-	it("clears the creation date range from the calendar reset button", async () => {
+	test("clears the creation date range from the calendar reset button", async () => {
 		const user = setupSubmenuUser();
 		const { onCreatedAtRangeApply } = renderDocumentsTable({
 			createdFrom: "2020-01-01",
@@ -337,7 +337,7 @@ describe("Documents table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
-	it("shows active filters as pills that can be removed individually", async () => {
+	test("shows active filters as pills that can be removed individually", async () => {
 		const user = userEvent.setup();
 		const { onCreatedAtRangeApply, onDocumentTypeFiltersChange } = renderDocumentsTable({
 			createdFrom: "2020-01-01",
@@ -360,19 +360,19 @@ describe("Documents table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
-	it("describes a one-sided date filter in the pill", () => {
+	test("describes a one-sided date filter in the pill", () => {
 		renderDocumentsTable({ createdTo: "2020-01-31" });
 
 		expect(screen.getByText("Created: Until Jan 31, 2020")).toBeVisible();
 	});
 
-	it("shows no filter pills when no filter is active", () => {
+	test("shows no filter pills when no filter is active", () => {
 		renderDocumentsTable();
 
 		expect(screen.queryByRole("button", { name: /^Remove .* filter$/ })).not.toBeInTheDocument();
 	});
 
-	it("moves between pages through the callbacks", async () => {
+	test("moves between pages through the callbacks", async () => {
 		const user = userEvent.setup();
 		const { onNextPage, onPreviousPage } = renderDocumentsTable({ page: 2, totalPages: 3 });
 
@@ -383,28 +383,28 @@ describe("Documents table", () => {
 		expect(onPreviousPage).toHaveBeenCalledTimes(1);
 	});
 
-	it("disables going back from the first page", () => {
+	test("disables going back from the first page", () => {
 		renderDocumentsTable({ page: 1, totalPages: 3 });
 
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
 	});
 
-	it("disables going forward from the last page", () => {
+	test("disables going forward from the last page", () => {
 		renderDocumentsTable({ page: 3, totalPages: 3 });
 
 		expect(screen.getByRole("button", { name: "Previous" })).toBeEnabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 	});
 
-	it("disables paging while a request is pending", () => {
+	test("disables paging while a request is pending", () => {
 		renderDocumentsTable({ page: 2, totalPages: 3, isPending: true });
 
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 	});
 
-	it("lets the user change the rows per page", async () => {
+	test("lets the user change the rows per page", async () => {
 		const user = userEvent.setup();
 		const { onLimitChange } = renderDocumentsTable({ limit: 14 });
 
@@ -415,7 +415,7 @@ describe("Documents table", () => {
 		expect(onLimitChange).toHaveBeenCalledWith(42);
 	});
 
-	it("opens the details drawer with the chosen document's details and files", async () => {
+	test("opens the details drawer with the chosen document's details and files", async () => {
 		const user = userEvent.setup();
 		renderDocumentsTable();
 
@@ -428,9 +428,12 @@ describe("Documents table", () => {
 		expect(
 			await within(dialog).findByRole("heading", { name: "Complete Blood Count Report" }),
 		).toBeVisible();
-		expect(within(dialog).getByText("Lab Report")).toBeVisible();
-		expect(within(dialog).getByText("Reviewed by haematology.")).toBeVisible();
-		expect(within(dialog).getByText("Dr. Okafor")).toBeVisible();
+		expect(within(dialog).getAllByText("Lab Report")[0]).toBeVisible();
+		expect(within(dialog).getAllByText("Reviewed by haematology.")[0]).toBeVisible();
+		expect(within(dialog).getByRole("heading", { name: "Activity" })).toBeVisible();
+		expect(
+			within(dialog).getByRole("button", { name: /Updated by Dr. Okafor/ }),
+		).toHaveAttribute("aria-expanded", "false");
 		expect(within(dialog).getByText("cbc-report.pdf")).toBeVisible();
 		expect(within(dialog).getByText("1.2 MB • Uploaded on 2020-01-06")).toBeVisible();
 		expect(within(dialog).getByRole("link", { name: "Open" })).toHaveAttribute(
@@ -440,7 +443,7 @@ describe("Documents table", () => {
 		expect(within(dialog).queryByText("Abdominal Ultrasound Images")).not.toBeInTheDocument();
 	});
 
-	it("loads a different document when another row is opened", async () => {
+	test("loads a different document when another row is opened", async () => {
 		const user = userEvent.setup();
 		renderDocumentsTable();
 
@@ -465,7 +468,7 @@ describe("Documents table", () => {
 		expect(screen.getByText("840 KB • Uploaded on 2020-01-02")).toBeVisible();
 	});
 
-	it("opens the details drawer when the row itself is activated with the keyboard", async () => {
+	test("opens the details drawer when the row itself is activated with the keyboard", async () => {
 		const user = userEvent.setup();
 		renderDocumentsTable();
 
@@ -479,7 +482,7 @@ describe("Documents table", () => {
 		).toBeVisible();
 	});
 
-	it("offers view, open, export and remove actions on every row regardless of role", async () => {
+	test("offers view, open, export and remove actions on every row regardless of role", async () => {
 		activeMember.role = "member";
 		const user = userEvent.setup();
 		renderDocumentsTable();
@@ -493,7 +496,7 @@ describe("Documents table", () => {
 		expect(screen.queryByRole("menuitem", { name: "Archive" })).not.toBeInTheDocument();
 	});
 
-	it("opens the create drawer from the add button", async () => {
+	test("opens the create drawer from the add button", async () => {
 		const user = userEvent.setup();
 		renderDocumentsTable();
 
@@ -501,7 +504,7 @@ describe("Documents table", () => {
 		expect(await screen.findByRole("dialog", { name: "Add document" })).toBeVisible();
 	});
 
-	it("shows the bulk archive action to an owner", async () => {
+	test("shows the bulk archive action to an owner", async () => {
 		const user = userEvent.setup();
 		renderDocumentsTable();
 
@@ -511,7 +514,7 @@ describe("Documents table", () => {
 		expect(within(bar).getByRole("button", { name: "Archive" })).toBeVisible();
 	});
 
-	it("shows the bulk archive action to an admin", async () => {
+	test("shows the bulk archive action to an admin", async () => {
 		activeMember.role = "admin";
 		const user = userEvent.setup();
 		renderDocumentsTable();
@@ -520,7 +523,7 @@ describe("Documents table", () => {
 		expect(within(bulkActionBar()).getByRole("button", { name: "Archive" })).toBeVisible();
 	});
 
-	it("hides the bulk archive action from a member", async () => {
+	test("hides the bulk archive action from a member", async () => {
 		activeMember.role = "member";
 		const user = userEvent.setup();
 		renderDocumentsTable();
@@ -532,7 +535,7 @@ describe("Documents table", () => {
 		expect(within(bar).queryByRole("button", { name: "Archive" })).not.toBeInTheDocument();
 	});
 
-	it("selects rows for bulk actions and clears the selection", async () => {
+	test("selects rows for bulk actions and clears the selection", async () => {
 		const user = userEvent.setup();
 		renderDocumentsTable();
 
@@ -550,7 +553,7 @@ describe("Documents table", () => {
 		expect(screen.queryByText(/items? selected/)).not.toBeInTheDocument();
 	});
 
-	it("opens the details drawer for a single selected row from the bulk bar", async () => {
+	test("opens the details drawer for a single selected row from the bulk bar", async () => {
 		const user = userEvent.setup();
 		renderDocumentsTable();
 

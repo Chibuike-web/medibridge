@@ -42,8 +42,8 @@ export function TransferDetailsDrawer({
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
-				<DrawerHeader className="border-b border-gray-200 px-6 py-5 text-left flex-row justify-between items-center">
-					<DrawerTitle className="text-base text-gray-800 leading-[1.2]">
+				<DrawerHeader className="border-b border-gray-200 text-left flex-row justify-between items-center">
+					<DrawerTitle className="text-gray-800 leading-[1.2]">
 						View transfer details
 					</DrawerTitle>
 					<DrawerClose aria-label="Close transfer details">
@@ -62,7 +62,7 @@ export function TransferDetailsDrawer({
 							<div className="flex flex-col gap-6">
 								<div className="flex items-center gap-x-6 gap-y-2 flex-wrap text-nowrap">
 									<div className="flex items-center gap-2 shrink-0">
-										<span className="text-gray-400">Transfer Status:</span>
+										<span className="font-normal text-gray-400">Transfer Status:</span>
 										{transfer ? (
 											<StatusBadge status={transfer.status} className="text-sm" />
 										) : (
@@ -70,7 +70,7 @@ export function TransferDetailsDrawer({
 										)}
 									</div>
 									<div className="flex items-center gap-2 shrink-0">
-										<span className="text-gray-400">Patient ID:</span>
+										<span className="font-normal text-gray-400">Patient ID:</span>
 										{transfer ? (
 											<CopyIdButton id={transfer.patientId} className="text-sm" />
 										) : (
@@ -78,7 +78,7 @@ export function TransferDetailsDrawer({
 										)}
 									</div>
 									<div className="flex items-center gap-2 shrink-0">
-										<span className="text-gray-400">Transfer ID:</span>
+										<span className="font-normal text-gray-400">Transfer ID:</span>
 										{transfer ? (
 											<CopyIdButton id={transfer.id} className="text-sm" />
 										) : (
@@ -106,7 +106,7 @@ export function TransferDetailsDrawer({
 						</>
 					)}
 				</div>
-				<DrawerFooter className="border-t border-gray-200 p-5 text-sm">
+				<DrawerFooter className="border-t border-gray-200 text-sm">
 					<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 						<DrawerClose asChild>
 							<Button className="bg-[#FB3748]" variant="destructive">
@@ -130,7 +130,7 @@ function TransferContentSummary({
 
 	return (
 		<div className="flex flex-col gap-2">
-			<span className="text-gray-400">Transfer Content</span>
+			<span className="font-normal text-gray-400">Transfer Content</span>
 			{transferContentGroups.length > 0 ? (
 				<ul className="ml-5 list-disc space-y-2 text-gray-600 marker:text-gray-600">
 					{transferContentGroups.map((contentGroup) => (
@@ -249,7 +249,7 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 function DetailItem({ label, value }: { label: string; value?: string | null }) {
 	return (
 		<div className="flex flex-col gap-2 shrink-0 no-line-height">
-			<span className="text-gray-400">{label}</span>
+			<span className="font-normal text-gray-400">{label}</span>
 			<span className="text-gray-600 font-semibold">{value || EMPTY_VALUE}</span>
 		</div>
 	);
@@ -306,7 +306,7 @@ function TransferProgress() {
 								{/* Right column */}
 								<div>
 									<span className="font-semibold text-gray-600">Requested</span>
-									<p className="text-gray-400">Initiated by Dr. Adebayo</p>
+									<p className="font-normal text-gray-400">Initiated by Dr. Adebayo</p>
 								</div>
 							</div>
 
@@ -325,7 +325,7 @@ function TransferProgress() {
 
 								<div>
 									<span className="font-semibold text-gray-600">Patient Approval</span>
-									<p className="text-gray-400">Waiting for patient response</p>
+									<p className="font-normal text-gray-400">Waiting for patient response</p>
 								</div>
 							</div>
 
@@ -334,7 +334,7 @@ function TransferProgress() {
 								<RiCheckboxBlankCircleLine aria-hidden="true" className="text-gray-400" />
 								<div>
 									<span className="font-semibold text-gray-600">Sent</span>
-									<p className="text-gray-400">Not started</p>
+									<p className="font-normal text-gray-400">Not started</p>
 								</div>
 							</div>
 					</div>

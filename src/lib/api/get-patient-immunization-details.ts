@@ -88,6 +88,7 @@ function buildCreatedHistoryEvent(immunization: {
 	return {
 		id: "created",
 		title: "Created",
+		actor: empty(immunization.createdBy),
 		timestamp: formatTimelineTimestamp(immunization.createdAt),
 		items: [
 			{ label: "Series Type", value: empty(immunization.seriesType) },
@@ -95,7 +96,6 @@ function buildCreatedHistoryEvent(immunization: {
 			{ label: "Total Doses", value: empty(immunization.totalDoses) },
 			{ label: "Date administered", value: formatDateOnly(immunization.dateAdministered) },
 			{ label: "Administered by", value: empty(immunization.administeredBy) },
-			{ label: "Created by", value: empty(immunization.createdBy) },
 			{ label: "Status", value: normalizeStatus(immunization.status) },
 		],
 	};
@@ -112,13 +112,13 @@ function buildUpdatedHistoryEvent(immunization: {
 	return {
 		id: "updated",
 		title: "Updated",
+		actor: empty(immunization.updatedBy),
 		timestamp: formatTimelineTimestamp(immunization.updatedAt),
 		items: [
 			{ label: "Dose", value: empty(immunization.currentDose) },
 			{ label: "Date administered", value: formatDateOnly(immunization.dateAdministered) },
 			{ label: "Administered by", value: empty(immunization.administeredBy) },
 			{ label: "Status", value: normalizeStatus(immunization.status) },
-			{ label: "Updated by", value: empty(immunization.updatedBy) },
 		],
 	};
 }
@@ -133,10 +133,10 @@ function mapHistoryEvent(history: {
 	return {
 		id: history.id,
 		title: "Updated",
+		actor: empty(history.updatedBy),
 		timestamp: formatTimelineTimestamp(history.createdAt),
 		items: [
 			{ label: formatSentenceCaseValue(history.fieldName), value: empty(history.newValue) },
-			{ label: "Updated by", value: empty(history.updatedBy) },
 		],
 	};
 }

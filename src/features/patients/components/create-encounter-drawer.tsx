@@ -97,8 +97,8 @@ export function CreateEncounterDrawer({ open, onOpenChange }: CreateEncounterDra
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
 				{selectedEncounterRecordType === null ? (
 					<>
-						<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 px-6 py-5 text-left">
-							<DrawerTitle className="text-base leading-[1.2] text-gray-800">
+						<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
+							<DrawerTitle className="leading-[1.2] text-gray-800">
 								Create encounter
 							</DrawerTitle>
 							<DrawerClose
@@ -138,7 +138,7 @@ export function CreateEncounterDrawer({ open, onOpenChange }: CreateEncounterDra
 					</>
 				) : (
 					<>
-						<DrawerHeader className="flex-row items-center border-b border-gray-200 px-6 py-5 text-left">
+						<DrawerHeader className="flex-row items-center border-b border-gray-200 text-left">
 							<DrawerTitle asChild>
 								<button
 									type="button"

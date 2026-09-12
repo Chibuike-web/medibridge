@@ -82,7 +82,7 @@ function DrawerFooter({ className, ...props }: React.ComponentProps<"div">) {
 	return (
 		<div
 			data-slot="drawer-footer"
-			className={cn("mt-auto flex flex-col gap-2 p-5", className)}
+			className={cn("mt-auto flex flex-col gap-2 p-4", className)}
 			{...props}
 		/>
 	);
@@ -92,7 +92,7 @@ function DrawerTitle({ className, ...props }: React.ComponentProps<typeof Drawer
 	return (
 		<DrawerPrimitive.Title
 			data-slot="drawer-title"
-			className={cn("font-semibold text-foreground", className)}
+			className={cn("text-sm font-semibold text-gray-800", className)}
 			{...props}
 		/>
 	);
