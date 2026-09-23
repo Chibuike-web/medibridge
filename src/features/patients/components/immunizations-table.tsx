@@ -45,12 +45,20 @@ import { cn } from "@/lib/utils/cn";
 import {
 	type ColumnDef,
 	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
+	createSortedRowModel,
+	stockFeatures,
+	sortFns,
+	tableFeatures,
 	type RowSelectionState,
 	type SortingState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	sortedRowModel: createSortedRowModel(),
+});
 import {
 	RiArchiveLine,
 	RiArrowRightLine,
@@ -185,15 +193,14 @@ export function ImmunizationsTable({
 		setIsDetailsDrawerOpen(true);
 	}
 
-	const table = useReactTable({
+	const table = useTable({
+		features: configuredTableFeatures,
 		data: immunizations,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.immunizationId,
 		onSortingChange: setSorting,
 		onRowSelectionChange: setSelectedImmunizationRows,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
 		state: {
 			sorting,
 			rowSelection: selectedImmunizationRows,
@@ -892,7 +899,7 @@ function getImmunizationsColumns({
 }: {
 	canArchive: boolean;
 	onViewImmunizationDetails: (immunizationId: string) => void;
-}): ColumnDef<ImmunizationType>[] {
+}): ColumnDef<typeof configuredTableFeatures, ImmunizationType>[] {
 	return [
 		{
 			id: "select",

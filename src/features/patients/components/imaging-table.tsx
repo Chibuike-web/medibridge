@@ -48,12 +48,20 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {
 	type ColumnDef,
 	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
+	createSortedRowModel,
+	stockFeatures,
+	sortFns,
+	tableFeatures,
 	type RowSelectionState,
 	type SortingState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	sortedRowModel: createSortedRowModel(),
+});
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
@@ -187,15 +195,14 @@ export function ImagingTable({
 		[canArchive],
 	);
 
-	const table = useReactTable({
+	const table = useTable({
+		features: configuredTableFeatures,
 		data: imagingStudies,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.imagingId,
 		onSortingChange: setSorting,
 		onRowSelectionChange: setSelectedImagingRows,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
 		state: {
 			sorting,
 			rowSelection: selectedImagingRows,
@@ -971,7 +978,7 @@ function getImagingColumns({
 }: {
 	canArchive: boolean;
 	onViewImagingDetails: (imaging: ImagingType) => void;
-}): ColumnDef<ImagingType>[] {
+}): ColumnDef<typeof configuredTableFeatures, ImagingType>[] {
 	return [
 		{
 			id: "select",

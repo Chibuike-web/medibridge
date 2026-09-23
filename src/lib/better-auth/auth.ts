@@ -33,13 +33,15 @@ export const auth = betterAuth({
 		provider: "pg",
 		schema,
 	}),
-	emailAndPassword: { enabled: true },
+	emailAndPassword: {
+		enabled: true,
+		requireEmailVerification: true,
+	},
 	emailVerification: {
+		autoSignInAfterVerification: true,
+		sendOnSignIn: true,
 		sendVerificationEmail: async ({ user, url }) => {
-			console.log(user);
-			console.log("Verification URL:", url);
-			const data = await sendEmail(user.email, url);
-			console.log(data);
+			await sendEmail(user.email, url);
 		},
 	},
 	user: { deleteUser: { enabled: true } },
@@ -55,7 +57,10 @@ export const auth = betterAuth({
 	baseURL: ENV.BETTER_AUTH_URL,
 	plugins: [
 		admin(),
-		organization({ creatorRole: "owner", allowUserToCreateOrganization: true }),
+		organization({
+			creatorRole: "owner",
+			allowUserToCreateOrganization: true,
+		}),
 		nextCookies(),
 	],
 });

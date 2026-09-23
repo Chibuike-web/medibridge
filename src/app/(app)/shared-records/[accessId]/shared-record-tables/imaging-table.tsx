@@ -19,11 +19,19 @@ import {
 import {
   type ColumnDef,
   flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
+  createSortedRowModel,
+  stockFeatures,
+  sortFns,
+  tableFeatures,
   type SortingState,
-  useReactTable,
+  useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	sortedRowModel: createSortedRowModel(),
+});
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
@@ -199,7 +207,7 @@ export function SharedImagingTable({
     setCreatedTo(nextCreatedTo);
     refreshTable({ nextCreatedFrom, nextCreatedTo });
   }
-  const columns = useMemo<ColumnDef<SharedImagingRow>[]>(
+  const columns = useMemo<ColumnDef<typeof configuredTableFeatures, SharedImagingRow>[]>(
     () => [
       {
         id: "select",
@@ -246,12 +254,11 @@ export function SharedImagingTable({
     ],
     [],
   );
-  const table = useReactTable({
+  const table = useTable({
+    features: configuredTableFeatures,
     data: tableRows,
     columns,
     onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     state: { sorting },
   });
 

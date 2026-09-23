@@ -4,11 +4,25 @@ import { HospitalDetailsType } from "@/features/auth/schemas/hospital-details-sc
 import { hospitalDetails } from "@/db/schemas";
 import { auth, db } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
+import { eq } from "drizzle-orm";
 
 export async function createHospitalService(data: HospitalDetailsType) {
 	try {
 		const session = await auth.api.getSession({ headers: await headers() });
-		if (!session) return;
+		if (!session) return { status: "failed", message: "You must sign in to submit hospital details." };
+		if (!session.user.emailVerified) {
+			return { status: "failed", message: "Verify your email before submitting hospital details." };
+		}
+
+		const [existingHospital] = await db
+			.select({ id: hospitalDetails.id })
+			.from(hospitalDetails)
+			.where(eq(hospitalDetails.hospitalOwnerEmail, session.user.email))
+			.limit(1);
+		if (existingHospital) {
+			return { status: "failed", message: "Hospital details have already been submitted." };
+		}
+
 		const userId = session.user.id;
 
 		const orgRes = await auth.api.createOrganization({

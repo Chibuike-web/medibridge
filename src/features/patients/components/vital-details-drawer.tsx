@@ -68,7 +68,7 @@ export function VitalDetailsDrawer({
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<div className="min-h-0 overflow-y-auto px-6 py-8 text-sm">
+				<div className="min-h-0 overflow-y-auto px-4 py-8 text-sm">
 					{isEditingVitalDetails && vital ? (
 						<VitalDetailsEditForm vital={vital} />
 					) : vital ? (
@@ -349,7 +349,7 @@ function VitalDetailItem({
 	return (
 		<div className={cn("flex flex-col gap-2 no-line-height", className)}>
 			<span className="text-gray-400">{label}</span>
-			<span className="font-semibold text-gray-600">{value || EMPTY_VALUE}</span>
+			<span className="font-medium text-gray-600">{value || EMPTY_VALUE}</span>
 		</div>
 	);
 }

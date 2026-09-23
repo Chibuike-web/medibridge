@@ -104,7 +104,7 @@ export function FilterButton({
 					onFocus={() => setActiveFilterSubmenu("gender")}
 					onPointerEnter={() => setActiveFilterSubmenu("gender")}
 					onSelect={(event) => event.preventDefault()}
-					className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 data-[active=true]:bg-gray-100"
+					className="h-8 rounded-lg py-0 text-gray-600 focus:bg-gray-100 data-[active=true]:bg-gray-100"
 				>
 					<RiMenLine className="size-4.5" />
 					<span>Gender</span>
@@ -116,7 +116,7 @@ export function FilterButton({
 					onFocus={() => setActiveFilterSubmenu("age")}
 					onPointerEnter={() => setActiveFilterSubmenu("age")}
 					onSelect={(event) => event.preventDefault()}
-					className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
+					className="h-8 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 				>
 					<RiCalendarView className="size-4.5" />
 					<span>Age</span>
@@ -128,7 +128,7 @@ export function FilterButton({
 					onFocus={() => setActiveFilterSubmenu("created-at")}
 					onPointerEnter={() => setActiveFilterSubmenu("created-at")}
 					onSelect={(event) => event.preventDefault()}
-					className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
+					className="h-8 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 				>
 					<RiCalendarLine className="size-4.5" />
 					<span>Created at</span>
@@ -142,9 +142,9 @@ export function FilterButton({
 						"absolute top-0 right-[100%] z-50 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						activeFilterSubmenu === "created-at" ? "w-max" : "w-[13.75rem]",
 						activeFilterSubmenu === "age"
-							? "translate-y-9"
+							? "translate-y-8"
 							: activeFilterSubmenu === "created-at"
-								? "translate-y-18"
+								? "translate-y-16"
 								: "translate-y-0",
 						activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
 					)}
@@ -160,7 +160,7 @@ export function FilterButton({
 							className="flex flex-col gap-0"
 							disabled={isPending}
 						>
-							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="all" id="patient-gender-all" />
 								<Label
 									htmlFor="patient-gender-all"
@@ -170,7 +170,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="male" id="patient-gender-male" />
 								<Label
 									htmlFor="patient-gender-male"
@@ -180,7 +180,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="female" id="patient-gender-female" />
 								<Label
 									htmlFor="patient-gender-female"
@@ -205,7 +205,7 @@ export function FilterButton({
 							className="flex flex-col gap-0"
 							disabled={isPending}
 						>
-							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="any-age" id="patient-age-any" />
 								<Label
 									htmlFor="patient-age-any"
@@ -215,7 +215,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="children" id="patient-age-children" />
 								<Label
 									htmlFor="patient-age-children"
@@ -225,7 +225,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="teenagers" id="patient-age-teenagers" />
 								<Label
 									htmlFor="patient-age-teenagers"
@@ -235,7 +235,7 @@ export function FilterButton({
 								</Label>
 							</div>
 
-							<div className="flex h-9 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+							<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 								<RadioGroupItem value="young-adults" id="patient-age-young-adults" />
 								<Label
 									htmlFor="patient-age-young-adults"
@@ -418,7 +418,7 @@ function DatePresetButton({
 		<button
 			type="button"
 			onClick={onSelect}
-			className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 hover:bg-gray-100 focus-visible:bg-gray-100 focus-visible:outline-none"
+			className="flex h-8 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 hover:bg-gray-100 focus-visible:bg-gray-100 focus-visible:outline-none"
 		>
 			<span>{label}</span>
 			{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}

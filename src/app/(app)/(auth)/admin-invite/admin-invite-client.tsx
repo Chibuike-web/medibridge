@@ -7,24 +7,59 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useShowSuccess } from "@/hooks/use-show-success";
 import { inviteSchema } from "@/features/auth/schemas/invite-schema";
+import type { InviteType } from "@/features/auth/schemas/invite-schema";
+import { inviteAdminAction } from "@/features/auth/server/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { RiInformationLine } from "@remixicon/react";
+import { RiErrorWarningFill, RiInformationLine } from "@remixicon/react";
+import { useState, useTransition } from "react";
 
 export function AdminInviteClient() {
 	const router = useRouter();
 	const { isSuccessModalOpen, setIsSuccessModalOpen } = useShowSuccess();
+	const [invitationError, setInvitationError] = useState("");
+	const [isSendingInvitation, startSendInvitationTransition] = useTransition();
 	const {
 		register,
+		handleSubmit,
+		reset,
 		formState: { errors, isSubmitting },
-	} = useForm({
+	} = useForm<InviteType>({
 		resolver: zodResolver(inviteSchema),
+		defaultValues: { name: "", email: "" },
 	});
+
+	const onSubmit = (data: InviteType) => {
+		setInvitationError("");
+
+		startSendInvitationTransition(async () => {
+			try {
+				const response = await inviteAdminAction(data);
+
+				if (response.status === "unauthorized") {
+					router.replace("/sign-in");
+					return;
+				}
+
+				if (response.status === "forbidden" || response.status === "failed") {
+					setInvitationError(response.error);
+					return;
+				}
+
+				reset();
+				setIsSuccessModalOpen(true);
+			} catch (error) {
+				setInvitationError(
+					error instanceof Error ? error.message : "Unable to send the invitation.",
+				);
+			}
+		});
+	};
 
 	return (
 		<>
-			<form className="text-gray-800 mt-12">
+			<form className="text-gray-800 mt-12" onSubmit={handleSubmit(onSubmit)} noValidate>
 				<div className="mb-6">
 					<Label htmlFor="name" className="block mb-2 text-sm">
 						Name
@@ -71,11 +106,25 @@ export function AdminInviteClient() {
 					)}
 				</div>
 
-				<Button className="w-full mt-16" type="submit" disabled={isSubmitting}>
-					{isSubmitting ? (
+				{invitationError && (
+					<div
+						className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+						role="alert"
+					>
+						<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
+						<span>{invitationError}</span>
+					</div>
+				)}
+
+				<Button
+					className="w-full mt-16"
+					type="submit"
+					disabled={isSubmitting || isSendingInvitation}
+				>
+					{isSendingInvitation ? (
 						<span className="flex items-center gap-2">
 							<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-							Inviting in...
+							Sending invite...
 						</span>
 					) : (
 						"Send Invite"
@@ -90,10 +139,7 @@ export function AdminInviteClient() {
 					description="The administrator has been successfully invited. They will receive an email to set up their account and start managing members."
 				>
 					<DialogFooter className="w-full text-sm">
-						<Button
-							className="h-9 w-full"
-							onClick={() => router.push("/dashboard/overview")}
-						>
+						<Button className="h-9 w-full" onClick={() => router.push("/dashboard/overview")}>
 							Continue to Dashboard
 						</Button>
 					</DialogFooter>

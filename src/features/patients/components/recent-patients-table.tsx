@@ -5,13 +5,22 @@ import { RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react";
 import {
 	ColumnDef,
 	flexRender,
-	getCoreRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
+	createPaginatedRowModel,
+	createSortedRowModel,
+	stockFeatures,
+	sortFns,
+	tableFeatures,
 	type PaginationState,
 	type SortingState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	paginatedRowModel: createPaginatedRowModel(),
+	sortedRowModel: createSortedRowModel(),
+});
 import {
 	Table,
 	TableBody,
@@ -45,14 +54,12 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 		pageSize: 4,
 	});
 
-	const table = useReactTable({
+	const table = useTable({
+		features: configuredTableFeatures,
 		data,
 		columns,
 		onSortingChange: setSorting,
 		onPaginationChange: setPagination,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		state: {
 			sorting,
 			pagination,
@@ -172,7 +179,7 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select
-							value={String(table.getState().pagination.pageSize)}
+							value={String(table.state.pagination.pageSize)}
 							onValueChange={(value) => table.setPageSize(Number(value))}
 						>
 							<SelectTrigger className="h-8 w-16 border-gray-200 bg-white px-2 text-gray-700 shadow-none">
@@ -189,7 +196,7 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 					</div>
 					<div className="flex items-center gap-3">
 						<span>
-							Page {table.getState().pagination.pageIndex + 1} of {pageCount}
+							Page {table.state.pagination.pageIndex + 1} of {pageCount}
 						</span>
 						<div className="flex items-center gap-2">
 							<Button
@@ -220,7 +227,7 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 	);
 }
 
-const recentPatientColumns: ColumnDef<RecentPatientType>[] = [
+const recentPatientColumns: ColumnDef<typeof configuredTableFeatures, RecentPatientType>[] = [
 	{
 		header: "Patient Name",
 		accessorKey: "name",

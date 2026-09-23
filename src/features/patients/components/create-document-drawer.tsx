@@ -100,7 +100,7 @@ export function CreateDocumentDrawer({
 				<form
 					id="create-document-form"
 					action={handleCreate}
-					className="min-h-0 space-y-6 overflow-y-auto px-6 py-8"
+					className="min-h-0 space-y-6 overflow-y-auto px-4 py-8"
 				>
 					<div className="grid gap-6 sm:grid-cols-2">
 						<div className="space-y-2">

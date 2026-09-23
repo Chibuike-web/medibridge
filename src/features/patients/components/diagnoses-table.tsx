@@ -45,13 +45,21 @@ import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import {
 	type ColumnDef,
 	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
+	createSortedRowModel,
+	stockFeatures,
+	sortFns,
+	tableFeatures,
 	type OnChangeFn,
 	type RowSelectionState,
 	type SortingState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	sortedRowModel: createSortedRowModel(),
+});
 import useSWR from "swr";
 import {
 	RiArrowRightLine,
@@ -436,7 +444,7 @@ function DiagnosesTableContent({
 }: {
 	canArchive: boolean;
 	diagnoses: DiagnosisType[];
-	columns: ColumnDef<DiagnosisType>[];
+	columns: ColumnDef<typeof configuredTableFeatures, DiagnosisType>[];
 	sorting: SortingState;
 	onSortingChange: OnChangeFn<SortingState>;
 	page: number;
@@ -449,15 +457,14 @@ function DiagnosesTableContent({
 	onLimitChange: (limit: number) => void;
 }) {
 	const [selectedDiagnosisRows, setSelectedDiagnosisRows] = useState<RowSelectionState>({});
-	const table = useReactTable({
+	const table = useTable({
+		features: configuredTableFeatures,
 		data: diagnoses,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.diagnosisId,
 		onSortingChange,
 		onRowSelectionChange: setSelectedDiagnosisRows,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
 		state: {
 			sorting,
 			rowSelection: selectedDiagnosisRows,
@@ -1020,7 +1027,7 @@ function getDiagnosesColumns({
 }: {
 	canArchive: boolean;
 	onViewDiagnosisDetails: (diagnosisId: string) => void;
-}): ColumnDef<DiagnosisType>[] {
+}): ColumnDef<typeof configuredTableFeatures, DiagnosisType>[] {
 	return [
 		{
 			id: "select",

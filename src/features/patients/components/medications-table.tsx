@@ -48,12 +48,20 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {
 	type ColumnDef,
 	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
+	createSortedRowModel,
+	stockFeatures,
+	sortFns,
+	tableFeatures,
 	type RowSelectionState,
 	type SortingState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	sortedRowModel: createSortedRowModel(),
+});
 import {
 	RiArchiveLine,
 	RiArrowRightLine,
@@ -172,15 +180,14 @@ export function MedicationsTable({
 		[canArchive],
 	);
 
-	const table = useReactTable({
+	const table = useTable({
+		features: configuredTableFeatures,
 		data: medications,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.medicationId,
 		onSortingChange: setSorting,
 		onRowSelectionChange: setSelectedMedicationRows,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
 		state: {
 			sorting,
 			rowSelection: selectedMedicationRows,
@@ -899,7 +906,7 @@ function getMedicationsColumns({
 }: {
 	canArchive: boolean;
 	onViewMedicationDetails: (medicationId: string) => void;
-}): ColumnDef<MedicationType>[] {
+}): ColumnDef<typeof configuredTableFeatures, MedicationType>[] {
 	return [
 		{
 			id: "select",

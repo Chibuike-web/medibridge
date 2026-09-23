@@ -3,8 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useVerificationFileUpload } from "@/hooks/use-verification-file-upload";
-import { useEffect, useRef, useState, useTransition } from "react";
-import { createHospitalAction, createOwnerAction } from "@/features/auth/server/actions";
+import { useRef, useState, useTransition } from "react";
+import { createHospitalAction } from "@/features/auth/server/actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
@@ -28,7 +28,6 @@ export function HospitalDetailsClient() {
 	const {
 		register,
 		handleSubmit,
-		reset,
 		formState: { errors },
 	} = useForm({
 		resolver: zodResolver(hospitalDetailsSchema),
@@ -40,56 +39,23 @@ export function HospitalDetailsClient() {
 
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	useEffect(
-		function restoreHospitalDetailsFromCache() {
-			const cache = localStorage.getItem("ONBOARDING_CACHE");
-			if (!cache) return;
-
-			const parsed = JSON.parse(cache);
-			if (parsed.hosptial) {
-				reset(parsed.hospital);
-			}
-		},
-		[reset],
-	);
-
 	function onSubmit(data: HospitalDetailsType) {
 		setError("");
 		if (!file) {
 			setUploadError("No file is uploaded. Please upload a file");
 			return;
 		}
-		const cache = JSON.parse(localStorage.getItem("ONBOARDING_CACHE") || "{}");
-		localStorage.setItem(
-			"ONBOARDING_CACHE",
-			JSON.stringify({
-				...cache,
-				hospital: data,
-			}),
-		);
 		startTransition(async () => {
-			try {
-				const res = await createOwnerAction(cache.owner);
-				if (res?.status === "failed") {
-					setError(res.message || "Account creation failed");
-					return;
-				}
-			} catch (error) {
-				setError(error instanceof Error ? error.message : "Unknown error");
-				return;
-			}
 			try {
 				const res = await createHospitalAction(data);
 				if (res?.status === "failed") {
-					setError(res.message || "Hospital creation failed");
+					setError(res.error || res.message || "Hospital creation failed");
 					return;
 				}
 				setSuccess("Hospital successfully created");
 
 				setTimeout(() => {
-					localStorage.removeItem("ONBOARDING_CACHE");
 					router.replace("/verify");
-					reset();
 					onClear();
 					setSuccess("");
 				}, 1000);

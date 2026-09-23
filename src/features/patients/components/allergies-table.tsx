@@ -47,13 +47,21 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {
 	type ColumnDef,
 	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
+	createSortedRowModel,
+	stockFeatures,
+	sortFns,
+	tableFeatures,
 	type OnChangeFn,
 	type RowSelectionState,
 	type SortingState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	sortedRowModel: createSortedRowModel(),
+});
 import {
 	RiArchiveLine,
 	RiArrowRightLine,
@@ -369,7 +377,7 @@ function AllergiesTableContent({
 }: {
 	canArchive: boolean;
 	allergies: AllergyType[];
-	columns: ColumnDef<AllergyType>[];
+	columns: ColumnDef<typeof configuredTableFeatures, AllergyType>[];
 	sorting: SortingState;
 	onSortingChange: OnChangeFn<SortingState>;
 	page: number;
@@ -382,15 +390,14 @@ function AllergiesTableContent({
 	onLimitChange: (limit: number) => void;
 }) {
 	const [selectedAllergyRows, setSelectedAllergyRows] = useState<RowSelectionState>({});
-	const table = useReactTable({
+	const table = useTable({
+		features: configuredTableFeatures,
 		data: allergies,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.allergyId,
 		onSortingChange,
 		onRowSelectionChange: setSelectedAllergyRows,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
 		state: {
 			sorting,
 			rowSelection: selectedAllergyRows,
@@ -985,7 +992,7 @@ function getAllergiesColumns({
 }: {
 	canArchive: boolean;
 	onViewAllergyDetails: (allergyId: string) => void;
-}): ColumnDef<AllergyType>[] {
+}): ColumnDef<typeof configuredTableFeatures, AllergyType>[] {
 	return [
 		{
 			id: "select",

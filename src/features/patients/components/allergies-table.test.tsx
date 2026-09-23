@@ -221,6 +221,30 @@ describe("Allergies table", () => {
 		expect(screen.getByRole("columnheader", { name: "Reaction" })).not.toHaveAttribute("aria-sort");
 	});
 
+	test("shows, sorts and selects every allergy on the current page", async () => {
+		const user = userEvent.setup();
+		const serverPage = Array.from({ length: 14 }, (_, index) => ({
+			...allergies[0],
+			allergyId: `AL-page-2-${index}`,
+			allergen: `Allergen ${String(index + 1).padStart(2, "0")}`,
+		}));
+		renderAllergiesTable({ allergies: serverPage, page: 2, limit: 14, totalPages: 3 });
+		const displayedPageAllergens = () =>
+			within(screen.getByRole("table"))
+				.getAllByRole("cell", { name: /^Allergen \d+$/ })
+				.map((cell) => cell.textContent);
+
+		expect(screen.getByText("Page 2 of 3")).toBeVisible();
+		expect(displayedPageAllergens()).toEqual(serverPage.map((allergy) => allergy.allergen));
+		await user.click(screen.getByRole("columnheader", { name: "Allergen" }));
+		await user.click(screen.getByRole("columnheader", { name: "Allergen" }));
+		expect(displayedPageAllergens()).toEqual(serverPage.map((allergy) => allergy.allergen).reverse());
+
+		const [selectAll] = within(screen.getByRole("table")).getAllByRole("checkbox");
+		await user.click(selectAll);
+		expect(screen.getByText(`${serverPage.length} items selected`)).toBeVisible();
+	});
+
 	test("reports what the user types in the search box", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderAllergiesTable({ query: "Pea" });

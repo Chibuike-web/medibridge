@@ -49,14 +49,14 @@ export function CreateImmunizationDrawer({ open, onOpenChange }: CreateImmunizat
 						Add immunization
 					</DrawerTitle>
 					<DrawerClose aria-label="Close add immunization drawer">
-						<RiCloseLine className="size-6" aria-hidden="true" />
+						<RiCloseLine className="size-5" aria-hidden="true" />
 					</DrawerClose>
 					<DrawerDescription className="sr-only">
 						Create a new immunization record for this patient.
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-6 py-8 text-sm">
+				<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-4 py-8 text-sm">
 					<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-vaccine-name`} className={fieldLabelClassName}>

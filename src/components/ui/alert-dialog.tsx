@@ -67,7 +67,7 @@ function AlertDialogHeader({ className, ...props }: React.ComponentProps<"div">)
 	return (
 		<div
 			data-slot="alert-dialog-header"
-			className={cn("flex items-center justify-between border-b p-4", className)}
+			className={cn("flex h-14 shrink-0 items-center justify-between border-b p-4", className)}
 			{...props}
 		/>
 	);

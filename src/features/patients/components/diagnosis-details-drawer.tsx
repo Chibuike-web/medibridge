@@ -98,7 +98,7 @@ export function DiagnosisDetailsDrawer({
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<div className="min-h-0 overflow-y-auto px-6 py-8 text-sm">
+				<div className="min-h-0 overflow-y-auto px-4 py-8 text-sm">
 					{isLoading ? (
 						<DiagnosisDetailsFallback />
 					) : isEditingDiagnosisDetails && diagnosis ? (
@@ -449,7 +449,7 @@ function DiagnosisDetailItem({ label, value }: { label: string; value: string })
 			{label === "Status" ? (
 				<StatusBadge status={value || EMPTY_VALUE} className="w-max" />
 			) : (
-				<span className="font-semibold text-gray-600">{value || EMPTY_VALUE}</span>
+				<span className="font-medium text-gray-600">{value || EMPTY_VALUE}</span>
 			)}
 		</div>
 	);
@@ -460,7 +460,7 @@ function DiagnosisHistorySection({ history }: { history: DiagnosisDetailsHistory
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
-				<button className="text-gray-400">View more</button>
+				<button className="text-sm text-gray-400">View more</button>
 			</div>
 			<div className="flex flex-col gap-4">
 				{history.map((historyEvent) => (
@@ -553,7 +553,7 @@ function DiagnosisRelatedRecords({
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Related records</h2>
-				<button className="text-gray-400">View more</button>
+				<button className="text-sm text-gray-400">View more</button>
 			</div>{" "}
 			<div className="flex flex-col gap-4">
 				{sections.map((section) => (
@@ -617,7 +617,7 @@ function DiagnosisRelatedRecordSection({
 									className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
 								>
 									<div className="flex w-full items-center gap-2">
-										<span className="min-w-0 truncate font-semibold text-gray-600">
+										<span className="min-w-0 truncate font-medium text-gray-600">
 											{record.name}
 										</span>
 										<StatusBadge status={record.status} className="shrink-0" />

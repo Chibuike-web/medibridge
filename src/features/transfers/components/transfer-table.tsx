@@ -36,13 +36,21 @@ import { getInitials } from "@/lib/utils/get-initials";
 import {
 	ColumnDef,
 	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
+	createSortedRowModel,
+	stockFeatures,
+	sortFns,
+	tableFeatures,
 	type OnChangeFn,
 	type RowSelectionState,
 	type SortingState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	sortedRowModel: createSortedRowModel(),
+});
 import {
 	RiAddLine,
 	RiArchiveLine,
@@ -155,7 +163,7 @@ function TransferTableContent({
 	onViewTransferDetails,
 }: {
 	data: TransferType[];
-	columns: ColumnDef<TransferType>[];
+	columns: ColumnDef<typeof configuredTableFeatures, TransferType>[];
 	sorting: SortingState;
 	onSortingChange: OnChangeFn<SortingState>;
 	page: number;
@@ -169,15 +177,14 @@ function TransferTableContent({
 	onViewTransferDetails: (transferId: string) => void;
 }) {
 	const [selectedTransferRows, setSelectedTransferRows] = useState<RowSelectionState>({});
-	const table = useReactTable({
+	const table = useTable({
+		features: configuredTableFeatures,
 		data,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.id,
 		onSortingChange,
 		onRowSelectionChange: setSelectedTransferRows,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
 		state: {
 			sorting,
 			rowSelection: selectedTransferRows,
@@ -426,7 +433,7 @@ function getTransferColumns(
 	router: ReturnType<typeof useRouter>,
 	returnTo: string,
 	canArchive: boolean,
-): ColumnDef<TransferType>[] {
+): ColumnDef<typeof configuredTableFeatures, TransferType>[] {
 	return [
 		{
 			id: "select",

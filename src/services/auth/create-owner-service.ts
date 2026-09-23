@@ -3,6 +3,7 @@
 import { OwnerType } from "@/features/auth/schemas/owner-schema";
 import { hospitalDetails } from "@/db/schemas";
 import { auth, db } from "@/lib/better-auth/auth";
+import { ENV } from "@/lib/utils/env";
 import { and, eq } from "drizzle-orm";
 
 export async function createOwnerService(data: OwnerType) {
@@ -18,7 +19,10 @@ export async function createOwnerService(data: OwnerType) {
 			);
 
 		if (existing.length > 0) {
-			return { status: "success", message: "Owner already exists" };
+			return {
+				status: "failed",
+				error: "A hospital is already registered to this owner email.",
+			};
 		}
 	} catch (error) {
 		console.error(error);
@@ -30,12 +34,15 @@ export async function createOwnerService(data: OwnerType) {
 
 	try {
 		await auth.api.signUpEmail({
-			body: { name: data.name, email: data.email, password: data.password },
+			body: {
+				name: data.name,
+				email: data.email,
+				password: data.password,
+				callbackURL: new URL("/hospital-details", ENV.BETTER_AUTH_URL).toString(),
+			},
 		});
 
-		await auth.api.sendVerificationEmail({ body: { email: data.email } });
-
-		return { status: "success", message: "User successfully created" };
+		return { status: "success", message: "Verification email sent" };
 	} catch (error) {
 		console.error(error);
 		return {

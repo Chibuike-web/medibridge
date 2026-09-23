@@ -98,7 +98,7 @@ export function ProcedureDetailsDrawer({
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<div className="min-h-0 overflow-y-auto px-6 py-8 text-sm">
+				<div className="min-h-0 overflow-y-auto px-4 py-8 text-sm">
 					{isLoading ? (
 						<ProcedureDetailsFallback />
 					) : isEditingProcedureDetails && procedure ? (
@@ -498,7 +498,7 @@ function ProcedureDetailItem({ label, value }: { label: string; value: string })
 			{label === "Status" ? (
 				<StatusBadge status={value || EMPTY_VALUE} className="w-max" />
 			) : (
-				<span className="font-semibold text-gray-600">{value || EMPTY_VALUE}</span>
+				<span className="font-medium text-gray-600">{value || EMPTY_VALUE}</span>
 			)}
 		</div>
 	);
@@ -509,13 +509,13 @@ function ProcedureDetailListItem({ label, values }: { label: string; values: str
 		<div className="flex flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
 			{values.length > 0 ? (
-				<ul className="list-disc pl-5 font-semibold text-gray-600">
+				<ul className="list-disc pl-5 font-medium text-gray-600">
 					{values.map((value) => (
 						<li key={value}>{value}</li>
 					))}
 				</ul>
 			) : (
-				<span className="font-semibold text-gray-600">{EMPTY_VALUE}</span>
+				<span className="font-medium text-gray-600">{EMPTY_VALUE}</span>
 			)}
 		</div>
 	);
@@ -595,10 +595,10 @@ function ProcedureRelatedRecordSection({
 					<div
 						role="region"
 						aria-labelledby={titleId}
-							className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+						className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
 						>
 							<div className="flex min-w-0 flex-wrap items-center gap-2">
-								<span className="min-w-0 truncate font-semibold text-gray-600">{record.name}</span>
+								<span className="min-w-0 truncate font-medium text-gray-600">{record.name}</span>
 								<StatusBadge status={record.status} className="shrink-0" />
 							</div>
 							<CopyIdButton id={record.id} className="text-sm" />
@@ -614,7 +614,7 @@ function ProcedureHistorySection({ history }: { history: ProcedureDetailsHistory
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
-				<button className="text-gray-400">View more</button>
+				<button className="text-sm text-gray-400">View more</button>
 			</div>
 			{history.map((historyEvent) => (
 				<ProcedureHistoryCard key={historyEvent.id} historyEvent={historyEvent} />

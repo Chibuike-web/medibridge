@@ -34,13 +34,21 @@ import { getInitials } from "@/lib/utils/get-initials";
 import {
 	ColumnDef,
 	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
+	createSortedRowModel,
+	stockFeatures,
+	sortFns,
+	tableFeatures,
 	type OnChangeFn,
 	type RowSelectionState,
 	type SortingState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	sortedRowModel: createSortedRowModel(),
+});
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
@@ -113,15 +121,14 @@ function PatientsTableContent({
 	);
 	const [selectedPatientRows, setSelectedPatientRows] = useState<RowSelectionState>({});
 
-	const table = useReactTable({
+	const table = useTable({
+		features: configuredTableFeatures,
 		data: patients,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.patientId,
 		onSortingChange,
 		onRowSelectionChange: setSelectedPatientRows,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
 		state: { sorting, rowSelection: selectedPatientRows },
 	});
 
@@ -398,7 +405,7 @@ function getPatientsColumns(
 	router: ReturnType<typeof useRouter>,
 	returnTo: string,
 	canArchive: boolean,
-): ColumnDef<PatientListItemType>[] {
+): ColumnDef<typeof configuredTableFeatures, PatientListItemType>[] {
 	return [
 		{
 			id: "select",

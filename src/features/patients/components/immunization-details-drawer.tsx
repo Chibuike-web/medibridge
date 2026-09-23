@@ -86,7 +86,7 @@ export function ImmunizationDetailsDrawer({
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<div className="min-h-0 overflow-y-auto px-6 py-8 text-sm">
+				<div className="min-h-0 overflow-y-auto px-4 py-8 text-sm">
 					{isLoading ? (
 						<ImmunizationDetailsFallback />
 					) : isEditingImmunizationDetails && immunization ? (
@@ -404,7 +404,7 @@ function ImmunizationDetailItem({ label, value }: { label: string; value: string
 			{label === "Status" ? (
 				<StatusBadge status={value || EMPTY_VALUE} className="w-max" />
 			) : (
-				<span className="font-semibold text-gray-600">{value || EMPTY_VALUE}</span>
+				<span className="font-medium text-gray-600">{value || EMPTY_VALUE}</span>
 			)}
 		</div>
 	);
@@ -415,7 +415,7 @@ function ImmunizationHistorySection({ history }: { history: ImmunizationDetailsH
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
-				<button className="text-gray-400">View more</button>
+				<button className="text-sm text-gray-400">View more</button>
 			</div>
 			{history.map((historyEvent) => (
 				<ImmunizationHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
@@ -473,7 +473,7 @@ function ImmunizationHistoryCard({
 					<div
 						role="region"
 						aria-labelledby={titleId}
-							className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
+						className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
 						>
 							{historyEvent.items.map((item) => (
 								<ImmunizationDetailItem

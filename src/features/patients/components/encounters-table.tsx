@@ -46,12 +46,20 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {
 	type ColumnDef,
 	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
+	createSortedRowModel,
+	stockFeatures,
+	sortFns,
+	tableFeatures,
 	type RowSelectionState,
 	type SortingState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	sortedRowModel: createSortedRowModel(),
+});
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
@@ -184,15 +192,14 @@ export function EncountersTable({
 		null,
 	);
 	const [isEncounterFilterMenuOpen, setIsEncounterFilterMenuOpen] = useState(false);
-	const table = useReactTable({
+	const table = useTable({
+		features: configuredTableFeatures,
 		data: encounters,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.encounterId,
 		onSortingChange: setSorting,
 		onRowSelectionChange: setSelectedEncounterRows,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
 		state: { sorting, rowSelection: selectedEncounterRows },
 	});
 	const selectedEncounters = table.getSelectedRowModel().rows.map((row) => row.original);
@@ -971,7 +978,7 @@ function formatEncounterFilterValue(value: string) {
 		.join(" ");
 }
 
-function getEncountersColumns(patientId: string, canArchive: boolean): ColumnDef<EncounterType>[] {
+function getEncountersColumns(patientId: string, canArchive: boolean): ColumnDef<typeof configuredTableFeatures, EncounterType>[] {
 	return [
 		{
 			id: "select",

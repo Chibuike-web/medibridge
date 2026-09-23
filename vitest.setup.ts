@@ -2,9 +2,14 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
 
-Element.prototype.scrollIntoView = () => {};
-HTMLElement.prototype.hasPointerCapture = () => false;
-HTMLElement.prototype.setPointerCapture = () => {};
-HTMLElement.prototype.releasePointerCapture = () => {};
+if (typeof Element !== "undefined") {
+	Element.prototype.scrollIntoView = () => {};
+}
+
+if (typeof HTMLElement !== "undefined") {
+	HTMLElement.prototype.hasPointerCapture = () => false;
+	HTMLElement.prototype.setPointerCapture = () => {};
+	HTMLElement.prototype.releasePointerCapture = () => {};
+}
 
 afterEach(cleanup);

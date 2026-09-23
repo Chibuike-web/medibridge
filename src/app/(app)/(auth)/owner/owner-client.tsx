@@ -2,21 +2,22 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useState, useTransition } from "react";
 import { ownerSchema, OwnerType } from "@/features/auth/schemas/owner-schema";
 import { RiEyeLine, RiEyeOffLine, RiInformationLine } from "@remixicon/react";
+import { createOwnerAction } from "@/features/auth/server/actions";
 
 export function OwnerClient() {
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-	const router = useRouter();
+	const [error, setError] = useState("");
+	const [emailSent, setEmailSent] = useState(false);
+	const [isPending, startTransition] = useTransition();
 	const {
 		register,
 		handleSubmit,
-		reset,
 		formState: { errors },
 	} = useForm({
 		resolver: zodResolver(ownerSchema),
@@ -27,23 +28,31 @@ export function OwnerClient() {
 		},
 	});
 
-	useEffect(
-		function restoreOwnerFromCache() {
-			const cache = localStorage.getItem("ONBOARDING_CACHE");
-			if (!cache) return;
-
-			const parsed = JSON.parse(cache);
-			if (parsed.owner) {
-				reset(parsed.owner);
-			}
-		},
-		[reset],
-	);
-
 	function onSubmit(data: OwnerType) {
-		console.log("click", data);
-		localStorage.setItem("ONBOARDING_CACHE", JSON.stringify({ owner: data }));
-		router.push("/hospital-details");
+		setError("");
+		startTransition(async () => {
+			try {
+				const result = await createOwnerAction(data);
+				if (result.status === "failed") {
+					setError(result.error || "Account creation failed");
+					return;
+				}
+				setEmailSent(true);
+			} catch (error) {
+				setError(error instanceof Error ? error.message : "Account creation failed");
+			}
+		});
+	}
+
+	if (emailSent) {
+		return (
+			<div className="text-center" role="status">
+				<h2 className="text-lg font-semibold">Check your email</h2>
+				<p className="mt-3 text-sm text-gray-600">
+					We sent a verification link. After verifying your email, you can add your hospital details.
+				</p>
+			</div>
+		);
 	}
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className="text-gray-800 w-full">
@@ -123,8 +132,13 @@ export function OwnerClient() {
 				</p>
 			)}
 
-			<Button className="w-full mt-16" type="submit">
-				Continue
+			{error && (
+				<p className="mt-4 text-sm font-medium text-red-600" role="alert">
+					{error}
+				</p>
+			)}
+			<Button className="w-full mt-16" type="submit" disabled={isPending}>
+				{isPending ? "Creating account..." : "Continue"}
 			</Button>
 		</form>
 	);

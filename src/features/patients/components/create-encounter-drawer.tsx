@@ -105,14 +105,14 @@ export function CreateEncounterDrawer({ open, onOpenChange }: CreateEncounterDra
 								aria-label="Close create encounter drawer"
 								className="cursor-pointer rounded-md hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
 							>
-								<RiCloseLine className="size-6" aria-hidden="true" />
+								<RiCloseLine className="size-5" aria-hidden="true" />
 							</DrawerClose>
 							<DrawerDescription className="sr-only">
 								Choose a clinical record to add to this encounter.
 							</DrawerDescription>
 						</DrawerHeader>
 
-						<div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-8">
+						<div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-8">
 							{encounterRecordOptions.map((recordOption) => (
 								<button
 									key={recordOption.id}

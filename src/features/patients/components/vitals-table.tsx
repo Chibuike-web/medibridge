@@ -4,13 +4,21 @@ import { useMemo, useState } from "react";
 import {
 	type ColumnDef,
 	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
+	createSortedRowModel,
+	stockFeatures,
+	sortFns,
+	tableFeatures,
 	type OnChangeFn,
 	type RowSelectionState,
 	type SortingState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	sortedRowModel: createSortedRowModel(),
+});
 import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import {
@@ -396,7 +404,7 @@ function VitalsTableContent({
 }: {
 	canArchive: boolean;
 	vitals: VitalType[];
-	columns: ColumnDef<VitalType>[];
+	columns: ColumnDef<typeof configuredTableFeatures, VitalType>[];
 	sorting: SortingState;
 	onSortingChange: OnChangeFn<SortingState>;
 	page: number;
@@ -409,15 +417,14 @@ function VitalsTableContent({
 	onLimitChange: (limit: number) => void;
 }) {
 	const [selectedVitalRows, setSelectedVitalRows] = useState<RowSelectionState>({});
-	const table = useReactTable({
+	const table = useTable({
+		features: configuredTableFeatures,
 		data: vitals,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.vitalId,
 		onSortingChange,
 		onRowSelectionChange: setSelectedVitalRows,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
 		state: {
 			sorting,
 			rowSelection: selectedVitalRows,
@@ -906,7 +913,7 @@ function getVitalsColumns({
 }: {
 	canArchive: boolean;
 	onViewVitalDetails: (vitalId: string) => void;
-}): ColumnDef<VitalType>[] {
+}): ColumnDef<typeof configuredTableFeatures, VitalType>[] {
 	return [
 		{
 			id: "select",

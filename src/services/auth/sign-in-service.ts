@@ -2,11 +2,12 @@
 
 import { SignInType } from "@/features/auth/schemas/sign-in-schema";
 import { auth } from "@/lib/better-auth/auth";
+import { APIError } from "better-auth";
 import { headers } from "next/headers";
 
 export async function signInService(data: SignInType) {
 	try {
-		const signInRes = await auth.api.signInEmail({
+		await auth.api.signInEmail({
 			body: {
 				email: data.email,
 				password: data.password,
@@ -15,12 +16,12 @@ export async function signInService(data: SignInType) {
 			headers: await headers(),
 		});
 
-		const userId = signInRes.user.id;
-
-		return {
-			status: "success",
-		};
+		return { status: "success" };
 	} catch (error) {
+		if (error instanceof APIError && error.body?.code === "EMAIL_NOT_VERIFIED") {
+			return { status: "email-unverified", error: "Email address is not verified." };
+		}
+
 		console.error(error);
 		return {
 			status: "failed",

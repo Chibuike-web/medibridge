@@ -110,7 +110,7 @@ export function FilterButton({
 					onFocus={() => setActiveFilterSubmenu("status")}
 					onPointerEnter={() => setActiveFilterSubmenu("status")}
 					onSelect={(event) => event.preventDefault()}
-					className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
+					className="h-8 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 				>
 					<RiMenLine className="size-4.5" />
 					<span>Status</span>
@@ -122,7 +122,7 @@ export function FilterButton({
 					onFocus={() => setActiveFilterSubmenu("requested-at")}
 					onPointerEnter={() => setActiveFilterSubmenu("requested-at")}
 					onSelect={(event) => event.preventDefault()}
-					className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
+					className="h-8 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 				>
 					<RiCalendarLine className="size-4.5" />
 					<span>Requested at</span>
@@ -135,7 +135,7 @@ export function FilterButton({
 					className={cn(
 						"absolute top-0 right-[100%] z-50 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						activeFilterSubmenu === "requested-at" ? "w-max" : "w-[13.75rem]",
-						activeFilterSubmenu === "requested-at" ? "translate-y-9" : "translate-y-0",
+						activeFilterSubmenu === "requested-at" ? "translate-y-8" : "translate-y-0",
 						activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
 					)}
 				>
@@ -148,7 +148,7 @@ export function FilterButton({
 								<Label
 									key={statusOption.value}
 									htmlFor={statusOptionId}
-									className="flex h-9 w-full cursor-pointer items-center gap-2 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
+									className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
 								>
 									<Checkbox
 										id={statusOptionId}
@@ -325,7 +325,7 @@ function DatePresetButton({
 		<button
 			type="button"
 			onClick={onSelect}
-			className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 hover:bg-gray-100 focus-visible:bg-gray-50 focus-visible:outline-none"
+			className="flex h-8 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 hover:bg-gray-100 focus-visible:bg-gray-50 focus-visible:outline-none"
 		>
 			<span>{label}</span>
 			{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}

@@ -103,7 +103,7 @@ export function DocumentDetailsDrawer({
 						Selected patient document details.
 					</DrawerDescription>
 				</DrawerHeader>
-				<div className="min-h-0 overflow-y-auto px-6 py-8 text-sm">
+				<div className="min-h-0 overflow-y-auto px-4 py-8 text-sm">
 					{isLoading ? (
 						<DcoumentDetailsFallback />
 					) : document ? (
@@ -209,7 +209,7 @@ function DocumentDetailsOverview({
 						{document.files.length > 3 ? (
 							<button
 								type="button"
-								className="text-gray-400"
+								className="text-sm text-gray-400"
 								onClick={() => setAreDocumentFilesExpanded((prev) => !prev)}
 							>
 								{areDocumentFilesExpanded ? "View less" : "View more"}
@@ -476,7 +476,7 @@ function DocumentDetailsEditForm({
 									inert={pendingDocumentFileRemovalUrl !== file.url}
 								>
 									<div className="min-h-0 overflow-hidden">
-											<div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+						<div className="mt-6 flex flex-wrap items-center justify-between gap-4">
 												<p className="max-w-md text-sm font-medium text-gray-700">
 													Remove {file.name} from this document?
 												</p>
@@ -542,7 +542,7 @@ function DocumentDetailItem({ label, value }: { label: string; value: string }) 
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
-			<span className="font-semibold text-gray-600">{value || "-"}</span>
+			<span className="font-medium text-gray-600">{value || "-"}</span>
 		</div>
 	);
 }

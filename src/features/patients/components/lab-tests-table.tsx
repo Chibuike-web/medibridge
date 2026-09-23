@@ -48,12 +48,20 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {
 	type ColumnDef,
 	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
+	createSortedRowModel,
+	stockFeatures,
+	sortFns,
+	tableFeatures,
 	type RowSelectionState,
 	type SortingState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	sortedRowModel: createSortedRowModel(),
+});
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
@@ -192,15 +200,14 @@ export function LabTestsTable({
 		[canArchive],
 	);
 
-	const table = useReactTable({
+	const table = useTable({
+		features: configuredTableFeatures,
 		data: labTests,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.labId,
 		onSortingChange: setSorting,
 		onRowSelectionChange: setSelectedLabTestRows,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
 		state: {
 			sorting,
 			rowSelection: selectedLabTestRows,
@@ -941,7 +948,7 @@ function getLabTestsColumns({
 }: {
 	canArchive: boolean;
 	onViewLabTestDetails: (labTest: LabTestType) => void;
-}): ColumnDef<LabTestType>[] {
+}): ColumnDef<typeof configuredTableFeatures, LabTestType>[] {
 	return [
 		{
 			id: "select",

@@ -42,12 +42,20 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {
 	type ColumnDef,
 	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
+	createSortedRowModel,
+	stockFeatures,
+	sortFns,
+	tableFeatures,
 	type RowSelectionState,
 	type SortingState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	sortedRowModel: createSortedRowModel(),
+});
 import {
 	RiArrowDownSLine,
 	RiArrowRightLine,
@@ -172,15 +180,14 @@ export function DocumentsTable({
 		() => getDocumentColumns({ onViewDocumentDetails: handleViewDocumentDetails }),
 		[],
 	);
-	const table = useReactTable({
+	const table = useTable({
+		features: configuredTableFeatures,
 		data: documents,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.documentId,
 		onSortingChange: setSorting,
 		onRowSelectionChange: setSelectedDocumentRows,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
 		state: { sorting, rowSelection: selectedDocumentRows },
 	});
 	const selectedDocuments = table.getSelectedRowModel().rows.map((row) => row.original);
@@ -798,7 +805,7 @@ function getDocumentColumns({
 	onViewDocumentDetails,
 }: {
 	onViewDocumentDetails: (documentId: string) => void;
-}): ColumnDef<DocumentType>[] {
+}): ColumnDef<typeof configuredTableFeatures, DocumentType>[] {
 	return [
 		{
 			id: "select",

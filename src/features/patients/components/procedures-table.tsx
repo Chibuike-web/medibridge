@@ -47,12 +47,20 @@ import { cn } from "@/lib/utils/cn";
 import {
 	type ColumnDef,
 	flexRender,
-	getCoreRowModel,
-	getSortedRowModel,
+	createSortedRowModel,
+	stockFeatures,
+	sortFns,
+	tableFeatures,
 	type RowSelectionState,
 	type SortingState,
-	useReactTable,
+	useTable,
 } from "@tanstack/react-table";
+
+const configuredTableFeatures = tableFeatures({
+	...stockFeatures,
+	sortFns,
+	sortedRowModel: createSortedRowModel(),
+});
 import {
 	RiArchiveLine,
 	RiArrowRightLine,
@@ -179,15 +187,14 @@ export function ProceduresTable({
 		[canArchive],
 	);
 
-	const table = useReactTable({
+	const table = useTable({
+		features: configuredTableFeatures,
 		data: procedures,
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.procedureId,
 		onSortingChange: setSorting,
 		onRowSelectionChange: setSelectedProcedureRows,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
 		state: {
 			sorting,
 			rowSelection: selectedProcedureRows,
@@ -866,7 +873,7 @@ function getProceduresColumns({
 }: {
 	canArchive: boolean;
 	onViewProcedureDetails: (procedureId: string) => void;
-}): ColumnDef<ProcedureType>[] {
+}): ColumnDef<typeof configuredTableFeatures, ProcedureType>[] {
 	return [
 		{
 			id: "select",

@@ -1,10 +1,9 @@
 import { fileURLToPath } from "node:url";
-import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-	plugins: [tsconfigPaths()],
 	resolve: {
+		tsconfigPaths: true,
 		alias: {
 			"server-only": fileURLToPath(
 				new URL("./node_modules/next/dist/compiled/server-only/empty.js", import.meta.url),
@@ -13,6 +12,7 @@ export default defineConfig({
 	},
 	test: {
 		environment: "jsdom",
+		maxWorkers: 2,
 		clearMocks: true,
 		setupFiles: ["./vitest.setup.ts"],
 	},

@@ -114,7 +114,7 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 
 	return (
 		<>
-			<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-6 py-8 text-sm">
+			<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-4 py-8 text-sm">
 				{recordType === "vitals" ? (
 					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2">

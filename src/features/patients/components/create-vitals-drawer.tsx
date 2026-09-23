@@ -79,7 +79,7 @@ export function CreateVitalsDrawer({
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="leading-[1.2] text-gray-800">Add vitals</DrawerTitle>
 					<DrawerClose aria-label="Close add vitals drawer">
-						<RiCloseLine className="size-6" aria-hidden="true" />
+						<RiCloseLine className="size-5" aria-hidden="true" />
 					</DrawerClose>
 					<DrawerDescription className="sr-only">
 						Record a set of patient measurements.
@@ -88,7 +88,7 @@ export function CreateVitalsDrawer({
 				<form
 					id={formId}
 					action={handleCreate}
-					className="grid min-h-0 flex-1 content-start gap-6 overflow-y-auto px-6 py-8 text-sm sm:grid-cols-2"
+					className="grid min-h-0 flex-1 content-start gap-6 overflow-y-auto px-4 py-8 text-sm sm:grid-cols-2"
 				>
 					<div className="flex flex-col gap-2 sm:col-span-2">
 						<Label htmlFor={`${formId}-encounter`} className={fieldLabelClassName}>

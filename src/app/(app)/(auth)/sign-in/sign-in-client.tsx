@@ -1,6 +1,6 @@
 "use client";
 
-import { signInAction } from "@/features/auth/server/actions";
+import { getOrganizationAccessAction, signInAction } from "@/features/auth/server/actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,11 @@ export function SignInClient() {
 		setSignInSuccess("");
 		try {
 			const response = await signInAction(data);
+			if (response.status === "email-unverified") {
+				setSignInError("Check your inbox for a verification link before signing in.");
+				return;
+			}
+
 			if (response.status === "failed") {
 				console.error(response.error);
 				setSignInError(response.error || "");
@@ -63,7 +68,7 @@ export function SignInClient() {
 		}
 
 		if (!organizations || organizations.length === 0) {
-			setSignInError("No hospital organization is associated with this account.");
+			router.replace("/hospital-details");
 			return;
 		}
 
@@ -81,6 +86,23 @@ export function SignInClient() {
 
 		if (setActiveOrganizationError) {
 			setSignInError(setActiveOrganizationError.message ?? "No active organization");
+			return;
+		}
+
+		const organizationAccess = await getOrganizationAccessAction(organization.id);
+
+		if (organizationAccess.status === "unauthorized") {
+			setSignInError("Your session expired. Please sign in again.");
+			return;
+		}
+
+		if (organizationAccess.status === "forbidden") {
+			setSignInError("You do not have access to this hospital organization.");
+			return;
+		}
+
+		if (!organizationAccess.emailVerified || !organizationAccess.isOrganizationVerified) {
+			router.replace("/verify");
 			return;
 		}
 

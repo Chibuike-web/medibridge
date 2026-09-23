@@ -82,7 +82,7 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 						{isEditingLabTestDetails ? "Edit lab test details" : "View details"}
 					</DrawerTitle>
 					<DrawerClose aria-label="Close lab test details drawer">
-						<RiCloseLine className="size-6" aria-hidden="true" />
+						<RiCloseLine className="size-5" aria-hidden="true" />
 					</DrawerClose>
 					<DrawerDescription className="sr-only">
 						{isEditingLabTestDetails
@@ -91,7 +91,7 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<div className="min-h-0 overflow-y-auto px-6 py-8 text-sm">
+				<div className="min-h-0 overflow-y-auto px-4 py-8 text-sm">
 					{isEditingLabTestDetails && labTest ? (
 						<LabTestDetailsEditForm labTest={labTest} />
 					) : labTest ? (
@@ -202,7 +202,7 @@ function LabTestDetailItem({ label, value }: { label: string; value: string }) {
 			{label === "Status" ? (
 				<StatusBadge status={value || "Pending"} className="w-max" />
 			) : (
-				<span className="font-semibold text-gray-600">{value || "-"}</span>
+				<span className="font-medium text-gray-600">{value || "-"}</span>
 			)}
 		</div>
 	);
@@ -221,7 +221,7 @@ function LabTestFilesSection({ files }: { files: LabTestType["files"] }) {
 				{files.length > 3 ? (
 					<button
 						type="button"
-						className="text-gray-400"
+						className="text-sm text-gray-400"
 						onClick={() => setAreLabTestFilesExpanded((previousValue) => !previousValue)}
 					>
 						{areLabTestFilesExpanded ? "View less" : "View more"}
@@ -270,7 +270,7 @@ function LabTestHistorySection({ history }: { history: LabTestDetailsHistoryEven
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
-				<button className="text-gray-400">View more</button>
+				<button className="text-sm text-gray-400">View more</button>
 			</div>
 			{history.map((historyEvent) => (
 				<LabTestHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
@@ -324,7 +324,7 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 					<div
 						role="region"
 						aria-labelledby={titleId}
-							className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
+						className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
 						>
 							{historyEvent.items.map((item) => (
 								<LabTestDetailItem

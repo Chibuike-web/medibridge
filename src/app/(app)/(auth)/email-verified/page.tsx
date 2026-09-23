@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { EmailVerifiedClient } from "./email-verified-client";
 
 export const metadata = {
@@ -6,9 +5,5 @@ export const metadata = {
 };
 
 export default function EmailVerified() {
-	return (
-		<Suspense>
-			<EmailVerifiedClient />
-		</Suspense>
-	);
+	return <EmailVerifiedClient />;
 }

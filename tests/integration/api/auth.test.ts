@@ -1,11 +1,7 @@
 // @vitest-environment node
 
-import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { NextRequest } from "next/server";
-
-const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
-afterAll(() => consoleErrorSpy.mockRestore());
 
 const {
 	authHandlerMock,
@@ -52,6 +48,7 @@ describe("Auth API", () => {
 	beforeEach(() => {
 		authGetHandlerMock.mockClear();
 		authPostHandlerMock.mockClear();
+		authHandlerMock.mockClear();
 		getSessionMock.mockClear();
 		verifyEmailMock.mockClear();
 		headersMock.mockClear();
@@ -94,56 +91,27 @@ describe("Auth API", () => {
 	});
 
 	describe("GET /api/auth/verify-email", () => {
-		test("redirects to an invalid-token error when the token is missing", async () => {
-			const response = await verifyEmailGET(
-				new NextRequest("http://localhost:4300/api/auth/verify-email"),
+		test("delegates signed-out verification and preserves Better Auth's session cookie and redirect", async () => {
+			const request = new NextRequest(
+				"http://localhost:4300/api/auth/verify-email?token=token-1&callbackURL=http%3A%2F%2Flocalhost%3A4300%2Fhospital-details",
 			);
+			const response = new Response(null, {
+				status: 302,
+				headers: {
+					location: "http://localhost:4300/hospital-details",
+					"set-cookie": "better-auth.session_token=verified-session; HttpOnly",
+				},
+			});
+			authHandlerMock.mockResolvedValue(response);
 
-			expect(response.status).toBe(307);
-			expect(new URL(response.headers.get("location")!).searchParams.get("error")).toBe(
-				"invalid_token",
-			);
+			const result = await verifyEmailGET(request);
+
+			expect(authHandlerMock).toHaveBeenCalledWith(request);
+			expect(result.status).toBe(302);
+			expect(result.headers.get("location")).toBe("http://localhost:4300/hospital-details");
+			expect(result.headers.get("set-cookie")).toContain("verified-session");
 			expect(getSessionMock).not.toHaveBeenCalled();
-		});
-
-		test("redirects to a no-session error when the user is not signed in", async () => {
-			getSessionMock.mockResolvedValue(null);
-
-			const response = await verifyEmailGET(
-				new NextRequest("http://localhost:4300/api/auth/verify-email?token=token-1"),
-			);
-
-			expect(response.status).toBe(307);
-			expect(response.headers.get("location")).toContain("/email-verified?error=no_session");
 			expect(verifyEmailMock).not.toHaveBeenCalled();
-		});
-
-		test("verifies the token and redirects to the verified page", async () => {
-			getSessionMock.mockResolvedValue({ user: { id: "user-1" } });
-			verifyEmailMock.mockResolvedValue(undefined);
-
-			const response = await verifyEmailGET(
-				new NextRequest("http://localhost:4300/api/auth/verify-email?token=token-1"),
-			);
-
-			expect(response.status).toBe(307);
-			expect(response.headers.get("location")).toBe("http://localhost:4300/email-verified");
-			expect(getSessionMock).toHaveBeenCalledWith({ headers: expect.any(Headers) });
-			expect(verifyEmailMock).toHaveBeenCalledWith({ query: { token: "token-1" } });
-		});
-
-		test("redirects to an invalid-token error when verification fails unexpectedly", async () => {
-			getSessionMock.mockResolvedValue({ user: { id: "user-1" } });
-			verifyEmailMock.mockRejectedValue(new Error("verification failed"));
-
-			const response = await verifyEmailGET(
-				new NextRequest("http://localhost:4300/api/auth/verify-email?token=token-1"),
-			);
-
-			expect(response.status).toBe(307);
-			expect(new URL(response.headers.get("location")!).searchParams.get("error")).toBe(
-				"invalid_token",
-			);
 		});
 	});
 });

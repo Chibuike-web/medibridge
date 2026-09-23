@@ -72,14 +72,14 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="leading-[1.2] text-gray-800">Add diagnosis</DrawerTitle>
 					<DrawerClose aria-label="Close add diagnosis drawer">
-						<RiCloseLine className="size-6" aria-hidden="true" />
+						<RiCloseLine className="size-5" aria-hidden="true" />
 					</DrawerClose>
 					<DrawerDescription className="sr-only">
 						Create a new diagnosis record for this patient.
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-6 py-8 text-sm">
+				<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-4 py-8 text-sm">
 					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-diagnosis-name`} className={fieldLabelClassName}>
