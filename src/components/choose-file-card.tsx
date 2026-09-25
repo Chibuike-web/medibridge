@@ -26,7 +26,7 @@ export function ChooseFileCard({
 	description,
 	browseLabel,
 	accept,
-	multiple = true,
+	multiple = false,
 	error,
 }: FileUploadCardProps) {
 	return (

@@ -10,6 +10,7 @@ type VerificationFileState = {
 	status: VerificationUploadStatus;
 	uploadedType: FileExtensionType;
 	error: string;
+	resStatus?: number;
 };
 
 export function useVerificationFileUpload() {
@@ -79,25 +80,25 @@ export function useVerificationFileUpload() {
 				method: "POST",
 				body: formData,
 			});
-			const data = await res.json();
+			const data: { error?: string } = await res.json().catch(() => ({}));
 
 			if (!res.ok) {
 				setVerificationFile({
 					file: null,
 					status: "idle",
 					uploadedType: "",
-					error: data.error ?? "Upload failed.",
+					error: data.error ?? "We couldn’t upload your file. Please try again",
+					resStatus: res.status,
 				});
 				return;
 			}
 			setVerificationFile((prev) => ({ ...prev, status: "upload-complete" }));
 		} catch (error) {
-			console.error(error);
 			setVerificationFile({
 				file: null,
 				status: "idle",
 				uploadedType: "",
-				error: "Upload failed.",
+				error: "We couldn’t upload your file. Please try again.",
 			});
 		}
 	};

@@ -1,15 +1,23 @@
 "use server";
 
-import { HospitalDetailsType } from "@/features/auth/schemas/hospital-details-schema";
+import {
+	hospitalDetailsSchema,
+	HospitalDetailsType,
+} from "@/features/auth/schemas/hospital-details-schema";
 import { hospitalDetails } from "@/db/schemas";
 import { auth, db } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
+import { readdir } from "node:fs/promises";
+import path from "node:path";
+
+const uploadDir = path.resolve("hospital-uploads");
 
 export async function createHospitalService(data: HospitalDetailsType) {
 	try {
 		const session = await auth.api.getSession({ headers: await headers() });
-		if (!session) return { status: "failed", message: "You must sign in to submit hospital details." };
+		if (!session)
+			return { status: "failed", message: "You must sign in to submit hospital details." };
 		if (!session.user.emailVerified) {
 			return { status: "failed", message: "Verify your email before submitting hospital details." };
 		}
@@ -24,29 +32,45 @@ export async function createHospitalService(data: HospitalDetailsType) {
 		}
 
 		const userId = session.user.id;
+		const parsed = hospitalDetailsSchema.safeParse(data);
+		if (parsed.error) {
+			return { status: "failed", message: "Enter the correct details" };
+		}
+
+		const [uploadedFileName] = await readdir(path.join(uploadDir, userId)).catch(() => []);
+		if (!uploadedFileName) {
+			return {
+				status: "failed",
+				message: "Upload your accreditation document before submitting.",
+			};
+		}
 
 		const orgRes = await auth.api.createOrganization({
 			body: {
-				name: data.hospitalName,
-				slug: data.hospitalName.toLowerCase().replace(/\s+/g, "-"),
+				name: parsed.data.hospitalName,
+				slug: parsed.data.hospitalName.toLowerCase().replace(/\s+/g, "-"),
 				userId,
 				keepCurrentActiveOrganization: false,
 			},
-			headers: await headers(),
 		});
 
 		if (!orgRes) return { status: "failed", message: "Organization creation failed" };
 
 		const organizationId = orgRes.id;
 
+		await auth.api.setActiveOrganization({
+			body: { organizationId: orgRes.id },
+			headers: await headers(),
+		});
+
 		await db.insert(hospitalDetails).values({
 			id: crypto.randomUUID(),
 			organizationId,
-			hospitalName: data.hospitalName,
-			hospitalAddress: data.hospitalAddress,
+			hospitalName: parsed.data.hospitalName,
+			hospitalAddress: parsed.data.hospitalAddress,
 			hospitalOwnerName: session.user.name,
 			hospitalOwnerEmail: session.user.email,
-			documentPath: null,
+			documentPath: `${userId}/${uploadedFileName}`,
 			createdAt: new Date(),
 		});
 

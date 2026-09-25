@@ -11,6 +11,7 @@ import {
 import { auth, db } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { SavePatientsResult } from "./types";
+import { getOrganizationId } from "@/lib/api/get-organization-id";
 
 function isBlank(value: string | null | undefined) {
 	return value === null || value === undefined || value.trim() === "";
@@ -58,7 +59,7 @@ export async function saveExtractedPatientsService(
 		}
 
 		const session = await auth.api.getSession({ headers: await headers() });
-		const organizationId = session?.session.activeOrganizationId;
+		const organizationId = await getOrganizationId();
 
 		if (!session?.user?.id) {
 			return { status: "failed", error: "You must be signed in to save patients." };

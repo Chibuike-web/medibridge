@@ -1,5 +1,4 @@
 import { gateway, generateText, Output, wrapLanguageModel } from "ai";
-import { NextResponse } from "next/server";
 import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { createWorker } from "tesseract.js";
 import mammoth from "mammoth";
@@ -8,24 +7,40 @@ import path from "node:path";
 import { existsSync, readFileSync } from "node:fs";
 import { PatientSchema } from "@/features/patients/schemas/patient-schema";
 import { ExtractionResult } from "@/lib/types/upload";
+import { getSessionData } from "@/lib/api/get-session-data";
+import { getOrganizationId } from "@/lib/api/get-organization-id";
 
 const model =
 	process.env.NODE_ENV === "development"
 		? wrapLanguageModel({
-				model: gateway("anthropic/claude-haiku-4.5"),
+				model: gateway("openai/gpt-5.6-luna"),
 				middleware: devToolsMiddleware(),
 			})
-		: gateway("anthropic/claude-haiku-4.5");
+		: gateway("openai/gpt-5.6-luna");
 
 const results: ExtractionResult[] = [];
 
 export async function POST(req: Request) {
+	const session = await getSessionData();
+
+	if (!session?.user?.id) {
+		return Response.json({ error: "Sign in to extract patient records." }, { status: 401 });
+	}
+
+	const organizationId = await getOrganizationId();
+
+	if (!organizationId) {
+		return Response.json(
+			{ error: "Your hospital must be verified before you can extract patient records." },
+			{ status: 403 },
+		);
+	}
 	const worker = await createWorker("eng");
 	results.length = 0;
 
 	try {
 		const { filenames } = await req.json();
-		if (!filenames) return NextResponse.json({ error: "Missing file" }, { status: 400 });
+		if (!filenames) return Response.json({ error: "Missing file" }, { status: 400 });
 
 		let text = "";
 		for (const filename of filenames) {
@@ -150,7 +165,7 @@ Extract patient data per document.`;
 		});
 		console.log("Extracted object:", output);
 
-		return NextResponse.json({
+		return Response.json({
 			ok: true,
 			parsed: successful.length,
 			failed: failed.length,
@@ -159,7 +174,7 @@ Extract patient data per document.`;
 			extracted: output,
 		});
 	} catch (error) {
-		return NextResponse.json(
+		return Response.json(
 			{ error: error instanceof Error ? error.message : "Internal Server error" },
 			{ status: 400 },
 		);
