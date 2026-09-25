@@ -516,21 +516,21 @@ function getTransferColumns(
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
 							align="end"
-							className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+							className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
 							{row.original.status.toLowerCase() === "pending" ? (
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiEyeLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
-									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 										<RiSendPlaneLine className="text-white" /> <span>Resend request</span>
 									</DropdownMenuItem>
-									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 										<RiCloseLine className="text-white" /> <span>Cancel transfer</span>
 									</DropdownMenuItem>
 								</>
@@ -538,7 +538,7 @@ function getTransferColumns(
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiEyeLine className="text-white" />
 										<span>View transfer details</span>
@@ -549,14 +549,14 @@ function getTransferColumns(
 												`/dashboard/new-transfer-request?patientId=${row.original.patientId}&returnTo=${encodeURIComponent(returnTo)}`,
 											)
 										}
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiEdit2Line className="text-white" /> <span>Edit and resend request</span>
 									</DropdownMenuItem>
 									{canArchive ? (
 										<>
 											<DropdownMenuSeparator className="bg-white/20" />
-											<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 												<RiArchiveLine className="text-white" />
 												<span>Archive</span>
 											</DropdownMenuItem>
@@ -567,7 +567,7 @@ function getTransferColumns(
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiEyeLine className="text-white" />
 										<span>View transfer details</span>
@@ -575,7 +575,7 @@ function getTransferColumns(
 									{canArchive ? (
 										<>
 											<DropdownMenuSeparator className="bg-white/20" />
-											<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 												<RiArchiveLine className="text-white" />
 												<span>Archive</span>
 											</DropdownMenuItem>
@@ -586,18 +586,18 @@ function getTransferColumns(
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiEyeLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
-									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 										<RiCornerDownLeftFill className="text-whte" /> <span>Retry transfer</span>
 									</DropdownMenuItem>
 									{canArchive ? (
 										<>
 											<DropdownMenuSeparator className="bg-white/20" />
-											<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 												<RiArchiveLine className="text-white" />
 												<span>Archive</span>
 											</DropdownMenuItem>
@@ -608,13 +608,13 @@ function getTransferColumns(
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
-										className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiEyeLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem
-										className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 										onSelect={() =>
 											router.push(
 												`/dashboard/new-transfer-request?patientId=${row.original.patientId}&returnTo=${encodeURIComponent(returnTo)}`,
@@ -626,7 +626,7 @@ function getTransferColumns(
 									{canArchive ? (
 										<>
 											<DropdownMenuSeparator className="bg-white/20" />
-											<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 												<RiArchiveLine className="text-white" />
 												<span>Archive</span>
 											</DropdownMenuItem>

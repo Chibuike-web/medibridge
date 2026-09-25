@@ -246,9 +246,9 @@ export function EncountersTable({
 							onSelect={(event) => event.preventDefault()}
 							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 						>
-							<RiCalendarLine className="size-4.5" />
-							<span>Encounter date</span>
-							<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+							<RiCalendarLine className="size-4" />
+							<span className="flex-1">Encounter date</span>
+							<RiArrowRightSLine className="size-4" aria-hidden="true" />
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
@@ -258,9 +258,9 @@ export function EncountersTable({
 							onSelect={(event) => event.preventDefault()}
 							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 						>
-							<RiFileList2Line className="size-4.5" />
-							<span>Encounter type</span>
-							<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+							<RiFileList2Line className="size-4" />
+							<span className="flex-1">Encounter type</span>
+							<RiArrowRightSLine className="size-4" aria-hidden="true" />
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
@@ -270,9 +270,9 @@ export function EncountersTable({
 							onSelect={(event) => event.preventDefault()}
 							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 						>
-							<RiCalendarLine className="size-4.5" />
-							<span>Created at</span>
-							<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+							<RiCalendarLine className="size-4" />
+							<span className="flex-1">Created at</span>
+							<RiArrowRightSLine className="size-4" aria-hidden="true" />
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
@@ -280,11 +280,11 @@ export function EncountersTable({
 							onFocus={() => setActiveFilterSubmenu("department")}
 							onPointerEnter={() => setActiveFilterSubmenu("department")}
 							onSelect={(event) => event.preventDefault()}
-							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
+							className="mb-0 h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 						>
-							<RiBuilding4Line className="size-4.5" />
-							<span>Department</span>
-							<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+							<RiBuilding4Line className="size-4" />
+							<span className="flex-1">Department</span>
+							<RiArrowRightSLine className="size-4" aria-hidden="true" />
 						</DropdownMenuItem>
 
 						<div
@@ -296,11 +296,11 @@ export function EncountersTable({
 									? "w-max"
 									: "w-[13.75rem]",
 								activeFilterSubmenu === "type"
-									? "translate-y-9"
+									? "translate-y-10"
 									: activeFilterSubmenu === "created-at"
-										? "translate-y-18"
+										? "translate-y-20"
 										: activeFilterSubmenu === "department"
-											? "translate-y-27"
+											? "translate-y-30"
 											: "translate-y-0",
 								activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
 							)}
@@ -908,10 +908,10 @@ function EncounterDatePresetButton({
 				event.preventDefault();
 				onSelect();
 			}}
-			className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
+			className="flex h-9 w-full items-center rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
 		>
-			<span>{label}</span>
-			{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}
+			<span className="flex-1">{label}</span>
+			{isSelected ? <RiCheckLine className="text-gray-700 size-4" aria-hidden="true" /> : null}
 		</DropdownMenuItem>
 	);
 }
@@ -1056,7 +1056,7 @@ function getEncountersColumns(patientId: string, canArchive: boolean): ColumnDef
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
 							align="end"
-							className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+							className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
 							<DropdownMenuItem asChild className="py-2">
 								<Link
@@ -1069,14 +1069,14 @@ function getEncountersColumns(patientId: string, canArchive: boolean): ColumnDef
 									<span>View details</span>
 								</Link>
 							</DropdownMenuItem>
-							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+							<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiShare2Line className="text-white" />
 								<span>Export</span>
 							</DropdownMenuItem>
 							{canArchive ? (
 								<>
 									<DropdownMenuSeparator className="bg-white/20" />
-									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 										<RiArchiveLine className="text-white" />
 										<span>Archive</span>
 									</DropdownMenuItem>

@@ -29,7 +29,7 @@ export function AppearanceSettings() {
 							>
 								<SelectValue />
 							</SelectTrigger>
-							<SelectContent align="end" className="min-w-[220px]">
+							<SelectContent align="end" className="min-w-50">
 								<SelectItem value="system">System</SelectItem>
 								<SelectItem value="dark">Dark</SelectItem>
 								<SelectItem value="light">Light</SelectItem>
@@ -49,7 +49,7 @@ export function AppearanceSettings() {
 							>
 								<SelectValue />
 							</SelectTrigger>
-							<SelectContent align="end" className="min-w-[220px]">
+							<SelectContent align="end" className="min-w-50">
 								<SelectItem value="system">System</SelectItem>
 								<SelectItem value="medium">Medium</SelectItem>
 								<SelectItem value="increased">Increased</SelectItem>

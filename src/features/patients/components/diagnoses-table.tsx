@@ -253,7 +253,7 @@ export function DiagnosesTable({
 							}}
 						>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-								<RiCheckboxCircleLine className="size-4.5" /> <span className="block">Status</span>
+								<RiCheckboxCircleLine className="size-4" /> <span className="flex-1">Status</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								alignOffset={-5}
@@ -309,7 +309,7 @@ export function DiagnosesTable({
 							}}
 						>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-								<RiHistoryLine className="text-lg" /> <span className="block">Last updated</span>
+								<RiHistoryLine className="size-4" /> <span className="flex-1">Last updated</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								alignOffset={-5}
@@ -335,7 +335,7 @@ export function DiagnosesTable({
 							}}
 						>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-								<RiPulseLine className="size-4.5" /> <span className="block">Diagnosed At</span>
+								<RiPulseLine className="size-4" /> <span className="flex-1">Diagnosed At</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								alignOffset={-5}
@@ -360,7 +360,7 @@ export function DiagnosesTable({
 							}}
 						>
 							<DropdownMenuSubTrigger className="rounded-lg py-2 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-								<RiCalendarLine className="size-4.5" /> <span className="block">Created at</span>
+								<RiCalendarLine className="size-4" /> <span className="flex-1">Created at</span>
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								alignOffset={-5}
@@ -953,10 +953,10 @@ function DiagnosisDatePresetButton({
 				event.preventDefault();
 				onSelect();
 			}}
-			className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
+			className="flex h-9 w-full items-center rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
 		>
-			<span>{label}</span>
-			{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}
+			<span className="flex-1">{label}</span>
+			{isSelected ? <RiCheckLine className="text-gray-700 size-4" aria-hidden="true" /> : null}
 		</DropdownMenuItem>
 	);
 }
@@ -1112,10 +1112,10 @@ function getDiagnosesColumns({
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
 							align="end"
-							className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+							className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
 							<DropdownMenuItem
-								className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+								className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 								onSelect={() => {
 									onViewDiagnosisDetails(row.original.diagnosisId);
 								}}
@@ -1123,14 +1123,14 @@ function getDiagnosesColumns({
 								<RiEyeLine className="text-white" />
 								<span>View details</span>
 							</DropdownMenuItem>
-							<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+							<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 								<RiShare2Line className="text-white" />
 								<span>Export</span>
 							</DropdownMenuItem>
 							{canArchive ? (
 								<>
 									<DropdownMenuSeparator className="bg-white/20" />
-									<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 										<RiArchiveLine className="text-white" />
 										<span>Archive</span>
 									</DropdownMenuItem>

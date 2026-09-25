@@ -112,9 +112,9 @@ export function FilterButton({
 					onSelect={(event) => event.preventDefault()}
 					className="h-8 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 				>
-					<RiMenLine className="size-4.5" />
-					<span>Status</span>
-					<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+					<RiMenLine className="size-4" />
+					<span className="flex-1">Status</span>
+					<RiArrowRightSLine className="size-4" aria-hidden="true" />
 				</DropdownMenuItem>
 
 				<DropdownMenuItem
@@ -122,11 +122,11 @@ export function FilterButton({
 					onFocus={() => setActiveFilterSubmenu("requested-at")}
 					onPointerEnter={() => setActiveFilterSubmenu("requested-at")}
 					onSelect={(event) => event.preventDefault()}
-					className="h-8 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
+					className="mb-0 h-8 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 				>
-					<RiCalendarLine className="size-4.5" />
-					<span>Requested at</span>
-					<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+					<RiCalendarLine className="size-4" />
+					<span className="flex-1">Requested at</span>
+					<RiArrowRightSLine className="size-4" aria-hidden="true" />
 				</DropdownMenuItem>
 
 				<div
@@ -135,7 +135,7 @@ export function FilterButton({
 					className={cn(
 						"absolute top-0 right-[100%] z-50 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						activeFilterSubmenu === "requested-at" ? "w-max" : "w-[13.75rem]",
-						activeFilterSubmenu === "requested-at" ? "translate-y-8" : "translate-y-0",
+						activeFilterSubmenu === "requested-at" ? "translate-y-9" : "translate-y-0",
 						activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
 					)}
 				>

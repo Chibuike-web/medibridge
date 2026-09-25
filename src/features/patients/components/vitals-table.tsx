@@ -245,9 +245,9 @@ export function VitalsTable({
 							onSelect={(event) => event.preventDefault()}
 							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 						>
-							<RiCalendarLine className="size-4.5" />
-							<span>Encounter date</span>
-							<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+							<RiCalendarLine className="size-4" />
+							<span className="flex-1">Encounter date</span>
+							<RiArrowRightSLine className="size-4" aria-hidden="true" />
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
@@ -257,9 +257,9 @@ export function VitalsTable({
 							onSelect={(event) => event.preventDefault()}
 							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 						>
-							<RiFileList2Line className="size-4.5" />
-							<span>Encounter type</span>
-							<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+							<RiFileList2Line className="size-4" />
+							<span className="flex-1">Encounter type</span>
+							<RiArrowRightSLine className="size-4" aria-hidden="true" />
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
@@ -267,11 +267,11 @@ export function VitalsTable({
 							onFocus={() => setActiveFilterSubmenu("created-at")}
 							onPointerEnter={() => setActiveFilterSubmenu("created-at")}
 							onSelect={(event) => event.preventDefault()}
-							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
+							className="mb-0 h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 						>
-							<RiCalendarLine className="size-4.5" />
-							<span>Created at</span>
-							<RiArrowRightSLine className="ml-auto size-4.5" aria-hidden="true" />
+							<RiCalendarLine className="size-4" />
+							<span className="flex-1">Created at</span>
+							<RiArrowRightSLine className="size-4" aria-hidden="true" />
 						</DropdownMenuItem>
 
 						<div
@@ -283,9 +283,9 @@ export function VitalsTable({
 									? "w-max"
 									: "w-[13.75rem]",
 								activeFilterSubmenu === "encounter-type"
-									? "translate-y-9"
+									? "translate-y-10"
 									: activeFilterSubmenu === "created-at"
-										? "translate-y-18"
+										? "translate-y-20"
 										: "translate-y-0",
 								activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
 							)}
@@ -784,11 +784,11 @@ function VitalDatePresetList({
 							event.preventDefault();
 							onDateRangeApply(formatUrlDate(presetRange.from), formatUrlDate(presetRange.to));
 						}}
-						className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
+						className="flex h-9 w-full items-center rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
 					>
-						<span>{preset.label}</span>
+						<span className="flex-1">{preset.label}</span>
 						{isSameDateRange(selectedDateRange, presetRange) ? (
-							<RiCheckLine className="size-5 text-gray-700" aria-hidden="true" />
+							<RiCheckLine className="text-gray-700 size-4" aria-hidden="true" />
 						) : null}
 					</DropdownMenuItem>
 				);
@@ -988,23 +988,23 @@ function getVitalsColumns({
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
 							align="end"
-							className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+							className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
 							<DropdownMenuItem
-								className="gap-3 rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
+								className="rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
 								onSelect={() => onViewVitalDetails(row.original.vitalId)}
 							>
 								<RiEyeLine className="text-white" />
 								<span>View details</span>
 							</DropdownMenuItem>
-							<DropdownMenuItem className="gap-3 rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
+							<DropdownMenuItem className="rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
 								<RiShare2Line className="text-white" />
 								<span>Export</span>
 							</DropdownMenuItem>
 							{canArchive ? (
 								<>
 									<DropdownMenuSeparator className="bg-white/20" />
-									<DropdownMenuItem className="gap-3 rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
+									<DropdownMenuItem className="rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
 										<RiArchiveLine className="text-white" />
 										<span>Archive</span>
 									</DropdownMenuItem>

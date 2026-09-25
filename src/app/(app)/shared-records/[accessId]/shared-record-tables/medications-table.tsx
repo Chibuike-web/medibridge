@@ -445,8 +445,8 @@ function MedicationFilterMenu({
           }
         >
           <DropdownMenuSubTrigger className="rounded-lg py-2 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-            <RiCheckboxCircleLine className="size-4.5" />
-            <span>Status</span>
+            <RiCheckboxCircleLine className="size-4" />
+            <span className="flex-1">Status</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent
             alignOffset={-5}
@@ -468,8 +468,8 @@ function MedicationFilterMenu({
           }
         >
           <DropdownMenuSubTrigger className="rounded-lg py-2 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-            <RiCalendarLine className="size-4.5" />
-            <span>Created at</span>
+            <RiCalendarLine className="size-4" />
+            <span className="flex-1">Created at</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent
             alignOffset={-5}
@@ -613,11 +613,11 @@ function DatePresetList({
           event.preventDefault();
           onDateRangeApply(formatUrlDate(range.from), formatUrlDate(range.to));
         }}
-        className="flex h-9 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
+        className="flex h-9 w-full items-center rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
       >
-        <span>{preset.label}</span>
+        <span className="flex-1">{preset.label}</span>
         {isSelected ? (
-          <RiCheckLine className="size-5 text-gray-700" aria-hidden />
+          <RiCheckLine className="text-gray-700 size-4" aria-hidden />
         ) : null}
       </DropdownMenuItem>
     );
@@ -737,13 +737,13 @@ function RowMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+        className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
       >
-        <DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+        <DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
           <RiEyeLine className="text-white" aria-hidden="true" />
           <span>View details</span>
         </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+        <DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
           <RiShare2Line className="text-white" aria-hidden="true" />
           <span>Export</span>
         </DropdownMenuItem>
