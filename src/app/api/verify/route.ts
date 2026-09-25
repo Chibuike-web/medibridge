@@ -1,7 +1,5 @@
-import { member, organization } from "@/db/schemas";
-import { getOrganizationId } from "@/lib/api/get-organization-id";
-import { auth, db } from "@/lib/better-auth/auth";
-import { and, eq } from "drizzle-orm";
+import { getOrganizationContext } from "@/lib/api/get-organization-id";
+import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 
 export async function GET(req: Request) {
@@ -9,36 +7,19 @@ export async function GET(req: Request) {
 		headers: await headers(),
 	});
 	if (!session) {
-		return Response.redirect(new URL("/sign-in", req.url), 303);
+		return Response.json({ status: "unauthorized" }, { status: 401 });
 	}
 
-	const organizationId = await getOrganizationId();
+	const organizationContext = await getOrganizationContext();
 
-	if (!organizationId) {
+	if (!organizationContext) {
 		return Response.json({ status: "forbidden" }, { status: 403 });
 	}
 
-	const [organizationAccess] = await db
-		.select({
-			isOrganizationVerified: organization.isVerified,
-			role: member.role,
-		})
-		.from(member)
-		.innerJoin(organization, eq(member.organizationId, organization.id))
-		.where(and(eq(member.organizationId, organizationId), eq(member.userId, session.user.id)))
-		.limit(1);
-
-	if (!organizationAccess) {
-		return Response.json({ status: "forbidden" }, { status: 303 });
-	}
-
-	return Response.json(
-		{
-			status: "success" as const,
-			emailVerified: session.user.emailVerified,
-			isOrganizationVerified: organizationAccess.isOrganizationVerified,
-			role: organizationAccess.role,
-		},
-		{ status: 200 },
-	);
+	return Response.json({
+		status: "success",
+		emailVerified: session.user.emailVerified,
+		isOrganizationVerified: organizationContext.isOrganizationVerified,
+		role: organizationContext.role,
+	});
 }

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import Image from "next/image";
 
 export const metadata = {
@@ -15,7 +16,12 @@ export default function Verify() {
 					If your email is associated with a MediBridge account, you’ll receive a reset link
 					shortly.
 				</p>
-				<Button className="mt-16">Open email app</Button>
+				<Button asChild className="mt-16 w-full">
+					<Link href="/sign-in">Back to sign in</Link>
+				</Button>
+				<Link href="/forgot-password" className="mt-4 text-sm text-gray-600 underline">
+					Try another email
+				</Link>
 			</div>
 		</main>
 	);

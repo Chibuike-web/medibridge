@@ -4,17 +4,43 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RiInformationLine } from "@remixicon/react";
-import { useState } from "react";
+import { authClient } from "@/lib/better-auth/auth.client";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
 export function ForgotPasswordClient() {
+	const router = useRouter();
 	const [requestFeedback, setRequestFeedback] = useState("");
+	const [isPending, startTransition] = useTransition();
 
 	return (
 		<form
 			onSubmit={(e) => {
 				e.preventDefault();
-				setRequestFeedback("Password reset email isn’t connected yet. No email was sent.");
+				setRequestFeedback("");
+
+				const formData = new FormData(e.currentTarget);
+				const email = String(formData.get("email") ?? "").trim();
+
+				startTransition(async () => {
+					try {
+						const { error } = await authClient.requestPasswordReset({
+							email,
+							redirectTo: new URL("/create-new-password", window.location.origin).toString(),
+						});
+
+						if (error) {
+							setRequestFeedback("We couldn’t process that request. Please try again.");
+							return;
+						}
+
+						router.push("/forgot-password/verify");
+					} catch {
+						setRequestFeedback("We couldn’t process that request. Please try again.");
+					}
+				});
 			}}
+			aria-busy={isPending}
 			className="text-gray-800 mt-12"
 		>
 			<div className="mb-6">
@@ -41,8 +67,8 @@ export function ForgotPasswordClient() {
 					</p>
 				)}
 			</div>
-			<Button className="mt-16 w-full" type="submit">
-				Send Reset Link
+			<Button className="mt-16 w-full" type="submit" disabled={isPending}>
+				{isPending ? "Sending…" : "Send Reset Link"}
 			</Button>
 		</form>
 	);

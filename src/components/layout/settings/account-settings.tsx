@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { RiEyeLine, RiEyeOffLine, RiMacbookLine } from "@remixicon/react";
 
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
+import { authClient } from "@/lib/better-auth/auth.client";
 
-import type { ChangePasswordView, SettingsSubView } from "./types";
+import type { SettingsSubView } from "./types";
 import { SuccessModal } from "@/components/success-modal";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { DeleteAccountDialog } from "./delete-account-dialog";
@@ -18,8 +18,6 @@ import type { OrganizationRole } from "./types";
 
 export function AccountSettings({
 	activeSettingsSubView,
-	changePasswordView,
-	onChangePasswordView,
 	onSettingsSubViewChange,
 	viewerRole,
 	organizationName,
@@ -27,19 +25,10 @@ export function AccountSettings({
 	viewerRole: OrganizationRole | null;
 	organizationName: string | null;
 	activeSettingsSubView: SettingsSubView | null;
-	changePasswordView: ChangePasswordView;
-	onChangePasswordView: (view: ChangePasswordView) => void;
 	onSettingsSubViewChange: (view: SettingsSubView | null) => void;
 }) {
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [isPasswordChangeSuccessOpen, setIsPasswordChangeSuccessOpen] = useState(false);
 	const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
-	const handleSettingsSubViewChange = (view: SettingsSubView | null) => {
-		if (view === "change-password") {
-			onChangePasswordView("change-password");
-		}
-
-		onSettingsSubViewChange(view);
-	};
 
 	if (activeSettingsSubView === "organization") {
 		return (
@@ -70,18 +59,14 @@ export function AccountSettings({
 	}
 
 	if (activeSettingsSubView === "change-password") {
-		switch (changePasswordView) {
-			case "change-password":
-				return (
-					<CurrentPasswordStep onContinue={() => onChangePasswordView("verify-your-identity")} />
-				);
-			case "verify-your-identity":
-				return <VerifyIdentityStep onContinue={() => onChangePasswordView("enter-new-password")} />;
-			case "enter-new-password":
-				return <EnterNewPasswordStep />;
-			default:
-				return null;
-		}
+		return (
+			<ChangePasswordForm
+				onSuccess={() => {
+					onSettingsSubViewChange(null);
+					setIsPasswordChangeSuccessOpen(true);
+				}}
+			/>
+		);
 	}
 
 	if (activeSettingsSubView === "active-session") {
@@ -133,7 +118,7 @@ export function AccountSettings({
 									className="font-medium text-gray-400"
 									variant="ghost"
 									aria-label="Change password"
-									onClick={() => handleSettingsSubViewChange("change-password")}
+									onClick={() => onSettingsSubViewChange("change-password")}
 								>
 									Change
 								</Button>
@@ -196,8 +181,8 @@ export function AccountSettings({
 				heading="Password changed"
 				description="Your password has been successfully updated.
 For your security, all other active sessions have been signed out."
-				isOpen={isDialogOpen}
-				setIsOpen={setIsDialogOpen}
+				isOpen={isPasswordChangeSuccessOpen}
+				setIsOpen={setIsPasswordChangeSuccessOpen}
 			>
 				<DialogFooter>
 					<DialogClose asChild>
@@ -209,9 +194,53 @@ For your security, all other active sessions have been signed out."
 	);
 }
 
-function CurrentPasswordStep({ onContinue }: { onContinue: () => void }) {
+function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
+	const [currentPassword, setCurrentPassword] = useState("");
+	const [newPassword, setNewPassword] = useState("");
+	const [confirmedPassword, setConfirmedPassword] = useState("");
+	const [changePasswordError, setChangePasswordError] = useState("");
+	const [isNewPasswordVisible, setIsNewPasswordVisible] = useState(false);
+	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+	const [isPending, startTransition] = useTransition();
+	const isCurrentPasswordError = changePasswordError === "Current password is incorrect.";
+	const isPasswordMismatch = changePasswordError === "Passwords do not match.";
+
 	return (
-		<div className="flex h-full flex-col gap-12 p-6">
+		<form
+			className="flex h-full flex-col gap-10 p-6"
+			aria-busy={isPending}
+			onSubmit={(event) => {
+				event.preventDefault();
+				if (newPassword !== confirmedPassword) {
+					setChangePasswordError("Passwords do not match.");
+					return;
+				}
+
+				setChangePasswordError("");
+				startTransition(async () => {
+					try {
+						const { error } = await authClient.changePassword({
+							currentPassword,
+							newPassword,
+							revokeOtherSessions: true,
+						});
+
+						if (error) {
+							setChangePasswordError(
+								error.code === "INVALID_PASSWORD"
+									? "Current password is incorrect."
+									: "We couldn’t change your password. Please try again.",
+							);
+							return;
+						}
+
+						onSuccess();
+					} catch {
+						setChangePasswordError("We couldn’t change your password. Please try again.");
+					}
+				});
+			}}
+		>
 			<section aria-labelledby="current-password-heading" className="flex flex-col gap-3">
 				<div className="flex items-center justify-between gap-4">
 					<Label
@@ -235,66 +264,21 @@ function CurrentPasswordStep({ onContinue }: { onContinue: () => void }) {
 					placeholder="Enter current password"
 					autoComplete="current-password"
 					required
+					disabled={isPending}
+					value={currentPassword}
+					aria-invalid={isCurrentPasswordError}
+					aria-describedby={isCurrentPasswordError ? "current-password-error" : undefined}
+					onChange={(event) => {
+						setCurrentPassword(event.target.value);
+						setChangePasswordError("");
+					}}
 				/>
+				{isCurrentPasswordError && (
+					<p id="current-password-error" role="alert" className="text-sm text-red-600">
+						{changePasswordError}
+					</p>
+				)}
 			</section>
-			<Button type="button" className="self-end" onClick={onContinue}>
-				Continue
-			</Button>
-		</div>
-	);
-}
-
-function VerifyIdentityStep({ onContinue }: { onContinue: () => void }) {
-	const [enteredVerificationCode, setEnteredVerificationCode] = useState("");
-
-	return (
-		<div className="flex h-full flex-col gap-12 p-6">
-			<section aria-labelledby="verification-code-heading" className="items-center text-center">
-				<h3 id="verification-code-heading" className="text-[18px] font-semibold text-gray-800">
-					Verify your identity
-				</h3>
-				<p className="mt-4 text-balance text-sm font-medium text-gray-600">
-					For your security, verify your identity before changing your password. We sent a 6-digit
-					code to a••••••@medicaregeneralhospital.org.
-				</p>
-
-				<InputOTP
-					id="verification-code"
-					maxLength={6}
-					value={enteredVerificationCode}
-					onChange={setEnteredVerificationCode}
-					aria-labelledby="verification-code-heading"
-					containerClassName="mt-6 justify-center"
-				>
-					<InputOTPGroup className="gap-6">
-						{Array.from({ length: 6 }).map((_, index) => (
-							<InputOTPSlot
-								key={index}
-								index={index}
-								className="size-12 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-800 first:rounded-md first:border last:rounded-md"
-							/>
-						))}
-					</InputOTPGroup>
-				</InputOTP>
-
-				<Button type="button" className="mt-12 w-max" onClick={onContinue}>
-					Continue
-				</Button>
-				<p className="mt-6 text-sm font-medium text-gray-600">
-					Didn&apos;t receive the code?{" "}
-					<span className="font-medium text-gray-800">Resend code</span>
-				</p>
-			</section>
-		</div>
-	);
-}
-
-function EnterNewPasswordStep() {
-	const [isNewPasswordVisible, setIsNewPasswordVisible] = useState(false);
-	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
-
-	return (
-		<div className="flex h-full flex-col p-6">
 			<section aria-labelledby="new-password-heading" className="flex flex-col gap-4">
 				<div className="flex flex-col gap-3">
 					<Label
@@ -311,12 +295,22 @@ function EnterNewPasswordStep() {
 							type={isNewPasswordVisible ? "text" : "password"}
 							placeholder="Enter new password"
 							autoComplete="new-password"
+							minLength={8}
+							maxLength={128}
 							required
+							disabled={isPending}
+							value={newPassword}
+							aria-describedby="new-password-requirement"
+							onChange={(event) => {
+								setNewPassword(event.target.value);
+								setChangePasswordError("");
+							}}
 						/>
 						<button
 							type="button"
 							className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-600 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
 							aria-label={isNewPasswordVisible ? "Hide new password" : "Show new password"}
+							aria-pressed={isNewPasswordVisible}
 							onClick={() => setIsNewPasswordVisible((prev) => !prev)}
 						>
 							{isNewPasswordVisible ? (
@@ -326,11 +320,9 @@ function EnterNewPasswordStep() {
 							)}
 						</button>
 					</div>
-					<ul className="flex list-none flex-col gap-3 text-sm text-gray-400">
-						<li>At least 8 characters</li>
-						<li>At least one uppercase letter</li>
-						<li>At least one number</li>
-					</ul>
+					<p id="new-password-requirement" className="text-sm text-gray-400">
+						Use 8 to 128 characters.
+					</p>
 				</div>
 				<div className="flex flex-col gap-3">
 					<Label htmlFor="confirm-new-password" className="text-sm font-medium text-gray-600">
@@ -344,6 +336,14 @@ function EnterNewPasswordStep() {
 							placeholder="Enter new password"
 							autoComplete="new-password"
 							required
+							disabled={isPending}
+							value={confirmedPassword}
+							aria-invalid={isPasswordMismatch}
+							aria-describedby={isPasswordMismatch ? "confirm-password-error" : undefined}
+							onChange={(event) => {
+								setConfirmedPassword(event.target.value);
+								setChangePasswordError("");
+							}}
 						/>
 						<button
 							type="button"
@@ -353,6 +353,7 @@ function EnterNewPasswordStep() {
 									? "Hide confirmation password"
 									: "Show confirmation password"
 							}
+							aria-pressed={isConfirmPasswordVisible}
 							onClick={() => setIsConfirmPasswordVisible((prev) => !prev)}
 						>
 							{isConfirmPasswordVisible ? (
@@ -362,12 +363,22 @@ function EnterNewPasswordStep() {
 							)}
 						</button>
 					</div>
+					{isPasswordMismatch && (
+						<p id="confirm-password-error" role="alert" className="text-sm text-red-600">
+							{changePasswordError}
+						</p>
+					)}
 				</div>
 			</section>
-			<Button type="button" className="mt-12 self-end">
-				Change password
+			{changePasswordError && !isCurrentPasswordError && !isPasswordMismatch && (
+				<p role="alert" className="text-sm text-red-600">
+					{changePasswordError}
+				</p>
+			)}
+			<Button type="submit" className="mt-2 self-end" disabled={isPending}>
+				{isPending ? "Changing password..." : "Change password"}
 			</Button>
-		</div>
+		</form>
 	);
 }
 

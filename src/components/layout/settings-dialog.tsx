@@ -22,7 +22,6 @@ import { BillingSettings } from "@/components/layout/settings/billing-settings";
 import { MembersSettings } from "@/components/layout/settings/members-settings";
 import { ProfileSettings } from "@/components/layout/settings/profile-settings";
 import type {
-	ChangePasswordView,
 	PendingInvitation,
 	SettingsDialogUser,
 	SettingsSectionId,
@@ -102,27 +101,9 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 		({ id }) => canManageOrganization || !isOrganizationSettingsSection(id),
 	);
 	const [activeSettingsSubView, setActiveSettingsSubView] = useState<SettingsSubView | null>(null);
-	const [changePasswordView, setChangePasswordView] =
-		useState<ChangePasswordView>("change-password");
-
 	const handleSettingsSubViewBack = () => {
 		if (activeSettingsSubView === "review-invitations") {
 			setActiveSettingsSubView("invite-member");
-			return;
-		}
-
-		if (activeSettingsSubView !== "change-password") {
-			setActiveSettingsSubView(null);
-			return;
-		}
-
-		if (changePasswordView === "enter-new-password") {
-			setChangePasswordView("verify-your-identity");
-			return;
-		}
-
-		if (changePasswordView === "verify-your-identity") {
-			setChangePasswordView("change-password");
 			return;
 		}
 
@@ -134,9 +115,6 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 
 	function getSettingsBackButtonLabel() {
 		if (activeSettingsSubView === "change-password") {
-			if (changePasswordView !== "change-password") {
-				return "Back to previous password step";
-			}
 			return "Back to account settings";
 		}
 		if (activeSettingsSubView === "active-session") {
@@ -238,8 +216,6 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 									}
 									organizationName={activeOrganization?.name ?? null}
 									activeSettingsSubView={activeSettingsSubView}
-									changePasswordView={changePasswordView}
-									onChangePasswordView={setChangePasswordView}
 									onSettingsSubViewChange={setActiveSettingsSubView}
 								/>
 							) : null}

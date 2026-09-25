@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 
 export function EmailVerifiedClient() {
 	const searchParams = useSearchParams();
-	const [resendMessage, setResendMessage] = useState("");
 	const error = searchParams.get("error");
 	if (!error) return <Valid />;
 
@@ -31,7 +30,7 @@ function Unverified() {
 					Verify your email before continuing. Check your inbox for the verification link. If it is
 					missing or expired, contact support.
 				</p>
-				<Button className="mt-6">
+				<Button asChild className="mt-6">
 					<Link href="/sign-in">Sign in</Link>
 				</Button>
 			</div>
@@ -40,6 +39,7 @@ function Unverified() {
 }
 
 function InvalidOrExpired({ type }: { type: "invalid_token" | "expired_token" }) {
+	const [resendMessage, setResendMessage] = useState("");
 	const [isPending, startTransition] = useTransition();
 	const { data, isPending: isCheckingSession } = authClient.useSession();
 
@@ -113,7 +113,7 @@ function NoSession() {
 					again.
 				</p>
 
-				<Button className="mt-6">
+				<Button asChild className="mt-6">
 					<Link href="/sign-in">Sign in</Link>
 				</Button>
 			</div>
@@ -131,7 +131,7 @@ const Valid = () => {
 				<p className="text-gray-600 text-sm font-medium text-balance mt-4">
 					Your email has been successfully verified. You can now continue.
 				</p>
-				<Button className="mt-6">
+				<Button asChild className="mt-6">
 					<Link href="/">Continue</Link>
 				</Button>
 			</div>

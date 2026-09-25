@@ -4,12 +4,17 @@ import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from "vit
 import { SettingsDialog } from "./settings-dialog";
 
 // Keep all settings components real; only replace the external auth data source.
-const { roleMock, organizationMock } = vi.hoisted(() => ({
+const { roleMock, organizationMock, changePasswordMock } = vi.hoisted(() => ({
 	roleMock: vi.fn(),
 	organizationMock: vi.fn(),
+	changePasswordMock: vi.fn(),
 }));
 vi.mock("@/lib/better-auth/auth.client", () => ({
-	authClient: { useActiveMemberRole: roleMock, useActiveOrganization: organizationMock },
+	authClient: {
+		useActiveMemberRole: roleMock,
+		useActiveOrganization: organizationMock,
+		changePassword: changePasswordMock,
+	},
 }));
 const props = {
 	open: true,
@@ -34,11 +39,11 @@ describe("SettingsDialog", () => {
 	beforeEach(() => {
 		roleMock.mockReturnValue({ data: { role: "owner" } });
 		organizationMock.mockReturnValue({ data: { name: "Test Hospital" } });
+		changePasswordMock.mockResolvedValue({ error: null });
 	});
 
-	test.each(["member", null])("hides organization sections for role %s", async (role) => {
+	test.each(["member", null])("hides organization sections for role %s", (role) => {
 		roleMock.mockReturnValue({ data: role ? { role } : null });
-		const user = userEvent.setup();
 		render(<SettingsDialog {...props} />);
 		const navigation = within(screen.getByRole("navigation", { name: "Settings sections" }));
 		expect(navigation.getByRole("button", { name: "Profile" })).toBeVisible();
@@ -70,6 +75,43 @@ describe("SettingsDialog", () => {
 		render(<SettingsDialog {...props} />);
 		await user.click(screen.getByRole("button", { name: "Account" }));
 		expect(screen.getByRole("button", { name: "Delete account" })).toBeVisible();
+		expect(screen.queryByRole("dialog", { name: "Password changed" })).not.toBeInTheDocument();
+	});
+
+	test("changes the password and signs out other sessions after a successful request", async () => {
+		const user = userEvent.setup();
+		render(<SettingsDialog {...props} />);
+		await user.click(screen.getByRole("button", { name: "Account" }));
+		await user.click(screen.getByRole("button", { name: "Change password" }));
+
+		await user.type(screen.getByLabelText(/Current password/, { selector: "input" }), "OldPass12");
+		await user.type(screen.getByLabelText(/New password/, { selector: "input" }), "NewPass12");
+		await user.type(screen.getByLabelText(/Confirm new password/), "NewPass12");
+		await user.click(screen.getByRole("button", { name: "Change password" }));
+
+		expect(changePasswordMock).toHaveBeenCalledWith({
+			currentPassword: "OldPass12",
+			newPassword: "NewPass12",
+			revokeOtherSessions: true,
+		});
+		expect(await screen.findByRole("dialog", { name: "Password changed" })).toBeVisible();
+	});
+
+	test("keeps the form open and identifies an incorrect current password", async () => {
+		changePasswordMock.mockResolvedValue({ error: { code: "INVALID_PASSWORD" } });
+		const user = userEvent.setup();
+		render(<SettingsDialog {...props} />);
+		await user.click(screen.getByRole("button", { name: "Account" }));
+		await user.click(screen.getByRole("button", { name: "Change password" }));
+
+		const currentPassword = screen.getByLabelText(/Current password/, { selector: "input" });
+		await user.type(currentPassword, "WrongPass12");
+		await user.type(screen.getByLabelText(/New password/, { selector: "input" }), "NewPass12");
+		await user.type(screen.getByLabelText(/Confirm new password/), "NewPass12");
+		await user.click(screen.getByRole("button", { name: "Change password" }));
+
+		expect(await screen.findByRole("alert")).toHaveTextContent("Current password is incorrect.");
+		expect(currentPassword).toHaveAccessibleDescription("Current password is incorrect.");
 		expect(screen.queryByRole("dialog", { name: "Password changed" })).not.toBeInTheDocument();
 	});
 

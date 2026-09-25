@@ -47,5 +47,7 @@ export const getOrganizationId = cache(async () => {
 
 	const context = await getOrganizationContext();
 
-	return context?.organizationId ?? null;
+	if (!context?.isOrganizationVerified) return null;
+
+	return context?.organizationId;
 });

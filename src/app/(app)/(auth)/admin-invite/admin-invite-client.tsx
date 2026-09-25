@@ -19,7 +19,7 @@ export function AdminInviteClient() {
 	const router = useRouter();
 	const { isSuccessModalOpen, setIsSuccessModalOpen } = useShowSuccess();
 	const [invitationError, setInvitationError] = useState("");
-	const [isSendingInvitation, startSendInvitationTransition] = useTransition();
+	const [isPending, startTransition] = useTransition();
 	const {
 		register,
 		handleSubmit,
@@ -33,7 +33,7 @@ export function AdminInviteClient() {
 	const onSubmit = (data: InviteType) => {
 		setInvitationError("");
 
-		startSendInvitationTransition(async () => {
+		startTransition(async () => {
 			try {
 				const response = await inviteAdminAction(data);
 
@@ -116,12 +116,8 @@ export function AdminInviteClient() {
 					</div>
 				)}
 
-				<Button
-					className="w-full mt-16"
-					type="submit"
-					disabled={isSubmitting || isSendingInvitation}
-				>
-					{isSendingInvitation ? (
+				<Button className="w-full mt-16" type="submit" disabled={isSubmitting || isPending}>
+					{isPending ? (
 						<span className="flex items-center gap-2">
 							<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
 							Sending invite...

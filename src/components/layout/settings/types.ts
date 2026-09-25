@@ -29,8 +29,6 @@ export type SettingsSubView =
 	| "invite-member"
 	| "review-invitations";
 
-export type ChangePasswordView = "change-password" | "verify-your-identity" | "enter-new-password";
-
 export type SettingsDialogUser = {
 	name: string;
 	email: string;

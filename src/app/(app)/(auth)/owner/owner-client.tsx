@@ -5,20 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { ownerSchema, OwnerType } from "@/features/auth/schemas/owner-schema";
 import { RiEyeLine, RiEyeOffLine, RiInformationLine } from "@remixicon/react";
-import { createOwnerAction } from "@/features/auth/server/actions";
+import { authClient } from "@/lib/better-auth/auth.client";
 
 export function OwnerClient() {
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const [error, setError] = useState("");
 	const [emailSent, setEmailSent] = useState(false);
-	const [isPending, startTransition] = useTransition();
 	const {
 		register,
 		handleSubmit,
-		formState: { errors },
+		formState: { errors, isSubmitting },
 	} = useForm({
 		resolver: zodResolver(ownerSchema),
 		defaultValues: {
@@ -28,20 +27,30 @@ export function OwnerClient() {
 		},
 	});
 
-	function onSubmit(data: OwnerType) {
+	async function onSubmit(data: OwnerType) {
 		setError("");
-		startTransition(async () => {
-			try {
-				const result = await createOwnerAction(data);
-				if (result.status === "failed") {
-					setError(result.error || "Account creation failed");
-					return;
-				}
-				setEmailSent(true);
-			} catch (error) {
-				setError(error instanceof Error ? error.message : "Account creation failed");
+		try {
+			const { error } = await authClient.signUp.email({
+				name: data.name,
+				email: data.email,
+				password: data.password,
+				callbackURL: "/hospital-details",
+			});
+
+			if (error?.status === 429) {
+				setError("Too many attempts. Wait a moment and try again.");
+				return;
 			}
-		});
+
+			if (error) {
+				setError(error.message ?? "Account creation failed");
+				return;
+			}
+
+			setEmailSent(true);
+		} catch {
+			setError("Account creation failed");
+		}
 	}
 
 	if (emailSent) {
@@ -137,8 +146,8 @@ export function OwnerClient() {
 					{error}
 				</p>
 			)}
-			<Button className="w-full mt-16" type="submit" disabled={isPending}>
-				{isPending ? "Creating account..." : "Continue"}
+			<Button className="w-full mt-16" type="submit" disabled={isSubmitting}>
+				{isSubmitting ? "Creating account..." : "Continue"}
 			</Button>
 		</form>
 	);

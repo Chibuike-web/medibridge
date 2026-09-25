@@ -1,12 +1,7 @@
 "use server";
 
 import { invitation, organization, user } from "@/db/schemas/auth";
-import {
-	createInvitedAdminSchema,
-	type CreateInvitedAdminType,
-} from "@/features/auth/schemas/accept-invite-schema";
 import { auth, db } from "@/lib/better-auth/auth";
-import { ENV } from "@/lib/utils/env";
 import { and, eq, gt } from "drizzle-orm";
 import { headers } from "next/headers";
 
@@ -49,49 +44,6 @@ export async function getInvitationPreviewService(invitationId: string) {
 		hasAccount: Boolean(pendingInvitation.hasAccount),
 		organizationName: pendingInvitation.organizationName,
 	};
-}
-
-export async function createInvitedAdminService(
-	invitationId: string,
-	data: CreateInvitedAdminType,
-) {
-	const validatedAccount = createInvitedAdminSchema.safeParse(data);
-
-	if (!validatedAccount.success || !invitationId) {
-		return { status: "failed" as const, error: "Enter valid account details." };
-	}
-
-	const pendingInvitation = await findPendingInvitation(invitationId);
-
-	if (!pendingInvitation) {
-		return { status: "invalid" as const, error: "This invitation is invalid or has expired." };
-	}
-
-	if (pendingInvitation.hasAccount) {
-		return { status: "account-exists" as const };
-	}
-
-	try {
-		const callbackUrl = new URL("/accept-invite", ENV.BETTER_AUTH_URL);
-		callbackUrl.searchParams.set("invitationId", invitationId);
-
-		await auth.api.signUpEmail({
-			body: {
-				name: validatedAccount.data.name,
-				email: pendingInvitation.email,
-				password: validatedAccount.data.password,
-				callbackURL: callbackUrl.toString(),
-			},
-			headers: await headers(),
-		});
-
-		return { status: "verification-required" as const };
-	} catch (error) {
-		return {
-			status: "failed" as const,
-			error: error instanceof Error ? error.message : "Unable to create your account.",
-		};
-	}
 }
 
 export async function acceptInvitationService(invitationId: string) {

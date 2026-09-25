@@ -1,6 +1,6 @@
 "use client";
 
-import { getOrganizationAccessAction, signInAction } from "@/features/auth/server/actions";
+import { getOrganizationAccessAction } from "@/features/auth/server/actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -42,21 +42,28 @@ export function SignInClient() {
 		setSignInError("");
 		setSignInSuccess("");
 		try {
-			const response = await signInAction(data);
-			if (response.status === "email-unverified") {
+			const { error } = await authClient.signIn.email({
+				email: data.email,
+				password: data.password,
+				rememberMe: data.rememberMe,
+			});
+
+			if (error?.status === 429) {
+				setSignInError("Too many sign-in attempts. Wait a moment and try again.");
+				return;
+			}
+
+			if (error?.code === "EMAIL_NOT_VERIFIED") {
 				setSignInError("Check your inbox for a verification link before signing in.");
 				return;
 			}
 
-			if (response.status === "failed") {
-				console.error(response.error);
-				setSignInError(response.error || "");
+			if (error) {
+				setSignInError(error.message ?? "Unable to sign in. Please try again.");
 				return;
 			}
-		} catch (signInActionError) {
-			setSignInError(
-				signInActionError instanceof Error ? signInActionError.message : "Unknown error",
-			);
+		} catch {
+			setSignInError("Unable to sign in. Please try again.");
 			return;
 		}
 		const { data: organizations, error: listOrganizationsError } =

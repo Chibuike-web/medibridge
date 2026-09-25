@@ -1,9 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import {
-	acceptInvitationService,
-	createInvitedAdminService,
-	getInvitationPreviewService,
-} from "./accept-invite-service";
+import { acceptInvitationService, getInvitationPreviewService } from "./accept-invite-service";
 
 const {
 	acceptInvitationMock,
@@ -11,22 +7,16 @@ const {
 	headersMock,
 	queryResultMock,
 	selectMock,
-	signUpEmailMock,
 } = vi.hoisted(() => ({
 	acceptInvitationMock: vi.fn(),
 	getSessionMock: vi.fn(),
 	headersMock: vi.fn(),
 	queryResultMock: vi.fn(),
 	selectMock: vi.fn(),
-	signUpEmailMock: vi.fn(),
 }));
 
 vi.mock("next/headers", () => ({
 	headers: headersMock,
-}));
-
-vi.mock("@/lib/utils/env", () => ({
-	ENV: { BETTER_AUTH_URL: "http://localhost:4300" },
 }));
 
 vi.mock("@/lib/better-auth/auth", () => ({
@@ -34,7 +24,6 @@ vi.mock("@/lib/better-auth/auth", () => ({
 		api: {
 			acceptInvitation: acceptInvitationMock,
 			getSession: getSessionMock,
-			signUpEmail: signUpEmailMock,
 		},
 	},
 	db: { select: selectMock },
@@ -63,7 +52,6 @@ describe("accept invitation services", () => {
 				organizationName: "St Mary Hospital",
 			},
 		]);
-		signUpEmailMock.mockResolvedValue({ user: { id: "user-1" }, token: null });
 		getSessionMock.mockResolvedValue({ user: { email: "admin@stmaryhospital.org" } });
 		acceptInvitationMock.mockResolvedValue({ member: { role: "admin" } });
 	});
@@ -77,38 +65,6 @@ describe("accept invitation services", () => {
 			hasAccount: false,
 			organizationName: "St Mary Hospital",
 		});
-	});
-
-	test("rejects invalid account details before looking up the invitation", async () => {
-		const result = await createInvitedAdminService("invitation-1", {
-			name: "",
-			password: "short",
-		});
-
-		expect(result).toEqual({
-			status: "failed",
-			error: "Enter valid account details.",
-		});
-		expect(selectMock).not.toHaveBeenCalled();
-		expect(signUpEmailMock).not.toHaveBeenCalled();
-	});
-
-	test("creates the invited account with the invitation email and return URL", async () => {
-		const result = await createInvitedAdminService("invitation-1", {
-			name: "Sarah Thompson",
-			password: "secure-password",
-		});
-
-		expect(signUpEmailMock).toHaveBeenCalledWith({
-			body: {
-				callbackURL: "http://localhost:4300/accept-invite?invitationId=invitation-1",
-				email: "admin@stmaryhospital.org",
-				name: "Sarah Thompson",
-				password: "secure-password",
-			},
-			headers: expect.any(Headers),
-		});
-		expect(result).toEqual({ status: "verification-required" });
 	});
 
 	test("does not accept an invitation without an authenticated session", async () => {

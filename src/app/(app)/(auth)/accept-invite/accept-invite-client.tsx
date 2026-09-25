@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { acceptInvitationAction, createInvitedAdminAction } from "@/features/auth/server/actions";
+import { acceptInvitationAction } from "@/features/auth/server/actions";
 import {
 	createInvitedAdminSchema,
 	type CreateInvitedAdminType,
@@ -47,10 +47,8 @@ function CreateInvitedAdminForm({
 	email,
 	invitationId,
 }: Pick<AcceptInviteClientProps, "email" | "invitationId">) {
-	const router = useRouter();
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const [accountSetupError, setAccountSetupError] = useState("");
-	const [isCreatingAccount, startCreateAccountTransition] = useTransition();
 	const { isSuccessModalOpen, setIsSuccessModalOpen } = useShowSuccess();
 	const {
 		register,
@@ -61,30 +59,34 @@ function CreateInvitedAdminForm({
 		defaultValues: { name: "", password: "" },
 	});
 
-	const onSubmit = (data: CreateInvitedAdminType) => {
+	const onSubmit = async (data: CreateInvitedAdminType) => {
 		setAccountSetupError("");
 
-		startCreateAccountTransition(async () => {
-			try {
-				const response = await createInvitedAdminAction(invitationId, data);
+		try {
+			const callbackURL = `/accept-invite?invitationId=${encodeURIComponent(invitationId)}`;
+			const { error } = await authClient.signUp.email({
+				name: data.name,
+				email,
+				password: data.password,
+				callbackURL,
+			});
 
-				if (response.status === "account-exists") {
-					router.refresh();
-					return;
-				}
-
-				if (response.status === "invalid" || response.status === "failed") {
-					setAccountSetupError(response.error);
-					return;
-				}
-
-				setIsSuccessModalOpen(true);
-			} catch (error) {
-				setAccountSetupError(
-					error instanceof Error ? error.message : "Unable to create your account.",
-				);
+			if (error?.status === 429) {
+				setAccountSetupError("Too many attempts. Wait a moment and try again.");
+				return;
 			}
-		});
+
+			if (error) {
+				setAccountSetupError(error.message ?? "Unable to create your account.");
+				return;
+			}
+
+			setIsSuccessModalOpen(true);
+		} catch (error) {
+			setAccountSetupError(
+				error instanceof Error ? error.message : "Unable to create your account.",
+			);
+		}
 	};
 
 	return (
@@ -137,8 +139,8 @@ function CreateInvitedAdminForm({
 
 				<FormError message={accountSetupError} />
 
-				<Button className="mt-16 w-full" type="submit" disabled={isSubmitting || isCreatingAccount}>
-					{isCreatingAccount ? "Creating account..." : "Create account"}
+				<Button className="mt-16 w-full" type="submit" disabled={isSubmitting}>
+					{isSubmitting ? "Creating account..." : "Create account"}
 				</Button>
 			</form>
 

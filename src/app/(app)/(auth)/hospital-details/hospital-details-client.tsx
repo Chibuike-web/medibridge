@@ -119,12 +119,11 @@ export function HospitalDetailsClient() {
 				<ChooseFileCard
 					onFilesSelected={handleFileChange}
 					title="Choose a file or drag & drop it here."
-					description="JPEG, PNG, and PDF, up to 50 MB."
+					description="PDF, PNG, JPG, and DOC, up to 50 MB."
 					browseLabel="Browse File"
 					fileInputRef={fileInputRef}
 					error={uploadError}
-					accept="image/jpeg,image/png,application/pdf"
-					multiple
+					accept="application/pdf,image/png,.jpg,.doc"
 					inputId="hospital-file"
 				/>
 			)}
@@ -150,7 +149,11 @@ export function HospitalDetailsClient() {
 					<span>{success}</span>
 				</div>
 			)}
-			<Button className="w-full mt-16" type="submit" disabled={isPending}>
+			<Button
+				className="w-full mt-16"
+				type="submit"
+				disabled={isPending || status !== "upload-complete"}
+			>
 				{isPending ? (
 					<span className="flex items-center gap-2">
 						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
