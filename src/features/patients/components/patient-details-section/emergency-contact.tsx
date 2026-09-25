@@ -41,17 +41,13 @@ export function EmergencyContact({
 	emergencyContact: EmergencyContactItem[];
 }) {
 	const emergencyContactFormId = "emergency-contact-form";
-	const [isEmergencyContactDialogOpen, setIsEmergencyContactDialogOpen] =
-		useState(false);
+	const [isEmergencyContactDialogOpen, setIsEmergencyContactDialogOpen] = useState(false);
 	const [emergencyContactError, setEmergencyContactError] = useState("");
 	const [optimisticEmergencyContact, setOptimisticEmergencyContact] =
 		useOptimistic(emergencyContact);
-	const [isUpdatingEmergencyContact, startUpdateEmergencyContactTransition] =
-		useTransition();
+	const [isPending, startTransition] = useTransition();
 
-	function handleEmergencyContactSubmit(
-		event: SyntheticEvent<HTMLFormElement, SubmitEvent>,
-	) {
+	function handleEmergencyContactSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>) {
 		event.preventDefault();
 
 		const formData = new FormData(event.currentTarget);
@@ -66,14 +62,11 @@ export function EmergencyContact({
 
 		setIsEmergencyContactDialogOpen(false);
 
-		startUpdateEmergencyContactTransition(async () => {
+		startTransition(async () => {
 			setEmergencyContactError("");
 			setOptimisticEmergencyContact(nextEmergencyContact);
 
-			const result = await updatePatientEmergencyContactAction(
-				patientId,
-				formData,
-			);
+			const result = await updatePatientEmergencyContactAction(patientId, formData);
 
 			if (!result.ok) {
 				setEmergencyContactError(result.message);
@@ -95,19 +88,19 @@ export function EmergencyContact({
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="end"
-				className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
 				<DropdownMenuItem
 					onSelect={(e) => {
 						e.preventDefault();
 						setIsEmergencyContactDialogOpen(true);
 					}}
-					className="flex items-center gap-3 rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
+					className="flex items-center rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
 				>
 					<RiEditLine className="text-white" />
 					<span>Edit info</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="gap-3 rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
+				<DropdownMenuItem className="rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
 					<RiShare2Line className="text-white" />
 					<span>Export info</span>
 				</DropdownMenuItem>
@@ -123,10 +116,7 @@ export function EmergencyContact({
 				))}
 			</DetailsSection>
 
-			<Dialog
-				open={isEmergencyContactDialogOpen}
-				onOpenChange={setIsEmergencyContactDialogOpen}
-			>
+			<Dialog open={isEmergencyContactDialogOpen} onOpenChange={setIsEmergencyContactDialogOpen}>
 				<DialogContent className="max-w-[50rem]">
 					<DialogHeader>
 						<DialogTitle>Edit Emergency Contact</DialogTitle>
@@ -158,10 +148,7 @@ export function EmergencyContact({
 							<Input
 								id="emergency-first-name"
 								name="firstName"
-								defaultValue={getEmergencyContactValue(
-									optimisticEmergencyContact,
-									"First name",
-								)}
+								defaultValue={getEmergencyContactValue(optimisticEmergencyContact, "First name")}
 								placeholder="e.g. Ifeoma"
 							/>
 						</div>
@@ -171,10 +158,7 @@ export function EmergencyContact({
 							<Input
 								id="emergency-middle-name"
 								name="middleName"
-								defaultValue={getEmergencyContactValue(
-									optimisticEmergencyContact,
-									"Middle name",
-								)}
+								defaultValue={getEmergencyContactValue(optimisticEmergencyContact, "Middle name")}
 								placeholder="e.g. Nneka"
 							/>
 						</div>
@@ -184,10 +168,7 @@ export function EmergencyContact({
 							<Input
 								id="emergency-last-name"
 								name="lastName"
-								defaultValue={getEmergencyContactValue(
-									optimisticEmergencyContact,
-									"Last name",
-								)}
+								defaultValue={getEmergencyContactValue(optimisticEmergencyContact, "Last name")}
 								placeholder="e.g. Okafor"
 							/>
 						</div>
@@ -197,10 +178,7 @@ export function EmergencyContact({
 							<Input
 								id="emergency-relationship"
 								name="relationship"
-								defaultValue={getEmergencyContactValue(
-									optimisticEmergencyContact,
-									"Relationship",
-								)}
+								defaultValue={getEmergencyContactValue(optimisticEmergencyContact, "Relationship")}
 								placeholder="e.g. Sister, spouse, guardian"
 							/>
 						</div>
@@ -210,10 +188,7 @@ export function EmergencyContact({
 							<Input
 								id="emergency-phone-number"
 								name="phoneNumber"
-								defaultValue={getEmergencyContactValue(
-									optimisticEmergencyContact,
-									"Phone",
-								)}
+								defaultValue={getEmergencyContactValue(optimisticEmergencyContact, "Phone")}
 								type="tel"
 								placeholder="e.g. +234 803 456 7890"
 							/>
@@ -223,17 +198,10 @@ export function EmergencyContact({
 					<DialogFooter className="mt-16 text-sm">
 						<div className="flex gap-2 ml-auto">
 							<DialogClose asChild>
-								<Button variant="outline">
-									Cancel
-								</Button>
+								<Button variant="outline">Cancel</Button>
 							</DialogClose>
 
-							<Button
-								type="submit"
-								form={emergencyContactFormId}
-								disabled={isUpdatingEmergencyContact}
-
-							>
+							<Button type="submit" form={emergencyContactFormId} disabled={isPending}>
 								Save changes
 							</Button>
 						</div>
@@ -269,10 +237,7 @@ function validateEmergencyContactFormData(formData: FormData) {
 	return "";
 }
 
-function getEmergencyContactValue(
-	emergencyContact: EmergencyContactItem[],
-	label: string,
-) {
+function getEmergencyContactValue(emergencyContact: EmergencyContactItem[], label: string) {
 	const value = emergencyContact.find((item) => item.label === label)?.value;
 
 	return value === "-" ? "" : String(value ?? "");

@@ -38,19 +38,13 @@ export function ContactInformation({
 	contactInformation: ContactInformationItem[];
 }) {
 	const contactInformationFormId = "contact-information-form";
-	const [isContactInformationDialogOpen, setIsContactInformationDialogOpen] =
-		useState(false);
+	const [isContactInformationDialogOpen, setIsContactInformationDialogOpen] = useState(false);
 	const [contactInformationError, setContactInformationError] = useState("");
 	const [optimisticContactInformation, setOptimisticContactInformation] =
 		useOptimistic(contactInformation);
-	const [
-		isUpdatingContactInformation,
-		startUpdateContactInformationTransition,
-	] = useTransition();
+	const [isPending, startTransition] = useTransition();
 
-	function handleContactInformationSubmit(
-		event: SyntheticEvent<HTMLFormElement, SubmitEvent>,
-	) {
+	function handleContactInformationSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>) {
 		event.preventDefault();
 
 		const formData = new FormData(event.currentTarget);
@@ -65,14 +59,11 @@ export function ContactInformation({
 
 		setIsContactInformationDialogOpen(false);
 
-		startUpdateContactInformationTransition(async () => {
+		startTransition(async () => {
 			setContactInformationError("");
 			setOptimisticContactInformation(nextContactInformation);
 
-			const result = await updatePatientContactInformationAction(
-				patientId,
-				formData,
-			);
+			const result = await updatePatientContactInformationAction(patientId, formData);
 
 			if (!result.ok) {
 				setContactInformationError(result.message);
@@ -94,19 +85,19 @@ export function ContactInformation({
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="end"
-				className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
 				<DropdownMenuItem
 					onSelect={(e) => {
 						e.preventDefault();
 						setIsContactInformationDialogOpen(true);
 					}}
-					className="flex items-center gap-3 rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
+					className="flex items-center rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
 				>
 					<RiEditLine className="text-white" />
 					<span>Edit info</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="gap-3 rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
+				<DropdownMenuItem className="rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
 					<RiShare2Line className="text-white" />
 					<span>Export info</span>
 				</DropdownMenuItem>
@@ -180,9 +171,7 @@ export function ContactInformation({
 						</div>
 
 						<div className="flex flex-col gap-2">
-							<Label htmlFor="contact-residential-address">
-								Residential address
-							</Label>
+							<Label htmlFor="contact-residential-address">Residential address</Label>
 							<Input
 								id="contact-residential-address"
 								name="residentialAddress"
@@ -227,17 +216,10 @@ export function ContactInformation({
 					<DialogFooter className="mt-16 text-sm">
 						<div className="flex gap-2 ml-auto">
 							<DialogClose asChild>
-								<Button variant="outline">
-									Cancel
-								</Button>
+								<Button variant="outline">Cancel</Button>
 							</DialogClose>
 
-							<Button
-								type="submit"
-								form={contactInformationFormId}
-								disabled={isUpdatingContactInformation}
-
-							>
+							<Button type="submit" form={contactInformationFormId} disabled={isPending}>
 								Save changes
 							</Button>
 						</div>
@@ -248,9 +230,7 @@ export function ContactInformation({
 	);
 }
 
-function getNextContactInformation(
-	formData: FormData,
-): ContactInformationItem[] {
+function getNextContactInformation(formData: FormData): ContactInformationItem[] {
 	return [
 		{ label: "Phone number", value: formatDisplayValue(formData.get("phoneNumber")) },
 		{ label: "Email address", value: formatDisplayValue(formData.get("emailAddress")) },
@@ -273,10 +253,7 @@ function validateContactInformationFormData(formData: FormData) {
 	return "";
 }
 
-function getContactInformationValue(
-	contactInformation: ContactInformationItem[],
-	label: string,
-) {
+function getContactInformationValue(contactInformation: ContactInformationItem[], label: string) {
 	const value = contactInformation.find((item) => item.label === label)?.value;
 
 	return value === "-" ? "" : String(value ?? "");

@@ -59,7 +59,7 @@ export function PersonalInformation({
 	const [personalInformationError, setPersonalInformationError] = useState("");
 	const [optimisticPersonalInformation, setOptimisticPersonalInformation] =
 		useOptimistic(personalInformation);
-	const [isUpdatingPersonalInformation, startUpdatePersonalInformationTransition] = useTransition();
+	const [isPending, startTransition] = useTransition();
 	const currentDateOfBirth = getPersonalInformationValue(
 		optimisticPersonalInformation,
 		"Date of birth",
@@ -90,7 +90,7 @@ export function PersonalInformation({
 		const nextPersonalInformation = getNextPersonalInformation(formData);
 		setIsPersonalInformationDialogOpen(false);
 
-		startUpdatePersonalInformationTransition(async () => {
+		startTransition(async () => {
 			setPersonalInformationError("");
 			setOptimisticPersonalInformation(nextPersonalInformation);
 
@@ -116,20 +116,20 @@ export function PersonalInformation({
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="end"
-				className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
 				<DropdownMenuItem
 					onSelect={(e) => {
 						e.preventDefault();
 						setIsPersonalInformationDialogOpen(true);
 					}}
-					className="flex items-center gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+					className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 				>
 					<RiEditLine className="text-white" />
 					<span>Edit info</span>
 				</DropdownMenuItem>
 
-				<DropdownMenuItem className="gap-3 rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 					<RiShare2Line className="text-white" />
 					<span>Export info</span>
 				</DropdownMenuItem>
@@ -310,16 +310,9 @@ export function PersonalInformation({
 					<DialogFooter className="mt-16 text-sm">
 						<div className="flex gap-2 ml-auto">
 							<DialogClose asChild>
-								<Button variant="outline">
-									Cancel
-								</Button>
+								<Button variant="outline">Cancel</Button>
 							</DialogClose>
-							<Button
-
-								type="submit"
-								form={personalInformationFormId}
-								disabled={isUpdatingPersonalInformation}
-							>
+							<Button type="submit" form={personalInformationFormId} disabled={isPending}>
 								Save changes
 							</Button>
 						</div>

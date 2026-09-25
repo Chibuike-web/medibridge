@@ -28,7 +28,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 	const router = useRouter();
 	const { data: session, isPending: isLoadingUserSession } = authClient.useSession();
 	const user = session?.user;
-	const [isSigningOut, startSignOutTransition] = useTransition();
+	const [isPending, startTransition] = useTransition();
 
 	if (isLoadingUserSession) {
 		return <UserProfileSkeleton isCollapsed={isCollapsed} />;
@@ -102,7 +102,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					<DropdownMenuItem
 						variant="destructive"
 						onClick={() => {
-							startSignOutTransition(async () => {
+							startTransition(async () => {
 								try {
 									await authClient.signOut();
 									router.replace("/sign-in");
@@ -119,7 +119,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 				</DropdownMenuContent>
 			</DropdownMenu>
 
-			{isSigningOut && (
+			{isPending && (
 				<div className="fixed inset-0 z-[100] bg-white/80 backdrop-blur-sm grid place-items-center">
 					<div className="flex flex-col gap-2 items-center">
 						<RiLoaderLine className="size-6 animate-spin" />

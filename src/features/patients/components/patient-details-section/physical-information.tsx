@@ -49,17 +49,13 @@ export function PhysicalInformation({
 	physicalInformation: PhysicalInformationItem[];
 }) {
 	const physicalInformationFormId = "physical-information-form";
-	const [isPhysicalInformationDialogOpen, setIsPhysicalInformationDialogOpen] =
-		useState(false);
+	const [isPhysicalInformationDialogOpen, setIsPhysicalInformationDialogOpen] = useState(false);
 	const [physicalInformationError, setPhysicalInformationError] = useState("");
 	const [optimisticPhysicalInformation, setOptimisticPhysicalInformation] =
 		useOptimistic(physicalInformation);
-	const [isUpdatingPhysicalInformation, startUpdatePhysicalInformationTransition] =
-		useTransition();
+	const [isPending, startTransition] = useTransition();
 
-	function handlePhysicalInformationSubmit(
-		event: SyntheticEvent<HTMLFormElement, SubmitEvent>,
-	) {
+	function handlePhysicalInformationSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>) {
 		event.preventDefault();
 
 		const formData = new FormData(event.currentTarget);
@@ -67,14 +63,11 @@ export function PhysicalInformation({
 
 		setIsPhysicalInformationDialogOpen(false);
 
-		startUpdatePhysicalInformationTransition(async () => {
+		startTransition(async () => {
 			setPhysicalInformationError("");
 			setOptimisticPhysicalInformation(nextPhysicalInformation);
 
-			const result = await updatePatientPhysicalInformationAction(
-				patientId,
-				formData,
-			);
+			const result = await updatePatientPhysicalInformationAction(patientId, formData);
 
 			if (!result.ok) {
 				setPhysicalInformationError(result.message);
@@ -96,20 +89,20 @@ export function PhysicalInformation({
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="end"
-				className="w-[13.75rem] rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
 				<DropdownMenuItem
 					onSelect={(e) => {
 						e.preventDefault();
 						setIsPhysicalInformationDialogOpen(true);
 					}}
-					className="flex items-center gap-3 rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
+					className="flex items-center rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
 				>
 					<RiEditLine className="text-white" />
 					<span>Edit info</span>
 				</DropdownMenuItem>
 
-				<DropdownMenuItem className="gap-3 rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
+				<DropdownMenuItem className="rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
 					<RiShare2Line className="text-white" />
 					<span>Export info</span>
 				</DropdownMenuItem>
@@ -158,10 +151,7 @@ export function PhysicalInformation({
 							<Input
 								id="physical-height"
 								name="height"
-								defaultValue={getPhysicalInformationValue(
-									optimisticPhysicalInformation,
-									"Height",
-								)}
+								defaultValue={getPhysicalInformationValue(optimisticPhysicalInformation, "Height")}
 								placeholder="e.g. 172 cm"
 								type="number"
 							/>
@@ -172,10 +162,7 @@ export function PhysicalInformation({
 							<Input
 								id="physical-weight"
 								name="weight"
-								defaultValue={getPhysicalInformationValue(
-									optimisticPhysicalInformation,
-									"Weight",
-								)}
+								defaultValue={getPhysicalInformationValue(optimisticPhysicalInformation, "Weight")}
 								placeholder="e.g. 68 kg"
 								type="number"
 							/>
@@ -236,16 +223,9 @@ export function PhysicalInformation({
 					<DialogFooter className="mt-16 text-sm">
 						<div className="flex gap-2 ml-auto">
 							<DialogClose asChild>
-								<Button variant="outline">
-									Cancel
-								</Button>
+								<Button variant="outline">Cancel</Button>
 							</DialogClose>
-							<Button
-								type="submit"
-								form={physicalInformationFormId}
-								disabled={isUpdatingPhysicalInformation}
-
-							>
+							<Button type="submit" form={physicalInformationFormId} disabled={isPending}>
 								Save changes
 							</Button>
 						</div>
@@ -256,9 +236,7 @@ export function PhysicalInformation({
 	);
 }
 
-function getNextPhysicalInformation(
-	formData: FormData,
-): PhysicalInformationItem[] {
+function getNextPhysicalInformation(formData: FormData): PhysicalInformationItem[] {
 	return [
 		{ label: "Height", value: formatDisplayValue(formData.get("height")) },
 		{ label: "Weight", value: formatDisplayValue(formData.get("weight")) },

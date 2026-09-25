@@ -16,18 +16,21 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 	const [rejectionReason, setRejectionReason] = useState(transfer.patientRejectionReason ?? "");
 	const [approvalSubmissionError, setApprovalSubmissionError] = useState<string | null>(null);
 	const [rejectionSubmissionError, setRejectionSubmissionError] = useState<string | null>(null);
-	const [currentPatientApprovalStatus, setCurrentPatientApprovalStatus] = useState(transfer.patientApprovalStatus);
+	const [currentPatientApprovalStatus, setCurrentPatientApprovalStatus] = useState(
+		transfer.patientApprovalStatus,
+	);
 	const [isRejectionReasonFormOpen, setIsRejectionReasonFormOpen] = useState(false);
-	const [isSubmittingApprovalOrRejection, startApprovalOrRejectionSubmission] = useTransition();
+	const [isPending, startTransition] = useTransition();
 	const hasPatientApprovedTransfer = currentPatientApprovalStatus === "approved";
 	const hasPatientRejectedTransfer = currentPatientApprovalStatus === "rejected";
-	const canPatientStillApproveOrRejectTransfer = !hasPatientApprovedTransfer && !hasPatientRejectedTransfer;
+	const canPatientStillApproveOrRejectTransfer =
+		!hasPatientApprovedTransfer && !hasPatientRejectedTransfer;
 
 	function handleApprove() {
 		setApprovalSubmissionError(null);
 		setRejectionSubmissionError(null);
 
-		startApprovalOrRejectionSubmission(async () => {
+		startTransition(async () => {
 			const result = await approvePatientTransferAction(transfer.transferId, approvalToken);
 
 			if (result.success) {
@@ -49,7 +52,7 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 			return;
 		}
 
-		startApprovalOrRejectionSubmission(async () => {
+		startTransition(async () => {
 			const result = await rejectPatientTransferAction({
 				transferId: transfer.transferId,
 				approvalToken,
@@ -72,8 +75,8 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 				<p className="text-sm font-medium text-gray-500">Patient transfer request</p>
 				<h1 className="mt-2 text-xl font-semibold text-gray-900">Review shared record request</h1>
 				<p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
-					{transfer.sourceHospitalName} wants to share selected patient records with {transfer.targetHospitalName}.
-					Please review the request before approving.
+					{transfer.sourceHospitalName} wants to share selected patient records with{" "}
+					{transfer.targetHospitalName}. Please review the request before approving.
 				</p>
 			</div>
 
@@ -83,10 +86,7 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 					<DetailItem label="Patient ID" value={transfer.patientId} />
 					<DetailItem label="Source Hospital" value={transfer.sourceHospitalName} />
 					<DetailItem label="Target Hospital" value={transfer.targetHospitalName} />
-					<DetailItem
-						label="Target Hospital Email"
-						value={transfer.targetHospitalEmail}
-					/>
+					<DetailItem label="Target Hospital Email" value={transfer.targetHospitalEmail} />
 					<DetailItem label="Requested By" value={transfer.requestedBy || "-"} />
 					<DetailItem label="Requested At" value={formatDate(transfer.requestedAt)} />
 				</div>
@@ -160,7 +160,7 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 								type="button"
 								variant="outline"
 								className="h-auto px-6 py-3"
-								disabled={isSubmittingApprovalOrRejection}
+								disabled={isPending}
 								onClick={() => {
 									setIsRejectionReasonFormOpen(false);
 									setApprovalSubmissionError(null);
@@ -174,7 +174,7 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 							type="button"
 							variant={isRejectionReasonFormOpen ? "destructive" : "outline"}
 							className="h-auto px-6 py-3"
-							disabled={isSubmittingApprovalOrRejection}
+							disabled={isPending}
 							onClick={() => {
 								if (!isRejectionReasonFormOpen) {
 									setIsRejectionReasonFormOpen(true);
@@ -186,15 +186,15 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 								handleReject();
 							}}
 						>
-							{isSubmittingApprovalOrRejection && isRejectionReasonFormOpen ? "Rejecting..." : "Reject"}
+							{isPending && isRejectionReasonFormOpen ? "Rejecting..." : "Reject"}
 						</Button>
 						<Button
 							type="button"
 							className="h-auto px-6 py-3"
-							disabled={isSubmittingApprovalOrRejection || isRejectionReasonFormOpen}
+							disabled={isPending || isRejectionReasonFormOpen}
 							onClick={handleApprove}
 						>
-							{isSubmittingApprovalOrRejection && !isRejectionReasonFormOpen ? "Approving..." : "Approve"}
+							{isPending && !isRejectionReasonFormOpen ? "Approving..." : "Approve"}
 						</Button>
 					</div>
 				) : null}
