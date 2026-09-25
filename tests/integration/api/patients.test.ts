@@ -5,14 +5,12 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 const {
 	getAllergyDetailsMock,
 	getDiagnosisDetailsMock,
-	getDocumentDetailsMock,
 	getImmunizationDetailsMock,
 	getMedicationDetailsMock,
 	getProcedureDetailsMock,
 } = vi.hoisted(() => ({
 	getAllergyDetailsMock: vi.fn(),
 	getDiagnosisDetailsMock: vi.fn(),
-	getDocumentDetailsMock: vi.fn(),
 	getImmunizationDetailsMock: vi.fn(),
 	getMedicationDetailsMock: vi.fn(),
 	getProcedureDetailsMock: vi.fn(),
@@ -23,9 +21,6 @@ vi.mock("@/lib/api/get-patient-allergy-details", () => ({
 }));
 vi.mock("@/lib/api/get-patient-diagnosis-details", () => ({
 	getPatientDiagnosisDetails: getDiagnosisDetailsMock,
-}));
-vi.mock("@/lib/api/get-patient-document-details", () => ({
-	getPatientDocumentDetails: getDocumentDetailsMock,
 }));
 vi.mock("@/lib/api/get-patient-immunization-details", () => ({
 	getPatientImmunizationDetails: getImmunizationDetailsMock,
@@ -39,7 +34,6 @@ vi.mock("@/lib/api/get-patient-procedure-details", () => ({
 
 import { GET as getAllergyDetails } from "@/app/api/patient-allergy-details/[allergyId]/route";
 import { GET as getDiagnosisDetails } from "@/app/api/patient-diagnosis-details/[diagnosisId]/route";
-import { GET as getDocumentDetails } from "@/app/api/patient-document-details/[documentId]/route";
 import { GET as getImmunizationDetails } from "@/app/api/patient-immunization-details/[immunizationId]/route";
 import { GET as getMedicationDetails } from "@/app/api/patient-medication-details/[medicationId]/route";
 import { GET as getProcedureDetails } from "@/app/api/patient-procedure-details/[procedureId]/route";
@@ -107,36 +101,6 @@ describe("Patient records API", () => {
 
 		expect(response.status).toBe(404);
 		expect(await response.json()).toEqual({ diagnosis: null });
-	});
-
-	test("returns document details", async () => {
-		const document = { documentId: "document-1", title: "Discharge summary" };
-		getDocumentDetailsMock.mockResolvedValue(document);
-
-		const response = await getDocumentDetails(
-			new Request("http://localhost/api/patient-document-details/document-1"),
-			{
-				params: Promise.resolve({ documentId: "document-1" }),
-			},
-		);
-
-		expect(response.status).toBe(200);
-		expect(await response.json()).toEqual({ document });
-		expect(getDocumentDetailsMock).toHaveBeenCalledWith("document-1");
-	});
-
-	test("returns a 404 null document payload when the document is missing", async () => {
-		getDocumentDetailsMock.mockResolvedValue(null);
-
-		const response = await getDocumentDetails(
-			new Request("http://localhost/api/patient-document-details/missing"),
-			{
-				params: Promise.resolve({ documentId: "missing" }),
-			},
-		);
-
-		expect(response.status).toBe(404);
-		expect(await response.json()).toEqual({ document: null });
 	});
 
 	test("returns immunization details", async () => {

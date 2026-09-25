@@ -385,19 +385,6 @@ export type DocumentFileType = {
 	uploadedAt: string;
 };
 
-export type DocumentType = {
-	documentId: string;
-	encounterId: string;
-	title: string;
-	documentType: string;
-	clinicalNotes: string;
-	files: DocumentFileType[];
-	createdBy: string;
-	updatedBy: string;
-	createdAtLabel: string;
-	updatedAtLabel: string;
-	createdAtSortValue: string;
-};
 export type PatientSectionProps = {
 	section: string;
 	patientId: string;

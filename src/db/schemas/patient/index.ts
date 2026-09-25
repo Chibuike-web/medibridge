@@ -11,7 +11,6 @@ export * from "./immunization";
 export * from "./procedure";
 export * from "./imaging";
 export * from "./lab-test";
-export * from "./document";
 export * from "./transfer";
 export * from "./record-access";
 export * from "./vital";

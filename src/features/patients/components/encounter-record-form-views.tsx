@@ -1,10 +1,8 @@
 "use client";
 
-import { type ChangeEvent, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { format } from "date-fns";
 import { RiAddLine, RiCalendarLine } from "@remixicon/react";
-import { ChooseFileCard } from "@/components/choose-file-card";
-import { CreateSelectedFiles } from "@/components/create-selected-files";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { DrawerClose, DrawerFooter } from "@/components/ui/drawer";
@@ -29,8 +27,7 @@ export type EncounterRecordType =
 	| "diagnoses"
 	| "immunizations"
 	| "imaging"
-	| "lab-tests"
-	| "document";
+	| "lab-tests";
 
 type EncounterRecordFormViewProps = {
 	recordType: EncounterRecordType;
@@ -43,15 +40,6 @@ const fieldControlClassName =
 const textareaClassName =
 	"min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400";
 
-const documentTypes = [
-	"Lab Report",
-	"Imaging",
-	"Cardiology",
-	"Clinical Summary",
-	"Referral",
-	"Pathology",
-] as const;
-
 const submitLabels: Record<EncounterRecordType, string> = {
 	vitals: "Add vitals",
 	medication: "Add medication",
@@ -60,15 +48,12 @@ const submitLabels: Record<EncounterRecordType, string> = {
 	immunizations: "Add immunization",
 	imaging: "Add imaging",
 	"lab-tests": "Add lab test",
-	document: "Add document",
 };
 
 export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewProps) {
 	const generatedFormId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
-	const documentFileInputRef = useRef<HTMLInputElement>(null);
 	const [attachmentRows, setAttachmentRows] = useState<AttachmentFormRow[]>([]);
-	const [selectedDocumentFiles, setSelectedDocumentFiles] = useState<File[]>([]);
 	const [recordedAt, setRecordedAt] = useState<Date | undefined>();
 	const [startedAt, setStartedAt] = useState<Date | undefined>();
 	const [diagnosedAt, setDiagnosedAt] = useState<Date | undefined>();
@@ -96,19 +81,6 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 	function handleRemoveAttachmentRow(attachmentRowId: string) {
 		setAttachmentRows((prev) =>
 			prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId),
-		);
-	}
-
-	function handleDocumentFilesSelected(event: ChangeEvent<HTMLInputElement>) {
-		const nextFiles = Array.from(event.target.files ?? []);
-
-		setSelectedDocumentFiles((prev) => [...prev, ...nextFiles]);
-		event.target.value = "";
-	}
-
-	function handleRemoveDocumentFile(file: File) {
-		setSelectedDocumentFiles((prev) =>
-			prev.filter((selectedDocumentFile) => selectedDocumentFile !== file),
 		);
 	}
 
@@ -385,24 +357,6 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-result`} className={fieldLabelClassName}>Result<span className={optionalLabelClassName}>(required)</span></Label><Input id={`${generatedFormId}-result`} placeholder="e.g. 14.8 x10^9/L" className={fieldControlClassName} /></div>
 						<div className="flex flex-col gap-2 sm:col-span-2"><Label htmlFor={`${generatedFormId}-interpretation`} className={fieldLabelClassName}>Interpretation<span className={optionalLabelClassName}>(optional)</span></Label><Textarea id={`${generatedFormId}-interpretation`} placeholder="e.g. Elevated white blood cell count suggesting possible infection" className={textareaClassName} /></div>
 						<div className="flex flex-col gap-2 sm:col-span-2"><Label htmlFor={`${generatedFormId}-lab-notes`} className={fieldLabelClassName}>Clinical notes<span className={optionalLabelClassName}>(optional)</span></Label><Textarea id={`${generatedFormId}-lab-notes`} placeholder="Add additional laboratory observations or recommendations" className={textareaClassName} /></div>
-					</div>
-				) : null}
-
-				{recordType === "document" ? (
-					<div className="flex flex-col gap-6">
-						<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-							<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-document-title`} className={fieldLabelClassName}>Document title<span className={optionalLabelClassName}>(required)</span></Label><Input id={`${generatedFormId}-document-title`} placeholder="e.g. Complete Blood Count Report" className={fieldControlClassName} /></div>
-							<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-document-type`} className={fieldLabelClassName}>Document type<span className={optionalLabelClassName}>(required)</span></Label><Select><SelectTrigger id={`${generatedFormId}-document-type`} className="w-full data-[placeholder]:text-gray-400"><SelectValue placeholder="Select document type" /></SelectTrigger><SelectContent><SelectGroup>{documentTypes.map((documentType) => <SelectItem key={documentType} value={documentType}>{documentType}</SelectItem>)}</SelectGroup></SelectContent></Select></div>
-							<div className="flex flex-col gap-2 sm:col-span-2"><Label htmlFor={`${generatedFormId}-document-notes`} className={fieldLabelClassName}>Clinical notes<span className={optionalLabelClassName}>(optional)</span></Label><Textarea id={`${generatedFormId}-document-notes`} placeholder="Add notes or context about this document" className="min-h-32 bg-white text-sm text-gray-700 placeholder:text-gray-400" /></div>
-						</div>
-						<div className="flex flex-col gap-3">
-							<Label className={fieldLabelClassName}>Files<span className={optionalLabelClassName}>(optional)</span></Label>
-							{selectedDocumentFiles.length > 0 ? (
-								<CreateSelectedFiles files={selectedDocumentFiles} fileInputRef={documentFileInputRef} onFilesSelected={handleDocumentFilesSelected} onRemoveFile={handleRemoveDocumentFile} />
-							) : (
-								<ChooseFileCard onFilesSelected={handleDocumentFilesSelected} fileInputRef={documentFileInputRef} title="Choose one or more files or drag and drop them here." description="JPEG, PNG, and PDF, up to 50 MB." browseLabel="Browse files" accept="image/jpeg,image/png,application/pdf" inputId={`${generatedFormId}-files`} multiple />
-							)}
-						</div>
 					</div>
 				) : null}
 

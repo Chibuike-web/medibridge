@@ -18,8 +18,7 @@ export type PatientSection =
 	| "medications"
 	| "encounters"
 	| "lab-tests"
-	| "imaging"
-	| "documents";
+	| "imaging";
 
 export function SectionTabs({ activeSection }: { activeSection: PatientSection }) {
 	const searchParams = useSearchParams();
@@ -85,5 +84,4 @@ export const sections = [
 	{ id: "encounters", label: "Encounters" },
 	{ id: "lab-tests", label: "Lab Tests" },
 	{ id: "imaging", label: "Imaging" },
-	{ id: "documents", label: "Documents" },
 ] as const;

@@ -421,7 +421,6 @@ const searchTabs = [
 	"Medications",
 	"Labs",
 	"Imaging",
-	"Documents",
 ] as const;
 type SearchTab = (typeof searchTabs)[number];
 

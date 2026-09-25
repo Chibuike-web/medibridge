@@ -9,11 +9,9 @@ import { SectionTabs, type PatientSection } from "@/features/patients/components
 import { PatientOverviewSection } from "@/features/patients/components/patient-overview-section";
 import { PatientDetailsSection } from "@/features/patients/components/patient-details-section/patient-details-section";
 import { PatientAvatarMenu } from "@/features/patients/components/patient-avatar-menu";
-import { DocumentsTable } from "@/features/patients/components/documents-table";
 import {
 	CreateAllergyEmptyStateAction,
 	CreateDiagnosisEmptyStateAction,
-	CreateDocumentEmptyStateAction,
 	CreateEncounterEmptyStateAction,
 	CreateImagingEmptyStateAction,
 	CreateImmunizationEmptyStateAction,
@@ -25,7 +23,6 @@ import {
 import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
-import { getPatientDocuments } from "@/lib/api/get-patient-documents";
 import { getPatientEncounters } from "@/lib/api/get-patient-encounters";
 import { getPatientImaging } from "@/lib/api/get-patient-imaging";
 import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
@@ -46,7 +43,6 @@ import {
 	ProceduresClient,
 	VitalsClient,
 } from "./patient-section-table-clients";
-import { DocumentsClient } from "./patient-section-table-clients/documents-client";
 
 export const metadata = {
 	title: "Patient",
@@ -222,10 +218,6 @@ async function renderSectionContent(section: string, patientId: string) {
 
 	if (section === "imaging") {
 		return <ImagingSection patientId={patientId} />;
-	}
-
-	if (section === "documents") {
-		return <DocumentsSection patientId={patientId} />;
 	}
 }
 
@@ -436,28 +428,6 @@ async function ImagingSection({ patientId }: { patientId: string }) {
 			page={1}
 			limit={14}
 			totalPages={Math.ceil(totalImagingStudies / 14) || 1}
-		/>
-	);
-}
-
-async function DocumentsSection({ patientId }: { patientId: string }) {
-	const { documents, totalDocuments } = await getPatientDocuments(patientId);
-
-	if (documents.length === 0) {
-		return renderEmptyState({
-			title: "No documents yet",
-			description: "No documents have been recorded for this patient.",
-			action: <CreateDocumentEmptyStateAction patientId={patientId} />,
-		});
-	}
-
-	return (
-		<DocumentsClient
-			patientId={patientId}
-			documents={documents}
-			page={1}
-			limit={14}
-			totalPages={Math.ceil(totalDocuments / 14) || 1}
 		/>
 	);
 }

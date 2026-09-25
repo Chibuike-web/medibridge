@@ -288,7 +288,6 @@ async function seedHospitals() {
 		`;
 
 		for (const table of [
-			"patient_document",
 			"patient_imaging",
 			"patient_lab_test",
 			"patient_procedure",
@@ -703,12 +702,6 @@ async function seedHospitals() {
 		{ study: "Brain MRI", modality: "MRI", region: "Head" },
 		{ study: "CT chest", modality: "CT", region: "Chest" },
 	];
-	const documentTemplates = [
-		{ title: "Clinical visit summary", documentType: "Clinical Summary" },
-		{ title: "Laboratory report", documentType: "Lab Report" },
-		{ title: "Referral letter", documentType: "Referral" },
-		{ title: "Imaging report", documentType: "Imaging" },
-	];
 	const seededDiagnoses: (typeof schema.patientDiagnosis.$inferInsert)[] = [];
 	const seededMedications: (typeof schema.patientMedication.$inferInsert)[] = [];
 	const seededAllergies: (typeof schema.patientAllergy.$inferInsert)[] = [];
@@ -718,8 +711,6 @@ async function seedHospitals() {
 	const seededLabTestFiles: (typeof schema.patientLabTestFile.$inferInsert)[] = [];
 	const seededImagingStudies: (typeof schema.patientImaging.$inferInsert)[] = [];
 	const seededImagingFiles: (typeof schema.patientImagingFile.$inferInsert)[] = [];
-	const seededDocuments: (typeof schema.patientDocument.$inferInsert)[] = [];
-	const seededDocumentFiles: (typeof schema.patientDocumentFile.$inferInsert)[] = [];
 	const diagnosisIdByPatientId = new Map<string, string>();
 	const medicationIdByPatientId = new Map<string, string>();
 	const allergyIdByPatientId = new Map<string, string>();
@@ -759,7 +750,6 @@ async function seedHospitals() {
 			const procedureId = prefixedId("PRO");
 			const labTestId = prefixedId("LAB");
 			const imagingId = prefixedId("IMG");
-			const documentId = prefixedId("DOC");
 			const templateIndex = patientIndex + clinicalRecordIndex;
 			const diagnosisName = diagnosisNames[templateIndex % diagnosisNames.length];
 			const medicationName = medicationNames[templateIndex % medicationNames.length];
@@ -768,7 +758,6 @@ async function seedHospitals() {
 			const procedure = procedureTemplates[templateIndex % procedureTemplates.length];
 			const labTest = labTestTemplates[templateIndex % labTestTemplates.length];
 			const imagingStudy = imagingTemplates[templateIndex % imagingTemplates.length];
-			const document = documentTemplates[templateIndex % documentTemplates.length];
 
 			if (clinicalRecordIndex === 0) {
 			diagnosisIdByPatientId.set(patientRowId, diagnosisId);
@@ -920,29 +909,6 @@ async function seedHospitals() {
 				uploadedBy: physician,
 				uploadedAt: createdAt,
 			});
-
-			seededDocuments.push({
-				id: documentId,
-				patientId: patientRowId,
-				encounterId,
-				title: document.title,
-				documentType: document.documentType,
-				clinicalNotes: `${document.title} generated for the seeded encounter.`,
-				createdBy: physician,
-				updatedBy: physician,
-				createdAt,
-				updatedAt: createdAt,
-			});
-			seededDocumentFiles.push({
-				id: prefixedId("DOF"),
-				parentRecordId: documentId,
-				name: `${document.title.toLowerCase().replaceAll(" ", "-")}.pdf`,
-				url: `https://medibridge-demo.s3.amazonaws.com/patients/${patientRowId}/documents/${documentId}.pdf`,
-				type: "application/pdf",
-				size: "640 KB",
-				uploadedBy: physician,
-				uploadedAt: createdAt,
-			});
 			}
 		}
 	}
@@ -1010,20 +976,8 @@ async function seedHospitals() {
 			.values(seededImagingFiles.slice(i, i + CLINICAL_INSERT_BATCH_SIZE))
 			.onConflictDoNothing();
 	}
-	for (let i = 0; i < seededDocuments.length; i += CLINICAL_INSERT_BATCH_SIZE) {
-		await db
-			.insert(schema.patientDocument)
-			.values(seededDocuments.slice(i, i + CLINICAL_INSERT_BATCH_SIZE))
-			.onConflictDoNothing();
-	}
-	for (let i = 0; i < seededDocumentFiles.length; i += CLINICAL_INSERT_BATCH_SIZE) {
-		await db
-			.insert(schema.patientDocumentFile)
-			.values(seededDocumentFiles.slice(i, i + CLINICAL_INSERT_BATCH_SIZE))
-			.onConflictDoNothing();
-	}
 	console.log(
-		`Inserted ${seededDiagnoses.length} demo diagnoses, ${seededMedications.length} medications, ${seededAllergies.length} allergies, ${seededImmunizations.length} immunizations, ${seededProcedures.length} procedures, ${seededLabTests.length} lab tests with ${seededLabTestFiles.length} files, ${seededImagingStudies.length} imaging studies with ${seededImagingFiles.length} files, and ${seededDocuments.length} documents with ${seededDocumentFiles.length} files`,
+		`Inserted ${seededDiagnoses.length} demo diagnoses, ${seededMedications.length} medications, ${seededAllergies.length} allergies, ${seededImmunizations.length} immunizations, ${seededProcedures.length} procedures, ${seededLabTests.length} lab tests with ${seededLabTestFiles.length} files, and ${seededImagingStudies.length} imaging studies with ${seededImagingFiles.length} files`,
 	);
 
 	const seededTransfers = [];

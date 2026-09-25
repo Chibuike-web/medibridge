@@ -7,7 +7,6 @@ import { CopyIdButton } from "@/components/copy-id-button";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
-import { getPatientDocuments } from "@/lib/api/get-patient-documents";
 import { getPatientEncounter } from "@/lib/api/get-patient-encounter";
 import { getPatientImaging } from "@/lib/api/get-patient-imaging";
 import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
@@ -24,7 +23,6 @@ import {
 	MedicationsClient,
 	ProceduresClient,
 } from "../../patient-section-table-clients";
-import { DocumentsClient } from "../../patient-section-table-clients/documents-client";
 
 export const metadata = {
 	title: "Encounter Details",
@@ -59,7 +57,6 @@ async function EncounterDetailsContent({ params }: EncounterDetailsParamsProps) 
 		proceduresResult,
 		labTestsResult,
 		imagingResult,
-		documentsResult,
 	] = await Promise.all([
 		getPatientById(patientId),
 		getPatientEncounter(patientId, encounterId),
@@ -69,9 +66,7 @@ async function EncounterDetailsContent({ params }: EncounterDetailsParamsProps) 
 		getPatientImmunizations(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], encounterId),
 		getPatientProcedures(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], encounterId),
 		getPatientLabTests(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], [], encounterId),
-		getPatientImaging(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], [], encounterId),
-		getPatientDocuments(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], encounterId),
-	]);
+		getPatientImaging(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], [], encounterId),	]);
 
 	if (!patient || !encounter) {
 		notFound();
@@ -217,17 +212,6 @@ async function EncounterDetailsContent({ params }: EncounterDetailsParamsProps) 
 								page={INITIAL_PAGE}
 								limit={INITIAL_LIMIT}
 								totalPages={getTotalPages(imagingResult.totalImagingStudies)}
-							/>
-						</EncounterSection>
-
-						<EncounterSection>
-							<DocumentsClient
-								patientId={patientId}
-								encounterId={encounterId}
-								documents={documentsResult.documents}
-								page={INITIAL_PAGE}
-								limit={INITIAL_LIMIT}
-								totalPages={getTotalPages(documentsResult.totalDocuments)}
 							/>
 						</EncounterSection>
 					</div>

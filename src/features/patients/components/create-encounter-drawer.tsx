@@ -68,12 +68,6 @@ const encounterRecordOptions: ReadonlyArray<{
 		formTitle: "Add lab test",
 		description: "Add laboratory findings relevant to this visit.",
 	},
-	{
-		id: "document",
-		title: "Document",
-		formTitle: "Add document",
-		description: "Attach supporting clinical and administrative documents for this encounter.",
-	},
 ];
 
 export function CreateEncounterDrawer({ open, onOpenChange }: CreateEncounterDrawerProps) {
