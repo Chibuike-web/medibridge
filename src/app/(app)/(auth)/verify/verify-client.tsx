@@ -1,6 +1,7 @@
 "use client";
 
 import { RiCheckboxCircleFill, RiLockLine, RiTimeLine } from "@remixicon/react";
+import { useRouter } from "next/navigation";
 import useSWR from "swr";
 
 type VerificationStep = {
@@ -49,27 +50,47 @@ type VerificationStatus = {
 	role: string;
 };
 
+type VerificationRequestError = Error & {
+	status?: number;
+};
+
 const fetchVerificationStatus = async (url: string): Promise<VerificationStatus> => {
 	const response = await fetch(url);
 
 	if (!response.ok) {
-		throw new Error("Unable to load verification status");
+		throw Object.assign(new Error("Unable to load verification status"), {
+			status: response.status,
+		});
 	}
 
 	return response.json();
 };
 
 export function VerifyClient() {
+	const router = useRouter();
+
 	const {
 		data: verificationStatus,
 		error: verificationStatusError,
 		isLoading: isVerificationStatusLoading,
 		isValidating: isVerificationStatusRefreshing,
 		mutate: refreshVerificationStatus,
-	} = useSWR("/api/verify", fetchVerificationStatus, {
+	} = useSWR<VerificationStatus, VerificationRequestError>("/api/verify", fetchVerificationStatus, {
 		refreshInterval: 60_000,
 		revalidateOnFocus: true,
 		revalidateOnReconnect: true,
+		// The server page owns navigation, so refreshing lets its checks redirect.
+		onSuccess: (status) => {
+			if (status.emailVerified && status.isOrganizationVerified) {
+				router.refresh();
+			}
+		},
+		onError: (error) => {
+			if (error.status === 401 || error.status === 403) {
+				router.refresh();
+			}
+		},
+		shouldRetryOnError: (error) => error.status !== 401 && error.status !== 403,
 	});
 
 	const verificationSteps: VerificationStep[] = initialVerificationSteps.map((step) => {
