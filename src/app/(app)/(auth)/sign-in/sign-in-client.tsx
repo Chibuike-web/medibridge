@@ -162,10 +162,12 @@ export function SignInClient() {
 						aria-describedby={errors.password ? "admin-password-error" : undefined}
 						aria-invalid={!!errors.password}
 					/>
-					<button
+					<Button
+						variant="ghost"
+						size="icon"
 						type="button"
 						aria-label={isPasswordVisible ? "Hide password" : "Show password"}
-						className="absolute right-4 top-1/2 -translate-y-1/2"
+						className="absolute right-4 top-1/2 -translate-y-1/2 size-auto rounded-none border-0 hover:bg-transparent focus-visible:border-0"
 						onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 					>
 						<span aria-hidden="true">
@@ -175,7 +177,7 @@ export function SignInClient() {
 								<RiEyeLine className="size-4 text-gray-600" />
 							)}
 						</span>
-					</button>
+					</Button>
 				</div>
 				{errors.password && (
 					<p id="admin-password-error" className="font-medium text-red-500 mt-1 text-sm">

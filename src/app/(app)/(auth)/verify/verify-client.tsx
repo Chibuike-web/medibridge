@@ -1,6 +1,7 @@
 "use client";
 
 import { RiCheckboxCircleFill, RiLockLine, RiTimeLine } from "@remixicon/react";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 
@@ -129,13 +130,14 @@ export function VerifyClient() {
 					We could not load your verification status.
 				</p>
 
-				<button
+				<Button
+					variant="ghost"
 					type="button"
-					className="text-sm font-medium text-gray-800 underline"
+					className="text-gray-800 underline h-auto rounded-none border-0 p-0 hover:bg-transparent hover:text-gray-800 focus-visible:border-0"
 					onClick={() => refreshVerificationStatus()}
 				>
 					Try again
-				</button>
+				</Button>
 			</div>
 		);
 	}

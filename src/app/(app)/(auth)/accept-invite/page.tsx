@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { auth } from "@/lib/better-auth/auth";
 import { getInvitationPreviewService } from "@/services/auth/accept-invite-service";
 import { headers } from "next/headers";
@@ -7,12 +8,22 @@ export const metadata = {
 	title: "Accept Invite",
 };
 
-export default async function AcceptInvite({
-	searchParams,
-}: {
+type AcceptInviteProps = {
 	searchParams: Promise<{ invitationId?: string | string[] }>;
-}) {
-	const invitationIdValue = (await searchParams).invitationId;
+};
+
+export default function AcceptInvite({ searchParams }: AcceptInviteProps) {
+	return (
+		<main className="mx-auto my-10 grid min-h-dvh max-w-[37.5rem] place-items-center px-6 md:px-0">
+			<Suspense>
+				<AcceptInviteContent searchParams={searchParams} />
+			</Suspense>
+		</main>
+	);
+}
+
+async function AcceptInviteContent({ searchParams }: AcceptInviteProps) {
+	const { invitationId: invitationIdValue } = await searchParams;
 	const invitationId = Array.isArray(invitationIdValue) ? invitationIdValue[0] : invitationIdValue;
 	const [invitationPreview, session] = await Promise.all([
 		getInvitationPreviewService(invitationId ?? ""),
@@ -21,16 +32,14 @@ export default async function AcceptInvite({
 
 	if (invitationPreview.status === "invalid") {
 		return (
-			<main className="mx-auto my-10 grid min-h-dvh max-w-[37.5rem] place-items-center px-6 md:px-0">
-				<div className="w-full text-center">
-					<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
-						Invitation unavailable
-					</h1>
-					<p className="mt-4 text-sm font-medium text-gray-600">
-						This invitation is invalid, expired, or has already been used.
-					</p>
-				</div>
-			</main>
+			<div className="w-full text-center">
+				<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
+					Invitation unavailable
+				</h1>
+				<p className="mt-4 text-sm font-medium text-gray-600">
+					This invitation is invalid, expired, or has already been used.
+				</p>
+			</div>
 		);
 	}
 
@@ -64,24 +73,22 @@ export default async function AcceptInvite({
 	}[mode];
 
 	return (
-		<main className="mx-auto my-10 grid min-h-dvh max-w-[37.5rem] place-items-center px-6 md:px-0">
-			<div className="w-full">
-				<div className="mb-10">
-					<h1 className="text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
-						{pageContent.heading}
-					</h1>
-					<p className="mt-4 text-balance text-center text-sm font-medium text-gray-600">
-						{pageContent.description}
-					</p>
-				</div>
-
-				<AcceptInviteClient
-					email={invitationPreview.email}
-					invitationId={invitationId ?? ""}
-					mode={mode}
-					organizationName={invitationPreview.organizationName}
-				/>
+		<div className="w-full">
+			<div className="mb-10">
+				<h1 className="text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
+					{pageContent.heading}
+				</h1>
+				<p className="mt-4 text-balance text-center text-sm font-medium text-gray-600">
+					{pageContent.description}
+				</p>
 			</div>
-		</main>
+
+			<AcceptInviteClient
+				email={invitationPreview.email}
+				invitationId={invitationId ?? ""}
+				mode={mode}
+				organizationName={invitationPreview.organizationName}
+			/>
+		</div>
 	);
 }

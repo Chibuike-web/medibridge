@@ -135,7 +135,7 @@ export function AdminInviteClient() {
 					description="The administrator has been successfully invited. They will receive an email to set up their account and start managing members."
 				>
 					<DialogFooter className="w-full text-sm">
-						<Button className="h-9 w-full" onClick={() => router.push("/dashboard/overview")}>
+						<Button className="w-full" onClick={() => router.push("/dashboard/overview")}>
 							Continue to Dashboard
 						</Button>
 					</DialogFooter>

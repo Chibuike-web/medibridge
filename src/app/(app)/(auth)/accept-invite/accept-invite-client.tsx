@@ -152,7 +152,7 @@ function CreateInvitedAdminForm({
 					description={`We sent a verification link to ${email}. Open it to return and accept your administrator invitation.`}
 				>
 					<DialogFooter className="w-full text-sm">
-						<Button className="h-9 w-full" onClick={() => setIsSuccessModalOpen(false)}>
+						<Button className="w-full" onClick={() => setIsSuccessModalOpen(false)}>
 							Got it
 						</Button>
 					</DialogFooter>
@@ -228,7 +228,7 @@ function AcceptInvitationButton({
 					description={`You are now an administrator for ${organizationName}.`}
 				>
 					<DialogFooter className="w-full text-sm">
-						<Button className="h-9 w-full" onClick={() => router.push("/dashboard/overview")}>
+						<Button className="w-full" onClick={() => router.push("/dashboard/overview")}>
 							Continue to Dashboard
 						</Button>
 					</DialogFooter>
@@ -300,11 +300,13 @@ function PasswordVisibilityButton({
 	setIsPasswordVisible: (isVisible: boolean) => void;
 }) {
 	return (
-		<button
+		<Button
+			variant="ghost"
+			size="icon"
 			type="button"
 			aria-label={isPasswordVisible ? "Hide password" : "Show password"}
 			aria-pressed={isPasswordVisible}
-			className="absolute right-4 top-1/2 -translate-y-1/2"
+			className="absolute right-4 top-1/2 -translate-y-1/2 size-auto rounded-none border-0 hover:bg-transparent focus-visible:border-0"
 			onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 		>
 			{isPasswordVisible ? (
@@ -312,7 +314,7 @@ function PasswordVisibilityButton({
 			) : (
 				<RiEyeLine className="size-4 text-gray-600" aria-hidden="true" />
 			)}
-		</button>
+		</Button>
 	);
 }
 

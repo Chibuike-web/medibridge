@@ -58,7 +58,8 @@ export function OwnerClient() {
 			<div className="text-center" role="status">
 				<h2 className="text-lg font-semibold">Check your email</h2>
 				<p className="mt-3 text-sm text-gray-600">
-					We sent a verification link. After verifying your email, you can add your hospital details.
+					We sent a verification link. After verifying your email, you can add your hospital
+					details.
 				</p>
 			</div>
 		);
@@ -119,11 +120,13 @@ export function OwnerClient() {
 					aria-describedby={errors.password ? "password-error" : undefined}
 					aria-invalid={!!errors.password}
 				/>
-				<button
+				<Button
+					variant="ghost"
+					size="icon"
 					type="button"
 					aria-pressed={isPasswordVisible}
 					aria-label={isPasswordVisible ? "Hide password" : "Show password"}
-					className="absolute right-4 top-1/2 -translate-y-1/2"
+					className="absolute right-4 top-1/2 -translate-y-1/2 size-auto rounded-none border-0 hover:bg-transparent focus-visible:border-0"
 					onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 				>
 					<span aria-hidden="true">
@@ -133,7 +136,7 @@ export function OwnerClient() {
 							<RiEyeLine className="size-4 text-gray-600" />
 						)}
 					</span>
-				</button>
+				</Button>
 			</div>
 			{errors.password && (
 				<p id="password-error" className="font-medium text-red-500 mt-2 text-sm">

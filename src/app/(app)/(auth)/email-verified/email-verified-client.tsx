@@ -70,8 +70,8 @@ function InvalidOrExpired({ type }: { type: "invalid_token" | "expired_token" })
 				<p className="text-gray-600 text-sm font-medium text-balance mt-4">{description}</p>
 
 				<div className="mt-8">
-					<button
-						className="inline-block w-full py-3 rounded-md bg-foreground text-white font-medium"
+					<Button
+						className="inline-block w-full py-3 bg-foreground text-white h-auto px-0 text-base hover:bg-foreground"
 						onClick={() => {
 							startTransition(async () => {
 								setResendMessage("");
@@ -86,7 +86,7 @@ function InvalidOrExpired({ type }: { type: "invalid_token" | "expired_token" })
 						}}
 					>
 						{isPending ? "Sending..." : "Resend verification email"}
-					</button>
+					</Button>
 					{resendMessage && (
 						<p className="mt-3 text-sm text-gray-600" role="status">
 							{resendMessage}
