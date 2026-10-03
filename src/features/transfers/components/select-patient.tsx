@@ -57,8 +57,7 @@ export function SelectPatient({
 			};
 		},
 		{
-			fallbackData:
-				selectedPatientOptionsPage === page ? initialPatientOptionsData : undefined,
+			fallbackData: selectedPatientOptionsPage === page ? initialPatientOptionsData : undefined,
 			keepPreviousData: true,
 		},
 	);
@@ -127,13 +126,16 @@ export function SelectPatient({
 									);
 
 									return (
-										<button
+										<Button
 											key={patient.patientId + patient.name}
 											type="button"
 											onClick={() => toggleSelectedTransferPatient(patient)}
+											variant="ghost"
 											className={cn(
-												"flex w-full text-left items-center justify-between rounded-md px-3 h-9 text-sm shrink-0",
-												isSelected ? "bg-gray-200 text-foreground" : "text-gray-600 hover:bg-gray-50",
+												"flex w-full text-left justify-between px-3 gap-0 border-0 font-normal focus-visible:border-0",
+												isSelected
+													? "bg-gray-200 text-foreground hover:bg-gray-200 hover:text-foreground"
+													: "text-gray-600 hover:bg-gray-50 hover:text-gray-600",
 											)}
 										>
 											<div className="flex items-center gap-3">
@@ -146,7 +148,7 @@ export function SelectPatient({
 												</span>
 											</div>
 											{isSelected ? <RiCheckLine className="size-4" /> : null}
-										</button>
+										</Button>
 									);
 								})
 							)}
@@ -158,7 +160,7 @@ export function SelectPatient({
 							variant="outline"
 							onClick={() => handlePageChange(selectedPatientOptionsPage - 1)}
 							disabled={selectedPatientOptionsPage <= 1 || isUpdatingPatientOptionsPage}
-							className="justify-self-start border-gray-200 px-3 text-gray-700 shadow-none transition"
+							className="justify-self-start px-3 text-gray-700 shadow-none"
 						>
 							Previous
 						</Button>
@@ -169,8 +171,10 @@ export function SelectPatient({
 							type="button"
 							variant="outline"
 							onClick={() => handlePageChange(selectedPatientOptionsPage + 1)}
-							disabled={selectedPatientOptionsPage >= currentTotalPages || isUpdatingPatientOptionsPage}
-							className="justify-self-end border-gray-200 px-3 text-gray-700 shadow-none transition"
+							disabled={
+								selectedPatientOptionsPage >= currentTotalPages || isUpdatingPatientOptionsPage
+							}
+							className="justify-self-end px-3 text-gray-700 shadow-none"
 						>
 							Next
 						</Button>
@@ -184,9 +188,10 @@ export function SelectPatient({
 						className="text-sm bg-gray-200 text-gray-600 flex items-center gap-2 py-1.5 pl-3 pr-1.5 rounded-full"
 					>
 						{s.name} - <span title={s.patientId}>{truncateId(s.patientId)}</span>
-						<button
+						<Button
 							type="button"
-							className="bg-gray-800 size-5 flex items-center justify-center text-white rounded-full active:scale-[0.99] transition-transform"
+							size="icon"
+							className="size-5 flex text-white rounded-full hover:bg-gray-800"
 							onClick={() => {
 								removeSelectedTransferPatient(s);
 
@@ -197,7 +202,7 @@ export function SelectPatient({
 							}}
 						>
 							<RiCloseLine size={16} />
-						</button>
+						</Button>
 					</div>
 				))}
 			</div>

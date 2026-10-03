@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils/cn";
+import { Button } from "@/components/ui/button";
 import { RiCheckLine, RiFileCopyLine } from "@remixicon/react";
 import { useState } from "react";
 
@@ -25,14 +26,15 @@ export function CopyIdButton({ id, className }: CopyIdButtonProps) {
 	}
 
 	return (
-		<button
+		<Button
+			variant="ghost"
 			type="button"
 			onClick={(e) => {
 				e.stopPropagation();
 				handleCopy();
 			}}
 			className={cn(
-				"flex w-25 shrink-0 items-center gap-1.5 rounded-md border border-gray-200 bg-gray-100 p-1 text-left text-gray-600 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
+				"flex w-25 gap-1.5 border-gray-200 bg-gray-100 p-1 text-left text-gray-600 h-auto justify-start font-normal hover:bg-gray-100 hover:text-gray-600",
 				className,
 			)}
 			aria-label={isCopied ? `${id} copied` : `Copy ${id}`}
@@ -59,6 +61,6 @@ export function CopyIdButton({ id, className }: CopyIdButtonProps) {
 					<RiFileCopyLine className="size-4" />
 				</span>
 			</span>
-		</button>
+		</Button>
 	);
 }

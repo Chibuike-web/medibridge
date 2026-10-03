@@ -91,7 +91,7 @@ export function AccountSettings({
 							<dd className="shrink-0 self-center">
 								<Button
 									type="button"
-									className="font-medium text-gray-400"
+									className="text-gray-400"
 									variant="ghost"
 									aria-label="View organization details"
 									onClick={() => onSettingsSubViewChange("organization")}
@@ -115,7 +115,7 @@ export function AccountSettings({
 							<dd className="shrink-0 self-center">
 								<Button
 									type="button"
-									className="font-medium text-gray-400"
+									className="text-gray-400"
 									variant="ghost"
 									aria-label="Change password"
 									onClick={() => onSettingsSubViewChange("change-password")}
@@ -134,7 +134,7 @@ export function AccountSettings({
 							<dd className="shrink-0 self-center">
 								<Button
 									type="button"
-									className="font-medium text-gray-400"
+									className="text-gray-400"
 									variant="ghost"
 									aria-label="View active sessions"
 									onClick={() => onSettingsSubViewChange("active-session")}
@@ -163,7 +163,7 @@ export function AccountSettings({
 						variant="destructive"
 						disabled={!viewerRole || !organizationName}
 						onClick={() => setIsDeleteAccountOpen(true)}
-						className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 dark:bg-transparent dark:hover:bg-destructive/10 dark:focus-visible:ring-destructive/40"
+						className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive dark:bg-transparent dark:hover:bg-destructive/10"
 					>
 						Delete account
 					</Button>
@@ -306,9 +306,11 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 								setChangePasswordError("");
 							}}
 						/>
-						<button
+						<Button
+							variant="ghost"
+							size="icon"
 							type="button"
-							className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-600 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+							className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-600 size-auto border-0 hover:bg-transparent hover:text-gray-600 focus-visible:border-0"
 							aria-label={isNewPasswordVisible ? "Hide new password" : "Show new password"}
 							aria-pressed={isNewPasswordVisible}
 							onClick={() => setIsNewPasswordVisible((prev) => !prev)}
@@ -318,7 +320,7 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 							) : (
 								<RiEyeLine className="size-4" aria-hidden="true" />
 							)}
-						</button>
+						</Button>
 					</div>
 					<p id="new-password-requirement" className="text-sm text-gray-400">
 						Use 8 to 128 characters.
@@ -345,9 +347,11 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 								setChangePasswordError("");
 							}}
 						/>
-						<button
+						<Button
+							variant="ghost"
+							size="icon"
 							type="button"
-							className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-600 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+							className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-600 size-auto border-0 hover:bg-transparent hover:text-gray-600 focus-visible:border-0"
 							aria-label={
 								isConfirmPasswordVisible
 									? "Hide confirmation password"
@@ -361,7 +365,7 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 							) : (
 								<RiEyeLine className="size-4" aria-hidden="true" />
 							)}
-						</button>
+						</Button>
 					</div>
 					{isPasswordMismatch && (
 						<p id="confirm-password-error" role="alert" className="text-sm text-red-600">

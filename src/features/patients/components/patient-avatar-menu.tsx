@@ -8,13 +8,17 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { getInitials } from "@/lib/utils/get-initials";
 
 export function PatientAvatarMenu({ patientName }: { patientName: string }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<button className="relative">
+				<Button
+					variant="ghost"
+					className="relative h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0 [&_svg]:!size-3"
+				>
 					<Avatar className="size-16 border border-gray-200 bg-gray-100 text-gray-700">
 						<AvatarFallback className="bg-gray-100 text-xl font-semibold text-gray-700">
 							{getInitials(patientName ?? "")}
@@ -23,7 +27,7 @@ export function PatientAvatarMenu({ patientName }: { patientName: string }) {
 					<div className="absolute right-[3px] bottom-[3px] size-4.5 border border-white/20 text-white bg-gray-800 flex items-center justify-center rounded-full ring ring-gray-800">
 						<RiEdit2Line className="size-3" />
 					</div>
-				</button>
+				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="start"

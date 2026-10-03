@@ -121,11 +121,7 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 							>
 								Cancel
 							</Button>
-							<Button
-								type="button"
-								className="bg-gray-800"
-								onClick={() => setLabTestDetailsMode("view")}
-							>
+							<Button type="button" onClick={() => setLabTestDetailsMode("view")}>
 								Save changes
 							</Button>
 						</div>
@@ -136,11 +132,7 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 									Cancel
 								</Button>
 							</DrawerClose>
-							{canArchive ? (
-								<Button type="button" className="bg-gray-800">
-									Archive Lab result
-								</Button>
-							) : null}
+							{canArchive ? <Button type="button">Archive Lab result</Button> : null}
 						</div>
 					)}
 				</DrawerFooter>
@@ -171,14 +163,15 @@ function LabTestDetailsOverview({
 						<h2 className="text-lg font-semibold text-gray-800">{labTest.test}</h2>
 						<StatusBadge status={labTest.status} />
 					</div>
-					<button
+					<Button
 						type="button"
 						onClick={onEditLabTestDetails}
-						className="inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						variant="ghost"
+						className="text-gray-400 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-gray-300 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent focus-visible:border-0 has-[>svg:first-child]:pl-0"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
-					</button>
+					</Button>
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
@@ -219,13 +212,27 @@ function LabTestFilesSection({ files }: { files: LabTestType["files"] }) {
 			<div className="flex w-full items-center justify-between">
 				<h2 className="text-sm font-semibold text-gray-800">Files</h2>
 				{files.length > 3 ? (
-					<button
+					<Button
 						type="button"
-						className="text-sm text-gray-400"
+						variant="ghost"
+						className="text-gray-400 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-gray-400 focus-visible:border-0"
 						onClick={() => setAreLabTestFilesExpanded((previousValue) => !previousValue)}
 					>
-						{areLabTestFilesExpanded ? "View less" : "View more"}
-					</button>
+						<span className="grid justify-items-end">
+							<span
+								aria-hidden={areLabTestFilesExpanded}
+								className={cn("col-start-1 row-start-1", areLabTestFilesExpanded && "invisible")}
+							>
+								View more
+							</span>
+							<span
+								aria-hidden={!areLabTestFilesExpanded}
+								className={cn("col-start-1 row-start-1", !areLabTestFilesExpanded && "invisible")}
+							>
+								View less
+							</span>
+						</span>
+					</Button>
 				) : null}
 			</div>
 			<div className="flex flex-col gap-3">
@@ -270,7 +277,12 @@ function LabTestHistorySection({ history }: { history: LabTestDetailsHistoryEven
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
-				<button className="text-sm text-gray-400">View more</button>
+				<Button
+					variant="ghost"
+					className="text-gray-400 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-gray-400 focus-visible:border-0"
+				>
+					View more
+				</Button>
 			</div>
 			{history.map((historyEvent) => (
 				<LabTestHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
@@ -287,12 +299,13 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 
 	return (
 		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
-			<button
+			<Button
 				type="button"
 				onClick={() => setIsLabTestHistoryExpanded((prev) => !prev)}
 				aria-expanded={isLabTestHistoryExpanded}
 				aria-controls={panelId}
-				className="flex w-full items-center justify-between gap-4 text-left"
+				variant="ghost"
+				className="flex w-full justify-between gap-4 text-left h-auto whitespace-normal rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0 active:scale-100 has-[>svg:last-child]:pr-0"
 			>
 				<p className="min-w-0 text-sm">
 					<span id={titleId} className="font-semibold text-gray-800">
@@ -310,7 +323,7 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 					)}
 					aria-hidden="true"
 				/>
-			</button>
+			</Button>
 			<div
 				id={panelId}
 				className={cn(
@@ -325,14 +338,14 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 						role="region"
 						aria-labelledby={titleId}
 						className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
-						>
-							{historyEvent.items.map((item) => (
-								<LabTestDetailItem
-									key={`${historyEvent.id}-${item.label}`}
-									label={item.label}
-									value={item.value}
-								/>
-							))}
+					>
+						{historyEvent.items.map((item) => (
+							<LabTestDetailItem
+								key={`${historyEvent.id}-${item.label}`}
+								label={item.label}
+								value={item.value}
+							/>
+						))}
 					</div>
 				</div>
 			</div>
@@ -498,7 +511,7 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 								type="button"
 								variant="outline"
 								data-empty={!orderedAt && labTest.orderedAtLabel === "-"}
-								className={`${fieldControlClassName} flex w-full items-center justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+								className={`${fieldControlClassName} flex w-full justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
 							>
 								<span className="min-w-0 truncate">{orderedAtDisplayValue}</span>
 								<RiCalendarLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
@@ -578,41 +591,41 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 									)}
 								>
 									<div className="flex items-center gap-4">
-									<Image
-										src={getLabTestFileIcon(file.name, file.type)}
-										alt=""
-										width={36}
-										height={36}
-										className={`size-9 shrink-0 transition-opacity duration-200 ${pendingLabTestFileRemovalId === file.id ? "opacity-40" : "opacity-100"}`}
-										aria-hidden="true"
-									/>
+										<Image
+											src={getLabTestFileIcon(file.name, file.type)}
+											alt=""
+											width={36}
+											height={36}
+											className={`size-9 shrink-0 transition-opacity duration-200 ${pendingLabTestFileRemovalId === file.id ? "opacity-40" : "opacity-100"}`}
+											aria-hidden="true"
+										/>
 
-									<div
-										className={`min-w-0 flex-1 transition-opacity duration-200 ${pendingLabTestFileRemovalId === file.id ? "opacity-40" : "opacity-100"}`}
-									>
-										<p className="truncate font-semibold text-gray-800">{file.name}</p>
+										<div
+											className={`min-w-0 flex-1 transition-opacity duration-200 ${pendingLabTestFileRemovalId === file.id ? "opacity-40" : "opacity-100"}`}
+										>
+											<p className="truncate font-semibold text-gray-800">{file.name}</p>
 
-										<p className="truncate text-gray-400">
-											{file.size} · Uploaded on {file.uploadedAtLabel}
-										</p>
-									</div>
-
-									{pendingLabTestFileRemovalId !== file.id ? (
-										<div className="flex shrink-0 items-center gap-2">
-											<Button
-												type="button"
-												variant="outline"
-												onClick={() => setPendingLabTestFileRemovalId(file.id)}
-											>
-												Remove
-											</Button>
-											<Button asChild type="button">
-												<a href={file.url} target="_blank" rel="noreferrer">
-													Open
-												</a>
-											</Button>
+											<p className="truncate text-gray-400">
+												{file.size} · Uploaded on {file.uploadedAtLabel}
+											</p>
 										</div>
-									) : null}
+
+										{pendingLabTestFileRemovalId !== file.id ? (
+											<div className="flex shrink-0 items-center gap-2">
+												<Button
+													type="button"
+													variant="outline"
+													onClick={() => setPendingLabTestFileRemovalId(file.id)}
+												>
+													Remove
+												</Button>
+												<Button asChild type="button">
+													<a href={file.url} target="_blank" rel="noreferrer">
+														Open
+													</a>
+												</Button>
+											</div>
+										) : null}
 									</div>
 									<div
 										className={cn(
@@ -625,23 +638,27 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 										inert={pendingLabTestFileRemovalId !== file.id}
 									>
 										<div className="min-h-0 overflow-hidden">
-												<div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-													<p className="max-w-md text-sm font-medium text-gray-700">
-														Remove {file.name} from this lab test?
-													</p>
-													<div className="ml-auto flex shrink-0 items-center gap-3">
-														<Button type="button" variant="outline" onClick={() => setPendingLabTestFileRemovalId(null)}>
-															Cancel
-														</Button>
-														<Button
-															type="button"
-															className="bg-red-500 hover:bg-red-600 focus-visible:ring-red-300"
-															onClick={() => handleRemoveLabTestFile(file.id)}
-														>
-															Remove file
-														</Button>
-													</div>
+											<div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+												<p className="max-w-md text-sm font-medium text-gray-700">
+													Remove {file.name} from this lab test?
+												</p>
+												<div className="ml-auto flex shrink-0 items-center gap-3">
+													<Button
+														type="button"
+														variant="outline"
+														onClick={() => setPendingLabTestFileRemovalId(null)}
+													>
+														Cancel
+													</Button>
+													<Button
+														type="button"
+														className="bg-red-500 hover:bg-red-600 focus-visible:ring-red-300"
+														onClick={() => handleRemoveLabTestFile(file.id)}
+													>
+														Remove file
+													</Button>
 												</div>
+											</div>
 										</div>
 									</div>
 								</div>
@@ -696,7 +713,7 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-gray-600"
+						className="bg-white text-gray-600"
 						onClick={handleAddLabTestAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
@@ -711,24 +728,12 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 function LabTestFlagOptions() {
 	return (
 		<SelectGroup>
-			<SelectItem value="within-range">
-				Within range
-			</SelectItem>
-			<SelectItem value="low">
-				Low
-			</SelectItem>
-			<SelectItem value="high">
-				High
-			</SelectItem>
-			<SelectItem value="critical">
-				Critical
-			</SelectItem>
-			<SelectItem value="abnormal">
-				Abnormal
-			</SelectItem>
-			<SelectItem value="inconclusive">
-				Inconclusive
-			</SelectItem>
+			<SelectItem value="within-range">Within range</SelectItem>
+			<SelectItem value="low">Low</SelectItem>
+			<SelectItem value="high">High</SelectItem>
+			<SelectItem value="critical">Critical</SelectItem>
+			<SelectItem value="abnormal">Abnormal</SelectItem>
+			<SelectItem value="inconclusive">Inconclusive</SelectItem>
 		</SelectGroup>
 	);
 }
@@ -736,15 +741,9 @@ function LabTestFlagOptions() {
 function LabTestStatusOptions() {
 	return (
 		<SelectGroup>
-			<SelectItem value="pending">
-				Pending
-			</SelectItem>
-			<SelectItem value="completed">
-				Completed
-			</SelectItem>
-			<SelectItem value="cancelled">
-				Cancelled
-			</SelectItem>
+			<SelectItem value="pending">Pending</SelectItem>
+			<SelectItem value="completed">Completed</SelectItem>
+			<SelectItem value="cancelled">Cancelled</SelectItem>
 		</SelectGroup>
 	);
 }

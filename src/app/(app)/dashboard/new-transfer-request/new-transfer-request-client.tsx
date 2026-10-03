@@ -238,13 +238,13 @@ export function NewTransferRequestClient({
 					<div>
 						<div className="flex flex-wrap gap-2">
 							{selectedTransferPatients.map((s) => (
-								<button
+								<Button
 									key={s.patientId}
 									type="button"
 									onClick={() => setActiveTransferPatientId(s.patientId)}
-									className={cn("text-sm flex items-center gap-2 py-1.5 pl-3 pr-1.5 rounded-full", {
-										"bg-gray-800 text-white": activePatient === s.patientId,
-										"bg-gray-200 text-gray-600": activePatient !== s.patientId,
+									className={cn("flex py-1.5 pl-3 pr-1.5 rounded-full h-auto font-normal", {
+										"bg-gray-800 text-white hover:bg-gray-800": activePatient === s.patientId,
+										"bg-gray-200 text-gray-600 hover:bg-gray-200": activePatient !== s.patientId,
 									})}
 								>
 									{s.name} - {truncateId(s.patientId)}
@@ -261,7 +261,7 @@ export function NewTransferRequestClient({
 									>
 										<RiCloseLine size={16} />
 									</span>
-								</button>
+								</Button>
 							))}
 						</div>
 						<Fragment key={activePatient}>
@@ -446,7 +446,6 @@ export function NewTransferRequestClient({
 												</Button>
 											</DialogClose>
 											<Button
-
 												type="button"
 												disabled={isSubmittingTransferRequests || !isTransferConfirmationChecked}
 												onClick={handleSubmitTransferRequests}
@@ -469,15 +468,10 @@ export function NewTransferRequestClient({
 					description={transferSubmissionMessage}
 				>
 					<DialogFooter className="text-sm">
-						<Button
-							variant="outline"
-							className="h-9"
-							onClick={() => router.push("/dashboard/overview")}
-						>
+						<Button variant="outline" onClick={() => router.push("/dashboard/overview")}>
 							Return to Dashboard
 						</Button>
 						<Button
-							className="h-9"
 							onClick={() => {
 								setIsSuccessModalOpen(false);
 								setCurrentTransferRequestStep(1);

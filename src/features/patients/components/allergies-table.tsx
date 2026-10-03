@@ -220,10 +220,7 @@ export function AllergiesTable({
 					}}
 				>
 					<DropdownMenuTrigger asChild>
-						<Button
-							variant="outline"
-							className="bg-white text-gray-600 hover:bg-gray-50"
-						>
+						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 							Filter
 						</Button>
@@ -313,10 +310,7 @@ export function AllergiesTable({
 						</DropdownMenuSub>
 					</DropdownMenuContent>
 				</DropdownMenu>
-				<Button
-					variant="outline"
-					className="bg-white text-gray-600 hover:bg-gray-50"
-				>
+				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
@@ -408,13 +402,13 @@ function AllergiesTableContent({
 	return (
 		<>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
-			<Table className="min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left">
-				<TableHeader className="text-sm font-semibold text-gray-600">
-					{table.getHeaderGroups().map((headerGroup) => (
-						<TableRow key={headerGroup.id}>
-							{headerGroup.headers.map((header) => (
-								<TableHead
-									key={header.id}
+				<Table className="min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left">
+					<TableHeader className="text-sm font-semibold text-gray-600">
+						{table.getHeaderGroups().map((headerGroup) => (
+							<TableRow key={headerGroup.id}>
+								{headerGroup.headers.map((header) => (
+									<TableHead
+										key={header.id}
 										tabIndex={header.column.getCanSort() ? 0 : undefined}
 										aria-sort={
 											header.column.getCanSort()
@@ -430,143 +424,146 @@ function AllergiesTableContent({
 												? header.column.getToggleSortingHandler()
 												: undefined
 										}
-									onKeyDown={(event) => {
-											if (header.column.getCanSort() && (event.key === "Enter" || event.key === " ")) {
+										onKeyDown={(event) => {
+											if (
+												header.column.getCanSort() &&
+												(event.key === "Enter" || event.key === " ")
+											) {
 												event.preventDefault();
-											header.column.getToggleSortingHandler()?.(event);
-										}
-									}}
-									className={cn(
-										"z-10 h-10 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
+												header.column.getToggleSortingHandler()?.(event);
+											}
+										}}
+										className={cn(
+											"z-10 h-10 bg-gray-50 px-3 py-0 text-gray-600 whitespace-nowrap",
 											header.column.getCanSort()
 												? "cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
 												: "",
-									)}
-								>
-									<div className="flex items-center justify-between gap-3">
-										{header.isPlaceholder
-											? null
-											: flexRender(header.column.columnDef.header, header.getContext())}
-										{header.column.getCanSort() ? (
-											<div className="-space-y-2">
-												<RiArrowUpSLine
-													className={cn(
-														"size-4 text-gray-800",
-														header.column.getIsSorted() === "desc" ? "opacity-30" : "",
-													)}
-													aria-hidden
-												/>
-												<RiArrowDownSLine
-													className={cn(
-														"size-4 text-gray-800",
-														header.column.getIsSorted() === "asc" ? "opacity-30" : "",
-													)}
-													aria-hidden
-												/>
-											</div>
-										) : null}
-									</div>
-								</TableHead>
-							))}
-						</TableRow>
-					))}
-				</TableHeader>
-				<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
-					{table.getRowModel().rows.length > 0 ? (
-						table.getRowModel().rows.map((row, rowPosition) => (
-							<TableRow
-								key={row.id}
-								role="button"
-								tabIndex={0}
-								onClick={() => onViewAllergyDetails(row.original.allergyId)}
-								onKeyDown={(event) => {
-									if (event.key === "Enter" || event.key === " ") {
-										event.preventDefault();
-										onViewAllergyDetails(row.original.allergyId);
-									}
-								}}
-								className="group min-h-14 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
-							>
-								{row.getVisibleCells().map((cell) => (
-									<TableCell
-										key={cell.id}
-										className={cn(
-										"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
-										row.getIsSelected() ? "bg-gray-100" : "bg-white",
-											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 										)}
 									>
-										<div
-											className="inline-block max-w-full"
-											onClick={(event) => event.stopPropagation()}
-											onKeyDown={(event) => event.stopPropagation()}
-										>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+										<div className="flex items-center justify-between gap-3">
+											{header.isPlaceholder
+												? null
+												: flexRender(header.column.columnDef.header, header.getContext())}
+											{header.column.getCanSort() ? (
+												<div className="-space-y-2">
+													<RiArrowUpSLine
+														className={cn(
+															"size-4 text-gray-800",
+															header.column.getIsSorted() === "desc" ? "opacity-30" : "",
+														)}
+														aria-hidden
+													/>
+													<RiArrowDownSLine
+														className={cn(
+															"size-4 text-gray-800",
+															header.column.getIsSorted() === "asc" ? "opacity-30" : "",
+														)}
+														aria-hidden
+													/>
+												</div>
+											) : null}
 										</div>
-									</TableCell>
+									</TableHead>
 								))}
 							</TableRow>
-						))
-					) : (
-						<TableRow>
-							<TableCell
-								colSpan={columns.length}
-								className="h-32 bg-white px-3 py-0 text-center text-sm text-gray-500"
+						))}
+					</TableHeader>
+					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
+						{table.getRowModel().rows.length > 0 ? (
+							table.getRowModel().rows.map((row, rowPosition) => (
+								<TableRow
+									key={row.id}
+									role="button"
+									tabIndex={0}
+									onClick={() => onViewAllergyDetails(row.original.allergyId)}
+									onKeyDown={(event) => {
+										if (event.key === "Enter" || event.key === " ") {
+											event.preventDefault();
+											onViewAllergyDetails(row.original.allergyId);
+										}
+									}}
+									className="group min-h-14 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
+								>
+									{row.getVisibleCells().map((cell) => (
+										<TableCell
+											key={cell.id}
+											className={cn(
+												"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
+												row.getIsSelected() ? "bg-gray-100" : "bg-white",
+												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
+											)}
+										>
+											<div
+												className="inline-block max-w-full"
+												onClick={(event) => event.stopPropagation()}
+												onKeyDown={(event) => event.stopPropagation()}
+											>
+												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											</div>
+										</TableCell>
+									))}
+								</TableRow>
+							))
+						) : (
+							<TableRow>
+								<TableCell
+									colSpan={columns.length}
+									className="h-32 bg-white px-3 py-0 text-center text-sm text-gray-500"
+								>
+									No matching allergies found.
+								</TableCell>
+							</TableRow>
+						)}
+					</TableBody>
+				</Table>
+				<div className="flex gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 items-center justify-between">
+					<div className="flex items-center gap-3">
+						<span>Rows per page</span>
+						<Select
+							value={String(limit)}
+							onValueChange={(value) => onLimitChange(Number(value))}
+							disabled={isPending}
+						>
+							<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
+								<SelectValue aria-label="Rows per page" placeholder="Rows" />
+							</SelectTrigger>
+							<SelectContent className="w-20" align="start">
+								{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
+									<SelectItem key={pageSize} value={String(pageSize)}>
+										{pageSize}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+					<div className="flex items-center gap-3">
+						<span>
+							Page {page} of {totalPages}
+						</span>
+						<div className="flex items-center gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={onPreviousPage}
+								disabled={page <= 1 || isPending}
+								className="text-gray-700 shadow-none"
 							>
-								No matching allergies found.
-							</TableCell>
-						</TableRow>
-					)}
-				</TableBody>
-			</Table>
-			<div className="flex gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 items-center justify-between">
-				<div className="flex items-center gap-3">
-					<span>Rows per page</span>
-					<Select
-						value={String(limit)}
-						onValueChange={(value) => onLimitChange(Number(value))}
-						disabled={isPending}
-					>
-						<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
-							<SelectValue aria-label="Rows per page" placeholder="Rows" />
-						</SelectTrigger>
-						<SelectContent className="w-20" align="start">
-							{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
-								<SelectItem key={pageSize} value={String(pageSize)}>
-									{pageSize}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
-				<div className="flex items-center gap-3">
-					<span>
-						Page {page} of {totalPages}
-					</span>
-					<div className="flex items-center gap-2">
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={onPreviousPage}
-							disabled={page <= 1 || isPending}
-							className="border-gray-200 px-3 text-gray-700 shadow-none transition"
-						>
-							Previous
-						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={onNextPage}
-							disabled={page >= totalPages || isPending}
-							className="border-gray-200 px-3 text-gray-700 shadow-none transition"
-						>
-							Next
-						</Button>
+								Previous
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={onNextPage}
+								disabled={page >= totalPages || isPending}
+								className="text-gray-700 shadow-none"
+							>
+								Next
+							</Button>
+						</div>
 					</div>
 				</div>
-			</div>
 			</div>
 			<AllergiesBulkActionBar
 				canArchive={canArchive}
@@ -602,34 +599,48 @@ function AllergiesBulkActionBar({
 			<TableBulkActionSeparator />
 			<div className="flex items-center">
 				{singleSelectedAllergy ? (
-					<button
+					<Button
 						type="button"
 						onClick={() => onViewAllergyDetails(singleSelectedAllergy.allergyId)}
-						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+						variant="ghost"
+						size="sm"
+						className="h-9 gap-2 rounded-lg border-0 px-2 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
 						<RiEyeLine className="size-5" aria-hidden />
 						<span>View details</span>
-					</button>
+					</Button>
 				) : null}
-				<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
+				>
 					<RiShare2Line className="size-5" aria-hidden />
 					<span>Export {selectedAllergyCount > 1 ? "all" : null}</span>
-				</button>
+				</Button>
 				{canArchive ? (
-					<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
+					>
 						<RiArchiveLine className="size-5" aria-hidden />
 						<span>Archive {selectedAllergyCount > 1 ? "all" : null}</span>
-					</button>
+					</Button>
 				) : null}
 			</div>
-			<button
+			<Button
 				type="button"
 				onClick={onClearSelection}
-				className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				variant="ghost"
+				size="icon"
+				className="size-8 border-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected allergies"
 			>
 				<RiCloseLine className="size-5" aria-hidden />
-			</button>
+			</Button>
 		</div>
 	);
 }
@@ -752,14 +763,15 @@ function AllergyFilterPill({ label, onRemove }: { label: string; onRemove: () =>
 	return (
 		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
 			<span>{label}</span>
-			<button
+			<Button
 				type="button"
 				onClick={onRemove}
-				className="flex items-center justify-center bg-gray-800 text-white size-5 rounded-full transition hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+				size="icon"
+				className="flex text-white size-5 rounded-full hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
 				aria-label={`Remove ${label} filter`}
 			>
 				<RiCloseLine className="size-4" aria-hidden="true" />
-			</button>
+			</Button>
 		</span>
 	);
 }

@@ -369,10 +369,7 @@ export function TransfersClient({
 						onStatusFiltersChange={handleStatusFiltersChange}
 						statusFilters={optimisticStatusFilters}
 					/>
-					<Button
-						variant="outline"
-						className="border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-					>
+					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 						Export
 					</Button>
@@ -455,14 +452,15 @@ function TransferFilterPill({ label, onRemove }: { label: string; onRemove: () =
 	return (
 		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
 			<span>{label}</span>
-			<button
+			<Button
+				size="icon"
 				type="button"
 				onClick={onRemove}
-				className="flex size-5 items-center justify-center rounded-full bg-gray-800 text-white transition hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+				className="flex size-5 rounded-full text-white hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
 				aria-label={`Remove ${label} filter`}
 			>
 				<RiCloseLine className="size-4" aria-hidden={true} />
-			</button>
+			</Button>
 		</span>
 	);
 }

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { RiArrowRightSLine, RiDownloadLine } from "@remixicon/react";
 
 import { cn } from "@/lib/utils/cn";
+import { Button } from "@/components/ui/button";
 
 import { SettingsBadge, type SettingsBadgeTone } from "./settings-badge";
 
@@ -56,9 +57,10 @@ export function BillingHistoryCard({
 				isBillingDetailsExpanded ? "border-gray-400" : "border-gray-200 hover:border-gray-400",
 			)}
 		>
-			<button
+			<Button
+				variant="ghost"
 				type="button"
-				className="block w-full rounded-2xl border border-transparent p-4 text-left focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+				className="block w-full rounded-2xl p-4 text-left h-auto whitespace-normal font-normal hover:bg-transparent hover:text-inherit active:scale-100"
 				aria-expanded={isBillingDetailsExpanded}
 				aria-controls={billingDetailsId}
 				onClick={() => {
@@ -90,18 +92,31 @@ export function BillingHistoryCard({
 						</span>
 						<span className="text-sm font-medium text-gray-400">Expires {expires}</span>
 					</div>
-					<span className="inline-flex shrink-0 items-center gap-0.5 text-sm font-medium text-gray-400">
-						{isBillingDetailsExpanded ? "View less" : "View more"}
+					<span className="inline-flex shrink-0 items-center gap-0.5 text-sm w-full max-w-[90px] font-medium text-gray-400">
+						<span className="flex flex-1 items-center">
+							<span
+								aria-hidden={isBillingDetailsExpanded}
+								className={cn("flex-1", isBillingDetailsExpanded && "hidden")}
+							>
+								View more
+							</span>
+							<span
+								aria-hidden={!isBillingDetailsExpanded}
+								className={cn("flex-1", !isBillingDetailsExpanded && "hidden")}
+							>
+								View less
+							</span>
+						</span>
 						<RiArrowRightSLine
 							className={cn(
-								"size-5 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+								"size-4 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 								isBillingDetailsExpanded ? "rotate-90" : "group-hover/billing-card:translate-x-0.5",
 							)}
 							aria-hidden="true"
 						/>
 					</span>
 				</div>
-			</button>
+			</Button>
 
 			<div
 				id={billingDetailsId}
@@ -139,14 +154,15 @@ export function BillingHistoryCard({
 
 						<div className="flex items-center justify-between gap-4 pt-5 text-sm">
 							<span className="font-medium text-gray-600">Invoice</span>
-							<button
+							<Button
+								variant="ghost"
 								type="button"
-								className="inline-flex items-center gap-1 rounded-md border border-transparent font-medium text-gray-600 transition-colors hover:text-gray-800 focus-visible:border focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+								className="gap-1 text-gray-600 hover:text-gray-800 h-auto p-0 hover:bg-transparent has-[>svg:last-child]:pr-0"
 								tabIndex={isBillingDetailsExpanded ? 0 : -1}
 							>
 								Download
 								<RiDownloadLine className="size-4" aria-hidden="true" />
-							</button>
+							</Button>
 						</div>
 					</div>
 				</div>

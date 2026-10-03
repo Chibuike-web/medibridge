@@ -277,7 +277,7 @@ function BillingPlanCard({ plan }: { plan: BillingPlan }) {
 						<p className="text-sm font-medium text-gray-400">Trial ends</p>
 						<p className="mt-1 text-sm font-medium text-gray-600">{plan.trialEnds}</p>
 					</div>
-					<Button type="button" variant="outline" className="shrink-0 text-gray-600">
+					<Button type="button" variant="outline" className="text-gray-600">
 						Upgrade to Pro
 					</Button>
 				</div>
@@ -318,7 +318,7 @@ function PaidBillingDetails({
 					<Button
 						type="button"
 						variant="ghost"
-						className="shrink-0 text-gray-400"
+						className="text-gray-400"
 						onClick={() => onSettingsSubViewChange("payment-method")}
 					>
 						Manage
@@ -335,7 +335,7 @@ function PaidBillingDetails({
 					<Button
 						type="button"
 						variant="ghost"
-						className="shrink-0 text-gray-400"
+						className="text-gray-400"
 						onClick={() => onSettingsSubViewChange("billing-history")}
 					>
 						View
@@ -359,7 +359,7 @@ function PaidBillingDetails({
 				<Button
 					type="button"
 					variant="destructive"
-					className="shrink-0 border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 dark:bg-transparent dark:hover:bg-destructive/10 dark:focus-visible:ring-destructive/40"
+					className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive dark:bg-transparent dark:hover:bg-destructive/10"
 				>
 					Cancel
 				</Button>

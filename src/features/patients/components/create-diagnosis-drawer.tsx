@@ -97,32 +97,17 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 								Severity/Stage<span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-severity`}
-									className="w-full data-[placeholder]:text-gray-400"
-								>
+								<SelectTrigger id={`${generatedFormId}-severity`} className="w-full">
 									<SelectValue placeholder="Select severity or stage" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="mild">
-											Mild
-										</SelectItem>
-										<SelectItem value="moderate">
-											Moderate
-										</SelectItem>
-										<SelectItem value="severe">
-											Severe
-										</SelectItem>
-										<SelectItem value="stage-1">
-											Stage 1
-										</SelectItem>
-										<SelectItem value="stage-2">
-											Stage 2
-										</SelectItem>
-										<SelectItem value="stage-3">
-											Stage 3
-										</SelectItem>
+										<SelectItem value="mild">Mild</SelectItem>
+										<SelectItem value="moderate">Moderate</SelectItem>
+										<SelectItem value="severe">Severe</SelectItem>
+										<SelectItem value="stage-1">Stage 1</SelectItem>
+										<SelectItem value="stage-2">Stage 2</SelectItem>
+										<SelectItem value="stage-3">Stage 3</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>
@@ -133,20 +118,13 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-status`}
-									className="w-full data-[placeholder]:text-gray-400"
-								>
+								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="active">
-											Active
-										</SelectItem>
-										<SelectItem value="resolved">
-											Resolved
-										</SelectItem>
+										<SelectItem value="active">Active</SelectItem>
+										<SelectItem value="resolved">Resolved</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>
@@ -219,7 +197,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 							<Button
 								type="button"
 								variant="outline"
-								className="border-gray-200 bg-white text-gray-600 "
+								className="bg-white text-gray-600"
 								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />
@@ -236,9 +214,7 @@ export function CreateDiagnosisDrawer({ open, onOpenChange }: CreateDiagnosisDra
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="button">
-							Add diagnosis
-						</Button>
+						<Button type="button">Add diagnosis</Button>
 					</div>
 				</DrawerFooter>
 			</DrawerContent>

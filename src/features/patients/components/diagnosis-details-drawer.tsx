@@ -133,7 +133,6 @@ export function DiagnosisDetailsDrawer({
 							<Button
 								type="button"
 								form={diagnosisDetailsFormId}
-								className="bg-gray-800"
 								onClick={() => setDiagnosisDetailsMode("view")}
 							>
 								Save changes
@@ -142,13 +141,9 @@ export function DiagnosisDetailsDrawer({
 					) : (
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<DrawerClose asChild>
-								<Button variant="outline">
-									Cancel
-								</Button>
+								<Button variant="outline">Cancel</Button>
 							</DrawerClose>
-							{canArchive ? (
-								<Button className="bg-gray-800">Archive diagnosis</Button>
-							) : null}
+							{canArchive ? <Button>Archive diagnosis</Button> : null}
 						</div>
 					)}
 				</DrawerFooter>
@@ -187,14 +182,15 @@ function DiagnosisDetailsOverview({
 						<h2 className="text-lg font-semibold text-gray-800">{diagnosis.name}</h2>
 						<StatusBadge status={diagnosis.status} />
 					</div>
-					<button
+					<Button
 						type="button"
 						onClick={onEditDiagnosisDetails}
-						className="inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						variant="ghost"
+						className="text-gray-400 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-gray-300 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent focus-visible:border-0 has-[>svg:first-child]:pl-0"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
-					</button>
+					</Button>
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
@@ -278,24 +274,12 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="mild">
-										Mild
-									</SelectItem>
-									<SelectItem value="moderate">
-										Moderate
-									</SelectItem>
-									<SelectItem value="severe">
-										Severe
-									</SelectItem>
-									<SelectItem value="stage-1">
-										Stage 1
-									</SelectItem>
-									<SelectItem value="stage-2">
-										Stage 2
-									</SelectItem>
-									<SelectItem value="stage-3">
-										Stage 3
-									</SelectItem>
+									<SelectItem value="mild">Mild</SelectItem>
+									<SelectItem value="moderate">Moderate</SelectItem>
+									<SelectItem value="severe">Severe</SelectItem>
+									<SelectItem value="stage-1">Stage 1</SelectItem>
+									<SelectItem value="stage-2">Stage 2</SelectItem>
+									<SelectItem value="stage-3">Stage 3</SelectItem>
 								</SelectGroup>
 							</SelectContent>
 						</Select>
@@ -311,12 +295,8 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="active">
-										Active
-									</SelectItem>
-									<SelectItem value="resolved">
-										Resolved
-									</SelectItem>
+									<SelectItem value="active">Active</SelectItem>
+									<SelectItem value="resolved">Resolved</SelectItem>
 								</SelectGroup>
 							</SelectContent>
 						</Select>
@@ -401,7 +381,7 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-gray-600"
+						className="bg-white text-gray-600"
 						onClick={handleAddDiagnosisAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
@@ -460,7 +440,12 @@ function DiagnosisHistorySection({ history }: { history: DiagnosisDetailsHistory
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
-				<button className="text-sm text-gray-400">View more</button>
+				<Button
+					variant="ghost"
+					className="text-gray-400 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-gray-400 focus-visible:border-0"
+				>
+					View more
+				</Button>
 			</div>
 			<div className="flex flex-col gap-4">
 				{history.map((historyEvent) => (
@@ -479,18 +464,18 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 
 	return (
 		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
-			<button
+			<Button
 				type="button"
 				onClick={() => setIsDiagnosisHistoryExpanded((prev) => !prev)}
 				aria-expanded={isDiagnosisHistoryExpanded}
 				aria-controls={panelId}
-				className="flex w-full items-center justify-between gap-4 text-left"
+				variant="ghost"
+				className="flex w-full justify-between gap-4 text-left h-auto whitespace-normal rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0 active:scale-100 has-[>svg:last-child]:pr-0"
 			>
 				<p className="min-w-0 text-sm">
 					<span id={titleId} className="font-semibold text-gray-800">
 						{historyEvent.title} by {historyEvent.actor}
-					</span>
-					{" "}
+					</span>{" "}
 					<span aria-hidden="true" className="text-gray-200">
 						•
 					</span>{" "}
@@ -503,7 +488,7 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 					)}
 					aria-hidden="true"
 				/>
-			</button>
+			</Button>
 			<div
 				id={panelId}
 				className={cn(
@@ -517,15 +502,15 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 					<div
 						role="region"
 						aria-labelledby={titleId}
-							className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
-						>
-							{historyEvent.items.map((item) => (
-								<DiagnosisDetailItem
-									key={`${historyEvent.id}-${item.label}`}
-									label={item.label}
-									value={item.value}
-								/>
-							))}
+						className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
+					>
+						{historyEvent.items.map((item) => (
+							<DiagnosisDetailItem
+								key={`${historyEvent.id}-${item.label}`}
+								label={item.label}
+								value={item.value}
+							/>
+						))}
 					</div>
 				</div>
 			</div>
@@ -553,7 +538,12 @@ function DiagnosisRelatedRecords({
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Related records</h2>
-				<button className="text-sm text-gray-400">View more</button>
+				<Button
+					variant="ghost"
+					className="text-gray-400 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-gray-400 focus-visible:border-0"
+				>
+					View more
+				</Button>
 			</div>{" "}
 			<div className="flex flex-col gap-4">
 				{sections.map((section) => (
@@ -582,12 +572,13 @@ function DiagnosisRelatedRecordSection({
 
 	return (
 		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
-			<button
+			<Button
 				type="button"
 				onClick={() => setIsRelatedRecordSectionExpanded((prev) => !prev)}
 				aria-expanded={isRelatedRecordSectionExpanded}
 				aria-controls={panelId}
-				className="flex w-full items-center justify-between gap-4 text-left"
+				variant="ghost"
+				className="flex w-full justify-between gap-4 text-left h-auto whitespace-normal rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0 active:scale-100 has-[>svg:last-child]:pr-0"
 			>
 				<span id={titleId} className="text-sm font-semibold text-gray-800">
 					{title}
@@ -599,7 +590,7 @@ function DiagnosisRelatedRecordSection({
 					)}
 					aria-hidden="true"
 				/>
-			</button>
+			</Button>
 			<div
 				id={panelId}
 				className={cn(
@@ -611,20 +602,18 @@ function DiagnosisRelatedRecordSection({
 			>
 				<div className="min-h-0 overflow-hidden">
 					<div role="region" aria-labelledby={titleId} className="mt-5 flex flex-col gap-4">
-							{records.map((record) => (
-								<div
-									key={record.id}
-									className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
-								>
-									<div className="flex w-full items-center gap-2">
-										<span className="min-w-0 truncate font-medium text-gray-600">
-											{record.name}
-										</span>
-										<StatusBadge status={record.status} className="shrink-0" />
-									</div>
-									<CopyIdButton id={record.id} className="text-sm" />
+						{records.map((record) => (
+							<div
+								key={record.id}
+								className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+							>
+								<div className="flex w-full items-center gap-2">
+									<span className="min-w-0 truncate font-medium text-gray-600">{record.name}</span>
+									<StatusBadge status={record.status} className="shrink-0" />
 								</div>
-							))}
+								<CopyIdButton id={record.id} className="text-sm" />
+							</div>
+						))}
 					</div>
 				</div>
 			</div>

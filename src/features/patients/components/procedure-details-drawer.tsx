@@ -133,7 +133,6 @@ export function ProcedureDetailsDrawer({
 							<Button
 								type="button"
 								form={procedureDetailsFormId}
-								className="bg-gray-800"
 								onClick={() => setProcedureDetailsMode("view")}
 							>
 								Save changes
@@ -144,18 +143,14 @@ export function ProcedureDetailsDrawer({
 							<Button type="button" variant="outline">
 								Cancel procedure
 							</Button>
-							<Button className="bg-gray-800">Mark as completed</Button>
+							<Button>Mark as completed</Button>
 						</div>
 					) : (
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<DrawerClose asChild>
-								<Button variant="outline">
-									Cancel
-								</Button>
+								<Button variant="outline">Cancel</Button>
 							</DrawerClose>
-							{canArchive ? (
-								<Button className="bg-gray-800">Archive procedure</Button>
-							) : null}
+							{canArchive ? <Button>Archive procedure</Button> : null}
 						</div>
 					)}
 				</DrawerFooter>
@@ -205,14 +200,15 @@ function ProcedureDetailsOverview({
 						<h2 className="text-lg font-semibold text-gray-800">{procedure.name}</h2>
 						<StatusBadge status={procedure.status} />
 					</div>
-					<button
+					<Button
 						type="button"
 						onClick={onEditProcedureDetails}
-						className="inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						variant="ghost"
+						className="text-gray-400 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-gray-300 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent focus-visible:border-0 has-[>svg:first-child]:pl-0"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
-					</button>
+					</Button>
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
@@ -312,15 +308,9 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="pending">
-										Pending
-									</SelectItem>
-									<SelectItem value="completed">
-										Completed
-									</SelectItem>
-									<SelectItem value="cancelled">
-										Cancelled
-									</SelectItem>
+									<SelectItem value="pending">Pending</SelectItem>
+									<SelectItem value="completed">Completed</SelectItem>
+									<SelectItem value="cancelled">Cancelled</SelectItem>
 								</SelectGroup>
 							</SelectContent>
 						</Select>
@@ -456,7 +446,7 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-gray-600"
+						className="bg-white text-gray-600"
 						onClick={handleAddProcedureAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
@@ -564,12 +554,13 @@ function ProcedureRelatedRecordSection({
 
 	return (
 		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
-			<button
+			<Button
 				type="button"
 				onClick={() => setIsRelatedProcedureRecordExpanded((prev) => !prev)}
 				aria-expanded={isRelatedProcedureRecordExpanded}
 				aria-controls={panelId}
-				className="flex w-full items-center justify-between gap-4 text-left"
+				variant="ghost"
+				className="flex w-full justify-between gap-4 text-left h-auto whitespace-normal rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0 active:scale-100 has-[>svg:last-child]:pr-0"
 			>
 				<span id={titleId} className="text-sm font-semibold text-gray-800">
 					{title}
@@ -581,7 +572,7 @@ function ProcedureRelatedRecordSection({
 					)}
 					aria-hidden="true"
 				/>
-			</button>
+			</Button>
 			<div
 				id={panelId}
 				className={cn(
@@ -596,12 +587,12 @@ function ProcedureRelatedRecordSection({
 						role="region"
 						aria-labelledby={titleId}
 						className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
-						>
-							<div className="flex min-w-0 flex-wrap items-center gap-2">
-								<span className="min-w-0 truncate font-medium text-gray-600">{record.name}</span>
-								<StatusBadge status={record.status} className="shrink-0" />
-							</div>
-							<CopyIdButton id={record.id} className="text-sm" />
+					>
+						<div className="flex min-w-0 flex-wrap items-center gap-2">
+							<span className="min-w-0 truncate font-medium text-gray-600">{record.name}</span>
+							<StatusBadge status={record.status} className="shrink-0" />
+						</div>
+						<CopyIdButton id={record.id} className="text-sm" />
 					</div>
 				</div>
 			</div>
@@ -614,7 +605,12 @@ function ProcedureHistorySection({ history }: { history: ProcedureDetailsHistory
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
-				<button className="text-sm text-gray-400">View more</button>
+				<Button
+					variant="ghost"
+					className="text-gray-400 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-gray-400 focus-visible:border-0"
+				>
+					View more
+				</Button>
 			</div>
 			{history.map((historyEvent) => (
 				<ProcedureHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
@@ -631,12 +627,13 @@ function ProcedureHistoryCard({ historyEvent }: { historyEvent: ProcedureDetails
 
 	return (
 		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
-			<button
+			<Button
 				type="button"
 				onClick={() => setIsProcedureHistoryExpanded((prev) => !prev)}
 				aria-expanded={isProcedureHistoryExpanded}
 				aria-controls={panelId}
-				className="flex w-full items-center justify-between gap-4 text-left"
+				variant="ghost"
+				className="flex w-full justify-between gap-4 text-left h-auto whitespace-normal rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0 active:scale-100 has-[>svg:last-child]:pr-0"
 			>
 				<p className="min-w-0 text-sm">
 					<span id={titleId} className="font-semibold text-gray-800">
@@ -654,7 +651,7 @@ function ProcedureHistoryCard({ historyEvent }: { historyEvent: ProcedureDetails
 					)}
 					aria-hidden="true"
 				/>
-			</button>
+			</Button>
 			<div
 				id={panelId}
 				className={cn(
@@ -668,27 +665,27 @@ function ProcedureHistoryCard({ historyEvent }: { historyEvent: ProcedureDetails
 					<div
 						role="region"
 						aria-labelledby={titleId}
-							className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
-						>
-							{historyEvent.items.map((item) =>
-								item.label.includes("Assistant") || item.label === "Team/Assistants" ? (
-									<ProcedureDetailListItem
-										key={`${historyEvent.id}-${item.label}`}
-										label={item.label}
-										values={
-											item.value === EMPTY_VALUE
-												? []
-												: item.value.split(",").map((value) => value.trim())
-										}
-									/>
-								) : (
-									<ProcedureDetailItem
-										key={`${historyEvent.id}-${item.label}`}
-										label={item.label}
-										value={item.value}
-									/>
-								),
-							)}
+						className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
+					>
+						{historyEvent.items.map((item) =>
+							item.label.includes("Assistant") || item.label === "Team/Assistants" ? (
+								<ProcedureDetailListItem
+									key={`${historyEvent.id}-${item.label}`}
+									label={item.label}
+									values={
+										item.value === EMPTY_VALUE
+											? []
+											: item.value.split(",").map((value) => value.trim())
+									}
+								/>
+							) : (
+								<ProcedureDetailItem
+									key={`${historyEvent.id}-${item.label}`}
+									label={item.label}
+									value={item.value}
+								/>
+							),
+						)}
 					</div>
 				</div>
 			</div>

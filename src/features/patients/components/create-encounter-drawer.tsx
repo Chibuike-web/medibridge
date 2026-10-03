@@ -10,10 +10,8 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
-import {
-	EncounterRecordFormView,
-	type EncounterRecordType,
-} from "./encounter-record-form-views";
+import { Button } from "@/components/ui/button";
+import { EncounterRecordFormView, type EncounterRecordType } from "./encounter-record-form-views";
 
 type CreateEncounterDrawerProps = {
 	open: boolean;
@@ -36,7 +34,8 @@ const encounterRecordOptions: ReadonlyArray<{
 		id: "medication",
 		title: "Medications",
 		formTitle: "Add medication",
-		description: "Document medications prescribed, administered, or reviewed during this encounter.",
+		description:
+			"Document medications prescribed, administered, or reviewed during this encounter.",
 	},
 	{
 		id: "allergies",
@@ -48,7 +47,8 @@ const encounterRecordOptions: ReadonlyArray<{
 		id: "diagnoses",
 		title: "Diagnoses",
 		formTitle: "Add diagnosis",
-		description: "Capture clinical assessments, conditions, or diagnoses made during the encounter.",
+		description:
+			"Capture clinical assessments, conditions, or diagnoses made during the encounter.",
 	},
 	{
 		id: "immunizations",
@@ -92,9 +92,7 @@ export function CreateEncounterDrawer({ open, onOpenChange }: CreateEncounterDra
 				{selectedEncounterRecordType === null ? (
 					<>
 						<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
-							<DrawerTitle className="leading-[1.2] text-gray-800">
-								Create encounter
-							</DrawerTitle>
+							<DrawerTitle className="leading-[1.2] text-gray-800">Create encounter</DrawerTitle>
 							<DrawerClose
 								aria-label="Close create encounter drawer"
 								className="cursor-pointer rounded-md hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
@@ -108,10 +106,11 @@ export function CreateEncounterDrawer({ open, onOpenChange }: CreateEncounterDra
 
 						<div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-8">
 							{encounterRecordOptions.map((recordOption) => (
-								<button
+								<Button
 									key={recordOption.id}
 									type="button"
-									className="flex w-full cursor-pointer items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4 text-left transition-colors hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
+									variant="outline"
+									className="flex w-full justify-between gap-4 rounded-xl bg-white px-5 py-4 text-left hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400 h-auto whitespace-normal font-normal focus-visible:border-gray-200 focus-visible:outline-solid focus-visible:ring-0 has-[>svg:last-child]:pr-5"
 									onClick={() => setSelectedEncounterRecordType(recordOption.id)}
 								>
 									<span className="min-w-0">
@@ -122,11 +121,8 @@ export function CreateEncounterDrawer({ open, onOpenChange }: CreateEncounterDra
 											{recordOption.description}
 										</span>
 									</span>
-									<RiArrowRightSLine
-										className="size-5 shrink-0 text-gray-400"
-										aria-hidden="true"
-									/>
-								</button>
+									<RiArrowRightSLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
+								</Button>
 							))}
 						</div>
 					</>
@@ -134,14 +130,15 @@ export function CreateEncounterDrawer({ open, onOpenChange }: CreateEncounterDra
 					<>
 						<DrawerHeader className="flex-row items-center border-b border-gray-200 text-left">
 							<DrawerTitle asChild>
-								<button
+								<Button
 									type="button"
-									className="-m-2 flex w-fit cursor-pointer items-center gap-4 rounded-md p-2 text-base leading-[1.2] text-gray-800 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
+									variant="ghost"
+									className="-m-2 flex w-fit gap-4 p-2 leading-[1.2] text-gray-800 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400 h-auto whitespace-normal border-0 hover:text-gray-800 focus-visible:border-0 focus-visible:outline-solid focus-visible:ring-0 has-[>svg:first-child]:pl-2"
 									onClick={() => setSelectedEncounterRecordType(null)}
 								>
 									<RiArrowLeftLine className="size-5 text-gray-600" aria-hidden="true" />
 									<span>{activeRecordOption?.formTitle}</span>
-								</button>
+								</Button>
 							</DrawerTitle>
 							<DrawerDescription className="sr-only">
 								Complete the form to add this record to the encounter.

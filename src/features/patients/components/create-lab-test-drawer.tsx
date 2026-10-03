@@ -115,10 +115,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 								Flag<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-flag`}
-									className="w-full data-[placeholder]:text-gray-400"
-								>
+								<SelectTrigger id={`${generatedFormId}-flag`} className="w-full">
 									<SelectValue placeholder="Select flag" />
 								</SelectTrigger>
 								<SelectContent>
@@ -132,10 +129,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-status`}
-									className="w-full data-[placeholder]:text-gray-400"
-								>
+								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent>
@@ -182,7 +176,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 										type="button"
 										variant="outline"
 										data-empty={!orderedAt}
-										className={`${fieldControlClassName} flex w-full items-center justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+										className={`${fieldControlClassName} flex w-full justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
 									>
 										<span className="min-w-0 truncate">
 											{orderedAt ? format(orderedAt, "PPP") : "Select date"}
@@ -283,7 +277,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 							<Button
 								type="button"
 								variant="outline"
-								className="border-gray-200 bg-white text-gray-600"
+								className="bg-white text-gray-600"
 								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />
@@ -300,9 +294,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="button">
-							Add lab test
-						</Button>
+						<Button type="button">Add lab test</Button>
 					</div>
 				</DrawerFooter>
 			</DrawerContent>
@@ -313,24 +305,12 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 function LabTestFlagOptions() {
 	return (
 		<SelectGroup>
-			<SelectItem value="within-range">
-				Within range
-			</SelectItem>
-			<SelectItem value="low">
-				Low
-			</SelectItem>
-			<SelectItem value="high">
-				High
-			</SelectItem>
-			<SelectItem value="critical">
-				Critical
-			</SelectItem>
-			<SelectItem value="abnormal">
-				Abnormal
-			</SelectItem>
-			<SelectItem value="inconclusive">
-				Inconclusive
-			</SelectItem>
+			<SelectItem value="within-range">Within range</SelectItem>
+			<SelectItem value="low">Low</SelectItem>
+			<SelectItem value="high">High</SelectItem>
+			<SelectItem value="critical">Critical</SelectItem>
+			<SelectItem value="abnormal">Abnormal</SelectItem>
+			<SelectItem value="inconclusive">Inconclusive</SelectItem>
 		</SelectGroup>
 	);
 }
@@ -338,15 +318,9 @@ function LabTestFlagOptions() {
 function LabTestStatusOptions() {
 	return (
 		<SelectGroup>
-			<SelectItem value="pending">
-				Pending
-			</SelectItem>
-			<SelectItem value="completed">
-				Completed
-			</SelectItem>
-			<SelectItem value="cancelled">
-				Cancelled
-			</SelectItem>
+			<SelectItem value="pending">Pending</SelectItem>
+			<SelectItem value="completed">Completed</SelectItem>
+			<SelectItem value="cancelled">Cancelled</SelectItem>
 		</SelectGroup>
 	);
 }

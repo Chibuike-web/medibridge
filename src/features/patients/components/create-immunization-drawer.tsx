@@ -45,9 +45,7 @@ export function CreateImmunizationDrawer({ open, onOpenChange }: CreateImmunizat
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
-					<DrawerTitle className="leading-[1.2] text-gray-800">
-						Add immunization
-					</DrawerTitle>
+					<DrawerTitle className="leading-[1.2] text-gray-800">Add immunization</DrawerTitle>
 					<DrawerClose aria-label="Close add immunization drawer">
 						<RiCloseLine className="size-5" aria-hidden="true" />
 					</DrawerClose>
@@ -74,20 +72,13 @@ export function CreateImmunizationDrawer({ open, onOpenChange }: CreateImmunizat
 								Series Type<span className={optionalLabelClassName}>(optional)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-series-type`}
-									className="w-full data-[placeholder]:text-gray-400"
-								>
+								<SelectTrigger id={`${generatedFormId}-series-type`} className="w-full">
 									<SelectValue placeholder="Select series type" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="primary">
-											Primary
-										</SelectItem>
-										<SelectItem value="booster">
-											Booster
-										</SelectItem>
+										<SelectItem value="primary">Primary</SelectItem>
+										<SelectItem value="booster">Booster</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>
@@ -120,26 +111,15 @@ export function CreateImmunizationDrawer({ open, onOpenChange }: CreateImmunizat
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-status`}
-									className="w-full data-[placeholder]:text-gray-400"
-								>
+								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="active">
-											Active
-										</SelectItem>
-										<SelectItem value="completed">
-											Completed
-										</SelectItem>
-										<SelectItem value="cancelled">
-											Cancelled
-										</SelectItem>
-										<SelectItem value="discontinued">
-											Discontinued
-										</SelectItem>
+										<SelectItem value="active">Active</SelectItem>
+										<SelectItem value="completed">Completed</SelectItem>
+										<SelectItem value="cancelled">Cancelled</SelectItem>
+										<SelectItem value="discontinued">Discontinued</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>
@@ -209,9 +189,7 @@ export function CreateImmunizationDrawer({ open, onOpenChange }: CreateImmunizat
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="button">
-							Add immunization
-						</Button>
+						<Button type="button">Add immunization</Button>
 					</div>
 				</DrawerFooter>
 			</DrawerContent>

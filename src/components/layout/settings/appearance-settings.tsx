@@ -25,7 +25,7 @@ export function AppearanceSettings() {
 						<Select value={selectedTheme} onValueChange={setSelectedTheme}>
 							<SelectTrigger
 								aria-labelledby="theme-setting-label"
-								className="h-9 border-transparent px-3 font-semibold text-gray-800 hover:bg-gray-100"
+								className="border-transparent font-semibold text-gray-800 hover:bg-gray-100"
 							>
 								<SelectValue />
 							</SelectTrigger>
@@ -45,7 +45,7 @@ export function AppearanceSettings() {
 						<Select value={selectedContrast} onValueChange={setSelectedContrast}>
 							<SelectTrigger
 								aria-labelledby="contrast-setting-label"
-								className="h-9 border-transparent px-3 font-semibold text-gray-800 hover:bg-gray-100"
+								className="border-transparent font-semibold text-gray-800 hover:bg-gray-100"
 							>
 								<SelectValue />
 							</SelectTrigger>

@@ -37,8 +37,7 @@ const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-med
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
 	"h-9 border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400";
-const textareaClassName =
-	"min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400";
+const textareaClassName = "min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400";
 
 const submitLabels: Record<EncounterRecordType, string> = {
 	vitals: "Add vitals",
@@ -61,9 +60,13 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 	const [imagingPerformedAt, setImagingPerformedAt] = useState<Date | undefined>();
 	const [labPerformedAt, setLabPerformedAt] = useState<Date | undefined>();
 
-	const showsRelatedRecords = ["medication", "allergies", "diagnoses", "imaging", "lab-tests"].includes(
-		recordType,
-	);
+	const showsRelatedRecords = [
+		"medication",
+		"allergies",
+		"diagnoses",
+		"imaging",
+		"lab-tests",
+	].includes(recordType);
 
 	function handleAddAttachmentRow() {
 		nextAttachmentRowNumberRef.current += 1;
@@ -122,7 +125,10 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 							/>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label htmlFor={`${generatedFormId}-respiratory-rate`} className={fieldLabelClassName}>
+							<Label
+								htmlFor={`${generatedFormId}-respiratory-rate`}
+								className={fieldLabelClassName}
+							>
 								Respiratory rate<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
@@ -133,7 +139,10 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 							/>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label htmlFor={`${generatedFormId}-oxygen-saturation`} className={fieldLabelClassName}>
+							<Label
+								htmlFor={`${generatedFormId}-oxygen-saturation`}
+								className={fieldLabelClassName}
+							>
 								Oxygen saturation<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Input
@@ -182,7 +191,12 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 									</Button>
 								</PopoverTrigger>
 								<PopoverContent className="p-0">
-									<Calendar mode="single" selected={recordedAt} onSelect={setRecordedAt} autoFocus />
+									<Calendar
+										mode="single"
+										selected={recordedAt}
+										onSelect={setRecordedAt}
+										autoFocus
+									/>
 								</PopoverContent>
 							</Popover>
 						</div>
@@ -205,62 +219,129 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 							<Label htmlFor={`${generatedFormId}-medication`} className={fieldLabelClassName}>
 								Medication<span className={optionalLabelClassName}>(required)</span>
 							</Label>
-							<Input id={`${generatedFormId}-medication`} placeholder="e.g. Amoxicillin" className={fieldControlClassName} />
+							<Input
+								id={`${generatedFormId}-medication`}
+								placeholder="e.g. Amoxicillin"
+								className={fieldControlClassName}
+							/>
 						</div>
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-indication`} className={fieldLabelClassName}>
 								Indication<span className={optionalLabelClassName}>(required)</span>
 							</Label>
-							<Input id={`${generatedFormId}-indication`} placeholder="e.g. Bacterial respiratory tract infection" className={fieldControlClassName} />
+							<Input
+								id={`${generatedFormId}-indication`}
+								placeholder="e.g. Bacterial respiratory tract infection"
+								className={fieldControlClassName}
+							/>
 						</div>
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-status`} className={fieldLabelClassName}>
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger id={`${generatedFormId}-status`} className="w-full data-[placeholder]:text-gray-400">
+								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
-								<SelectContent><SelectGroup><SelectItem value="active">Active</SelectItem><SelectItem value="completed">Completed</SelectItem><SelectItem value="discontinued">Discontinued</SelectItem></SelectGroup></SelectContent>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="active">Active</SelectItem>
+										<SelectItem value="completed">Completed</SelectItem>
+										<SelectItem value="discontinued">Discontinued</SelectItem>
+									</SelectGroup>
+								</SelectContent>
 							</Select>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label htmlFor={`${generatedFormId}-dose`} className={fieldLabelClassName}>Dose<span className={optionalLabelClassName}>(required)</span></Label>
-							<Input id={`${generatedFormId}-dose`} placeholder="e.g. 500 mg" className={fieldControlClassName} />
+							<Label htmlFor={`${generatedFormId}-dose`} className={fieldLabelClassName}>
+								Dose<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-dose`}
+								placeholder="e.g. 500 mg"
+								className={fieldControlClassName}
+							/>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label htmlFor={`${generatedFormId}-route`} className={fieldLabelClassName}>Route<span className={optionalLabelClassName}>(required)</span></Label>
+							<Label htmlFor={`${generatedFormId}-route`} className={fieldLabelClassName}>
+								Route<span className={optionalLabelClassName}>(required)</span>
+							</Label>
 							<Select>
-								<SelectTrigger id={`${generatedFormId}-route`} className="w-full data-[placeholder]:text-gray-400"><SelectValue placeholder="Select route" /></SelectTrigger>
-								<SelectContent><SelectGroup><SelectItem value="oral">Oral</SelectItem><SelectItem value="iv">IV</SelectItem><SelectItem value="inhalation">Inhalation</SelectItem></SelectGroup></SelectContent>
+								<SelectTrigger id={`${generatedFormId}-route`} className="w-full">
+									<SelectValue placeholder="Select route" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="oral">Oral</SelectItem>
+										<SelectItem value="iv">IV</SelectItem>
+										<SelectItem value="inhalation">Inhalation</SelectItem>
+									</SelectGroup>
+								</SelectContent>
 							</Select>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label htmlFor={`${generatedFormId}-prescribed-by`} className={fieldLabelClassName}>Prescribed by<span className={optionalLabelClassName}>(required)</span></Label>
-							<Input id={`${generatedFormId}-prescribed-by`} placeholder="e.g. Dr. Ekene Okafor" className={fieldControlClassName} />
+							<Label htmlFor={`${generatedFormId}-prescribed-by`} className={fieldLabelClassName}>
+								Prescribed by<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-prescribed-by`}
+								placeholder="e.g. Dr. Ekene Okafor"
+								className={fieldControlClassName}
+							/>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label htmlFor={`${generatedFormId}-frequency`} className={fieldLabelClassName}>Frequency<span className={optionalLabelClassName}>(required)</span></Label>
-							<Input id={`${generatedFormId}-frequency`} placeholder="e.g. Three times daily" className={fieldControlClassName} />
+							<Label htmlFor={`${generatedFormId}-frequency`} className={fieldLabelClassName}>
+								Frequency<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-frequency`}
+								placeholder="e.g. Three times daily"
+								className={fieldControlClassName}
+							/>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label htmlFor={`${generatedFormId}-duration`} className={fieldLabelClassName}>Duration<span className={optionalLabelClassName}>(required)</span></Label>
-							<Input id={`${generatedFormId}-duration`} placeholder="e.g. 7 days" className={fieldControlClassName} />
+							<Label htmlFor={`${generatedFormId}-duration`} className={fieldLabelClassName}>
+								Duration<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-duration`}
+								placeholder="e.g. 7 days"
+								className={fieldControlClassName}
+							/>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label className={fieldLabelClassName}>Started at<span className={optionalLabelClassName}>(required)</span></Label>
+							<Label className={fieldLabelClassName}>
+								Started at<span className={optionalLabelClassName}>(required)</span>
+							</Label>
 							<Popover>
 								<PopoverTrigger asChild>
-									<Button type="button" variant="outline" data-empty={!startedAt} className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}>
-										{startedAt ? format(startedAt, "PPP") : "Select start date"}<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
+									<Button
+										type="button"
+										variant="outline"
+										data-empty={!startedAt}
+										className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+									>
+										{startedAt ? format(startedAt, "PPP") : "Select start date"}
+										<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
 									</Button>
 								</PopoverTrigger>
-								<PopoverContent className="p-0"><Calendar mode="single" selected={startedAt} onSelect={setStartedAt} autoFocus /></PopoverContent>
+								<PopoverContent className="p-0">
+									<Calendar mode="single" selected={startedAt} onSelect={setStartedAt} autoFocus />
+								</PopoverContent>
 							</Popover>
 						</div>
 						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label htmlFor={`${generatedFormId}-medication-notes`} className={fieldLabelClassName}>Clinical notes<span className={optionalLabelClassName}>(optional)</span></Label>
-							<Textarea id={`${generatedFormId}-medication-notes`} placeholder="Add additional instructions, patient response, or prescribing notes" className={textareaClassName} />
+							<Label
+								htmlFor={`${generatedFormId}-medication-notes`}
+								className={fieldLabelClassName}
+							>
+								Clinical notes<span className={optionalLabelClassName}>(optional)</span>
+							</Label>
+							<Textarea
+								id={`${generatedFormId}-medication-notes`}
+								placeholder="Add additional instructions, patient response, or prescribing notes"
+								className={textareaClassName}
+							/>
 						</div>
 					</div>
 				) : null}
@@ -268,24 +349,67 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 				{recordType === "allergies" ? (
 					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label htmlFor={`${generatedFormId}-allergen`} className={fieldLabelClassName}>Allergen<span className={optionalLabelClassName}>(required)</span></Label>
-							<Input id={`${generatedFormId}-allergen`} placeholder="e.g. Penicillin, Peanuts, Shellfish" className={fieldControlClassName} />
+							<Label htmlFor={`${generatedFormId}-allergen`} className={fieldLabelClassName}>
+								Allergen<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-allergen`}
+								placeholder="e.g. Penicillin, Peanuts, Shellfish"
+								className={fieldControlClassName}
+							/>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label htmlFor={`${generatedFormId}-severity`} className={fieldLabelClassName}>Severity<span className={optionalLabelClassName}>(required)</span></Label>
-							<Select><SelectTrigger id={`${generatedFormId}-severity`} className="w-full data-[placeholder]:text-gray-400"><SelectValue placeholder="Select severity" /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="mild">Mild</SelectItem><SelectItem value="moderate">Moderate</SelectItem><SelectItem value="severe">Severe</SelectItem></SelectGroup></SelectContent></Select>
+							<Label htmlFor={`${generatedFormId}-severity`} className={fieldLabelClassName}>
+								Severity<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Select>
+								<SelectTrigger id={`${generatedFormId}-severity`} className="w-full">
+									<SelectValue placeholder="Select severity" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="mild">Mild</SelectItem>
+										<SelectItem value="moderate">Moderate</SelectItem>
+										<SelectItem value="severe">Severe</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label htmlFor={`${generatedFormId}-allergy-status`} className={fieldLabelClassName}>Status<span className={optionalLabelClassName}>(required)</span></Label>
-							<Select><SelectTrigger id={`${generatedFormId}-allergy-status`} className="w-full data-[placeholder]:text-gray-400"><SelectValue placeholder="Select status" /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="active">Active</SelectItem><SelectItem value="inactive">Inactive</SelectItem></SelectGroup></SelectContent></Select>
+							<Label htmlFor={`${generatedFormId}-allergy-status`} className={fieldLabelClassName}>
+								Status<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Select>
+								<SelectTrigger id={`${generatedFormId}-allergy-status`} className="w-full">
+									<SelectValue placeholder="Select status" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="active">Active</SelectItem>
+										<SelectItem value="inactive">Inactive</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
 						</div>
 						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label htmlFor={`${generatedFormId}-reaction`} className={fieldLabelClassName}>Reaction<span className={optionalLabelClassName}>(required)</span></Label>
-							<Textarea id={`${generatedFormId}-reaction`} placeholder="e.g. Skin rash, Swelling, Difficulty breathing" className={textareaClassName} />
+							<Label htmlFor={`${generatedFormId}-reaction`} className={fieldLabelClassName}>
+								Reaction<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Textarea
+								id={`${generatedFormId}-reaction`}
+								placeholder="e.g. Skin rash, Swelling, Difficulty breathing"
+								className={textareaClassName}
+							/>
 						</div>
 						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label htmlFor={`${generatedFormId}-allergy-notes`} className={fieldLabelClassName}>Clinical notes<span className={optionalLabelClassName}>(optional)</span></Label>
-							<Textarea id={`${generatedFormId}-allergy-notes`} placeholder="Add additional allergy history, observations, or treatment notes" className={textareaClassName} />
+							<Label htmlFor={`${generatedFormId}-allergy-notes`} className={fieldLabelClassName}>
+								Clinical notes<span className={optionalLabelClassName}>(optional)</span>
+							</Label>
+							<Textarea
+								id={`${generatedFormId}-allergy-notes`}
+								placeholder="Add additional allergy history, observations, or treatment notes"
+								className={textareaClassName}
+							/>
 						</div>
 					</div>
 				) : null}
@@ -293,70 +417,481 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 				{recordType === "diagnoses" ? (
 					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label htmlFor={`${generatedFormId}-diagnosis-name`} className={fieldLabelClassName}>Diagnosis name<span className={optionalLabelClassName}>(required)</span></Label>
-							<Input id={`${generatedFormId}-diagnosis-name`} placeholder="e.g. Type 2 Diabetes Mellitus" className={fieldControlClassName} />
+							<Label htmlFor={`${generatedFormId}-diagnosis-name`} className={fieldLabelClassName}>
+								Diagnosis name<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-diagnosis-name`}
+								placeholder="e.g. Type 2 Diabetes Mellitus"
+								className={fieldControlClassName}
+							/>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label htmlFor={`${generatedFormId}-diagnosis-severity`} className={fieldLabelClassName}>Severity or stage<span className={optionalLabelClassName}>(required)</span></Label>
-							<Select><SelectTrigger id={`${generatedFormId}-diagnosis-severity`} className="w-full data-[placeholder]:text-gray-400"><SelectValue placeholder="Select severity or stage" /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="mild">Mild</SelectItem><SelectItem value="moderate">Moderate</SelectItem><SelectItem value="severe">Severe</SelectItem></SelectGroup></SelectContent></Select>
+							<Label
+								htmlFor={`${generatedFormId}-diagnosis-severity`}
+								className={fieldLabelClassName}
+							>
+								Severity or stage<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Select>
+								<SelectTrigger id={`${generatedFormId}-diagnosis-severity`} className="w-full">
+									<SelectValue placeholder="Select severity or stage" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="mild">Mild</SelectItem>
+										<SelectItem value="moderate">Moderate</SelectItem>
+										<SelectItem value="severe">Severe</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label htmlFor={`${generatedFormId}-diagnosis-status`} className={fieldLabelClassName}>Status<span className={optionalLabelClassName}>(required)</span></Label>
-							<Select><SelectTrigger id={`${generatedFormId}-diagnosis-status`} className="w-full data-[placeholder]:text-gray-400"><SelectValue placeholder="Select status" /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="active">Active</SelectItem><SelectItem value="resolved">Resolved</SelectItem><SelectItem value="chronic">Chronic</SelectItem></SelectGroup></SelectContent></Select>
+							<Label
+								htmlFor={`${generatedFormId}-diagnosis-status`}
+								className={fieldLabelClassName}
+							>
+								Status<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Select>
+								<SelectTrigger id={`${generatedFormId}-diagnosis-status`} className="w-full">
+									<SelectValue placeholder="Select status" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="active">Active</SelectItem>
+										<SelectItem value="resolved">Resolved</SelectItem>
+										<SelectItem value="chronic">Chronic</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label className={fieldLabelClassName}>Date diagnosed<span className={optionalLabelClassName}>(required)</span></Label>
-							<Popover><PopoverTrigger asChild><Button type="button" variant="outline" data-empty={!diagnosedAt} className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}>{diagnosedAt ? format(diagnosedAt, "PPP") : "Select diagnosis date"}<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" /></Button></PopoverTrigger><PopoverContent className="p-0"><Calendar mode="single" selected={diagnosedAt} onSelect={setDiagnosedAt} autoFocus /></PopoverContent></Popover>
+							<Label className={fieldLabelClassName}>
+								Date diagnosed<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button
+										type="button"
+										variant="outline"
+										data-empty={!diagnosedAt}
+										className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+									>
+										{diagnosedAt ? format(diagnosedAt, "PPP") : "Select diagnosis date"}
+										<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent className="p-0">
+									<Calendar
+										mode="single"
+										selected={diagnosedAt}
+										onSelect={setDiagnosedAt}
+										autoFocus
+									/>
+								</PopoverContent>
+							</Popover>
 						</div>
 						<div className="flex flex-col gap-2">
-							<Label htmlFor={`${generatedFormId}-diagnosed-by`} className={fieldLabelClassName}>Diagnosed by<span className={optionalLabelClassName}>(required)</span></Label>
-							<Input id={`${generatedFormId}-diagnosed-by`} placeholder="e.g. Dr. Chinenye Okafor" className={fieldControlClassName} />
+							<Label htmlFor={`${generatedFormId}-diagnosed-by`} className={fieldLabelClassName}>
+								Diagnosed by<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-diagnosed-by`}
+								placeholder="e.g. Dr. Chinenye Okafor"
+								className={fieldControlClassName}
+							/>
 						</div>
 						<div className="flex flex-col gap-2 sm:col-span-2">
-							<Label htmlFor={`${generatedFormId}-diagnosis-notes`} className={fieldLabelClassName}>Clinical notes<span className={optionalLabelClassName}>(optional)</span></Label>
-							<Textarea id={`${generatedFormId}-diagnosis-notes`} placeholder="Add supporting clinical observations, symptoms, or treatment notes" className={textareaClassName} />
+							<Label htmlFor={`${generatedFormId}-diagnosis-notes`} className={fieldLabelClassName}>
+								Clinical notes<span className={optionalLabelClassName}>(optional)</span>
+							</Label>
+							<Textarea
+								id={`${generatedFormId}-diagnosis-notes`}
+								placeholder="Add supporting clinical observations, symptoms, or treatment notes"
+								className={textareaClassName}
+							/>
 						</div>
 					</div>
 				) : null}
 
 				{recordType === "immunizations" ? (
 					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-						<div className="flex flex-col gap-2 sm:col-span-2"><Label htmlFor={`${generatedFormId}-vaccine-name`} className={fieldLabelClassName}>Vaccine name<span className={optionalLabelClassName}>(required)</span></Label><Input id={`${generatedFormId}-vaccine-name`} placeholder="e.g. Hepatitis B, BCG, COVID-19 Vaccine" className={fieldControlClassName} /></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-series-type`} className={fieldLabelClassName}>Series type<span className={optionalLabelClassName}>(optional)</span></Label><Select><SelectTrigger id={`${generatedFormId}-series-type`} className="w-full data-[placeholder]:text-gray-400"><SelectValue placeholder="Select series type" /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="primary">Primary</SelectItem><SelectItem value="booster">Booster</SelectItem></SelectGroup></SelectContent></Select></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-current-dose`} className={fieldLabelClassName}>Current dose<span className={optionalLabelClassName}>(required)</span></Label><Input id={`${generatedFormId}-current-dose`} placeholder="e.g. 1, 2, 3" className={fieldControlClassName} /></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-total-dosage`} className={fieldLabelClassName}>Total dosage<span className={optionalLabelClassName}>(required)</span></Label><Input id={`${generatedFormId}-total-dosage`} placeholder="e.g. 1, 2, 3" className={fieldControlClassName} /></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-immunization-status`} className={fieldLabelClassName}>Status<span className={optionalLabelClassName}>(required)</span></Label><Select><SelectTrigger id={`${generatedFormId}-immunization-status`} className="w-full data-[placeholder]:text-gray-400"><SelectValue placeholder="Select status" /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="active">Active</SelectItem><SelectItem value="completed">Completed</SelectItem><SelectItem value="cancelled">Cancelled</SelectItem><SelectItem value="discontinued">Discontinued</SelectItem></SelectGroup></SelectContent></Select></div>
-						<div className="flex flex-col gap-2"><Label className={fieldLabelClassName}>Date administered<span className={optionalLabelClassName}>(required)</span></Label><Popover><PopoverTrigger asChild><Button type="button" variant="outline" data-empty={!administeredAt} className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}>{administeredAt ? format(administeredAt, "PPP") : "Select administration date"}<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" /></Button></PopoverTrigger><PopoverContent className="p-0"><Calendar mode="single" selected={administeredAt} onSelect={setAdministeredAt} autoFocus /></PopoverContent></Popover></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-administered-by`} className={fieldLabelClassName}>Administered by<span className={optionalLabelClassName}>(required)</span></Label><Input id={`${generatedFormId}-administered-by`} placeholder="e.g. Dr. Adebayo Johnson" className={fieldControlClassName} /></div>
-						<div className="flex flex-col gap-2 sm:col-span-2"><Label htmlFor={`${generatedFormId}-immunization-notes`} className={fieldLabelClassName}>Clinical notes<span className={optionalLabelClassName}>(optional)</span></Label><Textarea id={`${generatedFormId}-immunization-notes`} placeholder="Add vaccination notes, patient response, or follow-up instructions" className={textareaClassName} /></div>
+						<div className="flex flex-col gap-2 sm:col-span-2">
+							<Label htmlFor={`${generatedFormId}-vaccine-name`} className={fieldLabelClassName}>
+								Vaccine name<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-vaccine-name`}
+								placeholder="e.g. Hepatitis B, BCG, COVID-19 Vaccine"
+								className={fieldControlClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-series-type`} className={fieldLabelClassName}>
+								Series type<span className={optionalLabelClassName}>(optional)</span>
+							</Label>
+							<Select>
+								<SelectTrigger id={`${generatedFormId}-series-type`} className="w-full">
+									<SelectValue placeholder="Select series type" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="primary">Primary</SelectItem>
+										<SelectItem value="booster">Booster</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-current-dose`} className={fieldLabelClassName}>
+								Current dose<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-current-dose`}
+								placeholder="e.g. 1, 2, 3"
+								className={fieldControlClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-total-dosage`} className={fieldLabelClassName}>
+								Total dosage<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-total-dosage`}
+								placeholder="e.g. 1, 2, 3"
+								className={fieldControlClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label
+								htmlFor={`${generatedFormId}-immunization-status`}
+								className={fieldLabelClassName}
+							>
+								Status<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Select>
+								<SelectTrigger id={`${generatedFormId}-immunization-status`} className="w-full">
+									<SelectValue placeholder="Select status" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="active">Active</SelectItem>
+										<SelectItem value="completed">Completed</SelectItem>
+										<SelectItem value="cancelled">Cancelled</SelectItem>
+										<SelectItem value="discontinued">Discontinued</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label className={fieldLabelClassName}>
+								Date administered<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button
+										type="button"
+										variant="outline"
+										data-empty={!administeredAt}
+										className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+									>
+										{administeredAt ? format(administeredAt, "PPP") : "Select administration date"}
+										<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent className="p-0">
+									<Calendar
+										mode="single"
+										selected={administeredAt}
+										onSelect={setAdministeredAt}
+										autoFocus
+									/>
+								</PopoverContent>
+							</Popover>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-administered-by`} className={fieldLabelClassName}>
+								Administered by<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-administered-by`}
+								placeholder="e.g. Dr. Adebayo Johnson"
+								className={fieldControlClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2 sm:col-span-2">
+							<Label
+								htmlFor={`${generatedFormId}-immunization-notes`}
+								className={fieldLabelClassName}
+							>
+								Clinical notes<span className={optionalLabelClassName}>(optional)</span>
+							</Label>
+							<Textarea
+								id={`${generatedFormId}-immunization-notes`}
+								placeholder="Add vaccination notes, patient response, or follow-up instructions"
+								className={textareaClassName}
+							/>
+						</div>
 					</div>
 				) : null}
 
 				{recordType === "imaging" ? (
 					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-						<div className="flex flex-col gap-2 sm:col-span-2"><Label htmlFor={`${generatedFormId}-study`} className={fieldLabelClassName}>Study<span className={optionalLabelClassName}>(required)</span></Label><Input id={`${generatedFormId}-study`} placeholder="e.g. CT Abdomen with Contrast" className={fieldControlClassName} /></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-region`} className={fieldLabelClassName}>Body region<span className={optionalLabelClassName}>(required)</span></Label><Input id={`${generatedFormId}-region`} placeholder="e.g. Abdomen" className={fieldControlClassName} /></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-modality`} className={fieldLabelClassName}>Modality<span className={optionalLabelClassName}>(required)</span></Label><Select><SelectTrigger id={`${generatedFormId}-modality`} className="w-full data-[placeholder]:text-gray-400"><SelectValue placeholder="Select modality" /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="x-ray">X-ray</SelectItem><SelectItem value="ct">CT</SelectItem><SelectItem value="mri">MRI</SelectItem><SelectItem value="ultrasound">Ultrasound</SelectItem></SelectGroup></SelectContent></Select></div>
-						<div className="flex flex-col gap-2"><Label className={fieldLabelClassName}>Date performed<span className={optionalLabelClassName}>(required)</span></Label><Popover><PopoverTrigger asChild><Button type="button" variant="outline" data-empty={!imagingPerformedAt} className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}>{imagingPerformedAt ? format(imagingPerformedAt, "PPP") : "Select performed date"}<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" /></Button></PopoverTrigger><PopoverContent className="p-0"><Calendar mode="single" selected={imagingPerformedAt} onSelect={setImagingPerformedAt} autoFocus /></PopoverContent></Popover></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-imaging-ordered-by`} className={fieldLabelClassName}>Ordered by<span className={optionalLabelClassName}>(required)</span></Label><Input id={`${generatedFormId}-imaging-ordered-by`} placeholder="e.g. Dr. Adebayo Johnson" className={fieldControlClassName} /></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-imaging-status`} className={fieldLabelClassName}>Status<span className={optionalLabelClassName}>(required)</span></Label><Select><SelectTrigger id={`${generatedFormId}-imaging-status`} className="w-full data-[placeholder]:text-gray-400"><SelectValue placeholder="Select status" /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="ordered">Ordered</SelectItem><SelectItem value="scheduled">Scheduled</SelectItem><SelectItem value="completed">Completed</SelectItem><SelectItem value="cancelled">Cancelled</SelectItem></SelectGroup></SelectContent></Select></div>
-						<div className="flex flex-col gap-2 sm:col-span-2"><Label htmlFor={`${generatedFormId}-findings`} className={fieldLabelClassName}>Findings<span className={optionalLabelClassName}>(required)</span></Label><Textarea id={`${generatedFormId}-findings`} placeholder="e.g. Suspicious liver lesion identified in the right hepatic lobe" className={textareaClassName} /></div>
-						<div className="flex flex-col gap-2 sm:col-span-2"><Label htmlFor={`${generatedFormId}-imaging-notes`} className={fieldLabelClassName}>Clinical notes<span className={optionalLabelClassName}>(optional)</span></Label><Textarea id={`${generatedFormId}-imaging-notes`} placeholder="Add additional findings, preparation instructions, or radiology notes" className={textareaClassName} /></div>
+						<div className="flex flex-col gap-2 sm:col-span-2">
+							<Label htmlFor={`${generatedFormId}-study`} className={fieldLabelClassName}>
+								Study<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-study`}
+								placeholder="e.g. CT Abdomen with Contrast"
+								className={fieldControlClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-region`} className={fieldLabelClassName}>
+								Body region<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-region`}
+								placeholder="e.g. Abdomen"
+								className={fieldControlClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-modality`} className={fieldLabelClassName}>
+								Modality<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Select>
+								<SelectTrigger id={`${generatedFormId}-modality`} className="w-full">
+									<SelectValue placeholder="Select modality" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="x-ray">X-ray</SelectItem>
+										<SelectItem value="ct">CT</SelectItem>
+										<SelectItem value="mri">MRI</SelectItem>
+										<SelectItem value="ultrasound">Ultrasound</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label className={fieldLabelClassName}>
+								Date performed<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button
+										type="button"
+										variant="outline"
+										data-empty={!imagingPerformedAt}
+										className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+									>
+										{imagingPerformedAt
+											? format(imagingPerformedAt, "PPP")
+											: "Select performed date"}
+										<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent className="p-0">
+									<Calendar
+										mode="single"
+										selected={imagingPerformedAt}
+										onSelect={setImagingPerformedAt}
+										autoFocus
+									/>
+								</PopoverContent>
+							</Popover>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label
+								htmlFor={`${generatedFormId}-imaging-ordered-by`}
+								className={fieldLabelClassName}
+							>
+								Ordered by<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-imaging-ordered-by`}
+								placeholder="e.g. Dr. Adebayo Johnson"
+								className={fieldControlClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-imaging-status`} className={fieldLabelClassName}>
+								Status<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Select>
+								<SelectTrigger id={`${generatedFormId}-imaging-status`} className="w-full">
+									<SelectValue placeholder="Select status" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="ordered">Ordered</SelectItem>
+										<SelectItem value="scheduled">Scheduled</SelectItem>
+										<SelectItem value="completed">Completed</SelectItem>
+										<SelectItem value="cancelled">Cancelled</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex flex-col gap-2 sm:col-span-2">
+							<Label htmlFor={`${generatedFormId}-findings`} className={fieldLabelClassName}>
+								Findings<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Textarea
+								id={`${generatedFormId}-findings`}
+								placeholder="e.g. Suspicious liver lesion identified in the right hepatic lobe"
+								className={textareaClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2 sm:col-span-2">
+							<Label htmlFor={`${generatedFormId}-imaging-notes`} className={fieldLabelClassName}>
+								Clinical notes<span className={optionalLabelClassName}>(optional)</span>
+							</Label>
+							<Textarea
+								id={`${generatedFormId}-imaging-notes`}
+								placeholder="Add additional findings, preparation instructions, or radiology notes"
+								className={textareaClassName}
+							/>
+						</div>
 					</div>
 				) : null}
 
 				{recordType === "lab-tests" ? (
 					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-						<div className="flex flex-col gap-2 sm:col-span-2"><Label htmlFor={`${generatedFormId}-test`} className={fieldLabelClassName}>Test<span className={optionalLabelClassName}>(required)</span></Label><Input id={`${generatedFormId}-test`} placeholder="e.g. Full Blood Count" className={fieldControlClassName} /></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-flag`} className={fieldLabelClassName}>Flag<span className={optionalLabelClassName}>(required)</span></Label><Select><SelectTrigger id={`${generatedFormId}-flag`} className="w-full data-[placeholder]:text-gray-400"><SelectValue placeholder="Select flag" /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="normal">Normal</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="low">Low</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectGroup></SelectContent></Select></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-lab-status`} className={fieldLabelClassName}>Status<span className={optionalLabelClassName}>(required)</span></Label><Select><SelectTrigger id={`${generatedFormId}-lab-status`} className="w-full data-[placeholder]:text-gray-400"><SelectValue placeholder="Select status" /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="ordered">Ordered</SelectItem><SelectItem value="pending">Pending</SelectItem><SelectItem value="completed">Completed</SelectItem><SelectItem value="cancelled">Cancelled</SelectItem></SelectGroup></SelectContent></Select></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-reference-range`} className={fieldLabelClassName}>Reference range<span className={optionalLabelClassName}>(optional)</span></Label><Input id={`${generatedFormId}-reference-range`} placeholder="e.g. 4.0 - 11.0 x10^9/L" className={fieldControlClassName} /></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-lab-ordered-by`} className={fieldLabelClassName}>Ordered by<span className={optionalLabelClassName}>(required)</span></Label><Input id={`${generatedFormId}-lab-ordered-by`} placeholder="e.g. Dr. Adebayo Johnson" className={fieldControlClassName} /></div>
-						<div className="flex flex-col gap-2"><Label className={fieldLabelClassName}>Date performed<span className={optionalLabelClassName}>(required)</span></Label><Popover><PopoverTrigger asChild><Button type="button" variant="outline" data-empty={!labPerformedAt} className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}>{labPerformedAt ? format(labPerformedAt, "PPP") : "Select performed date"}<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" /></Button></PopoverTrigger><PopoverContent className="p-0"><Calendar mode="single" selected={labPerformedAt} onSelect={setLabPerformedAt} autoFocus /></PopoverContent></Popover></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-specimen`} className={fieldLabelClassName}>Specimen<span className={optionalLabelClassName}>(required)</span></Label><Input id={`${generatedFormId}-specimen`} placeholder="e.g. Whole blood" className={fieldControlClassName} /></div>
-						<div className="flex flex-col gap-2"><Label htmlFor={`${generatedFormId}-result`} className={fieldLabelClassName}>Result<span className={optionalLabelClassName}>(required)</span></Label><Input id={`${generatedFormId}-result`} placeholder="e.g. 14.8 x10^9/L" className={fieldControlClassName} /></div>
-						<div className="flex flex-col gap-2 sm:col-span-2"><Label htmlFor={`${generatedFormId}-interpretation`} className={fieldLabelClassName}>Interpretation<span className={optionalLabelClassName}>(optional)</span></Label><Textarea id={`${generatedFormId}-interpretation`} placeholder="e.g. Elevated white blood cell count suggesting possible infection" className={textareaClassName} /></div>
-						<div className="flex flex-col gap-2 sm:col-span-2"><Label htmlFor={`${generatedFormId}-lab-notes`} className={fieldLabelClassName}>Clinical notes<span className={optionalLabelClassName}>(optional)</span></Label><Textarea id={`${generatedFormId}-lab-notes`} placeholder="Add additional laboratory observations or recommendations" className={textareaClassName} /></div>
+						<div className="flex flex-col gap-2 sm:col-span-2">
+							<Label htmlFor={`${generatedFormId}-test`} className={fieldLabelClassName}>
+								Test<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-test`}
+								placeholder="e.g. Full Blood Count"
+								className={fieldControlClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-flag`} className={fieldLabelClassName}>
+								Flag<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Select>
+								<SelectTrigger id={`${generatedFormId}-flag`} className="w-full">
+									<SelectValue placeholder="Select flag" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="normal">Normal</SelectItem>
+										<SelectItem value="high">High</SelectItem>
+										<SelectItem value="low">Low</SelectItem>
+										<SelectItem value="critical">Critical</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-lab-status`} className={fieldLabelClassName}>
+								Status<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Select>
+								<SelectTrigger id={`${generatedFormId}-lab-status`} className="w-full">
+									<SelectValue placeholder="Select status" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="ordered">Ordered</SelectItem>
+										<SelectItem value="pending">Pending</SelectItem>
+										<SelectItem value="completed">Completed</SelectItem>
+										<SelectItem value="cancelled">Cancelled</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-reference-range`} className={fieldLabelClassName}>
+								Reference range<span className={optionalLabelClassName}>(optional)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-reference-range`}
+								placeholder="e.g. 4.0 - 11.0 x10^9/L"
+								className={fieldControlClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-lab-ordered-by`} className={fieldLabelClassName}>
+								Ordered by<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-lab-ordered-by`}
+								placeholder="e.g. Dr. Adebayo Johnson"
+								className={fieldControlClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label className={fieldLabelClassName}>
+								Date performed<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button
+										type="button"
+										variant="outline"
+										data-empty={!labPerformedAt}
+										className={`${fieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+									>
+										{labPerformedAt ? format(labPerformedAt, "PPP") : "Select performed date"}
+										<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent className="p-0">
+									<Calendar
+										mode="single"
+										selected={labPerformedAt}
+										onSelect={setLabPerformedAt}
+										autoFocus
+									/>
+								</PopoverContent>
+							</Popover>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-specimen`} className={fieldLabelClassName}>
+								Specimen<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-specimen`}
+								placeholder="e.g. Whole blood"
+								className={fieldControlClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor={`${generatedFormId}-result`} className={fieldLabelClassName}>
+								Result<span className={optionalLabelClassName}>(required)</span>
+							</Label>
+							<Input
+								id={`${generatedFormId}-result`}
+								placeholder="e.g. 14.8 x10^9/L"
+								className={fieldControlClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2 sm:col-span-2">
+							<Label htmlFor={`${generatedFormId}-interpretation`} className={fieldLabelClassName}>
+								Interpretation<span className={optionalLabelClassName}>(optional)</span>
+							</Label>
+							<Textarea
+								id={`${generatedFormId}-interpretation`}
+								placeholder="e.g. Elevated white blood cell count suggesting possible infection"
+								className={textareaClassName}
+							/>
+						</div>
+						<div className="flex flex-col gap-2 sm:col-span-2">
+							<Label htmlFor={`${generatedFormId}-lab-notes`} className={fieldLabelClassName}>
+								Clinical notes<span className={optionalLabelClassName}>(optional)</span>
+							</Label>
+							<Textarea
+								id={`${generatedFormId}-lab-notes`}
+								placeholder="Add additional laboratory observations or recommendations"
+								className={textareaClassName}
+							/>
+						</div>
 					</div>
 				) : null}
 
@@ -374,7 +909,12 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 							/>
 						))}
 						<div>
-							<Button type="button" variant="outline" className="border-gray-200 bg-white text-gray-600" onClick={handleAddAttachmentRow}>
+							<Button
+								type="button"
+								variant="outline"
+								className="bg-white text-gray-600"
+								onClick={handleAddAttachmentRow}
+							>
 								<RiAddLine className="size-5" aria-hidden="true" />
 								Add related record
 							</Button>
@@ -386,7 +926,9 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 			<DrawerFooter className="border-t border-gray-200 text-sm">
 				<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 					<DrawerClose asChild>
-						<Button type="button" variant="outline">Cancel</Button>
+						<Button type="button" variant="outline">
+							Cancel
+						</Button>
 					</DrawerClose>
 					<Button type="button">{submitLabels[recordType]}</Button>
 				</div>

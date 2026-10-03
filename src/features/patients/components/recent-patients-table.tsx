@@ -182,7 +182,7 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 							value={String(table.state.pagination.pageSize)}
 							onValueChange={(value) => table.setPageSize(Number(value))}
 						>
-							<SelectTrigger className="h-8 w-16 border-gray-200 bg-white px-2 text-gray-700 shadow-none">
+							<SelectTrigger className="h-8 w-16 bg-white px-2 text-gray-700">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent className="w-20" align="start">
@@ -205,7 +205,7 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 								size="sm"
 								onClick={() => table.previousPage()}
 								disabled={!table.getCanPreviousPage()}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Previous
 							</Button>
@@ -215,7 +215,7 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 								size="sm"
 								onClick={() => table.nextPage()}
 								disabled={!table.getCanNextPage()}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Next
 							</Button>

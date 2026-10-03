@@ -4,6 +4,13 @@ import { useId, useRef, useState } from "react";
 import { RiArrowRightSLine } from "@remixicon/react";
 
 import { Button } from "@/components/ui/button";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils/cn";
 
 import { InviteMembersSettings } from "./invite-members-settings";
@@ -198,11 +205,24 @@ function MemberCard({
 				{member.isCurrentUser ? (
 					<span className="shrink-0 text-sm font-medium">You</span>
 				) : canManageMember ? (
-					<span className="inline-flex shrink-0 items-center gap-0.5 text-sm font-medium text-gray-400">
-						{isMemberDetailsExpanded ? "View less" : "View more"}
+					<span className="inline-flex shrink-0 items-center gap-0.5 text-sm w-full max-w-[90px] font-medium text-gray-400">
+						<span className="flex flex-1 items-center">
+							<span
+								aria-hidden={isMemberDetailsExpanded}
+								className={cn("flex-1", isMemberDetailsExpanded && "hidden")}
+							>
+								View more
+							</span>
+							<span
+								aria-hidden={!isMemberDetailsExpanded}
+								className={cn("flex-1", !isMemberDetailsExpanded && "hidden")}
+							>
+								View less
+							</span>
+						</span>
 						<RiArrowRightSLine
 							className={cn(
-								"size-5 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+								"size-4 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 								isMemberDetailsExpanded ? "rotate-90" : "group-hover/member-card:translate-x-0.5",
 							)}
 							aria-hidden="true"
@@ -226,10 +246,11 @@ function MemberCard({
 			)}
 		>
 			{canManageMember ? (
-				<button
+				<Button
+					variant="ghost"
 					type="button"
 					className={cn(
-						"block w-full rounded-2xl border border-transparent text-left text-gray-600 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
+						"block w-full rounded-2xl text-left text-gray-600 h-auto whitespace-normal font-normal hover:bg-transparent hover:text-gray-600 active:scale-100",
 						"p-4",
 					)}
 					aria-expanded={isMemberDetailsExpanded}
@@ -237,7 +258,7 @@ function MemberCard({
 					onClick={() => setIsMemberDetailsExpanded((prev) => !prev)}
 				>
 					{memberSummary}
-				</button>
+				</Button>
 			) : (
 				<div className={cn("p-4 text-gray-400", member.isCurrentUser && "opacity-50")}>
 					{memberSummary}
@@ -267,13 +288,19 @@ function MemberCard({
 								</div>
 							</dl>
 							<div className="flex justify-end gap-2 pt-5">
-								<Button type="button" variant="outline">
-									Change role
-								</Button>
+								<Select defaultValue={member.role}>
+									<SelectTrigger aria-label={`Role for ${member.name}`}>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent align="start">
+										<SelectItem value="admin">Admin</SelectItem>
+										<SelectItem value="member">Member</SelectItem>
+									</SelectContent>
+								</Select>
 								<Button
 									type="button"
 									variant="destructive"
-									className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 dark:bg-transparent dark:hover:bg-destructive/10 dark:focus-visible:ring-destructive/40"
+									className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive dark:bg-transparent dark:hover:bg-destructive/10"
 								>
 									Remove member
 								</Button>
@@ -324,11 +351,24 @@ function PendingInvitationCard({
 					<span aria-hidden="true" />
 				)}
 				{canManageInvitation ? (
-					<span className="inline-flex shrink-0 items-center gap-0.5 text-sm font-medium text-gray-400">
-						{isInvitationDetailsExpanded ? "View less" : "View more"}
+					<span className="inline-flex shrink-0 items-center gap-0.5 text-sm w-full max-w-[90px] font-medium text-gray-400">
+						<span className="flex flex-1 items-center">
+							<span
+								aria-hidden={isInvitationDetailsExpanded}
+								className={cn("flex-1", isInvitationDetailsExpanded && "hidden")}
+							>
+								View more
+							</span>
+							<span
+								aria-hidden={!isInvitationDetailsExpanded}
+								className={cn("flex-1", !isInvitationDetailsExpanded && "hidden")}
+							>
+								View less
+							</span>
+						</span>
 						<RiArrowRightSLine
 							className={cn(
-								"size-5 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+								"size-4 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 								isInvitationDetailsExpanded
 									? "rotate-90"
 									: "group-hover/pending-invitation-card:translate-x-0.5",
@@ -356,15 +396,16 @@ function PendingInvitationCard({
 			)}
 		>
 			{canManageInvitation ? (
-				<button
+				<Button
+					variant="ghost"
 					type="button"
-					className="block w-full rounded-2xl border border-transparent p-4 text-left text-gray-600 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+					className="block w-full rounded-2xl p-4 text-left text-gray-600 h-auto whitespace-normal font-normal hover:bg-transparent hover:text-gray-600 active:scale-100"
 					aria-expanded={isInvitationDetailsExpanded}
 					aria-controls={invitationDetailsId}
 					onClick={() => setIsInvitationDetailsExpanded((prev) => !prev)}
 				>
 					{invitationSummary}
-				</button>
+				</Button>
 			) : (
 				<div className="p-4 text-gray-400">{invitationSummary}</div>
 			)}
@@ -404,7 +445,7 @@ function PendingInvitationCard({
 								<Button
 									type="button"
 									variant="destructive"
-									className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 dark:bg-transparent dark:hover:bg-destructive/10 dark:focus-visible:ring-destructive/40"
+									className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive dark:bg-transparent dark:hover:bg-destructive/10"
 								>
 									Cancel invitation
 								</Button>

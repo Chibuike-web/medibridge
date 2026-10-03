@@ -32,7 +32,7 @@ export function SharedTabs({ activeSection, availableSections }: SharedTabsClien
 
 	return (
 		<Tabs.Root value={optimisticSelectedSharedRecordSection} onValueChange={handleClick}>
-			<Tabs.List className="no-scrollbar relative  mx-auto flex w-full max-w-7xl overflow-x-auto border-b px-6 whitespace-nowrap">
+			<Tabs.List className="no-scrollbar relative mx-auto flex w-full max-w-7xl overflow-x-auto border-b px-6 whitespace-nowrap">
 				{sharedSections
 					.filter((section) => availableSections.includes(section.id))
 					.map((section) => {
@@ -51,8 +51,12 @@ export function SharedTabs({ activeSection, availableSections }: SharedTabsClien
 								{isActive && (
 									<motion.div
 										layoutId="tab-indicator"
-									className="absolute right-0 bottom-0 left-0 h-0.5 bg-gray-800"
-										transition={shouldReduceMotion ? { duration: 0 } : { type: "spring", duration: 0.22, bounce: 0 }}
+										className="absolute right-0 bottom-0 left-0 h-0.5 bg-gray-800"
+										transition={
+											shouldReduceMotion
+												? { duration: 0 }
+												: { type: "spring", duration: 0.22, bounce: 0 }
+										}
 									/>
 								)}
 							</Tabs.Trigger>

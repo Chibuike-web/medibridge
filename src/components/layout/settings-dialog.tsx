@@ -34,6 +34,7 @@ import {
 	DialogDescription,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { cn } from "@/lib/utils/cn";
 
@@ -152,13 +153,14 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 						</div>
 						<nav aria-label="Settings sections" className="mt-3 flex flex-col gap-px">
 							{visibleSettingsSections.map(({ id, label, icon: Icon, activeIcon: ActiveIcon }) => (
-								<button
+								<Button
+									variant="ghost"
 									key={id}
 									type="button"
 									className={cn(
-										"flex h-8 w-full items-center gap-2 rounded-lg border border-transparent px-2.5 text-left text-sm transition-[background-color,box-shadow] focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
+										"flex h-8 w-full rounded-lg px-2.5 text-left justify-start py-0 font-normal has-[>svg:first-child]:pl-2.5",
 										selectedSettingsSection === id
-											? "bg-gray-200 font-medium text-gray-800"
+											? "bg-gray-200 font-medium text-gray-800 hover:bg-gray-200 hover:text-gray-800"
 											: "text-gray-600 hover:bg-gray-100 hover:text-gray-800",
 									)}
 									onClick={() => {
@@ -172,7 +174,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 										<Icon className="size-4 shrink-0" aria-hidden={true} />
 									)}
 									<span>{label}</span>
-								</button>
+								</Button>
 							))}
 						</nav>
 					</aside>
@@ -181,14 +183,16 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 						<div className="flex items-center justify-between border-b px-6 py-4">
 							{activeSettingsSubView ? (
 								<div className="flex items-center gap-2">
-									<button
+									<Button
+										variant="ghost"
+										size="icon"
 										type="button"
-										className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-transparent text-gray-800 transition-colors hover:bg-gray-100 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+										className="text-gray-800 hover:bg-gray-100 hover:text-gray-800"
 										aria-label={getSettingsBackButtonLabel()}
 										onClick={handleSettingsSubViewBack}
 									>
 										<RiArrowLeftLine className="size-5" aria-hidden="true" />
-									</button>
+									</Button>
 									<h2 className="text-base font-semibold">
 										{settingsSubViewLabels[activeSettingsSubView]}
 									</h2>

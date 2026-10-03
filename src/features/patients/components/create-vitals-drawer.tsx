@@ -97,7 +97,7 @@ export function CreateVitalsDrawer({
 						<Select name="encounterId" required>
 							<SelectTrigger
 								id={`${formId}-encounter`}
-								className="w-full data-[placeholder]:text-gray-400"
+								className="w-full"
 								disabled={!hasEncounterOptions}
 							>
 								<SelectValue placeholder="Select encounter" />

@@ -163,8 +163,9 @@ export function MedicationsTable({
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [selectedMedicationRows, setSelectedMedicationRows] = useState<RowSelectionState>({});
-	const [activeFilterSubmenu, setActiveFilterSubmenu] =
-		useState<MedicationFilterSubmenu | null>(null);
+	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<MedicationFilterSubmenu | null>(
+		null,
+	);
 	const medicationDetailsQuery = useSWR(
 		selectedId ? (["patient-medication-details", selectedId] as const) : null,
 		([, selectedId]) => fetchPatientMedicationDetails(selectedId),
@@ -176,7 +177,8 @@ export function MedicationsTable({
 	}
 
 	const columns = useMemo(
-		() => getMedicationsColumns({ canArchive, onViewMedicationDetails: handleViewMedicationDetails }),
+		() =>
+			getMedicationsColumns({ canArchive, onViewMedicationDetails: handleViewMedicationDetails }),
 		[canArchive],
 	);
 
@@ -221,10 +223,7 @@ export function MedicationsTable({
 					}}
 				>
 					<DropdownMenuTrigger asChild>
-						<Button
-							variant="outline"
-							className="bg-white text-gray-600 hover:bg-gray-50"
-						>
+						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 							Filter
 						</Button>
@@ -289,18 +288,11 @@ export function MedicationsTable({
 						</DropdownMenuSub>
 					</DropdownMenuContent>
 				</DropdownMenu>
-				<Button
-					variant="outline"
-					className="bg-white text-gray-600 hover:bg-gray-50"
-				>
+				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button
-
-					type="button"
-					onClick={() => setIsCreateDrawerOpen(true)}
-				>
+				<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
 					Add medication
 				</Button>
 			</div>
@@ -335,7 +327,10 @@ export function MedicationsTable({
 												: undefined
 										}
 										onKeyDown={(event) => {
-											if (header.column.getCanSort() && (event.key === "Enter" || event.key === " ")) {
+											if (
+												header.column.getCanSort() &&
+												(event.key === "Enter" || event.key === " ")
+											) {
 												event.preventDefault();
 												header.column.getToggleSortingHandler()?.(event);
 											}
@@ -401,8 +396,8 @@ export function MedicationsTable({
 										<TableCell
 											key={cell.id}
 											className={cn(
-											"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
-											row.getIsSelected() ? "bg-gray-100" : "bg-white",
+												"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
+												row.getIsSelected() ? "bg-gray-100" : "bg-white",
 												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 												cell.column.id === "dose" && "text-right",
 											)}
@@ -438,7 +433,7 @@ export function MedicationsTable({
 							onValueChange={(value) => onLimitChange(Number(value))}
 							disabled={isPending}
 						>
-							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
+							<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent className="w-20" align="start">
@@ -461,7 +456,7 @@ export function MedicationsTable({
 								size="sm"
 								onClick={onPreviousPage}
 								disabled={page <= 1 || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Previous
 							</Button>
@@ -471,7 +466,7 @@ export function MedicationsTable({
 								size="sm"
 								onClick={onNextPage}
 								disabled={page >= totalPages || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Next
 							</Button>
@@ -485,10 +480,7 @@ export function MedicationsTable({
 				onClearSelection={() => table.resetRowSelection()}
 				onViewMedicationDetails={handleViewMedicationDetails}
 			/>
-			<CreateMedicationDrawer
-				open={isCreateDrawerOpen}
-				onOpenChange={setIsCreateDrawerOpen}
-			/>
+			<CreateMedicationDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
 			<MedicationDetailsDrawer
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}
@@ -524,34 +516,48 @@ function MedicationsBulkActionBar({
 			<TableBulkActionSeparator />
 			<div className="flex items-center">
 				{singleSelectedMedication ? (
-					<button
+					<Button
 						type="button"
 						onClick={() => onViewMedicationDetails(singleSelectedMedication.medicationId)}
-						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+						variant="ghost"
+						size="sm"
+						className="h-9 gap-2 rounded-lg border-0 px-2 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
 						<RiEyeLine className="size-5" aria-hidden />
 						<span>View details</span>
-					</button>
+					</Button>
 				) : null}
-				<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
+				>
 					<RiShare2Line className="size-5" aria-hidden />
 					<span>Export {selectedMedicationCount > 1 ? "all" : null}</span>
-				</button>
+				</Button>
 				{canArchive ? (
-					<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
+					>
 						<RiArchiveLine className="size-5" aria-hidden />
 						<span>Archive {selectedMedicationCount > 1 ? "all" : null}</span>
-					</button>
+					</Button>
 				) : null}
 			</div>
-			<button
+			<Button
 				type="button"
 				onClick={onClearSelection}
-				className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				variant="ghost"
+				size="icon"
+				className="size-8 border-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected medications"
 			>
 				<RiCloseLine className="size-5" aria-hidden />
-			</button>
+			</Button>
 		</div>
 	);
 }
@@ -641,9 +647,7 @@ function MedicationActiveFilterPills({
 						label={`Status: ${statusOption?.label ?? formatMedicationFilterValue(statusFilter)}`}
 						onRemove={() => {
 							onStatusFiltersChange(
-								statusFilters.filter(
-									(currentStatusFilter) => currentStatusFilter !== statusFilter,
-								),
+								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
 							);
 						}}
 					/>
@@ -663,14 +667,15 @@ function MedicationFilterPill({ label, onRemove }: { label: string; onRemove: ()
 	return (
 		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
 			<span>{label}</span>
-			<button
+			<Button
 				type="button"
 				onClick={onRemove}
-				className="flex items-center justify-center bg-gray-800 text-white size-5 rounded-full transition hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+				size="icon"
+				className="flex text-white size-5 rounded-full hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
 				aria-label={`Remove ${label} filter`}
 			>
 				<RiCloseLine className="size-4" aria-hidden="true" />
-			</button>
+			</Button>
 		</span>
 	);
 }
@@ -871,7 +876,6 @@ function getDateRangeFromParams(from: string, to: string): DateRange | undefined
 	return { from: parsedFromDate, to: parsedToDate };
 }
 
-
 function isSameDateRange(range: DateRange | undefined, presetRange: MedicationDateCompleteRange) {
 	if (!range?.from || !range.to) return false;
 
@@ -887,9 +891,7 @@ function formatMedicationFilterValue(value: string) {
 }
 
 async function fetchPatientMedicationDetails(selectedId: string) {
-	const response = await fetch(
-		`/api/patient-medication-details/${encodeURIComponent(selectedId)}`,
-	);
+	const response = await fetch(`/api/patient-medication-details/${encodeURIComponent(selectedId)}`);
 
 	if (!response.ok) {
 		throw new Error("Unable to load medication details.");
@@ -1011,10 +1013,10 @@ function getMedicationsColumns({
 									<RiEyeLine className="text-white" />
 									<span>View details</span>
 								</DropdownMenuItem>
-							<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-								<RiShare2Line className="text-white" />
-								<span>Export</span>
-							</DropdownMenuItem>
+								<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<RiShare2Line className="text-white" />
+									<span>Export</span>
+								</DropdownMenuItem>
 								{canUpdateMedicationStatus ? (
 									<>
 										<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">

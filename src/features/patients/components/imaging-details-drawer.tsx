@@ -122,9 +122,7 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 									Cancel
 								</Button>
 							</DrawerClose>
-							{canArchive ? (
-								<Button type="button">Archive Imaging</Button>
-							) : null}
+							{canArchive ? <Button type="button">Archive Imaging</Button> : null}
 						</div>
 					)}
 				</DrawerFooter>
@@ -161,14 +159,15 @@ function ImagingDetailsOverview({
 						<h2 className="text-lg font-semibold text-gray-800">{imaging.study}</h2>
 						<StatusBadge status={imaging.status} />
 					</div>
-					<button
+					<Button
 						type="button"
 						onClick={onEditImagingDetails}
-						className="inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						variant="ghost"
+						className="text-gray-400 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-gray-300 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent focus-visible:border-0 has-[>svg:first-child]:pl-0"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
-					</button>
+					</Button>
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
@@ -208,13 +207,27 @@ function ImagingFilesSection({ files }: { files: ImagingType["files"] }) {
 			<div className="flex w-full items-center justify-between">
 				<h2 className="text-sm font-semibold text-gray-800">Files</h2>
 				{files.length > 3 ? (
-					<button
+					<Button
 						type="button"
-						className="text-sm text-gray-400"
+						variant="ghost"
+						className="text-gray-400 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-gray-400 focus-visible:border-0"
 						onClick={() => setAreImagingFilesExpanded((previousValue) => !previousValue)}
 					>
-						{areImagingFilesExpanded ? "View less" : "View more"}
-					</button>
+						<span className="grid justify-items-end">
+							<span
+								aria-hidden={areImagingFilesExpanded}
+								className={cn("col-start-1 row-start-1", areImagingFilesExpanded && "invisible")}
+							>
+								View more
+							</span>
+							<span
+								aria-hidden={!areImagingFilesExpanded}
+								className={cn("col-start-1 row-start-1", !areImagingFilesExpanded && "invisible")}
+							>
+								View less
+							</span>
+						</span>
+					</Button>
 				) : null}
 			</div>
 			<div className="space-y-3">
@@ -237,7 +250,9 @@ function ImagingFilesSection({ files }: { files: ImagingType["files"] }) {
 							</p>
 						</div>
 						<div className="flex shrink-0 items-center gap-2">
-							<Button type="button" variant="outline">Download</Button>
+							<Button type="button" variant="outline">
+								Download
+							</Button>
 							<Button asChild type="button">
 								<a href={file.url}>Open</a>
 							</Button>
@@ -254,7 +269,12 @@ function ImagingHistorySection({ history }: { history: ImagingDetailsHistoryEven
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
-				<button className="text-sm text-gray-400">View more</button>
+				<Button
+					variant="ghost"
+					className="text-gray-400 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-gray-400 focus-visible:border-0"
+				>
+					View more
+				</Button>
 			</div>
 			{history.map((historyEvent) => (
 				<ImagingHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
@@ -271,12 +291,13 @@ function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHist
 
 	return (
 		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
-			<button
+			<Button
 				type="button"
 				onClick={() => setIsImagingHistoryExpanded((prev) => !prev)}
 				aria-expanded={isImagingHistoryExpanded}
 				aria-controls={panelId}
-				className="flex w-full items-center justify-between gap-4 text-left"
+				variant="ghost"
+				className="flex w-full justify-between gap-4 text-left h-auto whitespace-normal rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0 active:scale-100 has-[>svg:last-child]:pr-0"
 			>
 				<p className="min-w-0 text-sm">
 					<span id={titleId} className="font-semibold text-gray-800">
@@ -294,7 +315,7 @@ function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHist
 					)}
 					aria-hidden="true"
 				/>
-			</button>
+			</Button>
 			<div
 				id={panelId}
 				className={cn(
@@ -309,14 +330,14 @@ function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHist
 						role="region"
 						aria-labelledby={titleId}
 						className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
-						>
-							{historyEvent.items.map((item) => (
-								<ImagingDetailItem
-									key={`${historyEvent.id}-${item.label}`}
-									label={item.label}
-									value={item.value}
-								/>
-							))}
+					>
+						{historyEvent.items.map((item) => (
+							<ImagingDetailItem
+								key={`${historyEvent.id}-${item.label}`}
+								label={item.label}
+								value={item.value}
+							/>
+						))}
 					</div>
 				</div>
 			</div>
@@ -455,7 +476,7 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 								type="button"
 								variant="outline"
 								data-empty={!orderedAt && imaging.orderedAtLabel === "-"}
-								className={`${imagingDetailsFieldControlClassName} flex w-full items-center justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+								className={`${imagingDetailsFieldControlClassName} flex w-full justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
 							>
 								<span className="min-w-0 truncate">{orderedAtDisplayValue}</span>
 								<RiCalendarLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
@@ -540,7 +561,9 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 									key={file.url}
 									className={cn(
 										"rounded-xl border p-4",
-										pendingImagingFileRemovalUrl === file.url ? "border-red-500" : "border-gray-200",
+										pendingImagingFileRemovalUrl === file.url
+											? "border-red-500"
+											: "border-gray-200",
 									)}
 								>
 									<div className="flex items-center gap-4">
@@ -554,9 +577,11 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 										<div
 											className={`min-w-0 flex-1 transition-opacity duration-200 ${pendingImagingFileRemovalUrl === file.url ? "opacity-40" : "opacity-100"}`}
 										>
-										<p className="truncate font-semibold text-gray-800">{file.name}</p>
-										<p className="truncate text-gray-400">{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}</p>
-									</div>
+											<p className="truncate font-semibold text-gray-800">{file.name}</p>
+											<p className="truncate text-gray-400">
+												{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}
+											</p>
+										</div>
 										{pendingImagingFileRemovalUrl !== file.url ? (
 											<div className="flex shrink-0 items-center gap-2">
 												<Button
@@ -585,31 +610,46 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 										inert={pendingImagingFileRemovalUrl !== file.url}
 									>
 										<div className="min-h-0 overflow-hidden">
-												<div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-													<p className="max-w-md text-sm font-medium text-gray-700">
-														Remove {file.name} from this imaging record?
-													</p>
-													<div className="ml-auto flex shrink-0 items-center gap-3">
-														<Button type="button" variant="outline" onClick={() => setPendingImagingFileRemovalUrl(null)}>
-															Cancel
-														</Button>
-														<Button
-															type="button"
-															className="bg-red-500 hover:bg-red-600 focus-visible:ring-red-300"
-															onClick={() => handleRemoveImagingFile(file.url)}
-														>
-															Remove file
-														</Button>
-													</div>
+											<div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+												<p className="max-w-md text-sm font-medium text-gray-700">
+													Remove {file.name} from this imaging record?
+												</p>
+												<div className="ml-auto flex shrink-0 items-center gap-3">
+													<Button
+														type="button"
+														variant="outline"
+														onClick={() => setPendingImagingFileRemovalUrl(null)}
+													>
+														Cancel
+													</Button>
+													<Button
+														type="button"
+														className="bg-red-500 hover:bg-red-600 focus-visible:ring-red-300"
+														onClick={() => handleRemoveImagingFile(file.url)}
+													>
+														Remove file
+													</Button>
 												</div>
+											</div>
 										</div>
 									</div>
 								</div>
 							))}
 						</div>
 
-						<input ref={imagingFileInputRef} type="file" multiple accept="image/jpeg,image/png,application/pdf" className="sr-only" onChange={handleImagingFilesChange} />
-						<Button type="button" variant="outline" onClick={() => imagingFileInputRef.current?.click()}>
+						<input
+							ref={imagingFileInputRef}
+							type="file"
+							multiple
+							accept="image/jpeg,image/png,application/pdf"
+							className="sr-only"
+							onChange={handleImagingFilesChange}
+						/>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => imagingFileInputRef.current?.click()}
+						>
 							<RiAddLine className="size-5" aria-hidden="true" />
 							Add files
 						</Button>

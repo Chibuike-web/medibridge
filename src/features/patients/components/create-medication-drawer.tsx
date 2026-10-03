@@ -108,23 +108,14 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-status`}
-									className="w-full data-[placeholder]:text-gray-400"
-								>
+								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="active">
-											Active
-										</SelectItem>
-										<SelectItem value="completed">
-											Completed
-										</SelectItem>
-										<SelectItem value="discontinued">
-											Discontinued
-										</SelectItem>
+										<SelectItem value="active">Active</SelectItem>
+										<SelectItem value="completed">Completed</SelectItem>
+										<SelectItem value="discontinued">Discontinued</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>
@@ -146,23 +137,14 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 								Route<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-route`}
-									className="w-full data-[placeholder]:text-gray-400"
-								>
+								<SelectTrigger id={`${generatedFormId}-route`} className="w-full">
 									<SelectValue placeholder="Select route" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="oral">
-											Oral
-										</SelectItem>
-										<SelectItem value="iv">
-											IV
-										</SelectItem>
-										<SelectItem value="inhalation">
-											Inhalation
-										</SelectItem>
+										<SelectItem value="oral">Oral</SelectItem>
+										<SelectItem value="iv">IV</SelectItem>
+										<SelectItem value="inhalation">Inhalation</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>
@@ -258,7 +240,7 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 							<Button
 								type="button"
 								variant="outline"
-								className="border-gray-200 bg-white text-gray-600"
+								className="bg-white text-gray-600"
 								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />
@@ -275,9 +257,7 @@ export function CreateMedicationDrawer({ open, onOpenChange }: CreateMedicationD
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="button">
-							Add medication
-						</Button>
+						<Button type="button">Add medication</Button>
 					</div>
 				</DrawerFooter>
 			</DrawerContent>

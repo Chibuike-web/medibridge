@@ -25,14 +25,16 @@ type ClinicalRecordOptionsData = {
 const clinicalRecordOptionsLimit = 8;
 
 export function AttachClinicalRecords({ activePatient }: { activePatient: string }) {
-	const { attachedClinicalRecordsByPatientId, toggleAttachedClinicalRecordForPatient } = useAttachClinicalRecords();
+	const { attachedClinicalRecordsByPatientId, toggleAttachedClinicalRecordForPatient } =
+		useAttachClinicalRecords();
 	const [activeTabId, setActiveTabId] = useState(clinicalRecords[0].id);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [clinicalRecordOptionsPage, setClinicalRecordOptionsPage] = useState(1);
 	const shouldReduceMotion = useReducedMotion();
 
 	const allSelectedRecordsForPatient = attachedClinicalRecordsByPatientId[activePatient] ?? [];
-	const activeTab = clinicalRecords.find((record) => record.id === activeTabId) ?? clinicalRecords[0];
+	const activeTab =
+		clinicalRecords.find((record) => record.id === activeTabId) ?? clinicalRecords[0];
 	const normalizedSearchQuery = searchQuery.trim().toLowerCase();
 
 	const clinicalRecordOptionsQuery = useSWR(
@@ -62,8 +64,12 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 		() => new Set(allSelectedRecordsForPatient.map((record) => record.id)),
 		[allSelectedRecordsForPatient],
 	);
-	const selectedRecordsForActiveTab = allSelectedRecordsForPatient.filter((record) => record.type === activeTab.id);
-	const selectedVisibleRecordsCount = recordsForActiveTab.filter((record) => selectedRecordIds.has(record.id)).length;
+	const selectedRecordsForActiveTab = allSelectedRecordsForPatient.filter(
+		(record) => record.type === activeTab.id,
+	);
+	const selectedVisibleRecordsCount = recordsForActiveTab.filter((record) =>
+		selectedRecordIds.has(record.id),
+	).length;
 	const areAllVisibleRecordsSelected =
 		recordsForActiveTab.length > 0 && selectedVisibleRecordsCount === recordsForActiveTab.length;
 	const areSomeVisibleRecordsSelected =
@@ -102,11 +108,12 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 	return (
 		<div className="mt-8">
 			<span className="mb-2 block text-sm font-medium text-foreground/70">
-				Attach Clinical Records <span className="font-normal text-muted-foreground">(required)</span>
+				Attach Clinical Records{" "}
+				<span className="font-normal text-muted-foreground">(required)</span>
 			</span>
 
 			<Tabs.Root value={activeTabId} onValueChange={handleTabChange} className="w-full">
-				<Tabs.List className="grid w-full grid-cols-2 gap-1.5 sm:grid-cols-4">
+				<Tabs.List className="flex w-full flex-wrap gap-y-1.5">
 					{clinicalRecords.map((record) => {
 						const isActive = activeTabId === record.id;
 
@@ -115,15 +122,20 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 								key={record.id}
 								value={record.id}
 								className={cn(
-									"relative w-full rounded-full p-2.5 text-sm leading-none transition-colors",
+									"relative w-max shrink-0 rounded-full px-4 py-2.5 text-sm leading-none transition-colors",
 									isActive ? "text-white" : "text-foreground/70 hover:text-foreground",
 								)}
 							>
 								{isActive && (
 									<motion.span
 										layoutId="attach-record-tab"
-										className="absolute inset-0 rounded-full bg-gray-800"
-										transition={shouldReduceMotion ? { duration: 0 } : { type: "spring", duration: 0.24, bounce: 0.05 }}
+										className="absolute inset-0 bg-gray-800"
+										style={{ borderRadius: 9999 }}
+										transition={
+											shouldReduceMotion
+												? { duration: 0 }
+												: { type: "spring", duration: 0.4, bounce: 0.2 }
+										}
 									/>
 								)}
 								<span className="relative z-10">{record.label}</span>
@@ -136,7 +148,9 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 			<Popover>
 				<PopoverTrigger className="group mt-3 flex h-9 w-full items-center justify-between gap-4 rounded-md border border-input px-4 py-2 text-left outline-0 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50">
 					{selectedRecordsForActiveTab.length === 0 ? (
-					<span className="truncate text-sm text-muted-foreground">Select {activeTab.label.toLowerCase()} records</span>
+						<span className="truncate text-sm text-muted-foreground">
+							Select {activeTab.label.toLowerCase()} records
+						</span>
 					) : (
 						<span className="truncate text-sm text-foreground">
 							{selectedRecordsForActiveTab.length} selected in {activeTab.label}
@@ -165,7 +179,9 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 					>
 						<Label className="h-full w-full">
 							<Checkbox
-								checked={areAllVisibleRecordsSelected || (areSomeVisibleRecordsSelected && "indeterminate")}
+								checked={
+									areAllVisibleRecordsSelected || (areSomeVisibleRecordsSelected && "indeterminate")
+								}
 								aria-label={`Select all ${activeTab.label.toLowerCase()} records`}
 								disabled={recordsForActiveTab.length === 0}
 								onCheckedChange={handleSelectAllVisibleRecords}
@@ -207,7 +223,9 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 								>
 									<span className="flex min-w-0 flex-col">
 										<span className="truncate">{name}</span>
-										{createdAt ? <span className="text-xs font-normal text-gray-400">{createdAt}</span> : null}
+										{createdAt ? (
+											<span className="text-xs font-normal text-gray-400">{createdAt}</span>
+										) : null}
 									</span>
 								</MultiSelectItem>
 							))}
@@ -220,20 +238,24 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 							variant="outline"
 							onClick={() => handlePageChange(clinicalRecordOptionsPage - 1)}
 							disabled={clinicalRecordOptionsPage <= 1 || isUpdatingClinicalRecordOptions}
-							className="justify-self-start border-gray-200 px-3 text-gray-700 shadow-none transition"
+							className="justify-self-start px-3 text-gray-700 shadow-none"
 						>
 							Previous
 						</Button>
 						<span className="justify-self-center text-center text-sm font-medium text-gray-600">
 							Page {clinicalRecordOptionsPage} of {currentTotalPages}
-							<span className="block text-xs font-normal text-gray-400">{totalRecordsForActiveTab} total</span>
+							<span className="block text-xs font-normal text-gray-400">
+								{totalRecordsForActiveTab} total
+							</span>
 						</span>
 						<Button
 							type="button"
 							variant="outline"
 							onClick={() => handlePageChange(clinicalRecordOptionsPage + 1)}
-							disabled={clinicalRecordOptionsPage >= currentTotalPages || isUpdatingClinicalRecordOptions}
-							className="justify-self-end border-gray-200 px-3 text-gray-700 shadow-none transition"
+							disabled={
+								clinicalRecordOptionsPage >= currentTotalPages || isUpdatingClinicalRecordOptions
+							}
+							className="justify-self-end px-3 text-gray-700 shadow-none"
 						>
 							Next
 						</Button>

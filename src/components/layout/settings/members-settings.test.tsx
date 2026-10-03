@@ -33,7 +33,13 @@ describe("MembersSettings", () => {
 		expect(
 			within(currentUserCard!).queryByRole("button", { hidden: true }),
 		).not.toBeInTheDocument();
-		expect(screen.getAllByRole("button", { name: "Change role" })).toHaveLength(2);
+		expect(screen.getAllByRole("combobox", { name: /^Role for / })).toHaveLength(2);
+		expect(screen.getByRole("combobox", { name: "Role for Sarah Williams" })).toHaveTextContent(
+			"Admin",
+		);
+		expect(screen.getByRole("combobox", { name: "Role for David Okafor" })).toHaveTextContent(
+			"Member",
+		);
 		expect(screen.getAllByRole("button", { name: "Remove member" })).toHaveLength(2);
 		expect(adminSummaryButton).toHaveAttribute("aria-expanded", "true");
 		expect(adminDetails).toHaveAttribute("aria-hidden", "false");
@@ -68,7 +74,7 @@ describe("MembersSettings", () => {
 			"aria-expanded",
 			"true",
 		);
-		expect(screen.getAllByRole("button", { name: "Change role" })).toHaveLength(1);
+		expect(screen.getAllByRole("combobox", { name: /^Role for / })).toHaveLength(1);
 		expect(screen.getAllByRole("button", { name: "Remove member" })).toHaveLength(1);
 	});
 

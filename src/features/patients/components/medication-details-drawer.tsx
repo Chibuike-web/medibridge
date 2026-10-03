@@ -131,7 +131,6 @@ export function MedicationDetailsDrawer({
 							<Button
 								type="button"
 								form={medicationDetailsFormId}
-								className="bg-gray-800"
 								onClick={() => setMedicationDetailsMode("view")}
 							>
 								Save changes
@@ -149,13 +148,9 @@ export function MedicationDetailsDrawer({
 					) : (
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<DrawerClose asChild>
-								<Button variant="outline">
-									Cancel
-								</Button>
+								<Button variant="outline">Cancel</Button>
 							</DrawerClose>
-							{canArchive ? (
-								<Button className="bg-gray-800">Archive medication</Button>
-							) : null}
+							{canArchive ? <Button>Archive medication</Button> : null}
 						</div>
 					)}
 				</DrawerFooter>
@@ -192,14 +187,15 @@ function MedicationDetailsOverview({
 						<h2 className="text-lg font-semibold text-gray-800">{medication.name}</h2>
 						<StatusBadge status={medication.status} />
 					</div>
-					<button
+					<Button
 						type="button"
 						onClick={onEditMedicationDetails}
-						className="inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						variant="ghost"
+						className="text-gray-400 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-gray-300 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent focus-visible:border-0 has-[>svg:first-child]:pl-0"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
-					</button>
+					</Button>
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
@@ -301,15 +297,9 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="active">
-										Active
-									</SelectItem>
-									<SelectItem value="completed">
-										Completed
-									</SelectItem>
-									<SelectItem value="discontinued">
-										Discontinued
-									</SelectItem>
+									<SelectItem value="active">Active</SelectItem>
+									<SelectItem value="completed">Completed</SelectItem>
+									<SelectItem value="discontinued">Discontinued</SelectItem>
 								</SelectGroup>
 							</SelectContent>
 						</Select>
@@ -340,15 +330,9 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="oral">
-										Oral
-									</SelectItem>
-									<SelectItem value="iv">
-										IV
-									</SelectItem>
-									<SelectItem value="inhalation">
-										Inhalation
-									</SelectItem>
+									<SelectItem value="oral">Oral</SelectItem>
+									<SelectItem value="iv">IV</SelectItem>
+									<SelectItem value="inhalation">Inhalation</SelectItem>
 								</SelectGroup>
 							</SelectContent>
 						</Select>
@@ -453,7 +437,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 					<Button
 						type="button"
 						variant="outline"
-						className="border-gray-200 bg-white text-gray-600"
+						className="bg-white text-gray-600"
 						onClick={handleAddMedicationAttachmentRow}
 					>
 						<RiAddLine className="size-5" aria-hidden="true" />
@@ -483,7 +467,12 @@ function MedicationHistorySection({ history }: { history: MedicationDetailsHisto
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
 				<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
-				<button className="text-sm text-gray-400">View more</button>
+				<Button
+					variant="ghost"
+					className="text-gray-400 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-gray-400 focus-visible:border-0"
+				>
+					View more
+				</Button>
 			</div>
 			{history.map((historyEvent) => (
 				<MedicationHistoryCard key={historyEvent.id} historyEvent={historyEvent} />
@@ -500,12 +489,13 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 
 	return (
 		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
-			<button
+			<Button
 				type="button"
 				onClick={() => setIsMedicationHistoryExpanded((prev) => !prev)}
 				aria-expanded={isMedicationHistoryExpanded}
 				aria-controls={panelId}
-				className="flex w-full items-center justify-between gap-4 text-left"
+				variant="ghost"
+				className="flex w-full justify-between gap-4 text-left h-auto whitespace-normal rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0 active:scale-100 has-[>svg:last-child]:pr-0"
 			>
 				<p className="min-w-0 text-sm">
 					<span id={titleId} className="font-semibold text-gray-800">
@@ -523,7 +513,7 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 					)}
 					aria-hidden="true"
 				/>
-			</button>
+			</Button>
 			<div
 				id={panelId}
 				className={cn(
@@ -538,14 +528,14 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 						role="region"
 						aria-labelledby={titleId}
 						className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
-						>
-							{historyEvent.items.map((item) => (
-								<MedicationDetailItem
-									key={`${historyEvent.id}-${item.label}`}
-									label={item.label}
-									value={item.value}
-								/>
-							))}
+					>
+						{historyEvent.items.map((item) => (
+							<MedicationDetailItem
+								key={`${historyEvent.id}-${item.label}`}
+								label={item.label}
+								value={item.value}
+							/>
+						))}
 					</div>
 				</div>
 			</div>

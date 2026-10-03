@@ -230,10 +230,7 @@ export function DiagnosesTable({
 					}}
 				>
 					<DropdownMenuTrigger asChild>
-						<Button
-							variant="outline"
-							className="bg-white text-gray-600 hover:bg-gray-50"
-						>
+						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 							Filter
 						</Button>
@@ -376,10 +373,7 @@ export function DiagnosesTable({
 						</DropdownMenuSub>
 					</DropdownMenuContent>
 				</DropdownMenu>
-				<Button
-					variant="outline"
-					className="border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-				>
+				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
@@ -497,7 +491,10 @@ function DiagnosesTableContent({
 												: undefined
 										}
 										onKeyDown={(event) => {
-											if (header.column.getCanSort() && (event.key === "Enter" || event.key === " ")) {
+											if (
+												header.column.getCanSort() &&
+												(event.key === "Enter" || event.key === " ")
+											) {
 												event.preventDefault();
 												header.column.getToggleSortingHandler()?.(event);
 											}
@@ -548,7 +545,7 @@ function DiagnosesTableContent({
 									onKeyDown={(event) => {
 										if (event.key === "Enter" || event.key === " ") {
 											event.preventDefault();
-										onViewDiagnosisDetails(row.original.diagnosisId);
+											onViewDiagnosisDetails(row.original.diagnosisId);
 										}
 									}}
 									className="group min-h-14 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
@@ -593,7 +590,7 @@ function DiagnosesTableContent({
 							onValueChange={(value) => onLimitChange(Number(value))}
 							disabled={isPending}
 						>
-							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
+							<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent className="w-20" align="start">
@@ -616,7 +613,7 @@ function DiagnosesTableContent({
 								size="sm"
 								onClick={onPreviousPage}
 								disabled={page <= 1 || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Previous
 							</Button>
@@ -626,7 +623,7 @@ function DiagnosesTableContent({
 								size="sm"
 								onClick={onNextPage}
 								disabled={page >= totalPages || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Next
 							</Button>
@@ -671,43 +668,51 @@ function DiagnosesBulkActionBar({
 			<div className="flex items-center">
 				{singleSelectedDiagnosis ? (
 					<>
-						<button
+						<Button
 							type="button"
 							onClick={() => {
 								onViewDiagnosisDetails(singleSelectedDiagnosis.diagnosisId);
 							}}
-							className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+							variant="ghost"
+							size="sm"
+							className="h-9 gap-2 rounded-lg border-0 px-2 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 						>
 							<RiEyeLine className="size-5" aria-hidden={true} />
 							<span>View details</span>
-						</button>
+						</Button>
 					</>
 				) : null}
-				<button
+				<Button
 					type="button"
-					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+					variant="ghost"
+					size="sm"
+					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				>
 					<RiShare2Line className="size-5" aria-hidden={true} />
 					<span>Export {selectedDiagnosisCount > 1 ? "all" : null}</span>
-				</button>
+				</Button>
 				{canArchive ? (
-					<button
+					<Button
 						type="button"
-						className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+						variant="ghost"
+						size="sm"
+						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
 						<RiArchiveLine className="size-5" aria-hidden={true} />
 						<span>Archive {selectedDiagnosisCount > 1 ? "all" : null}</span>
-					</button>
+					</Button>
 				) : null}
 			</div>
-			<button
+			<Button
 				type="button"
 				onClick={onClearSelection}
-				className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				variant="ghost"
+				size="icon"
+				className="size-8 border-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected diagnoses"
 			>
 				<RiCloseLine className="size-5" aria-hidden={true} />
-			</button>
+			</Button>
 		</div>
 	);
 }
@@ -791,14 +796,15 @@ function DiagnosisFilterPill({ label, onRemove }: { label: string; onRemove: () 
 	return (
 		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
 			<span>{label}</span>
-			<button
+			<Button
 				type="button"
 				onClick={onRemove}
-				className="flex items-center justify-center bg-gray-800 text-white size-5 rounded-full transition hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+				size="icon"
+				className="flex text-white size-5 rounded-full hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
 				aria-label={`Remove ${label} filter`}
 			>
 				<RiCloseLine className="size-4" aria-hidden={true} />
-			</button>
+			</Button>
 		</span>
 	);
 }

@@ -17,7 +17,8 @@ import {
 	RiFunctionLine,
 	RiSearchLine,
 } from "@remixicon/react";
-import { ComponentType, useCallback, useEffect, useRef, useState } from "react";
+import { ComponentType, useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import {
 	CommandDialog,
 	CommandEmpty,
@@ -45,7 +46,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedSearchTab, setSelectedSearchTab] = useState<SearchTab>("All");
-	const tabsRef = useRef<(HTMLElement | null)[]>([]);
+	const shouldReduceMotion = useReducedMotion();
 	const startXRef = useRef(0);
 	const startWidthRef = useRef(0);
 	const isCollapsed = width < COLLAPSE_THRESHOLD;
@@ -102,40 +103,6 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 		document.addEventListener("mouseup", handleMouseUp);
 	}
 
-	const activeIndex = searchTabs.findIndex((t) => t === selectedSearchTab);
-
-	const positionSearchIndicator = useCallback(
-		(indicator: HTMLSpanElement | null) => {
-			const container = indicator?.parentElement;
-			const activeTab = tabsRef.current[activeIndex];
-			if (!indicator || !container || !activeTab) return;
-
-			const updateIndicator = () => {
-				indicator.style.transform = `translate(${activeTab.offsetLeft}px, ${activeTab.offsetTop}px)`;
-				indicator.style.width = `${activeTab.offsetWidth}px`;
-				indicator.style.height = `${activeTab.offsetHeight}px`;
-			};
-
-			updateIndicator();
-
-			if (!indicator.dataset.positioned) {
-				// Commit the first position without a transition.
-				indicator.getBoundingClientRect();
-				indicator.dataset.positioned = "true";
-			}
-			if (typeof ResizeObserver === "undefined") return;
-
-			const resizeObserver = new ResizeObserver(updateIndicator);
-			resizeObserver.observe(container);
-			for (const tab of tabsRef.current) {
-				if (tab) resizeObserver.observe(tab);
-			}
-
-			return () => resizeObserver.disconnect();
-		},
-		[activeIndex],
-	);
-
 	return (
 		<aside
 			className={cn(
@@ -152,7 +119,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 			>
 				{isCollapsed ? (
 					<div
-						className="relative size-10"
+						className="relative size-8"
 						onMouseEnter={() => setIsHovered(true)}
 						onMouseLeave={() => setIsHovered(false)}
 					>
@@ -164,16 +131,18 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 						>
 							MB
 						</h1>
-						<button
+						<Button
+							variant="ghost"
+							size="icon"
 							onClick={toggleSidebar}
 							aria-label="Expand sidebar"
 							className={cn(
-								"absolute inset-0 flex items-center justify-center rounded-lg border border-transparent hover:bg-gray-100 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100 transition-[opacity,filter,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none motion-reduce:blur-0",
+								"absolute inset-0 flex rounded-lg hover:bg-gray-100 transition-[scale,background-color,color,border-color,opacity,filter] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none motion-reduce:blur-0 size-auto hover:text-inherit",
 								isHovered ? "opacity-100 blur-0" : "opacity-0 blur-sm",
 							)}
 						>
-							<RiContractLeftLine className="size-5 shrink-0" aria-hidden />
-						</button>
+							<RiContractLeftLine className="size-4 shrink-0" aria-hidden />
+						</Button>
 					</div>
 				) : (
 					<>
@@ -185,23 +154,26 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 						>
 							MediBridge
 						</h1>
-						<button
+						<Button
+							variant="ghost"
+							size="icon"
 							onClick={toggleSidebar}
 							aria-label="Collapse sidebar"
-							className="flex size-10 items-center justify-center rounded-lg border border-transparent hover:bg-gray-100 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+							className="flex size-8 rounded-lg hover:bg-gray-100 hover:text-inherit"
 						>
-							<RiContractLeftLine className="size-5 shrink-0" aria-hidden />
-						</button>
+							<RiContractLeftLine className="size-4 shrink-0" aria-hidden />
+						</Button>
 					</>
 				)}
 			</div>
 
 			<ul className="flex flex-col gap-px p-2 text-sm">
 				<li>
-					<button
+					<Button
+						variant="ghost"
 						type="button"
 						className={cn(
-							"flex h-8 w-full items-center gap-2 rounded-lg border border-transparent px-2.5 text-gray-600 hover:bg-gray-100 hover:text-gray-800 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
+							"flex h-8 w-full rounded-lg px-2.5 text-gray-600 hover:bg-gray-100 hover:text-gray-800 justify-start py-0 font-normal has-[>svg:first-child]:pl-2.5 has-[>svg:last-child]:pr-2.5",
 							isCollapsed ? "justify-center" : "",
 						)}
 						aria-label="Search chats"
@@ -209,7 +181,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 					>
 						<RiSearchLine className="size-4 shrink-0" aria-hidden />
 						{!isCollapsed ? <span className="whitespace-nowrap">Search...</span> : null}
-					</button>
+					</Button>
 					<CommandDialog
 						open={isSearchOpen}
 						onOpenChange={(open) => {
@@ -261,33 +233,43 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							) : null}
 							{searchQuery.trim() ? (
 								<div
-									className="flex flex-wrap gap-1.5 px-4 pt-4 pb-2 relative"
+									className="flex flex-wrap gap-1.5 px-4 pt-4 pb-2"
 									role="tablist"
 									aria-label="Search result types"
 								>
-									{searchTabs.map((tab, index) => (
-										<button
-											ref={(el) => {
-												tabsRef.current[index] = el;
-											}}
-											key={tab}
-											type="button"
-											role="tab"
-											aria-selected={selectedSearchTab === tab}
-											className={cn(
-												"relative z-10 rounded-full border border-transparent px-2.5 h-8 text-sm text-gray-600 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
-												selectedSearchTab === tab && "text-white",
-											)}
-											onClick={() => setSelectedSearchTab(tab)}
-										>
-											{tab}
-										</button>
-									))}
-									<span
-										ref={positionSearchIndicator}
-										aria-hidden="true"
-										className="pointer-events-none absolute left-0 top-0 rounded-full bg-gray-800 data-[positioned=true]:transition-[transform,width,height] data-[positioned=true]:duration-200 motion-reduce:transition-none"
-									/>
+									{searchTabs.map((tab) => {
+										const isActive = selectedSearchTab === tab;
+
+										return (
+											<Button
+												variant="ghost"
+												key={tab}
+												type="button"
+												role="tab"
+												aria-selected={isActive}
+												className={cn(
+													"relative rounded-full px-2.5 h-8 text-gray-600 py-0 font-normal hover:bg-transparent hover:text-gray-600",
+													isActive && "text-white hover:text-white",
+												)}
+												onClick={() => setSelectedSearchTab(tab)}
+											>
+												{isActive && (
+													<motion.span
+														layoutId="search-result-tab"
+														aria-hidden="true"
+														className="absolute inset-0 bg-gray-800"
+														style={{ borderRadius: 9999 }}
+														transition={
+															shouldReduceMotion
+																? { duration: 0 }
+																: { type: "spring", duration: 0.4, bounce: 0.2 }
+														}
+													/>
+												)}
+												<span className="relative z-10">{tab}</span>
+											</Button>
+										);
+									})}
 								</div>
 							) : null}
 							<CommandEmpty>No matching results.</CommandEmpty>

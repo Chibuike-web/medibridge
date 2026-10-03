@@ -139,7 +139,7 @@ export function FilterButton({
 					id="patient-filter-submenu-panel"
 					aria-hidden={activeFilterSubmenu === null}
 					className={cn(
-						"absolute top-0 right-[100%] z-50 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						"absolute top-0 right-[100%] z-50 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[translate,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						activeFilterSubmenu === "created-at" ? "w-max" : "w-[13.75rem]",
 						activeFilterSubmenu === "age"
 							? "translate-y-9"
@@ -157,7 +157,7 @@ export function FilterButton({
 									nextGenderFilter === "all" ? "" : (nextGenderFilter as PatientGenderFilter),
 								);
 							}}
-							className="flex flex-col gap-1"
+							className="flex flex-col gap-0.5"
 							disabled={isPending}
 						>
 							<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
@@ -202,7 +202,7 @@ export function FilterButton({
 										: (nextAgeGroupFilter as PatientAgeGroupFilter),
 								);
 							}}
-							className="flex flex-col gap-1"
+							className="flex flex-col gap-0.5"
 							disabled={isPending}
 						>
 							<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
@@ -415,14 +415,16 @@ function DatePresetButton({
 	onSelect: () => void;
 }) {
 	return (
-		<button
+		<Button
 			type="button"
 			onClick={onSelect}
-			className="flex h-8 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 hover:bg-gray-100 focus-visible:bg-gray-100 focus-visible:outline-none"
+			variant="ghost"
+			size="sm"
+			className="flex w-full justify-between rounded-lg text-left text-gray-700 hover:bg-gray-100 focus-visible:bg-gray-100 gap-0 border-0 hover:text-gray-700 focus-visible:border-0 focus-visible:ring-0"
 		>
 			<span>{label}</span>
 			{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}
-		</button>
+		</Button>
 	);
 }
 

@@ -1,10 +1,6 @@
 "use client";
 
-import {
-	RiDeleteBin2Line,
-	RiEdit2Line,
-	RiUpload2Line,
-} from "@remixicon/react";
+import { RiDeleteBin2Line, RiEdit2Line, RiUpload2Line } from "@remixicon/react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -56,9 +52,10 @@ function PatientAvatarMenu({ patientName }: { patientName: string }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<button
+				<Button
+					variant="ghost"
 					type="button"
-					className="relative w-max rounded-full focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-300"
+					className="relative w-max rounded-full focus-visible:ring-gray-300 h-auto border-0 p-0 hover:bg-transparent focus-visible:border-0"
 					aria-label="Change profile photo"
 				>
 					<Avatar className="size-[146px] border border-gray-200 bg-gray-100 text-gray-700">
@@ -72,7 +69,7 @@ function PatientAvatarMenu({ patientName }: { patientName: string }) {
 					>
 						<RiEdit2Line className="size-5" aria-hidden="true" />
 					</div>
-				</button>
+				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="center"

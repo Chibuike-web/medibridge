@@ -127,10 +127,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 								Modality<span className={imagingRequiredLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-modality`}
-									className="w-full data-[placeholder]:text-gray-400"
-								>
+								<SelectTrigger id={`${generatedFormId}-modality`} className="w-full">
 									<SelectValue placeholder="Select modality" />
 								</SelectTrigger>
 								<SelectContent>
@@ -155,7 +152,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 										type="button"
 										variant="outline"
 										data-empty={!orderedAt}
-										className={`${imagingFieldControlClassName} flex w-full items-center justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+										className={`${imagingFieldControlClassName} flex w-full justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
 									>
 										<span className="min-w-0 truncate">
 											{orderedAt ? format(orderedAt, "PPP") : "Select date"}
@@ -188,10 +185,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 								Status<span className={imagingRequiredLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-status`}
-									className="w-full data-[placeholder]:text-gray-400"
-								>
+								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent>
@@ -271,7 +265,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 							<Button
 								type="button"
 								variant="outline"
-								className="border-gray-200 bg-white text-gray-600"
+								className="bg-white text-gray-600"
 								onClick={handleAddImagingAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />
@@ -288,9 +282,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="button">
-							Add imaging
-						</Button>
+						<Button type="button">Add imaging</Button>
 					</div>
 				</DrawerFooter>
 			</DrawerContent>
@@ -301,18 +293,10 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 export function ImagingModalityOptions() {
 	return (
 		<SelectGroup>
-			<SelectItem value="ct">
-				CT
-			</SelectItem>
-			<SelectItem value="mri">
-				MRI
-			</SelectItem>
-			<SelectItem value="ultrasound">
-				Ultrasound
-			</SelectItem>
-			<SelectItem value="x-ray">
-				X-ray
-			</SelectItem>
+			<SelectItem value="ct">CT</SelectItem>
+			<SelectItem value="mri">MRI</SelectItem>
+			<SelectItem value="ultrasound">Ultrasound</SelectItem>
+			<SelectItem value="x-ray">X-ray</SelectItem>
 		</SelectGroup>
 	);
 }
@@ -320,15 +304,9 @@ export function ImagingModalityOptions() {
 export function ImagingStatusOptions() {
 	return (
 		<SelectGroup>
-			<SelectItem value="pending">
-				Pending
-			</SelectItem>
-			<SelectItem value="completed">
-				Completed
-			</SelectItem>
-			<SelectItem value="cancelled">
-				Cancelled
-			</SelectItem>
+			<SelectItem value="pending">Pending</SelectItem>
+			<SelectItem value="completed">Completed</SelectItem>
+			<SelectItem value="cancelled">Cancelled</SelectItem>
 		</SelectGroup>
 	);
 }

@@ -76,7 +76,9 @@ export function FilterButton({
 	onStatusFiltersChange: (statusFilters: TransferStatusFilter[]) => void;
 	statusFilters: TransferStatusFilter[];
 }) {
-	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<TransferFilterSubmenu | null>(null);
+	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<TransferFilterSubmenu | null>(
+		null,
+	);
 	const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
 	return (
@@ -91,10 +93,7 @@ export function FilterButton({
 			}}
 		>
 			<DropdownMenuTrigger asChild>
-				<Button
-					variant="outline"
-					className="bg-white text-gray-600 hover:bg-gray-50"
-				>
+				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 					<RiFilter3Line aria-hidden className="size-4 text-gray-600" />
 					Filter
 				</Button>
@@ -133,7 +132,7 @@ export function FilterButton({
 					id="transfer-filter-submenu-panel"
 					aria-hidden={activeFilterSubmenu === null}
 					className={cn(
-						"absolute top-0 right-[100%] z-50 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						"absolute top-0 right-[100%] z-50 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[translate,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						activeFilterSubmenu === "requested-at" ? "w-max" : "w-[13.75rem]",
 						activeFilterSubmenu === "requested-at" ? "translate-y-9" : "translate-y-0",
 						activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
@@ -161,8 +160,8 @@ export function FilterButton({
 													: statusFilters.filter(
 															(statusFilter) => statusFilter !== statusOption.value,
 														),
-												);
-											}}
+											);
+										}}
 										className="[&_svg]:!text-current"
 									/>
 									<span>{statusOption.label}</span>
@@ -320,16 +319,18 @@ function DatePresetButton({
 	isSelected: boolean;
 	label: string;
 	onSelect: () => void;
-	}) {
+}) {
 	return (
-		<button
+		<Button
 			type="button"
 			onClick={onSelect}
-			className="flex h-8 w-full items-center justify-between rounded-lg px-3 text-left font-medium text-gray-700 hover:bg-gray-100 focus-visible:bg-gray-50 focus-visible:outline-none"
+			variant="ghost"
+			size="sm"
+			className="flex w-full justify-between rounded-lg text-left text-gray-700 hover:bg-gray-100 focus-visible:bg-gray-50 gap-0 border-0 hover:text-gray-700 focus-visible:border-0 focus-visible:ring-0"
 		>
 			<span>{label}</span>
 			{isSelected ? <RiCheckLine className="size-5 text-gray-700" aria-hidden="true" /> : null}
-		</button>
+		</Button>
 	);
 }
 
@@ -352,7 +353,10 @@ function getDateRangeFromParams(requestedFrom: string, requestedTo: string): Dat
 	return { from, to };
 }
 
-function isSameDateRange(range: DateRange | undefined, presetRange: TransferRequestedAtCompleteRange) {
+function isSameDateRange(
+	range: DateRange | undefined,
+	presetRange: TransferRequestedAtCompleteRange,
+) {
 	if (!range?.from || !range.to) return false;
 
 	return isSameDay(range.from, presetRange.from) && isSameDay(range.to, presetRange.to);

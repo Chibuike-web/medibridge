@@ -166,17 +166,15 @@ export function ImmunizationsTable({
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [selectedImmunizationRows, setSelectedImmunizationRows] =
-		useState<RowSelectionState>({});
-	const [activeFilterSubmenu, setActiveFilterSubmenu] =
-		useState<ImmunizationFilterSubmenu | null>(null);
+	const [selectedImmunizationRows, setSelectedImmunizationRows] = useState<RowSelectionState>({});
+	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<ImmunizationFilterSubmenu | null>(
+		null,
+	);
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const immunizationDetailsQuery = useSWR(
-		selectedId
-			? (["patient-immunization-details", selectedId] as const)
-			: null,
+		selectedId ? (["patient-immunization-details", selectedId] as const) : null,
 		([, selectedId]) => fetchPatientImmunizationDetails(selectedId),
 	);
 	const columns = useMemo(
@@ -234,10 +232,7 @@ export function ImmunizationsTable({
 					}}
 				>
 					<DropdownMenuTrigger asChild>
-						<Button
-							variant="outline"
-							className="bg-white text-gray-600 hover:bg-gray-50"
-						>
+						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
 							Filter
 						</Button>
@@ -331,18 +326,11 @@ export function ImmunizationsTable({
 						</DropdownMenuSub>
 					</DropdownMenuContent>
 				</DropdownMenu>
-				<Button
-					variant="outline"
-					className="bg-white text-gray-600 hover:bg-gray-50"
-				>
+				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-				<Button
-
-					type="button"
-					onClick={() => setIsCreateDrawerOpen(true)}
-				>
+				<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
 					Add immunization
 				</Button>
 			</div>
@@ -377,7 +365,10 @@ export function ImmunizationsTable({
 												: undefined
 										}
 										onKeyDown={(event) => {
-											if (header.column.getCanSort() && (event.key === "Enter" || event.key === " ")) {
+											if (
+												header.column.getCanSort() &&
+												(event.key === "Enter" || event.key === " ")
+											) {
 												event.preventDefault();
 												header.column.getToggleSortingHandler()?.(event);
 											}
@@ -437,8 +428,8 @@ export function ImmunizationsTable({
 										<TableCell
 											key={cell.id}
 											className={cn(
-											"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
-											row.getIsSelected() ? "bg-gray-100" : "bg-white",
+												"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
+												row.getIsSelected() ? "bg-gray-100" : "bg-white",
 												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 											)}
 										>
@@ -473,7 +464,7 @@ export function ImmunizationsTable({
 							onValueChange={(value) => onLimitChange(Number(value))}
 							disabled={isPending}
 						>
-							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
+							<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent className="w-20" align="start">
@@ -496,7 +487,7 @@ export function ImmunizationsTable({
 								size="sm"
 								onClick={onPreviousPage}
 								disabled={page <= 1 || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Previous
 							</Button>
@@ -506,7 +497,7 @@ export function ImmunizationsTable({
 								size="sm"
 								onClick={onNextPage}
 								disabled={page >= totalPages || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Next
 							</Button>
@@ -520,10 +511,7 @@ export function ImmunizationsTable({
 				onClearSelection={() => table.resetRowSelection()}
 				onViewImmunizationDetails={handleViewImmunizationDetails}
 			/>
-			<CreateImmunizationDrawer
-				open={isCreateDrawerOpen}
-				onOpenChange={setIsCreateDrawerOpen}
-			/>
+			<CreateImmunizationDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
 			<ImmunizationDetailsDrawer
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}
@@ -559,36 +547,48 @@ function ImmunizationsBulkActionBar({
 			<TableBulkActionSeparator />
 			<div className="flex items-center">
 				{singleSelectedImmunization ? (
-					<button
+					<Button
 						type="button"
-						onClick={() =>
-							onViewImmunizationDetails(singleSelectedImmunization.immunizationId)
-						}
-						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+						onClick={() => onViewImmunizationDetails(singleSelectedImmunization.immunizationId)}
+						variant="ghost"
+						size="sm"
+						className="h-9 gap-2 rounded-lg border-0 px-2 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
 						<RiEyeLine className="size-5" aria-hidden />
 						<span>View details</span>
-					</button>
+					</Button>
 				) : null}
-				<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
+				>
 					<RiShare2Line className="size-5" aria-hidden />
 					<span>Export {selectedImmunizationCount > 1 ? "all" : null}</span>
-				</button>
+				</Button>
 				{canArchive ? (
-					<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
+					>
 						<RiArchiveLine className="size-5" aria-hidden />
 						<span>Archive {selectedImmunizationCount > 1 ? "all" : null}</span>
-					</button>
+					</Button>
 				) : null}
 			</div>
-			<button
+			<Button
 				type="button"
 				onClick={onClearSelection}
-				className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				variant="ghost"
+				size="icon"
+				className="size-8 border-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected immunizations"
 			>
 				<RiCloseLine className="size-5" aria-hidden />
-			</button>
+			</Button>
 		</div>
 	);
 }
@@ -626,9 +626,7 @@ function ImmunizationActiveFilterPills({
 						label={`Status: ${statusOption?.label ?? formatImmunizationFilterValue(statusFilter)}`}
 						onRemove={() => {
 							onStatusFiltersChange(
-								statusFilters.filter(
-									(currentStatusFilter) => currentStatusFilter !== statusFilter,
-								),
+								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
 							);
 						}}
 					/>
@@ -648,14 +646,15 @@ function ImmunizationFilterPill({ label, onRemove }: { label: string; onRemove: 
 	return (
 		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
 			<span>{label}</span>
-			<button
+			<Button
 				type="button"
 				onClick={onRemove}
-				className="flex items-center justify-center bg-gray-800 text-white size-5 rounded-full transition hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+				size="icon"
+				className="flex text-white size-5 rounded-full hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
 				aria-label={`Remove ${label} filter`}
 			>
 				<RiCloseLine className="size-4" aria-hidden="true" />
-			</button>
+			</Button>
 		</span>
 	);
 }
@@ -745,10 +744,7 @@ function ImmunizationCustomRangeCalendarPanel({
 					label="Start date"
 				/>
 				<RiArrowRightLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
-				<ImmunizationDateFieldPlaceholder
-					value={draftImmunizationDateRange?.to}
-					label="End date"
-				/>
+				<ImmunizationDateFieldPlaceholder value={draftImmunizationDateRange?.to} label="End date" />
 			</div>
 
 			<Calendar
@@ -784,7 +780,9 @@ function ImmunizationCustomRangeCalendarPanel({
 				<Button
 					type="button"
 					className="min-w-40 flex-1"
-					disabled={!draftImmunizationDateRange?.from || !draftImmunizationDateRange?.to || isPending}
+					disabled={
+						!draftImmunizationDateRange?.from || !draftImmunizationDateRange?.to || isPending
+					}
 					onClick={() => {
 						if (!draftImmunizationDateRange?.from || !draftImmunizationDateRange?.to) return;
 
@@ -861,7 +859,6 @@ function getDateRangeFromParams(from: string, to: string): DateRange | undefined
 
 	return { from: parsedFromDate, to: parsedToDate };
 }
-
 
 function isSameDateRange(range: DateRange | undefined, presetRange: ImmunizationDateCompleteRange) {
 	if (!range?.from || !range.to) return false;
@@ -984,17 +981,17 @@ function getImmunizationsColumns({
 								align="end"
 								className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 							>
-							<DropdownMenuItem
-								className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
-								onSelect={() => onViewImmunizationDetails(row.original.immunizationId)}
-							>
-								<RiEyeLine className="text-white" />
-								<span>View details</span>
-							</DropdownMenuItem>
-							<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-								<RiShare2Line className="text-white" />
-								<span>Export</span>
-							</DropdownMenuItem>
+								<DropdownMenuItem
+									className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+									onSelect={() => onViewImmunizationDetails(row.original.immunizationId)}
+								>
+									<RiEyeLine className="text-white" />
+									<span>View details</span>
+								</DropdownMenuItem>
+								<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<RiShare2Line className="text-white" />
+									<span>Export</span>
+								</DropdownMenuItem>
 								{canUpdateImmunizationStatus ? (
 									<>
 										<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">

@@ -92,7 +92,7 @@ export function InviteMembersSettings({
 					{inviteMemberRows.map((memberRow, memberIndex) => (
 						<div
 							key={memberRow.id}
-							className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
+							className="grid grid-cols-1 gap-x-2 gap-y-4 sm:grid-cols-[minmax(0,1fr)_auto]"
 						>
 							<div className="flex items-center justify-between gap-4 sm:col-span-2">
 								<span className="text-base font-semibold text-gray-800">
@@ -142,9 +142,9 @@ export function InviteMembersSettings({
 								>
 									<SelectTrigger
 										id={`${inviteFormId}-${memberRow.id}-role`}
-										className={`${fieldControlClassName} w-full data-[placeholder]:text-gray-400`}
+										className={`${fieldControlClassName} w-35`}
 									>
-										<SelectValue placeholder="Select member role" />
+										<SelectValue placeholder="Select role" />
 									</SelectTrigger>
 									<SelectContent align="start">
 										{inviteRoleOptions[viewerRole].map((roleOption) => (
@@ -162,7 +162,7 @@ export function InviteMembersSettings({
 						<Button
 							type="button"
 							variant="outline"
-							className="border-gray-200 bg-white text-gray-600"
+							className="bg-white text-gray-600"
 							onClick={onAddInvitationRow}
 						>
 							<RiAddLine className="size-5" aria-hidden="true" />

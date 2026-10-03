@@ -185,12 +185,13 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 
 	return (
 		<div className="flex flex-col rounded-[14px] border border-gray-200 p-4">
-			<button
+			<Button
 				type="button"
 				onClick={() => setIsTransferContentGroupExpanded((prev) => !prev)}
 				aria-expanded={isTransferContentGroupExpanded}
 				aria-controls={panelId}
-				className="flex w-full items-center justify-between gap-4 text-left"
+				variant="ghost"
+				className="flex w-full justify-between gap-4 text-left h-auto whitespace-normal rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0 active:scale-100 has-[>svg:last-child]:pr-0"
 			>
 				<span id={titleId} className="text-sm font-semibold text-gray-800">
 					{contentGroup.contentType}
@@ -202,7 +203,7 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 					)}
 					aria-hidden="true"
 				/>
-			</button>
+			</Button>
 
 			<div
 				id={panelId}

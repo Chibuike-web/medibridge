@@ -219,7 +219,10 @@ function TransferTableContent({
 												: undefined
 										}
 										onKeyDown={(event) => {
-											if (header.column.getCanSort() && (event.key === "Enter" || event.key === " ")) {
+											if (
+												header.column.getCanSort() &&
+												(event.key === "Enter" || event.key === " ")
+											) {
 												event.preventDefault();
 												header.column.getToggleSortingHandler()?.(event);
 											}
@@ -311,7 +314,7 @@ function TransferTableContent({
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select value={limit.toString()} onValueChange={onLimitChange} disabled={isPending}>
-							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
+							<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent className="w-20" align="start">
@@ -334,7 +337,7 @@ function TransferTableContent({
 								size="sm"
 								onClick={onPreviousPage}
 								disabled={page <= 1 || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Previous
 							</Button>
@@ -344,7 +347,7 @@ function TransferTableContent({
 								size="sm"
 								onClick={onNextPage}
 								disabled={page >= totalPages || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Next
 							</Button>
@@ -389,41 +392,49 @@ function TransferBulkActionBar({
 			<div className="flex items-center">
 				{singleSelectedTransfer ? (
 					<>
-						<button
+						<Button
 							type="button"
 							onClick={() => onViewTransferDetails(singleSelectedTransfer.id)}
-							className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+							variant="ghost"
+							size="sm"
+							className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 						>
 							<RiEyeLine className="size-5" aria-hidden={true} />
 							<span>View transfer details</span>
-						</button>
+						</Button>
 					</>
 				) : null}
-				<button
+				<Button
 					type="button"
-					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+					variant="ghost"
+					size="sm"
+					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				>
 					<RiShare2Line className="size-5" aria-hidden={true} />
 					<span>Export {selectedTransferCount > 1 ? "all" : null}</span>
-				</button>
+				</Button>
 				{canArchive ? (
-					<button
+					<Button
 						type="button"
-						className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+						variant="ghost"
+						size="sm"
+						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
 						<RiArchiveLine className="size-5" aria-hidden={true} />
 						<span>Archive {selectedTransferCount > 1 ? "all" : null}</span>
-					</button>
+					</Button>
 				) : null}
 			</div>
-			<button
+			<Button
 				type="button"
 				onClick={onClearSelection}
-				className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				variant="ghost"
+				size="icon"
+				className="size-8 border-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected transfers"
 			>
 				<RiCloseLine className="size-5" aria-hidden={true} />
-			</button>
+			</Button>
 		</div>
 	);
 }

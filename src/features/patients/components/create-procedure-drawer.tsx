@@ -144,23 +144,14 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 								Status<span className={optionalLabelClassName}>(required)</span>
 							</Label>
 							<Select>
-								<SelectTrigger
-									id={`${generatedFormId}-status`}
-									className="w-full data-[placeholder]:text-gray-400"
-								>
+								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="pending">
-											Pending
-										</SelectItem>
-										<SelectItem value="completed">
-											Completed
-										</SelectItem>
-										<SelectItem value="cancelled">
-											Cancelled
-										</SelectItem>
+										<SelectItem value="pending">Pending</SelectItem>
+										<SelectItem value="completed">Completed</SelectItem>
+										<SelectItem value="cancelled">Cancelled</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>
@@ -257,7 +248,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 												onChange={(event) =>
 													handleAssistantNameChange(assistantRow.id, event.target.value)
 												}
-												className="min-w-0 flex-1 bg-transparent  text-sm text-gray-700 outline-none placeholder:text-gray-400"
+												className="min-w-0 flex-1 bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
 											/>
 
 											<Button
@@ -273,14 +264,15 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 										</div>
 									))}
 
-									<button
+									<Button
 										type="button"
 										onClick={handleAddAssistantRow}
-										className="flex h-9 w-full items-center justify-between rounded-md bg-gray-100 px-3 text-left text-sm text-gray-600 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+										variant="ghost"
+										className="flex w-full justify-between bg-gray-100 px-3 text-left text-gray-600 hover:bg-gray-200 border-0 font-normal hover:text-gray-600 focus-visible:border-0 active:scale-100"
 									>
 										<span>Add more</span>
 										<RiAddLine className="size-5" aria-hidden="true" />
-									</button>
+									</Button>
 								</PopoverContent>
 							</Popover>
 						</div>
@@ -325,7 +317,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 							<Button
 								type="button"
 								variant="outline"
-								className="border-gray-200 bg-white text-gray-600"
+								className="bg-white text-gray-600"
 								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />
@@ -342,9 +334,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="button">
-							Add procedure
-						</Button>
+						<Button type="button">Add procedure</Button>
 					</div>
 				</DrawerFooter>
 			</DrawerContent>

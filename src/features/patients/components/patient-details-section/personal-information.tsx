@@ -261,7 +261,7 @@ export function PersonalInformation({
 							<input type="hidden" name="sex" value={selectedSex} />
 
 							<Select value={selectedSex} onValueChange={setSelectedSex}>
-								<SelectTrigger className="h-9 w-full">
+								<SelectTrigger className="w-full">
 									<SelectValue placeholder="Select sex" />
 								</SelectTrigger>
 								<SelectContent>
@@ -278,7 +278,7 @@ export function PersonalInformation({
 							<input type="hidden" name="maritalStatus" value={selectedMaritalStatus} />
 
 							<Select value={selectedMaritalStatus} onValueChange={setSelectedMaritalStatus}>
-								<SelectTrigger className="w-full h-9">
+								<SelectTrigger className="w-full">
 									<SelectValue placeholder="Select marital status" />
 								</SelectTrigger>
 

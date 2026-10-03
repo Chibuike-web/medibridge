@@ -41,16 +41,17 @@ export function ReviewInvitationsSettings({
 							</div>
 						))}
 						{inviteMemberRows.length > MAX_VISIBLE_INVITATIONS && (
-							<button
+							<Button
+								variant="ghost"
 								type="button"
-								className="inline-flex w-fit items-center gap-1 rounded-md border border-transparent text-sm font-medium text-gray-400 transition-colors hover:text-gray-600 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+								className="w-fit gap-1 text-gray-400 hover:text-gray-600 h-auto p-0 hover:bg-transparent has-[>svg:last-child]:pr-0"
 								onClick={() => setAreAllInvitationsVisible((prev) => !prev)}
 							>
 								{areAllInvitationsVisible
 									? "View less"
 									: `View all ${inviteMemberRows.length} invitations`}
 								<RiArrowRightSLine className="size-5" aria-hidden="true" />
-							</button>
+							</Button>
 						)}
 						<p className="max-w-3xl text-sm leading-6 text-gray-400">
 							Each person will receive an email invitation to join Medicare General Hospital with

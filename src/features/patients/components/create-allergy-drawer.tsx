@@ -57,7 +57,9 @@ export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerP
 	}
 
 	function handleRemoveAttachmentRow(attachmentRowId: string) {
-		setAttachmentRows((prev) => prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId));
+		setAttachmentRows((prev) =>
+			prev.filter((attachmentRow) => attachmentRow.id !== attachmentRowId),
+		);
 	}
 
 	return (
@@ -93,21 +95,15 @@ export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerP
 							<Select>
 								<SelectTrigger
 									id={`${generatedFormId}-severity`}
-									className={`${fieldControlClassName} w-full data-[placeholder]:text-gray-400`}
+									className={`${fieldControlClassName} w-full`}
 								>
 									<SelectValue placeholder="Select severity" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="mild">
-											Mild
-										</SelectItem>
-										<SelectItem value="moderate">
-											Moderate
-										</SelectItem>
-										<SelectItem value="severe">
-											Severe
-										</SelectItem>
+										<SelectItem value="mild">Mild</SelectItem>
+										<SelectItem value="moderate">Moderate</SelectItem>
+										<SelectItem value="severe">Severe</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>
@@ -120,18 +116,14 @@ export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerP
 							<Select>
 								<SelectTrigger
 									id={`${generatedFormId}-status`}
-									className={`${fieldControlClassName} w-full data-[placeholder]:text-gray-400`}
+									className={`${fieldControlClassName} w-full`}
 								>
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="active">
-											Active
-										</SelectItem>
-										<SelectItem value="inactive">
-											Inactive
-										</SelectItem>
+										<SelectItem value="active">Active</SelectItem>
+										<SelectItem value="inactive">Inactive</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>
@@ -158,7 +150,6 @@ export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerP
 								className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 							/>
 						</div>
-
 					</div>
 
 					<div className="flex flex-col gap-6">
@@ -178,7 +169,7 @@ export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerP
 							<Button
 								type="button"
 								variant="outline"
-								className="border-gray-200 bg-white text-gray-600"
+								className="bg-white text-gray-600"
 								onClick={handleAddAttachmentRow}
 							>
 								<RiAddLine className="size-5" aria-hidden="true" />
@@ -195,9 +186,7 @@ export function CreateAllergyDrawer({ open, onOpenChange }: CreateAllergyDrawerP
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="button">
-							Add allergy
-						</Button>
+						<Button type="button">Add allergy</Button>
 					</div>
 				</DrawerFooter>
 			</DrawerContent>

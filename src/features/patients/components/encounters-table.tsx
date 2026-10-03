@@ -291,7 +291,7 @@ export function EncountersTable({
 							id="encounter-filter-submenu-panel"
 							aria-hidden={activeFilterSubmenu === null}
 							className={cn(
-								"absolute top-0 right-[100%] z-50 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+								"absolute top-0 right-[100%] z-50 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[translate,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 								activeFilterSubmenu === "encounter-date" || activeFilterSubmenu === "created-at"
 									? "w-max"
 									: "w-[13.75rem]",
@@ -504,7 +504,7 @@ export function EncountersTable({
 							onValueChange={(value) => onLimitChange(Number(value))}
 							disabled={isPending}
 						>
-							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
+							<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent className="w-20" align="start">
@@ -527,7 +527,7 @@ export function EncountersTable({
 								size="sm"
 								onClick={onPreviousPage}
 								disabled={page <= 1 || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Previous
 							</Button>
@@ -537,7 +537,7 @@ export function EncountersTable({
 								size="sm"
 								onClick={onNextPage}
 								disabled={page >= totalPages || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Next
 							</Button>
@@ -581,40 +581,48 @@ function EncountersBulkActionBar({
 			<TableBulkActionSeparator />
 			<div className="flex items-center">
 				{singleSelectedEncounter ? (
-					<button
+					<Button
 						type="button"
 						onClick={() => onViewEncounterDetails(singleSelectedEncounter.encounterId)}
-						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+						variant="ghost"
+						size="sm"
+						className="h-9 gap-2 rounded-lg border-0 px-2 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
 						<RiEyeLine className="size-5" aria-hidden />
 						<span>View details</span>
-					</button>
+					</Button>
 				) : null}
-				<button
+				<Button
 					type="button"
-					className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+					variant="ghost"
+					size="sm"
+					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				>
 					<RiShare2Line className="size-5" aria-hidden />
 					<span>Export {selectedEncounterCount > 1 ? "all" : null}</span>
-				</button>
+				</Button>
 				{canArchive ? (
-					<button
+					<Button
 						type="button"
-						className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+						variant="ghost"
+						size="sm"
+						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
 						<RiArchiveLine className="size-5" aria-hidden />
 						<span>Archive {selectedEncounterCount > 1 ? "all" : null}</span>
-					</button>
+					</Button>
 				) : null}
 			</div>
-			<button
+			<Button
 				type="button"
 				onClick={onClearSelection}
-				className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				variant="ghost"
+				size="icon"
+				className="size-8 border-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected encounters"
 			>
 				<RiCloseLine className="size-5" aria-hidden />
-			</button>
+			</Button>
 		</div>
 	);
 }
@@ -746,14 +754,15 @@ function EncounterFilterPill({ label, onRemove }: { label: string; onRemove: () 
 	return (
 		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
 			<span>{label}</span>
-			<button
+			<Button
 				type="button"
 				onClick={onRemove}
-				className="flex size-5 items-center justify-center rounded-full bg-gray-800 text-white transition hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+				size="icon"
+				className="flex size-5 rounded-full text-white hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
 				aria-label={`Remove ${label} filter`}
 			>
 				<RiCloseLine className="size-4" aria-hidden="true" />
-			</button>
+			</Button>
 		</span>
 	);
 }
@@ -978,7 +987,10 @@ function formatEncounterFilterValue(value: string) {
 		.join(" ");
 }
 
-function getEncountersColumns(patientId: string, canArchive: boolean): ColumnDef<typeof configuredTableFeatures, EncounterType>[] {
+function getEncountersColumns(
+	patientId: string,
+	canArchive: boolean,
+): ColumnDef<typeof configuredTableFeatures, EncounterType>[] {
 	return [
 		{
 			id: "select",

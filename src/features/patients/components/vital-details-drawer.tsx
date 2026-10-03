@@ -95,7 +95,6 @@ export function VitalDetailsDrawer({
 							<Button
 								type="button"
 								form={vitalDetailsFormId}
-								className="bg-gray-800"
 								onClick={() => setVitalDetailsMode("view")}
 							>
 								Save changes
@@ -108,7 +107,7 @@ export function VitalDetailsDrawer({
 									Cancel
 								</Button>
 							</DrawerClose>
-							{vital && canArchive ? <Button className="bg-gray-800">Archive vitals</Button> : null}
+							{vital && canArchive ? <Button>Archive vitals</Button> : null}
 						</div>
 					)}
 				</DrawerFooter>
@@ -142,14 +141,15 @@ function VitalDetailsOverview({
 					<h2 id="vital-details-heading" className="text-lg font-semibold text-gray-800">
 						{vital.encounterType}
 					</h2>
-					<button
+					<Button
 						type="button"
 						onClick={onEditVitalDetails}
-						className="inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+						variant="ghost"
+						className="text-gray-400 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-gray-300 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent focus-visible:border-0 has-[>svg:first-child]:pl-0"
 					>
 						<RiEditLine className="size-4" aria-hidden="true" />
 						Edit
-					</button>
+					</Button>
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
@@ -281,12 +281,13 @@ function VitalHistoryCard({ vital }: { vital: VitalType }) {
 
 	return (
 		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
-			<button
+			<Button
 				type="button"
 				onClick={() => setIsVitalHistoryExpanded((prev) => !prev)}
 				aria-expanded={isVitalHistoryExpanded}
 				aria-controls={panelId}
-				className="flex w-full items-center justify-between gap-4 text-left"
+				variant="ghost"
+				className="flex w-full justify-between gap-4 text-left h-auto whitespace-normal rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0 active:scale-100 has-[>svg:last-child]:pr-0"
 			>
 				<p className="min-w-0 text-sm">
 					<span id={titleId} className="font-semibold text-gray-800">
@@ -295,9 +296,7 @@ function VitalHistoryCard({ vital }: { vital: VitalType }) {
 					<span aria-hidden="true" className="text-gray-200">
 						•
 					</span>{" "}
-					<span className="text-gray-400">
-						{format(vital.createdAt, "d MMMM yyyy 'at' HH:mm")}
-					</span>
+					<span className="text-gray-400">{format(vital.createdAt, "d MMMM yyyy 'at' HH:mm")}</span>
 				</p>
 				<RiArrowDownSLine
 					className={cn(
@@ -306,7 +305,7 @@ function VitalHistoryCard({ vital }: { vital: VitalType }) {
 					)}
 					aria-hidden="true"
 				/>
-			</button>
+			</Button>
 			<div
 				id={panelId}
 				className={cn(

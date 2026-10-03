@@ -7,7 +7,13 @@ import { cn } from "@/lib/utils/cn";
 import { formatFileSize } from "@/lib/utils/format-file-size";
 import { AllowedFileExtension, FileStatus } from "@/lib/types/upload";
 import { Button } from "./ui/button";
-import { RiCheckboxCircleFill, RiCloseLine, RiDeleteBinLine, RiErrorWarningFill, RiLoaderLine } from "@remixicon/react";
+import {
+	RiCheckboxCircleFill,
+	RiCloseLine,
+	RiDeleteBinLine,
+	RiErrorWarningFill,
+	RiLoaderLine,
+} from "@remixicon/react";
 
 type FileUploadCardProps = {
 	id?: string;
@@ -48,7 +54,7 @@ export function FileUploadCard({
 					<div>
 						<p className="text-sm font-semibold">{name}</p>
 						<div className="flex items-center gap-1 text-xs">
-							<div className="flex items-center gap-1 ">
+							<div className="flex items-center gap-1">
 								<p>{formatFileSize(size)}</p>
 								<span className="size-0.5 block bg-foreground rounded-full" />
 							</div>

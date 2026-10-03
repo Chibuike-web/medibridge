@@ -184,8 +184,7 @@ export function LabTestsTable({
 
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [selectedLabTestRows, setSelectedLabTestRows] = useState<RowSelectionState>({});
-	const [activeFilterSubmenu, setActiveFilterSubmenu] =
-		useState<LabTestFilterSubmenu | null>(null);
+	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<LabTestFilterSubmenu | null>(null);
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedTest, setSelectedTest] = useState<LabTestType | null>(null);
@@ -233,135 +232,125 @@ export function LabTestsTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-					<DropdownMenu
-						onOpenChange={(isLabTestFilterMenuOpen) => {
-							if (!isLabTestFilterMenuOpen) {
-								setActiveFilterSubmenu(null);
-							}
-						}}
-					>
-						<DropdownMenuTrigger asChild>
-							<Button
-								variant="outline"
-								className="bg-white text-gray-600 hover:bg-gray-50"
-							>
-								<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
-								Filter
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent
-							align="end"
-							className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
-						>
-							<DropdownMenuSub
-								open={activeFilterSubmenu === "status"}
-								onOpenChange={(isStatusSubmenuOpen) => {
-									setActiveFilterSubmenu((prev) => {
-										if (isStatusSubmenuOpen) return "status";
-										if (prev === "status") return null;
-										return prev;
-									});
-								}}
-							>
-								<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-									<RiCheckboxCircleLine className="size-4" />
-									<span className="flex-1">Status</span>
-								</DropdownMenuSubTrigger>
-								<DropdownMenuSubContent
-									alignOffset={-5}
-									className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
-								>
-									<LabTestCheckboxFilterList
-										name="lab-test-status"
-										options={labTestStatusFilterOptions}
-										selectedValues={statusFilters}
-										isPending={isPending}
-										onSelectedValuesChange={onStatusFiltersChange}
-									/>
-								</DropdownMenuSubContent>
-							</DropdownMenuSub>
-
-							<DropdownMenuSub
-								open={activeFilterSubmenu === "flag"}
-								onOpenChange={(isFlagSubmenuOpen) => {
-									setActiveFilterSubmenu((prev) => {
-										if (isFlagSubmenuOpen) return "flag";
-										if (prev === "flag") return null;
-										return prev;
-									});
-								}}
-							>
-								<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-									<RiFlagLine className="size-4" />
-									<span className="flex-1">Flag</span>
-								</DropdownMenuSubTrigger>
-								<DropdownMenuSubContent
-									alignOffset={-5}
-									className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
-								>
-									<LabTestCheckboxFilterList
-										name="lab-test-flag"
-										options={labTestFlagFilterOptions}
-										selectedValues={flagFilters}
-										isPending={isPending}
-										onSelectedValuesChange={onFlagFiltersChange}
-									/>
-								</DropdownMenuSubContent>
-							</DropdownMenuSub>
-
-							<DropdownMenuSub
-								open={activeFilterSubmenu === "created-at"}
-								onOpenChange={(isCreatedAtSubmenuOpen) => {
-									setActiveFilterSubmenu((prev) => {
-										if (isCreatedAtSubmenuOpen) return "created-at";
-										if (prev === "created-at") return null;
-										return prev;
-									});
-								}}
-							>
-								<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-									<RiCalendarLine className="size-4" />
-									<span className="flex-1">Created at</span>
-								</DropdownMenuSubTrigger>
-								<DropdownMenuSubContent
-									alignOffset={-5}
-									className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
-								>
-									<LabTestDateFilterContent
-										from={createdFrom}
-										to={createdTo}
-										isPending={isPending}
-										onDateRangeApply={onCreatedAtRangeApply}
-									/>
-								</DropdownMenuSubContent>
-							</DropdownMenuSub>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				<Button
-					variant="outline"
-					className="bg-white text-gray-600 hover:bg-gray-50"
+				<DropdownMenu
+					onOpenChange={(isLabTestFilterMenuOpen) => {
+						if (!isLabTestFilterMenuOpen) {
+							setActiveFilterSubmenu(null);
+						}
+					}}
 				>
+					<DropdownMenuTrigger asChild>
+						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
+							Filter
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="end"
+						className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+					>
+						<DropdownMenuSub
+							open={activeFilterSubmenu === "status"}
+							onOpenChange={(isStatusSubmenuOpen) => {
+								setActiveFilterSubmenu((prev) => {
+									if (isStatusSubmenuOpen) return "status";
+									if (prev === "status") return null;
+									return prev;
+								});
+							}}
+						>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+								<RiCheckboxCircleLine className="size-4" />
+								<span className="flex-1">Status</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								alignOffset={-5}
+								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							>
+								<LabTestCheckboxFilterList
+									name="lab-test-status"
+									options={labTestStatusFilterOptions}
+									selectedValues={statusFilters}
+									isPending={isPending}
+									onSelectedValuesChange={onStatusFiltersChange}
+								/>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
+
+						<DropdownMenuSub
+							open={activeFilterSubmenu === "flag"}
+							onOpenChange={(isFlagSubmenuOpen) => {
+								setActiveFilterSubmenu((prev) => {
+									if (isFlagSubmenuOpen) return "flag";
+									if (prev === "flag") return null;
+									return prev;
+								});
+							}}
+						>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+								<RiFlagLine className="size-4" />
+								<span className="flex-1">Flag</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								alignOffset={-5}
+								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							>
+								<LabTestCheckboxFilterList
+									name="lab-test-flag"
+									options={labTestFlagFilterOptions}
+									selectedValues={flagFilters}
+									isPending={isPending}
+									onSelectedValuesChange={onFlagFiltersChange}
+								/>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
+
+						<DropdownMenuSub
+							open={activeFilterSubmenu === "created-at"}
+							onOpenChange={(isCreatedAtSubmenuOpen) => {
+								setActiveFilterSubmenu((prev) => {
+									if (isCreatedAtSubmenuOpen) return "created-at";
+									if (prev === "created-at") return null;
+									return prev;
+								});
+							}}
+						>
+							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
+								<RiCalendarLine className="size-4" />
+								<span className="flex-1">Created at</span>
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent
+								alignOffset={-5}
+								className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
+							>
+								<LabTestDateFilterContent
+									from={createdFrom}
+									to={createdTo}
+									isPending={isPending}
+									onDateRangeApply={onCreatedAtRangeApply}
+								/>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
+					</DropdownMenuContent>
+				</DropdownMenu>
+				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
 				</Button>
-						<Button
-
-							type="button"
-							onClick={() => setIsCreateDrawerOpen(true)}
-						>
-							Add lab test
-						</Button>
-				</div>
-				<LabTestActiveFilterPills
-					createdFrom={createdFrom}
-					createdTo={createdTo}
-					statusFilters={statusFilters}
-					flagFilters={flagFilters}
-					onCreatedAtRangeApply={onCreatedAtRangeApply}
-					onStatusFiltersChange={onStatusFiltersChange}
-					onFlagFiltersChange={onFlagFiltersChange}
-				/>
-				<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
+				<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
+					Add lab test
+				</Button>
+			</div>
+			<LabTestActiveFilterPills
+				createdFrom={createdFrom}
+				createdTo={createdTo}
+				statusFilters={statusFilters}
+				flagFilters={flagFilters}
+				onCreatedAtRangeApply={onCreatedAtRangeApply}
+				onStatusFiltersChange={onStatusFiltersChange}
+				onFlagFiltersChange={onFlagFiltersChange}
+			/>
+			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
@@ -385,7 +374,10 @@ export function LabTestsTable({
 												: undefined
 										}
 										onKeyDown={(event) => {
-											if (header.column.getCanSort() && (event.key === "Enter" || event.key === " ")) {
+											if (
+												header.column.getCanSort() &&
+												(event.key === "Enter" || event.key === " ")
+											) {
 												event.preventDefault();
 												header.column.getToggleSortingHandler()?.(event);
 											}
@@ -401,9 +393,7 @@ export function LabTestsTable({
 										<div
 											className={cn(
 												"flex items-center gap-3",
-												header.column.id === "referenceRange"
-													? "justify-end"
-													: "justify-between",
+												header.column.id === "referenceRange" ? "justify-end" : "justify-between",
 											)}
 										>
 											{header.isPlaceholder
@@ -453,8 +443,8 @@ export function LabTestsTable({
 										<TableCell
 											key={cell.id}
 											className={cn(
-											"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
-											row.getIsSelected() ? "bg-gray-100" : "bg-white",
+												"border-b border-gray-200 px-3 py-3 text-sm text-gray-600 transition-colors group-hover:bg-gray-100",
+												row.getIsSelected() ? "bg-gray-100" : "bg-white",
 												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
 												cell.column.id === "referenceRange" && "text-right",
 											)}
@@ -484,7 +474,7 @@ export function LabTestsTable({
 							onValueChange={(value) => onLimitChange(Number(value))}
 							disabled={isPending}
 						>
-							<SelectTrigger className="h-8 w-[4.25rem] border-gray-200 bg-white px-2 text-gray-700 shadow-none">
+							<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
 								<SelectValue aria-label="Rows per page" placeholder="Rows" />
 							</SelectTrigger>
 							<SelectContent className="w-20" align="start">
@@ -507,7 +497,7 @@ export function LabTestsTable({
 								size="sm"
 								onClick={onPreviousPage}
 								disabled={page <= 1 || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Previous
 							</Button>
@@ -517,7 +507,7 @@ export function LabTestsTable({
 								size="sm"
 								onClick={onNextPage}
 								disabled={page >= totalPages || isPending}
-								className="border-gray-200 px-3 text-gray-700 shadow-none transition"
+								className="text-gray-700 shadow-none"
 							>
 								Next
 							</Button>
@@ -531,18 +521,15 @@ export function LabTestsTable({
 				onClearSelection={() => table.resetRowSelection()}
 				onViewLabTestDetails={handleViewLabTestDetails}
 			/>
-			<CreateLabTestDrawer
-					open={isCreateDrawerOpen}
-					onOpenChange={setIsCreateDrawerOpen}
-				/>
-				<LabTestDetailsDrawer
-					open={isDetailsDrawerOpen}
-					onOpenChange={setIsDetailsDrawerOpen}
-					labTest={selectedTest}
-				/>
-			</div>
-		);
-	}
+			<CreateLabTestDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
+			<LabTestDetailsDrawer
+				open={isDetailsDrawerOpen}
+				onOpenChange={setIsDetailsDrawerOpen}
+				labTest={selectedTest}
+			/>
+		</div>
+	);
+}
 
 function LabTestCheckboxFilterList<TValue extends string>({
 	name,
@@ -621,34 +608,48 @@ function LabTestsBulkActionBar({
 			<TableBulkActionSeparator />
 			<div className="flex items-center">
 				{singleSelectedLabTest ? (
-					<button
+					<Button
 						type="button"
 						onClick={() => onViewLabTestDetails(singleSelectedLabTest)}
-						className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+						variant="ghost"
+						size="sm"
+						className="h-9 gap-2 rounded-lg border-0 px-2 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
 						<RiEyeLine className="size-5" aria-hidden />
 						<span>View details</span>
-					</button>
+					</Button>
 				) : null}
-				<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
+				>
 					<RiShare2Line className="size-5" aria-hidden />
 					<span>Export {selectedLabTestCount > 1 ? "all" : null}</span>
-				</button>
+				</Button>
 				{canArchive ? (
-					<button type="button" className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
+					>
 						<RiArchiveLine className="size-5" aria-hidden />
 						<span>Archive {selectedLabTestCount > 1 ? "all" : null}</span>
-					</button>
+					</Button>
 				) : null}
 			</div>
-			<button
+			<Button
 				type="button"
 				onClick={onClearSelection}
-				className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				variant="ghost"
+				size="icon"
+				className="size-8 border-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected lab tests"
 			>
 				<RiCloseLine className="size-5" aria-hidden />
-			</button>
+			</Button>
 		</div>
 	);
 }
@@ -716,14 +717,15 @@ function LabTestFilterPill({ label, onRemove }: { label: string; onRemove: () =>
 	return (
 		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
 			<span>{label}</span>
-			<button
+			<Button
 				type="button"
 				onClick={onRemove}
-				className="flex size-5 items-center justify-center rounded-full bg-gray-800 text-white transition hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+				size="icon"
+				className="flex size-5 rounded-full text-white hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
 				aria-label={`Remove ${label} filter`}
 			>
 				<RiCloseLine className="size-4" aria-hidden="true" />
-			</button>
+			</Button>
 		</span>
 	);
 }
@@ -924,7 +926,6 @@ function getDateRangeFromParams(from: string, to: string): DateRange | undefined
 	return { from: parsedFromDate, to: parsedToDate };
 }
 
-
 function isSameDateRange(range: DateRange | undefined, presetRange: LabTestDateCompleteRange) {
 	if (!range?.from || !range.to) return false;
 
@@ -1014,16 +1015,16 @@ function getLabTestsColumns({
 				</div>
 			),
 		},
-			{
-				header: "Flag",
-				accessorKey: "flag",
-				enableSorting: true,
-				cell: ({ row }) => (
-					<div className="w-max" onClick={(event) => event.stopPropagation()}>
-						{row.original.flag || row.original.interpretation}
-					</div>
-				),
-			},
+		{
+			header: "Flag",
+			accessorKey: "flag",
+			enableSorting: true,
+			cell: ({ row }) => (
+				<div className="w-max" onClick={(event) => event.stopPropagation()}>
+					{row.original.flag || row.original.interpretation}
+				</div>
+			),
+		},
 		{
 			id: "createdAt",
 			header: "Created at",
@@ -1077,10 +1078,10 @@ function getLabTestsColumns({
 									<RiEyeLine className="text-white" />
 									<span>View details</span>
 								</DropdownMenuItem>
-							<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-								<RiShare2Line className="text-white" />
-								<span>Export</span>
-							</DropdownMenuItem>
+								<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<RiShare2Line className="text-white" />
+									<span>Export</span>
+								</DropdownMenuItem>
 								{canUpdateLabTestStatus ? (
 									<>
 										<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
