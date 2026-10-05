@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function Verify() {
 	return (
-		<main className="max-w-[37.5rem] min-h-dvh grid place-items-center mx-auto px-6 md:px-0 my-10">
+		<main className="max-w-[31.25rem] min-h-dvh grid place-items-center mx-auto px-6 md:px-0 my-10">
 			<div className="flex flex-col items-center">
 				<Image src="/assets/verification-icon.svg" width={120} height={120} alt="" />
 

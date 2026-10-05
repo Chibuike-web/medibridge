@@ -15,7 +15,7 @@ export default function ForgotPassword() {
 				</Link>
 			</nav>
 
-			<div className="max-w-[37.5rem] min-h-[calc(100dvh-4rem)] grid place-items-center mx-auto px-6 md:px-0 my-10">
+			<div className="max-w-[31.25rem] min-h-[calc(100dvh-4rem)] grid place-items-center mx-auto px-6 md:px-0 my-10">
 				<div className="w-full">
 					<div>
 						<h1 className="text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">

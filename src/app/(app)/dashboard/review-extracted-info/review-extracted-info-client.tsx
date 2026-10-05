@@ -115,7 +115,7 @@ export function ReviewExtractedInfoClient() {
 
 	if (!isHydrated) {
 		return (
-			<main className="mx-auto my-30 max-w-[37.5rem]">
+			<main className="mx-auto my-30 max-w-[31.25rem]">
 				<div className="w-full px-4 md:px-0">
 					<div className="mx-auto h-9 w-72 animate-pulse rounded-md bg-gray-200" />
 					<div className="mt-4 mx-auto h-5 w-full max-w-md animate-pulse rounded-md bg-gray-100" />

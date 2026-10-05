@@ -11,7 +11,7 @@ type CreateNewPasswordProps = {
 
 export default async function CreateNewPassword({ searchParams }: CreateNewPasswordProps) {
 	return (
-		<main className="max-w-[37.5rem] min-h-dvh grid place-items-center mx-auto px-6 md:px-0 my-10">
+		<main className="max-w-[31.25rem] min-h-dvh grid place-items-center mx-auto px-6 md:px-0 my-10">
 			<Suspense>
 				{searchParams.then(({ token, error }) => {
 					const resetToken = Array.isArray(token) ? token[0] : token;

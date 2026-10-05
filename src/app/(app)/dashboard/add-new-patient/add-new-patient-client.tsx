@@ -220,7 +220,7 @@ function Footer({
 	return (
 		<footer className="fixed z-50 bottom-0 left-0 right-0 flex items-center justify-center border-t h-20 border-gray-200 bg-white px-4 md:px-0">
 			{!isExtracting && !extractionComplete ? (
-				<div className="flex w-full justify-between items-center max-w-[37.5rem]">
+				<div className="flex w-full justify-between items-center max-w-[31.25rem]">
 					<Button type="button" variant="outline" disabled={!uploadComplete}>
 						<label htmlFor="file-input">
 							<input

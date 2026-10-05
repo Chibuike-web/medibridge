@@ -24,7 +24,7 @@ export function EmailVerifiedClient() {
 
 function Unverified() {
 	return (
-		<main className="max-w-[37.5rem] min-h-dvh grid place-items-center mx-auto bg-white px-6 md:px-0 my-10">
+		<main className="max-w-[31.25rem] min-h-dvh grid place-items-center mx-auto bg-white px-6 md:px-0 my-10">
 			<div className="w-full text-center">
 				<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-yellow-600">
 					Email verification required
@@ -59,7 +59,7 @@ function InvalidOrExpired({ type }: { type: "INVALID_TOKEN" | "TOKEN_EXPIRED" })
 			: "The verification link is invalid. Enter your email to get a new one.";
 
 	return (
-		<main className="max-w-[37.5rem] min-h-dvh grid place-items-center mx-auto bg-white px-6 md:px-0 my-10">
+		<main className="max-w-[31.25rem] min-h-dvh grid place-items-center mx-auto bg-white px-6 md:px-0 my-10">
 			<div className="w-full">
 				<div className="text-center">
 					<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-red-600">
@@ -163,7 +163,7 @@ function InvalidOrExpired({ type }: { type: "INVALID_TOKEN" | "TOKEN_EXPIRED" })
 
 function NoSession() {
 	return (
-		<main className="max-w-[37.5rem] min-h-dvh grid place-items-center mx-auto bg-white px-6 md:px-0 my-10">
+		<main className="max-w-[31.25rem] min-h-dvh grid place-items-center mx-auto bg-white px-6 md:px-0 my-10">
 			<div className="w-full text-center">
 				<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-yellow-600">
 					You are not signed in
@@ -184,7 +184,7 @@ function NoSession() {
 
 const Valid = () => {
 	return (
-		<main className="max-w-[37.5rem] min-h-dvh grid place-items-center mx-auto bg-white px-6 md:px-0 my-10">
+		<main className="max-w-[31.25rem] min-h-dvh grid place-items-center mx-auto bg-white px-6 md:px-0 my-10">
 			<div className="w-full text-center">
 				<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-green-600">
 					Email verified

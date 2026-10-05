@@ -18,7 +18,7 @@ export default function HospitalDetails() {
 					<RiArrowLeftLine className="size-4" /> <span className="sr-only">Back</span>
 				</Link>
 			</nav>
-			<main className="max-w-[37.5rem] min-h-[calc(100dvh-4rem)] grid place-items-center mx-auto px-6 md:px-0 my-10">
+			<main className="max-w-[31.25rem] min-h-[calc(100dvh-4rem)] grid place-items-center mx-auto px-6 md:px-0 my-10">
 				<Suspense>
 					<HospitalDetailsContent />
 				</Suspense>

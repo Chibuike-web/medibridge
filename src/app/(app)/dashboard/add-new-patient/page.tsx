@@ -33,7 +33,7 @@ async function AddNewPatientContent({ searchParams }: AddNewPatientPageProps) {
 				</Link>
 			</nav>
 
-			<main className="flex flex-col gap-9 mt-12 max-w-[37.5rem] mx-auto px-6 md:px-0">
+			<main className="flex flex-col gap-9 mt-12 max-w-[31.25rem] mx-auto px-6 md:px-0">
 				<div>
 					<h1 className="mb-6 text-center text-xl font-semibold">Upload Patient’s Record</h1>
 					<p className="text-gray-600 text-center text-balance">

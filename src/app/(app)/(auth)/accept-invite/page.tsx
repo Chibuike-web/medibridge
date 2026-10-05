@@ -14,7 +14,7 @@ type AcceptInviteProps = {
 
 export default function AcceptInvite({ searchParams }: AcceptInviteProps) {
 	return (
-		<main className="mx-auto my-10 grid min-h-dvh max-w-[37.5rem] place-items-center px-6 md:px-0">
+		<main className="mx-auto my-10 grid min-h-dvh max-w-[31.25rem] place-items-center px-6 md:px-0">
 			<Suspense>
 				<AcceptInviteContent searchParams={searchParams} />
 			</Suspense>
