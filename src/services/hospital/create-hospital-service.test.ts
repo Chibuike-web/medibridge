@@ -177,4 +177,31 @@ describe("createHospitalService", () => {
 		expect(createOrganizationMock).not.toHaveBeenCalled();
 		expect(insertMock).not.toHaveBeenCalled();
 	});
+
+	test("gives two hospitals with the same name different URL-safe slugs", async () => {
+		getSessionMock.mockResolvedValue({
+			user: {
+				id: "owner-1",
+				name: "Sarah Thompson",
+				email: "sarah@stmary.org",
+				emailVerified: true,
+			},
+		});
+
+		await createHospitalService({
+			hospitalName: "St Mary's Hospital",
+			hospitalAddress: "12 Health Street",
+		});
+		await createHospitalService({
+			hospitalName: "St Mary's Hospital",
+			hospitalAddress: "4 Clinic Road",
+		});
+
+		const [firstSlug, secondSlug] = createOrganizationMock.mock.calls.map(
+			([request]) => request.body.slug,
+		);
+		expect(firstSlug).toMatch(/^st-mary-s-hospital-[a-z0-9]{6}$/);
+		expect(secondSlug).toMatch(/^st-mary-s-hospital-[a-z0-9]{6}$/);
+		expect(firstSlug).not.toBe(secondSlug);
+	});
 });

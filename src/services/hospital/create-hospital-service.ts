@@ -4,7 +4,7 @@ import {
 	hospitalDetailsSchema,
 	HospitalDetailsType,
 } from "@/features/auth/schemas/hospital-details-schema";
-import { hospitalDetails } from "@/db/schemas";
+import { hospitalDetails, organization } from "@/db/schemas";
 import { auth, db } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
@@ -12,6 +12,15 @@ import { readdir } from "node:fs/promises";
 import path from "node:path";
 
 const uploadDir = path.resolve("hospital-uploads");
+
+function hospitalSlug(name: string) {
+	const nameSlug = name
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-|-$/g, "");
+
+	return `${nameSlug}-${crypto.randomUUID().slice(0, 6)}`;
+}
 
 export async function createHospitalService(data: HospitalDetailsType) {
 	try {
@@ -48,7 +57,7 @@ export async function createHospitalService(data: HospitalDetailsType) {
 		const orgRes = await auth.api.createOrganization({
 			body: {
 				name: parsed.data.hospitalName,
-				slug: parsed.data.hospitalName.toLowerCase().replace(/\s+/g, "-"),
+				slug: hospitalSlug(parsed.data.hospitalName),
 				userId,
 				keepCurrentActiveOrganization: false,
 			},
@@ -57,29 +66,31 @@ export async function createHospitalService(data: HospitalDetailsType) {
 		if (!orgRes) return { status: "failed", message: "Organization creation failed" };
 
 		const organizationId = orgRes.id;
+		try {
+			await db.insert(hospitalDetails).values({
+				id: crypto.randomUUID(),
+				organizationId,
+				hospitalName: parsed.data.hospitalName,
+				hospitalAddress: parsed.data.hospitalAddress,
+				hospitalOwnerName: session.user.name,
+				hospitalOwnerEmail: session.user.email,
+				documentPath: `${userId}/${uploadedFileName}`,
+				createdAt: new Date(),
+			});
+		} catch (error) {
+			console.error(error);
+			await db.delete(organization).where(eq(organization.id, organizationId));
+			return { status: "failed", message: "We couldn’t save your hospital. Please try again." };
+		}
 
 		await auth.api.setActiveOrganization({
 			body: { organizationId: orgRes.id },
 			headers: await headers(),
 		});
 
-		await db.insert(hospitalDetails).values({
-			id: crypto.randomUUID(),
-			organizationId,
-			hospitalName: parsed.data.hospitalName,
-			hospitalAddress: parsed.data.hospitalAddress,
-			hospitalOwnerName: session.user.name,
-			hospitalOwnerEmail: session.user.email,
-			documentPath: `${userId}/${uploadedFileName}`,
-			createdAt: new Date(),
-		});
-
 		return { status: "success", message: "Hospital data successfully saved" };
 	} catch (error) {
 		console.error(error);
-		return {
-			status: "failed",
-			error: error instanceof Error ? error.message : "Unknown error",
-		};
+		return { status: "failed", message: "We couldn’t save your hospital. Please try again." };
 	}
 }

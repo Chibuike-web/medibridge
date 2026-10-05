@@ -56,7 +56,7 @@ export function HospitalDetailsClient() {
 				if (res?.status === "failed") {
 					setHospitalDetailsFeedback({
 						type: "error",
-						message: res.error || res.message || "Hospital creation failed",
+						message: res.message,
 					});
 					return;
 				}
