@@ -19,7 +19,8 @@
 		"db:migrate": "bun db:generate && bun db:push --config=./src/lib/drizzle.config.ts",
 		"db:seed": "bun run src/db/run-table-seeds.ts",
 		"db:seed-shared-record": "bun run src/db/seed-shared-record.ts",
-		"db:sync-hospitals": "bun run src/db/sync-hospitals.ts"
+		"db:sync-hospitals": "bun run src/db/sync-hospitals.ts",
+		"db:approve-hospital": "bun run src/db/approve-hospital.ts"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.8.0",

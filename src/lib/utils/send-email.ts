@@ -2,22 +2,18 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 export async function sendEmail(email: string, url: string) {
-	try {
-		const data = await resend.emails.send({
-			from: "Acme <onboarding@resend.dev>",
-			to: email,
-			subject: "Verify your email",
-			html: `<p>Verify your email address to continue setting up your hospital.</p><p><a href="${escapeHtml(url)}">Verify email address</a></p>`,
-		});
+	const verificationEmail = await resend.emails.send({
+		from: "Acme <onboarding@resend.dev>",
+		to: email,
+		subject: "Verify your email",
+		html: `<p>Verify your email address to continue setting up your hospital.</p><p><a href="${escapeHtml(url)}">Verify email address</a></p>`,
+	});
 
-		if (data.error) {
-			throw new Error(data.error.message);
-		}
-
-		return data;
-	} catch (error) {
-		throw error;
+	if (verificationEmail.error) {
+		throw new Error(verificationEmail.error.message);
 	}
+
+	return verificationEmail.data;
 }
 
 export async function sendPasswordResetEmail(email: string, url: string) {
@@ -63,6 +59,32 @@ export async function sendOrganizationInvitationEmail({
 	}
 
 	return invitationEmail.data;
+}
+
+type SendHospitalApprovedEmailInput = {
+	email: string;
+	hospitalName: string;
+	signInUrl: string;
+};
+
+export async function sendHospitalApprovedEmail({
+	email,
+	hospitalName,
+	signInUrl,
+}: SendHospitalApprovedEmailInput) {
+	const approvedEmail = await resend.emails.send({
+		from: "Acme <onboarding@resend.dev>",
+		to: email,
+		subject: `${hospitalName} is approved on MediBridge`,
+		html: `<p>${escapeHtml(hospitalName)} has been approved. You can now sign in and start using MediBridge.</p><p><a href="${escapeHtml(signInUrl)}">Sign in</a></p>`,
+		text: `${hospitalName} has been approved. You can now sign in and start using MediBridge: ${signInUrl}`,
+	});
+
+	if (approvedEmail.error) {
+		throw new Error(approvedEmail.error.message);
+	}
+
+	return approvedEmail.data;
 }
 
 function escapeHtml(value: string) {
