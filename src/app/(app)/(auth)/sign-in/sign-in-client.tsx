@@ -8,18 +8,20 @@ import { Label } from "@/components/ui/label";
 import { signInSchema, SignInType } from "@/features/auth/schemas/sign-in-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { RiErrorWarningFill, RiEyeLine, RiEyeOffLine, RiInformationLine } from "@remixicon/react";
 import { authClient } from "@/lib/better-auth/auth.client";
+import { Route } from "next";
 
 export function SignInClient() {
 	const router = useRouter();
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const [signInError, setSignInError] = useState("");
 	const [isPending, startTransition] = useTransition();
+	const searchParams = useSearchParams();
 
 	const {
 		register,
@@ -113,125 +115,142 @@ export function SignInClient() {
 			router.replace("/verify");
 			return;
 		}
+		const callbackUrl = searchParams.get("callbackUrl");
 
 		startTransition(() => {
-			router.replace("/dashboard/overview");
+			router.replace(
+				callbackUrl?.startsWith("/dashboard/") ? (callbackUrl as Route) : "/dashboard/overview",
+			);
 			reset();
 		});
 	};
 
 	return (
-		<form
-			aria-describedby="sign-in-note"
-			onSubmit={handleSubmit(onSubmit)}
-			className="text-gray-800 mt-12"
-		>
-			<div className="mb-6">
-				<Label htmlFor="adminEmail" className="block mb-2 text-sm">
-					Email Address
-				</Label>
-				<Input
-					id="adminEmail"
-					type="email"
-					placeholder="sarah.thompson@stmaryhospital.org"
-					{...register("email")}
-					aria-invalid={!!errors.email}
-					aria-describedby={errors.email ? "email-error" : "email-info"}
-				/>
-				{errors.email && (
-					<p id="email-error" className="font-medium text-red-500 mt-2 text-sm">
-						{errors.email.message}
-					</p>
-				)}
-				{!errors.email && (
-					<p id="email-info" className="flex gap-1 items-center mt-2">
-						<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
-						<span className="text-sm text-gray-400">
-							Use the email you signed up or were invited with
-						</span>
-					</p>
-				)}
-			</div>
-			<div className="mb-2">
-				<Label htmlFor="password" className="block mb-2 text-sm">
-					Password
-				</Label>
-				<div className="relative">
-					<Input
-						id="password"
-						type={isPasswordVisible ? "text" : "password"}
-						placeholder="Enter new password"
-						{...register("password")}
-						aria-describedby={errors.password ? "admin-password-error" : undefined}
-						aria-invalid={!!errors.password}
-					/>
-					<Button
-						variant="ghost"
-						size="icon"
-						type="button"
-						aria-label={isPasswordVisible ? "Hide password" : "Show password"}
-						className="absolute right-4 top-1/2 -translate-y-1/2 size-auto rounded-none border-0 hover:bg-transparent focus-visible:border-0"
-						onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-					>
-						<span aria-hidden="true">
-							{isPasswordVisible ? (
-								<RiEyeOffLine className="size-4 text-gray-600" />
-							) : (
-								<RiEyeLine className="size-4 text-gray-600" />
-							)}
-						</span>
-					</Button>
-				</div>
-				{errors.password && (
-					<p id="admin-password-error" className="font-medium text-red-500 mt-1 text-sm">
-						{errors.password.message}
-					</p>
-				)}
-			</div>
-			<div className="flex items-center justify-between mb-4 text-sm">
-				<Controller
-					name="rememberMe"
-					control={control}
-					defaultValue={false}
-					render={({ field }) => (
-						<Label className="cursor-pointer">
-							<Checkbox checked={field.value} onCheckedChange={field.onChange} />
-							Remember me
-						</Label>
-					)}
-				/>
-
-				<Link href="/forgot-password" className="font-medium text-sm">
-					Forgot Password
-				</Link>
-			</div>
-
-			<p id="sign-in-note" className="text-sm">
-				Use your verified hospital credentials. Access is monitored for compliance and security.
+		<>
+			<h1 className="mt-10 text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
+				Welcome Back to MediBridge
+			</h1>
+			<p className="text-gray-600 text-sm font-medium text-center text-balance mt-4">
+				Sign in with your verified hospital credentials.
 			</p>
-
-			{signInError && (
-				<div
-					role="alert"
-					className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
-				>
-					<span className="shrink-0">
-						<RiErrorWarningFill className="size-4" aria-hidden="true" />
-					</span>
-					<span>{signInError}</span>
+			<form
+				aria-describedby="sign-in-note"
+				onSubmit={handleSubmit(onSubmit)}
+				className="text-gray-800 mt-12"
+			>
+				<div className="mb-6">
+					<Label htmlFor="adminEmail" className="block mb-2 text-sm">
+						Email Address
+					</Label>
+					<Input
+						id="adminEmail"
+						type="email"
+						placeholder="sarah.thompson@stmaryhospital.org"
+						{...register("email")}
+						aria-invalid={!!errors.email}
+						aria-describedby={errors.email ? "email-error" : "email-info"}
+					/>
+					{errors.email && (
+						<p id="email-error" className="font-medium text-red-500 mt-2 text-sm">
+							{errors.email.message}
+						</p>
+					)}
+					{!errors.email && (
+						<p id="email-info" className="flex gap-1 items-center mt-2">
+							<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
+							<span className="text-sm text-gray-400">
+								Use the email you signed up or were invited with
+							</span>
+						</p>
+					)}
 				</div>
-			)}
+				<div className="mb-2">
+					<Label htmlFor="password" className="block mb-2 text-sm">
+						Password
+					</Label>
+					<div className="relative">
+						<Input
+							id="password"
+							type={isPasswordVisible ? "text" : "password"}
+							placeholder="Enter new password"
+							{...register("password")}
+							aria-describedby={errors.password ? "admin-password-error" : undefined}
+							aria-invalid={!!errors.password}
+						/>
+						<Button
+							variant="ghost"
+							size="icon"
+							type="button"
+							aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+							className="absolute right-4 top-1/2 -translate-y-1/2 size-auto rounded-none border-0 hover:bg-transparent focus-visible:border-0"
+							onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+						>
+							<span aria-hidden="true">
+								{isPasswordVisible ? (
+									<RiEyeOffLine className="size-4 text-gray-600" />
+								) : (
+									<RiEyeLine className="size-4 text-gray-600" />
+								)}
+							</span>
+						</Button>
+					</div>
+					{errors.password && (
+						<p id="admin-password-error" className="font-medium text-red-500 mt-1 text-sm">
+							{errors.password.message}
+						</p>
+					)}
+				</div>
+				<div className="flex items-center justify-between mb-4 text-sm">
+					<Controller
+						name="rememberMe"
+						control={control}
+						defaultValue={false}
+						render={({ field }) => (
+							<Label className="cursor-pointer">
+								<Checkbox checked={field.value} onCheckedChange={field.onChange} />
+								Remember me
+							</Label>
+						)}
+					/>
 
-			<Button className="w-full mt-16" type="submit" disabled={isSubmitting || isPending}>
-				{isSubmitting ? (
-					<span className="flex items-center gap-2">
-						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-						Signing in...
-					</span>
-				) : (
-					"Sign in"
+					<Link href="/forgot-password" className="font-medium text-sm">
+						Forgot Password
+					</Link>
+				</div>
+
+				<p id="sign-in-note" className="text-sm">
+					Use your verified hospital credentials. Access is monitored for compliance and security.
+				</p>
+
+				{signInError && (
+					<div
+						role="alert"
+						className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+					>
+						<span className="shrink-0">
+							<RiErrorWarningFill className="size-4" aria-hidden="true" />
+						</span>
+						<span>{signInError}</span>
+					</div>
 				)}
-			</Button>
-		</form>
+
+				<Button className="w-full mt-16" type="submit" disabled={isSubmitting || isPending}>
+					{isSubmitting ? (
+						<span className="flex items-center gap-2">
+							<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+							Signing in...
+						</span>
+					) : (
+						"Sign in"
+					)}
+				</Button>
+			</form>
+			<p className="text-center mt-4 text-sm font-medium">
+				<span className="text-gray-600">Do not have an account? </span>
+				<Link href="/owner" className="font-medium underline underline-offset-3 text-gray-800">
+					Create an account
+				</Link>
+			</p>
+		</>
 	);
 }

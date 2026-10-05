@@ -7,6 +7,7 @@ const {
 	getOrganizationAccessActionMock,
 	listOrganizationsMock,
 	replaceMock,
+	searchParamsState,
 	sendVerificationEmailMock,
 	setActiveOrganizationMock,
 	signInEmailMock,
@@ -14,6 +15,7 @@ const {
 	getOrganizationAccessActionMock: vi.fn(),
 	listOrganizationsMock: vi.fn(),
 	replaceMock: vi.fn(),
+	searchParamsState: { query: "" },
 	sendVerificationEmailMock: vi.fn(),
 	setActiveOrganizationMock: vi.fn(),
 	signInEmailMock: vi.fn(),
@@ -31,6 +33,7 @@ vi.stubGlobal(
 
 vi.mock("next/navigation", () => ({
 	useRouter: () => ({ push: vi.fn(), replace: replaceMock }),
+	useSearchParams: () => new URLSearchParams(searchParamsState.query),
 }));
 
 vi.mock("@/features/auth/server/actions", () => ({
@@ -56,6 +59,7 @@ async function submitSignInForm() {
 
 describe("SignInClient", () => {
 	beforeEach(() => {
+		searchParamsState.query = "";
 		signInEmailMock.mockResolvedValue({ data: { token: "session-token" }, error: null });
 		sendVerificationEmailMock.mockResolvedValue({ data: { status: true }, error: null });
 		listOrganizationsMock.mockResolvedValue({ data: [{ id: "hospital-1" }], error: null });
@@ -72,6 +76,42 @@ describe("SignInClient", () => {
 
 		await vi.waitFor(() => expect(replaceMock).toHaveBeenCalledWith("/dashboard/overview"));
 		expect(sendVerificationEmailMock).not.toHaveBeenCalled();
+	});
+
+	test("returns a signed-in member to the dashboard page they were trying to open", async () => {
+		searchParamsState.query = `callbackUrl=${encodeURIComponent("/dashboard/patients/PT-1042?tab=vitals")}`;
+
+		await submitSignInForm();
+
+		await vi.waitFor(() =>
+			expect(replaceMock).toHaveBeenCalledWith("/dashboard/patients/PT-1042?tab=vitals"),
+		);
+	});
+
+	test.each(["https://evil.example/dashboard/", "//evil.example/dashboard/", "/sign-in"])(
+		"ignores a callback address outside the dashboard (%s) and opens the overview",
+		async (callbackUrl) => {
+			searchParamsState.query = `callbackUrl=${encodeURIComponent(callbackUrl)}`;
+
+			await submitSignInForm();
+
+			await vi.waitFor(() => expect(replaceMock).toHaveBeenCalledWith("/dashboard/overview"));
+			expect(replaceMock).not.toHaveBeenCalledWith(callbackUrl);
+		},
+	);
+
+	test("sends an owner whose hospital is not approved to the verify screen even with a callback address", async () => {
+		searchParamsState.query = `callbackUrl=${encodeURIComponent("/dashboard/patients/PT-1042")}`;
+		getOrganizationAccessActionMock.mockResolvedValue({
+			status: "success",
+			emailVerified: true,
+			isOrganizationVerified: false,
+		});
+
+		await submitSignInForm();
+
+		await vi.waitFor(() => expect(replaceMock).toHaveBeenCalledWith("/verify"));
+		expect(replaceMock).not.toHaveBeenCalledWith("/dashboard/patients/PT-1042");
 	});
 
 	test("sends an unverified owner a new link that returns to the email-verified page", async () => {
