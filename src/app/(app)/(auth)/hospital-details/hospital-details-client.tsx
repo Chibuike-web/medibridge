@@ -17,12 +17,17 @@ import { FileUploadCard } from "@/components/file-upload-card";
 import { ChooseFileCard } from "@/components/choose-file-card";
 import { RiCheckboxCircleFill, RiErrorWarningFill } from "@remixicon/react";
 
+type HospitalDetailsFeedback = {
+	type: "error" | "success";
+	message: string;
+};
+
 export function HospitalDetailsClient() {
 	const router = useRouter();
 	const { file, status, uploadedType, setUploadError, uploadError, onClear, handleFileChange } =
 		useVerificationFileUpload();
-	const [error, setError] = useState("");
-	const [success, setSuccess] = useState("");
+	const [hospitalDetailsFeedback, setHospitalDetailsFeedback] =
+		useState<HospitalDetailsFeedback | null>(null);
 	const [isPending, startTransition] = useTransition();
 
 	const {
@@ -40,7 +45,7 @@ export function HospitalDetailsClient() {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	function onSubmit(data: HospitalDetailsType) {
-		setError("");
+		setHospitalDetailsFeedback(null);
 		if (!file) {
 			setUploadError("No file is uploaded. Please upload a file");
 			return;
@@ -49,18 +54,24 @@ export function HospitalDetailsClient() {
 			try {
 				const res = await createHospitalAction(data);
 				if (res?.status === "failed") {
-					setError(res.error || res.message || "Hospital creation failed");
+					setHospitalDetailsFeedback({
+						type: "error",
+						message: res.error || res.message || "Hospital creation failed",
+					});
 					return;
 				}
-				setSuccess("Hospital successfully created");
+				setHospitalDetailsFeedback({ type: "success", message: "Hospital successfully created" });
 
 				setTimeout(() => {
 					router.replace("/verify");
 					onClear();
-					setSuccess("");
+					setHospitalDetailsFeedback(null);
 				}, 1000);
 			} catch (error) {
-				setError(error instanceof Error ? error.message : "Unknown error");
+				setHospitalDetailsFeedback({
+					type: "error",
+					message: error instanceof Error ? error.message : "Unknown error",
+				});
 			}
 		});
 	}
@@ -133,20 +144,26 @@ export function HospitalDetailsClient() {
 				</p>
 			)}
 
-			{error && (
-				<div className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+			{hospitalDetailsFeedback?.type === "error" && (
+				<div
+					role="alert"
+					className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+				>
 					<span className="shrink-0">
 						<RiErrorWarningFill className="size-4" aria-hidden="true" />
 					</span>
-					<span>{error}</span>
+					<span>{hospitalDetailsFeedback.message}</span>
 				</div>
 			)}
-			{success && (
-				<div className="mt-4 flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-sm font-medium text-green-700">
+			{hospitalDetailsFeedback?.type === "success" && (
+				<div
+					role="status"
+					className="mt-4 flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-sm font-medium text-green-700"
+				>
 					<span>
 						<RiCheckboxCircleFill className="size-4" aria-hidden="true" />
 					</span>
-					<span>{success}</span>
+					<span>{hospitalDetailsFeedback.message}</span>
 				</div>
 			)}
 			<Button
