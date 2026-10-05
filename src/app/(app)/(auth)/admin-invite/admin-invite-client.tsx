@@ -100,7 +100,7 @@ export function AdminInviteClient() {
 						<p id="email-info" className="flex gap-1 items-center mt-2">
 							<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
 							<span className="text-sm text-gray-400">
-								Must be official verified hospital email
+								We&apos;ll email them a link to join your hospital
 							</span>
 						</p>
 					)}

@@ -9,13 +9,13 @@ import postgres from "postgres";
 import * as schema from "@/db/schemas/auth";
 import { ENV } from "../utils/env";
 import { sendEmail, sendPasswordResetEmail } from "../utils/send-email";
-import { and, eq } from "drizzle-orm";
+import { and, eq, gt } from "drizzle-orm";
 import {
 	assertAccountCanBeDeleted,
 	assertCanJoinHospital,
 	assertInvitationAllowed,
 	assertInviteeCanJoinHospital,
-	assertOfficialEmail,
+	assertOwnerEmail,
 } from "./auth-policies";
 import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
 
@@ -48,6 +48,22 @@ async function hasHospitalMembership(userId: string) {
 	return Boolean(membership);
 }
 
+async function hasPendingInvitation(email: string) {
+	const [pendingInvitation] = await db
+		.select({ id: schema.invitation.id })
+		.from(schema.invitation)
+		.where(
+			and(
+				eq(schema.invitation.email, email.toLowerCase()),
+				eq(schema.invitation.status, "pending"),
+				gt(schema.invitation.expiresAt, new Date()),
+			),
+		)
+		.limit(1);
+
+	return Boolean(pendingInvitation);
+}
+
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
 		provider: "pg",
@@ -77,7 +93,6 @@ export const auth = betterAuth({
 	},
 	emailVerification: {
 		autoSignInAfterVerification: true,
-		sendOnSignIn: true,
 		sendVerificationEmail: async ({ user, url }) => {
 			after(async () => {
 				try {
@@ -108,7 +123,8 @@ export const auth = betterAuth({
 		user: {
 			create: {
 				before: async (user) => {
-					assertOfficialEmail(user.email);
+					if (await hasPendingInvitation(user.email)) return;
+					assertOwnerEmail(user.email);
 				},
 			},
 		},
@@ -131,66 +147,76 @@ export const auth = betterAuth({
 	secret: ENV.BETTER_AUTH_SECRET!,
 	baseURL: ENV.BETTER_AUTH_URL,
 	hooks: {
-		// Runs before Better Auth decides between creating and renewing an invitation,
-		// so both paths follow the same hospital policy.
 		before: createAuthMiddleware(async (ctx) => {
-			if (ctx.path !== "/organization/invite-member") return;
-			// Organization middleware hasn't run yet, so resolve the session here.
-			const session = await getSessionFromCtx(ctx);
-			if (!session) throw new APIError("UNAUTHORIZED");
-			const organizationId = ctx.body?.organizationId ?? session.session.activeOrganizationId;
-			if (!organizationId) {
-				throw new APIError("BAD_REQUEST", { message: "Select a hospital before inviting." });
+			if (ctx.path === "/sign-up/email") {
+				const email = String(ctx.body?.email ?? "").toLowerCase();
+				const existingUser = await ctx.context.internalAdapter.findUserByEmail(email);
+
+				if (existingUser) {
+					throw new APIError("UNPROCESSABLE_ENTITY", {
+						code: "USER_ALREADY_EXISTS",
+						message: "This email already has an account.",
+					});
+				}
 			}
 
-			const email = String(ctx.body?.email ?? "").toLowerCase();
-			const requestedRole = [ctx.body?.role].flat().join(",");
+			// Runs before Better Auth decides between creating and renewing an invitation,
+			// so both paths follow the same hospital policy.
+			if (ctx.path === "/organization/invite-member") {
+				// Organization middleware hasn't run yet, so resolve the session here.
+				const session = await getSessionFromCtx(ctx);
+				if (!session) throw new APIError("UNAUTHORIZED");
+				const organizationId = ctx.body?.organizationId ?? session.session.activeOrganizationId;
+				if (!organizationId) {
+					throw new APIError("BAD_REQUEST", { message: "Select a hospital before inviting." });
+				}
 
-			const [inviterAccess] = await db
-				.select({
-					inviterRole: schema.member.role,
-					isOrganizationVerified: schema.organization.isVerified,
-				})
-				.from(schema.member)
-				.innerJoin(schema.organization, eq(schema.member.organizationId, schema.organization.id))
-				.where(
-					and(
-						eq(schema.member.organizationId, organizationId),
-						eq(schema.member.userId, session.user.id),
-					),
-				)
-				.limit(1);
+				const email = String(ctx.body?.email ?? "").toLowerCase();
+				const requestedRole = [ctx.body?.role].flat().join(",");
 
-			assertInvitationAllowed({ email, role: requestedRole }, inviterAccess);
+				const [inviterAccess] = await db
+					.select({
+						inviterRole: schema.member.role,
+						isOrganizationVerified: schema.organization.isVerified,
+					})
+					.from(schema.member)
+					.innerJoin(schema.organization, eq(schema.member.organizationId, schema.organization.id))
+					.where(
+						and(
+							eq(schema.member.organizationId, organizationId),
+							eq(schema.member.userId, session.user.id),
+						),
+					)
+					.limit(1);
 
-			// A renewal keeps the stored role, so the stored invitation must pass too.
-			// Otherwise sending role: "member" would renew an admin invitation.
-			const [pendingInvitation] = await db
-				.select({ email: schema.invitation.email, role: schema.invitation.role })
-				.from(schema.invitation)
-				.where(
-					and(
-						eq(schema.invitation.organizationId, organizationId),
-						eq(schema.invitation.email, email),
-						eq(schema.invitation.status, "pending"),
-					),
-				)
-				.limit(1);
+				assertInvitationAllowed({ role: requestedRole }, inviterAccess);
 
-			if (pendingInvitation) {
-				assertInvitationAllowed(
-					{ email: pendingInvitation.email, role: pendingInvitation.role ?? "" },
-					inviterAccess,
-				);
+				// A renewal keeps the stored role, so the stored invitation must pass too.
+				// Otherwise sending role: "member" would renew an admin invitation.
+				const [pendingInvitation] = await db
+					.select({ role: schema.invitation.role })
+					.from(schema.invitation)
+					.where(
+						and(
+							eq(schema.invitation.organizationId, organizationId),
+							eq(schema.invitation.email, email),
+							eq(schema.invitation.status, "pending"),
+						),
+					)
+					.limit(1);
+
+				if (pendingInvitation) {
+					assertInvitationAllowed({ role: pendingInvitation.role ?? "" }, inviterAccess);
+				}
+				const [inviteeMembership] = await db
+					.select({ id: schema.member.id })
+					.from(schema.member)
+					.innerJoin(schema.user, eq(schema.member.userId, schema.user.id))
+					.where(eq(schema.user.email, email))
+					.limit(1);
+
+				assertInviteeCanJoinHospital(Boolean(inviteeMembership));
 			}
-			const [inviteeMembership] = await db
-				.select({ id: schema.member.id })
-				.from(schema.member)
-				.innerJoin(schema.user, eq(schema.member.userId, schema.user.id))
-				.where(eq(schema.user.email, email))
-				.limit(1);
-
-			assertInviteeCanJoinHospital(Boolean(inviteeMembership));
 		}),
 	},
 	plugins: [

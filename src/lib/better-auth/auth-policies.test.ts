@@ -6,21 +6,21 @@ import {
 	assertCanJoinHospital,
 	assertInvitationAllowed,
 	assertInviteeCanJoinHospital,
-	assertOfficialEmail,
+	assertOwnerEmail,
 } from "./auth-policies";
 
 const verifiedOwner = { inviterRole: "owner", isOrganizationVerified: true };
 const verifiedAdmin = { inviterRole: "admin", isOrganizationVerified: true };
 const verifiedMember = { inviterRole: "member", isOrganizationVerified: true };
 
-describe("assertOfficialEmail", () => {
+describe("assertOwnerEmail", () => {
 	test("accepts an official .org hospital email regardless of letter case", () => {
-		expect(() => assertOfficialEmail("sarah@stmaryhospital.org")).not.toThrow();
-		expect(() => assertOfficialEmail("SARAH@STMARYHOSPITAL.ORG")).not.toThrow();
+		expect(() => assertOwnerEmail("sarah@stmaryhospital.org")).not.toThrow();
+		expect(() => assertOwnerEmail("SARAH@STMARYHOSPITAL.ORG")).not.toThrow();
 	});
 
 	test("rejects an email outside the .org domain", () => {
-		expect(() => assertOfficialEmail("sarah@gmail.com")).toThrow(
+		expect(() => assertOwnerEmail("sarah@gmail.com")).toThrow(
 			"Use your official hospital email address (.org).",
 		);
 	});
@@ -75,62 +75,50 @@ describe("assertAccountCanBeDeleted", () => {
 
 describe("assertInvitationAllowed", () => {
 	test("lets a verified hospital owner invite an administrator or a member", () => {
-		expect(() =>
-			assertInvitationAllowed({ email: "admin@stmary.org", role: "admin" }, verifiedOwner),
-		).not.toThrow();
-		expect(() =>
-			assertInvitationAllowed({ email: "nurse@stmary.org", role: "member" }, verifiedOwner),
-		).not.toThrow();
+		expect(() => assertInvitationAllowed({ role: "admin" }, verifiedOwner)).not.toThrow();
+		expect(() => assertInvitationAllowed({ role: "member" }, verifiedOwner)).not.toThrow();
 	});
 
 	test("lets a verified hospital administrator invite a member", () => {
-		expect(() =>
-			assertInvitationAllowed({ email: "nurse@stmary.org", role: "member" }, verifiedAdmin),
-		).not.toThrow();
+		expect(() => assertInvitationAllowed({ role: "member" }, verifiedAdmin)).not.toThrow();
 	});
 
 	test("does not let an administrator invite another administrator", () => {
-		expect(() =>
-			assertInvitationAllowed({ email: "admin@stmary.org", role: "admin" }, verifiedAdmin),
-		).toThrow("You can't invite someone with this role.");
+		expect(() => assertInvitationAllowed({ role: "admin" }, verifiedAdmin)).toThrow(
+			"You can't invite someone with this role.",
+		);
 	});
 
 	test("does not let an administrator gain admin rights by requesting several roles", () => {
-		expect(() =>
-			assertInvitationAllowed({ email: "admin@stmary.org", role: "member,admin" }, verifiedAdmin),
-		).toThrow("You can't invite someone with this role.");
+		expect(() => assertInvitationAllowed({ role: "member,admin" }, verifiedAdmin)).toThrow(
+			"You can't invite someone with this role.",
+		);
 	});
 
 	test("does not let an owner invite another owner", () => {
-		expect(() =>
-			assertInvitationAllowed({ email: "owner@stmary.org", role: "owner" }, verifiedOwner),
-		).toThrow("You can't invite someone with this role.");
+		expect(() => assertInvitationAllowed({ role: "owner" }, verifiedOwner)).toThrow(
+			"You can't invite someone with this role.",
+		);
 	});
 
 	test("does not let a member send invitations", () => {
-		expect(() =>
-			assertInvitationAllowed({ email: "nurse@stmary.org", role: "member" }, verifiedMember),
-		).toThrow("You can't invite someone with this role.");
+		expect(() => assertInvitationAllowed({ role: "member" }, verifiedMember)).toThrow(
+			"You can't invite someone with this role.",
+		);
 	});
 
 	test("does not send invitations before the hospital is verified", () => {
 		expect(() =>
 			assertInvitationAllowed(
-				{ email: "admin@stmary.org", role: "admin" },
+				{ role: "admin" },
 				{ inviterRole: "owner", isOrganizationVerified: false },
 			),
 		).toThrow("Your hospital must be verified before you can send invitations.");
 	});
 
 	test("does not send invitations for someone who is not a member of the hospital", () => {
-		expect(() =>
-			assertInvitationAllowed({ email: "admin@stmary.org", role: "admin" }, undefined),
-		).toThrow("Your hospital must be verified before you can send invitations.");
-	});
-
-	test("does not invite an email outside the .org domain", () => {
-		expect(() =>
-			assertInvitationAllowed({ email: "admin@gmail.com", role: "admin" }, verifiedOwner),
-		).toThrow("Use your official hospital email address (.org).");
+		expect(() => assertInvitationAllowed({ role: "admin" }, undefined)).toThrow(
+			"Your hospital must be verified before you can send invitations.",
+		);
 	});
 });

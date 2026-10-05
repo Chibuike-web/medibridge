@@ -18,7 +18,7 @@ export const updatePatientContactInformationSchema = z.object({
 	phoneNumber: z.string().trim().optional(),
 	emailAddress: z.preprocess(
 		(value) => (value === "" || value === null ? undefined : value),
-		z.string().trim().email("Enter a valid email address.").optional(),
+		z.string().trim().toLowerCase().email("Enter a valid email address.").optional(),
 	),
 	residentialAddress: z.string().trim().optional(),
 	stateOfOrigin: z.string().trim().optional(),

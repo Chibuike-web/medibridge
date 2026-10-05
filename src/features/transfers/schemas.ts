@@ -20,7 +20,7 @@ export const createTransferRequestsSchema = z
 		z.object({
 			patientId: z.string().trim().min(1),
 			targetHospitalName: z.string().trim().min(2).max(200),
-			targetHospitalEmail: z.email(),
+			targetHospitalEmail: z.string().trim().toLowerCase().pipe(z.email()),
 			notes: z.string().trim().max(2000).optional(),
 			records: z.array(selectedClinicalRecordSchema).min(1),
 		}),

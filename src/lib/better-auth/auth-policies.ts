@@ -10,7 +10,7 @@ type InviterAccess = {
 	isOrganizationVerified: boolean;
 };
 
-export function assertOfficialEmail(email: string) {
+export function assertOwnerEmail(email: string) {
 	if (!email.toLowerCase().endsWith(".org")) {
 		throw new APIError("BAD_REQUEST", {
 			message: "Use your official hospital email address (.org).",
@@ -47,11 +47,9 @@ export function assertAccountCanBeDeleted(memberRoles: string[]) {
 }
 
 export function assertInvitationAllowed(
-	invitation: { email: string; role: string },
+	invitation: { role: string },
 	inviterAccess: InviterAccess | undefined,
 ) {
-	assertOfficialEmail(invitation.email);
-
 	if (!inviterAccess?.isOrganizationVerified) {
 		throw new APIError("FORBIDDEN", {
 			message: "Your hospital must be verified before you can send invitations.",

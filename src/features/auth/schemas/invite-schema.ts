@@ -9,8 +9,7 @@ export const inviteSchema = z.object({
 		.min(1, "Email is required")
 		.min(6, "Enter a valid email address")
 		.max(254, "Email address is too long")
-		.refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), "Invalid email address")
-		.refine((val) => val.endsWith(".org"), { message: "Email must end with .org" }),
+		.refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), "Invalid email address"),
 });
 
 export type InviteType = z.infer<typeof inviteSchema>;

@@ -12,20 +12,13 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import {
-	RiCheckboxCircleFill,
-	RiErrorWarningFill,
-	RiEyeLine,
-	RiEyeOffLine,
-	RiInformationLine,
-} from "@remixicon/react";
+import { RiErrorWarningFill, RiEyeLine, RiEyeOffLine, RiInformationLine } from "@remixicon/react";
 import { authClient } from "@/lib/better-auth/auth.client";
 
 export function SignInClient() {
 	const router = useRouter();
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const [signInError, setSignInError] = useState("");
-	const [signInSuccess, setSignInSuccess] = useState("");
 	const [isPending, startTransition] = useTransition();
 
 	const {
@@ -40,7 +33,6 @@ export function SignInClient() {
 
 	const onSubmit = async (data: SignInType) => {
 		setSignInError("");
-		setSignInSuccess("");
 		try {
 			const { error } = await authClient.signIn.email({
 				email: data.email,
@@ -54,7 +46,16 @@ export function SignInClient() {
 			}
 
 			if (error?.code === "EMAIL_NOT_VERIFIED") {
-				setSignInError("Check your inbox for a verification link before signing in.");
+				const { error: sendVerificationEmailError } = await authClient.sendVerificationEmail({
+					email: data.email,
+					callbackURL: "/email-verified",
+				});
+
+				setSignInError(
+					sendVerificationEmailError
+						? "Your email isn't verified yet, and we couldn't send a new link. Wait a moment and try again."
+						: "Check your inbox for a verification link before signing in.",
+				);
 				return;
 			}
 
@@ -145,7 +146,9 @@ export function SignInClient() {
 				{!errors.email && (
 					<p id="email-info" className="flex gap-1 items-center mt-2">
 						<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
-						<span className="text-sm text-gray-400">Must be official verified hospital email</span>
+						<span className="text-sm text-gray-400">
+							Use the email you signed up or were invited with
+						</span>
 					</p>
 				)}
 			</div>
@@ -208,7 +211,10 @@ export function SignInClient() {
 			</p>
 
 			{signInError && (
-				<div className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+				<div
+					role="alert"
+					className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+				>
 					<span className="shrink-0">
 						<RiErrorWarningFill className="size-4" aria-hidden="true" />
 					</span>
@@ -216,14 +222,6 @@ export function SignInClient() {
 				</div>
 			)}
 
-			{signInSuccess && (
-				<div className="mt-4 flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-sm font-medium text-green-700">
-					<span>
-						<RiCheckboxCircleFill className="size-4" aria-hidden="true" />
-					</span>
-					<span>{signInSuccess}</span>
-				</div>
-			)}
 			<Button className="w-full mt-16" type="submit" disabled={isSubmitting || isPending}>
 				{isSubmitting ? (
 					<span className="flex items-center gap-2">

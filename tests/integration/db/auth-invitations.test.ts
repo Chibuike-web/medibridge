@@ -171,6 +171,23 @@ describe.skipIf(!testDatabaseUrl)("POST /api/auth/organization/invite-member", (
 			]);
 		});
 
+		test("lets the owner invite an administrator whose email is on any domain", async () => {
+			const hospitalId = await createHospital("Approved Hospital", { isVerified: true });
+			const ownerId = await createHospitalMember(hospitalId, "owner@approved.org", "owner");
+			const ownerCookie = await signIn(ownerId, hospitalId);
+
+			const response = await inviteMember(ownerCookie, {
+				email: "new-admin@gmail.com",
+				role: "admin",
+				organizationId: hospitalId,
+			});
+
+			expect(response.status).toBe(200);
+			expect(await findInvitationsFor("new-admin@gmail.com")).toEqual([
+				expect.objectContaining({ role: "admin", status: "pending" }),
+			]);
+		});
+
 		test("lets the owner renew a pending administrator invitation", async () => {
 			const hospitalId = await createHospital("Approved Hospital", { isVerified: true });
 			const ownerId = await createHospitalMember(hospitalId, "owner@approved.org", "owner");
