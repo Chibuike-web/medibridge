@@ -25,6 +25,7 @@ export function CreateNewPasswordClient({ token, isTokenInvalid }: CreateNewPass
 	const [newPassword, setNewPassword] = useState("");
 	const [confirmedPassword, setConfirmedPassword] = useState("");
 	const [passwordFeedback, setPasswordFeedback] = useState<PasswordFeedback | null>(null);
+	const [isResetTokenRejected, setIsResetTokenRejected] = useState(false);
 	const isPasswordMismatch =
 		passwordFeedback?.type === "error" && passwordFeedback.message === "Passwords do not match.";
 	const [isPending, startTransition] = useTransition();
@@ -45,13 +46,13 @@ export function CreateNewPasswordClient({ token, isTokenInvalid }: CreateNewPass
 
 	return (
 		<div className="w-full">
-			<h1 className="mt-10 text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
+			<h1 className="mt-10 text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 				Create a New Password
 			</h1>
-			<p className="mt-4 text-balance text-center text-sm font-medium text-gray-600">
+			<p className="mt-4 text-pretty text-center text-sm font-medium text-gray-600">
 				Choose a strong password to keep your account secure.
 			</p>
-			{!token || isTokenInvalid ? (
+			{!token || isTokenInvalid || isResetTokenRejected ? (
 				<div className="mt-12 text-center">
 					<p role="alert" className="text-sm text-red-600">
 						This password reset link is invalid or expired. Request a new one to continue.
@@ -75,10 +76,17 @@ export function CreateNewPasswordClient({ token, isTokenInvalid }: CreateNewPass
 							try {
 								const { error } = await authClient.resetPassword({ newPassword, token });
 
+								if (error?.code === "INVALID_TOKEN" || error?.code === "TOKEN_EXPIRED") {
+									setIsResetTokenRejected(true);
+									return;
+								}
 								if (error) {
 									setPasswordFeedback({
 										type: "error",
-										message: "This reset link is invalid or expired. Request a new one.",
+										message:
+											error.status === 429
+												? "Too many attempts. Wait a moment and try again."
+												: "We couldn’t reset your password. Please try again.",
 									});
 									return;
 								}
@@ -188,7 +196,7 @@ export function CreateNewPasswordClient({ token, isTokenInvalid }: CreateNewPass
 						)}
 					</div>
 					{passwordFeedback?.type === "error" && !isPasswordMismatch && (
-						<p role="status" className="mb-4 text-sm text-amber-700">
+						<p role="alert" className="mb-4 text-sm text-amber-700">
 							{passwordFeedback.message}
 						</p>
 					)}

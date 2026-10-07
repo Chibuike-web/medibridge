@@ -131,10 +131,6 @@ export const auth = betterAuth({
 	},
 	session: {
 		expiresIn: 60 * 60 * 24 * 7,
-		cookieCache: {
-			enabled: true,
-			maxAge: 60,
-		},
 	},
 	// Enabled in every environment; Better Auth's stricter built-in rules still apply to
 	// sign-in, sign-up, password changes, and verification or reset emails.
@@ -143,7 +139,6 @@ export const auth = betterAuth({
 		window: 60,
 		max: 100,
 	},
-	debug: true,
 	secret: ENV.BETTER_AUTH_SECRET!,
 	baseURL: ENV.BETTER_AUTH_URL,
 	hooks: {
@@ -166,6 +161,11 @@ export const auth = betterAuth({
 				// Organization middleware hasn't run yet, so resolve the session here.
 				const session = await getSessionFromCtx(ctx);
 				if (!session) throw new APIError("UNAUTHORIZED");
+				if (!session.user.emailVerified) {
+					throw new APIError("FORBIDDEN", {
+						message: "Verify your email before inviting members.",
+					});
+				}
 				const organizationId = ctx.body?.organizationId ?? session.session.activeOrganizationId;
 				if (!organizationId) {
 					throw new APIError("BAD_REQUEST", { message: "Select a hospital before inviting." });
@@ -224,12 +224,27 @@ export const auth = betterAuth({
 		organization({
 			creatorRole: "owner",
 			allowUserToCreateOrganization: false,
+			requireEmailVerificationOnInvitation: true,
 			organizationHooks: {
+				beforeCreateOrganization: async ({ user }) => {
+					assertOwnerEmail(user.email);
+					assertCanJoinHospital(await hasHospitalMembership(user.id));
+				},
 				// Runs when a hospital is created and when a member is added directly.
 				beforeAddMember: async ({ user }) => {
 					assertCanJoinHospital(await hasHospitalMembership(user.id));
 				},
-				beforeAcceptInvitation: async ({ user }) => {
+				beforeAcceptInvitation: async ({ user, invitation }) => {
+					const [hospital] = await db
+						.select({ isVerified: schema.organization.isVerified })
+						.from(schema.organization)
+						.where(eq(schema.organization.id, invitation.organizationId))
+						.limit(1);
+					if (!hospital?.isVerified) {
+						throw new APIError("FORBIDDEN", {
+							message: "This hospital must be verified before you can join it.",
+						});
+					}
 					assertCanJoinHospital(await hasHospitalMembership(user.id));
 				},
 			},

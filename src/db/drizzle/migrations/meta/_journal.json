@@ -1,174 +1,181 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1780125777457,
-      "tag": "0000_jazzy_archangel",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1780607481459,
-      "tag": "0001_orange_thunderbolt_ross",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1780992526960,
-      "tag": "0002_chief_vindicator",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1780994692750,
-      "tag": "0003_chubby_skrulls",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1780998643553,
-      "tag": "0004_mixed_tattoo",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1781034216503,
-      "tag": "0005_robust_clint_barton",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1781170886970,
-      "tag": "0006_nifty_vector",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1781322050231,
-      "tag": "0007_wonderful_fantastic_four",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1781322480460,
-      "tag": "0008_wet_mantis",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1781336999115,
-      "tag": "0009_chilly_phantom_reporter",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1781339000000,
-      "tag": "0010_access_rename",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1781378941769,
-      "tag": "0011_far_klaw",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1781379610759,
-      "tag": "0012_bouncy_tarantula",
-      "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1781380500000,
-      "tag": "0013_rename_diagnosed_at",
-      "breakpoints": true
-    },
-    {
-      "idx": 14,
-      "version": "7",
-      "when": 1783885495794,
-      "tag": "0014_luxuriant_scream",
-      "breakpoints": true
-    },
-    {
-      "idx": 15,
-      "version": "7",
-      "when": 1783940000000,
-      "tag": "0015_record_access_recipient_cleanup",
-      "breakpoints": true
-    },
-    {
-      "idx": 16,
-      "version": "7",
-      "when": 1784050000000,
-      "tag": "0016_consistent_patient_files",
-      "breakpoints": true
-    },
-    {
-      "idx": 17,
-      "version": "7",
-      "when": 1784200000000,
-      "tag": "0017_remove_encounter_transfer_content",
-      "breakpoints": true
-    },
-    {
-      "idx": 18,
-      "version": "7",
-      "when": 1784210000000,
-      "tag": "0018_normalize_immunization_dose_labels",
-      "breakpoints": true
-    },
-    {
-      "idx": 19,
-      "version": "7",
-      "when": 1786193031944,
-      "tag": "0019_drop_patient_duplicate_id",
-      "breakpoints": true
-    },
-    {
-      "idx": 20,
-      "version": "7",
-      "when": 1789044373175,
-      "tag": "0020_patient_vitals",
-      "breakpoints": true
-    },
-    {
-      "idx": 21,
-      "version": "7",
-      "when": 1789147375806,
-      "tag": "0021_vital_encounter_audit",
-      "breakpoints": true
-    },
-    {
-      "idx": 22,
-      "version": "7",
-      "when": 1789889205265,
-      "tag": "0022_invitation_created_at",
-      "breakpoints": true
-    },
-    {
-      "idx": 23,
-      "version": "7",
-      "when": 1790348400000,
-      "tag": "0023_drop_patient_documents",
-      "breakpoints": true
-    }
-  ]
+	"version": "7",
+	"dialect": "postgresql",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "7",
+			"when": 1780125777457,
+			"tag": "0000_jazzy_archangel",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1780607481459,
+			"tag": "0001_orange_thunderbolt_ross",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1780992526960,
+			"tag": "0002_chief_vindicator",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1780994692750,
+			"tag": "0003_chubby_skrulls",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1780998643553,
+			"tag": "0004_mixed_tattoo",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "7",
+			"when": 1781034216503,
+			"tag": "0005_robust_clint_barton",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "7",
+			"when": 1781170886970,
+			"tag": "0006_nifty_vector",
+			"breakpoints": true
+		},
+		{
+			"idx": 7,
+			"version": "7",
+			"when": 1781322050231,
+			"tag": "0007_wonderful_fantastic_four",
+			"breakpoints": true
+		},
+		{
+			"idx": 8,
+			"version": "7",
+			"when": 1781322480460,
+			"tag": "0008_wet_mantis",
+			"breakpoints": true
+		},
+		{
+			"idx": 9,
+			"version": "7",
+			"when": 1781336999115,
+			"tag": "0009_chilly_phantom_reporter",
+			"breakpoints": true
+		},
+		{
+			"idx": 10,
+			"version": "7",
+			"when": 1781339000000,
+			"tag": "0010_access_rename",
+			"breakpoints": true
+		},
+		{
+			"idx": 11,
+			"version": "7",
+			"when": 1781378941769,
+			"tag": "0011_far_klaw",
+			"breakpoints": true
+		},
+		{
+			"idx": 12,
+			"version": "7",
+			"when": 1781379610759,
+			"tag": "0012_bouncy_tarantula",
+			"breakpoints": true
+		},
+		{
+			"idx": 13,
+			"version": "7",
+			"when": 1781380500000,
+			"tag": "0013_rename_diagnosed_at",
+			"breakpoints": true
+		},
+		{
+			"idx": 14,
+			"version": "7",
+			"when": 1783885495794,
+			"tag": "0014_luxuriant_scream",
+			"breakpoints": true
+		},
+		{
+			"idx": 15,
+			"version": "7",
+			"when": 1783940000000,
+			"tag": "0015_record_access_recipient_cleanup",
+			"breakpoints": true
+		},
+		{
+			"idx": 16,
+			"version": "7",
+			"when": 1784050000000,
+			"tag": "0016_consistent_patient_files",
+			"breakpoints": true
+		},
+		{
+			"idx": 17,
+			"version": "7",
+			"when": 1784200000000,
+			"tag": "0017_remove_encounter_transfer_content",
+			"breakpoints": true
+		},
+		{
+			"idx": 18,
+			"version": "7",
+			"when": 1784210000000,
+			"tag": "0018_normalize_immunization_dose_labels",
+			"breakpoints": true
+		},
+		{
+			"idx": 19,
+			"version": "7",
+			"when": 1786193031944,
+			"tag": "0019_drop_patient_duplicate_id",
+			"breakpoints": true
+		},
+		{
+			"idx": 20,
+			"version": "7",
+			"when": 1789044373175,
+			"tag": "0020_patient_vitals",
+			"breakpoints": true
+		},
+		{
+			"idx": 21,
+			"version": "7",
+			"when": 1789147375806,
+			"tag": "0021_vital_encounter_audit",
+			"breakpoints": true
+		},
+		{
+			"idx": 22,
+			"version": "7",
+			"when": 1789889205265,
+			"tag": "0022_invitation_created_at",
+			"breakpoints": true
+		},
+		{
+			"idx": 23,
+			"version": "7",
+			"when": 1790348400000,
+			"tag": "0023_drop_patient_documents",
+			"breakpoints": true
+		},
+		{
+			"idx": 24,
+			"version": "7",
+			"when": 1791370800000,
+			"tag": "0024_one_hospital_per_account",
+			"breakpoints": true
+		}
+	]
 }

@@ -63,8 +63,8 @@ export function CreateVitalsDrawer({
 		startTransition(async () => {
 			const result = await createPatientVitalAction(patientId, formData);
 
-			if (!result.ok) {
-				setFormError(result.message);
+			if (result.status === "failed") {
+				setFormError(result.error);
 				return;
 			}
 

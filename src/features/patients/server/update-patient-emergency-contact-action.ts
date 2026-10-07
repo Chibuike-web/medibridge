@@ -7,14 +7,18 @@ import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { db } from "@/lib/better-auth/auth";
 import { updatePatientEmergencyContactSchema } from "./schemas";
 
+type UpdatePatientEmergencyContactResult =
+	| { status: "success" }
+	| { status: "failed"; error: string };
+
 export async function updatePatientEmergencyContactAction(
 	patientId: string,
 	formData: FormData,
-) {
+): Promise<UpdatePatientEmergencyContactResult> {
 	const organizationId = await getOrganizationId();
 
 	if (!organizationId) {
-		return { ok: false, message: "Unable to verify your hospital." };
+		return { status: "failed", error: "Unable to verify your hospital." };
 	}
 
 	const parsedEmergencyContact = updatePatientEmergencyContactSchema.safeParse({
@@ -27,8 +31,8 @@ export async function updatePatientEmergencyContactAction(
 
 	if (!parsedEmergencyContact.success) {
 		return {
-			ok: false,
-			message:
+			status: "failed",
+			error:
 				parsedEmergencyContact.error.issues[0]?.message ??
 				"Please check the emergency contact fields.",
 		};
@@ -41,7 +45,7 @@ export async function updatePatientEmergencyContactAction(
 		.limit(1);
 
 	if (!patientRow) {
-		return { ok: false, message: "Patient record was not found." };
+		return { status: "failed", error: "Patient record was not found." };
 	}
 
 	const emergencyContact = parsedEmergencyContact.data;
@@ -76,5 +80,5 @@ export async function updatePatientEmergencyContactAction(
 	updateTag(`recent-patients-${organizationId}`);
 	updateTag(`recent-transfers-${organizationId}`);
 
-	return { ok: true, message: "" };
+	return { status: "success" };
 }

@@ -93,7 +93,7 @@ export function useVerificationFileUpload() {
 				return;
 			}
 			setVerificationFile((prev) => ({ ...prev, status: "upload-complete" }));
-		} catch (error) {
+		} catch {
 			setVerificationFile({
 				file: null,
 				status: "idle",

@@ -88,4 +88,21 @@ describe("AdminInviteClient", () => {
 		});
 		expect(await screen.findByRole("dialog", { name: "Admin Invitation Sent" })).toBeVisible();
 	});
+
+	test("keeps the form usable and shows plain feedback if sending the invitation throws", async () => {
+		const user = userEvent.setup();
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		inviteAdminActionMock.mockRejectedValue(new Error("secret connection details"));
+		render(<AdminInviteClient />);
+		await user.type(screen.getByRole("textbox", { name: "Name" }), "Sarah Thompson");
+		await user.type(screen.getByRole("textbox", { name: "Email Address" }), "sarah@gmail.com");
+		await user.click(screen.getByRole("button", { name: "Send Invite" }));
+
+		expect(await screen.findByRole("alert")).toHaveTextContent(
+			"Unable to send the invitation. Please try again.",
+		);
+		expect(screen.getByRole("button", { name: "Send Invite" })).toBeEnabled();
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+		vi.restoreAllMocks();
+	});
 });

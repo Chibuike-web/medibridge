@@ -50,9 +50,8 @@ export function AdminInviteClient() {
 				reset();
 				setIsSuccessModalOpen(true);
 			} catch (error) {
-				setInvitationError(
-					error instanceof Error ? error.message : "Unable to send the invitation.",
-				);
+				console.error(error);
+				setInvitationError("Unable to send the invitation. Please try again.");
 			}
 		});
 	};

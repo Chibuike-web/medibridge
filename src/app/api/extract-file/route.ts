@@ -5,7 +5,7 @@ import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
 import path from "node:path";
 import { existsSync, readFileSync } from "node:fs";
-import { PatientSchema } from "@/features/patients/schemas/patient-schema";
+import { PatientRecordSchema } from "@/features/patients/schemas/patient-schema";
 import { ExtractionResult } from "@/lib/types/upload";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
@@ -18,47 +18,60 @@ const model =
 			})
 		: gateway("openai/gpt-5.6-luna");
 
-const results: ExtractionResult[] = [];
-
 export async function POST(req: Request) {
 	const session = await getSessionData();
 
 	if (!session?.user?.id) {
-		return Response.json({ error: "Sign in to extract patient records." }, { status: 401 });
+		return Response.json(
+			{ status: "failed", error: "Sign in to extract patient records." },
+			{ status: 401 },
+		);
 	}
 
 	const organizationId = await getOrganizationId();
 
 	if (!organizationId) {
 		return Response.json(
-			{ error: "Your hospital must be verified before you can extract patient records." },
+			{
+				status: "failed",
+				error: "Your hospital must be verified before you can extract patient records.",
+			},
 			{ status: 403 },
 		);
 	}
-	const worker = await createWorker("eng");
-	results.length = 0;
+	const results: ExtractionResult[] = [];
+	let worker: Awaited<ReturnType<typeof createWorker>> | undefined;
 
 	try {
 		const { filenames } = await req.json();
-		if (!filenames) return Response.json({ error: "Missing file" }, { status: 400 });
+		if (!Array.isArray(filenames) || filenames.length === 0)
+			return Response.json({ status: "failed", error: "Missing file" }, { status: 400 });
+		if (
+			filenames.some(
+				(filename) =>
+					typeof filename !== "string" ||
+					!filename ||
+					/[\\/:*?"<>|]|[^\u0020-\uffff]/.test(filename) ||
+					/[. ]$/.test(filename),
+			)
+		) {
+			return Response.json(
+				{ status: "failed", error: "Invalid upload filename." },
+				{ status: 400 },
+			);
+		}
+		const uploadDir = path.resolve("patient-uploads", organizationId, session.user.id);
+		if (!existsSync(uploadDir)) {
+			return Response.json(
+				{ status: "failed", error: "No uploaded files were found." },
+				{ status: 400 },
+			);
+		}
+		worker = await createWorker("eng");
 
 		let text = "";
 		for (const filename of filenames) {
-			const uploadDir = path.resolve("patient-uploads");
-			if (!existsSync(uploadDir)) {
-				throw new Error("Directory does not exist");
-			}
 			const filePath = path.join(uploadDir, filename);
-			if (!filePath) {
-				results.push({
-					name: filename,
-					path: filePath || "",
-					status: "failed",
-					error: "Missing or invalid path",
-					text: "",
-				});
-				continue;
-			}
 
 			const fileExt = path.extname(filePath).toLowerCase();
 
@@ -73,7 +86,7 @@ export async function POST(req: Request) {
 						status: "success",
 						text,
 					});
-				} else if ([".docx", ".doc"].includes(fileExt)) {
+				} else if (fileExt === ".docx") {
 					const result = await mammoth.extractRawText({ path: filePath });
 					const text = result.value;
 
@@ -125,12 +138,13 @@ export async function POST(req: Request) {
 					await parser.destroy();
 				}
 			} catch (error) {
+				console.error(error);
 				results.push({
 					name: filename,
 					path: filePath,
 					status: "failed",
 					text: "",
-					error: error instanceof Error ? error.message : "OCR failed.",
+					error: "We couldn’t read this uploaded file. Please try again.",
 				});
 			}
 		}
@@ -151,22 +165,18 @@ Extract patient data per document.`;
 
 		const { output } = await generateText({
 			model,
+			instructions: systemPrompt,
 			messages: [
-				{
-					role: "system",
-					content: systemPrompt,
-				},
 				{
 					role: "user",
 					content: [{ type: "text", text: prompt }],
 				},
 			],
-			output: Output.array(PatientSchema),
+			output: Output.array({ element: PatientRecordSchema }),
 		});
-		console.log("Extracted object:", output);
 
 		return Response.json({
-			ok: true,
+			status: "success",
 			parsed: successful.length,
 			failed: failed.length,
 			failedDocuments: failed,
@@ -174,12 +184,13 @@ Extract patient data per document.`;
 			extracted: output,
 		});
 	} catch (error) {
+		console.error(error);
 		return Response.json(
-			{ error: error instanceof Error ? error.message : "Internal Server error" },
+			{ status: "failed", error: "We couldn’t extract patient information. Please try again." },
 			{ status: 400 },
 		);
 	} finally {
-		await worker.terminate();
+		await worker?.terminate();
 	}
 }
 

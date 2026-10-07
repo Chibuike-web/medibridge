@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils/cn";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
-	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
@@ -29,6 +28,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 	const { data: session, isPending: isLoadingUserSession } = authClient.useSession();
 	const user = session?.user;
 	const [isPending, startTransition] = useTransition();
+	const [signOutError, setSignOutError] = useState("");
 
 	if (isLoadingUserSession) {
 		return <UserProfileSkeleton isCollapsed={isCollapsed} />;
@@ -44,7 +44,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 		.join("");
 
 	return (
-		<div className="w-full mt-auto p-2 flex justify-center">
+		<div className="w-full mt-auto p-2 flex flex-col items-center justify-center">
 			<DropdownMenu>
 				<DropdownMenuTrigger
 					className={cn(
@@ -101,13 +101,21 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
 						variant="destructive"
+						disabled={isPending}
 						onClick={() => {
+							setSignOutError("");
 							startTransition(async () => {
 								try {
-									await authClient.signOut();
+									const { error } = await authClient.signOut();
+									if (error) {
+										setSignOutError("Unable to sign out. Please try again.");
+										return;
+									}
 									router.replace("/sign-in");
+									router.refresh();
 								} catch (error) {
 									console.error(error);
+									setSignOutError("Unable to sign out. Please try again.");
 								}
 							});
 						}}
@@ -118,6 +126,11 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
+			{signOutError && (
+				<p role="alert" className="mt-2 text-sm text-red-600">
+					{signOutError}
+				</p>
+			)}
 
 			{isPending && (
 				<div className="fixed inset-0 z-[100] bg-white/80 backdrop-blur-sm grid place-items-center">

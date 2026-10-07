@@ -19,6 +19,8 @@ export type OrganizationContext = {
 
 export const getOrganizationContext = cache(async (): Promise<OrganizationContext | null> => {
 	const session = await verifySession();
+	if (!session.user.emailVerified) return null;
+
 	const activeOrganizationId = session.session.activeOrganizationId;
 
 	if (!activeOrganizationId) {

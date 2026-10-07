@@ -18,10 +18,7 @@ import {
 	patientTransferContent,
 	patientTransferProgress,
 } from "@/db/schemas";
-import {
-	createTransferRequestsSchema,
-	type CreateTransferRequestsInput,
-} from "../schemas";
+import { createTransferRequestsSchema, type CreateTransferRequestsInput } from "../schemas";
 import type { ClinicalRecordType, TransferStatusFilter } from "../types";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getTransfers } from "@/lib/api/get-transfers";
@@ -36,22 +33,12 @@ type RecordOwnership = {
 	patientId: string;
 };
 
-function selectedRecordKey(
-	type: ClinicalRecordType,
-	id: string,
-	patientId: string,
-) {
+function selectedRecordKey(type: ClinicalRecordType, id: string, patientId: string) {
 	return `${type}:${id}:${patientId}`;
 }
 
-function uniqueSelectedRecords(
-	records: CreateTransferRequestsInput[number]["records"],
-) {
-	return [
-		...new Map(
-			records.map((record) => [`${record.type}:${record.id}`, record]),
-		).values(),
-	];
+function uniqueSelectedRecords(records: CreateTransferRequestsInput[number]["records"]) {
+	return [...new Map(records.map((record) => [`${record.type}:${record.id}`, record])).values()];
 }
 
 async function getSelectedRecordOwnership(input: CreateTransferRequestsInput) {
@@ -88,9 +75,7 @@ async function getSelectedRecordOwnership(input: CreateTransferRequestsInput) {
 		return db
 			.select({ id: table.id, patientId: table.patientId })
 			.from(table)
-			.where(
-				and(inArray(table.id, recordIds), inArray(table.patientId, patientIds)),
-			);
+			.where(and(inArray(table.id, recordIds), inArray(table.patientId, patientIds)));
 	}
 
 	const ownershipRowsByType = await Promise.all([
@@ -123,17 +108,13 @@ async function getSelectedRecordOwnership(input: CreateTransferRequestsInput) {
 	return ownershipKeys;
 }
 
-export async function createTransferRequestsAction(
-	input: CreateTransferRequestsInput,
-) {
+export async function createTransferRequestsAction(input: CreateTransferRequestsInput) {
 	const parsedInput = createTransferRequestsSchema.safeParse(input);
 
 	if (!parsedInput.success) {
 		return {
-			ok: false as const,
-			message:
-				parsedInput.error.issues[0]?.message ??
-				"Check the transfer request details.",
+			status: "failed" as const,
+			error: parsedInput.error.issues[0]?.message ?? "Check the transfer request details.",
 		};
 	}
 
@@ -144,57 +125,43 @@ export async function createTransferRequestsAction(
 	const patientIds = transferRequests.map((transfer) => transfer.patientId);
 
 	if (!organizationId) {
-		return { ok: false as const, message: "Unable to verify your hospital." };
+		return { status: "failed" as const, error: "Unable to verify your hospital." };
 	}
 
 	if (new Set(patientIds).size !== patientIds.length) {
 		return {
-			ok: false as const,
-			message: "Each patient can only appear once per request.",
+			status: "failed" as const,
+			error: "Each patient can only appear once per request.",
 		};
 	}
 
-	const [sourceOrganizationRows, patientRows, recordOwnership] =
-		await Promise.all([
-			db
-				.select({ name: organization.name })
-				.from(organization)
-				.where(eq(organization.id, organizationId))
-				.limit(1),
-			db
-				.select({
-					id: patient.id,
-					firstName: patientPersonalInformation.firstName,
-					middleName: patientPersonalInformation.middleName,
-					lastName: patientPersonalInformation.lastName,
-					email: patientContactInformation.emailAddress,
-				})
-				.from(patient)
-				.innerJoin(
-					patientPersonalInformation,
-					eq(patient.id, patientPersonalInformation.patientId),
-				)
-				.leftJoin(
-					patientContactInformation,
-					eq(patient.id, patientContactInformation.patientId),
-				)
-				.where(
-					and(
-						eq(patient.organizationId, organizationId),
-						inArray(patient.id, patientIds),
-					),
-				),
-			getSelectedRecordOwnership(transferRequests),
-		]);
+	const [sourceOrganizationRows, patientRows, recordOwnership] = await Promise.all([
+		db
+			.select({ name: organization.name })
+			.from(organization)
+			.where(eq(organization.id, organizationId))
+			.limit(1),
+		db
+			.select({
+				id: patient.id,
+				firstName: patientPersonalInformation.firstName,
+				middleName: patientPersonalInformation.middleName,
+				lastName: patientPersonalInformation.lastName,
+				email: patientContactInformation.emailAddress,
+			})
+			.from(patient)
+			.innerJoin(patientPersonalInformation, eq(patient.id, patientPersonalInformation.patientId))
+			.leftJoin(patientContactInformation, eq(patient.id, patientContactInformation.patientId))
+			.where(and(eq(patient.organizationId, organizationId), inArray(patient.id, patientIds))),
+		getSelectedRecordOwnership(transferRequests),
+	]);
 	const sourceOrganization = sourceOrganizationRows[0];
-	const patientById = new Map(
-		patientRows.map((patientRow) => [patientRow.id, patientRow]),
-	);
+	const patientById = new Map(patientRows.map((patientRow) => [patientRow.id, patientRow]));
 
 	if (!sourceOrganization || patientById.size !== patientIds.length) {
 		return {
-			ok: false as const,
-			message: "One or more selected patients could not be found.",
+			status: "failed" as const,
+			error: "One or more selected patients could not be found.",
 		};
 	}
 
@@ -203,21 +170,16 @@ export async function createTransferRequestsAction(
 
 		if (!patientRow?.email) {
 			return {
-				ok: false as const,
-				message: `${patientRow?.firstName ?? "The selected patient"} needs an email address before a transfer can be sent for approval.`,
+				status: "failed" as const,
+				error: `${patientRow?.firstName ?? "The selected patient"} needs an email address before a transfer can be sent for approval.`,
 			};
 		}
 
 		for (const record of uniqueSelectedRecords(transfer.records)) {
-			if (
-				!recordOwnership.has(
-					selectedRecordKey(record.type, record.id, transfer.patientId),
-				)
-			) {
+			if (!recordOwnership.has(selectedRecordKey(record.type, record.id, transfer.patientId))) {
 				return {
-					ok: false as const,
-					message:
-						"One or more selected clinical records do not belong to the selected patient.",
+					status: "failed" as const,
+					error: "One or more selected clinical records do not belong to the selected patient.",
 				};
 			}
 		}
@@ -228,8 +190,7 @@ export async function createTransferRequestsAction(
 	const runtimeTargetIds = new Map<string, string>();
 	const createdTransfers = transferRequests.map((transfer) => {
 		const targetKey = `${transfer.targetHospitalName.toLowerCase()}:${transfer.targetHospitalEmail.toLowerCase()}`;
-		const targetOrganizationId =
-			runtimeTargetIds.get(targetKey) ?? `TGT-${crypto.randomUUID()}`;
+		const targetOrganizationId = runtimeTargetIds.get(targetKey) ?? `TGT-${crypto.randomUUID()}`;
 		runtimeTargetIds.set(targetKey, targetOrganizationId);
 
 		return {
@@ -248,7 +209,7 @@ export async function createTransferRequestsAction(
 				sourceOrganizationId: organizationId,
 				targetOrganizationId: transfer.targetOrganizationId,
 				targetHospitalName: transfer.targetHospitalName,
-			targetHospitalEmail: transfer.targetHospitalEmail,
+				targetHospitalEmail: transfer.targetHospitalEmail,
 				notes: transfer.notes || null,
 				status: "pending",
 				patientApprovalStatus: "waiting",
@@ -312,19 +273,12 @@ export async function createTransferRequestsAction(
 				patientId: transfer.patientId,
 				expiresAt: approvalExpiresAt,
 			});
-			const approvalUrl = new URL(
-				`/transfer-approval/${transfer.transferId}`,
-				ENV.BETTER_AUTH_URL,
-			);
+			const approvalUrl = new URL(`/transfer-approval/${transfer.transferId}`, ENV.BETTER_AUTH_URL);
 			approvalUrl.searchParams.set("token", approvalToken);
 
 			return sendTransferApprovalEmail({
 				email: patientRow.email!,
-				patientName: [
-					patientRow.firstName,
-					patientRow.middleName,
-					patientRow.lastName,
-				]
+				patientName: [patientRow.firstName, patientRow.middleName, patientRow.lastName]
 					.filter(Boolean)
 					.join(" "),
 				sourceHospitalName: sourceOrganization.name,
@@ -342,7 +296,7 @@ export async function createTransferRequestsAction(
 	updateTag(`overview-stats-${organizationId}`);
 
 	return {
-		ok: true as const,
+		status: "success" as const,
 		createdTransferIds: createdTransfers.map((transfer) => transfer.transferId),
 		message:
 			failedApprovalEmails > 0

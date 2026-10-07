@@ -115,7 +115,7 @@ export function SelectPatient({
 							onChange={(event) => setSearchTerm(event.target.value)}
 						/>
 					</div>
-					<div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+					<div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
 						<div className="flex flex-col gap-1">
 							{patientOptions.length === 0 ? (
 								<p className="px-3 py-4 text-sm text-gray-500">No patients available.</p>
@@ -187,7 +187,7 @@ export function SelectPatient({
 						key={s.patientId}
 						className="text-sm bg-gray-200 text-gray-600 flex items-center gap-2 py-1.5 pl-3 pr-1.5 rounded-full"
 					>
-						{s.name} - <span title={s.patientId}>{truncateId(s.patientId)}</span>
+						{s.name.split(" ")[0]} - <span title={s.patientId}>{truncateId(s.patientId)}</span>
 						<Button
 							type="button"
 							size="icon"

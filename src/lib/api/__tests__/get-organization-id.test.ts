@@ -32,9 +32,19 @@ vi.mock("@/lib/better-auth/auth", () => ({
 }));
 
 describe("getOrganizationContext", async () => {
+	test("denies hospital access to an account whose email is unverified", async () => {
+		verifySessionMock.mockResolvedValue({
+			user: { id: "user-1", emailVerified: false },
+			session: { activeOrganizationId: "org-1" },
+		});
+		limitMock.mockResolvedValue([{ organizationId: "org-1", isOrganizationVerified: true }]);
+
+		expect(await getOrganizationContext()).toBeNull();
+		expect(await getOrganizationId()).toBeNull();
+	});
 	test("returns null when the session has no active organization", async () => {
 		verifySessionMock.mockResolvedValue({
-			user: { id: "user-1" },
+			user: { id: "user-1", emailVerified: true },
 			session: { activeOrganizationId: null },
 		});
 
@@ -44,7 +54,7 @@ describe("getOrganizationContext", async () => {
 	});
 	test("returns the user's organization context when membership exists", async () => {
 		verifySessionMock.mockResolvedValue({
-			user: { id: "user-1" },
+			user: { id: "user-1", emailVerified: true },
 			session: { activeOrganizationId: "org-1" },
 		});
 		limitMock.mockResolvedValue([
@@ -77,7 +87,7 @@ describe("getOrganizationContext", async () => {
 	});
 	test("returns null when membership does not exist", async () => {
 		verifySessionMock.mockResolvedValue({
-			user: { id: "user-1" },
+			user: { id: "user-1", emailVerified: true },
 			session: { activeOrganizationId: "org-1" },
 		});
 		limitMock.mockResolvedValue([]);
@@ -88,9 +98,18 @@ describe("getOrganizationContext", async () => {
 });
 
 describe("getOrganizationId", () => {
+	test("denies clinical access while the member's hospital is awaiting approval", async () => {
+		verifySessionMock.mockResolvedValue({
+			user: { id: "user-1", emailVerified: true },
+			session: { activeOrganizationId: "org-1" },
+		});
+		limitMock.mockResolvedValue([{ organizationId: "org-1", isOrganizationVerified: false }]);
+
+		expect(await getOrganizationId()).toBeNull();
+	});
 	test("returns the active organization ID when context exists", async () => {
 		verifySessionMock.mockResolvedValue({
-			user: { id: "user-1" },
+			user: { id: "user-1", emailVerified: true },
 			session: { activeOrganizationId: "org-1" },
 		});
 
@@ -111,7 +130,7 @@ describe("getOrganizationId", () => {
 	});
 	test("returns null when organization context does not exist", async () => {
 		verifySessionMock.mockResolvedValue({
-			user: { id: "user-1" },
+			user: { id: "user-1", emailVerified: true },
 			session: { activeOrganizationId: "org-1" },
 		});
 

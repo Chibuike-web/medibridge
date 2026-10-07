@@ -96,8 +96,8 @@ export function PersonalInformation({
 
 			const result = await updatePatientPersonalInformationAction(patientId, formData);
 
-			if (!result.ok) {
-				setPersonalInformationError(result.message);
+			if (result.status === "failed") {
+				setPersonalInformationError(result.error);
 				setIsPersonalInformationDialogOpen(true);
 			}
 		});

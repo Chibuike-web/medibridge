@@ -7,14 +7,18 @@ import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { db } from "@/lib/better-auth/auth";
 import { updatePatientContactInformationSchema } from "./schemas";
 
+type UpdatePatientContactInformationResult =
+	| { status: "success" }
+	| { status: "failed"; error: string };
+
 export async function updatePatientContactInformationAction(
 	patientId: string,
 	formData: FormData,
-) {
+): Promise<UpdatePatientContactInformationResult> {
 	const organizationId = await getOrganizationId();
 
 	if (!organizationId) {
-		return { ok: false, message: "Unable to verify your hospital." };
+		return { status: "failed", error: "Unable to verify your hospital." };
 	}
 
 	const parsedContactInformation = updatePatientContactInformationSchema.safeParse({
@@ -27,8 +31,8 @@ export async function updatePatientContactInformationAction(
 
 	if (!parsedContactInformation.success) {
 		return {
-			ok: false,
-			message:
+			status: "failed",
+			error:
 				parsedContactInformation.error.issues[0]?.message ??
 				"Please check the contact information fields.",
 		};
@@ -41,7 +45,7 @@ export async function updatePatientContactInformationAction(
 		.limit(1);
 
 	if (!patientRow) {
-		return { ok: false, message: "Patient record was not found." };
+		return { status: "failed", error: "Patient record was not found." };
 	}
 
 	const contactInformation = parsedContactInformation.data;
@@ -76,5 +80,5 @@ export async function updatePatientContactInformationAction(
 	updateTag(`recent-patients-${organizationId}`);
 	updateTag(`recent-transfers-${organizationId}`);
 
-	return { ok: true, message: "" };
+	return { status: "success" };
 }

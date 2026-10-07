@@ -184,8 +184,8 @@ export function NewTransferRequestClient({
 		startTransferRequestSubmission(async () => {
 			const result = await createTransferRequestsAction(transferRequests);
 
-			if (!result.ok) {
-				setTransferSubmissionError(result.message);
+			if (result.status === "failed") {
+				setTransferSubmissionError(result.error);
 				return;
 			}
 
@@ -247,7 +247,7 @@ export function NewTransferRequestClient({
 										"bg-gray-200 text-gray-600 hover:bg-gray-200": activePatient !== s.patientId,
 									})}
 								>
-									{s.name} - {truncateId(s.patientId)}
+									{s.name.split(" ")[0]} - {truncateId(s.patientId)}
 									<span
 										role="button"
 										className={cn("size-5 flex items-center justify-center rounded-full", {
@@ -364,7 +364,6 @@ export function NewTransferRequestClient({
 							<Button
 								variant="outline"
 								type="button"
-
 								onClick={() => setCurrentTransferRequestStep(1)}
 							>
 								Back
@@ -395,7 +394,7 @@ export function NewTransferRequestClient({
 											<RiCloseLine className="size-6" />
 										</DialogClose>
 									</DialogHeader>
-									<div className="mt-8 px-6">
+									<div className="mt-8 px-6 text-sm">
 										<p className="text-gray-600 font-medium">
 											Before this transfer request is sent, please review and confirm the following
 										</p>

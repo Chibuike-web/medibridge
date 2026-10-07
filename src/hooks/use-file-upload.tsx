@@ -49,11 +49,11 @@ export function useFileUpload() {
 		let browserFiles = incomingFiles;
 
 		const fileExtensions = browserFiles.map((file) => file.name.split(".").pop()?.toLowerCase());
-		const allowedTypes = ["pdf", "png", "jpg", "doc", "docx"];
+		const allowedTypes = ["pdf", "png", "jpg", "docx"];
 
 		for (const ext of fileExtensions) {
 			if (!ext || !allowedTypes.includes(ext)) {
-				setUploadError("Invalid file type. Only PDF, PNG, JPG, DOC, and DOCX are allowed.");
+				setUploadError("Invalid file type. Only PDF, PNG, JPG, and DOCX are allowed.");
 				return;
 			}
 		}
@@ -110,9 +110,8 @@ export function useFileUpload() {
 			startTransition(() => {
 				setFiles((prev) =>
 					prev.map((file) => {
-						const uploadedMatch = data.files.find(
-							(uploadedFile: SelectedFile) => uploadedFile.name === file.name,
-						);
+						const uploadedIndex = optimisticItems.findIndex((item) => item.id === file.id);
+						const uploadedMatch = data.files[uploadedIndex];
 						if (!uploadedMatch) return file;
 
 						return {
@@ -129,22 +128,25 @@ export function useFileUpload() {
 		}
 	};
 
-	const extractInfo = async (filenames?: string[]) => {
+	const extractInfo = async (fileIds?: string[]) => {
 		const isExtracting = files.some((f) => f.status === "extracting");
 		if (files.length === 0 || isExtracting) return;
 
 		setExtractError("");
 
-		const targetFiles = filenames ?? files.map((f) => f.name);
+		const targetFileIds = fileIds ?? files.map((f) => f.id);
+		const storedFilenames = files
+			.filter((file) => targetFileIds.includes(file.id))
+			.map((file) => file.storedName ?? file.name);
 
 		setFiles((prev) =>
-			prev.map((f) => (targetFiles.includes(f.name) ? { ...f, status: "extracting" } : f)),
+			prev.map((f) => (targetFileIds.includes(f.id) ? { ...f, status: "extracting" } : f)),
 		);
 		try {
 			const res = await fetch("/api/extract-file", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ filenames: targetFiles }),
+				body: JSON.stringify({ filenames: storedFilenames }),
 			});
 
 			const data = await res.json();
@@ -153,7 +155,7 @@ export function useFileUpload() {
 				setExtractError(data.error ?? "Issue extracting file");
 
 				setFiles((prev) =>
-					prev.map((f) => (targetFiles.includes(f.name) ? { ...f, status: "extract-failed" } : f)),
+					prev.map((f) => (targetFileIds.includes(f.id) ? { ...f, status: "extract-failed" } : f)),
 				);
 				return;
 			}
@@ -163,7 +165,9 @@ export function useFileUpload() {
 			startTransition(() => {
 				setFiles((prev) =>
 					prev.map((file) => {
-						const matched = results.find((result) => result.name === file.name);
+						const matched = results.find(
+							(result) => result.name === (file.storedName ?? file.name),
+						);
 						if (!matched) return file;
 
 						return {
@@ -178,7 +182,7 @@ export function useFileUpload() {
 		} catch (error) {
 			setExtractError(error instanceof Error ? error.message : "Extraction failed.");
 			setFiles((prev) =>
-				prev.map((f) => (targetFiles.includes(f.name) ? { ...f, status: "extract-failed" } : f)),
+				prev.map((f) => (targetFileIds.includes(f.id) ? { ...f, status: "extract-failed" } : f)),
 			);
 		}
 	};

@@ -18,7 +18,9 @@ const numericVitalFields = [
 	"bmi",
 ] as const;
 
-type CreatePatientVitalResult = { ok: true; vital: VitalType } | { ok: false; message: string };
+type CreatePatientVitalResult =
+	| { status: "success"; vital: VitalType }
+	| { status: "failed"; error: string };
 
 export async function createPatientVitalAction(
 	patientId: string,
@@ -27,20 +29,20 @@ export async function createPatientVitalAction(
 	const organizationId = await getOrganizationId();
 
 	if (!organizationId) {
-		return { ok: false, message: "You need an active organization to add vitals." };
+		return { status: "failed", error: "You need an active organization to add vitals." };
 	}
 
 	const session = await getSessionData();
 	const createdBy = session?.user.name || session?.user.email || session?.user.id;
 
 	if (!createdBy) {
-		return { ok: false, message: "You need to be signed in to add vitals." };
+		return { status: "failed", error: "You need to be signed in to add vitals." };
 	}
 
 	const encounterId = String(formData.get("encounterId") ?? "").trim();
 
 	if (!encounterId) {
-		return { ok: false, message: "Select the encounter for these vitals." };
+		return { status: "failed", error: "Select the encounter for these vitals." };
 	}
 
 	const [systolic, diastolic] = String(formData.get("bloodPressure") ?? "")
@@ -53,18 +55,18 @@ export async function createPatientVitalAction(
 	const allValues = [systolic, diastolic, ...Object.values(measurements)];
 
 	if (allValues.some((value) => !Number.isFinite(value) || value <= 0)) {
-		return { ok: false, message: "Enter a valid positive number for every measurement." };
+		return { status: "failed", error: "Enter a valid positive number for every measurement." };
 	}
 
 	if (measurements.oxygenSaturation > 100) {
-		return { ok: false, message: "Oxygen saturation cannot exceed 100%." };
+		return { status: "failed", error: "Oxygen saturation cannot exceed 100%." };
 	}
 
 	const recordedAtInput = String(formData.get("recordedAt") ?? "").trim();
 	const recordedAt = recordedAtInput ? new Date(recordedAtInput) : new Date();
 
 	if (Number.isNaN(recordedAt.getTime())) {
-		return { ok: false, message: "Enter a valid encounter date." };
+		return { status: "failed", error: "Enter a valid encounter date." };
 	}
 
 	const [patientRow] = await db
@@ -73,7 +75,7 @@ export async function createPatientVitalAction(
 		.where(and(eq(patient.id, patientId), eq(patient.organizationId, organizationId)))
 		.limit(1);
 
-	if (!patientRow) return { ok: false, message: "Patient could not be found." };
+	if (!patientRow) return { status: "failed", error: "Patient could not be found." };
 
 	const [encounter] = await db
 		.select({ encounterType: patientEncounter.encounterType })
@@ -82,7 +84,7 @@ export async function createPatientVitalAction(
 		.limit(1);
 
 	if (!encounter) {
-		return { ok: false, message: "Select an encounter that belongs to this patient." };
+		return { status: "failed", error: "Select an encounter that belongs to this patient." };
 	}
 
 	const [inserted] = await db
@@ -101,5 +103,5 @@ export async function createPatientVitalAction(
 		.returning();
 	updateTag(getPatientVitalsCacheTag(organizationId, patientId));
 
-	return { ok: true, vital: toVitalType(inserted, encounter.encounterType) };
+	return { status: "success", vital: toVitalType(inserted, encounter.encounterType) };
 }

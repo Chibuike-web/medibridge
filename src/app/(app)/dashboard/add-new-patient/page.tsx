@@ -12,7 +12,7 @@ export const metadata = {
 
 type AddNewPatientPageProps = Pick<PageProps<"/dashboard/add-new-patient">, "searchParams">;
 
-export default async function AddNewPatient({ searchParams }: AddNewPatientPageProps) {
+export default function AddNewPatient({ searchParams }: AddNewPatientPageProps) {
 	return (
 		<Suspense>
 			<AddNewPatientContent searchParams={searchParams} />
@@ -28,15 +28,21 @@ async function AddNewPatientContent({ searchParams }: AddNewPatientPageProps) {
 	return (
 		<>
 			<nav className="w-full h-14 flex items-center sticky z-1 top-0 bg-white border-b border-gray-300 px-6">
-				<Link href={safeReturnTo} className="flex gap-2 w-max items-center text-foreground">
+				<Link
+					href={safeReturnTo}
+					prefetch={true}
+					className="flex gap-2 w-max items-center text-foreground"
+				>
 					<RiArrowLeftLine className="size-4" /> <span className="sr-only">Back</span>
 				</Link>
 			</nav>
 
 			<main className="flex flex-col gap-9 mt-12 max-w-[31.25rem] mx-auto px-6 md:px-0">
 				<div>
-					<h1 className="mb-6 text-center text-xl font-semibold">Upload Patient’s Record</h1>
-					<p className="text-gray-600 text-center text-balance">
+					<h1 className="mb-6 text-center text-xl font-semibold text-balance">
+						Upload Patient’s Record
+					</h1>
+					<p className="text-gray-600 text-center text-pretty text-sm">
 						Upload a document with the patient’s basic details to create their profile. Only
 						essential personal information is needed at this stage. Upload one document per patient.
 					</p>

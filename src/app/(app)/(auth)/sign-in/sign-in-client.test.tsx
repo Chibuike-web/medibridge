@@ -6,6 +6,7 @@ import { SignInClient } from "./sign-in-client";
 const {
 	getOrganizationAccessActionMock,
 	listOrganizationsMock,
+	listUserInvitationsMock,
 	replaceMock,
 	searchParamsState,
 	sendVerificationEmailMock,
@@ -14,6 +15,7 @@ const {
 } = vi.hoisted(() => ({
 	getOrganizationAccessActionMock: vi.fn(),
 	listOrganizationsMock: vi.fn(),
+	listUserInvitationsMock: vi.fn(),
 	replaceMock: vi.fn(),
 	searchParamsState: { query: "" },
 	sendVerificationEmailMock: vi.fn(),
@@ -44,7 +46,11 @@ vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
 		signIn: { email: signInEmailMock },
 		sendVerificationEmail: sendVerificationEmailMock,
-		organization: { list: listOrganizationsMock, setActive: setActiveOrganizationMock },
+		organization: {
+			list: listOrganizationsMock,
+			listUserInvitations: listUserInvitationsMock,
+			setActive: setActiveOrganizationMock,
+		},
 	},
 }));
 
@@ -63,6 +69,7 @@ describe("SignInClient", () => {
 		signInEmailMock.mockResolvedValue({ data: { token: "session-token" }, error: null });
 		sendVerificationEmailMock.mockResolvedValue({ data: { status: true }, error: null });
 		listOrganizationsMock.mockResolvedValue({ data: [{ id: "hospital-1" }], error: null });
+		listUserInvitationsMock.mockResolvedValue({ data: [], error: null });
 		setActiveOrganizationMock.mockResolvedValue({ data: { id: "hospital-1" }, error: null });
 		getOrganizationAccessActionMock.mockResolvedValue({
 			status: "success",
@@ -151,5 +158,119 @@ describe("SignInClient", () => {
 			screen.queryByText("Check your inbox for a verification link before signing in."),
 		).not.toBeInTheDocument();
 		expect(replaceMock).not.toHaveBeenCalled();
+	});
+
+	test("lets a member choose a hospital and continue after signing in", async () => {
+		const user = userEvent.setup();
+		listOrganizationsMock.mockResolvedValue({
+			data: [
+				{ id: "hospital-1", name: "St Mary" },
+				{ id: "hospital-2", name: "City Hospital" },
+			],
+			error: null,
+		});
+		await submitSignInForm();
+
+		const hospitalSelector = await screen.findByRole("combobox", { name: "Hospital" });
+		expect(screen.getByRole("option", { name: "St Mary" })).toBeVisible();
+		expect(screen.getByRole("option", { name: "City Hospital" })).toBeVisible();
+		await user.selectOptions(hospitalSelector, "hospital-2");
+		await user.click(screen.getByRole("button", { name: "Continue" }));
+
+		await vi.waitFor(() => expect(replaceMock).toHaveBeenCalledWith("/dashboard/overview"));
+		expect(setActiveOrganizationMock).toHaveBeenCalledWith({ organizationId: "hospital-2" });
+	});
+
+	test("returns an existing invitee to their invitation before hospital setup", async () => {
+		const callbackUrl = "/accept-invite?invitationId=invite-1";
+		searchParamsState.query = `callbackUrl=${encodeURIComponent(callbackUrl)}`;
+		listOrganizationsMock.mockResolvedValue({ data: [], error: null });
+		await submitSignInForm();
+
+		await vi.waitFor(() => expect(replaceMock).toHaveBeenCalledWith(callbackUrl));
+		expect(replaceMock).not.toHaveBeenCalledWith("/hospital-details");
+	});
+
+	test("keeps invitation context in the verification link for an unverified invitee", async () => {
+		searchParamsState.query = `callbackUrl=${encodeURIComponent("/accept-invite?invitationId=invite-1")}`;
+		signInEmailMock.mockResolvedValue({ error: { status: 403, code: "EMAIL_NOT_VERIFIED" } });
+		await submitSignInForm();
+
+		expect(await screen.findByRole("alert")).toHaveTextContent("Check your inbox");
+		expect(sendVerificationEmailMock).toHaveBeenCalledWith({
+			email: "sarah@stmary.org",
+			callbackURL: "/accept-invite?invitationId=invite-1",
+		});
+	});
+
+	test("shows a retryable error if loading hospitals fails after valid sign-in", async () => {
+		listOrganizationsMock.mockRejectedValueOnce(new Error("database connection details"));
+		await submitSignInForm();
+
+		expect(await screen.findByRole("alert")).toHaveTextContent(
+			"Unable to sign in. Please try again.",
+		);
+		expect(screen.getByRole("button", { name: "Sign in" })).toBeEnabled();
+		expect(replaceMock).not.toHaveBeenCalled();
+	});
+
+	test("finds a pending invitation for a signed-in account without a callback", async () => {
+		listOrganizationsMock.mockResolvedValue({ data: [], error: null });
+		listUserInvitationsMock.mockResolvedValue({
+			data: [
+				{
+					id: "pending-invite",
+					status: "pending",
+					expiresAt: new Date(Date.now() + 60_000).toISOString(),
+				},
+			],
+			error: null,
+		});
+		await submitSignInForm();
+
+		await vi.waitFor(() =>
+			expect(replaceMock).toHaveBeenCalledWith("/accept-invite?invitationId=pending-invite"),
+		);
+		expect(replaceMock).not.toHaveBeenCalledWith("/hospital-details");
+	});
+
+	test("starts hospital onboarding when there are no current invitations", async () => {
+		listOrganizationsMock.mockResolvedValue({ data: [], error: null });
+		listUserInvitationsMock.mockResolvedValue({
+			data: [
+				{
+					id: "expired-invite",
+					status: "pending",
+					expiresAt: new Date(Date.now() - 60_000).toISOString(),
+				},
+			],
+			error: null,
+		});
+		await submitSignInForm();
+
+		await vi.waitFor(() => expect(replaceMock).toHaveBeenCalledWith("/hospital-details"));
+	});
+
+	test("returns to the credential form if the session expires while choosing a hospital", async () => {
+		const user = userEvent.setup();
+		listOrganizationsMock.mockResolvedValue({
+			data: [
+				{ id: "hospital-1", name: "St Mary" },
+				{ id: "hospital-2", name: "City Hospital" },
+			],
+			error: null,
+		});
+		getOrganizationAccessActionMock.mockResolvedValueOnce({ status: "unauthorized" });
+		await submitSignInForm();
+		await user.click(await screen.findByRole("button", { name: "Continue" }));
+
+		expect(await screen.findByRole("alert")).toHaveTextContent(
+			"Your session expired. Please sign in again.",
+		);
+		expect(screen.getByRole("textbox", { name: "Email Address" })).toHaveValue("sarah@stmary.org");
+		expect(replaceMock).not.toHaveBeenCalled();
+		await user.click(screen.getByRole("button", { name: "Sign in" }));
+		await user.click(await screen.findByRole("button", { name: "Continue" }));
+		await vi.waitFor(() => expect(replaceMock).toHaveBeenCalledWith("/dashboard/overview"));
 	});
 });

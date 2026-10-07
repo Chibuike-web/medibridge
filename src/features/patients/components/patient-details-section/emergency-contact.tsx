@@ -68,8 +68,8 @@ export function EmergencyContact({
 
 			const result = await updatePatientEmergencyContactAction(patientId, formData);
 
-			if (!result.ok) {
-				setEmergencyContactError(result.message);
+			if (result.status === "failed") {
+				setEmergencyContactError(result.error);
 				setIsEmergencyContactDialogOpen(true);
 			}
 		});

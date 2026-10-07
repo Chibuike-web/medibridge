@@ -61,7 +61,7 @@ describe("createHospitalService", () => {
 
 		expect(result).toEqual({
 			status: "failed",
-			message: "You must sign in to submit hospital details.",
+			error: "You must sign in to submit hospital details.",
 		});
 		expect(createOrganizationMock).not.toHaveBeenCalled();
 		expect(insertMock).not.toHaveBeenCalled();
@@ -84,18 +84,18 @@ describe("createHospitalService", () => {
 
 		expect(result).toEqual({
 			status: "failed",
-			message: "Verify your email before submitting hospital details.",
+			error: "Verify your email before submitting hospital details.",
 		});
 		expect(createOrganizationMock).not.toHaveBeenCalled();
 		expect(insertMock).not.toHaveBeenCalled();
 	});
 
-	test("creates the hospital organization and record for a verified owner", async () => {
+	test("does not let a verified invited account outside .org create a hospital", async () => {
 		getSessionMock.mockResolvedValue({
 			user: {
-				id: "owner-1",
-				name: "Sarah Thompson",
-				email: "sarah@stmary.org",
+				id: "invited-admin-1",
+				name: "Invited Administrator",
+				email: "administrator@gmail.com",
 				emailVerified: true,
 			},
 		});
@@ -105,30 +105,56 @@ describe("createHospitalService", () => {
 			hospitalAddress: "12 Health Street",
 		});
 
-		expect(result).toEqual({ status: "success", message: "Hospital data successfully saved" });
-		expect(createOrganizationMock).toHaveBeenCalledWith(
-			expect.objectContaining({
-				body: expect.objectContaining({
-					name: "St Mary's Hospital",
-					userId: "owner-1",
-				}),
-			}),
-		);
-		expect(setActiveOrganizationMock).toHaveBeenCalledWith({
-			body: { organizationId: "organization-1" },
-			headers: expect.any(Headers),
+		expect(result).toEqual({
+			status: "failed",
+			error: "Use your official hospital email address (.org).",
 		});
-		expect(insertValuesMock).toHaveBeenCalledWith(
-			expect.objectContaining({
-				organizationId: "organization-1",
+		expect(createOrganizationMock).not.toHaveBeenCalled();
+		expect(insertMock).not.toHaveBeenCalled();
+	});
+
+	test.each(["sarah@stmary.org", "SARAH@STMARY.ORG"])(
+		"creates hospital records for a verified owner with email %s",
+		async (email) => {
+			getSessionMock.mockResolvedValue({
+				user: {
+					id: "owner-1",
+					name: "Sarah Thompson",
+					email,
+					emailVerified: true,
+				},
+			});
+
+			const result = await createHospitalService({
 				hospitalName: "St Mary's Hospital",
 				hospitalAddress: "12 Health Street",
-				hospitalOwnerName: "Sarah Thompson",
-				hospitalOwnerEmail: "sarah@stmary.org",
-				documentPath: "owner-1/accreditation-upload.pdf",
-			}),
-		);
-	});
+			});
+
+			expect(result).toEqual({ status: "success", message: "Hospital data successfully saved" });
+			expect(createOrganizationMock).toHaveBeenCalledWith(
+				expect.objectContaining({
+					body: expect.objectContaining({
+						name: "St Mary's Hospital",
+						userId: "owner-1",
+					}),
+				}),
+			);
+			expect(setActiveOrganizationMock).toHaveBeenCalledWith({
+				body: { organizationId: "organization-1" },
+				headers: expect.any(Headers),
+			});
+			expect(insertValuesMock).toHaveBeenCalledWith(
+				expect.objectContaining({
+					organizationId: "organization-1",
+					hospitalName: "St Mary's Hospital",
+					hospitalAddress: "12 Health Street",
+					hospitalOwnerName: "Sarah Thompson",
+					hospitalOwnerEmail: email,
+					documentPath: "owner-1/accreditation-upload.pdf",
+				}),
+			);
+		},
+	);
 
 	test("does not create an organization until the owner uploads an accreditation document", async () => {
 		getSessionMock.mockResolvedValue({
@@ -148,7 +174,7 @@ describe("createHospitalService", () => {
 
 		expect(result).toEqual({
 			status: "failed",
-			message: "Upload your accreditation document before submitting.",
+			error: "Upload your accreditation document before submitting.",
 		});
 		expect(createOrganizationMock).not.toHaveBeenCalled();
 		expect(insertMock).not.toHaveBeenCalled();
@@ -172,7 +198,31 @@ describe("createHospitalService", () => {
 
 		expect(result).toEqual({
 			status: "failed",
-			message: "Hospital details have already been submitted.",
+			error: "Hospital details have already been submitted.",
+		});
+		expect(createOrganizationMock).not.toHaveBeenCalled();
+		expect(insertMock).not.toHaveBeenCalled();
+	});
+
+	test("does not create a hospital for an administrator who already belongs to one", async () => {
+		getSessionMock.mockResolvedValue({
+			user: {
+				id: "admin-1",
+				name: "Hospital Administrator",
+				email: "admin@stmary.org",
+				emailVerified: true,
+			},
+		});
+		queryResultMock.mockResolvedValueOnce([]).mockResolvedValueOnce([{ id: "membership-1" }]);
+
+		const result = await createHospitalService({
+			hospitalName: "Another Hospital",
+			hospitalAddress: "4 Clinic Road",
+		});
+
+		expect(result).toEqual({
+			status: "failed",
+			error: "Your account already belongs to a hospital. An account can only join one hospital.",
 		});
 		expect(createOrganizationMock).not.toHaveBeenCalled();
 		expect(insertMock).not.toHaveBeenCalled();
@@ -200,8 +250,8 @@ describe("createHospitalService", () => {
 		const [firstSlug, secondSlug] = createOrganizationMock.mock.calls.map(
 			([request]) => request.body.slug,
 		);
-		expect(firstSlug).toMatch(/^st-mary-s-hospital-[a-z0-9]{6}$/);
-		expect(secondSlug).toMatch(/^st-mary-s-hospital-[a-z0-9]{6}$/);
+		expect(firstSlug).toMatch(/^st-mary-s-hospital-[a-z0-9-]+$/);
+		expect(secondSlug).toMatch(/^st-mary-s-hospital-[a-z0-9-]+$/);
 		expect(firstSlug).not.toBe(secondSlug);
 	});
 });

@@ -20,7 +20,7 @@ type SharedRecordsPageProps = Pick<
 	"params" | "searchParams"
 >;
 
-export default async function SharedRecordsPage({ params, searchParams }: SharedRecordsPageProps) {
+export default function SharedRecordsPage({ params, searchParams }: SharedRecordsPageProps) {
 	return (
 		<div className="min-h-dvh bg-white text-gray-800">
 			<Suspense fallback={<SharedRecordsPageSkeleton />}>
@@ -103,7 +103,7 @@ function PatientHeader({ patient }: { patient: SharedPatient }) {
 				</Avatar>
 
 				<div className="min-w-0">
-					<h1 className="text-xl font-semibold text-gray-900">{patient.name}</h1>
+					<h1 className="text-xl font-semibold text-gray-900 text-balance">{patient.name}</h1>
 					<div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
 						<HeaderMeta label="Sex" value={patient.sex} />
 						<HeaderMeta label="Email" value={patient.email} />

@@ -15,7 +15,7 @@ export function AppearanceSettings() {
 	const [selectedContrast, setSelectedContrast] = useState("system");
 
 	return (
-		<div className="px-6 py-4">
+		<div className="px-4 py-5">
 			<dl>
 				<div className="flex h-16 items-center justify-between gap-4 border-b">
 					<dt id="theme-setting-label" className="text-sm text-gray-400">

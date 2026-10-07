@@ -6,7 +6,7 @@ export const metadata = {
 	title: "Review Extracted Info",
 };
 
-export default async function ReviewExtractedInfo() {
+export default function ReviewExtractedInfo() {
 	return (
 		<Suspense>
 			<ReviewExtractedInfoContent />

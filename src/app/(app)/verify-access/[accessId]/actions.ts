@@ -2,7 +2,7 @@
 
 import bcrypt from "bcrypt";
 import { randomInt, randomUUID } from "crypto";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, lt, ne, sql } from "drizzle-orm";
 import {
 	patientRecordAccess,
 	patientRecordAccessVerification,
@@ -12,17 +12,22 @@ import { db } from "@/lib/better-auth/auth";
 import { createExternalAccessSession } from "@/lib/api/external-access-session";
 import { sendAccessCodeEmail } from "@/lib/utils/send-access-code-email";
 
-type VerifyAccessCodeActionResult =
-	| { success: true }
-	| { success: false; message: string };
+type RequestAccessCodeActionResult =
+	| { status: "success"; message: string }
+	| { status: "failed"; error: string };
 
-export async function requestAccessCodeAction(accessId: string) {
+type VerifyAccessCodeActionResult = { status: "success" } | { status: "failed"; error: string };
+
+export async function requestAccessCodeAction(
+	accessId: string,
+): Promise<RequestAccessCodeActionResult> {
 	const [access] = await db
 		.select({
 			id: patientRecordAccess.id,
 			targetHospitalEmail: patientTransfer.targetHospitalEmail,
 			targetHospitalName: patientTransfer.targetHospitalName,
 			status: patientRecordAccess.status,
+			revokedAt: patientRecordAccess.revokedAt,
 			expiresAt: patientRecordAccess.expiresAt,
 		})
 		.from(patientRecordAccess)
@@ -30,15 +35,15 @@ export async function requestAccessCodeAction(accessId: string) {
 		.where(eq(patientRecordAccess.id, accessId));
 
 	if (!access) {
-		return { success: false, message: "This shared patient record link is invalid." };
+		return { status: "failed", error: "This shared patient record link is invalid." };
 	}
 
-	if (access.status === "revoked") {
-		return { success: false, message: "This shared patient record has been revoked." };
+	if (access.status === "revoked" || access.revokedAt) {
+		return { status: "failed", error: "This shared patient record has been revoked." };
 	}
 
 	if (access.status === "expired" || access.expiresAt.getTime() <= Date.now()) {
-		return { success: false, message: "This shared patient record has expired." };
+		return { status: "failed", error: "This shared patient record has expired." };
 	}
 
 	const [latestVerification] = await db
@@ -52,7 +57,7 @@ export async function requestAccessCodeAction(accessId: string) {
 		.limit(1);
 
 	if (latestVerification && latestVerification.codeExpiresAt.getTime() > Date.now()) {
-		return { success: true, message: "A verification code is already active." };
+		return { status: "success", message: "A verification code is already active." };
 	}
 
 	const code = randomInt(100000, 1000000).toString();
@@ -77,7 +82,7 @@ export async function requestAccessCodeAction(accessId: string) {
 		});
 
 		if (!emailResult.error) {
-			return { success: true, message: "A new verification code has been sent." };
+			return { status: "success", message: "A new verification code has been sent." };
 		}
 	} catch (error) {
 		console.error(error);
@@ -88,8 +93,8 @@ export async function requestAccessCodeAction(accessId: string) {
 		.where(eq(patientRecordAccessVerification.id, verificationId));
 
 	return {
-		success: false,
-		message: "We could not send a new verification code. Please try again.",
+		status: "failed",
+		error: "We could not send a new verification code. Please try again.",
 	};
 }
 
@@ -103,7 +108,7 @@ export async function verifyAccessCodeAction({
 	const normalizedVerificationCode = verificationCode.trim();
 
 	if (!/^\d{6}$/.test(normalizedVerificationCode)) {
-		return { success: false, message: "Enter the 6-digit verification code." };
+		return { status: "failed", error: "Enter the 6-digit verification code." };
 	}
 
 	const [access] = await db
@@ -117,15 +122,15 @@ export async function verifyAccessCodeAction({
 		.where(eq(patientRecordAccess.id, accessId));
 
 	if (!access) {
-		return { success: false, message: "This shared patient record link is invalid." };
+		return { status: "failed", error: "This shared patient record link is invalid." };
 	}
 
 	if (access.status === "revoked" || access.revokedAt) {
-		return { success: false, message: "This shared patient record has been revoked." };
+		return { status: "failed", error: "This shared patient record has been revoked." };
 	}
 
 	if (access.status === "expired" || access.expiresAt.getTime() <= Date.now()) {
-		return { success: false, message: "This shared patient record has expired." };
+		return { status: "failed", error: "This shared patient record has expired." };
 	}
 
 	const [latestVerification] = await db
@@ -141,15 +146,36 @@ export async function verifyAccessCodeAction({
 		.limit(1);
 
 	if (!latestVerification) {
-		return { success: false, message: "No active verification code was found." };
+		return { status: "failed", error: "No active verification code was found." };
 	}
 
 	if (latestVerification.consumedAt) {
-		return { success: false, message: "This verification code has already been used." };
+		return { status: "failed", error: "This verification code has already been used." };
 	}
 
 	if (latestVerification.codeExpiresAt.getTime() <= Date.now()) {
-		return { success: false, message: "This verification code has expired." };
+		return { status: "failed", error: "This verification code has expired." };
+	}
+
+	// Reserve an attempt in the database so parallel guesses share the same limit.
+	const [attempt] = await db
+		.update(patientRecordAccessVerification)
+		.set({ attempts: sql`${patientRecordAccessVerification.attempts} + 1` })
+		.where(
+			and(
+				eq(patientRecordAccessVerification.id, latestVerification.id),
+				lt(patientRecordAccessVerification.attempts, 5),
+				isNull(patientRecordAccessVerification.consumedAt),
+				gt(patientRecordAccessVerification.codeExpiresAt, new Date()),
+			),
+		)
+		.returning({ id: patientRecordAccessVerification.id });
+
+	if (!attempt) {
+		return {
+			status: "failed",
+			error: "This verification code is unavailable. Request a new code after it expires.",
+		};
 	}
 
 	const isVerificationCodeCorrect = await bcrypt.compare(
@@ -158,35 +184,58 @@ export async function verifyAccessCodeAction({
 	);
 
 	if (!isVerificationCodeCorrect) {
-		await db
-			.update(patientRecordAccessVerification)
-			.set({ attempts: sql`${patientRecordAccessVerification.attempts} + 1` })
-			.where(eq(patientRecordAccessVerification.id, latestVerification.id));
-
-		return { success: false, message: "The verification code is incorrect." };
+		return { status: "failed", error: "The verification code is incorrect." };
 	}
 
 	const verifiedAt = new Date();
 
-	await Promise.all([
-		db
+	const activatedAccess = await db.transaction(async (tx) => {
+		const [consumedVerification] = await tx
 			.update(patientRecordAccessVerification)
 			.set({ consumedAt: verifiedAt })
-			.where(eq(patientRecordAccessVerification.id, latestVerification.id)),
-		db
+			.where(
+				and(
+					eq(patientRecordAccessVerification.id, latestVerification.id),
+					isNull(patientRecordAccessVerification.consumedAt),
+					gt(patientRecordAccessVerification.codeExpiresAt, verifiedAt),
+				),
+			)
+			.returning({ id: patientRecordAccessVerification.id });
+
+		if (!consumedVerification) return null;
+
+		const [activatedAccess] = await tx
 			.update(patientRecordAccess)
 			.set({
 				status: "active",
 				verifiedAt,
 				updatedAt: verifiedAt,
 			})
-			.where(eq(patientRecordAccess.id, access.id)),
-	]);
+			.where(
+				and(
+					eq(patientRecordAccess.id, access.id),
+					isNull(patientRecordAccess.revokedAt),
+					ne(patientRecordAccess.status, "revoked"),
+					ne(patientRecordAccess.status, "expired"),
+					gt(patientRecordAccess.expiresAt, verifiedAt),
+				),
+			)
+			.returning({ id: patientRecordAccess.id, expiresAt: patientRecordAccess.expiresAt });
+
+		return activatedAccess ?? null;
+	});
+
+	if (!activatedAccess) {
+		return {
+			status: "failed",
+			error: "This verification code or shared record is no longer available.",
+		};
+	}
 
 	await createExternalAccessSession({
 		accessId: access.id,
-		expiresAt: access.expiresAt,
+		expiresAt: activatedAccess.expiresAt,
 	});
 
-	return { success: true };
+	return { status: "success" };
 }

@@ -14,10 +14,12 @@ type AcceptInviteProps = {
 
 export default function AcceptInvite({ searchParams }: AcceptInviteProps) {
 	return (
-		<main className="mx-auto my-10 grid min-h-dvh max-w-[31.25rem] place-items-center px-6 md:px-0">
-			<Suspense>
-				<AcceptInviteContent searchParams={searchParams} />
-			</Suspense>
+		<main className="h-dvh overflow-y-auto">
+			<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
+				<Suspense>
+					<AcceptInviteContent searchParams={searchParams} />
+				</Suspense>
+			</div>
 		</main>
 	);
 }
@@ -33,7 +35,7 @@ async function AcceptInviteContent({ searchParams }: AcceptInviteProps) {
 	if (invitationPreview.status === "invalid") {
 		return (
 			<div className="w-full text-center">
-				<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
+				<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 					Invitation unavailable
 				</h1>
 				<p className="mt-4 text-sm font-medium text-gray-600">
@@ -56,14 +58,14 @@ async function AcceptInviteContent({ searchParams }: AcceptInviteProps) {
 	const pageContent = {
 		"create-account": {
 			heading: "Complete Account Setup",
-			description: `Your invited email for ${invitationPreview.organizationName} is pre-filled. Create a password to continue.`,
+			description: `Your invited email for ${invitationPreview.organizationName} is pre-filled. Verify it to finish account setup.`,
 		},
 		"verify-email": {
 			heading: "Verify Your Email",
-			description: `Open the verification link sent to ${invitationPreview.email}. You will return here to accept the invitation to ${invitationPreview.organizationName}.`,
+			description: `Verify ${invitationPreview.email}, then sign in to accept the invitation to ${invitationPreview.organizationName}.`,
 		},
 		accept: {
-			heading: "Accept Administrator Invitation",
+			heading: "Accept Hospital Invitation",
 			description: `Your email is verified. Accept the invitation to join ${invitationPreview.organizationName}.`,
 		},
 		"wrong-account": {
@@ -75,10 +77,10 @@ async function AcceptInviteContent({ searchParams }: AcceptInviteProps) {
 	return (
 		<div className="w-full">
 			<div className="mb-10">
-				<h1 className="text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
+				<h1 className="text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 					{pageContent.heading}
 				</h1>
-				<p className="mt-4 text-balance text-center text-sm font-medium text-gray-600">
+				<p className="mt-4 text-pretty text-center text-sm font-medium text-gray-600">
 					{pageContent.description}
 				</p>
 			</div>

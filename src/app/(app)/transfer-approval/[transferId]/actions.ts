@@ -19,6 +19,10 @@ import { sendAccessCodeEmail } from "@/lib/utils/send-access-code-email";
 import { ENV } from "@/lib/utils/env";
 import { verifyTransferApprovalToken } from "@/lib/api/transfer-approval-token";
 
+type TransferApprovalActionResult =
+	| { status: "success"; message: string }
+	| { status: "failed"; error: string };
+
 const transferContentTypeToAccessSection = {
 	diagnoses: "diagnoses",
 	allergies: "allergies",
@@ -109,36 +113,38 @@ function revalidateTransferApproval({
 	revalidateTag(`transfer-details-${sourceOrganizationId}-${transferId}`, "max");
 }
 
-export async function approvePatientTransferAction(transferId: string, approvalToken: string) {
+export async function approvePatientTransferAction(
+	transferId: string,
+	approvalToken: string,
+): Promise<TransferApprovalActionResult> {
 	const transfer = await getTransferForAction(transferId);
 	const tokenPayload = await verifyTransferApprovalToken(approvalToken, transferId);
 
 	if (!transfer || tokenPayload?.patientId !== transfer.patientId) {
 		return {
-			success: false,
-			message: "This transfer request could not be found.",
+			status: "failed",
+			error: "This transfer request could not be found.",
 		};
 	}
 
 	if (transfer.patientApprovalStatus === "approved") {
 		return {
-			success: true,
-			status: "approved",
+			status: "success",
 			message: "This transfer is already approved.",
 		};
 	}
 
 	if (!transfer.createdBy && !transfer.requestedBy) {
 		return {
-			success: false,
-			message: "This transfer does not have a requesting user.",
+			status: "failed",
+			error: "This transfer does not have a requesting user.",
 		};
 	}
 
 	if (transfer.patientApprovalStatus === "rejected" || transfer.status === "rejected") {
 		return {
-			success: false,
-			message: "This transfer has already been rejected and cannot be approved.",
+			status: "failed",
+			error: "This transfer has already been rejected and cannot be approved.",
 		};
 	}
 
@@ -167,8 +173,8 @@ export async function approvePatientTransferAction(transferId: string, approvalT
 
 	if (selectedRecordIds.length === 0) {
 		return {
-			success: false,
-			message: "This transfer does not include any records that can be shared.",
+			status: "failed",
+			error: "This transfer does not include any records that can be shared.",
 		};
 	}
 
@@ -294,8 +300,7 @@ export async function approvePatientTransferAction(transferId: string, approvalT
 	revalidateTransferApproval(transfer);
 
 	return {
-		success: true,
-		status: "approved",
+		status: "success",
 		message: "Transfer request approved.",
 	};
 }
@@ -308,36 +313,35 @@ export async function rejectPatientTransferAction({
 	transferId: string;
 	approvalToken: string;
 	reason: string;
-}) {
+}): Promise<TransferApprovalActionResult> {
 	const transfer = await getTransferForAction(transferId);
 	const tokenPayload = await verifyTransferApprovalToken(approvalToken, transferId);
 	const rejectionReason = reason.trim();
 
 	if (!transfer || tokenPayload?.patientId !== transfer.patientId) {
 		return {
-			success: false,
-			message: "This transfer request could not be found.",
+			status: "failed",
+			error: "This transfer request could not be found.",
 		};
 	}
 
 	if (!rejectionReason) {
 		return {
-			success: false,
-			message: "Please enter a reason for rejecting this transfer.",
+			status: "failed",
+			error: "Please enter a reason for rejecting this transfer.",
 		};
 	}
 
 	if (transfer.patientApprovalStatus === "approved") {
 		return {
-			success: false,
-			message: "This transfer has already been approved and cannot be rejected.",
+			status: "failed",
+			error: "This transfer has already been approved and cannot be rejected.",
 		};
 	}
 
 	if (transfer.patientApprovalStatus === "rejected" || transfer.status === "rejected") {
 		return {
-			success: true,
-			status: "rejected",
+			status: "success",
 			message: "This transfer is already rejected.",
 		};
 	}
@@ -368,8 +372,7 @@ export async function rejectPatientTransferAction({
 	revalidateTransferApproval(transfer);
 
 	return {
-		success: true,
-		status: "rejected",
+		status: "success",
 		message: "Transfer request rejected.",
 	};
 }

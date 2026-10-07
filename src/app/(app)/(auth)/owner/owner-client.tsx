@@ -124,10 +124,10 @@ export function OwnerClient() {
 		return (
 			<div className="text-center">
 				<div role="status">
-					<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
+					<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 						Check your email
 					</h1>
-					<p className="text-gray-600 text-sm font-medium text-balance mt-4">
+					<p className="text-gray-600 text-sm font-medium text-pretty mt-4">
 						We sent a verification link to{" "}
 						<span className="text-gray-800">{verificationEmailAddress}</span>. Open it to add your
 						hospital details.
@@ -190,10 +190,10 @@ export function OwnerClient() {
 	return (
 		<>
 			<div className="mb-10">
-				<h1 className="text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
+				<h1 className="text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 					Owner Account Setup
 				</h1>
-				<p className="text-gray-600 text-sm font-medium text-center text-balance mt-4">
+				<p className="text-gray-600 text-sm font-medium text-center text-pretty mt-4">
 					Set up the primary owner account for your hospital. This account will manage access and
 					invite other members.
 				</p>

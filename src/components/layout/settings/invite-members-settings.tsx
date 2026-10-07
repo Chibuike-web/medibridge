@@ -85,7 +85,7 @@ export function InviteMembersSettings({
 		<div className="flex h-full min-h-0 flex-col">
 			<form
 				id={inviteFormId}
-				className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 py-6"
+				className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-4 py-5"
 				onSubmit={handleSendInvitations}
 			>
 				<div className="flex flex-col gap-6">
@@ -172,7 +172,7 @@ export function InviteMembersSettings({
 				</div>
 			</form>
 
-			<div className="flex shrink-0 justify-end gap-2 border-t p-5">
+			<div className="flex shrink-0 justify-end gap-2 border-t p-4">
 				<Button type="submit" form={inviteFormId}>
 					Review invitations
 				</Button>

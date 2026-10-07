@@ -49,11 +49,13 @@ describe("inviteAdminService", () => {
 	beforeEach(() => {
 		const queryBuilder = {
 			from: vi.fn(),
+			innerJoin: vi.fn(),
 			where: vi.fn(),
 			limit: queryResultMock,
 		};
 
 		queryBuilder.from.mockReturnValue(queryBuilder);
+		queryBuilder.innerJoin.mockReturnValue(queryBuilder);
 		queryBuilder.where.mockReturnValue(queryBuilder);
 		selectMock.mockReturnValue(queryBuilder);
 		queryResultMock.mockResolvedValue([]);
@@ -91,7 +93,10 @@ describe("inviteAdminService", () => {
 			email: "sarah@stmaryhospital.org",
 		});
 
-		expect(result).toEqual({ status: "unauthorized" });
+		expect(result).toEqual({
+			status: "unauthorized",
+			error: "Sign in before sending an invitation.",
+		});
 		expect(getOrganizationAccessServiceMock).not.toHaveBeenCalled();
 		expect(createInvitationMock).not.toHaveBeenCalled();
 	});
@@ -161,8 +166,9 @@ describe("inviteAdminService", () => {
 		expect(result).toEqual({ status: "success" });
 	});
 
-	test("does not invite an email that already belongs to a MediBridge account", async () => {
-		queryResultMock.mockResolvedValue([{ id: "existing-user" }]);
+	test("returns a fixed message instead of the internal error when the invitation fails", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		createInvitationMock.mockRejectedValue(new Error("connect ECONNREFUSED 127.0.0.1:5432"));
 
 		const result = await inviteAdminService({
 			name: "Sarah Thompson",
@@ -171,7 +177,22 @@ describe("inviteAdminService", () => {
 
 		expect(result).toEqual({
 			status: "failed",
-			error: "This email already belongs to a MediBridge account.",
+			error: "We couldn't send the invitation. Please try again.",
+		});
+		expect(sendOrganizationInvitationEmailMock).not.toHaveBeenCalled();
+	});
+
+	test("does not invite someone who already belongs to a hospital", async () => {
+		queryResultMock.mockResolvedValue([{ id: "existing-member" }]);
+
+		const result = await inviteAdminService({
+			name: "Sarah Thompson",
+			email: "sarah@stmaryhospital.org",
+		});
+
+		expect(result).toEqual({
+			status: "failed",
+			error: "This person already belongs to a hospital and can't be invited to another.",
 		});
 		expect(createInvitationMock).not.toHaveBeenCalled();
 		expect(sendOrganizationInvitationEmailMock).not.toHaveBeenCalled();

@@ -7,14 +7,18 @@ import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { db } from "@/lib/better-auth/auth";
 import { updatePatientPhysicalInformationSchema } from "./schemas";
 
+type UpdatePatientPhysicalInformationResult =
+	| { status: "success" }
+	| { status: "failed"; error: string };
+
 export async function updatePatientPhysicalInformationAction(
 	patientId: string,
 	formData: FormData,
-) {
+): Promise<UpdatePatientPhysicalInformationResult> {
 	const organizationId = await getOrganizationId();
 
 	if (!organizationId) {
-		return { ok: false, message: "Unable to verify your hospital." };
+		return { status: "failed", error: "Unable to verify your hospital." };
 	}
 
 	const parsedPhysicalInformation = updatePatientPhysicalInformationSchema.safeParse({
@@ -26,8 +30,8 @@ export async function updatePatientPhysicalInformationAction(
 
 	if (!parsedPhysicalInformation.success) {
 		return {
-			ok: false,
-			message:
+			status: "failed",
+			error:
 				parsedPhysicalInformation.error.issues[0]?.message ??
 				"Please check the physical information fields.",
 		};
@@ -40,7 +44,7 @@ export async function updatePatientPhysicalInformationAction(
 		.limit(1);
 
 	if (!patientRow) {
-		return { ok: false, message: "Patient record was not found." };
+		return { status: "failed", error: "Patient record was not found." };
 	}
 
 	const physicalInformation = parsedPhysicalInformation.data;
@@ -73,5 +77,5 @@ export async function updatePatientPhysicalInformationAction(
 	updateTag(`recent-patients-${organizationId}`);
 	updateTag(`recent-transfers-${organizationId}`);
 
-	return { ok: true, message: "" };
+	return { status: "success" };
 }

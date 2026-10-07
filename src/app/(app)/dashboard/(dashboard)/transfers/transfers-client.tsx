@@ -375,7 +375,9 @@ export function TransfersClient({
 					</Button>
 
 					<Button asChild>
-						<Link href={newTransferRequestHref}>New transfer request </Link>
+						<Link href={newTransferRequestHref} prefetch={true}>
+							New transfer request{" "}
+						</Link>
 					</Button>
 				</div>
 			</header>

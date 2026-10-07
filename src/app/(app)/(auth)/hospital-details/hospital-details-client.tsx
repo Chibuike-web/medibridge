@@ -56,7 +56,7 @@ export function HospitalDetailsClient() {
 				if (res?.status === "failed") {
 					setHospitalDetailsFeedback({
 						type: "error",
-						message: res.message,
+						message: res.error,
 					});
 					return;
 				}
@@ -68,9 +68,10 @@ export function HospitalDetailsClient() {
 					setHospitalDetailsFeedback(null);
 				}, 1000);
 			} catch (error) {
+				console.error(error);
 				setHospitalDetailsFeedback({
 					type: "error",
-					message: error instanceof Error ? error.message : "Unknown error",
+					message: "We couldn’t save your hospital. Please try again.",
 				});
 			}
 		});

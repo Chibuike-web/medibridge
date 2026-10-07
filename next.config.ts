@@ -18,9 +18,6 @@ const nextConfig: NextConfig = {
 			"@radix-ui/react-checkbox",
 		],
 	},
-	typescript: {
-		ignoreBuildErrors: true,
-	},
 	reactStrictMode: true,
 	typedRoutes: true,
 };

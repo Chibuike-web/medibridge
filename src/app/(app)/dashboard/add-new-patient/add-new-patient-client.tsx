@@ -81,7 +81,7 @@ export function AddNewPatientClient() {
 			>
 				<div className="px-5 py-4 text-center">
 					<p className="text-xl font-medium text-gray-800">Drop files here</p>
-					<p className="mt-1 text-sm text-gray-500">PDF, PNG, JPG, DOC, DOCX up to 50MB</p>
+					<p className="mt-1 text-sm text-gray-500">PDF, PNG, JPG, DOCX up to 50MB</p>
 				</div>
 			</div>
 			<div>
@@ -117,10 +117,10 @@ export function AddNewPatientClient() {
 						}}
 						fileInputRef={fileInputRef}
 						title="Choose files or drag and drop them here."
-						description="PDF, PNG, JPG, DOC, and DOCX, up to 50 MB."
+						description="PDF, PNG, JPG, and DOCX, up to 50 MB."
 						browseLabel="Browse files"
 						inputId="patient-record-files"
-						accept="application/pdf,image/png,image/jpeg,.doc,.docx"
+						accept="application/pdf,image/png,image/jpeg,.docx"
 						multiple
 						error={uploadError}
 					/>
@@ -199,7 +199,7 @@ function Footer({
 	setUploadError: (msg: string) => void;
 	handleFiles: (incomingFiles: File[]) => void;
 	files: SelectedFile[];
-	extractInfo: (filenames?: string[]) => Promise<void>;
+	extractInfo: (fileIds?: string[]) => Promise<void>;
 	isExtracting: boolean;
 }) {
 	const uploadErrorId = "upload-error-message";
@@ -211,14 +211,14 @@ function Footer({
 	const isFailedExtract = files.some((file) => file.status === "extract-failed");
 
 	async function retryExtraction() {
-		const failedFiles = files.filter((f) => f.status === "extract-failed").map((f) => f.name);
-		if (failedFiles.length === 0) return;
+		const failedFileIds = files.filter((f) => f.status === "extract-failed").map((f) => f.id);
+		if (failedFileIds.length === 0) return;
 
-		await extractInfo(failedFiles);
+		await extractInfo(failedFileIds);
 	}
 
 	return (
-		<footer className="fixed z-50 bottom-0 left-0 right-0 flex items-center justify-center border-t h-20 border-gray-200 bg-white px-4 md:px-0">
+		<footer className="fixed z-50 bottom-0 left-0 right-0 flex min-h-14 items-center justify-center border-t border-gray-200 bg-white px-6">
 			{!isExtracting && !extractionComplete ? (
 				<div className="flex w-full justify-between items-center max-w-[31.25rem]">
 					<Button type="button" variant="outline" disabled={!uploadComplete}>
@@ -247,15 +247,11 @@ function Footer({
 
 					<Dialog>
 						<DialogTrigger asChild>
-							<Button disabled={!uploadComplete || isExtracting}>
-								Extract Information
-							</Button>
+							<Button disabled={!uploadComplete || isExtracting}>Extract Information</Button>
 						</DialogTrigger>
 						<DialogContent>
-						<DialogHeader>
-								<DialogTitle>
-									Confirm Transfer Request
-								</DialogTitle>
+							<DialogHeader>
+								<DialogTitle>Confirm Extraction</DialogTitle>
 								<DialogDescription className="sr-only">
 									Confirm that the uploaded patients are complete before starting extraction.
 								</DialogDescription>
@@ -263,23 +259,20 @@ function Footer({
 									<RiCloseLine className="size-6" />
 								</DialogClose>
 							</DialogHeader>
-							<div className="mt-8 px-6">
+							<div className="mt-8 px-6 text-sm">
 								<p className="text-gray-600 font-medium">
 									Please ensure all required patients are uploaded and correct. Once extraction
 									starts, additional files cannot be added and the process cannot be paused or
 									restarted.
 								</p>
 							</div>
-									<DialogFooter className="mt-16 text-sm">
+							<DialogFooter className="mt-16 text-sm">
 								<div className="flex gap-2 ml-auto">
 									<DialogClose asChild>
-										<Button variant="outline">
-											Cancel
-										</Button>
+										<Button variant="outline">Cancel</Button>
 									</DialogClose>
 									<DialogClose asChild>
 										<Button
-
 											onClick={async () => {
 												await extractInfo();
 											}}

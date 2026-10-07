@@ -150,7 +150,7 @@ export function MembersSettings({
 
 	return (
 		<div className="flex h-full min-h-0 flex-col">
-			<div className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-6">
+			<div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-5">
 				{members.map((member) => (
 					<MemberCard key={member.id} member={member} viewerRole={viewerRole} />
 				))}
@@ -162,7 +162,7 @@ export function MembersSettings({
 					/>
 				))}
 			</div>
-			<div className="flex shrink-0 justify-end border-t p-5">
+			<div className="flex shrink-0 justify-end border-t p-4">
 				<Button type="button" onClick={() => onSettingsSubViewChange("invite-member")}>
 					Invite new member
 				</Button>

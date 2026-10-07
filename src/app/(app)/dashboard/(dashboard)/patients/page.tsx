@@ -68,12 +68,17 @@ async function PatientsPageContent({ searchParams }: PatientsPagePageProps) {
 					className="h-auto w-[31.25rem] max-w-full"
 				/>
 				<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
-					<h1 className="mb-2 text-center text-xl font-semibold">No patient records available</h1>
+					<h1 className="mb-2 text-center text-xl font-semibold text-balance">
+						No patient records available
+					</h1>
 					<p className="mb-6 text-center text-sm">
 						Patient records will appear here once patients have been added to the system.
 					</p>
 					<Button asChild>
-						<Link href="/dashboard/add-new-patient"> Add patient</Link>
+						<Link href="/dashboard/add-new-patient" prefetch={true}>
+							{" "}
+							Add patient
+						</Link>
 					</Button>
 				</div>
 			</div>

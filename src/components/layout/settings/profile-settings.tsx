@@ -18,7 +18,7 @@ export function ProfileSettings({ user }: { user: SettingsDialogUser }) {
 	return (
 		<div className="flex h-full flex-col items-center gap-16 pt-6">
 			<PatientAvatarMenu patientName={user.name} />
-			<dl className="w-full px-6">
+			<dl className="w-full px-4 py-5">
 				<div className="flex h-16 items-center justify-between gap-4 border-b">
 					<dt className="text-sm font-medium text-gray-600">
 						<label htmlFor="settings-full-name">Full name</label>
@@ -38,7 +38,7 @@ export function ProfileSettings({ user }: { user: SettingsDialogUser }) {
 					<dd className="text-sm font-medium text-gray-600">{user.email}</dd>
 				</div>
 			</dl>
-			<div className="mt-auto flex w-full shrink-0 gap-2 border-t p-5">
+			<div className="mt-auto flex w-full shrink-0 gap-2 border-t p-4">
 				<Button variant="outline" className="ml-auto">
 					Cancel
 				</Button>

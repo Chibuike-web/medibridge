@@ -53,4 +53,46 @@ describe("password reset completion", () => {
 
 		expect(redirectMock).toHaveBeenCalledWith("/sign-in");
 	});
+
+	test.each([
+		[
+			{ status: 500, code: "INTERNAL_SERVER_ERROR" },
+			"We couldn’t reset your password. Please try again.",
+		],
+		[{ status: 429 }, "Too many attempts. Wait a moment and try again."],
+	])(
+		"keeps a valid reset link usable after a temporary request failure (%j)",
+		async (error, message) => {
+			const user = userEvent.setup();
+			resetPasswordMock.mockResolvedValueOnce({ error });
+			render(<CreateNewPasswordClient token="valid-reset-token" isTokenInvalid={false} />);
+
+			await user.type(screen.getByLabelText("New Password"), "secure12");
+			await user.type(screen.getByLabelText("Confirm New Password"), "secure12");
+			await user.click(screen.getByRole("button", { name: "Reset Password" }));
+
+			expect(await screen.findByRole("alert")).toHaveTextContent(message);
+			expect(screen.getByLabelText("New Password")).toHaveValue("secure12");
+			await user.click(screen.getByRole("button", { name: "Reset Password" }));
+			expect(await screen.findByText("You have successfully created a new password")).toBeVisible();
+		},
+	);
+
+	test("offers a new link when the token expires after the form loads", async () => {
+		const user = userEvent.setup();
+		resetPasswordMock.mockResolvedValue({ error: { status: 400, code: "INVALID_TOKEN" } });
+		render(<CreateNewPasswordClient token="expired-reset-token" isTokenInvalid={false} />);
+
+		await user.type(screen.getByLabelText("New Password"), "secure12");
+		await user.type(screen.getByLabelText("Confirm New Password"), "secure12");
+		await user.click(screen.getByRole("button", { name: "Reset Password" }));
+
+		expect(await screen.findByRole("alert")).toHaveTextContent(
+			"This password reset link is invalid or expired.",
+		);
+		expect(screen.getByRole("link", { name: "Request a new reset link" })).toHaveAttribute(
+			"href",
+			"/forgot-password",
+		);
+	});
 });

@@ -450,7 +450,9 @@ export function PatientsClient({
 					</Button>
 
 					<Button asChild>
-						<Link href={addNewPatientHref}>Add patient</Link>
+						<Link href={addNewPatientHref} prefetch={true}>
+							Add patient
+						</Link>
 					</Button>
 				</div>
 			</header>

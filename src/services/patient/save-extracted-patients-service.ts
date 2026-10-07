@@ -10,6 +10,7 @@ import {
 } from "@/db/schemas/patient";
 import { auth, db } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
+import { inArray } from "drizzle-orm";
 import { SavePatientsResult } from "./types";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 
@@ -18,6 +19,8 @@ function isBlank(value: string | null | undefined) {
 }
 
 function validatePatients(records: PatientType) {
+	const patientNumbersById = new Map<string, number>();
+
 	for (const [index, record] of records.entries()) {
 		const label = `Patient ${index + 1}`;
 		const { personalInfo, emergencyInfo } = record;
@@ -25,6 +28,14 @@ function validatePatients(records: PatientType) {
 		if (isBlank(personalInfo.firstName)) return `${label}: first name is required.`;
 		if (isBlank(personalInfo.lastName)) return `${label}: last name is required.`;
 		if (isBlank(personalInfo.patientId)) return `${label}: patient ID is required.`;
+
+		const patientId = personalInfo.patientId!.trim();
+		const firstPatientNumber = patientNumbersById.get(patientId);
+		if (firstPatientNumber) {
+			return `${label}: patient ID ${patientId} is also used by Patient ${firstPatientNumber}.`;
+		}
+		patientNumbersById.set(patientId, index + 1);
+
 		if (isBlank(emergencyInfo.firstName)) {
 			return `${label}: emergency contact first name is required.`;
 		}
@@ -67,6 +78,21 @@ export async function saveExtractedPatientsService(
 
 		if (!organizationId) {
 			return { status: "failed", error: "No active organization was found for this session." };
+		}
+
+		const patientIds = records.map((record) => record.personalInfo.patientId!.trim());
+		const [existingPatient] = await db
+			.select({ id: patient.id })
+			.from(patient)
+			.where(inArray(patient.id, patientIds))
+			.limit(1);
+
+		if (existingPatient) {
+			const patientNumber = patientIds.indexOf(existingPatient.id) + 1;
+			return {
+				status: "failed",
+				error: `Patient ${patientNumber}: patient ID ${existingPatient.id} is already in use.`,
+			};
 		}
 
 		await db.transaction(async (tx) => {
@@ -132,9 +158,6 @@ export async function saveExtractedPatientsService(
 		};
 	} catch (error) {
 		console.error(error);
-		return {
-			status: "failed",
-			error: error instanceof Error ? error.message : "Failed to save patients.",
-		};
+		return { status: "failed", error: "We couldn’t save these patients. Please try again." };
 	}
 }

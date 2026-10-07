@@ -15,6 +15,7 @@ import { authClient } from "@/lib/better-auth/auth.client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RiErrorWarningFill, RiEyeLine, RiEyeOffLine, RiInformationLine } from "@remixicon/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
@@ -33,7 +34,7 @@ export function AcceptInviteClient(props: AcceptInviteClientProps) {
 	}
 
 	if (props.mode === "verify-email") {
-		return <AwaitingEmailVerification email={props.email} />;
+		return <AwaitingEmailVerification email={props.email} invitationId={props.invitationId} />;
 	}
 
 	if (props.mode === "wrong-account") {
@@ -77,15 +78,14 @@ function CreateInvitedAdminForm({
 			}
 
 			if (error) {
-				setAccountSetupError(error.message ?? "Unable to create your account.");
+				setAccountSetupError("Unable to create your account. Please try again.");
 				return;
 			}
 
 			setIsSuccessModalOpen(true);
 		} catch (error) {
-			setAccountSetupError(
-				error instanceof Error ? error.message : "Unable to create your account.",
-			);
+			console.error(error);
+			setAccountSetupError("Unable to create your account. Please try again.");
 		}
 	};
 
@@ -149,11 +149,18 @@ function CreateInvitedAdminForm({
 					isOpen={isSuccessModalOpen}
 					setIsOpen={setIsSuccessModalOpen}
 					heading="Verify Your Email"
-					description={`We sent a verification link to ${email}. Open it to return and accept your administrator invitation.`}
+					description={`We sent a verification link to ${email}. Open it to return and accept your invitation.`}
 				>
 					<DialogFooter className="w-full text-sm">
 						<Button className="w-full" onClick={() => setIsSuccessModalOpen(false)}>
 							Got it
+						</Button>
+						<Button asChild variant="outline" className="w-full">
+							<Link
+								href={`/sign-in?callbackUrl=${encodeURIComponent(`/accept-invite?invitationId=${encodeURIComponent(invitationId)}`)}`}
+							>
+								Sign in
+							</Link>
 						</Button>
 					</DialogFooter>
 				</SuccessModal>
@@ -162,13 +169,68 @@ function CreateInvitedAdminForm({
 	);
 }
 
-function AwaitingEmailVerification({ email }: { email: string }) {
+function AwaitingEmailVerification({
+	email,
+	invitationId,
+}: {
+	email: string;
+	invitationId: string;
+}) {
+	const [verificationFeedback, setVerificationFeedback] = useState("");
+	const [verificationError, setVerificationError] = useState("");
+	const [isSendingVerificationEmail, startSendVerificationEmailTransition] = useTransition();
+	const callbackUrl = `/accept-invite?invitationId=${encodeURIComponent(invitationId)}`;
+
 	return (
 		<div className="mt-12 text-gray-800">
 			<ReadOnlyEmailField email={email} />
 			<p className="mt-6 text-center text-sm font-medium text-gray-600">
-				You can close this page after opening the verification link in your email.
+				Verify your email, then sign in to accept this invitation. If you already verified your
+				email, sign in now.
 			</p>
+			<FormError message={verificationError} />
+			{verificationFeedback && (
+				<p role="status" className="mt-4 text-sm text-green-700">
+					{verificationFeedback}
+				</p>
+			)}
+			<Button
+				className="mt-8 w-full"
+				disabled={isSendingVerificationEmail}
+				onClick={() => {
+					setVerificationError("");
+					setVerificationFeedback("");
+					startSendVerificationEmailTransition(async () => {
+						try {
+							const { error } = await authClient.sendVerificationEmail({
+								email,
+								callbackURL: callbackUrl,
+							});
+							if (error) {
+								setVerificationError(
+									error.status === 429
+										? "Too many attempts. Wait a moment and try again."
+										: "We couldn’t send a new link. Please try again.",
+								);
+								return;
+							}
+							setVerificationFeedback(
+								"If your account is unverified, we sent a new verification link.",
+							);
+						} catch (error) {
+							console.error(error);
+							setVerificationError("We couldn’t send a new link. Please try again.");
+						}
+					});
+				}}
+			>
+				{isSendingVerificationEmail ? "Sending..." : "Resend verification email"}
+			</Button>
+			<Button asChild variant="outline" className="mt-4 w-full">
+				<Link href={`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`}>
+					Sign in to accept invitation
+				</Link>
+			</Button>
 		</div>
 	);
 }
@@ -201,9 +263,8 @@ function AcceptInvitationButton({
 
 				setIsSuccessModalOpen(true);
 			} catch (error) {
-				setAcceptInvitationError(
-					error instanceof Error ? error.message : "Unable to accept the invitation.",
-				);
+				console.error(error);
+				setAcceptInvitationError("Unable to accept the invitation. Please try again.");
 			}
 		});
 	};
@@ -225,7 +286,7 @@ function AcceptInvitationButton({
 					isOpen={isSuccessModalOpen}
 					setIsOpen={setIsSuccessModalOpen}
 					heading="Account Setup Complete"
-					description={`You are now an administrator for ${organizationName}.`}
+					description={`You have joined ${organizationName}.`}
 				>
 					<DialogFooter className="w-full text-sm">
 						<Button className="w-full" onClick={() => router.push("/dashboard/overview")}>
@@ -251,13 +312,14 @@ function SwitchAccountButton() {
 				const { error } = await authClient.signOut();
 
 				if (error) {
-					setSwitchAccountError(error.message ?? "Unable to sign out.");
+					setSwitchAccountError("Unable to sign out. Please try again.");
 					return;
 				}
 
 				router.refresh();
 			} catch (error) {
-				setSwitchAccountError(error instanceof Error ? error.message : "Unable to sign out.");
+				console.error(error);
+				setSwitchAccountError("Unable to sign out. Please try again.");
 			}
 		});
 	};

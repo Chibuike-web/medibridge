@@ -35,7 +35,7 @@ type EncounterDetailsPageProps =
 	PageProps<"/dashboard/patients/[patientId]/encounters/[encounterId]">;
 type EncounterDetailsParamsProps = Pick<EncounterDetailsPageProps, "params">;
 
-export default async function EncounterDetailsPage({ params }: EncounterDetailsPageProps) {
+export default function EncounterDetailsPage({ params }: EncounterDetailsPageProps) {
 	return (
 		<Suspense fallback={<EncounterDetailsPageSkeleton />}>
 			<EncounterDetailsContent params={params} />
@@ -66,7 +66,8 @@ async function EncounterDetailsContent({ params }: EncounterDetailsParamsProps) 
 		getPatientImmunizations(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], encounterId),
 		getPatientProcedures(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], encounterId),
 		getPatientLabTests(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], [], encounterId),
-		getPatientImaging(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], [], encounterId),	]);
+		getPatientImaging(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], [], encounterId),
+	]);
 
 	if (!patient || !encounter) {
 		notFound();

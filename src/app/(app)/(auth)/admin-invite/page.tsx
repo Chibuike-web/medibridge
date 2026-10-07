@@ -10,10 +10,12 @@ export const metadata = {
 
 export default function AdminInvite() {
 	return (
-		<main className="max-w-[31.25rem] min-h-dvh grid place-items-center mx-auto px-6 md:px-0 my-10">
-			<Suspense>
-				<AdminInviteContent />
-			</Suspense>
+		<main className="h-dvh overflow-y-auto">
+			<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
+				<Suspense>
+					<AdminInviteContent />
+				</Suspense>
+			</div>
 		</main>
 	);
 }
@@ -32,10 +34,10 @@ async function AdminInviteContent() {
 
 	return (
 		<div className="w-full">
-			<h1 className="mt-10 text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
+			<h1 className="mt-10 text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 				Invite Administrator
 			</h1>
-			<p className="text-gray-600 text-sm font-medium text-center text-balance mt-4">
+			<p className="text-gray-600 text-sm font-medium text-center text-pretty mt-4">
 				Invite your hospital’s administrator. They will be assigned an admin role to manage and add
 				new members.
 			</p>

@@ -53,7 +53,7 @@ export function BillingSettings({
 			return <PaymentMethodSettings />;
 		case "billing-history":
 			return (
-				<div className="flex flex-col gap-4 px-6 py-6">
+				<div className="flex flex-col gap-4 px-4 py-5">
 					{[
 						{
 							amount: "₦2,100",
@@ -155,7 +155,7 @@ export function BillingSettings({
 			);
 		case null:
 			return (
-				<div className="flex flex-col gap-6 px-6 py-6">
+				<div className="flex flex-col gap-6 px-4 py-5">
 					<BillingPlanCard plan={activeBillingPlan} />
 					{planToShow === "paid" ? (
 						<PaidBillingDetails onSettingsSubViewChange={onSettingsSubViewChange} />
@@ -172,7 +172,7 @@ function PaymentMethodSettings() {
 
 	return (
 		<>
-			<div className="flex min-h-full flex-col gap-6 px-6 py-6">
+			<div className="flex min-h-full flex-col gap-6 px-4 py-5">
 				<section
 					aria-labelledby="current-payment-method-heading"
 					className="rounded-2xl border border-gray-200 p-4"

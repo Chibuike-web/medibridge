@@ -180,7 +180,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 					</aside>
 
 					<section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-						<div className="flex items-center justify-between border-b px-6 py-4">
+						<div className="flex items-center justify-between border-b p-4">
 							{activeSettingsSubView ? (
 								<div className="flex items-center gap-2">
 									<Button

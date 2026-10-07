@@ -1,7 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
-import { user } from "@/db/schemas/auth";
+import { member, user } from "@/db/schemas/auth";
 import { auth, db } from "@/lib/better-auth/auth";
 import { ENV } from "@/lib/utils/env";
 import { sendOrganizationInvitationEmail } from "@/lib/utils/send-email";
@@ -9,56 +9,61 @@ import { getOrganizationAccessService } from "./get-organization-access-service"
 import { inviteSchema, InviteType } from "@/features/auth/schemas/invite-schema";
 import { eq } from "drizzle-orm";
 
-export async function inviteAdminService(data: InviteType) {
+type InviteAdminResult =
+	| { status: "success" }
+	| { status: "failed" | "unauthorized" | "forbidden"; error: string };
+
+export async function inviteAdminService(data: InviteType): Promise<InviteAdminResult> {
 	const validatedInvitation = inviteSchema.safeParse(data);
 
 	if (!validatedInvitation.success) {
-		return { status: "failed" as const, error: "Enter valid administrator details." };
+		return { status: "failed", error: "Enter valid administrator details." };
 	}
 
 	const session = await auth.api.getSession({ headers: await headers() });
 
 	if (!session) {
-		return { status: "unauthorized" as const };
+		return { status: "unauthorized", error: "Sign in before sending an invitation." };
 	}
 
 	const organizationId = session.session.activeOrganizationId;
 
 	if (!organizationId) {
-		return { status: "forbidden" as const, error: "No active hospital organization." };
+		return { status: "forbidden", error: "No active hospital organization." };
 	}
 
 	const organizationAccess = await getOrganizationAccessService(organizationId);
 
 	if (organizationAccess.status === "unauthorized") {
-		return { status: "unauthorized" as const };
+		return { status: "unauthorized", error: "Sign in before sending an invitation." };
 	}
 
 	if (organizationAccess.status === "forbidden" || organizationAccess.role !== "owner") {
 		return {
-			status: "forbidden" as const,
+			status: "forbidden",
 			error: "Only the hospital owner can invite an administrator.",
 		};
 	}
 
 	if (!organizationAccess.isOrganizationVerified) {
 		return {
-			status: "forbidden" as const,
+			status: "forbidden",
 			error: "Your hospital must be verified before inviting an administrator.",
 		};
 	}
 
 	try {
-		const [existingUser] = await db
-			.select({ id: user.id })
-			.from(user)
+		const [existingMembership] = await db
+			.select({ id: member.id })
+			.from(member)
+			.innerJoin(user, eq(member.userId, user.id))
 			.where(eq(user.email, validatedInvitation.data.email))
 			.limit(1);
 
-		if (existingUser) {
+		if (existingMembership) {
 			return {
-				status: "failed" as const,
-				error: "This email already belongs to a MediBridge account.",
+				status: "failed",
+				error: "This person already belongs to a hospital and can't be invited to another.",
 			};
 		}
 
@@ -83,11 +88,12 @@ export async function inviteAdminService(data: InviteType) {
 			recipientName: validatedInvitation.data.name,
 		});
 
-		return { status: "success" as const };
+		return { status: "success" };
 	} catch (error) {
+		console.error(error);
 		return {
-			status: "failed" as const,
-			error: error instanceof Error ? error.message : "Unable to send the invitation.",
+			status: "failed",
+			error: "We couldn't send the invitation. Please try again.",
 		};
 	}
 }

@@ -4,7 +4,7 @@ import {
 	hospitalDetailsSchema,
 	HospitalDetailsType,
 } from "@/features/auth/schemas/hospital-details-schema";
-import { hospitalDetails, organization } from "@/db/schemas";
+import { hospitalDetails, member, organization } from "@/db/schemas";
 import { auth, db } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
@@ -19,16 +19,25 @@ function hospitalSlug(name: string) {
 		.replace(/[^a-z0-9]+/g, "-")
 		.replace(/^-|-$/g, "");
 
-	return `${nameSlug}-${crypto.randomUUID().slice(0, 6)}`;
+	return `${nameSlug}-${crypto.randomUUID()}`;
 }
 
-export async function createHospitalService(data: HospitalDetailsType) {
+type CreateHospitalResult =
+	| { status: "success"; message: string }
+	| { status: "failed"; error: string };
+
+export async function createHospitalService(
+	data: HospitalDetailsType,
+): Promise<CreateHospitalResult> {
 	try {
 		const session = await auth.api.getSession({ headers: await headers() });
 		if (!session)
-			return { status: "failed", message: "You must sign in to submit hospital details." };
+			return { status: "failed", error: "You must sign in to submit hospital details." };
 		if (!session.user.emailVerified) {
-			return { status: "failed", message: "Verify your email before submitting hospital details." };
+			return { status: "failed", error: "Verify your email before submitting hospital details." };
+		}
+		if (!session.user.email.toLowerCase().endsWith(".org")) {
+			return { status: "failed", error: "Use your official hospital email address (.org)." };
 		}
 
 		const [existingHospital] = await db
@@ -37,33 +46,52 @@ export async function createHospitalService(data: HospitalDetailsType) {
 			.where(eq(hospitalDetails.hospitalOwnerEmail, session.user.email))
 			.limit(1);
 		if (existingHospital) {
-			return { status: "failed", message: "Hospital details have already been submitted." };
+			return { status: "failed", error: "Hospital details have already been submitted." };
+		}
+
+		const [existingMembership] = await db
+			.select({ id: member.id })
+			.from(member)
+			.where(eq(member.userId, session.user.id))
+			.limit(1);
+		if (existingMembership) {
+			return {
+				status: "failed",
+				error: "Your account already belongs to a hospital. An account can only join one hospital.",
+			};
 		}
 
 		const userId = session.user.id;
 		const parsed = hospitalDetailsSchema.safeParse(data);
 		if (parsed.error) {
-			return { status: "failed", message: "Enter the correct details" };
+			return { status: "failed", error: "Enter the correct details" };
 		}
 
 		const [uploadedFileName] = await readdir(path.join(uploadDir, userId)).catch(() => []);
 		if (!uploadedFileName) {
 			return {
 				status: "failed",
-				message: "Upload your accreditation document before submitting.",
+				error: "Upload your accreditation document before submitting.",
 			};
 		}
 
-		const orgRes = await auth.api.createOrganization({
-			body: {
-				name: parsed.data.hospitalName,
-				slug: hospitalSlug(parsed.data.hospitalName),
-				userId,
-				keepCurrentActiveOrganization: false,
-			},
-		});
+		const organizationSlug = hospitalSlug(parsed.data.hospitalName);
+		const orgRes = await auth.api
+			.createOrganization({
+				body: {
+					name: parsed.data.hospitalName,
+					slug: organizationSlug,
+					userId,
+					keepCurrentActiveOrganization: false,
+				},
+			})
+			.catch(async (error) => {
+				console.error(error);
+				await db.delete(organization).where(eq(organization.slug, organizationSlug));
+				return null;
+			});
 
-		if (!orgRes) return { status: "failed", message: "Organization creation failed" };
+		if (!orgRes) return { status: "failed", error: "Organization creation failed" };
 
 		const organizationId = orgRes.id;
 		try {
@@ -80,7 +108,7 @@ export async function createHospitalService(data: HospitalDetailsType) {
 		} catch (error) {
 			console.error(error);
 			await db.delete(organization).where(eq(organization.id, organizationId));
-			return { status: "failed", message: "We couldn’t save your hospital. Please try again." };
+			return { status: "failed", error: "We couldn’t save your hospital. Please try again." };
 		}
 
 		await auth.api.setActiveOrganization({
@@ -91,6 +119,6 @@ export async function createHospitalService(data: HospitalDetailsType) {
 		return { status: "success", message: "Hospital data successfully saved" };
 	} catch (error) {
 		console.error(error);
-		return { status: "failed", message: "We couldn’t save your hospital. Please try again." };
+		return { status: "failed", error: "We couldn’t save your hospital. Please try again." };
 	}
 }

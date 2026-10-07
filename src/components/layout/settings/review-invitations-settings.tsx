@@ -29,7 +29,7 @@ export function ReviewInvitationsSettings({
 	return (
 		<>
 			<div className="flex h-full min-h-0 flex-col">
-				<div className="flex-1 overflow-y-auto px-6 py-6">
+				<div className="flex-1 overflow-y-auto px-4 py-5">
 					<div className="flex flex-col gap-4">
 						{invitationsToRender.map((memberRow) => (
 							<div
@@ -59,7 +59,7 @@ export function ReviewInvitationsSettings({
 						</p>
 					</div>
 				</div>
-				<div className="flex shrink-0 justify-end gap-2 border-t p-5">
+				<div className="flex shrink-0 justify-end gap-2 border-t p-4">
 					<Button type="button" onClick={handleConfirmInvitations}>
 						Send {inviteMemberRows.length} invitation
 						{inviteMemberRows.length === 1 ? "" : "s"}

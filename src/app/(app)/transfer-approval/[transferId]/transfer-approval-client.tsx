@@ -33,13 +33,13 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 		startTransition(async () => {
 			const result = await approvePatientTransferAction(transfer.transferId, approvalToken);
 
-			if (result.success) {
+			if (result.status === "success") {
 				setCurrentPatientApprovalStatus("approved");
 				setIsRejectionReasonFormOpen(false);
 				return;
 			}
 
-			setApprovalSubmissionError("Approval failed. Please try again.");
+			setApprovalSubmissionError(result.error);
 		});
 	}
 
@@ -59,13 +59,13 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 				reason: rejectionReason,
 			});
 
-			if (result.success) {
+			if (result.status === "success") {
 				setCurrentPatientApprovalStatus("rejected");
 				setIsRejectionReasonFormOpen(false);
 				return;
 			}
 
-			setRejectionSubmissionError("Rejection failed. Please try again.");
+			setRejectionSubmissionError(result.error);
 		});
 	}
 
@@ -73,7 +73,9 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 		<section className="bg-white">
 			<div className="border-b border-gray-200 p-6">
 				<p className="text-sm font-medium text-gray-500">Patient transfer request</p>
-				<h1 className="mt-2 text-xl font-semibold text-gray-900">Review shared record request</h1>
+				<h1 className="mt-2 text-xl font-semibold text-gray-900 text-balance">
+					Review shared record request
+				</h1>
 				<p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
 					{transfer.sourceHospitalName} wants to share selected patient records with{" "}
 					{transfer.targetHospitalName}. Please review the request before approving.

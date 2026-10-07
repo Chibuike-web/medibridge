@@ -69,8 +69,8 @@ export function PhysicalInformation({
 
 			const result = await updatePatientPhysicalInformationAction(patientId, formData);
 
-			if (!result.ok) {
-				setPhysicalInformationError(result.message);
+			if (result.status === "failed") {
+				setPhysicalInformationError(result.error);
 				setIsPhysicalInformationDialogOpen(true);
 			}
 		});

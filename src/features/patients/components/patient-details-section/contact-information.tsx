@@ -65,8 +65,8 @@ export function ContactInformation({
 
 			const result = await updatePatientContactInformationAction(patientId, formData);
 
-			if (!result.ok) {
-				setContactInformationError(result.message);
+			if (result.status === "failed") {
+				setContactInformationError(result.error);
 				setIsContactInformationDialogOpen(true);
 			}
 		});

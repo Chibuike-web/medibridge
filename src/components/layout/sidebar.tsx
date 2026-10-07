@@ -288,7 +288,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 											return (
 												<DialogClose asChild key={entry.id}>
 													<CommandItem asChild value={`${entry.title} ${entry.description}`}>
-														<Link href={entry.href}>
+														<Link href={entry.href} prefetch={true}>
 															<Icon className="shrink-0 text-gray-600 size-4" aria-hidden="true" />
 
 															<div className="min-w-0">
@@ -314,6 +314,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 						<li key={id}>
 							<Link
 								href={href}
+								prefetch={id === "patients" || id === "transfers" ? true : null}
 								className={cn(
 									"flex h-8 w-full items-center gap-2 rounded-lg border border-transparent px-2.5 font-medium text-gray-600 transition-[background-color,box-shadow] hover:bg-gray-100 hover:text-gray-800 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
 									isActive && "bg-gray-200 text-gray-800",

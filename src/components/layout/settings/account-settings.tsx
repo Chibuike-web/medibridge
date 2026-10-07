@@ -32,7 +32,7 @@ export function AccountSettings({
 
 	if (activeSettingsSubView === "organization") {
 		return (
-			<div className="flex flex-col gap-6 px-6 pt-4">
+			<div className="flex flex-col gap-6 px-4 py-5">
 				<section aria-labelledby="organization-details-heading">
 					<dl className="mt-2">
 						<div className="flex h-16 items-center justify-between gap-4 border-b">
@@ -75,7 +75,7 @@ export function AccountSettings({
 
 	return (
 		<>
-			<div className="flex h-full flex-col gap-6 px-6 py-4">
+			<div className="flex h-full flex-col gap-6 px-4 py-5">
 				<section aria-labelledby="organization-settings-heading">
 					<h3 id="organization-settings-heading" className="font-semibold">
 						Organization
@@ -207,7 +207,7 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 
 	return (
 		<form
-			className="flex h-full flex-col gap-10 p-6"
+			className="flex h-full flex-col gap-10 px-4 py-5"
 			aria-busy={isPending}
 			onSubmit={(event) => {
 				event.preventDefault();
@@ -388,7 +388,7 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 
 function ActiveSession() {
 	return (
-		<div className="flex flex-col gap-6 px-6 py-4">
+		<div className="flex flex-col gap-6 px-4 py-5">
 			<section aria-labelledby="active-sessions-heading" className="flex flex-col gap-4">
 				<div className="flex w-full items-start rounded-2xl border border-gray-200 p-4">
 					<div className="flex min-w-0 flex-1 items-start gap-4">

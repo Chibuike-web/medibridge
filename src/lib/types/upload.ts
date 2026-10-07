@@ -15,6 +15,7 @@ export type SavedFileTypes = {
 	type?: string;
 	size: number;
 	name: string;
+	storedName?: string;
 };
 
 export type SelectedFile = SavedFileTypes & {

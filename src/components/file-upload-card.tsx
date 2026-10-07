@@ -43,13 +43,19 @@ export function FileUploadCard({
 	return (
 		<div
 			className={cn(
-				"flex flex-col px-3.5 py-4 border border-gray-200 rounded-lg",
+				"flex flex-col px-3.5 py-4 border border-gray-200 rounded-xl",
 				status === "extract-failed" && "border-red-500",
 				status === "deleting" && "opacity-50",
 			)}
 		>
 			<div className="flex items-center gap-2">
-				<Image src={fileFormat[extension]} alt="" width={40} height={40} />
+				<Image
+					src={fileFormat[extension]}
+					alt=""
+					width={40}
+					height={40}
+					className="size-8 shrink-0"
+				/>
 				<div className="flex w-full items-start justify-between gap-1.5">
 					<div>
 						<p className="text-sm font-semibold">{name}</p>
@@ -87,7 +93,8 @@ export function FileUploadCard({
 
 					<Button
 						variant="ghost"
-						className="has-[>svg]:px-0 py-0 h-max"
+						size="icon"
+						className="has-[>svg]:px-0 py-0"
 						disabled={
 							status === "deleting" || status === "extract-complete" || status === "uploading"
 						}

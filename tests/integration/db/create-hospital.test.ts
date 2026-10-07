@@ -11,7 +11,29 @@ import {
 	useTestDatabase,
 } from "../../helpers/test-database";
 
-const { requestHeaders } = vi.hoisted(() => ({ requestHeaders: new Headers() }));
+const { requestHeaders, creatorMembershipBarrier } = vi.hoisted(() => ({
+	requestHeaders: new Headers(),
+	creatorMembershipBarrier: vi.fn(),
+}));
+
+vi.mock("better-auth/plugins/organization", async (importOriginal) => {
+	const { organization } =
+		await importOriginal<typeof import("better-auth/plugins/organization")>();
+	return {
+		organization: (options: Parameters<typeof organization>[0]) =>
+			organization({
+				...options,
+				organizationHooks: {
+					...options?.organizationHooks,
+					beforeAddMember: async (data) => {
+						const result = await options?.organizationHooks?.beforeAddMember?.(data);
+						await creatorMembershipBarrier(data.user.id);
+						return result;
+					},
+				},
+			}),
+	};
+});
 
 vi.mock("next/headers", () => ({
 	headers: async () => requestHeaders,
@@ -40,20 +62,21 @@ describe.skipIf(!testDatabaseUrl)("createHospitalService", () => {
 	beforeEach(async () => {
 		await resetTestDatabase();
 		requestHeaders.delete("cookie");
+		creatorMembershipBarrier.mockReset().mockResolvedValue(undefined);
 	});
 
 	afterAll(async () => {
 		await authModule?.sql.end();
 	});
 
-	async function signInVerifiedOwner() {
+	async function signInVerifiedOwner(email = "sarah@stmary.org") {
 		const ownerId = crypto.randomUUID();
 		const sessionToken = crypto.randomUUID();
 
 		await authModule.db.insert(user).values({
 			id: ownerId,
 			name: "Sarah Thompson",
-			email: "sarah@stmary.org",
+			email,
 			emailVerified: true,
 		});
 		await authModule.db.insert(session).values({
@@ -136,6 +159,51 @@ describe.skipIf(!testDatabaseUrl)("createHospitalService", () => {
 		expect(activeOrganizationId).toBe(organizations[0].id);
 	});
 
+	test("creates only one complete hospital when the owner submits onboarding twice at the same time", async () => {
+		const ownerId = await signInVerifiedOwner();
+		let releaseMembership!: () => void;
+		const bothRequestsCheckedPolicy = new Promise<void>((resolve) => {
+			releaseMembership = resolve;
+		});
+		let waitingRequests = 0;
+		creatorMembershipBarrier.mockImplementation(async (userId: string) => {
+			if (userId !== ownerId) return;
+			waitingRequests += 1;
+			if (waitingRequests === 2) releaseMembership();
+			await bothRequestsCheckedPolicy;
+		});
+
+		const results = await Promise.all([submitHospitalDetails(), submitHospitalDetails()]);
+
+		expect(results.filter((result) => result.status === "success")).toHaveLength(1);
+		expect(results.filter((result) => result.status === "failed")).toHaveLength(1);
+		const { organizations, memberships, details, activeOrganizationId } =
+			await findOwnerHospital(ownerId);
+		expect(organizations).toHaveLength(1);
+		expect(memberships).toEqual([{ organizationId: organizations[0].id, role: "owner" }]);
+		expect(details).toEqual([
+			{ organizationId: organizations[0].id, documentPath: `${ownerId}/accreditation.pdf` },
+		]);
+		expect(activeOrganizationId).toBe(organizations[0].id);
+	});
+
+	test("does not let a verified account outside .org create any hospital records", async () => {
+		const invitedUserId = await signInVerifiedOwner("invited-admin@gmail.com");
+
+		const result = await submitHospitalDetails();
+
+		expect(result).toEqual({
+			status: "failed",
+			error: "Use your official hospital email address (.org).",
+		});
+		expect(await findOwnerHospital(invitedUserId)).toEqual({
+			organizations: [],
+			memberships: [],
+			details: [],
+			activeOrganizationId: null,
+		});
+	});
+
 	test("removes the new hospital when its details can't be saved, so the owner can submit again", async () => {
 		const ownerId = await signInVerifiedOwner();
 		vi.spyOn(console, "error").mockImplementation(() => {});
@@ -145,7 +213,7 @@ describe.skipIf(!testDatabaseUrl)("createHospitalService", () => {
 
 		expect(failedResult).toEqual({
 			status: "failed",
-			message: "We couldn’t save your hospital. Please try again.",
+			error: "We couldn’t save your hospital. Please try again.",
 		});
 		expect(await findOwnerHospital(ownerId)).toEqual({
 			organizations: [],
@@ -166,5 +234,35 @@ describe.skipIf(!testDatabaseUrl)("createHospitalService", () => {
 		expect(details).toEqual([
 			{ organizationId: organizations[0].id, documentPath: `${ownerId}/accreditation.pdf` },
 		]);
+	});
+
+	test("does not create an orphan hospital when an existing administrator submits onboarding again", async () => {
+		const adminId = await signInVerifiedOwner();
+		const existingHospitalId = crypto.randomUUID();
+		await authModule.db.insert(organization).values({
+			id: existingHospitalId,
+			name: "Existing Hospital",
+			slug: "existing-hospital",
+			createdAt: new Date(),
+			isVerified: true,
+		});
+		await authModule.db.insert(member).values({
+			id: crypto.randomUUID(),
+			organizationId: existingHospitalId,
+			userId: adminId,
+			role: "admin",
+			createdAt: new Date(),
+		});
+
+		const result = await submitHospitalDetails();
+
+		expect(result).toEqual({
+			status: "failed",
+			error: "Your account already belongs to a hospital. An account can only join one hospital.",
+		});
+		const { organizations, memberships, details } = await findOwnerHospital(adminId);
+		expect(organizations).toEqual([{ id: existingHospitalId, name: "Existing Hospital" }]);
+		expect(memberships).toEqual([{ organizationId: existingHospitalId, role: "admin" }]);
+		expect(details).toEqual([]);
 	});
 });

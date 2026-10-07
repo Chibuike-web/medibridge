@@ -22,6 +22,12 @@ export function SignInClient() {
 	const [signInError, setSignInError] = useState("");
 	const [isPending, startTransition] = useTransition();
 	const searchParams = useSearchParams();
+	const [hospitalChoices, setHospitalChoices] = useState<Array<{ id: string; name: string }>>([]);
+	const [selectedHospitalId, setSelectedHospitalId] = useState("");
+	const callbackUrl = searchParams.get("callbackUrl");
+	const invitationCallbackUrl = callbackUrl?.startsWith("/accept-invite?invitationId=")
+		? callbackUrl
+		: null;
 
 	const {
 		register,
@@ -50,7 +56,7 @@ export function SignInClient() {
 			if (error?.code === "EMAIL_NOT_VERIFIED") {
 				const { error: sendVerificationEmailError } = await authClient.sendVerificationEmail({
 					email: data.email,
-					callbackURL: "/email-verified",
+					callbackURL: invitationCallbackUrl ?? "/email-verified",
 				});
 
 				setSignInError(
@@ -65,43 +71,65 @@ export function SignInClient() {
 				setSignInError(error.message ?? "Unable to sign in. Please try again.");
 				return;
 			}
+			if (invitationCallbackUrl) {
+				router.replace(invitationCallbackUrl as Route);
+				return;
+			}
+			const { data: organizations, error: listOrganizationsError } =
+				await authClient.organization.list();
+
+			if (listOrganizationsError) {
+				setSignInError("Unable to load your hospitals. Please try again.");
+				return;
+			}
+
+			if (!organizations || organizations.length === 0) {
+				const { data: invitations, error: listInvitationsError } =
+					await authClient.organization.listUserInvitations();
+				if (listInvitationsError) {
+					setSignInError("Unable to load your invitations. Please try again.");
+					return;
+				}
+				const pendingInvitation = invitations?.find(
+					(invitation) =>
+						invitation.status === "pending" &&
+						new Date(invitation.expiresAt).getTime() > Date.now(),
+				);
+				if (pendingInvitation) {
+					router.replace(`/accept-invite?invitationId=${encodeURIComponent(pendingInvitation.id)}`);
+					return;
+				}
+				router.replace("/hospital-details");
+				return;
+			}
+
+			if (organizations.length > 1) {
+				setHospitalChoices(organizations);
+				setSelectedHospitalId(organizations[0].id);
+				return;
+			}
+
+			const [organization] = organizations;
+			await continueToHospital(organization.id);
 		} catch {
 			setSignInError("Unable to sign in. Please try again.");
-			return;
 		}
-		const { data: organizations, error: listOrganizationsError } =
-			await authClient.organization.list();
+	};
 
-		if (listOrganizationsError) {
-			setSignInError(listOrganizationsError.message ?? "Can't find any organization");
-			return;
-		}
-
-		if (!organizations || organizations.length === 0) {
-			router.replace("/hospital-details");
-			return;
-		}
-
-		if (organizations.length > 1) {
-			// Eventually navigate to an organization-selection screen.
-			setSignInError("Please select the hospital you want to access.");
-			return;
-		}
-
-		const [organization] = organizations;
-
+	async function continueToHospital(organizationId: string) {
 		const { error: setActiveOrganizationError } = await authClient.organization.setActive({
-			organizationId: organization.id,
+			organizationId,
 		});
 
 		if (setActiveOrganizationError) {
-			setSignInError(setActiveOrganizationError.message ?? "No active organization");
+			setSignInError("Unable to select your hospital. Please try again.");
 			return;
 		}
 
-		const organizationAccess = await getOrganizationAccessAction(organization.id);
+		const organizationAccess = await getOrganizationAccessAction(organizationId);
 
 		if (organizationAccess.status === "unauthorized") {
+			setHospitalChoices([]);
 			setSignInError("Your session expired. Please sign in again.");
 			return;
 		}
@@ -115,22 +143,65 @@ export function SignInClient() {
 			router.replace("/verify");
 			return;
 		}
-		const callbackUrl = searchParams.get("callbackUrl");
-
 		startTransition(() => {
 			router.replace(
 				callbackUrl?.startsWith("/dashboard/") ? (callbackUrl as Route) : "/dashboard/overview",
 			);
 			reset();
 		});
-	};
+	}
+
+	if (hospitalChoices.length > 1) {
+		return (
+			<form
+				className="w-full text-gray-800"
+				onSubmit={(event) => {
+					event.preventDefault();
+					setSignInError("");
+					startTransition(async () => {
+						try {
+							await continueToHospital(selectedHospitalId);
+						} catch {
+							setSignInError("Unable to select your hospital. Please try again.");
+						}
+					});
+				}}
+			>
+				<h1 className="text-center text-xl font-semibold">Choose your hospital</h1>
+				<Label htmlFor="hospital" className="mt-8 mb-2 block text-sm">
+					Hospital
+				</Label>
+				<select
+					id="hospital"
+					className="h-9 w-full rounded-md border border-gray-200 px-3 text-sm"
+					value={selectedHospitalId}
+					disabled={isPending}
+					onChange={(event) => setSelectedHospitalId(event.target.value)}
+				>
+					{hospitalChoices.map((hospital) => (
+						<option key={hospital.id} value={hospital.id}>
+							{hospital.name}
+						</option>
+					))}
+				</select>
+				{signInError && (
+					<p role="alert" className="mt-4 text-sm text-red-600">
+						{signInError}
+					</p>
+				)}
+				<Button className="mt-8 w-full" disabled={isPending} type="submit">
+					{isPending ? "Opening hospital..." : "Continue"}
+				</Button>
+			</form>
+		);
+	}
 
 	return (
 		<>
-			<h1 className="mt-10 text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800">
+			<h1 className="mt-10 text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 				Welcome Back to MediBridge
 			</h1>
-			<p className="text-gray-600 text-sm font-medium text-center text-balance mt-4">
+			<p className="text-gray-600 text-sm font-medium text-center text-pretty mt-4">
 				Sign in with your verified hospital credentials.
 			</p>
 			<form

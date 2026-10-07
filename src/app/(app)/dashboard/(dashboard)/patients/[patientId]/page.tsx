@@ -53,7 +53,7 @@ type PatientPageProps = Pick<
 	"params" | "searchParams"
 >;
 
-export default async function PatientPage({ searchParams, params }: PatientPageProps) {
+export default function PatientPage({ searchParams, params }: PatientPageProps) {
 	return (
 		<Suspense fallback={<PatientPageSkeleton />}>
 			<PatientPageContent searchParams={searchParams} params={params} />
@@ -124,7 +124,7 @@ async function Header({ params }: Pick<PatientPageProps, "params">) {
 
 			<div className="flex flex-col gap-3">
 				<div className="flex items-center gap-2.5">
-					<h1 className="text-xl font-semibold">{patientName}</h1>
+					<h1 className="text-xl font-semibold text-balance">{patientName}</h1>
 					<StatusBadge status="Active" className="text-sm" />
 					<CopyIdButton id={patient.patientId} />
 				</div>
