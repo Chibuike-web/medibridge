@@ -1,8 +1,7 @@
 import { gateway, generateText, Output, wrapLanguageModel } from "ai";
+import type { FilePart, TextPart } from "ai";
 import { devToolsMiddleware } from "@ai-sdk/devtools";
-import { createWorker } from "tesseract.js";
 import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
 import path from "node:path";
 import { existsSync, readFileSync } from "node:fs";
 import { z } from "zod";
@@ -18,6 +17,14 @@ const model =
 				middleware: devToolsMiddleware(),
 			})
 		: gateway("openai/gpt-5.6-luna");
+
+const mediaTypes: Record<string, string> = {
+	".png": "image/png",
+	".jpg": "image/jpeg",
+	".jpeg": "image/jpeg",
+	".webp": "image/webp",
+	".pdf": "application/pdf",
+};
 
 export async function POST(req: Request) {
 	const session = await getSessionData();
@@ -41,7 +48,6 @@ export async function POST(req: Request) {
 		);
 	}
 	const results: ExtractionResult[] = [];
-	let worker: Awaited<ReturnType<typeof createWorker>> | undefined;
 
 	try {
 		const { filenames } = await req.json();
@@ -68,75 +74,33 @@ export async function POST(req: Request) {
 				{ status: 400 },
 			);
 		}
-		worker = await createWorker("eng");
+		const content: Array<TextPart | FilePart> = [
+			{ type: "text", text: "Extract patient data per document." },
+		];
 
-		let text = "";
 		for (const filename of filenames) {
 			const filePath = path.join(uploadDir, filename);
 
 			const fileExt = path.extname(filePath).toLowerCase();
 
 			try {
-				if ([".png", ".jpg", ".jpeg", ".webp"].includes(fileExt)) {
-					const { data } = await worker.recognize(filePath);
-					text = data.text.trim();
-
-					results.push({
-						name: filename,
-						path: filePath,
-						status: "success",
-						text,
-					});
-				} else if (fileExt === ".docx") {
+				if (fileExt === ".docx") {
+					// Models don't accept Word files as file input, so DOCX is sent as text.
 					const result = await mammoth.extractRawText({ path: filePath });
-					const text = result.value;
 
-					results.push({
-						name: filename,
-						path: filePath,
-						status: "success",
-						text,
-					});
-				} else if (fileExt === ".pdf") {
-					const buffer = readFileSync(filePath);
-					const parser = new PDFParse({ data: buffer });
-					const info = await parser.getInfo({ parsePageInfo: true });
-					const totalPages = info.total;
-					const pageTexts = [];
-
-					for (let i = 0; i < totalPages; i++) {
-						const pageResult = await parser.getText({ partial: [i + 1] });
-						const cleaned = pageResult.text;
-						const textLength = cleaned.length;
-						const validChars = cleaned.replace(/[^a-zA-Z0-9\s.,:/()-]/g, "").length;
-						const validityRatio = textLength ? validChars / textLength : 0;
-						const isGoodText = textLength > 120 && validityRatio > 0.7;
-
-						if (isGoodText) {
-							pageTexts.push(cleaned);
-							continue;
-						}
-
-						const screenshot = await parser.getScreenshot({
-							partial: [i + 1],
-							scale: 2.5,
-							imageBuffer: true,
-							imageDataUrl: false,
-						});
-
-						const pageBuffer = Buffer.from(screenshot.pages[0].data);
-						const { data } = await worker.recognize(pageBuffer);
-						pageTexts.push(data.text.trim());
-					}
-
-					text = pageTexts.join("\n\n");
-					results.push({
-						name: filename,
-						path: filePath,
-						status: "success",
-						text,
-					});
-					await parser.destroy();
+					content.push({ type: "text", text: `Document id: ${filename}\n\n${result.value}` });
+					results.push({ name: filename, path: filePath, status: "success" });
+				} else if (mediaTypes[fileExt]) {
+					content.push(
+						{ type: "text", text: `Document id: ${filename}` },
+						{
+							type: "file",
+							data: readFileSync(filePath),
+							mediaType: mediaTypes[fileExt],
+							filename,
+						},
+					);
+					results.push({ name: filename, path: filePath, status: "success" });
 				}
 			} catch (error) {
 				console.error(error);
@@ -144,7 +108,6 @@ export async function POST(req: Request) {
 					name: filename,
 					path: filePath,
 					status: "failed",
-					text: "",
 					error: "We couldn’t read this uploaded file. Please try again.",
 				});
 			}
@@ -152,27 +115,11 @@ export async function POST(req: Request) {
 
 		const successful = results.filter((result) => result.status === "success");
 		const failed = results.filter((result) => result.status === "failed");
-		const documents = successful.map((r) => ({
-			id: r.name,
-			filename: r.name,
-			content: r.text,
-		}));
-
-		const prompt = `
-			Documents:
-${JSON.stringify(documents, null, 2)}
-
-Extract patient data per document.`;
 
 		const { output } = await generateText({
 			model,
 			instructions: systemPrompt,
-			messages: [
-				{
-					role: "user",
-					content: [{ type: "text", text: prompt }],
-				},
-			],
+			messages: [{ role: "user", content }],
 			output: Output.array({
 				element: PatientRecordSchema.extend({ documentId: z.string() }),
 			}),
@@ -192,15 +139,13 @@ Extract patient data per document.`;
 			{ status: "failed", error: "We couldn’t extract patient information. Please try again." },
 			{ status: 400 },
 		);
-	} finally {
-		await worker?.terminate();
 	}
 }
 
 const systemPrompt = `You extract patient data per document.
 
 Rules:
-- Each document has an id.
+- Each document is introduced by its id.
 - Set documentId on every record to the id of the document it came from.
 - Never merge documents.
 - Never lose document ids.

@@ -28,7 +28,7 @@ The intended end-to-end journey is:
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Hospital onboarding and authentication | Email/password registration and sign-in use Better Auth. Organization creation, owner membership, email verification, and hospital verification-document upload are present. Admin invitation and password-recovery screens exist but are not fully connected end to end.      |
 | Dashboard                              | Database-backed organization statistics, recent patients, recent transfers, and empty states.                                                                                                                                                                                  |
-| Patient import                         | Uploads PDF, PNG, JPG, DOC, and DOCX files up to 50 MB. Text is extracted with PDF Parse, Tesseract OCR, or Mammoth, then structured with an AI Gateway model. Users can review and correct multiple extracted patients before saving.                                         |
+| Patient import                         | Uploads PDF, PNG, JPG, DOC, and DOCX files up to 50 MB. PDFs and images go straight to an AI Gateway model for structuring; DOCX text is extracted with Mammoth first. Users can review and correct multiple extracted patients before saving.                                 |
 | Patient directory                      | Database-backed patient list with search, filters, pagination, profile headers, and editable personal, contact, emergency-contact, and physical information.                                                                                                                   |
 | Clinical records                       | Database-backed list/detail views for diagnoses, allergies, immunizations, procedures, medications, encounters, lab tests, imaging, and documents. Detail/history UI is present. Document metadata supports create, update, and delete.                                        |
 | Record authoring                       | Creation/edit drawers exist for several clinical sections, but most do not persist yet. Vitals and encounter creation are placeholders. Attachment controls in several record drawers are local UI only.                                                                       |
@@ -100,7 +100,7 @@ The application uses the Next.js App Router. Pages and layouts live under `src/a
 - PostgreSQL with Drizzle ORM and Drizzle Kit
 - Better Auth with organization and admin plugins
 - Vercel AI SDK and AI Gateway for structured patient extraction
-- Tesseract.js, PDF Parse, and Mammoth for source-document extraction
+- Mammoth for converting DOCX uploads to text
 - Resend for verification and access-code email
 - Zustand for short-lived, persisted client workflow state
 - React Hook Form and Zod for form handling and validation

@@ -27,5 +27,4 @@ export type ExtractionResult = {
 	path: string;
 	status: "success" | "failed";
 	error?: string;
-	text: string;
 };

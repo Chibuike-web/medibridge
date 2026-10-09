@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
 	partialPrefetching: true,
 	cacheComponents: true,
 	logging: { fetches: { fullUrl: true } },
-	serverExternalPackages: ["tesseract.js", "pdf-parse", "mammoth"],
+	serverExternalPackages: ["mammoth"],
 	experimental: {
 		turbopackFileSystemCacheForBuild: true,
 		turbopackRustReactCompiler: true,

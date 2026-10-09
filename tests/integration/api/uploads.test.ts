@@ -20,14 +20,11 @@ const {
 	getOrganizationIdMock,
 	selectMock,
 	existingHospitalQueryMock,
-	createWorkerMock,
-	terminateMock,
 	generateTextMock,
 	gatewayMock,
 	outputArrayMock,
 	wrapLanguageModelMock,
 	devToolsMiddlewareMock,
-	PdfParseMock,
 	mammothExtractRawTextMock,
 } = vi.hoisted(() => ({
 	existsSyncMock: vi.fn(),
@@ -41,14 +38,11 @@ const {
 	getOrganizationIdMock: vi.fn(),
 	selectMock: vi.fn(),
 	existingHospitalQueryMock: vi.fn(),
-	createWorkerMock: vi.fn(),
-	terminateMock: vi.fn(),
 	generateTextMock: vi.fn(),
 	gatewayMock: vi.fn(() => ({ model: "mock-model" })),
 	outputArrayMock: vi.fn(),
 	wrapLanguageModelMock: vi.fn(({ model }) => model),
 	devToolsMiddlewareMock: vi.fn(),
-	PdfParseMock: vi.fn(),
 	mammothExtractRawTextMock: vi.fn(),
 }));
 
@@ -66,9 +60,7 @@ vi.mock("node:fs/promises", () => ({
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
 vi.mock("@/lib/better-auth/auth", () => ({ db: { select: selectMock } }));
-vi.mock("tesseract.js", () => ({ createWorker: createWorkerMock }));
 vi.mock("mammoth", () => ({ default: { extractRawText: mammothExtractRawTextMock } }));
-vi.mock("pdf-parse", () => ({ PDFParse: PdfParseMock }));
 vi.mock("ai", () => ({
 	gateway: gatewayMock,
 	generateText: generateTextMock,
@@ -116,7 +108,6 @@ describe("Uploads and extraction API", () => {
 			fileSystem.writeFile(storedPath(filePath), buffer),
 		);
 		existsSyncMock.mockReturnValue(true);
-		createWorkerMock.mockResolvedValue({ terminate: terminateMock, recognize: vi.fn() });
 		getSessionDataMock.mockResolvedValue({ user: { id: "owner-1", emailVerified: true } });
 		getOrganizationIdMock.mockResolvedValue("hospital-1");
 	});
@@ -583,7 +574,6 @@ describe("Uploads and extraction API", () => {
 				const response = await extractFile(extractFileRequest({ filenames: [filename] }));
 				expect(response.status).toBe(400);
 				expect(readFileSyncMock).not.toHaveBeenCalled();
-				expect(createWorkerMock).not.toHaveBeenCalled();
 			},
 		);
 
@@ -597,7 +587,6 @@ describe("Uploads and extraction API", () => {
 				{
 					name: "intake.docx",
 					path: path.resolve("patient-uploads/hospital-1/owner-1/intake.docx"),
-					text: "patient information",
 					status: "success",
 				},
 			]);
@@ -621,10 +610,43 @@ describe("Uploads and extraction API", () => {
 				{
 					name: uploadedFile.storedName,
 					path: path.resolve(uploadedFile.url),
-					text: "patient information",
 					status: "success",
 				},
 			]);
+		});
+
+		test("sends uploaded PDFs and images to the model as files", async () => {
+			const realFileSystem = await vi.importActual<typeof import("node:fs")>("node:fs");
+			const formData = new FormData();
+			formData.append("file", new File(["scanned referral"], "referral.pdf"));
+			formData.append("file", new File(["photo of a card"], "card.png"));
+			const uploadedResponse = await uploadFile({ formData: async () => formData } as Request);
+			expect(uploadedResponse.status).toBe(200);
+			const [pdf, png] = (await uploadedResponse.json()).files;
+			readFileSyncMock.mockImplementation((filePath) =>
+				realFileSystem.readFileSync(storedPath(filePath)),
+			);
+			generateTextMock.mockResolvedValue({ output: [] });
+
+			const response = await extractFile(
+				extractFileRequest({ filenames: [pdf.storedName, png.storedName] }),
+			);
+
+			expect(response.status).toBe(200);
+			expect(generateTextMock.mock.calls[0][0].messages[0].content).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						type: "file",
+						mediaType: "application/pdf",
+						data: Buffer.from("scanned referral"),
+					}),
+					expect.objectContaining({
+						type: "file",
+						mediaType: "image/png",
+						data: Buffer.from("photo of a card"),
+					}),
+				]),
+			);
 		});
 
 		test("rejects signed-out requests before reading any files", async () => {
