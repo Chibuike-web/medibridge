@@ -158,6 +158,22 @@ describe("Uploads and extraction API", () => {
 			);
 		});
 
+		test("saves a JPEG upload and preserves its extension in the stored name", async () => {
+			const formData = new FormData();
+			formData.append("file", new File(["scan contents"], "scan.jpeg", { type: "image/jpeg" }));
+			const response = await uploadFile({ formData: async () => formData } as Request);
+			const body = await response.json();
+
+			expect(response.status).toBe(200);
+			expect(body.status).toBe("success");
+			expect(body.files).toHaveLength(1);
+			expect(body.files[0]).toMatchObject({ name: "scan.jpeg", type: "image/jpeg", size: 13 });
+			expect(body.files[0].storedName).toBe(`${body.files[0].id}.jpeg`);
+			expect(await fileSystem.readFile(storedPath(path.resolve(body.files[0].url)), "utf8")).toBe(
+				"scan contents",
+			);
+		});
+
 		test("denies patient uploads without a session or an approved hospital", async () => {
 			getSessionDataMock.mockResolvedValue(null);
 			expect((await uploadFile(fileRequest("http://localhost/api/file-upload"))).status).toBe(401);
@@ -507,6 +523,7 @@ describe("Uploads and extraction API", () => {
 			const ai = await vi.importActual<typeof import("ai")>("ai");
 			const { MockLanguageModelV4 } = await import("ai/test");
 			const patient = {
+				documentId: "intake.docx",
 				personalInfo: {
 					firstName: "Alex",
 					middleName: null,

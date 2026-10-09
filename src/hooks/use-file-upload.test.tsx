@@ -139,6 +139,19 @@ describe("Patient uploads with generated storage names", () => {
 		for (const record of records) expect(within(record).getByText("Extracted")).toBeVisible();
 	});
 
+	test("uploads a selected JPEG file without showing an invalid file type error", async () => {
+		const uploaded = uploadedFile("scan.jpeg", "33333333-3333-4333-8333-333333333333.jpeg");
+		fetchMock.mockResolvedValueOnce(Response.json({ status: "success", files: [uploaded] }));
+		render(<UploadHarness />);
+
+		await selectFiles([new File(["contents"], "scan.jpeg", { type: "image/jpeg" })]);
+
+		expect(
+			within(screen.getByRole("region", { name: "scan.jpeg" })).getByText("Uploaded"),
+		).toBeVisible();
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+	});
+
 	test("removes the generated upload URL and keeps the visible file when deletion fails", async () => {
 		const uploaded = uploadedFile("original report.pdf", firstStoredName);
 		fetchMock.mockResolvedValueOnce(Response.json({ status: "success", files: [uploaded] }));

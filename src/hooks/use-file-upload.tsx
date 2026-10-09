@@ -49,7 +49,7 @@ export function useFileUpload() {
 		let browserFiles = incomingFiles;
 
 		const fileExtensions = browserFiles.map((file) => file.name.split(".").pop()?.toLowerCase());
-		const allowedTypes = ["pdf", "png", "jpg", "docx"];
+		const allowedTypes = ["pdf", "png", "jpg", "jpeg", "docx"];
 
 		for (const ext of fileExtensions) {
 			if (!ext || !allowedTypes.includes(ext)) {
