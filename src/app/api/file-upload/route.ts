@@ -5,7 +5,7 @@ import { getSessionData } from "@/lib/api/get-session-data";
 import type { SavedFileTypes } from "@/lib/types/upload";
 
 const maxSizeInBytes = 50 * 1024 * 1024;
-const allowedTypes = ["pdf", "png", "jpg", "docx"];
+const allowedTypes = ["pdf", "png", "jpg", "jpeg", "docx"];
 
 export async function POST(req: Request) {
 	try {

@@ -5,6 +5,7 @@ import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
 import path from "node:path";
 import { existsSync, readFileSync } from "node:fs";
+import { z } from "zod";
 import { PatientRecordSchema } from "@/features/patients/schemas/patient-schema";
 import { ExtractionResult } from "@/lib/types/upload";
 import { getSessionData } from "@/lib/api/get-session-data";
@@ -172,7 +173,9 @@ Extract patient data per document.`;
 					content: [{ type: "text", text: prompt }],
 				},
 			],
-			output: Output.array({ element: PatientRecordSchema }),
+			output: Output.array({
+				element: PatientRecordSchema.extend({ documentId: z.string() }),
+			}),
 		});
 
 		return Response.json({
@@ -198,9 +201,8 @@ const systemPrompt = `You extract patient data per document.
 
 Rules:
 - Each document has an id.
-- You MUST return extracted data grouped by document id.
+- Set documentId on every record to the id of the document it came from.
 - Never merge documents.
 - Never lose document ids.
-- Never return null.
-Use empty string "" for missing text.
-Use 0 for unknown numeric values.`;
+- Use null for any value the document does not state.
+- Never use "" or 0 as a placeholder.`;

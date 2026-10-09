@@ -1,4 +1,4 @@
-export type AllowedFileExtension = "pdf" | "png" | "jpg" | "doc" | "docx" | "";
+export type AllowedFileExtension = "pdf" | "png" | "jpg" | "jpeg" | "doc" | "docx" | "";
 
 export type FileStatus =
 	| "idle"

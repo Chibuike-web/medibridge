@@ -35,6 +35,7 @@ export function FileUploadCard({
 	const fileFormat: Record<string, string> = {
 		pdf: pdfFileFormat,
 		jpg: jpgFileFormat,
+		jpeg: jpgFileFormat,
 		png: pngFileFormat,
 		doc: docFileFormat,
 		docx: docFileFormat,
