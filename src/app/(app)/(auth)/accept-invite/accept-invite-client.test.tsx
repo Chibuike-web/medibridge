@@ -53,6 +53,28 @@ describe("invitation continuation", () => {
 		);
 	});
 
+	test.each(["create-account", "verify-email"] as const)(
+		"keeps the invited email visible and skips it during keyboard navigation in %s mode",
+		async (mode) => {
+			const user = userEvent.setup();
+			render(<AcceptInviteClient {...invitation} mode={mode} />);
+			const invitedEmail = screen.getByRole("textbox", { name: "Email Address" });
+
+			expect(invitedEmail).toHaveValue(invitation.email);
+			expect(invitedEmail).toBeDisabled();
+			expect(invitedEmail).toHaveAccessibleDescription("This email comes from your invitation");
+
+			await user.tab();
+			if (mode === "create-account") {
+				expect(screen.getByRole("textbox", { name: "Name" })).toHaveFocus();
+				await user.tab();
+				expect(screen.getByLabelText("Password", { exact: true })).toHaveFocus();
+			} else {
+				expect(screen.getByRole("button", { name: "Resend verification email" })).toHaveFocus();
+			}
+		},
+	);
+
 	test("resends an unverified invitee a link with the original invitation", async () => {
 		const user = userEvent.setup();
 		render(<AcceptInviteClient {...invitation} mode="verify-email" />);

@@ -152,10 +152,13 @@ function CreateInvitedAdminForm({
 					description={`We sent a verification link to ${email}. Open it to return and accept your invitation.`}
 				>
 					<DialogFooter className="w-full text-sm">
-						<Button className="w-full" onClick={() => setIsSuccessModalOpen(false)}>
+						<Button
+							className="w-full sm:w-auto sm:flex-1"
+							onClick={() => setIsSuccessModalOpen(false)}
+						>
 							Got it
 						</Button>
-						<Button asChild variant="outline" className="w-full">
+						<Button asChild variant="outline" className="w-full sm:w-auto sm:flex-1">
 							<Link
 								href={`/sign-in?callbackUrl=${encodeURIComponent(`/accept-invite?invitationId=${encodeURIComponent(invitationId)}`)}`}
 							>
@@ -345,7 +348,14 @@ function ReadOnlyEmailField({ email }: { email: string }) {
 			<Label htmlFor="email" className="mb-2 block text-sm">
 				Email Address
 			</Label>
-			<Input id="email" type="email" value={email} readOnly aria-describedby="email-info" />
+			<Input
+				id="email"
+				type="email"
+				value={email}
+				disabled
+				className="bg-gray-50 disabled:opacity-100"
+				aria-describedby="email-info"
+			/>
 			<p id="email-info" className="mt-2 flex items-center gap-1">
 				<RiInformationLine className="size-4 text-gray-400" aria-hidden="true" />
 				<span className="text-sm text-gray-400">This email comes from your invitation</span>

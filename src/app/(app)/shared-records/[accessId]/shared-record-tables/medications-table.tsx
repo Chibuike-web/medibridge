@@ -212,7 +212,7 @@ export function SharedMedicationsTable({
 
 	return (
 		<div>
-			<h2 className="text-xl font-semibold text-gray-900">Medications</h2>
+			<h2 className="text-lg font-semibold text-gray-900">Medications</h2>
 			<div className="mt-7 mb-4 flex items-center gap-2">
 				<div className="relative min-w-0 flex-1">
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />

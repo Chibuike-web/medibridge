@@ -94,6 +94,11 @@ export const auth = betterAuth({
 	emailVerification: {
 		autoSignInAfterVerification: true,
 		sendVerificationEmail: async ({ user, url }) => {
+			if (process.env.NODE_ENV === "development") {
+				console.info("Email verification link (development only):", url);
+				return;
+			}
+
 			after(async () => {
 				try {
 					await sendEmail(user.email, url);

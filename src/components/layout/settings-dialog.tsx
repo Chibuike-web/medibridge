@@ -193,12 +193,12 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 									>
 										<RiArrowLeftLine className="size-5" aria-hidden="true" />
 									</Button>
-									<h2 className="text-base font-semibold">
+									<h2 className="text-lg font-semibold">
 										{settingsSubViewLabels[activeSettingsSubView]}
 									</h2>
 								</div>
 							) : (
-								<h2 className="text-base font-semibold">{selectedSettingsSectionLabel}</h2>
+								<h2 className="text-lg font-semibold">{selectedSettingsSectionLabel}</h2>
 							)}
 							<DialogClose
 								className="rounded-md border border-transparent p-1.5 text-foreground/60 transition-colors hover:bg-gray-100 hover:text-foreground focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"

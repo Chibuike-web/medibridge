@@ -114,8 +114,7 @@ src/
 ├── components/          # Shared layout and UI components
 ├── db/
 │   ├── schemas/         # Auth, hospital, patient, transfer, and access tables
-│   ├── drizzle/         # Generated migrations
-│   └── table-seeds/     # Local development seed data
+│   └── drizzle/         # Generated migrations
 ├── features/
 │   ├── auth/            # Auth schemas and server-action boundaries
 │   ├── patients/        # Patient tables, drawers, actions, stores, and types
@@ -163,14 +162,12 @@ POSTGRES_POOL_MAX=5
 ```bash
 bun install
 bun run db:push
-bun run db:seed
-bun run db:seed-shared-record
 bun run dev
 ```
 
 Open [http://localhost:4300](http://localhost:4300).
 
-The main seed command populates local development data across auth, hospital, patient, clinical-record, and transfer tables. `db:seed-shared-record` then creates a repeatable OTP-protected access grant over real seeded records and prints the verification URL and development code. Do not run these commands against a database containing data you need to preserve.
+Create your hospital owner account through the registration flow, then complete email verification and hospital onboarding. Populate patient records through the application.
 
 ### Useful commands
 
@@ -185,9 +182,6 @@ The main seed command populates local development data across auth, hospital, pa
 | `bun run format:check`          | Check formatting with Oxfmt                                            |
 | `bun run db:generate`           | Generate Drizzle migrations from the schemas                            |
 | `bun run db:push`               | Push the current schema to PostgreSQL                                   |
-| `bun run db:seed`               | Seed local development data                                             |
-| `bun run db:seed-shared-record` | Seed a repeatable shared-record access grant over real clinical records |
-| `bun run db:sync-hospitals`     | Synchronize the larger hospital/transfer development dataset            |
 | `bun run devtools`              | Start the AI SDK development tools                                      |
 
 ## Ongoing work

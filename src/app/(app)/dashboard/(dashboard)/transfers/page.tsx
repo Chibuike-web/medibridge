@@ -74,17 +74,21 @@ async function TransfersContent({ searchParams }: TransferPageSearchParamsProps)
 		/>
 	) : (
 		<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">
-			<div className="relative flex w-[31.25rem] max-w-full items-end justify-center">
-				<Image
-					src="/assets/empty-state.svg"
-					alt=""
-					aria-hidden="true"
-					width={500}
-					height={336}
-					className="h-auto w-[31.25rem] max-w-full"
-				/>
-				<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
-					<h1 className="mb-2 text-center text-xl font-semibold text-balance">No transfers yet</h1>
+			<div className="flex w-[31.25rem] max-w-full flex-col items-center">
+				<div className="aspect-[473/238] w-full overflow-hidden">
+					<Image
+						src="/assets/empty-state.svg"
+						alt=""
+						aria-hidden="true"
+						width={473}
+						height={357}
+						className="h-auto w-full"
+					/>
+				</div>
+				<div className="relative z-10 -mt-4 flex w-full flex-col items-center text-center">
+					<h1 className="mb-2 text-center text-lg leading-6 font-semibold text-balance">
+						No transfers yet
+					</h1>
 					<p className="mb-6 text-center text-sm">
 						Start by creating your first transfer request to move patients securely.
 					</p>

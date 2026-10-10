@@ -50,7 +50,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 	if (verificationState.status === "code-expired" || verificationState.status === "no-code") {
 		return (
 			<section className="flex w-full max-w-[31.25rem] flex-col items-center text-center">
-				<h1 className="text-xl font-semibold leading-[1.2] text-gray-800 text-balance">
+				<h1 className="text-lg font-semibold leading-[1.2] text-gray-800 text-balance">
 					{verificationState.status === "code-expired"
 						? "Verification code expired"
 						: "No active verification code"}
@@ -93,7 +93,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 
 	return (
 		<section className="flex w-full max-w-[31.25rem] flex-col items-center text-center">
-			<h1 className="text-xl font-semibold leading-[1.2] text-gray-800 text-balance">
+			<h1 className="text-lg font-semibold leading-[1.2] text-gray-800 text-balance">
 				Verify Access
 			</h1>
 			<p className="mt-4 text-sm leading-6 text-gray-600">
@@ -155,7 +155,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 function VerifyAccessMessage({ title, description }: { title: string; description: string }) {
 	return (
 		<section className="flex w-full max-w-[31.25rem] flex-col items-center text-center">
-			<h1 className="text-xl font-semibold leading-[1.2] text-gray-800 text-balance">{title}</h1>
+			<h1 className="text-lg font-semibold leading-[1.2] text-gray-800 text-balance">{title}</h1>
 			<p className="mt-4 text-sm leading-6 text-gray-600">{description}</p>
 		</section>
 	);

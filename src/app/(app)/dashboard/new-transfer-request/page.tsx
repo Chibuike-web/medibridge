@@ -45,7 +45,7 @@ async function NewTransferRequestContent({ searchParams }: NewTransferRequestPag
 				</Link>
 			</nav>
 			<main className="flex flex-col gap-8 my-12 max-w-[31.25rem] w-full mx-auto px-6 md:px-0">
-				<h1 className="text-center text-xl font-semibold text-balance">New Transfer Request</h1>
+				<h1 className="text-center text-lg font-semibold text-balance">New Transfer Request</h1>
 				<Suspense>
 					<NewTransferRequestClient
 						searchParams={searchParams}

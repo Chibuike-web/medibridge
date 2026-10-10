@@ -1,5 +1,6 @@
 ## Project preferences
 
+- Do not start work without the user's explicit go-ahead. A question, a review request, or pasted text from another reviewer asks for an answer, not for action: reply with your assessment, propose any follow-up work, and wait for a clear yes. Until then, do not create or edit files, branches, worktrees, or temporary tests, install anything, commit, or launch multi-agent workflows. Reading and searching the code to answer is fine.
 - Bias toward brainstorming before making changes, especially for UI/product decisions. Keep the user in the loop by discussing the intended direction, tradeoffs, and what has already changed before continuing with implementation.
 - When discussing, planning, or reviewing UI, use ASCII art frequently to visually explain the proposed interface, including wireframes, layouts, component placement, states, and interaction flows.
 - Before implementing a feature, first check whether the same or a closely related feature already exists elsewhere in the codebase. When it does, follow the established sibling pattern for structure, naming, state flow, helper boundaries, and UI behavior so related files stay consistent and easy to read. Only diverge when the new feature has a real requirement the existing pattern cannot cover, and keep that difference explicit.
@@ -24,7 +25,7 @@
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-# This is NOT the Next.js you know
+## This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 

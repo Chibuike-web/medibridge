@@ -167,7 +167,7 @@ export function SignInClient() {
 					});
 				}}
 			>
-				<h1 className="text-center text-xl font-semibold">Choose your hospital</h1>
+				<h1 className="text-center text-lg font-semibold">Choose your hospital</h1>
 				<Label htmlFor="hospital" className="mt-8 mb-2 block text-sm">
 					Hospital
 				</Label>
@@ -198,7 +198,7 @@ export function SignInClient() {
 
 	return (
 		<>
-			<h1 className="mt-10 text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
+			<h1 className="mt-10 text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 				Welcome Back to MediBridge
 			</h1>
 			<p className="text-gray-600 text-sm font-medium text-center text-pretty mt-4">

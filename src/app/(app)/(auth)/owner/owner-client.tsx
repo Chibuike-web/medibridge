@@ -124,7 +124,7 @@ export function OwnerClient() {
 		return (
 			<div className="text-center">
 				<div role="status">
-					<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
+					<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 						Check your email
 					</h1>
 					<p className="text-gray-600 text-sm font-medium text-pretty mt-4">
@@ -190,7 +190,7 @@ export function OwnerClient() {
 	return (
 		<>
 			<div className="mb-10">
-				<h1 className="text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
+				<h1 className="text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 					Owner Account Setup
 				</h1>
 				<p className="text-gray-600 text-sm font-medium text-center text-pretty mt-4">

@@ -101,6 +101,50 @@ describe("Configured authentication endpoints", () => {
 		selectRowsMock.mockReset().mockResolvedValue([]);
 	});
 
+	test("lets a development owner verify and sign in using the server-console link", async () => {
+		vi.stubEnv("NODE_ENV", "development");
+		const consoleInfoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+		try {
+			const registeredUser = await registerAccount("local-owner@example.org", "/email-verified");
+			expect((await signIn(registeredUser.email, "password-before-verification")).status).toBe(403);
+			const verificationUrl = consoleInfoSpy.mock.calls.find(
+				([message]) => message === "Email verification link (development only):",
+			)?.[1] as string;
+			expect(verificationUrl).toEqual(expect.any(String));
+			expect(sendEmailMock).not.toHaveBeenCalled();
+
+			const verifiedResponse = await auth.handler(new Request(verificationUrl));
+			expect(verifiedResponse.status).toBe(302);
+			const sessionResponse = await requestAuth("/get-session", {
+				cookie: responseCookies(verifiedResponse),
+			});
+			expect((await sessionResponse.json()).user.emailVerified).toBe(true);
+			expect((await signIn(registeredUser.email, "password-before-verification")).status).toBe(200);
+		} finally {
+			consoleInfoSpy.mockRestore();
+			vi.unstubAllEnvs();
+		}
+	});
+
+	test("delivers production verification by email without logging the verification link", async () => {
+		vi.stubEnv("NODE_ENV", "production");
+		const consoleInfoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+		try {
+			const registeredUser = await registerAccount();
+			const verificationUrl = sendEmailMock.mock.calls[0][1] as string;
+			expect(sendEmailMock).toHaveBeenCalledWith(registeredUser.email, verificationUrl);
+			const verifiedResponse = await auth.handler(new Request(verificationUrl));
+			expect(verifiedResponse.status).toBe(302);
+			expect(consoleInfoSpy).not.toHaveBeenCalledWith(
+				"Email verification link (development only):",
+				expect.anything(),
+			);
+		} finally {
+			consoleInfoSpy.mockRestore();
+			vi.unstubAllEnvs();
+		}
+	});
+
 	test("keeps the password chosen at sign-up and signs the owner in when they verify their email", async () => {
 		const registeredUser = await registerAccount("ada@hospital.org", "/email-verified");
 		expect((await signIn(registeredUser.email, "password-before-verification")).status).toBe(403);

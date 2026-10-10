@@ -21,7 +21,7 @@ export default function Home() {
 				/>
 			</div>
 			<div className="w-full sm:w-[31.25rem] flex shrink-0 flex-col items-center mx-6 xl:mx-40">
-				<span className="font-bold text-xl leading-[1.2em] tracking-[-0.02em] text-gray-800">
+				<span className="font-bold text-lg leading-[1.2em] tracking-[-0.02em] text-gray-800">
 					MediBridge
 				</span>
 

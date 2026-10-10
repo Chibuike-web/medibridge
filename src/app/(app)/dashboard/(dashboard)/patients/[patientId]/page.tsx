@@ -124,7 +124,7 @@ async function Header({ params }: Pick<PatientPageProps, "params">) {
 
 			<div className="flex flex-col gap-3">
 				<div className="flex items-center gap-2.5">
-					<h1 className="text-xl font-semibold text-balance">{patientName}</h1>
+					<h1 className="text-lg font-semibold text-balance">{patientName}</h1>
 					<StatusBadge status="Active" className="text-sm" />
 					<CopyIdButton id={patient.patientId} />
 				</div>
@@ -443,17 +443,19 @@ function renderEmptyState({
 }) {
 	return (
 		<div className="flex min-h-[calc(100vh-13.75rem)] items-center justify-center px-6 py-12">
-			<div className="relative flex w-[31.25rem] max-w-full items-end justify-center">
-				<Image
-					src="/assets/empty-state.svg"
-					alt=""
-					aria-hidden="true"
-					width={500}
-					height={336}
-					className="h-auto w-[31.25rem] max-w-full"
-				/>
-				<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
-					<h2 className="mb-2 text-xl font-semibold text-gray-800">{title}</h2>
+			<div className="flex w-[31.25rem] max-w-full flex-col items-center">
+				<div className="aspect-[473/238] w-full overflow-hidden">
+					<Image
+						src="/assets/empty-state.svg"
+						alt=""
+						aria-hidden="true"
+						width={473}
+						height={357}
+						className="h-auto w-full"
+					/>
+				</div>
+				<div className="relative z-10 -mt-4 flex w-full flex-col items-center text-center">
+					<h2 className="mb-2 text-lg leading-6 font-semibold text-gray-800">{title}</h2>
 					<p className="mb-6 max-w-[32rem] text-sm text-pretty text-gray-500">{description}</p>
 					{action}
 				</div>

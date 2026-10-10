@@ -125,7 +125,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 					>
 						<h1
 							className={cn(
-								"text-xl font-bold absolute inset-0 flex items-center justify-center transition-[opacity,filter] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none motion-reduce:blur-0",
+								"text-lg font-bold absolute inset-0 flex items-center justify-center transition-[opacity,filter] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none motion-reduce:blur-0",
 								isHovered ? "opacity-0 blur-sm" : "opacity-100 blur-0",
 							)}
 						>
@@ -149,7 +149,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 						<h1
 							className={cn(
 								"overflow-hidden font-bold tracking-[-0.02em] whitespace-nowrap transition-[opacity,width] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-								"w-auto opacity-100 text-xl",
+								"w-auto opacity-100 text-lg",
 							)}
 						>
 							MediBridge

@@ -73,7 +73,7 @@ function PatientDetails({
 }) {
 	return (
 		<div>
-			<h2 className="mb-6 text-xl font-semibold text-gray-900">
+			<h2 className="mb-6 text-lg font-semibold text-gray-900">
 				Patient Details
 			</h2>
 			<div className="flex flex-col gap-8">

@@ -17,9 +17,6 @@
 		"db:push": "drizzle-kit push --config=./src/lib/drizzle.config.ts",
 		"db:studio": "drizzle-kit studio --config=./src/lib/drizzle.config.ts --port=4000",
 		"db:migrate": "drizzle-kit migrate --config=./src/lib/drizzle.config.ts",
-		"db:seed": "bun run src/db/run-table-seeds.ts",
-		"db:seed-shared-record": "bun run src/db/seed-shared-record.ts",
-		"db:sync-hospitals": "bun run src/db/sync-hospitals.ts",
 		"db:approve-hospital": "bun run src/db/approve-hospital.ts"
 	},
 	"dependencies": {
@@ -38,7 +35,6 @@
 		"@supabase/supabase-js": "^2.116.0",
 		"@tanstack/react-table": "^9.2.4",
 		"ai": "7.0.130",
-		"babel-plugin-react-compiler": "^1.0.0",
 		"bcrypt": "^6.0.0",
 		"better-auth": "^1.7.5",
 		"class-variance-authority": "^0.7.1",

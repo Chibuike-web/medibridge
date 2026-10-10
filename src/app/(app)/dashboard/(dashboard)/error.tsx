@@ -11,7 +11,7 @@ export default function DashboardError({
 }) {
 	return (
 		<section className="mx-auto grid w-full max-w-[31.25rem] place-items-center px-6 py-20 text-center">
-			<h1 className="text-xl font-semibold tracking-[-0.015em] text-gray-800 text-balance">
+			<h1 className="text-lg font-semibold tracking-[-0.015em] text-gray-800 text-balance">
 				Something went wrong
 			</h1>
 			<p className="mt-4 text-sm text-gray-600 text-pretty">

@@ -27,7 +27,7 @@ function Unverified() {
 		<main className="h-dvh overflow-y-auto bg-white">
 			<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
 				<div className="w-full text-center">
-					<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-yellow-600 text-balance">
+					<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-yellow-600 text-balance">
 						Email verification required
 					</h1>
 					<p className="text-gray-600 text-sm font-medium text-pretty mt-4">
@@ -65,7 +65,7 @@ function InvalidOrExpired({ type }: { type: "INVALID_TOKEN" | "TOKEN_EXPIRED" })
 			<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
 				<div className="w-full">
 					<div className="text-center">
-						<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-red-600 text-balance">
+						<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-red-600 text-balance">
 							{title}
 						</h1>
 						<p className="text-gray-600 text-sm font-medium text-pretty mt-4">{description}</p>
@@ -170,7 +170,7 @@ function NoSession() {
 		<main className="h-dvh overflow-y-auto bg-white">
 			<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
 				<div className="w-full text-center">
-					<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-yellow-600 text-balance">
+					<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-yellow-600 text-balance">
 						You are not signed in
 					</h1>
 
@@ -192,7 +192,7 @@ const Valid = () => {
 		<main className="h-dvh overflow-y-auto bg-white">
 			<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
 				<div className="w-full text-center">
-					<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-green-600 text-balance">
+					<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-green-600 text-balance">
 						Email verified
 					</h1>
 					<p className="text-gray-600 text-sm font-medium text-pretty mt-4">

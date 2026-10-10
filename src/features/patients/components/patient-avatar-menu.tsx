@@ -20,7 +20,7 @@ export function PatientAvatarMenu({ patientName }: { patientName: string }) {
 					className="relative h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0 [&_svg]:!size-3"
 				>
 					<Avatar className="size-16 border border-gray-200 bg-gray-100 text-gray-700">
-						<AvatarFallback className="bg-gray-100 text-xl font-semibold text-gray-700">
+						<AvatarFallback className="bg-gray-100 text-lg font-semibold text-gray-700">
 							{getInitials(patientName ?? "")}
 						</AvatarFallback>
 					</Avatar>

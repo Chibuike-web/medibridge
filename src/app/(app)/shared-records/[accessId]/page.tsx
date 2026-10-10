@@ -97,13 +97,13 @@ function PatientHeader({ patient }: { patient: SharedPatient }) {
 		<header className="border-b border-gray-200">
 			<div className="mx-auto flex w-full max-w-7xl items-center gap-5 px-6 py-3.5">
 				<Avatar className="size-16 border border-gray-200 bg-gray-100 text-gray-700">
-					<AvatarFallback className="bg-gray-100 text-xl font-semibold text-gray-700">
+					<AvatarFallback className="bg-gray-100 text-lg font-semibold text-gray-700">
 						{getInitials(patient.name)}
 					</AvatarFallback>
 				</Avatar>
 
 				<div className="min-w-0">
-					<h1 className="text-xl font-semibold text-gray-900 text-balance">{patient.name}</h1>
+					<h1 className="text-lg font-semibold text-gray-900 text-balance">{patient.name}</h1>
 					<div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
 						<HeaderMeta label="Sex" value={patient.sex} />
 						<HeaderMeta label="Email" value={patient.email} />

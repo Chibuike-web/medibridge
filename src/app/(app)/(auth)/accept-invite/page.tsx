@@ -35,7 +35,7 @@ async function AcceptInviteContent({ searchParams }: AcceptInviteProps) {
 	if (invitationPreview.status === "invalid") {
 		return (
 			<div className="w-full text-center">
-				<h1 className="text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
+				<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 					Invitation unavailable
 				</h1>
 				<p className="mt-4 text-sm font-medium text-gray-600">
@@ -77,7 +77,7 @@ async function AcceptInviteContent({ searchParams }: AcceptInviteProps) {
 	return (
 		<div className="w-full">
 			<div className="mb-10">
-				<h1 className="text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
+				<h1 className="text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 					{pageContent.heading}
 				</h1>
 				<p className="mt-4 text-pretty text-center text-sm font-medium text-gray-600">

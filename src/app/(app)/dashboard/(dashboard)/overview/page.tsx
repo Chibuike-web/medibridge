@@ -20,17 +20,19 @@ export default function Overview() {
 				if (!stats.hasPatients) {
 					return (
 						<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">
-							<div className="relative flex w-[31.25rem] max-w-full items-end justify-center">
-								<Image
-									src="/assets/empty-state.svg"
-									alt=""
-									aria-hidden="true"
-									width={500}
-									height={336}
-									className="h-auto w-[31.25rem] max-w-full"
-								/>
-								<div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center">
-									<h1 className="mb-2 text-center text-xl font-semibold text-balance">
+							<div className="flex w-[31.25rem] max-w-full flex-col items-center">
+								<div className="aspect-[473/238] w-full overflow-hidden">
+									<Image
+										src="/assets/empty-state.svg"
+										alt=""
+										aria-hidden="true"
+										width={473}
+										height={357}
+										className="h-auto w-full"
+									/>
+								</div>
+								<div className="relative z-10 -mt-4 flex w-full flex-col items-center text-center">
+									<h1 className="mb-2 text-center text-lg leading-6 font-semibold text-balance">
 										No patient records available
 									</h1>
 									<p className="mb-6 text-center text-sm">
@@ -50,7 +52,7 @@ export default function Overview() {
 				return (
 					<div className="flex h-full flex-col">
 						<header className="sticky top-0 z-20 flex h-14 shrink-0 items-center border-b border-gray-200 bg-white px-6">
-							<h1 className="text-xl font-semibold tracking-[-0.015em] text-gray-800 text-balance">
+							<h1 className="text-lg font-semibold tracking-[-0.015em] text-gray-800 text-balance">
 								Overview
 							</h1>
 						</header>

@@ -46,7 +46,7 @@ export function CreateNewPasswordClient({ token, isTokenInvalid }: CreateNewPass
 
 	return (
 		<div className="w-full">
-			<h1 className="mt-10 text-center text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
+			<h1 className="mt-10 text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 				Create a New Password
 			</h1>
 			<p className="mt-4 text-pretty text-center text-sm font-medium text-gray-600">

@@ -73,7 +73,7 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 		<section className="bg-white">
 			<div className="border-b border-gray-200 p-6">
 				<p className="text-sm font-medium text-gray-500">Patient transfer request</p>
-				<h1 className="mt-2 text-xl font-semibold text-gray-900 text-balance">
+				<h1 className="mt-2 text-lg font-semibold text-gray-900 text-balance">
 					Review shared record request
 				</h1>
 				<p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
