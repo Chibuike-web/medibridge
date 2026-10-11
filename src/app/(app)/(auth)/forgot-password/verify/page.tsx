@@ -13,7 +13,7 @@ export default function Verify() {
 				<div className="flex flex-col items-center">
 					<Image src="/assets/verification-icon.svg" width={120} height={120} alt="" />
 
-					<p className="text-gray-600 text-sm font-medium text-center text-pretty mt-4">
+					<p className="text-gray-600 text-sm font-normal text-center text-pretty mt-4">
 						If your email is associated with a MediBridge account, you’ll receive a reset link
 						shortly.
 					</p>

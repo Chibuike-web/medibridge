@@ -176,6 +176,13 @@
 			"when": 1791370800000,
 			"tag": "0024_one_hospital_per_account",
 			"breakpoints": true
+		},
+		{
+			"idx": 25,
+			"version": "7",
+			"when": 1791614060563,
+			"tag": "0025_patient_extractions",
+			"breakpoints": true
 		}
 	]
 }

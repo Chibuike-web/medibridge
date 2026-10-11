@@ -61,6 +61,9 @@ const configuredTableFeatures = tableFeatures({
 	sortedRowModel: createSortedRowModel(),
 });
 import useSWR from "swr";
+import { useRouter } from "next/navigation";
+
+type DiagnosisDetailsRequestError = Error & { status?: number };
 import {
 	RiArrowRightLine,
 	RiArchiveLine,
@@ -176,6 +179,7 @@ export function DiagnosesTable({
 	onLimitChange,
 	onStatusFiltersChange,
 }: DiagnosesTableProps) {
+	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const visibleDiagnosisRowIds = useMemo(
@@ -192,6 +196,15 @@ export function DiagnosesTable({
 	const diagnosisDetailsQuery = useSWR(
 		selectedId ? (["patient-diagnosis-details", selectedId] as const) : null,
 		([, selectedId]) => fetchPatientDiagnosisDetails(selectedId),
+		{
+			onError: (error: DiagnosisDetailsRequestError) => {
+				if (error.status === 401 || error.status === 403) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: DiagnosisDetailsRequestError) =>
+				error.status !== 401 && error.status !== 403,
+		},
 	);
 
 	function handleViewDiagnosisDetails(diagnosisId: string) {
@@ -1019,7 +1032,9 @@ async function fetchPatientDiagnosisDetails(selectedId: string) {
 	const response = await fetch(`/api/patient-diagnosis-details/${encodeURIComponent(selectedId)}`);
 
 	if (!response.ok) {
-		throw new Error("Unable to load diagnosis details.");
+		throw Object.assign(new Error("Unable to load diagnosis details."), {
+			status: response.status,
+		});
 	}
 
 	const result = (await response.json()) as { diagnosis: DiagnosisDetailsType | null };

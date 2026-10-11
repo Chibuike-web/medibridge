@@ -12,7 +12,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { RiErrorWarningFill, RiEyeLine, RiEyeOffLine, RiInformationLine } from "@remixicon/react";
+import {
+	RiCloseLine,
+	RiErrorWarningFill,
+	RiEyeLine,
+	RiEyeOffLine,
+	RiInformationLine,
+} from "@remixicon/react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { Route } from "next";
 
@@ -201,7 +207,7 @@ export function SignInClient() {
 			<h1 className="mt-10 text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 				Welcome Back to MediBridge
 			</h1>
-			<p className="text-gray-600 text-sm font-medium text-center text-pretty mt-4">
+			<p className="text-gray-600 text-sm font-normal text-center text-pretty mt-2">
 				Sign in with your verified hospital credentials.
 			</p>
 			<form
@@ -301,7 +307,17 @@ export function SignInClient() {
 						<span className="shrink-0">
 							<RiErrorWarningFill className="size-4" aria-hidden="true" />
 						</span>
-						<span>{signInError}</span>
+						<span className="min-w-0 flex-1">{signInError}</span>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="ml-auto -my-1 size-6 rounded-full"
+							aria-label="Dismiss error message"
+							onClick={() => setSignInError("")}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
 					</div>
 				)}
 

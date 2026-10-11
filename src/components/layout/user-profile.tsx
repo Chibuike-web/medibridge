@@ -73,10 +73,14 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					) : null}
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
-					className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
-					side={isCollapsed ? "right" : "bottom"}
+					className={cn(
+						"rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl",
+						isCollapsed ? "w-[15.9375rem]" : "w-(--radix-dropdown-menu-trigger-width)",
+					)}
+					side={isCollapsed ? "right" : "top"}
 					align="end"
-					sideOffset={isCollapsed ? 12 : 4}
+					sideOffset={isCollapsed ? 17 : 4}
+					alignOffset={isCollapsed ? 13 : 0}
 				>
 					<DropdownMenuLabel className="p-0 font-normal">
 						<div className="flex items-center gap-2 px-2 py-1.5 text-left text-sm">

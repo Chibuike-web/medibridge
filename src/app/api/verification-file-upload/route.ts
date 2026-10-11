@@ -12,7 +12,7 @@ const allowedTypes = ["pdf", "png", "jpg", "doc"];
 export async function POST(req: Request) {
 	try {
 		const session = await getSessionData();
-		if (!session) {
+		if (!session?.user?.id) {
 			return Response.json(
 				{ status: "failed", error: "Sign in to upload a file." },
 				{ status: 401 },

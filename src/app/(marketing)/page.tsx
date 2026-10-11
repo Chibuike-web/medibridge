@@ -28,7 +28,7 @@ export default function Home() {
 				<h1 className="mt-[6.25rem] w-full text-center text-4xl font-bold leading-[1.2em] tracking-[-0.02em] text-gray-800 text-balance">
 					Welcome to MediBridge
 				</h1>
-				<p className="text-gray-600 font-medium text-center leading-[1.4em] tracking-[-0.02em] text-lg mt-6 text-pretty">
+				<p className="text-gray-600 font-normal text-center leading-[1.4em] tracking-[-0.02em] text-lg mt-6 text-pretty">
 					Securely connect your institution to the MediBridge network.
 				</p>
 				<div className="flex flex-col gap-4 w-full mt-[6.25rem] mb-[6.25rem] xl:mb-0">

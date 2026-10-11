@@ -65,7 +65,7 @@ describe("accept invitation services", () => {
 		]);
 		membershipResultMock.mockResolvedValue([]);
 		getSessionMock.mockResolvedValue({
-			user: { id: "user-1", email: "admin@stmaryhospital.org" },
+			user: { id: "user-1", email: "admin@stmaryhospital.org", emailVerified: true },
 		});
 		acceptInvitationMock.mockResolvedValue({ member: { role: "admin" } });
 	});
@@ -89,6 +89,17 @@ describe("accept invitation services", () => {
 		expect(result).toEqual({
 			status: "unauthorized",
 			error: "Sign in before accepting the invitation.",
+		});
+		expect(acceptInvitationMock).not.toHaveBeenCalled();
+	});
+
+	test("does not accept an invitation before the invited account's email is verified", async () => {
+		getSessionMock.mockResolvedValue({
+			user: { id: "user-1", email: "admin@stmaryhospital.org", emailVerified: false },
+		});
+		expect(await acceptInvitationService("invitation-1")).toEqual({
+			status: "failed",
+			error: "Verify your email before accepting the invitation.",
 		});
 		expect(acceptInvitationMock).not.toHaveBeenCalled();
 	});

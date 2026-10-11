@@ -71,6 +71,8 @@ import { authClient } from "@/lib/better-auth/auth.client";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
+type TransferDetailsRequestError = Error & { status?: number };
+
 export function TransferTable({
 	data,
 	page,
@@ -105,6 +107,15 @@ export function TransferTable({
 	const transferDetailsQuery = useSWR(
 		selectedTransferId ? (["transfer-details", selectedTransferId] as const) : null,
 		([, selectedTransferId]) => fetchTransferDetails(selectedTransferId),
+		{
+			onError: (error: TransferDetailsRequestError) => {
+				if (error.status === 401 || error.status === 403) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: TransferDetailsRequestError) =>
+				error.status !== 401 && error.status !== 403,
+		},
 	);
 
 	const onViewTransferDetails = useCallback((transferId: string) => {
@@ -663,7 +674,9 @@ async function fetchTransferDetails(selectedTransferId: string) {
 	const response = await fetch(`/api/transfer-details/${encodeURIComponent(selectedTransferId)}`);
 
 	if (!response.ok) {
-		throw new Error("Unable to load transfer details.");
+		throw Object.assign(new Error("Unable to load transfer details."), {
+			status: response.status,
+		});
 	}
 
 	const result = (await response.json()) as { transfer: TransferDetailsType | null };

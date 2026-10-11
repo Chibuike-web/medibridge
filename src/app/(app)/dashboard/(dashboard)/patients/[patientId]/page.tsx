@@ -1,6 +1,7 @@
+import { Button } from "@/components/ui/button";
 import { Suspense, type ReactNode } from "react";
 import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { StatusBadge } from "@/components/status-badge";
@@ -31,6 +32,7 @@ import { getPatientMedications } from "@/lib/api/get-patient-medications";
 import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
 import { getPatientVitalReadings, getPatientVitals } from "@/lib/api/get-patient-vitals";
 import { verifySession } from "@/lib/api/verify-session";
+import { getOrganizationContext } from "@/lib/api/get-organization-id";
 import { getStringParam } from "@/lib/utils/search-params";
 import {
 	AllergiesClient,
@@ -52,6 +54,7 @@ type PatientPageProps = Pick<
 	PageProps<"/dashboard/patients/[patientId]">,
 	"params" | "searchParams"
 >;
+type PatientPageParamsProps = Pick<PageProps<"/dashboard/patients/[patientId]">, "params">;
 
 export default function PatientPage({ searchParams, params }: PatientPageProps) {
 	return (
@@ -62,18 +65,32 @@ export default function PatientPage({ searchParams, params }: PatientPageProps) 
 }
 
 async function PatientPageContent({ searchParams, params }: PatientPageProps) {
-	await verifySession();
+	const session = await verifySession();
+	if (!session.user.emailVerified) {
+		redirect("/email-verified?error=unverified");
+	}
+
+	const organizationContext = await getOrganizationContext();
+	if (!organizationContext) {
+		redirect("/sign-in");
+	}
+
+	if (!organizationContext.isOrganizationVerified) {
+		redirect("/verify");
+	}
 
 	return (
 		<div className="flex h-full min-h-0 flex-col overflow-hidden">
 			<div className="shrink-0">
 				<nav
 					aria-label="Breadcrumb"
-					className="flex h-14 items-center gap-2 border-b border-gray-200 px-6 text-sm"
+					className="flex items-center gap-2 border-b border-gray-200 p-4 text-sm"
 				>
-					<Link href="/dashboard/patients" className="flex items-center gap-2 shrink-0">
-						<RiArrowLeftLine aria-hidden="true" className="size-5" /> <span>Patients</span>
-					</Link>
+					<Button variant="ghost" asChild>
+						<Link href="/dashboard/patients">
+							<RiArrowLeftLine data-icon="inline-start" aria-hidden="true" /> <span>Patients</span>
+						</Link>
+					</Button>
 					<RiArrowRightSLine aria-hidden="true" className="size-5" />
 					<Suspense fallback={<BreadCrumbSkeleton />}>
 						<BreadCrumb searchParams={searchParams} params={params} />
@@ -109,7 +126,7 @@ async function BreadCrumb({ searchParams, params }: PatientPageProps) {
 	);
 }
 
-async function Header({ params }: Pick<PatientPageProps, "params">) {
+async function Header({ params }: PatientPageParamsProps) {
 	const { patientId } = await params;
 	const patient = await getPatientById(patientId);
 
@@ -478,11 +495,13 @@ function PatientPageSkeleton() {
 			<div className="shrink-0">
 				<nav
 					aria-label="Breadcrumb"
-					className="flex h-14 items-center gap-2 border-b border-gray-200 px-6 text-sm"
+					className="flex items-center gap-2 border-b border-gray-200 p-4 text-sm"
 				>
-					<Link href="/dashboard/patients" className="flex items-center gap-2 shrink-0">
-						<RiArrowLeftLine aria-hidden="true" className="size-5" /> <span>Patients</span>
-					</Link>
+					<Button variant="ghost" asChild>
+						<Link href="/dashboard/patients">
+							<RiArrowLeftLine data-icon="inline-start" aria-hidden="true" /> <span>Patients</span>
+						</Link>
+					</Button>
 					<RiArrowRightSLine aria-hidden="true" className="size-5" />
 					<BreadCrumbSkeleton />
 				</nav>

@@ -7,6 +7,8 @@ import { AllergiesTable } from "./allergies-table";
 
 const auth = vi.hoisted(() => ({ role: "owner" }));
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
 		useActiveMemberRole: () => ({ data: { role: auth.role } }),
@@ -238,7 +240,9 @@ describe("Allergies table", () => {
 		expect(displayedPageAllergens()).toEqual(serverPage.map((allergy) => allergy.allergen));
 		await user.click(screen.getByRole("columnheader", { name: "Allergen" }));
 		await user.click(screen.getByRole("columnheader", { name: "Allergen" }));
-		expect(displayedPageAllergens()).toEqual(serverPage.map((allergy) => allergy.allergen).reverse());
+		expect(displayedPageAllergens()).toEqual(
+			serverPage.map((allergy) => allergy.allergen).reverse(),
+		);
 
 		const [selectAll] = within(screen.getByRole("table")).getAllByRole("checkbox");
 		await user.click(selectAll);
@@ -439,9 +443,10 @@ describe("Allergies table", () => {
 		expect(await within(dialog).findByRole("heading", { name: "Latex" })).toBeVisible();
 		expect(within(dialog).getByText("Contact rash on hands")).toBeVisible();
 		expect(within(dialog).getByRole("heading", { name: "Activity" })).toBeVisible();
-		expect(
-			within(dialog).getByRole("button", { name: /Created by Nurse Chika/ }),
-		).toHaveAttribute("aria-expanded", "false");
+		expect(within(dialog).getByRole("button", { name: /Created by Nurse Chika/ })).toHaveAttribute(
+			"aria-expanded",
+			"false",
+		);
 		expect(within(dialog).getByText("Avoid latex gloves.")).toBeVisible();
 		expect(within(dialog).queryByText("Peanuts")).not.toBeInTheDocument();
 	});

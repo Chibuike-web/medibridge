@@ -7,8 +7,8 @@ import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
 import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
 import { getPatientMedications } from "@/lib/api/get-patient-medications";
 import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
-import { verifySession } from "@/lib/api/verify-session";
-import { NextResponse, type NextRequest } from "next/server";
+import { getSessionData } from "@/lib/api/get-session-data";
+import { getOrganizationId } from "@/lib/api/get-organization-id";
 
 type ClinicalRecordOption = {
 	id: string;
@@ -21,21 +21,48 @@ const clinicalRecordTypeLabels = new Map(
 	clinicalRecords.map((clinicalRecord) => [clinicalRecord.id, clinicalRecord.label]),
 );
 
-export async function GET(request: NextRequest) {
-	await verifySession();
+export async function GET(request: Request) {
+	const session = await getSessionData();
 
-	const patientId = request.nextUrl.searchParams.get("patientId") ?? "";
-	const type = request.nextUrl.searchParams.get("type") ?? "";
-	const query = request.nextUrl.searchParams.get("query") ?? "";
-	const page = parsePositiveInteger(request.nextUrl.searchParams.get("page") ?? "1", 1);
-	const limit = Math.min(parsePositiveInteger(request.nextUrl.searchParams.get("limit") ?? "8", 8), 50);
+	if (!session?.user?.id) {
+		return Response.json(
+			{ status: "failed", error: "Sign in to view clinical records." },
+			{ status: 401 },
+		);
+	}
+
+	if (!session.user.emailVerified) {
+		return Response.json(
+			{ status: "failed", error: "Verify your email before you can view clinical records." },
+			{ status: 403 },
+		);
+	}
+
+	const organizationId = await getOrganizationId();
+
+	if (!organizationId) {
+		return Response.json(
+			{
+				status: "failed",
+				error: "Your hospital must be verified before you can view clinical records.",
+			},
+			{ status: 403 },
+		);
+	}
+
+	const { searchParams } = new URL(request.url);
+	const patientId = searchParams.get("patientId") ?? "";
+	const type = searchParams.get("type") ?? "";
+	const query = searchParams.get("query") ?? "";
+	const page = parsePositiveInteger(searchParams.get("page") ?? "1", 1);
+	const limit = Math.min(parsePositiveInteger(searchParams.get("limit") ?? "8", 8), 50);
 
 	if (!patientId) {
-		return NextResponse.json({ error: "Missing patient ID." }, { status: 400 });
+		return Response.json({ error: "Missing patient ID." }, { status: 400 });
 	}
 
 	if (!clinicalRecordTypeLabels.has(type as ClinicalRecordType)) {
-		return NextResponse.json({ error: "Invalid clinical record type." }, { status: 400 });
+		return Response.json({ error: "Invalid clinical record type." }, { status: 400 });
 	}
 
 	const { records, totalRecords } = await getClinicalRecordOptions({
@@ -46,7 +73,7 @@ export async function GET(request: NextRequest) {
 		query,
 	});
 
-	return NextResponse.json({
+	return Response.json({
 		records,
 		page,
 		totalRecords,
@@ -98,7 +125,12 @@ async function getClinicalRecordOptions({
 	}
 
 	if (type === "immunizations") {
-		const { immunizations, totalImmunizations } = await getPatientImmunizations(patientId, page, limit, query);
+		const { immunizations, totalImmunizations } = await getPatientImmunizations(
+			patientId,
+			page,
+			limit,
+			query,
+		);
 
 		return {
 			totalRecords: totalImmunizations,
@@ -112,7 +144,12 @@ async function getClinicalRecordOptions({
 	}
 
 	if (type === "procedures") {
-		const { procedures, totalProcedures } = await getPatientProcedures(patientId, page, limit, query);
+		const { procedures, totalProcedures } = await getPatientProcedures(
+			patientId,
+			page,
+			limit,
+			query,
+		);
 
 		return {
 			totalRecords: totalProcedures,
@@ -126,7 +163,12 @@ async function getClinicalRecordOptions({
 	}
 
 	if (type === "medications") {
-		const { medications, totalMedications } = await getPatientMedications(patientId, page, limit, query);
+		const { medications, totalMedications } = await getPatientMedications(
+			patientId,
+			page,
+			limit,
+			query,
+		);
 
 		return {
 			totalRecords: totalMedications,
@@ -153,7 +195,12 @@ async function getClinicalRecordOptions({
 		};
 	}
 
-	const { imagingStudies, totalImagingStudies } = await getPatientImaging(patientId, page, limit, query);
+	const { imagingStudies, totalImagingStudies } = await getPatientImaging(
+		patientId,
+		page,
+		limit,
+		query,
+	);
 
 	return {
 		totalRecords: totalImagingStudies,

@@ -292,7 +292,7 @@ function MemberCard({
 									<SelectTrigger aria-label={`Role for ${member.name}`}>
 										<SelectValue />
 									</SelectTrigger>
-									<SelectContent align="start">
+									<SelectContent align="start" className="min-w-35">
 										<SelectItem value="admin">Admin</SelectItem>
 										<SelectItem value="member">Member</SelectItem>
 									</SelectContent>

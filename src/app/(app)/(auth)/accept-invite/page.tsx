@@ -8,11 +8,9 @@ export const metadata = {
 	title: "Accept Invite",
 };
 
-type AcceptInviteProps = {
-	searchParams: Promise<{ invitationId?: string | string[] }>;
-};
+type AcceptInvitePageProps = Pick<PageProps<"/accept-invite">, "searchParams">;
 
-export default function AcceptInvite({ searchParams }: AcceptInviteProps) {
+export default function AcceptInvite({ searchParams }: AcceptInvitePageProps) {
 	return (
 		<main className="h-dvh overflow-y-auto">
 			<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
@@ -24,7 +22,7 @@ export default function AcceptInvite({ searchParams }: AcceptInviteProps) {
 	);
 }
 
-async function AcceptInviteContent({ searchParams }: AcceptInviteProps) {
+async function AcceptInviteContent({ searchParams }: AcceptInvitePageProps) {
 	const { invitationId: invitationIdValue } = await searchParams;
 	const invitationId = Array.isArray(invitationIdValue) ? invitationIdValue[0] : invitationIdValue;
 	const [invitationPreview, session] = await Promise.all([
@@ -38,7 +36,7 @@ async function AcceptInviteContent({ searchParams }: AcceptInviteProps) {
 				<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 					Invitation unavailable
 				</h1>
-				<p className="mt-4 text-sm font-medium text-gray-600">
+				<p className="mt-4 text-sm font-normal text-gray-600">
 					This invitation is invalid, expired, or has already been used.
 				</p>
 			</div>
@@ -80,7 +78,7 @@ async function AcceptInviteContent({ searchParams }: AcceptInviteProps) {
 				<h1 className="text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 					{pageContent.heading}
 				</h1>
-				<p className="mt-4 text-pretty text-center text-sm font-medium text-gray-600">
+				<p className="mt-4 text-pretty text-center text-sm font-normal text-gray-600">
 					{pageContent.description}
 				</p>
 			</div>

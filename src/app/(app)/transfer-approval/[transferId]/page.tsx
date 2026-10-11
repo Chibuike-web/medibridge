@@ -8,13 +8,12 @@ export const metadata = {
 	title: "Transfer Approval",
 };
 
-type TransferApprovalPageProps = PageProps<"/transfer-approval/[transferId]">;
-type TransferApprovalParamsProps = Pick<TransferApprovalPageProps, "params" | "searchParams">;
+type TransferApprovalPageProps = Pick<
+	PageProps<"/transfer-approval/[transferId]">,
+	"params" | "searchParams"
+>;
 
-export default function TransferApprovalPage({
-	params,
-	searchParams,
-}: TransferApprovalParamsProps) {
+export default function TransferApprovalPage({ params, searchParams }: TransferApprovalPageProps) {
 	return (
 		<Suspense fallback={<TransferApprovalPageSkeleton />}>
 			<TransferApprovalContent params={params} searchParams={searchParams} />
@@ -22,7 +21,7 @@ export default function TransferApprovalPage({
 	);
 }
 
-async function TransferApprovalContent({ params, searchParams }: TransferApprovalParamsProps) {
+async function TransferApprovalContent({ params, searchParams }: TransferApprovalPageProps) {
 	const [{ transferId }, { token: tokenParam }] = await Promise.all([params, searchParams]);
 	const token = getStringParam(tokenParam);
 	const approvalToken = await verifyTransferApprovalToken(token, transferId);

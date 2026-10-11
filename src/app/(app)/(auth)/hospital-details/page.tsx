@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { Suspense } from "react";
 import Link from "next/link";
 import { HospitalDetailsClient } from "./hospital-details-client";
@@ -31,10 +32,12 @@ async function HospitalDetailsContent() {
 
 	return (
 		<>
-			<nav className="w-full h-16 shrink-0 flex items-center bg-white border-b border-gray-300 px-8">
-				<Link href="/sign-in" className="flex gap-2 w-max items-center text-foreground">
-					<RiArrowLeftLine className="size-4" /> <span className="sr-only">Back</span>
-				</Link>
+			<nav className="w-full shrink-0 flex items-center bg-white border-b border-gray-300 p-4">
+				<Button variant="ghost" size="icon" asChild>
+					<Link href="/sign-in">
+						<RiArrowLeftLine aria-hidden="true" /> <span className="sr-only">Back</span>
+					</Link>
+				</Button>
 			</nav>
 			<div className="min-h-0 flex-1 overflow-y-auto">
 				<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
@@ -43,7 +46,7 @@ async function HospitalDetailsContent() {
 							<h1 className="text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 								Hospital Details
 							</h1>
-							<p className="text-gray-600 text-sm font-medium text-center text-pretty mt-4">
+							<p className="text-gray-600 text-sm font-normal text-center text-pretty mt-4">
 								Fill in your hospital’s registered details and provide an accreditation or license
 								for verification.
 							</p>

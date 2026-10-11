@@ -23,7 +23,7 @@ const buttonVariants = cva(
 				default: "h-9 px-4 py-2 has-[>svg:first-child]:pl-3 has-[>svg:last-child]:pr-3",
 				sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg:first-child]:pl-2 has-[>svg:last-child]:pr-2",
 				lg: "h-9 rounded-md px-4 has-[>svg:first-child]:pl-3 has-[>svg:last-child]:pr-3",
-				icon: "size-9",
+				icon: "size-8",
 			},
 		},
 		defaultVariants: {

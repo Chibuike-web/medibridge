@@ -1,3 +1,6 @@
+import { verifySession } from "@/lib/api/verify-session";
+import { getOrganizationContext } from "@/lib/api/get-organization-id";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { getPatients } from "@/lib/api/get-patients";
@@ -11,9 +14,9 @@ export const metadata = {
 	title: "Patients",
 };
 
-type PatientsPagePageProps = Pick<PageProps<"/dashboard/patients">, "searchParams">;
+type PatientsPageProps = Pick<PageProps<"/dashboard/patients">, "searchParams">;
 
-export default function PatientsPage({ searchParams }: PatientsPagePageProps) {
+export default function PatientsPage({ searchParams }: PatientsPageProps) {
 	return (
 		<Suspense fallback={<PatientsPageSkeleton />}>
 			<PatientsPageContent searchParams={searchParams} />
@@ -21,7 +24,21 @@ export default function PatientsPage({ searchParams }: PatientsPagePageProps) {
 	);
 }
 
-async function PatientsPageContent({ searchParams }: PatientsPagePageProps) {
+async function PatientsPageContent({ searchParams }: PatientsPageProps) {
+	const session = await verifySession();
+	if (!session.user.emailVerified) {
+		redirect("/email-verified?error=unverified");
+	}
+
+	const organizationContext = await getOrganizationContext();
+	if (!organizationContext) {
+		redirect("/sign-in");
+	}
+
+	if (!organizationContext.isOrganizationVerified) {
+		redirect("/verify");
+	}
+
 	const { page, limit, query, createdFrom, createdTo, gender, ageGroup } = await searchParams;
 	const currentPage = getNumberParam(page, 1, { min: 1 });
 	const currentLimit = getNumberParam(limit, 14, { min: 1, max: 100 });
@@ -77,7 +94,10 @@ async function PatientsPageContent({ searchParams }: PatientsPagePageProps) {
 						Patient records will appear here once patients have been added to the system.
 					</p>
 					<Button asChild>
-						<Link href="/dashboard/add-new-patient" prefetch={true}>
+						<Link
+							href="/dashboard/add-new-patient?returnTo=%2Fdashboard%2Fpatients"
+							prefetch={true}
+						>
 							{" "}
 							Add patient
 						</Link>
@@ -125,13 +145,13 @@ function getGender(gender: unknown): PatientGenderFilter {
 function PatientsPageSkeleton() {
 	return (
 		<div className="flex h-full flex-col">
-			<header className="sticky top-0 z-20 flex h-14 shrink-0 items-center border-b border-gray-200 bg-white px-6">
+			<header className="sticky top-0 z-20 flex shrink-0 items-center border-b border-gray-200 bg-white p-4">
 				<div className="h-6 w-40 animate-pulse rounded bg-gray-100" />
 				<div className="ml-auto flex items-center gap-2">
-					<div className="h-10 w-[18rem] animate-pulse rounded bg-gray-100" />
-					<div className="h-10 w-10 animate-pulse rounded bg-gray-100" />
-					<div className="h-10 w-24 animate-pulse rounded bg-gray-100" />
-					<div className="h-10 w-40 animate-pulse rounded bg-gray-100" />
+					<div className="h-9 w-[18rem] animate-pulse rounded bg-gray-100" />
+					<div className="h-9 w-10 animate-pulse rounded bg-gray-100" />
+					<div className="h-9 w-24 animate-pulse rounded bg-gray-100" />
+					<div className="h-9 w-40 animate-pulse rounded bg-gray-100" />
 				</div>
 			</header>
 			<div className="min-h-0 flex-1 overflow-y-auto">

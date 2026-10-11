@@ -83,6 +83,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import useSWR from "swr";
+import { useRouter } from "next/navigation";
+
+type AllergyDetailsRequestError = Error & { status?: number };
 
 type AllergyFilterSubmenu = "status" | "severity" | "created-at";
 
@@ -171,6 +174,7 @@ export function AllergiesTable({
 	onNextPage,
 	onLimitChange,
 }: AllergiesTableProps) {
+	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const visibleAllergyRowIds = useMemo(
@@ -185,6 +189,15 @@ export function AllergiesTable({
 	const allergyDetailsQuery = useSWR(
 		selectedId ? (["patient-allergy-details", selectedId] as const) : null,
 		([, selectedId]) => fetchPatientAllergyDetails(selectedId),
+		{
+			onError: (error: AllergyDetailsRequestError) => {
+				if (error.status === 401 || error.status === 403) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: AllergyDetailsRequestError) =>
+				error.status !== 401 && error.status !== 403,
+		},
 	);
 	function handleViewAllergyDetails(allergyId: string) {
 		setSelectedId(allergyId);
@@ -990,7 +1003,9 @@ async function fetchPatientAllergyDetails(selectedId: string) {
 	const response = await fetch(`/api/patient-allergy-details/${encodeURIComponent(selectedId)}`);
 
 	if (!response.ok) {
-		throw new Error("Unable to load allergy details.");
+		throw Object.assign(new Error("Unable to load allergy details."), {
+			status: response.status,
+		});
 	}
 
 	const result = (await response.json()) as { allergy: AllergyDetailsType | null };

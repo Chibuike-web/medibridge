@@ -72,7 +72,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
 	return (
 		<div
 			data-slot="dialog-header"
-			className={cn("flex h-14 shrink-0 items-center justify-between border-b p-4", className)}
+			className={cn("flex h-14 shrink-0 items-center justify-between border-b px-4", className)}
 			{...props}
 		/>
 	);
@@ -108,7 +108,7 @@ function DialogDescription({
 	return (
 		<DialogPrimitive.Description
 			data-slot="dialog-description"
-			className={cn("text-gray-600", className)}
+			className={cn("text-gray-600 font-normal", className)}
 			{...props}
 		/>
 	);

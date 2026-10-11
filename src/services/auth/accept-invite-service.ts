@@ -60,8 +60,12 @@ export async function acceptInvitationService(
 
 	const session = await auth.api.getSession({ headers: await headers() });
 
-	if (!session) {
+	if (!session?.user?.id) {
 		return { status: "unauthorized", error: "Sign in before accepting the invitation." };
+	}
+
+	if (!session.user.emailVerified) {
+		return { status: "failed", error: "Verify your email before accepting the invitation." };
 	}
 
 	try {

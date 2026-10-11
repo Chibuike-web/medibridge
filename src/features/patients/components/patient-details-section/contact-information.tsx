@@ -116,8 +116,8 @@ export function ContactInformation({
 				open={isContactInformationDialogOpen}
 				onOpenChange={setIsContactInformationDialogOpen}
 			>
-				<DialogContent className="max-w-[50rem]">
-					<DialogHeader>
+				<DialogContent className="max-w-[37.5rem]">
+					<DialogHeader className="py-4">
 						<DialogTitle>Edit Contact Information</DialogTitle>
 
 						<DialogDescription className="sr-only">
@@ -132,13 +132,26 @@ export function ContactInformation({
 					<form
 						id={contactInformationFormId}
 						onSubmit={handleContactInformationSubmit}
-						className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-sm text-gray-800"
+						className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-4 py-5 text-sm text-gray-800"
 					>
 						<input type="hidden" name="patientId" value={patientId} />
 
 						{contactInformationError ? (
-							<div className="col-span-full rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-								{contactInformationError}
+							<div
+								role="alert"
+								className="col-span-full flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+							>
+								<span className="min-w-0 flex-1">{contactInformationError}</span>
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon"
+									className="ml-auto -my-1 size-6 rounded-full"
+									aria-label="Dismiss error message"
+									onClick={() => setContactInformationError("")}
+								>
+									<RiCloseLine aria-hidden="true" />
+								</Button>
 							</div>
 						) : null}
 

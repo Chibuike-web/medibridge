@@ -149,8 +149,8 @@ export function PersonalInformation({
 				open={isPersonalInformationDialogOpen}
 				onOpenChange={setIsPersonalInformationDialogOpen}
 			>
-				<DialogContent className="max-w-[50rem]">
-					<DialogHeader>
+				<DialogContent className="max-w-[37.5rem]">
+					<DialogHeader className="py-4">
 						<DialogTitle>Edit Personal Information</DialogTitle>
 						<DialogDescription className="sr-only">
 							Form for editing personal information such as name, age, sex, and marital status.
@@ -163,7 +163,7 @@ export function PersonalInformation({
 					<form
 						id={personalInformationFormId}
 						onSubmit={handlePersonalInformationSubmit}
-						className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-sm text-gray-800"
+						className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-4 py-5 text-sm text-gray-800"
 					>
 						<input
 							type="hidden"

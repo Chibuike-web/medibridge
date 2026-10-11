@@ -1,15 +1,20 @@
 import { gateway, generateText, Output, wrapLanguageModel } from "ai";
 import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { createWorker } from "tesseract.js";
-import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
 import path from "node:path";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { z } from "zod";
 import { PatientRecordSchema } from "@/features/patients/schemas/patient-schema";
 import { ExtractionResult } from "@/lib/types/upload";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
+import {
+	extractImageText,
+	extractDocxText,
+	extractPdfText,
+	type ExtractTextResult,
+} from "@/services/patient/extract-file-text-service";
+import { savePatientExtractionService } from "@/services/patient/save-patient-extraction-service";
 
 const model =
 	process.env.NODE_ENV === "development"
@@ -26,6 +31,13 @@ export async function POST(req: Request) {
 		return Response.json(
 			{ status: "failed", error: "Sign in to extract patient records." },
 			{ status: 401 },
+		);
+	}
+
+	if (!session.user.emailVerified) {
+		return Response.json(
+			{ status: "failed", error: "Verify your email before extracting patient records." },
+			{ status: 403 },
 		);
 	}
 
@@ -70,84 +82,38 @@ export async function POST(req: Request) {
 		}
 		worker = await createWorker("eng");
 
-		let text = "";
 		for (const filename of filenames) {
 			const filePath = path.join(uploadDir, filename);
+			const fileExtension = path.extname(filePath).toLowerCase();
+			let extractionResult: ExtractTextResult;
 
-			const fileExt = path.extname(filePath).toLowerCase();
+			if ([".png", ".jpg", ".jpeg", ".webp"].includes(fileExtension)) {
+				extractionResult = await extractImageText(filePath, worker);
+			} else if (fileExtension === ".docx") {
+				extractionResult = await extractDocxText(filePath);
+			} else if (fileExtension === ".pdf") {
+				extractionResult = await extractPdfText(filePath, worker);
+			} else {
+				extractionResult = { status: "failed", error: "Unsupported file type." };
+			}
 
-			try {
-				if ([".png", ".jpg", ".jpeg", ".webp"].includes(fileExt)) {
-					const { data } = await worker.recognize(filePath);
-					text = data.text.trim();
-
-					results.push({
-						name: filename,
-						path: filePath,
-						status: "success",
-						text,
-					});
-				} else if (fileExt === ".docx") {
-					const result = await mammoth.extractRawText({ path: filePath });
-					const text = result.value;
-
-					results.push({
-						name: filename,
-						path: filePath,
-						status: "success",
-						text,
-					});
-				} else if (fileExt === ".pdf") {
-					const buffer = readFileSync(filePath);
-					const parser = new PDFParse({ data: buffer });
-					const info = await parser.getInfo({ parsePageInfo: true });
-					const totalPages = info.total;
-					const pageTexts = [];
-
-					for (let i = 0; i < totalPages; i++) {
-						const pageResult = await parser.getText({ partial: [i + 1] });
-						const cleaned = pageResult.text;
-						const textLength = cleaned.length;
-						const validChars = cleaned.replace(/[^a-zA-Z0-9\s.,:/()-]/g, "").length;
-						const validityRatio = textLength ? validChars / textLength : 0;
-						const isGoodText = textLength > 120 && validityRatio > 0.7;
-
-						if (isGoodText) {
-							pageTexts.push(cleaned);
-							continue;
-						}
-
-						const screenshot = await parser.getScreenshot({
-							partial: [i + 1],
-							scale: 2.5,
-							imageBuffer: true,
-							imageDataUrl: false,
-						});
-
-						const pageBuffer = Buffer.from(screenshot.pages[0].data);
-						const { data } = await worker.recognize(pageBuffer);
-						pageTexts.push(data.text.trim());
-					}
-
-					text = pageTexts.join("\n\n");
-					results.push({
-						name: filename,
-						path: filePath,
-						status: "success",
-						text,
-					});
-					await parser.destroy();
-				}
-			} catch (error) {
-				console.error(error);
+			if (extractionResult.status === "failed") {
 				results.push({
 					name: filename,
 					path: filePath,
 					status: "failed",
 					text: "",
-					error: "We couldn’t read this uploaded file. Please try again.",
+					error: extractionResult.error,
 				});
+				continue;
 			}
+
+			results.push({
+				name: filename,
+				path: filePath,
+				status: "success",
+				text: extractionResult.text,
+			});
 		}
 
 		const successful = results.filter((result) => result.status === "success");
@@ -178,13 +144,19 @@ Extract patient data per document.`;
 			}),
 		});
 
+		const savedExtraction = await savePatientExtractionService(output);
+
+		if (savedExtraction.status === "failed") {
+			return Response.json(savedExtraction, { status: 500 });
+		}
+
 		return Response.json({
 			status: "success",
+			extractionId: savedExtraction.extractionId,
 			parsed: successful.length,
 			failed: failed.length,
 			failedDocuments: failed,
 			result: results,
-			extracted: output,
 		});
 	} catch (error) {
 		console.error(error);

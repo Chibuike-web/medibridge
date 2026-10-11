@@ -88,7 +88,7 @@ export function CreateEncounterDrawer({ open, onOpenChange }: CreateEncounterDra
 
 	return (
 		<Drawer open={open} onOpenChange={handleOpenChange} direction="right">
-			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				{selectedEncounterRecordType === null ? (
 					<>
 						<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
@@ -104,7 +104,7 @@ export function CreateEncounterDrawer({ open, onOpenChange }: CreateEncounterDra
 							</DrawerDescription>
 						</DrawerHeader>
 
-						<div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-8">
+						<div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-5">
 							{encounterRecordOptions.map((recordOption) => (
 								<Button
 									key={recordOption.id}

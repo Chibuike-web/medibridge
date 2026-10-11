@@ -13,7 +13,13 @@ import {
 import { useShowSuccess } from "@/hooks/use-show-success";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { RiErrorWarningFill, RiEyeLine, RiEyeOffLine, RiInformationLine } from "@remixicon/react";
+import {
+	RiCloseLine,
+	RiErrorWarningFill,
+	RiEyeLine,
+	RiEyeOffLine,
+	RiInformationLine,
+} from "@remixicon/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState, useTransition } from "react";
@@ -137,7 +143,7 @@ function CreateInvitedAdminForm({
 					)}
 				</div>
 
-				<FormError message={accountSetupError} />
+				<FormError message={accountSetupError} onDismiss={() => setAccountSetupError("")} />
 
 				<Button className="mt-16 w-full" type="submit" disabled={isSubmitting}>
 					{isSubmitting ? "Creating account..." : "Create account"}
@@ -187,11 +193,11 @@ function AwaitingEmailVerification({
 	return (
 		<div className="mt-12 text-gray-800">
 			<ReadOnlyEmailField email={email} />
-			<p className="mt-6 text-center text-sm font-medium text-gray-600">
+			<p className="mt-6 text-center text-sm font-normal text-gray-600">
 				Verify your email, then sign in to accept this invitation. If you already verified your
 				email, sign in now.
 			</p>
-			<FormError message={verificationError} />
+			<FormError message={verificationError} onDismiss={() => setVerificationError("")} />
 			{verificationFeedback && (
 				<p role="status" className="mt-4 text-sm text-green-700">
 					{verificationFeedback}
@@ -274,7 +280,7 @@ function AcceptInvitationButton({
 
 	return (
 		<>
-			<FormError message={acceptInvitationError} />
+			<FormError message={acceptInvitationError} onDismiss={() => setAcceptInvitationError("")} />
 			<Button
 				className="mt-16 w-full"
 				type="button"
@@ -329,7 +335,7 @@ function SwitchAccountButton() {
 
 	return (
 		<>
-			<FormError message={switchAccountError} />
+			<FormError message={switchAccountError} onDismiss={() => setSwitchAccountError("")} />
 			<Button
 				className="mt-16 w-full"
 				type="button"
@@ -390,7 +396,7 @@ function PasswordVisibilityButton({
 	);
 }
 
-function FormError({ message }: { message: string }) {
+function FormError({ message, onDismiss }: { message: string; onDismiss: () => void }) {
 	if (!message) {
 		return null;
 	}
@@ -401,7 +407,17 @@ function FormError({ message }: { message: string }) {
 			role="alert"
 		>
 			<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
-			<span>{message}</span>
+			<span className="min-w-0 flex-1">{message}</span>
+			<Button
+				type="button"
+				variant="ghost"
+				size="icon"
+				className="ml-auto -my-1 size-6 rounded-full"
+				aria-label="Dismiss error message"
+				onClick={onDismiss}
+			>
+				<RiCloseLine aria-hidden="true" />
+			</Button>
 		</div>
 	);
 }

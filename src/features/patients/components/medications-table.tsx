@@ -80,6 +80,9 @@ import {
 import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import useSWR from "swr";
+import { useRouter } from "next/navigation";
+
+type MedicationDetailsRequestError = Error & { status?: number };
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
@@ -156,6 +159,7 @@ export function MedicationsTable({
 	onNextPage,
 	onLimitChange,
 }: MedicationsTableProps) {
+	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
@@ -169,6 +173,15 @@ export function MedicationsTable({
 	const medicationDetailsQuery = useSWR(
 		selectedId ? (["patient-medication-details", selectedId] as const) : null,
 		([, selectedId]) => fetchPatientMedicationDetails(selectedId),
+		{
+			onError: (error: MedicationDetailsRequestError) => {
+				if (error.status === 401 || error.status === 403) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: MedicationDetailsRequestError) =>
+				error.status !== 401 && error.status !== 403,
+		},
 	);
 
 	function handleViewMedicationDetails(medicationId: string) {
@@ -894,7 +907,9 @@ async function fetchPatientMedicationDetails(selectedId: string) {
 	const response = await fetch(`/api/patient-medication-details/${encodeURIComponent(selectedId)}`);
 
 	if (!response.ok) {
-		throw new Error("Unable to load medication details.");
+		throw Object.assign(new Error("Unable to load medication details."), {
+			status: response.status,
+		});
 	}
 
 	const result = (await response.json()) as { medication: MedicationDetailsType | null };

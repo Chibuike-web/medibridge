@@ -10,7 +10,7 @@ afterAll(() => consoleLogSpy.mockRestore());
 
 const {
 	existsSyncMock,
-	readFileSyncMock,
+	readFileMock,
 	mkdirMock,
 	readdirMock,
 	renameMock,
@@ -19,6 +19,8 @@ const {
 	getSessionDataMock,
 	getOrganizationIdMock,
 	selectMock,
+	saveExtractionMock,
+	savedExtractions,
 	existingHospitalQueryMock,
 	createWorkerMock,
 	terminateMock,
@@ -31,7 +33,7 @@ const {
 	mammothExtractRawTextMock,
 } = vi.hoisted(() => ({
 	existsSyncMock: vi.fn(),
-	readFileSyncMock: vi.fn(),
+	readFileMock: vi.fn(),
 	mkdirMock: vi.fn(),
 	readdirMock: vi.fn(),
 	renameMock: vi.fn(),
@@ -40,6 +42,8 @@ const {
 	getSessionDataMock: vi.fn(),
 	getOrganizationIdMock: vi.fn(),
 	selectMock: vi.fn(),
+	saveExtractionMock: vi.fn(),
+	savedExtractions: [] as Record<string, unknown>[],
 	existingHospitalQueryMock: vi.fn(),
 	createWorkerMock: vi.fn(),
 	terminateMock: vi.fn(),
@@ -54,9 +58,9 @@ const {
 
 vi.mock("node:fs", () => ({
 	existsSync: existsSyncMock,
-	readFileSync: readFileSyncMock,
 }));
 vi.mock("node:fs/promises", () => ({
+	readFile: readFileMock,
 	mkdir: mkdirMock,
 	readdir: readdirMock,
 	rename: renameMock,
@@ -65,7 +69,9 @@ vi.mock("node:fs/promises", () => ({
 }));
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
-vi.mock("@/lib/better-auth/auth", () => ({ db: { select: selectMock } }));
+vi.mock("@/lib/better-auth/auth", () => ({
+	db: { select: selectMock, insert: () => ({ values: saveExtractionMock }) },
+}));
 vi.mock("tesseract.js", () => ({ createWorker: createWorkerMock }));
 vi.mock("mammoth", () => ({ default: { extractRawText: mammothExtractRawTextMock } }));
 vi.mock("pdf-parse", () => ({ PDFParse: PdfParseMock }));
@@ -96,13 +102,50 @@ function storedPath(filePath: string) {
 function fileRequest(url: string) {
 	const formData = new FormData();
 	formData.append("file", new File(["file contents"], "record.pdf", { type: "application/pdf" }));
+	formData.append("clientId", "client-record");
 
 	return new Request(url, { method: "POST", body: formData });
+}
+
+function createExtractedPatient(documentId: string) {
+	return {
+		documentId,
+		personalInfo: {
+			firstName: "Alex",
+			middleName: null,
+			lastName: "Synthetic",
+			patientId: null,
+			dateOfBirth: null,
+			sex: null,
+			age: null,
+			maritalStatus: null,
+			nationalId: null,
+		},
+		contactInfo: {
+			phoneNumber: null,
+			emailAddress: null,
+			residentialAddress: null,
+			stateOfOrigin: null,
+			countryOfOrigin: null,
+		},
+		emergencyInfo: {
+			firstName: null,
+			middleName: null,
+			lastName: null,
+			relationship: null,
+			phone: null,
+		},
+		physicalInfo: { height: null, weight: null, bloodGroup: null, genotype: null },
+	};
 }
 
 describe("Uploads and extraction API", () => {
 	beforeEach(async () => {
 		vi.clearAllMocks();
+		savedExtractions.length = 0;
+		saveExtractionMock.mockImplementation(async (row: Record<string, unknown>) => {
+			savedExtractions.push(structuredClone(row));
+		});
 		testUploadDir = await fileSystem.mkdtemp(path.join(os.tmpdir(), "medibridge-uploads-"));
 		mkdirMock.mockImplementation((filePath, options) =>
 			fileSystem.mkdir(storedPath(filePath), options),
@@ -116,6 +159,7 @@ describe("Uploads and extraction API", () => {
 			fileSystem.writeFile(storedPath(filePath), buffer),
 		);
 		existsSyncMock.mockReturnValue(true);
+		readFileMock.mockResolvedValue(Buffer.from("PDF file contents"));
 		createWorkerMock.mockResolvedValue({ terminate: terminateMock, recognize: vi.fn() });
 		getSessionDataMock.mockResolvedValue({ user: { id: "owner-1", emailVerified: true } });
 		getOrganizationIdMock.mockResolvedValue("hospital-1");
@@ -144,6 +188,7 @@ describe("Uploads and extraction API", () => {
 			expect(body.message).toBe("Files successfully uploaded");
 			expect(body.files).toHaveLength(1);
 			expect(body.files[0]).toMatchObject({
+				status: "upload-complete",
 				name: "record.pdf",
 				type: "application/pdf",
 				size: 13,
@@ -161,6 +206,7 @@ describe("Uploads and extraction API", () => {
 		test("saves a JPEG upload and preserves its extension in the stored name", async () => {
 			const formData = new FormData();
 			formData.append("file", new File(["scan contents"], "scan.jpeg", { type: "image/jpeg" }));
+			formData.append("clientId", "client-scan");
 			const response = await uploadFile({ formData: async () => formData } as Request);
 			const body = await response.json();
 
@@ -174,10 +220,24 @@ describe("Uploads and extraction API", () => {
 			);
 		});
 
+		test.each([false, undefined])(
+			"denies patient uploads when email verification is %s",
+			async (emailVerified) => {
+				getSessionDataMock.mockResolvedValue({ user: { id: "owner-1", emailVerified } });
+				const response = await uploadFile(fileRequest("http://localhost/api/file-upload"));
+				expect(response.status).toBe(403);
+				expect(await response.json()).toEqual({
+					status: "failed",
+					error: "Verify your email before uploading patient records.",
+				});
+				expect(await fileSystem.readdir(testUploadDir)).toEqual([]);
+			},
+		);
+
 		test("denies patient uploads without a session or an approved hospital", async () => {
 			getSessionDataMock.mockResolvedValue(null);
 			expect((await uploadFile(fileRequest("http://localhost/api/file-upload"))).status).toBe(401);
-			getSessionDataMock.mockResolvedValue({ user: { id: "owner-1" } });
+			getSessionDataMock.mockResolvedValue({ user: { id: "owner-1", emailVerified: true } });
 			getOrganizationIdMock.mockResolvedValue(null);
 			expect((await uploadFile(fileRequest("http://localhost/api/file-upload"))).status).toBe(403);
 			expect(writeFileMock).not.toHaveBeenCalled();
@@ -212,7 +272,9 @@ describe("Uploads and extraction API", () => {
 		test("preserves the display names and contents of every valid file in a batch", async () => {
 			const formData = new FormData();
 			formData.append("file", new File(["pdf contents"], "record.PDF"));
+			formData.append("clientId", "client-record");
 			formData.append("file", new File(["docx contents"], "intake.docx"));
+			formData.append("clientId", "client-intake");
 			const response = await uploadFile(
 				new Request("http://localhost/api/file-upload", {
 					method: "POST",
@@ -235,11 +297,14 @@ describe("Uploads and extraction API", () => {
 		test("reports a failed patient file write instead of success", async () => {
 			writeFileMock.mockRejectedValueOnce(new Error("private disk details"));
 			const response = await uploadFile(fileRequest("http://localhost/api/file-upload"));
-			expect(response.status).toBe(500);
-			expect(await response.json()).toEqual({
-				status: "failed",
-				error: "We couldn’t upload your files. Please try again.",
-			});
+			expect(response.status).toBe(200);
+			expect((await response.json()).files).toEqual([
+				{
+					clientId: "client-record",
+					name: "record.pdf",
+					status: "upload-failed",
+				},
+			]);
 			expect(
 				await fileSystem.readdir(
 					storedPath(path.resolve("patient-uploads", "hospital-1", "owner-1")),
@@ -249,7 +314,7 @@ describe("Uploads and extraction API", () => {
 
 		test("keeps another user's upload separate when both choose the same filename", async () => {
 			const firstResponse = await uploadFile(fileRequest("http://localhost/api/file-upload"));
-			getSessionDataMock.mockResolvedValue({ user: { id: "owner-2" } });
+			getSessionDataMock.mockResolvedValue({ user: { id: "owner-2", emailVerified: true } });
 			getOrganizationIdMock.mockResolvedValue("hospital-2");
 			const secondResponse = await uploadFile(fileRequest("http://localhost/api/file-upload"));
 			const firstUpload = (await firstResponse.json()).files[0];
@@ -266,6 +331,7 @@ describe("Uploads and extraction API", () => {
 			async (name) => {
 				const formData = new FormData();
 				formData.append("file", new File(["contents"], name, { type: "application/pdf" }));
+				formData.append("clientId", "client-record");
 				const response = await uploadFile({ formData: async () => formData } as Request);
 				expect(response.status).toBe(200);
 				const [uploadedFile] = (await response.json()).files;
@@ -283,7 +349,9 @@ describe("Uploads and extraction API", () => {
 		test("does not overwrite another upload with the same original filename", async () => {
 			const formData = new FormData();
 			formData.append("file", new File(["first document"], "record.pdf"));
+			formData.append("clientId", "client-first");
 			formData.append("file", new File(["second document"], "record.pdf"));
+			formData.append("clientId", "client-second");
 			const response = await uploadFile({ formData: async () => formData } as Request);
 			expect(response.status).toBe(200);
 			const { files } = await response.json();
@@ -519,7 +587,220 @@ describe("Uploads and extraction API", () => {
 			});
 		}
 
-		test("returns a flat list of extracted patients through the installed AI SDK", async () => {
+		test("stores the extracted records for the authenticated hospital and returns their saved extraction ID", async () => {
+			const records = [createExtractedPatient("intake.docx")];
+			mammothExtractRawTextMock.mockResolvedValue({ value: "Patient information" });
+			generateTextMock.mockResolvedValue({ output: records });
+
+			const response = await extractFile(extractFileRequest({ filenames: ["intake.docx"] }));
+			const payload = await response.json();
+
+			expect(response.status).toBe(200);
+			expect(payload).toMatchObject({
+				status: "success",
+				extractionId: expect.any(String),
+			});
+			expect(savedExtractions).toEqual([
+				{
+					id: payload.extractionId,
+					organizationId: "hospital-1",
+					createdBy: "owner-1",
+					extractedData: records,
+				},
+			]);
+			expect(payload).not.toHaveProperty("extracted");
+		});
+
+		test("returns a save error without a success payload when extraction storage fails", async () => {
+			const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+			mammothExtractRawTextMock.mockResolvedValue({ value: "Patient information" });
+			generateTextMock.mockResolvedValue({ output: [createExtractedPatient("intake.docx")] });
+			saveExtractionMock.mockRejectedValue(new Error("Private database connection details"));
+
+			try {
+				const response = await extractFile(extractFileRequest({ filenames: ["intake.docx"] }));
+
+				expect(response.status).toBe(500);
+				expect(await response.json()).toEqual({
+					status: "failed",
+					error: "We couldn’t save the extracted information. Please try again.",
+				});
+				expect(savedExtractions).toEqual([]);
+			} finally {
+				consoleErrorSpy.mockRestore();
+			}
+		});
+
+		test("does not report a saved extraction when the model returns no patient records", async () => {
+			mammothExtractRawTextMock.mockResolvedValue({
+				value: "A document without patient information",
+			});
+			generateTextMock.mockResolvedValue({ output: [] });
+
+			const response = await extractFile(extractFileRequest({ filenames: ["intake.docx"] }));
+
+			expect(response.status).toBe(500);
+			expect(await response.json()).toEqual({
+				status: "failed",
+				error: "Provide valid extracted patient information.",
+			});
+			expect(savedExtractions).toEqual([]);
+		});
+
+		test.each(["png", "docx", "pdf"])(
+			"returns the text read from a %s upload",
+			async (extension) => {
+				const text = "Patient Alex Synthetic, born 1990-01-01. ".repeat(5);
+				createWorkerMock.mockResolvedValue({
+					terminate: terminateMock,
+					recognize: vi.fn().mockResolvedValue({ data: { text: `  ${text}  ` } }),
+				});
+				mammothExtractRawTextMock.mockResolvedValue({ value: text });
+				PdfParseMock.mockImplementation(function () {
+					return {
+						getInfo: vi.fn().mockResolvedValue({ total: 1 }),
+						getText: vi.fn().mockResolvedValue({ text }),
+						destroy: vi.fn().mockResolvedValue(undefined),
+					};
+				});
+				const filename = `intake.${extension}`;
+				generateTextMock.mockResolvedValue({ output: [createExtractedPatient(filename)] });
+
+				const response = await extractFile(extractFileRequest({ filenames: [filename] }));
+
+				expect(response.status).toBe(200);
+				expect(await response.json()).toMatchObject({
+					status: "success",
+					parsed: 1,
+					failed: 0,
+					result: [
+						{
+							name: filename,
+							path: path.resolve("patient-uploads", "hospital-1", "owner-1", filename),
+							status: "success",
+							text: extension === "png" ? text.trim() : text,
+						},
+					],
+				});
+			},
+		);
+
+		test("combines readable PDF text with OCR text from a scanned page", async () => {
+			const readableText = "Patient Alex Synthetic, born 1990-01-01. ".repeat(5);
+			createWorkerMock.mockResolvedValue({
+				terminate: terminateMock,
+				recognize: vi.fn().mockResolvedValue({ data: { text: "  Scanned patient information  " } }),
+			});
+			PdfParseMock.mockImplementation(function () {
+				return {
+					getInfo: vi.fn().mockResolvedValue({ total: 2 }),
+					getText: vi.fn().mockImplementation(async ({ partial }) => ({
+						text: partial[0] === 1 ? readableText : "",
+					})),
+					getScreenshot: vi.fn().mockResolvedValue({ pages: [{ data: Buffer.from("scan") }] }),
+					destroy: vi.fn().mockResolvedValue(undefined),
+				};
+			});
+			generateTextMock.mockResolvedValue({ output: [createExtractedPatient("mixed.pdf")] });
+
+			const response = await extractFile(extractFileRequest({ filenames: ["mixed.pdf"] }));
+
+			expect(response.status).toBe(200);
+			expect((await response.json()).result).toEqual([
+				{
+					name: "mixed.pdf",
+					path: path.resolve("patient-uploads/hospital-1/owner-1/mixed.pdf"),
+					status: "success",
+					text: `${readableText}\n\nScanned patient information`,
+				},
+			]);
+		});
+
+		test.each([
+			["png", "We couldn’t read this image. Please try again."],
+			["docx", "We couldn’t read this Word document. Please try again."],
+			["pdf", "We couldn’t read this PDF. Please try again."],
+		])(
+			"reports an unreadable %s without exposing parser errors or losing a successful file",
+			async (extension, expectedError) => {
+				const internalError = new Error("Private parser detail: /internal/patient-data");
+				const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+				const destroyPdfMock = vi.fn().mockResolvedValue(undefined);
+				createWorkerMock.mockResolvedValue({
+					terminate: terminateMock,
+					recognize: vi.fn().mockRejectedValue(internalError),
+				});
+				mammothExtractRawTextMock.mockImplementation(async ({ path: filePath }) => {
+					if (filePath.endsWith("unreadable.docx")) throw internalError;
+					return { value: "Good patient information" };
+				});
+				PdfParseMock.mockImplementation(function () {
+					return {
+						getInfo: vi.fn().mockResolvedValue({ total: 1 }),
+						getText: vi.fn().mockRejectedValue(internalError),
+						destroy: destroyPdfMock,
+					};
+				});
+				generateTextMock.mockResolvedValue({ output: [createExtractedPatient("readable.docx")] });
+				const filename = `unreadable.${extension}`;
+
+				try {
+					const response = await extractFile(
+						extractFileRequest({ filenames: [filename, "readable.docx"] }),
+					);
+					expect(response.status).toBe(200);
+					const payload = await response.json();
+					const failedFile = {
+						name: filename,
+						path: path.resolve("patient-uploads", "hospital-1", "owner-1", filename),
+						status: "failed",
+						text: "",
+						error: expectedError,
+					};
+					expect(payload).toMatchObject({
+						status: "success",
+						parsed: 1,
+						failed: 1,
+						failedDocuments: [failedFile],
+						result: [
+							failedFile,
+							{
+								name: "readable.docx",
+								status: "success",
+								text: "Good patient information",
+							},
+						],
+					});
+					if (extension === "pdf") {
+						// Closing the external parser after a failed read is a resource-lifecycle contract.
+						expect(destroyPdfMock).toHaveBeenCalled();
+					}
+				} finally {
+					consoleErrorSpy.mockRestore();
+				}
+			},
+		);
+
+		test("reports unsupported files while retaining a supported file's extracted text", async () => {
+			mammothExtractRawTextMock.mockResolvedValue({ value: "Good patient information" });
+			generateTextMock.mockResolvedValue({ output: [createExtractedPatient("readable.docx")] });
+
+			const response = await extractFile(
+				extractFileRequest({ filenames: ["intake.txt", "readable.docx"] }),
+			);
+
+			expect(response.status).toBe(200);
+			expect(await response.json()).toMatchObject({
+				parsed: 1,
+				failed: 1,
+				result: [
+					{ name: "intake.txt", status: "failed", text: "", error: "Unsupported file type." },
+					{ name: "readable.docx", status: "success", text: "Good patient information" },
+				],
+			});
+		});
+
+		test("stores a flat list of extracted patients through the installed AI SDK", async () => {
 			const ai = await vi.importActual<typeof import("ai")>("ai");
 			const { MockLanguageModelV4 } = await import("ai/test");
 			const patient = {
@@ -569,12 +850,16 @@ describe("Uploads and extraction API", () => {
 			const response = await extractFile(extractFileRequest({ filenames: ["intake.docx"] }));
 
 			expect(response.status).toBe(200);
-			expect(await response.json()).toMatchObject({
+			const payload = await response.json();
+			expect(payload).toMatchObject({
 				status: "success",
 				parsed: 1,
 				failed: 0,
-				extracted: [patient],
 			});
+			expect(savedExtractions).toEqual([
+				expect.objectContaining({ id: payload.extractionId, extractedData: [patient] }),
+			]);
+			expect(payload).not.toHaveProperty("extracted");
 		});
 
 		test.each(["../hospital-2/private.pdf", "..\\private.pdf", "C:\\private.pdf"])(
@@ -582,14 +867,14 @@ describe("Uploads and extraction API", () => {
 			async (filename) => {
 				const response = await extractFile(extractFileRequest({ filenames: [filename] }));
 				expect(response.status).toBe(400);
-				expect(readFileSyncMock).not.toHaveBeenCalled();
+				expect(readFileMock).not.toHaveBeenCalled();
 				expect(createWorkerMock).not.toHaveBeenCalled();
 			},
 		);
 
 		test("extracts only the signed-in member's own hospital upload", async () => {
 			mammothExtractRawTextMock.mockResolvedValue({ value: "patient information" });
-			generateTextMock.mockResolvedValue({ output: [] });
+			generateTextMock.mockResolvedValue({ output: [createExtractedPatient("intake.docx")] });
 			const response = await extractFile(extractFileRequest({ filenames: ["intake.docx"] }));
 			expect(response.status).toBe(200);
 			const payload = await response.json();
@@ -606,13 +891,16 @@ describe("Uploads and extraction API", () => {
 		test("extracts an uploaded patient document using its returned stored filename", async () => {
 			const formData = new FormData();
 			formData.append("file", new File(["patient information"], "original intake.docx"));
+			formData.append("clientId", "client-original");
 			const uploadedResponse = await uploadFile({ formData: async () => formData } as Request);
 			expect(uploadedResponse.status).toBe(200);
 			const [uploadedFile] = (await uploadedResponse.json()).files;
 			mammothExtractRawTextMock.mockImplementation(async ({ path: filePath }) => ({
 				value: await fileSystem.readFile(storedPath(filePath), "utf8"),
 			}));
-			generateTextMock.mockResolvedValue({ output: [] });
+			generateTextMock.mockResolvedValue({
+				output: [createExtractedPatient(uploadedFile.storedName)],
+			});
 			const response = await extractFile(
 				extractFileRequest({ filenames: [uploadedFile.storedName] }),
 			);
@@ -627,6 +915,23 @@ describe("Uploads and extraction API", () => {
 			]);
 		});
 
+		test.each([false, undefined])(
+			"rejects extraction when email verification is %s",
+			async (emailVerified) => {
+				getSessionDataMock.mockResolvedValue({ user: { id: "owner-1", emailVerified } });
+				const response = await extractFile(extractFileRequest({ filenames: ["intake.pdf"] }));
+				expect(response.status).toBe(403);
+				expect(await response.json()).toEqual({
+					status: "failed",
+					error: "Verify your email before extracting patient records.",
+				});
+				expect(readFileMock).not.toHaveBeenCalled();
+				expect(createWorkerMock).not.toHaveBeenCalled();
+				expect(generateTextMock).not.toHaveBeenCalled();
+				expect(savedExtractions).toEqual([]);
+			},
+		);
+
 		test("rejects signed-out requests before reading any files", async () => {
 			getSessionDataMock.mockResolvedValue(null);
 
@@ -637,12 +942,12 @@ describe("Uploads and extraction API", () => {
 				status: "failed",
 				error: "Sign in to extract patient records.",
 			});
-			expect(readFileSyncMock).not.toHaveBeenCalled();
+			expect(readFileMock).not.toHaveBeenCalled();
 			expect(generateTextMock).not.toHaveBeenCalled();
 		});
 
 		test("rejects members without a verified hospital before reading any files", async () => {
-			getSessionDataMock.mockResolvedValue({ user: { id: "owner-1" } });
+			getSessionDataMock.mockResolvedValue({ user: { id: "owner-1", emailVerified: true } });
 			getOrganizationIdMock.mockResolvedValue(null);
 
 			const response = await extractFile(extractFileRequest({ filenames: ["intake.pdf"] }));
@@ -652,19 +957,19 @@ describe("Uploads and extraction API", () => {
 				status: "failed",
 				error: "Your hospital must be verified before you can extract patient records.",
 			});
-			expect(readFileSyncMock).not.toHaveBeenCalled();
+			expect(readFileMock).not.toHaveBeenCalled();
 			expect(generateTextMock).not.toHaveBeenCalled();
 		});
 
 		test("returns 400 when a verified member sends no filenames", async () => {
-			getSessionDataMock.mockResolvedValue({ user: { id: "owner-1" } });
+			getSessionDataMock.mockResolvedValue({ user: { id: "owner-1", emailVerified: true } });
 			getOrganizationIdMock.mockResolvedValue("hospital-1");
 
 			const response = await extractFile(extractFileRequest({}));
 
 			expect(response.status).toBe(400);
 			expect(await response.json()).toEqual({ status: "failed", error: "Missing file" });
-			expect(readFileSyncMock).not.toHaveBeenCalled();
+			expect(readFileMock).not.toHaveBeenCalled();
 			expect(generateTextMock).not.toHaveBeenCalled();
 		});
 	});

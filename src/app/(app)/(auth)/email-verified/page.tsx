@@ -7,11 +7,9 @@ export const metadata = {
 	title: "Email Verified",
 };
 
-type EmailVerifiedProps = {
-	searchParams: Promise<{ error?: string | string[] }>;
-};
+type EmailVerifiedPageProps = Pick<PageProps<"/email-verified">, "searchParams">;
 
-export default function EmailVerified({ searchParams }: EmailVerifiedProps) {
+export default function EmailVerified({ searchParams }: EmailVerifiedPageProps) {
 	return (
 		<Suspense>
 			<EmailVerifiedContent searchParams={searchParams} />
@@ -19,7 +17,7 @@ export default function EmailVerified({ searchParams }: EmailVerifiedProps) {
 	);
 }
 
-async function EmailVerifiedContent({ searchParams }: EmailVerifiedProps) {
+async function EmailVerifiedContent({ searchParams }: EmailVerifiedPageProps) {
 	const { error } = await searchParams;
 	const verificationError = Array.isArray(error) ? error[0] : error;
 	if (verificationError) return <EmailVerifiedClient />;

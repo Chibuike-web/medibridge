@@ -80,6 +80,9 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import useSWR from "swr";
+import { useRouter } from "next/navigation";
+
+type ImmunizationDetailsRequestError = Error & { status?: number };
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
@@ -163,6 +166,7 @@ export function ImmunizationsTable({
 	onNextPage,
 	onLimitChange,
 }: ImmunizationsTableProps) {
+	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [sorting, setSorting] = useState<SortingState>([]);
@@ -176,6 +180,15 @@ export function ImmunizationsTable({
 	const immunizationDetailsQuery = useSWR(
 		selectedId ? (["patient-immunization-details", selectedId] as const) : null,
 		([, selectedId]) => fetchPatientImmunizationDetails(selectedId),
+		{
+			onError: (error: ImmunizationDetailsRequestError) => {
+				if (error.status === 401 || error.status === 403) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: ImmunizationDetailsRequestError) =>
+				error.status !== 401 && error.status !== 403,
+		},
 	);
 	const columns = useMemo(
 		() =>
@@ -880,7 +893,9 @@ async function fetchPatientImmunizationDetails(selectedId: string) {
 	);
 
 	if (!response.ok) {
-		throw new Error("Unable to load immunization details.");
+		throw Object.assign(new Error("Unable to load immunization details."), {
+			status: response.status,
+		});
 	}
 
 	const result = (await response.json()) as {

@@ -10,6 +10,7 @@ import {
 } from "@/db/schemas/patient";
 import { auth, db } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
+import { updateTag } from "next/cache";
 import { inArray } from "drizzle-orm";
 import { SavePatientsResult } from "./types";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
@@ -70,11 +71,16 @@ export async function saveExtractedPatientsService(
 		}
 
 		const session = await auth.api.getSession({ headers: await headers() });
-		const organizationId = await getOrganizationId();
 
 		if (!session?.user?.id) {
 			return { status: "failed", error: "You must be signed in to save patients." };
 		}
+
+		if (!session.user.emailVerified) {
+			return { status: "failed", error: "Verify your email before saving patients." };
+		}
+
+		const organizationId = await getOrganizationId();
 
 		if (!organizationId) {
 			return { status: "failed", error: "No active organization was found for this session." };
@@ -151,6 +157,14 @@ export async function saveExtractedPatientsService(
 				});
 			}
 		});
+
+		updateTag(`patients-list-${organizationId}`);
+		updateTag(`recent-patients-${organizationId}`);
+		updateTag(`overview-stats-${organizationId}`);
+		for (const patientId of patientIds) {
+			updateTag(`patient-profile-${organizationId}-${patientId}`);
+			updateTag(`patient-by-id-${organizationId}-${patientId}`);
+		}
 
 		return {
 			status: "success",

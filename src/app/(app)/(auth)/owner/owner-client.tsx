@@ -10,6 +10,7 @@ import { useState, useTransition } from "react";
 import { flushSync } from "react-dom";
 import { ownerSchema, OwnerType } from "@/features/auth/schemas/owner-schema";
 import {
+	RiCloseLine,
 	RiCheckboxCircleFill,
 	RiErrorWarningFill,
 	RiEyeLine,
@@ -127,7 +128,7 @@ export function OwnerClient() {
 					<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 						Check your email
 					</h1>
-					<p className="text-gray-600 text-sm font-medium text-pretty mt-4">
+					<p className="text-gray-600 text-sm font-normal text-pretty mt-4">
 						We sent a verification link to{" "}
 						<span className="text-gray-800">{verificationEmailAddress}</span>. Open it to add your
 						hospital details.
@@ -148,7 +149,17 @@ export function OwnerClient() {
 						className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-left text-sm font-medium text-red-700"
 					>
 						<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
-						<span>{resendFeedback.message}</span>
+						<span className="min-w-0 flex-1">{resendFeedback.message}</span>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="ml-auto -my-1 size-6 rounded-full"
+							aria-label="Dismiss error message"
+							onClick={() => setResendFeedback(null)}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
 					</div>
 				)}
 				{resendFeedback?.type === "success" && (
@@ -157,7 +168,17 @@ export function OwnerClient() {
 						className="mt-4 flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-left text-sm font-medium text-green-700"
 					>
 						<RiCheckboxCircleFill className="size-4 shrink-0" aria-hidden="true" />
-						<span>{resendFeedback.message}</span>
+						<span className="min-w-0 flex-1">{resendFeedback.message}</span>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="ml-auto -my-1 size-6 rounded-full"
+							aria-label="Dismiss success message"
+							onClick={() => setResendFeedback(null)}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
 					</div>
 				)}
 
@@ -193,7 +214,7 @@ export function OwnerClient() {
 				<h1 className="text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 					Owner Account Setup
 				</h1>
-				<p className="text-gray-600 text-sm font-medium text-center text-pretty mt-4">
+				<p className="text-gray-600 text-sm font-normal text-center text-pretty mt-4">
 					Set up the primary owner account for your hospital. This account will manage access and
 					invite other members.
 				</p>

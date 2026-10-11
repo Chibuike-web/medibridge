@@ -17,6 +17,13 @@ export async function POST(req: Request) {
 			);
 		}
 
+		if (!session.user.emailVerified) {
+			return Response.json(
+				{ status: "failed", error: "Verify your email before uploading patient records." },
+				{ status: 403 },
+			);
+		}
+
 		const organizationId = await getOrganizationId();
 		if (!organizationId) {
 			return Response.json(
@@ -30,6 +37,7 @@ export async function POST(req: Request) {
 		const formData = await req.formData();
 
 		const files = formData.getAll("file");
+		const clientIds = formData.getAll("clientId");
 
 		if (files.length === 0) {
 			return Response.json({ status: "failed", error: "No file" }, { status: 400 });
@@ -55,32 +63,60 @@ export async function POST(req: Request) {
 				);
 			}
 		}
+		if (
+			clientIds.length !== files.length ||
+			clientIds.some((clientId) => typeof clientId !== "string" || !clientId.trim())
+		) {
+			return Response.json(
+				{ status: "failed", error: "Invalid upload client ID." },
+				{ status: 400 },
+			);
+		}
 		const uploadDir = path.resolve("patient-uploads", organizationId, session.user.id);
 
 		await mkdir(uploadDir, { recursive: true });
 
 		const uploadedFiles: SavedFileTypes[] = [];
 
-		for (const file of files) {
+		for (const [index, file] of files.entries()) {
+			const clientId = clientIds[index];
+			if (typeof clientId !== "string" || !clientId.trim()) {
+				return Response.json(
+					{ status: "failed", error: "Invalid upload client ID." },
+					{ status: 400 },
+				);
+			}
 			if (!(file instanceof File)) {
 				return Response.json({ status: "failed", error: "Invalid upload." }, { status: 400 });
 			}
 			const fileUploadId = crypto.randomUUID();
 			const fileExtension = path.extname(file.name).slice(1).toLowerCase();
 			const storedName = `${fileUploadId}.${fileExtension}`;
-			const arrayBuffer = await file.arrayBuffer();
-			const buffer = Buffer.from(arrayBuffer);
-			const savePath = path.join(uploadDir, storedName);
-			await writeFile(savePath, buffer);
+			try {
+				const arrayBuffer = await file.arrayBuffer();
+				const buffer = Buffer.from(arrayBuffer);
+				const savePath = path.join(uploadDir, storedName);
+				await writeFile(savePath, buffer);
 
-			uploadedFiles.push({
-				id: fileUploadId,
-				name: file.name,
-				storedName,
-				type: file.type,
-				size: file.size,
-				url: `patient-uploads/${organizationId}/${session.user.id}/${storedName}`,
-			});
+				uploadedFiles.push({
+					clientId,
+					id: fileUploadId,
+					status: "upload-complete",
+					name: file.name,
+					storedName,
+					type: file.type,
+					size: file.size,
+					url: `patient-uploads/${organizationId}/${session.user.id}/${storedName}`,
+				});
+			} catch (error) {
+				console.error("Uploading patient record failed:", error);
+
+				uploadedFiles.push({
+					clientId,
+					status: "upload-failed",
+					name: file.name,
+				});
+			}
 		}
 
 		return Response.json(

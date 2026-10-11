@@ -1,45 +1,109 @@
 "use client";
 
 import { deletePatientUploadAction } from "@/features/patients/server/delete-patient-upload-action";
-import { useExtractedPatient } from "@/features/patients/store/use-extracted-patient-store";
-import { ExtractionResult, SelectedFile } from "@/lib/types/upload";
-import { startTransition, useState } from "react";
+import { SavedFileTypes, SelectedFile } from "@/lib/types/upload";
+import { startTransition, useRef, useState } from "react";
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
+
+type UploadFileResponse =
+	| { status: "success"; files: SavedFileTypes[] }
+	| { status: "failed"; error: string };
 
 export function useFileUpload() {
 	const [files, setFiles] = useState<SelectedFile[]>([]);
 	const [uploadError, setUploadError] = useState("");
-	const [extractError, setExtractError] = useState("");
-	const { setPatientData } = useExtractedPatient();
+	const pendingUploadRetriesRef = useRef(new Set<string>());
 
-	const clearFile = async (id: string) => {
-		const fileToDelete = files.find((file) => file.id === id);
-		if (!fileToDelete) return;
+	async function retryUpload(clientId: string) {
+		const failedFile = files.find(
+			(file) => file.clientId === clientId && file.status === "upload-failed",
+		);
+		if (!failedFile || pendingUploadRetriesRef.current.has(clientId)) return;
 
+		pendingUploadRetriesRef.current.add(clientId);
+		setUploadError("");
 		setFiles((prev) =>
-			prev.map((file) => (file.id === id ? { ...file, status: "deleting" } : file)),
+			prev.map<SelectedFile>((file) =>
+				file.clientId === clientId ? { ...file, status: "uploading" } : file,
+			),
 		);
 
-		if (fileToDelete.url) {
-			await new Promise((r) => setTimeout(r, 5000));
+		try {
+			const formData = new FormData();
+			formData.append("file", failedFile.browserFile);
+			formData.append("clientId", clientId);
 
-			const result = await deletePatientUploadAction(fileToDelete.url);
+			const response = await fetch("/api/file-upload", {
+				method: "POST",
+				body: formData,
+			});
+			const data: UploadFileResponse = await response.json();
+			const uploadedFile =
+				data.status === "success"
+					? data.files?.find((file) => file.clientId === clientId)
+					: undefined;
 
-			if (result.status === "failed") {
-				setUploadError(result.error ?? "Unable to delete file.");
+			if (!response.ok || !uploadedFile || uploadedFile.status !== "upload-complete") {
+				setUploadError(
+					data.status === "failed" ? data.error : "We couldn’t upload this file. Please try again.",
+				);
 				setFiles((prev) =>
-					prev.map((file) => (file.id === id ? { ...file, status: fileToDelete.status } : file)),
+					prev.map<SelectedFile>((file) =>
+						file.clientId === clientId ? { ...file, status: "upload-failed" } : file,
+					),
 				);
 				return;
 			}
-			setFiles((prev) => prev.filter((f) => f.id !== id));
+
+			setFiles((prev) =>
+				prev.map<SelectedFile>((file) =>
+					file.clientId === clientId ? { ...file, ...uploadedFile } : file,
+				),
+			);
+		} catch (error) {
+			console.error("Retrying patient upload failed:", error);
+			setUploadError("We couldn’t upload this file. Please try again.");
+			setFiles((prev) =>
+				prev.map<SelectedFile>((file) =>
+					file.clientId === clientId ? { ...file, status: "upload-failed" } : file,
+				),
+			);
+		} finally {
+			pendingUploadRetriesRef.current.delete(clientId);
 		}
-	};
+	}
+
+	async function clearFile(clientId: string) {
+		const fileToDelete = files.find((file) => file.clientId === clientId);
+		if (!fileToDelete) return;
+		if (
+			fileToDelete.status === "idle" ||
+			fileToDelete.status === "uploading" ||
+			fileToDelete.status === "upload-failed"
+		) {
+			setFiles((prev) => prev.filter((file) => file.clientId !== clientId));
+			return;
+		}
+
+		setFiles((prev) =>
+			prev.map((file) =>
+				file.clientId === clientId ? { ...fileToDelete, status: "deleting" } : file,
+			),
+		);
+
+		const result = await deletePatientUploadAction(fileToDelete.url);
+
+		if (result.status === "failed") {
+			setUploadError(result.error ?? "Unable to delete file.");
+			setFiles((prev) => prev.map((file) => (file.clientId === clientId ? fileToDelete : file)));
+			return;
+		}
+		setFiles((prev) => prev.filter((file) => file.clientId !== clientId));
+	}
 
 	const handleFiles = async (incomingFiles: File[]) => {
 		setUploadError("");
-		setExtractError("");
 
 		if (incomingFiles.length === 0) {
 			setUploadError("Please select a valid file.");
@@ -61,7 +125,6 @@ export function useFileUpload() {
 		for (const file of browserFiles) {
 			if (file.size > MAX_FILE_SIZE_BYTES) {
 				setUploadError("File is too large. Maximum allowed size is 50MB.");
-				setFiles([]);
 				return;
 			}
 		}
@@ -77,10 +140,11 @@ export function useFileUpload() {
 			return;
 		}
 
-		const optimisticItems: SelectedFile[] = browserFiles.map((f) => ({
-			id: crypto.randomUUID(),
-			name: f.name,
-			size: f.size,
+		const optimisticItems: SelectedFile[] = browserFiles.map((file) => ({
+			clientId: crypto.randomUUID(),
+			browserFile: file,
+			name: file.name,
+			size: file.size,
 			status: "uploading",
 		}));
 
@@ -90,8 +154,9 @@ export function useFileUpload() {
 
 		try {
 			const formData = new FormData();
-			for (const f of browserFiles) {
-				formData.append("file", f);
+			for (const file of optimisticItems) {
+				formData.append("file", file.browserFile);
+				formData.append("clientId", file.clientId);
 			}
 
 			const res = await fetch("/api/file-upload", {
@@ -100,23 +165,29 @@ export function useFileUpload() {
 			});
 			const data = await res.json();
 			if (!res.ok) {
-				setUploadError(data.error ?? "Issue uploading file");
-				setFiles([]);
+				const error = data.error ?? "Issue uploading file";
+				setUploadError(error);
+				setFiles((prev) =>
+					prev.map<SelectedFile>((file) =>
+						optimisticItems.some((item) => item.clientId === file.clientId)
+							? { ...file, status: "upload-failed" }
+							: file,
+					),
+				);
 				return;
 			}
 
-			await new Promise((r) => setTimeout(r, 2000));
+			const uploadedFiles: SavedFileTypes[] = data.files;
 
 			startTransition(() => {
 				setFiles((prev) =>
-					prev.map((file) => {
-						const uploadedIndex = optimisticItems.findIndex((item) => item.id === file.id);
-						const uploadedMatch = data.files[uploadedIndex];
+					prev.map<SelectedFile>((file) => {
+						const uploadedMatch = uploadedFiles.find((item) => item.clientId === file.clientId);
 						if (!uploadedMatch) return file;
 
 						return {
+							...file,
 							...uploadedMatch,
-							status: "upload-complete",
 						};
 					}),
 				);
@@ -124,65 +195,15 @@ export function useFileUpload() {
 		} catch (error) {
 			console.error(error);
 			setUploadError("Upload failed.");
-			setFiles([]);
-		}
-	};
-
-	const extractInfo = async (fileIds?: string[]) => {
-		const isExtracting = files.some((f) => f.status === "extracting");
-		if (files.length === 0 || isExtracting) return;
-
-		setExtractError("");
-
-		const targetFileIds = fileIds ?? files.map((f) => f.id);
-		const storedFilenames = files
-			.filter((file) => targetFileIds.includes(file.id))
-			.map((file) => file.storedName ?? file.name);
-
-		setFiles((prev) =>
-			prev.map((f) => (targetFileIds.includes(f.id) ? { ...f, status: "extracting" } : f)),
-		);
-		try {
-			const res = await fetch("/api/extract-file", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ filenames: storedFilenames }),
-			});
-
-			const data = await res.json();
-
-			if (!res.ok) {
-				setExtractError(data.error ?? "Issue extracting file");
-
-				setFiles((prev) =>
-					prev.map((f) => (targetFileIds.includes(f.id) ? { ...f, status: "extract-failed" } : f)),
-				);
-				return;
-			}
-
-			const results: ExtractionResult[] = data.result || [];
-
-			startTransition(() => {
-				setFiles((prev) =>
-					prev.map((file) => {
-						const matched = results.find(
-							(result) => result.name === (file.storedName ?? file.name),
-						);
-						if (!matched) return file;
-
-						return {
-							...file,
-							status: matched.status === "failed" ? "extract-failed" : "extract-complete",
-						};
-					}),
-				);
-
-				setPatientData(data.extracted);
-			});
-		} catch (error) {
-			setExtractError(error instanceof Error ? error.message : "Extraction failed.");
 			setFiles((prev) =>
-				prev.map((f) => (targetFileIds.includes(f.id) ? { ...f, status: "extract-failed" } : f)),
+				prev.map<SelectedFile>((file) =>
+					optimisticItems.some((item) => item.clientId === file.clientId)
+						? {
+								...file,
+								status: "upload-failed",
+							}
+						: file,
+				),
 			);
 		}
 	};
@@ -190,12 +211,10 @@ export function useFileUpload() {
 	return {
 		files,
 		uploadError,
-		extractError,
 		setUploadError,
-		setExtractError,
 		setFiles,
 		clearFile,
+		retryUpload,
 		handleFiles,
-		extractInfo,
 	};
 }

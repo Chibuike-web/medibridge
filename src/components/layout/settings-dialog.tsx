@@ -146,7 +146,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 				<div className="flex h-full min-h-0">
 					<aside className="w-[12.5rem] shrink-0 border-r bg-white p-2">
 						<div className="flex h-10 items-center px-2">
-							<DialogTitle>Settings</DialogTitle>
+							<DialogTitle className="text-base">Settings</DialogTitle>
 							<DialogDescription className="sr-only">
 								Manage your MediBridge profile and organization settings.
 							</DialogDescription>
@@ -180,7 +180,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 					</aside>
 
 					<section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-						<div className="flex items-center justify-between border-b p-4">
+						<div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
 							{activeSettingsSubView ? (
 								<div className="flex items-center gap-2">
 									<Button
@@ -193,12 +193,12 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 									>
 										<RiArrowLeftLine className="size-5" aria-hidden="true" />
 									</Button>
-									<h2 className="text-lg font-semibold">
+									<h2 className="text-base font-semibold">
 										{settingsSubViewLabels[activeSettingsSubView]}
 									</h2>
 								</div>
 							) : (
-								<h2 className="text-lg font-semibold">{selectedSettingsSectionLabel}</h2>
+								<h2 className="text-base font-semibold">{selectedSettingsSectionLabel}</h2>
 							)}
 							<DialogClose
 								className="rounded-md border border-transparent p-1.5 text-foreground/60 transition-colors hover:bg-gray-100 hover:text-foreground focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"

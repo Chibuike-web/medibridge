@@ -42,7 +42,7 @@ export function TransferDetailsDrawer({
 }: TransferDetailsDrawerProps) {
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
-			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="border-b border-gray-200 text-left flex-row gap-4 items-center">
 					<DrawerTitle className="text-gray-800 leading-[1.2] flex-1">
 						View transfer details
@@ -60,7 +60,7 @@ export function TransferDetailsDrawer({
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<div className="px-4 py-6 overflow-y-auto text-sm">
+				<div className="px-4 py-5 overflow-y-auto text-sm">
 					{isLoading ? (
 						<TransferDetailsFallback />
 					) : (

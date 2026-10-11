@@ -12,9 +12,8 @@ import {
 	DialogPortal,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import type { PatientRecord } from "@/features/patients/schemas/patient-schema";
+import type { PatientRecord, PatientType } from "@/features/patients/schemas/patient-schema";
 import { savePatientsAction } from "@/features/patients/server/save-patients-action";
-import { useExtractedPatient } from "@/features/patients/store/use-extracted-patient-store";
 import { formatPatientLabel } from "@/features/patients/utils/format-patient-label";
 import { RiArrowRightSLine, RiCloseLine } from "@remixicon/react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
@@ -22,20 +21,22 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState, useTransition } from "react";
-import type { MouseEvent } from "react";
 import { cn } from "@/lib/utils/cn";
 import { PersonalInfo } from "./personal-info";
 import { ContactInfo } from "./contact-info";
 import { EmergencyInfo } from "./emergency-info";
 import { PhysicalInfo } from "./physical-info";
 
-export function ReviewExtractedInfoClient() {
-	const { patientData, setPatientData, isHydrated } = useExtractedPatient();
+type ReviewExtractedInfoClientProps = {
+	initialPatientData: PatientType;
+};
+
+export function ReviewExtractedInfoClient({ initialPatientData }: ReviewExtractedInfoClientProps) {
+	const [patientData, setPatientData] = useState(initialPatientData);
 	const router = useRouter();
 	const reviewLayoutId = useId();
 	const prefersReducedMotion = useReducedMotion();
-	const [shouldAnimatePatientDialog, setShouldAnimatePatientDialog] = useState(true);
-	const shouldMatchPatientLayout = shouldAnimatePatientDialog && !prefersReducedMotion;
+	const shouldMatchPatientLayout = !prefersReducedMotion;
 	const [selectedPatientIndex, setSelectedPatientIndex] = useState<number | null>(null);
 	const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
 	const patientDialogTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -43,7 +44,6 @@ export function ReviewExtractedInfoClient() {
 		selectedPatientIndex === null ? null : patientData?.[selectedPatientIndex];
 	const [saveError, setSaveError] = useState("");
 	const [isPending, startTransition] = useTransition();
-	const [shouldAnimateSaveFeedback, setShouldAnimateSaveFeedback] = useState(false);
 
 	function savePersonalInfo(personalInfo: PatientRecord["personalInfo"]) {
 		if (!patientData || selectedPatientIndex === null) return;
@@ -94,10 +94,9 @@ export function ReviewExtractedInfoClient() {
 		setIsSuccessDialogOpen(false);
 	};
 
-	const handleSave = (event: MouseEvent<HTMLButtonElement>) => {
+	const handleSave = () => {
 		if (!patientData || patientData.length === 0 || isPending) return;
 
-		setShouldAnimateSaveFeedback(event.detail > 0);
 		setSaveError("");
 		startTransition(async () => {
 			const result = await savePatientsAction(patientData);
@@ -112,26 +111,6 @@ export function ReviewExtractedInfoClient() {
 			setIsSuccessDialogOpen(true);
 		});
 	};
-
-	if (!isHydrated) {
-		return (
-			<main className="mx-auto my-30 max-w-[31.25rem]">
-				<div className="w-full px-4 md:px-0">
-					<div className="mx-auto h-9 w-72 animate-pulse rounded-md bg-gray-200" />
-					<div className="mt-4 mx-auto h-5 w-full max-w-md animate-pulse rounded-md bg-gray-100" />
-					<div className="mt-10 flex flex-col gap-4">
-						{Array.from({ length: 5 }).map((_, i) => (
-							<div
-								key={i}
-								className="h-[3.5rem] w-full animate-pulse rounded-xl border border-gray-200 bg-white"
-							/>
-						))}
-					</div>
-					<div className="mt-8 h-11 w-full animate-pulse rounded-md bg-gray-200" />
-				</div>
-			</main>
-		);
-	}
 
 	if (isSuccessDialogOpen) {
 		return (
@@ -183,7 +162,6 @@ export function ReviewExtractedInfoClient() {
 							asChild
 							onClick={(event) => {
 								patientDialogTriggerRef.current = event.currentTarget;
-								setShouldAnimatePatientDialog(event.detail > 0);
 								setSelectedPatientIndex(index);
 							}}
 							className="group/patient-card active:scale-[0.99] flex w-full justify-between rounded-xl border-gray-200 bg-white p-4 text-left hover:border-gray-300 focus-visible:ring-2 focus-visible:ring-gray-300 h-auto gap-0 whitespace-normal hover:bg-white hover:text-inherit focus-visible:border-gray-200"
@@ -242,9 +220,7 @@ export function ReviewExtractedInfoClient() {
 							<span
 								aria-hidden={isPending}
 								className={cn(
-									"col-start-1 row-start-1",
-									shouldAnimateSaveFeedback &&
-										"transition-opacity duration-150 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]",
+									"col-start-1 row-start-1 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] motion-reduce:transition-none",
 									isPending ? "opacity-0" : "opacity-100",
 								)}
 							>
@@ -253,9 +229,7 @@ export function ReviewExtractedInfoClient() {
 							<span
 								aria-hidden={!isPending}
 								className={cn(
-									"col-start-1 row-start-1",
-									shouldAnimateSaveFeedback &&
-										"transition-opacity duration-150 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]",
+									"col-start-1 row-start-1 transition-opacity duration-150 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] motion-reduce:transition-none",
 									isPending ? "opacity-100" : "opacity-0",
 								)}
 							>
@@ -350,7 +324,7 @@ function ReviewPatientDialog({
 										layout: { type: "spring", duration: 0.3, bounce: 0 },
 									}}
 								>
-									<DialogHeader>
+									<DialogHeader className="py-4">
 										<div className="flex w-full items-center justify-between gap-4">
 											<DialogTitle asChild>
 												<motion.h2
@@ -390,7 +364,7 @@ function ReviewPatientDialog({
 									</DialogHeader>
 									<motion.div
 										layout={shellLayoutId ? "position" : false}
-										className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain p-4"
+										className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-5"
 										initial={{ opacity: 0 }}
 										animate={{ opacity: 1 }}
 										exit={{ opacity: 0, transition: { duration: 0.05 } }}

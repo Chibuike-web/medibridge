@@ -104,8 +104,8 @@ const CommandDialog = ({
 		ref={ref}
 		className={cn("flex h-full w-full flex-col overflow-hidden bg-white text-gray-800", className)}
 		contentClassName={cn(
-			"fixed inset-x-4 bottom-4 z-50 h-auto max-h-[80vh] w-auto rounded-3xl border bg-background shadow-[0_2rem_2rem_-1.25rem_rgba(0,0,0,0.25)]",
-			"md:top-1/2 md:right-auto md:bottom-auto md:left-1/2 md:max-h-none md:w-full md:-translate-x-1/2 md:-translate-y-1/2",
+			"fixed inset-x-4 bottom-4 z-50 mx-auto h-auto max-h-[calc(100dvh-2rem)] w-auto max-w-[37.5rem] rounded-3xl border bg-background shadow-[0_2rem_2rem_-1.25rem_rgba(0,0,0,0.25)]",
+			"md:top-[12dvh] md:right-auto md:bottom-auto md:left-1/2 md:max-h-[calc(88dvh-1rem)] md:w-full md:-translate-x-1/2",
 			"data-[state=open]:animate-in data-[state=closed]:animate-out",
 			"animation-duration-200 data-[state=closed]:animation-duration-100 ease-[cubic-bezier(0.23,1,0.32,1)] data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 motion-reduce:animate-none",
 			"origin-bottom md:origin-center data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",

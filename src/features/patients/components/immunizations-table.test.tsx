@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format, setDate, startOfMonth, subDays } from "date-fns";
 import { SWRConfig } from "swr";
@@ -7,6 +7,9 @@ import type { ImmunizationDetailsType, ImmunizationType } from "@/features/patie
 import { ImmunizationsTable } from "./immunizations-table";
 
 const authState = vi.hoisted(() => ({ role: "owner" }));
+const { refreshMock } = vi.hoisted(() => ({ refreshMock: vi.fn() }));
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: refreshMock }) }));
 
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
@@ -150,6 +153,7 @@ describe("Immunizations table", () => {
 
 	afterEach(() => {
 		vi.unstubAllGlobals();
+		vi.useRealTimers();
 	});
 
 	test("shows each immunization's vaccine, ID, dose, creation date and status", () => {
@@ -372,6 +376,34 @@ describe("Immunizations table", () => {
 		await user.click(await screen.findByRole("option", { name: "42" }));
 		expect(onLimitChange).toHaveBeenCalledWith(42);
 	});
+
+	test.each([401, 403])(
+		"refreshes page access checks when opening details returns HTTP %s",
+		async (status) => {
+			let finishRequest: (response: Response) => void = () => {};
+			const fetchMock = vi.fn(
+				() =>
+					new Promise<Response>((resolve) => {
+						finishRequest = resolve;
+					}),
+			);
+			vi.stubGlobal("fetch", fetchMock);
+			const user = userEvent.setup();
+			renderImmunizationsTable();
+			expect(screen.getByText("Hepatitis B")).toBeVisible();
+			await user.click(screen.getByRole("button", { name: "Open actions for Hepatitis B" }));
+			await user.click(screen.getByRole("menuitem", { name: "View details" }));
+			vi.useFakeTimers();
+			await act(async () => {
+				finishRequest(
+					Response.json({ status: "failed", error: "Access unavailable." }, { status }),
+				);
+				await vi.advanceTimersByTimeAsync(60_000);
+			});
+			expect(refreshMock).toHaveBeenCalledOnce();
+			expect(fetchMock).toHaveBeenCalledTimes(1);
+		},
+	);
 
 	test("opens the details drawer with that immunization's data from the row actions", async () => {
 		const user = userEvent.setup();

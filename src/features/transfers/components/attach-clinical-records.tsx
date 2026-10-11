@@ -1,10 +1,10 @@
 "use client";
 
 import { RiArrowDownSLine, RiSearchLine } from "@remixicon/react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Tabs } from "radix-ui";
-import { motion, useReducedMotion } from "motion/react";
 import useSWR from "swr";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -24,13 +24,43 @@ type ClinicalRecordOptionsData = {
 
 const clinicalRecordOptionsLimit = 8;
 
+type ClinicalRecordOptionsRequestError = Error & { status?: number };
+
 export function AttachClinicalRecords({ activePatient }: { activePatient: string }) {
+	const router = useRouter();
 	const { attachedClinicalRecordsByPatientId, toggleAttachedClinicalRecordForPatient } =
 		useAttachClinicalRecords();
 	const [activeTabId, setActiveTabId] = useState(clinicalRecords[0].id);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [clinicalRecordOptionsPage, setClinicalRecordOptionsPage] = useState(1);
-	const shouldReduceMotion = useReducedMotion();
+	const [clinicalRecordTabsClipPath, setClinicalRecordTabsClipPath] = useState<string | null>(null);
+	const measureClinicalRecordTabs = useCallback(
+		(node: HTMLDivElement | null) => {
+			if (!node) return;
+
+			const updateClipPath = () => {
+				const selectedTab = node.querySelector<HTMLElement>(`[data-pill-tab="${activeTabId}"]`);
+				if (!selectedTab || !node.clientWidth || !node.clientHeight) return;
+
+				const { offsetLeft, offsetTop, offsetWidth, offsetHeight } = selectedTab;
+				const top = (offsetTop / node.clientHeight) * 100;
+				const right = Math.max(0, 1 - (offsetLeft + offsetWidth) / node.clientWidth) * 100;
+				const bottom = Math.max(0, 1 - (offsetTop + offsetHeight) / node.clientHeight) * 100;
+				const left = (offsetLeft / node.clientWidth) * 100;
+				setClinicalRecordTabsClipPath(`inset(${top}% ${right}% ${bottom}% ${left}% round 9999rem)`);
+			};
+			updateClipPath();
+			if (typeof ResizeObserver === "undefined") return;
+
+			const resizeObserver = new ResizeObserver(updateClipPath);
+			resizeObserver.observe(node);
+			node
+				.querySelectorAll<HTMLElement>("[data-pill-tab]")
+				.forEach((tab) => resizeObserver.observe(tab));
+			return () => resizeObserver.disconnect();
+		},
+		[activeTabId],
+	);
 
 	const allSelectedRecordsForPatient = attachedClinicalRecordsByPatientId[activePatient] ?? [];
 	const activeTab =
@@ -50,7 +80,16 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 			: null,
 		async ([, patientId, type, page, limit, query]) =>
 			fetchClinicalRecordOptions({ patientId, type, page, limit, query }),
-		{ keepPreviousData: true },
+		{
+			keepPreviousData: true,
+			onError: (error: ClinicalRecordOptionsRequestError) => {
+				if (error.status === 401 || error.status === 403) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: ClinicalRecordOptionsRequestError) =>
+				error.status !== 401 && error.status !== 403,
+		},
 	);
 
 	const clinicalRecordOptionsData = clinicalRecordOptionsQuery.data;
@@ -113,7 +152,10 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 			</span>
 
 			<Tabs.Root value={activeTabId} onValueChange={handleTabChange} className="w-full">
-				<Tabs.List className="flex w-full flex-wrap gap-y-1.5">
+				<Tabs.List
+					ref={measureClinicalRecordTabs}
+					className="relative flex w-full flex-wrap gap-y-1.5"
+				>
 					{clinicalRecords.map((record) => {
 						const isActive = activeTabId === record.id;
 
@@ -121,27 +163,35 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 							<Tabs.Trigger
 								key={record.id}
 								value={record.id}
+								data-pill-tab={record.id}
 								className={cn(
-									"relative w-max shrink-0 rounded-full px-4 py-2.5 text-sm leading-none transition-colors",
-									isActive ? "text-white" : "text-foreground/70 hover:text-foreground",
+									"relative w-max shrink-0 rounded-full px-4 py-2.5 text-sm leading-none text-foreground/70 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400",
+									!clinicalRecordTabsClipPath &&
+										isActive &&
+										"bg-gray-800 text-white hover:text-white",
 								)}
 							>
-								{isActive && (
-									<motion.span
-										layoutId="attach-record-tab"
-										className="absolute inset-0 bg-gray-800"
-										style={{ borderRadius: 9999 }}
-										transition={
-											shouldReduceMotion
-												? { duration: 0 }
-												: { type: "spring", duration: 0.4, bounce: 0.2 }
-										}
-									/>
-								)}
-								<span className="relative z-10">{record.label}</span>
+								{record.label}
 							</Tabs.Trigger>
 						);
 					})}
+					{clinicalRecordTabsClipPath && (
+						<div
+							aria-hidden="true"
+							inert
+							className="pointer-events-none absolute inset-0 flex flex-wrap gap-y-1.5 bg-gray-800 text-white motion-safe:transition-[clip-path] motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.645,0.045,0.355,1)] motion-reduce:transition-none"
+							style={{ clipPath: clinicalRecordTabsClipPath }}
+						>
+							{clinicalRecords.map((record) => (
+								<span
+									key={record.id}
+									className="w-max shrink-0 rounded-full px-4 py-2.5 text-sm leading-none"
+								>
+									{record.label}
+								</span>
+							))}
+						</div>
+					)}
 				</Tabs.List>
 			</Tabs.Root>
 
@@ -289,7 +339,9 @@ async function fetchClinicalRecordOptions({
 	const response = await fetch(`/api/transfer-clinical-record-options?${params.toString()}`);
 
 	if (!response.ok) {
-		throw new Error("Unable to load clinical record options.");
+		throw Object.assign(new Error("Unable to load clinical record options."), {
+			status: response.status,
+		});
 	}
 
 	return (await response.json()) as ClinicalRecordOptionsData;

@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RiErrorWarningFill, RiInformationLine } from "@remixicon/react";
+import { RiCloseLine, RiErrorWarningFill, RiInformationLine } from "@remixicon/react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -68,7 +68,17 @@ export function ForgotPasswordClient() {
 						className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
 					>
 						<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
-						<span>{requestFeedback}</span>
+						<span className="min-w-0 flex-1">{requestFeedback}</span>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="ml-auto -my-1 size-6 rounded-full"
+							aria-label="Dismiss error message"
+							onClick={() => setRequestFeedback("")}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
 					</div>
 				)}
 			</div>

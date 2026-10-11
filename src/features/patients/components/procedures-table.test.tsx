@@ -8,6 +8,8 @@ import { ProceduresTable } from "./procedures-table";
 
 const authState = vi.hoisted(() => ({ role: "owner" }));
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
 		useActiveMemberRole: () => ({ data: { role: authState.role } }),

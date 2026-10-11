@@ -11,7 +11,12 @@ export async function deletePatientUploadService(
 	relativePath: string,
 ): Promise<DeletePatientUploadResult> {
 	const session = await getSessionData();
-	if (!session) return { status: "failed", error: "You must sign in to delete patient upload." };
+	if (!session?.user?.id)
+		return { status: "failed", error: "You must sign in to delete patient upload." };
+
+	if (!session.user.emailVerified) {
+		return { status: "failed", error: "Verify your email before deleting this upload." };
+	}
 
 	const organizationId = await getOrganizationId();
 

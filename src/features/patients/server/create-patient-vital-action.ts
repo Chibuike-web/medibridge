@@ -26,18 +26,23 @@ export async function createPatientVitalAction(
 	patientId: string,
 	formData: FormData,
 ): Promise<CreatePatientVitalResult> {
+	const session = await getSessionData();
+
+	if (!session?.user?.id) {
+		return { status: "failed", error: "You need to be signed in to add vitals." };
+	}
+
+	if (!session.user.emailVerified) {
+		return { status: "failed", error: "Verify your email before adding vitals." };
+	}
+
 	const organizationId = await getOrganizationId();
 
 	if (!organizationId) {
 		return { status: "failed", error: "You need an active organization to add vitals." };
 	}
 
-	const session = await getSessionData();
-	const createdBy = session?.user.name || session?.user.email || session?.user.id;
-
-	if (!createdBy) {
-		return { status: "failed", error: "You need to be signed in to add vitals." };
-	}
+	const createdBy = session.user.name || session.user.email || session.user.id;
 
 	const encounterId = String(formData.get("encounterId") ?? "").trim();
 

@@ -34,7 +34,7 @@ export function CreateNewPasswordClient({ token, isTokenInvalid }: CreateNewPass
 		return (
 			<div className="flex w-full flex-col items-center">
 				<Image src="/assets/verification-icon.svg" width={120} height={120} alt="" />
-				<p className="mt-4 text-center text-sm font-medium text-gray-600">
+				<p className="mt-4 text-center text-sm font-normal text-gray-600">
 					{passwordFeedback.message}
 				</p>
 				<Button asChild className="mt-16 w-full">
@@ -49,7 +49,7 @@ export function CreateNewPasswordClient({ token, isTokenInvalid }: CreateNewPass
 			<h1 className="mt-10 text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 				Create a New Password
 			</h1>
-			<p className="mt-4 text-pretty text-center text-sm font-medium text-gray-600">
+			<p className="mt-4 text-pretty text-center text-sm font-normal text-gray-600">
 				Choose a strong password to keep your account secure.
 			</p>
 			{!token || isTokenInvalid || isResetTokenRejected ? (

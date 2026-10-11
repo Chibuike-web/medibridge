@@ -31,7 +31,7 @@ export async function createHospitalService(
 ): Promise<CreateHospitalResult> {
 	try {
 		const session = await auth.api.getSession({ headers: await headers() });
-		if (!session)
+		if (!session?.user?.id)
 			return { status: "failed", error: "You must sign in to submit hospital details." };
 		if (!session.user.emailVerified) {
 			return { status: "failed", error: "Verify your email before submitting hospital details." };

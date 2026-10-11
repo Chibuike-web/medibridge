@@ -12,7 +12,7 @@ import { inviteAdminAction } from "@/features/auth/server/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { RiErrorWarningFill, RiInformationLine } from "@remixicon/react";
+import { RiCloseLine, RiErrorWarningFill, RiInformationLine } from "@remixicon/react";
 import { useState, useTransition } from "react";
 
 export function AdminInviteClient() {
@@ -111,7 +111,17 @@ export function AdminInviteClient() {
 						role="alert"
 					>
 						<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
-						<span>{invitationError}</span>
+						<span className="min-w-0 flex-1">{invitationError}</span>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="ml-auto -my-1 size-6 rounded-full"
+							aria-label="Dismiss error message"
+							onClick={() => setInvitationError("")}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
 					</div>
 				)}
 

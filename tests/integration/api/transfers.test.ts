@@ -1,12 +1,12 @@
 // @vitest-environment node
 
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { NextRequest } from "next/server";
 
 const {
 	getPatientsMock,
 	getTransferDetailsMock,
-	verifySessionMock,
+	getSessionDataMock,
+	getOrganizationIdMock,
 	getAllergiesMock,
 	getDiagnosesMock,
 	getImmunizationsMock,
@@ -17,7 +17,8 @@ const {
 } = vi.hoisted(() => ({
 	getPatientsMock: vi.fn(),
 	getTransferDetailsMock: vi.fn(),
-	verifySessionMock: vi.fn(),
+	getSessionDataMock: vi.fn(),
+	getOrganizationIdMock: vi.fn(),
 	getAllergiesMock: vi.fn(),
 	getDiagnosesMock: vi.fn(),
 	getImmunizationsMock: vi.fn(),
@@ -29,7 +30,8 @@ const {
 
 vi.mock("@/lib/api/get-patients", () => ({ getPatients: getPatientsMock }));
 vi.mock("@/lib/api/get-transfer-details", () => ({ getTransferDetails: getTransferDetailsMock }));
-vi.mock("@/lib/api/verify-session", () => ({ verifySession: verifySessionMock }));
+vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
+vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
 vi.mock("@/lib/api/get-patient-allergies", () => ({ getPatientAllergies: getAllergiesMock }));
 vi.mock("@/lib/api/get-patient-diagnoses", () => ({ getPatientDiagnoses: getDiagnosesMock }));
 vi.mock("@/lib/api/get-patient-immunizations", () => ({
@@ -45,13 +47,79 @@ import { GET as getTransferDetails } from "@/app/api/transfer-details/[transferI
 import { GET as getPatientOptions } from "@/app/api/transfer-patient-options/route";
 
 function nextRequest(url: string) {
-	return new NextRequest(url);
+	return new Request(url);
 }
 
 describe("Transfers API", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		verifySessionMock.mockResolvedValue({ user: { id: "user-1" } });
+		getSessionDataMock.mockResolvedValue({ user: { id: "user-1", emailVerified: true } });
+		getOrganizationIdMock.mockResolvedValue("hospital-1");
+	});
+
+	describe.each([
+		{
+			name: "transfer details",
+			readRecord: getTransferDetailsMock,
+			invoke: () =>
+				getTransferDetails(new Request("http://localhost/api/transfer-details/transfer-1"), {
+					params: Promise.resolve({ transferId: "transfer-1" }),
+				}),
+		},
+		{
+			name: "patient options",
+			readRecord: getPatientsMock,
+			invoke: () => getPatientOptions(new Request("http://localhost/api/transfer-patient-options")),
+		},
+		{
+			name: "clinical record options",
+			readRecord: getDiagnosesMock,
+			invoke: () =>
+				getClinicalRecordOptions(
+					new Request(
+						"http://localhost/api/transfer-clinical-record-options?patientId=patient-1&type=diagnoses",
+					),
+				),
+		},
+	])("$name access", ({ invoke, readRecord }) => {
+		test.each([
+			{ scenario: "signed out", session: null, status: 401 },
+			{ scenario: "without a user ID", session: { user: { emailVerified: true } }, status: 401 },
+			{
+				scenario: "with an unverified email",
+				session: { user: { id: "user-1", emailVerified: false } },
+				status: 403,
+			},
+			{
+				scenario: "with missing email verification",
+				session: { user: { id: "user-1" } },
+				status: 403,
+			},
+		])(
+			"returns an access error $scenario without patient data or a redirect",
+			async ({ session, status }) => {
+				getSessionDataMock.mockResolvedValue(session);
+				const response = await invoke();
+				expect(response.status).toBe(status);
+				expect(await response.json()).toEqual({
+					status: "failed",
+					error: expect.stringMatching(status === 401 ? /^Sign in/ : /^Verify your email/),
+				});
+				expect(response.headers.has("location")).toBe(false);
+				expect(readRecord).not.toHaveBeenCalled();
+			},
+		);
+
+		test("returns a hospital access error when the email is verified but hospital access is unavailable", async () => {
+			getOrganizationIdMock.mockResolvedValue(null);
+			const response = await invoke();
+			expect(response.status).toBe(403);
+			expect(await response.json()).toEqual({
+				status: "failed",
+				error: expect.stringMatching(/^Your hospital must be verified/),
+			});
+			expect(readRecord).not.toHaveBeenCalled();
+		});
 	});
 
 	describe("GET /api/transfer-details/:transferId", () => {
@@ -68,7 +136,7 @@ describe("Transfers API", () => {
 
 			expect(response.status).toBe(200);
 			expect(await response.json()).toEqual({ transfer });
-			expect(verifySessionMock).toHaveBeenCalledOnce();
+			expect(getSessionDataMock).toHaveBeenCalledOnce();
 			expect(getTransferDetailsMock).toHaveBeenCalledWith("transfer-1");
 		});
 
@@ -86,14 +154,19 @@ describe("Transfers API", () => {
 			expect(await response.json()).toEqual({ transfer: null });
 		});
 
-		test("does not query transfer details when session verification fails", async () => {
-			verifySessionMock.mockRejectedValue(new Error("Unauthorized"));
-
-			await expect(
-				getTransferDetails(new Request("http://localhost/api/transfer-details/transfer-1"), {
+		test("returns a sign-in error without transfer details when signed out", async () => {
+			getSessionDataMock.mockResolvedValue(null);
+			const response = await getTransferDetails(
+				new Request("http://localhost/api/transfer-details/transfer-1"),
+				{
 					params: Promise.resolve({ transferId: "transfer-1" }),
-				}),
-			).rejects.toThrow("Unauthorized");
+				},
+			);
+			expect(response.status).toBe(401);
+			expect(await response.json()).toEqual({
+				status: "failed",
+				error: "Sign in to view transfer details.",
+			});
 			expect(getTransferDetailsMock).not.toHaveBeenCalled();
 		});
 	});

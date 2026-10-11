@@ -47,11 +47,11 @@ function DrawerContent({
 			<DrawerPrimitive.Content
 				data-slot="drawer-content"
 				className={cn(
-					"group/drawer-content fixed z-50 flex h-auto flex-col bg-background",
-					"data-[vaul-drawer-direction=top]:inset-x-0 data-[vaul-drawer-direction=top]:top-0 data-[vaul-drawer-direction=top]:mb-24 data-[vaul-drawer-direction=top]:max-h-[80vh] data-[vaul-drawer-direction=top]:rounded-b-lg data-[vaul-drawer-direction=top]:border-b",
-					"data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:max-h-[80vh] data-[vaul-drawer-direction=bottom]:rounded-t-lg data-[vaul-drawer-direction=bottom]:border-t",
-					"data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:w-[50rem] data-[vaul-drawer-direction=right]:border-l",
-					"data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0 data-[vaul-drawer-direction=left]:w-[50rem] data-[vaul-drawer-direction=left]:border-r",
+					"group/drawer-content fixed z-50 flex h-auto max-w-[37.5rem] flex-col bg-background",
+					"data-[vaul-drawer-direction=top]:inset-x-0 data-[vaul-drawer-direction=top]:mx-auto data-[vaul-drawer-direction=top]:top-0 data-[vaul-drawer-direction=top]:mb-24 data-[vaul-drawer-direction=top]:max-h-[80vh] data-[vaul-drawer-direction=top]:rounded-b-lg data-[vaul-drawer-direction=top]:border-b",
+					"data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:mx-auto data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:max-h-[80vh] data-[vaul-drawer-direction=bottom]:rounded-t-lg data-[vaul-drawer-direction=bottom]:border-t",
+					"data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:w-[37.5rem] data-[vaul-drawer-direction=right]:border-l",
+					"data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0 data-[vaul-drawer-direction=left]:w-[37.5rem] data-[vaul-drawer-direction=left]:border-r",
 					"max-[56.1875rem]:data-[vaul-drawer-direction=right]:!w-[37.5rem] max-[37.4375rem]:data-[vaul-drawer-direction=right]:!inset-x-4 max-[37.4375rem]:data-[vaul-drawer-direction=right]:!w-auto",
 					"max-[56.1875rem]:data-[vaul-drawer-direction=left]:!w-[37.5rem] max-[37.4375rem]:data-[vaul-drawer-direction=left]:!inset-x-4 max-[37.4375rem]:data-[vaul-drawer-direction=left]:!w-auto",
 					className,
@@ -105,7 +105,7 @@ function DrawerDescription({
 	return (
 		<DrawerPrimitive.Description
 			data-slot="drawer-description"
-			className={cn("text-sm text-muted-foreground", className)}
+			className={cn("text-sm font-normal text-muted-foreground", className)}
 			{...props}
 		/>
 	);

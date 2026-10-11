@@ -12,6 +12,7 @@ const {
 	savedRows,
 	selectMock,
 	transactionMock,
+	updateTagMock,
 } = vi.hoisted(() => ({
 	getOrganizationIdMock: vi.fn(),
 	getSessionMock: vi.fn(),
@@ -20,9 +21,11 @@ const {
 	savedRows: [] as Record<string, unknown>[],
 	selectMock: vi.fn(),
 	transactionMock: vi.fn(),
+	updateTagMock: vi.fn(),
 }));
 
 vi.mock("next/headers", () => ({ headers: headersMock }));
+vi.mock("next/cache", () => ({ updateTag: updateTagMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
 vi.mock("@/lib/better-auth/auth", () => ({
 	auth: { api: { getSession: getSessionMock } },
@@ -68,8 +71,9 @@ function createPatientRecord(patientId: string, firstName: string): PatientRecor
 describe("saveExtractedPatientsService", () => {
 	beforeEach(() => {
 		savedRows.length = 0;
+		updateTagMock.mockReset();
 		headersMock.mockResolvedValue(new Headers());
-		getSessionMock.mockResolvedValue({ user: { id: "member-1" } });
+		getSessionMock.mockResolvedValue({ user: { id: "member-1", emailVerified: true } });
 		getOrganizationIdMock.mockResolvedValue("hospital-1");
 		selectMock.mockReturnValue({
 			from: () => ({ where: () => ({ limit: queryResultMock }) }),
@@ -86,7 +90,7 @@ describe("saveExtractedPatientsService", () => {
 		);
 	});
 
-	test("saves every patient to the member's approved hospital", async () => {
+	test("saves every patient to the member's approved hospital and refreshes its cached patient data", async () => {
 		const result = await saveExtractedPatientsService([
 			createPatientRecord("P-0001", "Ada"),
 			createPatientRecord("P-0002", "Ngozi"),
@@ -99,6 +103,44 @@ describe("saveExtractedPatientsService", () => {
 		expect(savedRows).toContainEqual(
 			expect.objectContaining({ id: "P-0002", organizationId: "hospital-1" }),
 		);
+		expect(updateTagMock).toHaveBeenCalledWith("patients-list-hospital-1");
+		expect(updateTagMock).toHaveBeenCalledWith("recent-patients-hospital-1");
+		expect(updateTagMock).toHaveBeenCalledWith("overview-stats-hospital-1");
+		for (const patientId of ["P-0001", "P-0002"]) {
+			expect(updateTagMock).toHaveBeenCalledWith(`patient-profile-hospital-1-${patientId}`);
+			expect(updateTagMock).toHaveBeenCalledWith(`patient-by-id-hospital-1-${patientId}`);
+		}
+	});
+
+	test.each([
+		{ scenario: "signed out", session: null, error: "You must be signed in to save patients." },
+		{
+			scenario: "without a user ID",
+			session: { user: { emailVerified: true } },
+			error: "You must be signed in to save patients.",
+		},
+		{
+			scenario: "unverified",
+			session: { user: { id: "member-1", emailVerified: false } },
+			error: "Verify your email before saving patients.",
+		},
+	])("does not save records when the user is $scenario", async ({ session, error }) => {
+		getSessionMock.mockResolvedValue(session);
+		expect(await saveExtractedPatientsService([createPatientRecord("P-0001", "Ada")])).toEqual({
+			status: "failed",
+			error,
+		});
+		expect(savedRows).toEqual([]);
+		expect(updateTagMock).not.toHaveBeenCalled();
+	});
+
+	test("does not save records without a verified hospital", async () => {
+		getOrganizationIdMock.mockResolvedValue(null);
+		expect(await saveExtractedPatientsService([createPatientRecord("P-0001", "Ada")])).toEqual({
+			status: "failed",
+			error: "No active organization was found for this session.",
+		});
+		expect(savedRows).toEqual([]);
 	});
 
 	test("does not save an upload that gives two patients the same patient ID", async () => {
@@ -141,5 +183,6 @@ describe("saveExtractedPatientsService", () => {
 			status: "failed",
 			error: "We couldn’t save these patients. Please try again.",
 		});
+		expect(updateTagMock).not.toHaveBeenCalled();
 	});
 });

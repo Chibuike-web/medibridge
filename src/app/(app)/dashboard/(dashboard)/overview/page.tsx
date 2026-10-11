@@ -1,3 +1,6 @@
+import { verifySession } from "@/lib/api/verify-session";
+import { getOrganizationContext } from "@/lib/api/get-organization-id";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { RecentPatientsTable } from "@/features/patients/components/recent-patients-table";
@@ -16,59 +19,80 @@ export const metadata = {
 export default function Overview() {
 	return (
 		<Suspense fallback={<OverviewPageSkeleton />}>
-			{getOverviewStats().then((stats) => {
-				if (!stats.hasPatients) {
-					return (
-						<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">
-							<div className="flex w-[31.25rem] max-w-full flex-col items-center">
-								<div className="aspect-[473/238] w-full overflow-hidden">
-									<Image
-										src="/assets/empty-state.svg"
-										alt=""
-										aria-hidden="true"
-										width={473}
-										height={357}
-										className="h-auto w-full"
-									/>
-								</div>
-								<div className="relative z-10 -mt-4 flex w-full flex-col items-center text-center">
-									<h1 className="mb-2 text-center text-lg leading-6 font-semibold text-balance">
-										No patient records available
-									</h1>
-									<p className="mb-6 text-center text-sm">
-										You haven't added any patient records yet. Create a new patient profile to get
-										started.
-									</p>
-									<Button asChild>
-										<Link href="/dashboard/add-new-patient" prefetch={true}>
-											Add patient
-										</Link>
-									</Button>
-								</div>
-							</div>
-						</div>
-					);
-				}
-				return (
-					<div className="flex h-full flex-col">
-						<header className="sticky top-0 z-20 flex h-14 shrink-0 items-center border-b border-gray-200 bg-white px-6">
-							<h1 className="text-lg font-semibold tracking-[-0.015em] text-gray-800 text-balance">
-								Overview
-							</h1>
-						</header>
-
-						<div className="min-h-0 flex-1 overflow-y-auto">
-							<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
-								<Cards stats={stats} />
-								<RecentPatients />
-								<RecentTransfers />
-							</section>
-						</div>
-					</div>
-				);
-			})}
+			<OverviewContent />
 		</Suspense>
 	);
+}
+
+async function OverviewContent() {
+	const session = await verifySession();
+	if (!session.user.emailVerified) {
+		redirect("/email-verified?error=unverified");
+	}
+
+	const organizationContext = await getOrganizationContext();
+	if (!organizationContext) {
+		redirect("/sign-in");
+	}
+
+	if (!organizationContext.isOrganizationVerified) {
+		redirect("/verify");
+	}
+
+	return getOverviewStats().then((stats) => {
+		if (!stats.hasPatients) {
+			return (
+				<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">
+					<div className="flex w-[31.25rem] max-w-full flex-col items-center">
+						<div className="aspect-[473/238] w-full overflow-hidden">
+							<Image
+								src="/assets/empty-state.svg"
+								alt=""
+								aria-hidden="true"
+								width={473}
+								height={357}
+								className="h-auto w-full"
+							/>
+						</div>
+						<div className="relative z-10 -mt-4 flex w-full flex-col items-center text-center">
+							<h1 className="mb-2 text-center text-lg leading-6 font-semibold text-balance">
+								No patient records available
+							</h1>
+							<p className="mb-6 text-center text-sm">
+								You haven't added any patient records yet. Create a new patient profile to get
+								started.
+							</p>
+							<Button asChild>
+								<Link
+									href="/dashboard/add-new-patient?returnTo=%2Fdashboard%2Foverview"
+									prefetch={true}
+								>
+									Add patient
+								</Link>
+							</Button>
+						</div>
+					</div>
+				</div>
+			);
+		}
+		return (
+			<div className="flex h-full flex-col">
+				<header className="sticky top-0 z-20 flex shrink-0 items-center border-b border-gray-200 bg-white p-4">
+					<h1 className="text-lg font-semibold tracking-[-0.015em] text-gray-800 text-balance">
+						Overview
+					</h1>
+				</header>
+
+				<div className="min-h-0 flex-1 overflow-y-auto">
+					<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
+						<Cards stats={stats} />
+						<RecentPatients />
+						<RecentTransfers />
+					</section>
+				</div>
+			</div>
+		);
+	});
 }
 
 async function RecentPatients() {
@@ -84,7 +108,7 @@ async function RecentTransfers() {
 function OverviewPageSkeleton() {
 	return (
 		<div className="flex h-full flex-col">
-			<header className="sticky top-0 z-20 flex h-14 shrink-0 items-center border-b border-gray-200 bg-white px-6">
+			<header className="sticky top-0 z-20 flex shrink-0 items-center border-b border-gray-200 bg-white p-4">
 				<div className="h-6 w-32 animate-pulse rounded bg-gray-100" />
 			</header>
 

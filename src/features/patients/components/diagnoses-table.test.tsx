@@ -7,6 +7,8 @@ import { DiagnosesTable } from "./diagnoses-table";
 
 const auth = vi.hoisted(() => ({ role: "owner" }));
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
 		useActiveMemberRole: () => ({ data: { role: auth.role } }),

@@ -8,13 +8,20 @@ const {
 	getImmunizationDetailsMock,
 	getMedicationDetailsMock,
 	getProcedureDetailsMock,
+	getSessionDataMock,
+	getOrganizationIdMock,
 } = vi.hoisted(() => ({
 	getAllergyDetailsMock: vi.fn(),
 	getDiagnosisDetailsMock: vi.fn(),
 	getImmunizationDetailsMock: vi.fn(),
 	getMedicationDetailsMock: vi.fn(),
 	getProcedureDetailsMock: vi.fn(),
+	getSessionDataMock: vi.fn(),
+	getOrganizationIdMock: vi.fn(),
 }));
+
+vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
+vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
 
 vi.mock("@/lib/api/get-patient-allergy-details", () => ({
 	getPatientAllergyDetails: getAllergyDetailsMock,
@@ -41,6 +48,94 @@ import { GET as getProcedureDetails } from "@/app/api/patient-procedure-details/
 describe("Patient records API", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		getSessionDataMock.mockResolvedValue({ user: { id: "user-1", emailVerified: true } });
+		getOrganizationIdMock.mockResolvedValue("hospital-1");
+	});
+
+	describe.each([
+		{
+			name: "allergy",
+			readRecord: getAllergyDetailsMock,
+			invoke: () =>
+				getAllergyDetails(new Request("http://localhost/api/patient-allergy-details/allergy-1"), {
+					params: Promise.resolve({ allergyId: "allergy-1" }),
+				}),
+		},
+		{
+			name: "diagnosis",
+			readRecord: getDiagnosisDetailsMock,
+			invoke: () =>
+				getDiagnosisDetails(
+					new Request("http://localhost/api/patient-diagnosis-details/diagnosis-1"),
+					{ params: Promise.resolve({ diagnosisId: "diagnosis-1" }) },
+				),
+		},
+		{
+			name: "immunization",
+			readRecord: getImmunizationDetailsMock,
+			invoke: () =>
+				getImmunizationDetails(
+					new Request("http://localhost/api/patient-immunization-details/immunization-1"),
+					{ params: Promise.resolve({ immunizationId: "immunization-1" }) },
+				),
+		},
+		{
+			name: "medication",
+			readRecord: getMedicationDetailsMock,
+			invoke: () =>
+				getMedicationDetails(
+					new Request("http://localhost/api/patient-medication-details/medication-1"),
+					{ params: Promise.resolve({ medicationId: "medication-1" }) },
+				),
+		},
+		{
+			name: "procedure",
+			readRecord: getProcedureDetailsMock,
+			invoke: () =>
+				getProcedureDetails(
+					new Request("http://localhost/api/patient-procedure-details/procedure-1"),
+					{ params: Promise.resolve({ procedureId: "procedure-1" }) },
+				),
+		},
+	])("$name access", ({ invoke, readRecord }) => {
+		test.each([
+			{ scenario: "signed out", session: null, status: 401 },
+			{ scenario: "without a user ID", session: { user: { emailVerified: true } }, status: 401 },
+			{
+				scenario: "with an unverified email",
+				session: { user: { id: "user-1", emailVerified: false } },
+				status: 403,
+			},
+			{
+				scenario: "with missing email verification",
+				session: { user: { id: "user-1" } },
+				status: 403,
+			},
+		])(
+			"returns an access error $scenario without patient data or a redirect",
+			async ({ session, status }) => {
+				getSessionDataMock.mockResolvedValue(session);
+				const response = await invoke();
+				expect(response.status).toBe(status);
+				expect(await response.json()).toEqual({
+					status: "failed",
+					error: expect.stringMatching(status === 401 ? /^Sign in/ : /^Verify your email/),
+				});
+				expect(response.headers.has("location")).toBe(false);
+				expect(readRecord).not.toHaveBeenCalled();
+			},
+		);
+
+		test("returns a hospital access error when the email is verified but hospital access is unavailable", async () => {
+			getOrganizationIdMock.mockResolvedValue(null);
+			const response = await invoke();
+			expect(response.status).toBe(403);
+			expect(await response.json()).toEqual({
+				status: "failed",
+				error: expect.stringMatching(/^Your hospital must be verified/),
+			});
+			expect(readRecord).not.toHaveBeenCalled();
+		});
 	});
 
 	test("returns allergy details", async () => {

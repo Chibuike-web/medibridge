@@ -80,6 +80,9 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import useSWR from "swr";
+import { useRouter } from "next/navigation";
+
+type ProcedureDetailsRequestError = Error & { status?: number };
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
@@ -162,6 +165,7 @@ export function ProceduresTable({
 	onNextPage,
 	onLimitChange,
 }: ProceduresTableProps) {
+	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
@@ -175,6 +179,15 @@ export function ProceduresTable({
 	const procedureDetailsQuery = useSWR(
 		selectedId ? (["patient-procedure-details", selectedId] as const) : null,
 		([, selectedId]) => fetchPatientProcedureDetails(selectedId),
+		{
+			onError: (error: ProcedureDetailsRequestError) => {
+				if (error.status === 401 || error.status === 403) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: ProcedureDetailsRequestError) =>
+				error.status !== 401 && error.status !== 403,
+		},
 	);
 
 	function handleViewProcedureDetails(procedureId: string) {
@@ -871,7 +884,9 @@ async function fetchPatientProcedureDetails(selectedId: string) {
 	const response = await fetch(`/api/patient-procedure-details/${encodeURIComponent(selectedId)}`);
 
 	if (!response.ok) {
-		throw new Error("Unable to load procedure details.");
+		throw Object.assign(new Error("Unable to load procedure details."), {
+			status: response.status,
+		});
 	}
 
 	const result = (await response.json()) as { procedure: ProcedureDetailsType | null };

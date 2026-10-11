@@ -1,5 +1,7 @@
 "use client";
 
+import { RiCloseLine } from "@remixicon/react";
+
 import { useState, useTransition } from "react";
 import { approvePatientTransferAction, rejectPatientTransferAction } from "./actions";
 import { Button } from "@/components/ui/button";
@@ -115,11 +117,16 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 				</div>
 
 				{hasPatientApprovedTransfer ? (
-					<StatusMessage tone="success" message="You approved this transfer request." />
+					<StatusMessage
+						key="approved"
+						tone="success"
+						message="You approved this transfer request."
+					/>
 				) : null}
 
 				{hasPatientRejectedTransfer ? (
 					<StatusMessage
+						key="rejected"
 						tone="danger"
 						message={
 							rejectionReason
@@ -215,15 +222,30 @@ function DetailItem({ label, value }: { label: string; value: string }) {
 }
 
 function StatusMessage({ tone, message }: { tone: "success" | "danger"; message: string }) {
+	const [isStatusMessageDismissed, setIsStatusMessageDismissed] = useState(false);
+
+	if (isStatusMessageDismissed) return null;
+
 	return (
-		<p
+		<div
+			role={tone === "success" ? "status" : "alert"}
 			className={
 				tone === "success"
-					? "rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
-					: "rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+					? "flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
+					: "flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
 			}
 		>
-			{message}
-		</p>
+			<span className="min-w-0 flex-1">{message}</span>
+			<Button
+				type="button"
+				variant="ghost"
+				size="icon"
+				className="ml-auto -my-1 size-6 rounded-full"
+				aria-label="Dismiss status message"
+				onClick={() => setIsStatusMessageDismissed(true)}
+			>
+				<RiCloseLine aria-hidden="true" />
+			</Button>
+		</div>
 	);
 }

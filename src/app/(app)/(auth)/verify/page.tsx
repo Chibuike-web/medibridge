@@ -45,7 +45,7 @@ async function VerifyContent() {
 			<h1 className="mt-10 text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 				Hospital verification
 			</h1>
-			<p className="text-gray-600 text-sm font-medium text-center text-pretty mt-4">
+			<p className="text-gray-600 text-sm font-normal text-center text-pretty mt-4">
 				We received your hospital details and accreditation document. You can leave this page. We’ll
 				email you when the review is complete.
 			</p>

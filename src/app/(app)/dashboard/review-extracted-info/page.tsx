@@ -1,21 +1,62 @@
+import { getOrganizationContext } from "@/lib/api/get-organization-id";
 import { ReviewExtractedInfoClient } from "./review-extracted-info-client";
 import { verifySession } from "@/lib/api/verify-session";
+import { getPatientExtractionById } from "@/lib/api/get-patient-extraction-by-id";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 
 export const metadata = {
 	title: "Review Extracted Info",
 };
 
-export default function ReviewExtractedInfo() {
+type ReviewExtractedInfoPageProps = Pick<
+	PageProps<"/dashboard/review-extracted-info">,
+	"searchParams"
+>;
+
+export default function ReviewExtractedInfo({ searchParams }: ReviewExtractedInfoPageProps) {
 	return (
 		<Suspense>
-			<ReviewExtractedInfoContent />
+			<ReviewExtractedInfoContent searchParams={searchParams} />
 		</Suspense>
 	);
 }
 
-async function ReviewExtractedInfoContent() {
-	await verifySession();
+async function ReviewExtractedInfoContent({ searchParams }: ReviewExtractedInfoPageProps) {
+	const session = await verifySession();
 
-	return <ReviewExtractedInfoClient />;
+	if (!session.user.emailVerified) {
+		redirect("/email-verified?error=unverified");
+	}
+
+	const organizationContext = await getOrganizationContext();
+	if (!organizationContext) {
+		redirect("/sign-in");
+	}
+
+	if (!organizationContext.isOrganizationVerified) {
+		redirect("/verify");
+	}
+
+	const { extractionId } = await searchParams;
+	if (!extractionId) {
+		redirect("/dashboard/add-new-patient");
+	}
+
+	const extractionIds = [...new Set(Array.isArray(extractionId) ? extractionId : [extractionId])];
+	if (extractionIds.some((id) => !id.trim())) {
+		notFound();
+	}
+
+	const extractions = await Promise.all(extractionIds.map((id) => getPatientExtractionById(id)));
+	const patientData = extractions.flatMap((extraction) => {
+		if (!extraction) {
+			notFound();
+		}
+		return extraction.extractedData;
+	});
+
+	return (
+		<ReviewExtractedInfoClient key={extractionIds.join(",")} initialPatientData={patientData} />
+	);
 }

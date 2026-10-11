@@ -121,8 +121,8 @@ export function PhysicalInformation({
 				open={isPhysicalInformationDialogOpen}
 				onOpenChange={setIsPhysicalInformationDialogOpen}
 			>
-				<DialogContent className="max-w-[50rem]">
-					<DialogHeader>
+				<DialogContent className="max-w-[37.5rem]">
+					<DialogHeader className="py-4">
 						<DialogTitle>Edit Physical Information</DialogTitle>
 						<DialogDescription className="sr-only">
 							Form for editing physical information such as height, weight, blood group, and
@@ -136,13 +136,26 @@ export function PhysicalInformation({
 					<form
 						id={physicalInformationFormId}
 						onSubmit={handlePhysicalInformationSubmit}
-						className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-6 pt-6 text-sm text-gray-800"
+						className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-4 py-5 text-sm text-gray-800"
 					>
 						<input type="hidden" name="patientId" value={patientId} />
 
 						{physicalInformationError ? (
-							<div className="col-span-full rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-								{physicalInformationError}
+							<div
+								role="alert"
+								className="col-span-full flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+							>
+								<span className="min-w-0 flex-1">{physicalInformationError}</span>
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon"
+									className="ml-auto -my-1 size-6 rounded-full"
+									aria-label="Dismiss error message"
+									onClick={() => setPhysicalInformationError("")}
+								>
+									<RiCloseLine aria-hidden="true" />
+								</Button>
 							</div>
 						) : null}
 

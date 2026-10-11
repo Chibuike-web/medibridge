@@ -1,7 +1,8 @@
+import { Button } from "@/components/ui/button";
 import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
@@ -14,6 +15,7 @@ import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
 import { getPatientMedications } from "@/lib/api/get-patient-medications";
 import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
 import { verifySession } from "@/lib/api/verify-session";
+import { getOrganizationContext } from "@/lib/api/get-organization-id";
 import {
 	AllergiesClient,
 	DiagnosesClient,
@@ -31,9 +33,10 @@ export const metadata = {
 const INITIAL_PAGE = 1;
 const INITIAL_LIMIT = 14;
 
-type EncounterDetailsPageProps =
-	PageProps<"/dashboard/patients/[patientId]/encounters/[encounterId]">;
-type EncounterDetailsParamsProps = Pick<EncounterDetailsPageProps, "params">;
+type EncounterDetailsPageProps = Pick<
+	PageProps<"/dashboard/patients/[patientId]/encounters/[encounterId]">,
+	"params"
+>;
 
 export default function EncounterDetailsPage({ params }: EncounterDetailsPageProps) {
 	return (
@@ -43,9 +46,22 @@ export default function EncounterDetailsPage({ params }: EncounterDetailsPagePro
 	);
 }
 
-async function EncounterDetailsContent({ params }: EncounterDetailsParamsProps) {
+async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
+	const session = await verifySession();
+	if (!session.user.emailVerified) {
+		redirect("/email-verified?error=unverified");
+	}
+
+	const organizationContext = await getOrganizationContext();
+	if (!organizationContext) {
+		redirect("/sign-in");
+	}
+
+	if (!organizationContext.isOrganizationVerified) {
+		redirect("/verify");
+	}
+
 	const { patientId, encounterId } = await params;
-	await verifySession();
 
 	const [
 		patient,
@@ -79,12 +95,14 @@ async function EncounterDetailsContent({ params }: EncounterDetailsParamsProps) 
 		<div className="flex h-full min-h-0 flex-col overflow-hidden">
 			<nav
 				aria-label="Breadcrumb"
-				className="flex h-14 shrink-0 items-center gap-2 overflow-x-auto border-b border-gray-200 px-6 text-sm"
+				className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-gray-200 p-4 text-sm"
 			>
-				<Link href="/dashboard/patients" className="flex shrink-0 items-center gap-2 text-gray-600">
-					<RiArrowLeftLine aria-hidden className="size-5" />
-					<span>Patients</span>
-				</Link>
+				<Button variant="ghost" asChild>
+					<Link href="/dashboard/patients">
+						<RiArrowLeftLine data-icon="inline-start" aria-hidden="true" />
+						<span>Patients</span>
+					</Link>
+				</Button>
 				<RiArrowRightSLine className="size-5 shrink-0 text-gray-400" aria-hidden />
 				<Link href={backHref} className="shrink-0 text-gray-600">
 					{`${patient.firstName} ${patient.lastName}`}
@@ -233,7 +251,7 @@ function getTotalPages(totalRows: number) {
 function EncounterDetailsPageSkeleton() {
 	return (
 		<div className="flex h-full min-h-0 flex-col overflow-hidden">
-			<div className="flex h-14 shrink-0 items-center gap-2 border-b border-gray-200 px-6">
+			<div className="flex shrink-0 items-center gap-2 border-b border-gray-200 p-4">
 				<div className="h-4 w-20 rounded bg-gray-100" />
 				<div className="h-4 w-32 rounded bg-gray-100" />
 				<div className="h-4 w-24 rounded bg-gray-100" />

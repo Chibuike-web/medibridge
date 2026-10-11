@@ -5,11 +5,9 @@ export const metadata = {
 	title: "Create New Password",
 };
 
-type CreateNewPasswordProps = {
-	searchParams: Promise<{ token?: string | string[]; error?: string | string[] }>;
-};
+type CreateNewPasswordPageProps = Pick<PageProps<"/create-new-password">, "searchParams">;
 
-export default function CreateNewPassword({ searchParams }: CreateNewPasswordProps) {
+export default function CreateNewPassword({ searchParams }: CreateNewPasswordPageProps) {
 	return (
 		<main className="h-dvh overflow-y-auto">
 			<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">

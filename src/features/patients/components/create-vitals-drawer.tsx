@@ -75,7 +75,7 @@ export function CreateVitalsDrawer({
 
 	return (
 		<Drawer direction="right" open={open} onOpenChange={onOpenChange}>
-			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="leading-[1.2] text-gray-800">Add vitals</DrawerTitle>
 					<DrawerClose aria-label="Close add vitals drawer">
@@ -88,7 +88,7 @@ export function CreateVitalsDrawer({
 				<form
 					id={formId}
 					action={handleCreate}
-					className="grid min-h-0 flex-1 content-start gap-6 overflow-y-auto px-4 py-8 text-sm sm:grid-cols-2"
+					className="grid min-h-0 flex-1 content-start gap-6 overflow-y-auto px-4 py-5 text-sm sm:grid-cols-2"
 				>
 					<div className="flex flex-col gap-2 sm:col-span-2">
 						<Label htmlFor={`${formId}-encounter`} className={fieldLabelClassName}>

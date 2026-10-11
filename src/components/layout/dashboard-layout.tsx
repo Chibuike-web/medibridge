@@ -26,9 +26,9 @@ async function DashboardSidebar() {
 function DashboardSidebarFallback() {
 	return (
 		<aside className="flex h-full w-68 shrink-0 flex-col overflow-hidden border-r border-gray-200">
-			<div className="relative flex h-16 items-center justify-between pl-5 pr-2">
+			<div className="relative flex shrink-0 items-center justify-between p-4">
 				<div className="h-5 w-28 animate-pulse rounded bg-muted" />
-				<div className="size-10 animate-pulse rounded-lg bg-muted/80" />
+				<div className="size-8 animate-pulse rounded-lg bg-muted/80" />
 			</div>
 
 			<ul className="flex flex-col gap-px p-2 text-sm">

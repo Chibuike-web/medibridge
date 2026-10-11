@@ -2,7 +2,6 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { PatientSchema, type PatientType } from "@/features/patients/schemas/patient-schema";
-import { useExtractedPatientStore } from "@/features/patients/store/use-extracted-patient-store";
 import { ReviewExtractedInfoClient } from "./review-extracted-info-client";
 
 const { savePatientsMock, replaceMock } = vi.hoisted(() => ({
@@ -83,7 +82,6 @@ describe("review extracted patient information", () => {
 			new DOMRect(0, 0, 600, 300),
 		);
 		localStorage.clear();
-		useExtractedPatientStore.setState({ patientData: structuredClone(patients), isHydrated: true });
 		savePatientsMock.mockReset();
 		savePatientsMock.mockResolvedValue({ status: "success", savedCount: patients.length });
 	});
@@ -92,7 +90,7 @@ describe("review extracted patient information", () => {
 
 	test("opens the selected patient's details from the keyboard and returns focus when closed", async () => {
 		const user = userEvent.setup();
-		render(<ReviewExtractedInfoClient />);
+		render(<ReviewExtractedInfoClient initialPatientData={structuredClone(patients)} />);
 		const patientCard = screen.getByRole("button", { name: "Bola Adeyemi" });
 		expect(patientCard).toBeVisible();
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -114,7 +112,7 @@ describe("review extracted patient information", () => {
 
 	test("keeps saved changes in each section and leaves the other patient's information unchanged", async () => {
 		const user = userEvent.setup();
-		render(<ReviewExtractedInfoClient />);
+		render(<ReviewExtractedInfoClient initialPatientData={structuredClone(patients)} />);
 		await user.click(screen.getByRole("button", { name: "Ada Okafor" }));
 		const dialog = screen.getByRole("dialog", { name: "Ada Okafor" });
 
@@ -157,7 +155,7 @@ describe("review extracted patient information", () => {
 
 	test("canceling an edit and closing an unsaved draft preserve the original values", async () => {
 		const user = userEvent.setup();
-		render(<ReviewExtractedInfoClient />);
+		render(<ReviewExtractedInfoClient initialPatientData={structuredClone(patients)} />);
 		await user.click(screen.getByRole("button", { name: "Ada Okafor" }));
 		const section = within(screen.getByRole("dialog")).getByRole("region", {
 			name: "Personal Info",
@@ -194,7 +192,7 @@ describe("review extracted patient information", () => {
 		"saves an edited age of '$input' as $expected in a valid patient payload",
 		async ({ input, expected }) => {
 			const user = userEvent.setup();
-			render(<ReviewExtractedInfoClient />);
+			render(<ReviewExtractedInfoClient initialPatientData={structuredClone(patients)} />);
 			await user.click(screen.getByRole("button", { name: "Ada Okafor" }));
 			const section = within(screen.getByRole("dialog")).getByRole("region", {
 				name: "Personal Info",
@@ -216,9 +214,11 @@ describe("review extracted patient information", () => {
 		},
 	);
 
-	test("retains saved edits after the page is reopened", async () => {
+	test("uses supplied records when reopened instead of retaining local edits", async () => {
 		const user = userEvent.setup();
-		const firstRender = render(<ReviewExtractedInfoClient />);
+		const firstRender = render(
+			<ReviewExtractedInfoClient initialPatientData={structuredClone(patients)} />,
+		);
 		await user.click(screen.getByRole("button", { name: "Ada Okafor" }));
 		const section = within(screen.getByRole("dialog")).getByRole("region", {
 			name: "Contact Info",
@@ -227,13 +227,13 @@ describe("review extracted patient information", () => {
 		await user.clear(within(section).getByLabelText("Phone number"));
 		await user.type(within(section).getByLabelText("Phone number"), "08099999999");
 		await user.click(within(section).getByRole("button", { name: "Save" }));
+		expect(section).toHaveTextContent("08099999999");
 		firstRender.unmount();
-		await act(() => useExtractedPatientStore.persist.rehydrate());
-		render(<ReviewExtractedInfoClient />);
+		render(<ReviewExtractedInfoClient initialPatientData={structuredClone(patients)} />);
 		await user.click(screen.getByRole("button", { name: "Ada Okafor" }));
 		expect(
 			within(screen.getByRole("dialog")).getByRole("region", { name: "Contact Info" }),
-		).toHaveTextContent("08099999999");
+		).toHaveTextContent("08011111111");
 	});
 
 	test.each(["pointer", "keyboard"])(
@@ -246,7 +246,7 @@ describe("review extracted patient information", () => {
 				}),
 			);
 			const user = userEvent.setup();
-			render(<ReviewExtractedInfoClient />);
+			render(<ReviewExtractedInfoClient initialPatientData={structuredClone(patients)} />);
 			const saveButton = screen.getByRole("button", { name: "Save Patient" });
 
 			if (inputMethod === "keyboard") {
@@ -275,7 +275,7 @@ describe("review extracted patient information", () => {
 	test("retains patients on a failed save and shows success after retrying", async () => {
 		savePatientsMock.mockResolvedValueOnce({ status: "failed", error: "Unable to save patients." });
 		const user = userEvent.setup();
-		render(<ReviewExtractedInfoClient />);
+		render(<ReviewExtractedInfoClient initialPatientData={structuredClone(patients)} />);
 		await user.click(screen.getByRole("button", { name: "Save Patient" }));
 		expect(await screen.findByRole("alert")).toHaveTextContent("Unable to save patients.");
 		expect(screen.getByRole("button", { name: "Ada Okafor" })).toBeVisible();
@@ -294,15 +294,10 @@ describe("review extracted patient information", () => {
 		expect(replaceMock).toHaveBeenCalledWith("/dashboard");
 	});
 
-	test("clears the extracted patients after saving so reopening the page cannot submit them again", async () => {
-		const user = userEvent.setup();
-		const firstRender = render(<ReviewExtractedInfoClient />);
-		await user.click(screen.getByRole("button", { name: "Save Patient" }));
-		expect(await screen.findByRole("dialog", { name: "Patient Saved Successfully" })).toBeVisible();
-		firstRender.unmount();
-		await act(() => useExtractedPatientStore.persist.rehydrate());
-		render(<ReviewExtractedInfoClient />);
+	test("shows an empty review when no records are supplied", () => {
+		render(<ReviewExtractedInfoClient initialPatientData={[]} />);
 		expect(screen.getByRole("heading", { name: "No patient data extracted" })).toBeVisible();
 		expect(screen.queryByRole("button", { name: "Save Patient" })).not.toBeInTheDocument();
+		expect(savePatientsMock).not.toHaveBeenCalled();
 	});
 });

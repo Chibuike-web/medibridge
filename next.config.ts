@@ -2,12 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
 	reactCompiler: true,
-	partialPrefetching: true,
 	cacheComponents: true,
+	partialPrefetching: true,
+	typedRoutes: true,
 	logging: { fetches: { fullUrl: true } },
 	serverExternalPackages: ["tesseract.js", "pdf-parse", "mammoth"],
 	experimental: {
-		turbopackFileSystemCacheForBuild: true,
 		turbopackRustReactCompiler: true,
 		optimizePackageImports: [
 			"@radix-ui/react-label",
@@ -18,8 +18,6 @@ const nextConfig: NextConfig = {
 			"@radix-ui/react-checkbox",
 		],
 	},
-	reactStrictMode: true,
-	typedRoutes: true,
 };
 
 export default nextConfig;

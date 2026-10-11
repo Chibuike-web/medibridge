@@ -25,7 +25,7 @@ import { deletePatientUploadService } from "./delete-patient-upload-service";
 describe("Patient upload deletion", () => {
 	beforeEach(() => {
 		files.clear();
-		getSessionDataMock.mockResolvedValue({ user: { id: "member-1" } });
+		getSessionDataMock.mockResolvedValue({ user: { id: "member-1", emailVerified: true } });
 		getOrganizationIdMock.mockResolvedValue("hospital-1");
 		unlinkMock.mockImplementation((file: string) => files.delete(file));
 	});
@@ -55,9 +55,22 @@ describe("Patient upload deletion", () => {
 		files.add(path.resolve(file));
 		getSessionDataMock.mockResolvedValue(null);
 		expect((await deletePatientUploadService(file)).status).toBe("failed");
-		getSessionDataMock.mockResolvedValue({ user: { id: "member-1" } });
+		getSessionDataMock.mockResolvedValue({ user: { id: "member-1", emailVerified: true } });
 		getOrganizationIdMock.mockResolvedValue(null);
 		expect((await deletePatientUploadService(file)).status).toBe("failed");
+		expect(files.has(path.resolve(file))).toBe(true);
+	});
+
+	test("an unverified member cannot delete their existing upload", async () => {
+		const file = "patient-uploads/hospital-1/member-1/intake.pdf";
+		files.add(path.resolve(file));
+		expect(files.has(path.resolve(file))).toBe(true);
+		getSessionDataMock.mockResolvedValue({ user: { id: "member-1", emailVerified: false } });
+
+		expect(await deletePatientUploadService(file)).toEqual({
+			status: "failed",
+			error: "Verify your email before deleting this upload.",
+		});
 		expect(files.has(path.resolve(file))).toBe(true);
 	});
 

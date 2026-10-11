@@ -3,6 +3,7 @@ export * from "./contact-information";
 export * from "./emergency-contact";
 export * from "./physical-information";
 export * from "./patient";
+export * from "./patient-extraction";
 export * from "./encounter";
 export * from "./allergy";
 export * from "./diagnosis";

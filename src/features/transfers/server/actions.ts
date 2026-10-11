@@ -119,6 +119,10 @@ export async function createTransferRequestsAction(input: CreateTransferRequests
 	}
 
 	const session = await verifySession();
+	if (!session.user.emailVerified) {
+		return { status: "failed" as const, error: "Verify your email before requesting a transfer." };
+	}
+
 	const organizationId = await getOrganizationId();
 	const userId = session.user.id;
 	const transferRequests = parsedInput.data;

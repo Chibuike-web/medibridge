@@ -47,31 +47,33 @@ function toTransferStatus(status: string): TransferType["status"] {
 		: "pending";
 }
 
-export const getTransfers = cache(async (
-	page: number,
-	limit: number,
-	query = "",
-	requestedAtFilter: TransferRequestedAtFilter = {},
-	statusFilters: TransferStatusFilter[] = [],
-): Promise<GetTransfersResult> => {
-	const organizationId = await getOrganizationId();
-	const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
-	const currentLimit = Number.isFinite(limit) && limit > 0 ? limit : 14;
-	const normalizedQuery = query.trim();
+export const getTransfers = cache(
+	async (
+		page: number,
+		limit: number,
+		query = "",
+		requestedAtFilter: TransferRequestedAtFilter = {},
+		statusFilters: TransferStatusFilter[] = [],
+	): Promise<GetTransfersResult> => {
+		const organizationId = await getOrganizationId();
+		const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
+		const currentLimit = Number.isFinite(limit) && limit > 0 ? limit : 14;
+		const normalizedQuery = query.trim();
 
-	if (!organizationId) {
-		return { transfers: [], totalTransfers: 0, hasTransfers: false };
-	}
+		if (!organizationId) {
+			return { transfers: [], totalTransfers: 0, hasTransfers: false };
+		}
 
-	return getTransfersForOrganization(
-		organizationId,
-		currentPage,
-		currentLimit,
-		normalizedQuery,
-		requestedAtFilter,
-		statusFilters,
-	);
-});
+		return getTransfersForOrganization(
+			organizationId,
+			currentPage,
+			currentLimit,
+			normalizedQuery,
+			requestedAtFilter,
+			statusFilters,
+		);
+	},
+);
 
 export async function getTransfersForOrganization(
 	organizationId: string,
@@ -82,7 +84,7 @@ export async function getTransfersForOrganization(
 	statusFilters: TransferStatusFilter[],
 ): Promise<GetTransfersResult> {
 	"use cache";
-	cacheLife("seconds");
+	cacheLife("max");
 	cacheTag(`transfers-list-${organizationId}`);
 
 	const offset = (page - 1) * limit;
@@ -118,10 +120,7 @@ export async function getTransfersForOrganization(
 			.select({ value: count() })
 			.from(patientTransfer)
 			.innerJoin(patient, eq(patientTransfer.patientId, patient.id))
-			.innerJoin(
-				patientPersonalInformation,
-				eq(patient.id, patientPersonalInformation.patientId),
-			)
+			.innerJoin(patientPersonalInformation, eq(patient.id, patientPersonalInformation.patientId))
 			.where(transferFilter),
 		db
 			.select({
@@ -137,10 +136,7 @@ export async function getTransfersForOrganization(
 			})
 			.from(patientTransfer)
 			.innerJoin(patient, eq(patientTransfer.patientId, patient.id))
-			.innerJoin(
-				patientPersonalInformation,
-				eq(patient.id, patientPersonalInformation.patientId),
-			)
+			.innerJoin(patientPersonalInformation, eq(patient.id, patientPersonalInformation.patientId))
 			.where(transferFilter)
 			.orderBy(desc(patientTransfer.createdAt))
 			.limit(limit)

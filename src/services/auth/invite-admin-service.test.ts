@@ -62,7 +62,7 @@ describe("inviteAdminService", () => {
 		headersMock.mockResolvedValue(new Headers());
 		getSessionMock.mockResolvedValue({
 			session: { activeOrganizationId: "organization-1" },
-			user: { name: "Hospital Owner" },
+			user: { id: "owner-1", name: "Hospital Owner", emailVerified: true },
 		});
 		getOrganizationAccessServiceMock.mockResolvedValue({
 			status: "success",
@@ -99,6 +99,21 @@ describe("inviteAdminService", () => {
 		});
 		expect(getOrganizationAccessServiceMock).not.toHaveBeenCalled();
 		expect(createInvitationMock).not.toHaveBeenCalled();
+	});
+
+	test("does not send an invitation before the owner's email is verified", async () => {
+		getSessionMock.mockResolvedValue({
+			user: { id: "owner-1", emailVerified: false },
+			session: { activeOrganizationId: "organization-1" },
+		});
+		expect(
+			await inviteAdminService({ name: "Sarah Thompson", email: "sarah@stmaryhospital.org" }),
+		).toEqual({
+			status: "forbidden",
+			error: "Verify your email before sending an invitation.",
+		});
+		expect(createInvitationMock).not.toHaveBeenCalled();
+		expect(sendOrganizationInvitationEmailMock).not.toHaveBeenCalled();
 	});
 
 	test("does not let a non-owner invite an administrator", async () => {

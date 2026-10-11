@@ -1,3 +1,6 @@
+import { verifySession } from "@/lib/api/verify-session";
+import { getOrganizationContext } from "@/lib/api/get-organization-id";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -29,10 +32,9 @@ function parseTransferStatusFilters(status: string | string[] | undefined) {
 		.filter((value): value is TransferStatusFilter => transferStatusFilterSet.has(value));
 }
 
-type TransferPageProps = PageProps<"/dashboard/transfers">;
-type TransferPageSearchParamsProps = Pick<TransferPageProps, "searchParams">;
+type TransfersPageProps = Pick<PageProps<"/dashboard/transfers">, "searchParams">;
 
-export default function Transfers({ searchParams }: TransferPageProps) {
+export default function Transfers({ searchParams }: TransfersPageProps) {
 	return (
 		<Suspense fallback={<TransfersPageSkeleton />}>
 			<TransfersContent searchParams={searchParams} />
@@ -40,7 +42,21 @@ export default function Transfers({ searchParams }: TransferPageProps) {
 	);
 }
 
-async function TransfersContent({ searchParams }: TransferPageSearchParamsProps) {
+async function TransfersContent({ searchParams }: TransfersPageProps) {
+	const session = await verifySession();
+	if (!session.user.emailVerified) {
+		redirect("/email-verified?error=unverified");
+	}
+
+	const organizationContext = await getOrganizationContext();
+	if (!organizationContext) {
+		redirect("/sign-in");
+	}
+
+	if (!organizationContext.isOrganizationVerified) {
+		redirect("/verify");
+	}
+
 	const { page, limit, query, requestedFrom, requestedTo, status } = await searchParams;
 	const currentPage = getNumberParam(page, 1, { min: 1 });
 	const currentLimit = getNumberParam(limit, 14, { min: 1, max: 100 });
@@ -106,14 +122,14 @@ async function TransfersContent({ searchParams }: TransferPageSearchParamsProps)
 function TransfersPageSkeleton() {
 	return (
 		<div className="flex h-full flex-col">
-			<header className="sticky top-0 z-20 flex h-14 shrink-0 items-center border-b border-gray-200 bg-white px-6">
+			<header className="sticky top-0 z-20 flex shrink-0 items-center border-b border-gray-200 bg-white p-4">
 				<div className="h-6 w-32 animate-pulse rounded bg-gray-100" />
 
 				<div className="ml-auto flex flex-1 items-center justify-end gap-2">
-					<div className="h-10 w-[20rem] animate-pulse rounded bg-gray-100" />
-					<div className="h-10 w-10 animate-pulse rounded bg-gray-100" />
-					<div className="h-10 w-24 animate-pulse rounded bg-gray-100" />
-					<div className="h-10 w-44 animate-pulse rounded bg-gray-100" />
+					<div className="h-9 w-[20rem] animate-pulse rounded bg-gray-100" />
+					<div className="h-9 w-10 animate-pulse rounded bg-gray-100" />
+					<div className="h-9 w-24 animate-pulse rounded bg-gray-100" />
+					<div className="h-9 w-44 animate-pulse rounded bg-gray-100" />
 				</div>
 			</header>
 			<div className="min-h-0 flex-1 overflow-y-auto">

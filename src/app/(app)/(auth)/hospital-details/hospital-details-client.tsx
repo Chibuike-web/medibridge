@@ -15,7 +15,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FileUploadCard } from "@/components/file-upload-card";
 import { ChooseFileCard } from "@/components/choose-file-card";
-import { RiCheckboxCircleFill, RiErrorWarningFill } from "@remixicon/react";
+import { RiCloseLine, RiCheckboxCircleFill, RiErrorWarningFill } from "@remixicon/react";
 
 type HospitalDetailsFeedback = {
 	type: "error" | "success";
@@ -124,7 +124,7 @@ export function HospitalDetailsClient() {
 					name={file.name}
 					size={file.size}
 					onRemove={onClear}
-					status={status}
+					uploadStatus={status}
 					extension={uploadedType}
 				/>
 			) : (
@@ -153,7 +153,17 @@ export function HospitalDetailsClient() {
 					<span className="shrink-0">
 						<RiErrorWarningFill className="size-4" aria-hidden="true" />
 					</span>
-					<span>{hospitalDetailsFeedback.message}</span>
+					<span className="min-w-0 flex-1">{hospitalDetailsFeedback.message}</span>
+					<Button
+						type="button"
+						variant="ghost"
+						size="icon"
+						className="ml-auto -my-1 size-6 rounded-full"
+						aria-label="Dismiss error message"
+						onClick={() => setHospitalDetailsFeedback(null)}
+					>
+						<RiCloseLine aria-hidden="true" />
+					</Button>
 				</div>
 			)}
 			{hospitalDetailsFeedback?.type === "success" && (
@@ -164,7 +174,17 @@ export function HospitalDetailsClient() {
 					<span>
 						<RiCheckboxCircleFill className="size-4" aria-hidden="true" />
 					</span>
-					<span>{hospitalDetailsFeedback.message}</span>
+					<span className="min-w-0 flex-1">{hospitalDetailsFeedback.message}</span>
+					<Button
+						type="button"
+						variant="ghost"
+						size="icon"
+						className="ml-auto -my-1 size-6 rounded-full"
+						aria-label="Dismiss success message"
+						onClick={() => setHospitalDetailsFeedback(null)}
+					>
+						<RiCloseLine aria-hidden="true" />
+					</Button>
 				</div>
 			)}
 			<Button

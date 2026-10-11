@@ -203,8 +203,8 @@ function PaymentMethodSettings() {
 
 			<Dialog open={isChangePaymentMethodOpen} onOpenChange={setIsChangePaymentMethodOpen}>
 				<DialogContent className="max-w-[37.5rem] gap-0 p-0">
-					<DialogHeader>
-						<DialogTitle>Change payment method</DialogTitle>
+					<DialogHeader className="py-4">
+						<DialogTitle className="text-base">Change payment method</DialogTitle>
 						<DialogClose
 							className="rounded-md p-1.5 text-foreground/60 transition-colors hover:bg-gray-100 hover:text-foreground"
 							aria-label="Close change payment method dialog"
@@ -212,7 +212,7 @@ function PaymentMethodSettings() {
 							<RiCloseLine className="size-5" aria-hidden="true" />
 						</DialogClose>
 					</DialogHeader>
-					<DialogDescription className="px-6 py-6 text-sm font-medium text-gray-400">
+					<DialogDescription className="px-4 py-5 text-sm font-normal text-gray-400">
 						You&apos;ll be redirected to Paystack to securely add and authorize your new payment
 						method.
 					</DialogDescription>

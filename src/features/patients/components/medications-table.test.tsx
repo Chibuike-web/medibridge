@@ -7,6 +7,8 @@ import { MedicationsTable } from "./medications-table";
 
 const auth = vi.hoisted(() => ({ role: "owner" }));
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
 		useActiveMemberRole: () => ({ data: { role: auth.role } }),
@@ -407,9 +409,10 @@ describe("Medications table", () => {
 		expect(within(dialog).getByText("7 days")).toBeVisible();
 		expect(within(dialog).getByText("Dr. Adeyemi")).toBeVisible();
 		expect(within(dialog).getByRole("heading", { name: "Activity" })).toBeVisible();
-		expect(
-			within(dialog).getByRole("button", { name: /Prescribed by Dr. Bello/ }),
-		).toHaveAttribute("aria-expanded", "false");
+		expect(within(dialog).getByRole("button", { name: /Prescribed by Dr. Bello/ })).toHaveAttribute(
+			"aria-expanded",
+			"false",
+		);
 		expect(within(dialog).queryByText("Metformin")).not.toBeInTheDocument();
 	});
 

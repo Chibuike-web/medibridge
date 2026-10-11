@@ -21,6 +21,8 @@ type PatientOptionsData = {
 	totalPages: number;
 };
 
+type PatientOptionsRequestError = Error & { status?: number };
+
 export function SelectPatient({
 	patientId,
 	clearPatientIdHref,
@@ -36,6 +38,7 @@ export function SelectPatient({
 	limit: number;
 	totalPages: number;
 }) {
+	const router = useRouter();
 	const [searchTerm, setSearchTerm] = useState("");
 	const [selectedPatientOptionsPage, setSelectedPatientOptionsPage] = useState(page);
 	const initialPatientOptionsData: PatientOptionsData = { patients, page, totalPages };
@@ -59,11 +62,17 @@ export function SelectPatient({
 		{
 			fallbackData: selectedPatientOptionsPage === page ? initialPatientOptionsData : undefined,
 			keepPreviousData: true,
+			onError: (error: PatientOptionsRequestError) => {
+				if (error.status === 401 || error.status === 403) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: PatientOptionsRequestError) =>
+				error.status !== 401 && error.status !== 403,
 		},
 	);
 	const { removeAttachedClinicalRecordsForPatient } = useAttachClinicalRecords();
 
-	const router = useRouter();
 	const { selectedTransferPatients, toggleSelectedTransferPatient, removeSelectedTransferPatient } =
 		useSelectedTransferPatients();
 
@@ -218,7 +227,9 @@ async function fetchTransferPatientOptions(page: number, limit: number) {
 	const response = await fetch(`/api/transfer-patient-options?${params.toString()}`);
 
 	if (!response.ok) {
-		throw new Error("Unable to load patient options.");
+		throw Object.assign(new Error("Unable to load patient options."), {
+			status: response.status,
+		});
 	}
 
 	return (await response.json()) as {

@@ -67,7 +67,7 @@ export function DeleteAccountDialog({
 		<AlertDialog open={open} onOpenChange={onOpenChange}>
 			<AlertDialogContent>
 				<AlertDialogHeader>
-					<AlertDialogTitle>
+					<AlertDialogTitle className="text-base">
 						{mustTransferOwnership
 							? "Transfer ownership before deleting your account"
 							: "Are you sure you want to delete your account?"}

@@ -6,9 +6,12 @@ import { usePathname } from "next/navigation";
 import { UserProfile } from "@/components/layout/user-profile";
 import {
 	RiAddLine,
+	RiArrowDownLine,
 	RiArrowRightLine,
+	RiArrowUpLine,
 	RiCloseLine,
 	RiContractLeftLine,
+	RiCornerDownLeftLine,
 	RiFileList3Fill,
 	RiFileList3Line,
 	RiFileTransferFill,
@@ -17,8 +20,8 @@ import {
 	RiFunctionLine,
 	RiSearchLine,
 } from "@remixicon/react";
-import { ComponentType, useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { ComponentType, useCallback, useEffect, useRef, useState } from "react";
+import { Tabs } from "radix-ui";
 import {
 	CommandDialog,
 	CommandEmpty,
@@ -46,7 +49,36 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedSearchTab, setSelectedSearchTab] = useState<SearchTab>("All");
-	const shouldReduceMotion = useReducedMotion();
+	const [searchTabsClipPath, setSearchTabsClipPath] = useState<string | null>(null);
+	const measureSearchTabs = useCallback(
+		(node: HTMLDivElement | null) => {
+			if (!node) return;
+
+			const updateClipPath = () => {
+				const selectedTab = node.querySelector<HTMLElement>(
+					`[data-pill-tab="${selectedSearchTab}"]`,
+				);
+				if (!selectedTab || !node.clientWidth || !node.clientHeight) return;
+
+				const { offsetLeft, offsetTop, offsetWidth, offsetHeight } = selectedTab;
+				const top = (offsetTop / node.clientHeight) * 100;
+				const right = Math.max(0, 1 - (offsetLeft + offsetWidth) / node.clientWidth) * 100;
+				const bottom = Math.max(0, 1 - (offsetTop + offsetHeight) / node.clientHeight) * 100;
+				const left = (offsetLeft / node.clientWidth) * 100;
+				setSearchTabsClipPath(`inset(${top}% ${right}% ${bottom}% ${left}% round 9999rem)`);
+			};
+			updateClipPath();
+			if (typeof ResizeObserver === "undefined") return;
+
+			const resizeObserver = new ResizeObserver(updateClipPath);
+			resizeObserver.observe(node);
+			node
+				.querySelectorAll<HTMLElement>("[data-pill-tab]")
+				.forEach((tab) => resizeObserver.observe(tab));
+			return () => resizeObserver.disconnect();
+		},
+		[selectedSearchTab],
+	);
 	const startXRef = useRef(0);
 	const startWidthRef = useRef(0);
 	const isCollapsed = width < COLLAPSE_THRESHOLD;
@@ -113,8 +145,8 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 		>
 			<div
 				className={cn(
-					"relative h-14 flex items-center transition-[padding] duration-300 ease-in-out",
-					isCollapsed ? "justify-center px-2" : "justify-between pl-5 pr-2",
+					"relative flex shrink-0 items-center p-4 transition-[padding] duration-300 ease-in-out",
+					isCollapsed ? "justify-center px-2" : "justify-between",
 				)}
 			>
 				{isCollapsed ? (
@@ -192,7 +224,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							}
 						}}
 						label="Search chats"
-						contentClassName="h-auto max-w-[50rem] overflow-hidden p-0 text-sm md:h-[35.875rem]"
+						contentClassName="h-auto max-w-[43.75rem] overflow-hidden p-0 text-sm md:h-[35.875rem]"
 					>
 						<DialogHeader>
 							<DialogTitle className="sr-only">Search chats</DialogTitle>
@@ -222,9 +254,9 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								</Button>
 							</DialogClose>
 						</DialogHeader>
-						<CommandList className="max-h-[31.25rem]">
+						<CommandList className="max-h-[31.25rem] min-h-0 flex-1 pb-5">
 							{!searchQuery.trim() ? (
-								<div className="flex flex-col items-center gap-3 px-6 py-12 text-center text-sm">
+								<div className="flex flex-col items-center gap-3 px-6 py-8 text-center text-sm">
 									<p className="text-gray-600">No recent activity</p>
 									<p className="text-gray-400">
 										Search by patient name, record ID, diagnosis, or transfer.
@@ -232,45 +264,56 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								</div>
 							) : null}
 							{searchQuery.trim() ? (
-								<div
-									className="flex flex-wrap gap-1.5 px-4 pt-4 pb-2"
-									role="tablist"
-									aria-label="Search result types"
+								<Tabs.Root
+									value={selectedSearchTab}
+									onValueChange={(value) => setSelectedSearchTab(value as SearchTab)}
+									className="px-4 pt-4 pb-2"
 								>
-									{searchTabs.map((tab) => {
-										const isActive = selectedSearchTab === tab;
+									<Tabs.List
+										ref={measureSearchTabs}
+										className="relative flex flex-wrap gap-1.5"
+										aria-label="Search result types"
+									>
+										{searchTabs.map((tab) => {
+											const isActive = selectedSearchTab === tab;
 
-										return (
-											<Button
-												variant="ghost"
-												key={tab}
-												type="button"
-												role="tab"
-												aria-selected={isActive}
-												className={cn(
-													"relative rounded-full px-2.5 h-8 text-gray-600 py-0 font-normal hover:bg-transparent hover:text-gray-600",
-													isActive && "text-white hover:text-white",
-												)}
-												onClick={() => setSelectedSearchTab(tab)}
+											return (
+												<Tabs.Trigger key={tab} value={tab} asChild>
+													<Button
+														variant="ghost"
+														type="button"
+														data-pill-tab={tab}
+														className={cn(
+															"relative rounded-full px-2.5 h-8 text-gray-600 py-0 font-normal hover:bg-transparent hover:text-gray-600",
+															!searchTabsClipPath &&
+																isActive &&
+																"bg-gray-800 text-white hover:bg-gray-800 hover:text-white",
+														)}
+													>
+														{tab}
+													</Button>
+												</Tabs.Trigger>
+											);
+										})}
+										{searchTabsClipPath && (
+											<div
+												aria-hidden="true"
+												inert
+												className="pointer-events-none absolute inset-0 flex flex-wrap gap-1.5 bg-gray-800 text-white motion-safe:transition-[clip-path] motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.645,0.045,0.355,1)] motion-reduce:transition-none"
+												style={{ clipPath: searchTabsClipPath }}
 											>
-												{isActive && (
-													<motion.span
-														layoutId="search-result-tab"
-														aria-hidden="true"
-														className="absolute inset-0 bg-gray-800"
-														style={{ borderRadius: 9999 }}
-														transition={
-															shouldReduceMotion
-																? { duration: 0 }
-																: { type: "spring", duration: 0.4, bounce: 0.2 }
-														}
-													/>
-												)}
-												<span className="relative z-10">{tab}</span>
-											</Button>
-										);
-									})}
-								</div>
+												{searchTabs.map((tab) => (
+													<span
+														key={tab}
+														className="inline-flex h-8 shrink-0 items-center justify-center rounded-full border border-transparent px-2.5 text-sm font-normal whitespace-nowrap"
+													>
+														{tab}
+													</span>
+												))}
+											</div>
+										)}
+									</Tabs.List>
+								</Tabs.Root>
 							) : null}
 							<CommandEmpty>No matching results.</CommandEmpty>
 							{searchSections.map((section) => {
@@ -305,6 +348,34 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								);
 							})}
 						</CommandList>
+						<div className="hidden h-14 shrink-0 items-center justify-between gap-4 border-t border-gray-200 px-4 text-sm text-gray-400 md:flex">
+							<div className="flex items-center gap-2">
+								<kbd className="flex size-6 items-center justify-center rounded bg-gray-100 font-[inherit] text-gray-600">
+									<RiArrowDownLine className="size-4" aria-hidden="true" />
+									<span className="sr-only">Down arrow</span>
+								</kbd>
+								<kbd className="flex size-6 items-center justify-center rounded bg-gray-100 font-[inherit] text-gray-600">
+									<RiArrowUpLine className="size-4" aria-hidden="true" />
+									<span className="sr-only">Up arrow</span>
+								</kbd>
+								<span>Navigate</span>
+							</div>
+							<div className="flex items-center gap-4">
+								<div className="flex items-center gap-2">
+									<kbd className="flex size-6 items-center justify-center rounded bg-gray-100 font-[inherit] text-gray-600">
+										<RiCornerDownLeftLine className="size-4" aria-hidden="true" />
+										<span className="sr-only">Enter</span>
+									</kbd>
+									<span>Select</span>
+								</div>
+								<div className="flex items-center gap-2">
+									<kbd className="flex h-6 w-9 items-center justify-center rounded bg-gray-100 font-[inherit] font-medium text-gray-600">
+										esc
+									</kbd>
+									<span>Close</span>
+								</div>
+							</div>
+						</div>
 					</CommandDialog>
 				</li>
 				{menus.map(({ id, href, label, icon: Icon, activeIcon: ActiveIcon }) => {

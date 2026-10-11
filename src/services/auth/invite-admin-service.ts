@@ -22,8 +22,12 @@ export async function inviteAdminService(data: InviteType): Promise<InviteAdminR
 
 	const session = await auth.api.getSession({ headers: await headers() });
 
-	if (!session) {
+	if (!session?.user?.id) {
 		return { status: "unauthorized", error: "Sign in before sending an invitation." };
+	}
+
+	if (!session.user.emailVerified) {
+		return { status: "forbidden", error: "Verify your email before sending an invitation." };
 	}
 
 	const organizationId = session.session.activeOrganizationId;

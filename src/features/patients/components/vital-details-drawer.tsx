@@ -53,7 +53,7 @@ export function VitalDetailsDrawer({
 
 	return (
 		<Drawer open={open} onOpenChange={handleVitalDetailsOpenChange} direction="right">
-			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[50rem]">
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="leading-[1.2] text-gray-800">
 						{isEditingVitalDetails ? "Edit vitals details" : "View vitals details"}
@@ -68,7 +68,7 @@ export function VitalDetailsDrawer({
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<div className="min-h-0 overflow-y-auto px-4 py-8 text-sm">
+				<div className="min-h-0 overflow-y-auto px-4 py-5 text-sm">
 					{isEditingVitalDetails && vital ? (
 						<VitalDetailsEditForm vital={vital} />
 					) : vital ? (

@@ -18,6 +18,8 @@ export type OrganizationContext = {
 };
 
 export const getOrganizationContext = cache(async (): Promise<OrganizationContext | null> => {
+	"use cache: private";
+
 	const session = await verifySession();
 	if (!session.user.emailVerified) return null;
 
@@ -45,8 +47,6 @@ export const getOrganizationContext = cache(async (): Promise<OrganizationContex
 });
 
 export const getOrganizationId = cache(async () => {
-	"use cache: private";
-
 	const context = await getOrganizationContext();
 
 	if (!context?.isOrganizationVerified) return null;

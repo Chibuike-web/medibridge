@@ -7,7 +7,7 @@ import { authClient } from "@/lib/better-auth/auth.client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RiCheckboxCircleFill, RiErrorWarningFill } from "@remixicon/react";
+import { RiCloseLine, RiCheckboxCircleFill, RiErrorWarningFill } from "@remixicon/react";
 
 export function EmailVerifiedClient() {
 	const searchParams = useSearchParams();
@@ -30,7 +30,7 @@ function Unverified() {
 					<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-yellow-600 text-balance">
 						Email verification required
 					</h1>
-					<p className="text-gray-600 text-sm font-medium text-pretty mt-4">
+					<p className="text-gray-600 text-sm font-normal text-pretty mt-4">
 						Verify your email before continuing. Check your inbox for the verification link. If it
 						is missing or expired, contact support.
 					</p>
@@ -68,7 +68,7 @@ function InvalidOrExpired({ type }: { type: "INVALID_TOKEN" | "TOKEN_EXPIRED" })
 						<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-red-600 text-balance">
 							{title}
 						</h1>
-						<p className="text-gray-600 text-sm font-medium text-pretty mt-4">{description}</p>
+						<p className="text-gray-600 text-sm font-normal text-pretty mt-4">{description}</p>
 					</div>
 
 					<form
@@ -138,7 +138,17 @@ function InvalidOrExpired({ type }: { type: "INVALID_TOKEN" | "TOKEN_EXPIRED" })
 								className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
 							>
 								<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
-								<span>{resendFeedback.message}</span>
+								<span className="min-w-0 flex-1">{resendFeedback.message}</span>
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon"
+									className="ml-auto -my-1 size-6 rounded-full"
+									aria-label="Dismiss error message"
+									onClick={() => setResendFeedback(null)}
+								>
+									<RiCloseLine aria-hidden="true" />
+								</Button>
 							</div>
 						)}
 						{resendFeedback?.type === "success" && (
@@ -148,7 +158,17 @@ function InvalidOrExpired({ type }: { type: "INVALID_TOKEN" | "TOKEN_EXPIRED" })
 								className="mt-4 flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-sm font-medium text-green-700"
 							>
 								<RiCheckboxCircleFill className="size-4 shrink-0" aria-hidden="true" />
-								<span>{resendFeedback.message}</span>
+								<span className="min-w-0 flex-1">{resendFeedback.message}</span>
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon"
+									className="ml-auto -my-1 size-6 rounded-full"
+									aria-label="Dismiss success message"
+									onClick={() => setResendFeedback(null)}
+								>
+									<RiCloseLine aria-hidden="true" />
+								</Button>
 							</div>
 						)}
 						<Button className="mt-6 w-full" type="submit" disabled={isPending}>
@@ -174,7 +194,7 @@ function NoSession() {
 						You are not signed in
 					</h1>
 
-					<p className="text-gray-600 text-sm font-medium text-pretty mt-4">
+					<p className="text-gray-600 text-sm font-normal text-pretty mt-4">
 						Sign in to continue. If you haven’t verified your email yet, use the link in your inbox.
 					</p>
 
@@ -195,7 +215,7 @@ const Valid = () => {
 					<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-green-600 text-balance">
 						Email verified
 					</h1>
-					<p className="text-gray-600 text-sm font-medium text-pretty mt-4">
+					<p className="text-gray-600 text-sm font-normal text-pretty mt-4">
 						Your email has been successfully verified. You can now continue.
 					</p>
 					<Button asChild className="mt-6">

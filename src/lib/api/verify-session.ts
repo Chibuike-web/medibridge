@@ -8,7 +8,7 @@ export const verifySession = cache(async () => {
 	"use cache: private";
 	const session = await getSessionData();
 
-	if (!session) {
+	if (!session?.user?.id) {
 		redirect("/sign-in");
 	}
 

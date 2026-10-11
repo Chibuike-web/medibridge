@@ -345,7 +345,7 @@ export function TransfersClient({
 
 	return (
 		<div className="flex h-full flex-col">
-			<header className="border-b border-gray-200 bg-white px-6 h-14 flex items-center sticky top-0 z-20 shrink-0 text-sm">
+			<header className="border-b border-gray-200 bg-white p-4 flex items-center sticky top-0 z-20 shrink-0 text-sm">
 				<h1 className="text-lg font-semibold text-balance text-gray-800 tracking-[-0.015em]">
 					Transfers
 				</h1>

@@ -384,7 +384,7 @@ export function NewTransferRequestClient({
 									</Button>
 								</DialogTrigger>
 								<DialogContent>
-									<DialogHeader>
+									<DialogHeader className="py-4">
 										<DialogTitle>Confirm Transfer Request</DialogTitle>
 										<DialogDescription className="sr-only">
 											Review the selected patients and attached clinical records before submitting
@@ -394,8 +394,8 @@ export function NewTransferRequestClient({
 											<RiCloseLine className="size-6" />
 										</DialogClose>
 									</DialogHeader>
-									<div className="mt-8 px-6 text-sm">
-										<p className="text-gray-600 font-medium">
+									<div className="px-4 py-5 text-sm">
+										<p className="text-gray-600 font-normal">
 											Before this transfer request is sent, please review and confirm the following
 										</p>
 										<ul className="mt-6 mb-8 text-gray-600 flex flex-col gap-1">
