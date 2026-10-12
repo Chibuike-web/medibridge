@@ -76,7 +76,8 @@ export function useFileUpload() {
 
 	async function clearFile(clientId: string) {
 		const fileToDelete = files.find((file) => file.clientId === clientId);
-		if (!fileToDelete) return;
+		if (!fileToDelete || fileToDelete.status === "deleting") return;
+		setUploadError("");
 		if (
 			fileToDelete.status === "idle" ||
 			fileToDelete.status === "uploading" ||
@@ -92,14 +93,19 @@ export function useFileUpload() {
 			),
 		);
 
-		const result = await deletePatientUploadAction(fileToDelete.url);
-
-		if (result.status === "failed") {
-			setUploadError(result.error ?? "Unable to delete file.");
+		try {
+			const result = await deletePatientUploadAction(fileToDelete.url);
+			if (result.status === "failed") {
+				setUploadError(result.error);
+				setFiles((prev) => prev.map((file) => (file.clientId === clientId ? fileToDelete : file)));
+				return;
+			}
+			setFiles((prev) => prev.filter((file) => file.clientId !== clientId));
+		} catch (error) {
+			console.error("Removing patient upload failed:", error);
+			setUploadError("We couldn’t remove this file. Please try again.");
 			setFiles((prev) => prev.map((file) => (file.clientId === clientId ? fileToDelete : file)));
-			return;
 		}
-		setFiles((prev) => prev.filter((file) => file.clientId !== clientId));
 	}
 
 	const handleFiles = async (incomingFiles: File[]) => {

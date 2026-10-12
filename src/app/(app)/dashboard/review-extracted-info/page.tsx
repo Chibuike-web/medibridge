@@ -49,14 +49,25 @@ async function ReviewExtractedInfoContent({ searchParams }: ReviewExtractedInfoP
 	}
 
 	const extractions = await Promise.all(extractionIds.map((id) => getPatientExtractionById(id)));
-	const patientData = extractions.flatMap((extraction) => {
+	const documents = extractions.flatMap((extraction) => {
 		if (!extraction) {
 			notFound();
 		}
-		return extraction.extractedData;
+		return extraction.extractedData.map(({ documentId, ...patient }) => ({
+			id: documentId,
+			fileUrl: `/api/patient-extractions/${extraction.id}/documents/${encodeURIComponent(documentId)}`,
+			patient,
+		}));
 	});
 
 	return (
-		<ReviewExtractedInfoClient key={extractionIds.join(",")} initialPatientData={patientData} />
+		<ReviewExtractedInfoClient
+			key={extractionIds.join(",")}
+			initialDocuments={documents.map((document, index) => ({
+				...document,
+				label: `Document ${index + 1}`,
+				status: "ready",
+			}))}
+		/>
 	);
 }

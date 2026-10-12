@@ -29,6 +29,7 @@ type FileUploadCardProps = {
 	extractionStatus?: FileExtractionStatus;
 	onRemove: (id?: string) => void | Promise<void>;
 	onRetry?: (id: string) => void | Promise<void>;
+	disabled?: boolean;
 };
 
 export function FileUploadCard({
@@ -40,6 +41,7 @@ export function FileUploadCard({
 	id,
 	onRemove,
 	onRetry,
+	disabled = false,
 }: FileUploadCardProps) {
 	const fileFormat: Record<string, string> = {
 		pdf: pdfFileFormat,
@@ -52,29 +54,38 @@ export function FileUploadCard({
 	const fileNameId = useId();
 	const isExtractionComplete =
 		uploadStatus === "upload-complete" && extractionStatus === "extract-complete";
+	const isExtractionFailed = extractionStatus === "extract-failed";
 
 	return (
 		<div
+			role="group"
+			aria-labelledby={fileNameId}
 			className={cn(
 				"flex flex-col px-3.5 py-4 border border-gray-200 rounded-xl",
-				uploadStatus === "upload-complete" &&
-					extractionStatus === "extract-failed" &&
-					"border-red-500",
+				isExtractionFailed && "pr-4",
 				uploadStatus === "deleting" && "opacity-50",
 			)}
 		>
-			<div className="flex items-center gap-2">
+			<div className={cn("flex items-center gap-2", isExtractionFailed && "items-start gap-3")}>
 				<Image
 					src={fileFormat[extension]}
 					alt=""
 					width={40}
 					height={40}
-					className="size-8 shrink-0"
+					className={cn("size-8 shrink-0", isExtractionFailed && "size-10")}
 				/>
-				<div className="flex min-w-0 flex-1  items-start justify-between gap-1.5">
-					<div className="min-w-0">
-						<p id={fileNameId} className="text-sm font-semibold truncate">{name}</p>
-						<div className="flex items-center gap-1 text-xs">
+				<div className="flex min-w-0 flex-1 flex-wrap items-start justify-between gap-1.5 sm:flex-nowrap">
+					<div className={cn("min-w-0", isExtractionFailed && "flex flex-col gap-1")}>
+						<p
+							id={fileNameId}
+							className={cn(
+								"text-sm font-semibold truncate",
+								isExtractionFailed && "font-medium tracking-[-0.006em]",
+							)}
+						>
+							{name}
+						</p>
+						<div className="flex flex-wrap items-center gap-1 text-xs text-gray-600">
 							<div className="flex items-center gap-1">
 								<p>{formatFileSize(size)}</p>
 								{!isExtractionComplete && (
@@ -90,8 +101,8 @@ export function FileUploadCard({
 										</>
 									) : extractionStatus === "extract-failed" ? (
 										<>
-											<RiErrorWarningFill className="size-4 text-red-500" />
-											<p>Extraction failed</p>
+											<RiErrorWarningFill className="size-4 text-red-700" aria-hidden="true" />
+											<p className="text-red-700">Extraction failed</p>
 										</>
 									) : null
 								) : (
@@ -120,13 +131,13 @@ export function FileUploadCard({
 						</div>
 					</div>
 
-					{uploadStatus === "upload-failed" ? (
+					{uploadStatus === "upload-failed" || isExtractionFailed ? (
 						<div className="flex items-center">
 							<Button
 								type="button"
 								variant="ghost"
-								className="h-8 px-2 py-0 text-xs"
-								disabled={!id || !onRetry}
+								className="h-6 px-2 py-0 text-xs text-gray-600"
+								disabled={disabled || uploadStatus === "deleting" || !id || !onRetry}
 								aria-describedby={fileNameId}
 								onClick={async () => {
 									if (id && onRetry) await onRetry(id);
@@ -137,7 +148,8 @@ export function FileUploadCard({
 							<Button
 								type="button"
 								variant="ghost"
-								className="h-8 px-2 py-0 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+								className="h-6 px-2 py-0 text-xs text-red-700 hover:bg-red-50 hover:text-red-700"
+								disabled={disabled || uploadStatus === "deleting"}
 								aria-describedby={fileNameId}
 								onClick={async () => {
 									if (id) {
@@ -158,6 +170,7 @@ export function FileUploadCard({
 							aria-label={uploadStatus === "uploading" ? "Cancel upload" : "Remove file"}
 							aria-describedby={fileNameId}
 							disabled={
+								disabled ||
 								uploadStatus === "deleting" ||
 								uploadStatus === "uploading" ||
 								(uploadStatus === "upload-complete" &&

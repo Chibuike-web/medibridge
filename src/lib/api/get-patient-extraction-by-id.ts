@@ -16,6 +16,7 @@ export const getPatientExtractionById = cache(async (extractionId: string) => {
 	const [extraction] = await db
 		.select({
 			id: patientExtraction.id,
+			createdBy: patientExtraction.createdBy,
 			extractedData: patientExtraction.extractedData,
 			createdAt: patientExtraction.createdAt,
 		})

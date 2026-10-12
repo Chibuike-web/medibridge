@@ -143,7 +143,7 @@ export function PhysicalInformation({
 						{physicalInformationError ? (
 							<div
 								role="alert"
-								className="col-span-full flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+								className="col-span-full flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
 							>
 								<span className="min-w-0 flex-1">{physicalInformationError}</span>
 								<Button

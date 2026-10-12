@@ -231,8 +231,8 @@ function StatusMessage({ tone, message }: { tone: "success" | "danger"; message:
 			role={tone === "success" ? "status" : "alert"}
 			className={
 				tone === "success"
-					? "flex items-center gap-2 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
-					: "flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+					? "flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
+					: "flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
 			}
 		>
 			<span className="min-w-0 flex-1">{message}</span>

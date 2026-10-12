@@ -302,7 +302,7 @@ export function SignInClient() {
 				{signInError && (
 					<div
 						role="alert"
-						className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+						className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
 					>
 						<span className="shrink-0">
 							<RiErrorWarningFill className="size-4" aria-hidden="true" />

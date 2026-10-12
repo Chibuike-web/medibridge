@@ -14,6 +14,7 @@ import { updateTag } from "next/cache";
 import { inArray } from "drizzle-orm";
 import { SavePatientsResult } from "./types";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
+import { z } from "zod";
 
 function isBlank(value: string | null | undefined) {
 	return value === null || value === undefined || value.trim() === "";
@@ -29,6 +30,10 @@ function validatePatients(records: PatientType) {
 		if (isBlank(personalInfo.firstName)) return `${label}: first name is required.`;
 		if (isBlank(personalInfo.lastName)) return `${label}: last name is required.`;
 		if (isBlank(personalInfo.patientId)) return `${label}: patient ID is required.`;
+		if (isBlank(personalInfo.dateOfBirth)) return `${label}: date of birth is required.`;
+		if (!z.iso.date().safeParse(personalInfo.dateOfBirth).success) {
+			return `${label}: provide a valid date of birth.`;
+		}
 
 		const patientId = personalInfo.patientId!.trim();
 		const firstPatientNumber = patientNumbersById.get(patientId);

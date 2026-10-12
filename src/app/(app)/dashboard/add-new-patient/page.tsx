@@ -43,7 +43,7 @@ async function AddNewPatientContent({ searchParams }: AddNewPatientPageProps) {
 
 	return (
 		<>
-			<nav className="w-full h-14 flex items-center sticky z-1 top-0 bg-white border-b border-gray-300 px-4">
+			<nav className="w-full h-14 flex items-center sticky z-1 top-0 bg-white border-b border-gray-100 px-4 md:px-8">
 				<Button variant="ghost" size="icon" asChild>
 					<Link href={safeReturnTo} prefetch={true}>
 						<RiArrowLeftLine aria-hidden="true" /> <span className="sr-only">Back</span>
@@ -51,18 +51,7 @@ async function AddNewPatientContent({ searchParams }: AddNewPatientPageProps) {
 				</Button>
 			</nav>
 
-			<main className="flex flex-col gap-9 mt-12 max-w-[31.25rem] mx-auto px-6 md:px-0">
-				<div>
-					<h1 className="mb-3 text-center text-lg font-semibold text-balance">
-						Upload Patient’s Record
-					</h1>
-					<p className="text-gray-600 text-center text-pretty text-sm">
-						Upload a document with the patient’s basic details to create their profile. Only
-						essential personal information is needed at this stage. Upload one document per patient.
-					</p>
-				</div>
-				<AddNewPatientClient />
-			</main>
+			<AddNewPatientClient />
 		</>
 	);
 }

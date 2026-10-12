@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { renderToReadableStream } from "react-dom/server.browser";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { PatientExtractionRecord } from "@/db/schemas/patient/patient-extraction";
@@ -91,8 +91,12 @@ describe("review saved patient extractions", () => {
 
 	test("loads saved information into the review form using the extraction ID in the URL", async () => {
 		await renderReviewPage();
-		expect(screen.getByRole("button", { name: "Ada Okafor" })).toBeVisible();
+		expect(screen.getByRole("heading", { name: "Ada Okafor" })).toBeVisible();
 		expect(screen.getByRole("heading", { name: "Review Patient Information" })).toBeVisible();
+		expect(screen.getByRole("link", { name: "View document" })).toHaveAttribute(
+			"href",
+			"/api/patient-extractions/saved/documents/Ada.pdf",
+		);
 		expect(getExtractionMock).toHaveBeenCalledWith("saved");
 	});
 
@@ -102,8 +106,13 @@ describe("review saved patient extractions", () => {
 			extractedData: [savedRecord(id === "original" ? "Ada" : "Bola")],
 		}));
 		await renderReviewPage({ extractionId: ["original", "retry", "original"] });
-		expect(screen.getAllByRole("button", { name: "Ada Okafor" })).toHaveLength(1);
-		expect(screen.getByRole("button", { name: "Bola Okafor" })).toBeVisible();
+		expect(screen.getAllByRole("article")).toHaveLength(2);
+		expect(
+			within(screen.getByRole("article", { name: "Document 1" })).getByText("Ada Okafor"),
+		).toBeVisible();
+		expect(
+			within(screen.getByRole("article", { name: "Document 2" })).getByText("Bola Okafor"),
+		).toBeVisible();
 	});
 
 	test("returns to uploads when the review URL has no extraction ID", async () => {
@@ -114,14 +123,14 @@ describe("review saved patient extractions", () => {
 
 	test("shows not found instead of a partial review when any extraction is missing or inaccessible", async () => {
 		await renderReviewPage();
-		expect(screen.getByRole("button", { name: "Ada Okafor" })).toBeVisible();
+		expect(screen.getByRole("heading", { name: "Ada Okafor" })).toBeVisible();
 		cleanup();
 		getExtractionMock.mockImplementation(async (id: string) =>
 			id === "unavailable" ? null : { id, extractedData: [savedRecord("Ada")] },
 		);
 		await renderReviewPage({ extractionId: ["saved", "unavailable"] });
 		expect(notFoundMock).toHaveBeenCalled();
-		expect(screen.queryByRole("button", { name: "Ada Okafor" })).not.toBeInTheDocument();
+		expect(screen.queryByRole("heading", { name: "Ada Okafor" })).not.toBeInTheDocument();
 	});
 
 	test("rejects an empty extraction ID in a multi-extraction URL", async () => {
@@ -137,7 +146,7 @@ describe("review saved patient extractions", () => {
 		{ state: "signed out", destination: "/sign-in" },
 	])("routes $state before loading saved patient information", async ({ state, destination }) => {
 		await renderReviewPage();
-		expect(screen.getByRole("button", { name: "Ada Okafor" })).toBeVisible();
+		expect(screen.getByRole("heading", { name: "Ada Okafor" })).toBeVisible();
 		cleanup();
 		getExtractionMock.mockClear();
 
@@ -156,7 +165,7 @@ describe("review saved patient extractions", () => {
 
 		await renderReviewPage();
 		expect(redirectMock).toHaveBeenCalledWith(destination);
-		expect(screen.queryByRole("button", { name: "Ada Okafor" })).not.toBeInTheDocument();
+		expect(screen.queryByRole("heading", { name: "Ada Okafor" })).not.toBeInTheDocument();
 		expect(getExtractionMock).not.toHaveBeenCalled();
 	});
 });

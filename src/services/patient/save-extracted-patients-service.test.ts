@@ -171,6 +171,21 @@ describe("saveExtractedPatientsService", () => {
 		expect(savedRows).toEqual([]);
 	});
 
+	test.each([null, "", "12/04/1994", "2023-02-30"])(
+		"does not save a patient with an unusable date of birth: %s",
+		async (dateOfBirth) => {
+			const record = createPatientRecord("P-0001", "Ada");
+			record.personalInfo.dateOfBirth = dateOfBirth;
+			expect(await saveExtractedPatientsService([record])).toEqual({
+				status: "failed",
+				error: dateOfBirth
+					? "Patient 1: provide a valid date of birth."
+					: "Patient 1: date of birth is required.",
+			});
+			expect(savedRows).toEqual([]);
+		},
+	);
+
 	test("returns a fixed message instead of the database error when saving fails", async () => {
 		vi.spyOn(console, "error").mockImplementation(() => {});
 		transactionMock.mockRejectedValue(

@@ -135,7 +135,7 @@ function InvalidOrExpired({ type }: { type: "INVALID_TOKEN" | "TOKEN_EXPIRED" })
 							<div
 								id="resend-feedback"
 								role="alert"
-								className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+								className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
 							>
 								<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
 								<span className="min-w-0 flex-1">{resendFeedback.message}</span>
@@ -155,7 +155,7 @@ function InvalidOrExpired({ type }: { type: "INVALID_TOKEN" | "TOKEN_EXPIRED" })
 							<div
 								id="resend-feedback"
 								role="status"
-								className="mt-4 flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-sm font-medium text-green-700"
+								className="mt-4 flex items-center gap-2 rounded-xl bg-green-50 px-3 py-2 text-sm font-medium text-green-700"
 							>
 								<RiCheckboxCircleFill className="size-4 shrink-0" aria-hidden="true" />
 								<span className="min-w-0 flex-1">{resendFeedback.message}</span>

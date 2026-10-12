@@ -65,7 +65,7 @@ export function ForgotPasswordClient() {
 					<div
 						id="reset-feedback"
 						role="alert"
-						className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+						className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
 					>
 						<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
 						<span className="min-w-0 flex-1">{requestFeedback}</span>
