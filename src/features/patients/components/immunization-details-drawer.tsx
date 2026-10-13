@@ -76,8 +76,10 @@ export function ImmunizationDetailsDrawer({
 							? "Edit immunization details"
 							: "View immunization details"}
 					</DrawerTitle>
-					<DrawerClose aria-label="Close immunization details">
-						<RiCloseLine className="size-5" aria-hidden="true" />
+					<DrawerClose asChild>
+						<Button variant="ghost" size="icon" aria-label="Close immunization details">
+							<RiCloseLine aria-hidden="true" />
+						</Button>
 					</DrawerClose>
 					<DrawerDescription className="sr-only">
 						{isEditingImmunizationDetails
@@ -180,7 +182,7 @@ function ImmunizationDetailsOverview({
 					</Button>
 				</div>
 
-				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 					<ImmunizationDetailItem label="Series Type" value={immunization.seriesType} />
 					<ImmunizationDetailItem label="Current dose" value={immunization.currentDose} />
 					<ImmunizationDetailItem label="Total Doses" value={immunization.totalDoses} />
@@ -214,7 +216,7 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 					) : null}
 				</div>
 
-				<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 					<div className="flex flex-col gap-2 sm:col-span-2">
 						<Label
 							htmlFor="edit-immunization-vaccine-name"
@@ -467,7 +469,7 @@ function ImmunizationHistoryCard({
 					<div
 						role="region"
 						aria-labelledby={titleId}
-						className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
+						className="mt-6 grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2"
 					>
 						{historyEvent.items.map((item) => (
 							<ImmunizationDetailItem
@@ -492,7 +494,7 @@ function ImmunizationDetailsFallback() {
 			</div>
 			<div className="flex flex-col gap-6">
 				<div className="h-7 w-48 animate-pulse rounded-md bg-gray-100" />
-				<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 					{Array.from({ length: 10 }).map((_, index) => (
 						<div key={index} className="flex flex-col gap-2">
 							<div className="h-4 w-28 animate-pulse rounded bg-gray-100" />
@@ -504,7 +506,7 @@ function ImmunizationDetailsFallback() {
 			{Array.from({ length: 2 }).map((_, index) => (
 				<div key={index} className="flex flex-col gap-4 rounded-xl border border-gray-200 p-4">
 					<div className="h-5 w-48 animate-pulse rounded bg-gray-100" />
-					<div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
 						<div className="h-5 w-40 animate-pulse rounded bg-gray-100" />
 						<div className="h-5 w-36 animate-pulse rounded bg-gray-100" />
 					</div>

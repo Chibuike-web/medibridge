@@ -93,11 +93,10 @@ export function CreateEncounterDrawer({ open, onOpenChange }: CreateEncounterDra
 					<>
 						<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 							<DrawerTitle className="leading-[1.2] text-gray-800">Create encounter</DrawerTitle>
-							<DrawerClose
-								aria-label="Close create encounter drawer"
-								className="cursor-pointer rounded-md hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
-							>
-								<RiCloseLine className="size-5" aria-hidden="true" />
+							<DrawerClose asChild>
+								<Button variant="ghost" size="icon" aria-label="Close create encounter drawer">
+									<RiCloseLine aria-hidden="true" />
+								</Button>
 							</DrawerClose>
 							<DrawerDescription className="sr-only">
 								Choose a clinical record to add to this encounter.

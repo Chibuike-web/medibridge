@@ -18,6 +18,15 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { nigerianStates } from "@/features/patients/utils/nigerian-states";
 import { Button } from "@/components/ui/button";
 import { useOptimistic, useState, useTransition } from "react";
 import type { SyntheticEvent } from "react";
@@ -43,6 +52,27 @@ export function ContactInformation({
 	const [optimisticContactInformation, setOptimisticContactInformation] =
 		useOptimistic(contactInformation);
 	const [isPending, startTransition] = useTransition();
+	const savedStateOfOrigin = getContactInformationValue(
+		optimisticContactInformation,
+		"State of origin",
+	);
+	const savedCountryOfOrigin = getContactInformationValue(
+		optimisticContactInformation,
+		"Country of origin",
+	);
+	const [selectedStateOfOrigin, setSelectedStateOfOrigin] = useState(
+		nigerianStates.find(
+			(state) =>
+				state.toLowerCase() ===
+				savedStateOfOrigin
+					.trim()
+					.toLowerCase()
+					.replace(/\s+state$/, ""),
+		) ?? "",
+	);
+	const [selectedCountryOfOrigin, setSelectedCountryOfOrigin] = useState(
+		savedCountryOfOrigin.trim().toLowerCase() === "nigeria" ? "Nigeria" : "",
+	);
 
 	function handleContactInformationSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>) {
 		event.preventDefault();
@@ -74,14 +104,15 @@ export function ContactInformation({
 
 	const action = (
 		<DropdownMenu>
-			<DropdownMenuTrigger
-				type="button"
-				className="group inline-flex size-9 items-center justify-center text-gray-500"
-				aria-label="Open actions for Contact Information"
-			>
-				<span className="inline-flex size-8 items-center justify-center rounded-md transition-colors group-hover:bg-gray-100 group-hover:text-gray-800">
-					<RiMore2Fill className="size-5" aria-hidden />
-				</span>
+			<DropdownMenuTrigger asChild>
+				<Button
+					variant="ghost"
+					size="icon"
+					className="text-gray-500"
+					aria-label="Open actions for Contact Information"
+				>
+					<RiMore2Fill aria-hidden="true" />
+				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="end"
@@ -124,15 +155,21 @@ export function ContactInformation({
 							Form for editing contact details such as phone number, email, and address.
 						</DialogDescription>
 
-						<DialogClose>
-							<RiCloseLine className="size-6" />
+						<DialogClose asChild>
+							<Button
+								variant="ghost"
+								size="icon"
+								aria-label="Close edit contact information dialog"
+							>
+								<RiCloseLine aria-hidden="true" />
+							</Button>
 						</DialogClose>
 					</DialogHeader>
 
 					<form
 						id={contactInformationFormId}
 						onSubmit={handleContactInformationSubmit}
-						className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-4 py-5 text-sm text-gray-800"
+						className="grid grid-cols-1 gap-x-4 gap-y-6 px-4 py-5 sm:grid-cols-2 text-sm text-gray-800"
 					>
 						<input type="hidden" name="patientId" value={patientId} />
 
@@ -199,30 +236,44 @@ export function ContactInformation({
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor="contact-state-of-origin">State of origin</Label>
-							<Input
-								id="contact-state-of-origin"
+							<input
+								type="hidden"
 								name="stateOfOrigin"
-								defaultValue={getContactInformationValue(
-									optimisticContactInformation,
-									"State of origin",
-								)}
-								placeholder="e.g. Enugu"
-								type="text"
+								value={selectedStateOfOrigin || savedStateOfOrigin}
 							/>
+							<Select value={selectedStateOfOrigin} onValueChange={setSelectedStateOfOrigin}>
+								<SelectTrigger id="contact-state-of-origin" className="w-full">
+									<SelectValue placeholder="Select state" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										{nigerianStates.map((state) => (
+											<SelectItem key={state} value={state}>
+												{state}
+											</SelectItem>
+										))}
+									</SelectGroup>
+								</SelectContent>
+							</Select>
 						</div>
 
 						<div className="flex flex-col gap-2">
 							<Label htmlFor="contact-country-of-origin">Country of origin</Label>
-							<Input
-								id="contact-country-of-origin"
+							<input
+								type="hidden"
 								name="countryOfOrigin"
-								defaultValue={getContactInformationValue(
-									optimisticContactInformation,
-									"Country of origin",
-								)}
-								placeholder="e.g. Nigeria"
-								type="text"
+								value={selectedCountryOfOrigin || savedCountryOfOrigin}
 							/>
+							<Select value={selectedCountryOfOrigin} onValueChange={setSelectedCountryOfOrigin}>
+								<SelectTrigger id="contact-country-of-origin" className="w-full">
+									<SelectValue placeholder="Select country" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										<SelectItem value="Nigeria">Nigeria</SelectItem>
+									</SelectGroup>
+								</SelectContent>
+							</Select>
 						</div>
 					</form>
 

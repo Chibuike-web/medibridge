@@ -47,12 +47,12 @@ export function TransferDetailsDrawer({
 					<DrawerTitle className="text-gray-800 leading-[1.2] flex-1">
 						View transfer details
 					</DrawerTitle>
-					<Button variant="ghost" size="icon">
-						<RiMore2Fill className="size-5" />
+					<Button variant="ghost" size="icon" aria-label="More transfer actions">
+						<RiMore2Fill aria-hidden="true" />
 					</Button>
 					<DrawerClose aria-label="Close transfer details" asChild>
 						<Button variant="ghost" size="icon">
-							<RiCloseLine className="size-5" aria-hidden="true" />
+							<RiCloseLine aria-hidden="true" />
 						</Button>
 					</DrawerClose>
 					<DrawerDescription className="sr-only">
@@ -92,7 +92,7 @@ export function TransferDetailsDrawer({
 										)}
 									</div>
 								</div>
-								<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+								<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 									<DetailItem label="Patient Name:" value={transfer?.patientName} />
 									<DetailItem label="Target Hospital:" value={transfer?.targetHospitalName} />
 									<DetailItem label="Target Hospital Email" value={transfer?.targetHospitalEmail} />
@@ -325,7 +325,7 @@ function TransferDetailsFallback() {
 				<div className="h-6 w-40 animate-pulse rounded-md bg-gray-100" />
 				<div className="h-6 w-44 animate-pulse rounded-md bg-gray-100" />
 			</div>
-			<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+			<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 				{Array.from({ length: 6 }).map((_, index) => (
 					<div key={index} className="flex flex-col gap-2">
 						<div className="h-4 w-28 animate-pulse rounded bg-gray-100" />

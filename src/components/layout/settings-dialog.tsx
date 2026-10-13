@@ -146,7 +146,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 				<div className="flex h-full min-h-0">
 					<aside className="w-[12.5rem] shrink-0 border-r bg-white p-2">
 						<div className="flex h-10 items-center px-2">
-							<DialogTitle className="text-base">Settings</DialogTitle>
+							<DialogTitle>Settings</DialogTitle>
 							<DialogDescription className="sr-only">
 								Manage your MediBridge profile and organization settings.
 							</DialogDescription>
@@ -200,11 +200,10 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 							) : (
 								<h2 className="text-base font-semibold">{selectedSettingsSectionLabel}</h2>
 							)}
-							<DialogClose
-								className="rounded-md border border-transparent p-1.5 text-foreground/60 transition-colors hover:bg-gray-100 hover:text-foreground focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
-								aria-label="Close settings"
-							>
-								<RiCloseLine className="size-5" aria-hidden="true" />
+							<DialogClose asChild>
+								<Button variant="ghost" size="icon" aria-label="Close settings">
+									<RiCloseLine aria-hidden="true" />
+								</Button>
 							</DialogClose>
 						</div>
 						<div className="flex-1 overflow-y-auto">

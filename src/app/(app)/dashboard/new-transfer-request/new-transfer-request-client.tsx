@@ -390,8 +390,14 @@ export function NewTransferRequestClient({
 											Review the selected patients and attached clinical records before submitting
 											this transfer request.
 										</DialogDescription>
-										<DialogClose>
-											<RiCloseLine className="size-6" />
+										<DialogClose asChild>
+											<Button
+												variant="ghost"
+												size="icon"
+												aria-label="Close transfer request confirmation"
+											>
+												<RiCloseLine aria-hidden="true" />
+											</Button>
 										</DialogClose>
 									</DialogHeader>
 									<div className="px-4 py-5 text-sm">

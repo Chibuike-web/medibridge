@@ -67,7 +67,7 @@ export function DeleteAccountDialog({
 		<AlertDialog open={open} onOpenChange={onOpenChange}>
 			<AlertDialogContent>
 				<AlertDialogHeader>
-					<AlertDialogTitle className="text-base">
+					<AlertDialogTitle>
 						{mustTransferOwnership
 							? "Transfer ownership before deleting your account"
 							: "Are you sure you want to delete your account?"}
@@ -79,7 +79,7 @@ export function DeleteAccountDialog({
 						aria-label="Close delete account dialog"
 						onClick={() => onOpenChange(false)}
 					>
-						<RiCloseLine className="size-5" aria-hidden="true" />
+						<RiCloseLine aria-hidden="true" />
 					</Button>
 				</AlertDialogHeader>
 				<div>

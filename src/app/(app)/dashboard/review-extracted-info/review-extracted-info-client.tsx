@@ -1,10 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
 import sectionSeparator from "@/assets/review/section-separator.svg";
+import {
+	AlertDialog,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,10 +29,12 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import type { PatientRecord } from "@/features/patients/schemas/patient-schema";
+import { discardPatientExtractionAction } from "@/features/patients/server/discard-patient-extraction-action";
 import { removeExtractionDocumentAction } from "@/features/patients/server/remove-extraction-document-action";
 import { retryPatientExtractionAction } from "@/features/patients/server/retry-patient-extraction-action";
 import { savePatientsAction } from "@/features/patients/server/save-patients-action";
 import { formatPatientLabel } from "@/features/patients/utils/format-patient-label";
+import { nigerianStates } from "@/features/patients/utils/nigerian-states";
 import { cn } from "@/lib/utils/cn";
 import { getDocumentFileIcon } from "@/lib/utils/document-file-icon";
 import {
@@ -85,8 +96,8 @@ const reviewSections: ReviewSection[] = [
 			{ key: "phoneNumber", label: "Phone number", type: "tel" },
 			{ key: "emailAddress", label: "Email address", type: "email" },
 			{ key: "residentialAddress", label: "Residential address" },
-			{ key: "stateOfOrigin", label: "State of origin" },
-			{ key: "countryOfOrigin", label: "Country of origin" },
+			{ key: "stateOfOrigin", label: "State of origin", options: nigerianStates },
+			{ key: "countryOfOrigin", label: "Country of origin", options: ["Nigeria"] },
 		],
 	},
 	{
@@ -159,6 +170,7 @@ export function ReviewExtractedInfoClient({
 	const [reviewError, setReviewError] = useState("");
 	const [birthDateError, setBirthDateError] = useState("");
 	const [reviewAnnouncement, setReviewAnnouncement] = useState("");
+	const [isLeaveReviewDialogOpen, setIsLeaveReviewDialogOpen] = useState(false);
 	const [isPending, startTransition] = useTransition();
 	const formId = useId();
 	const selectedDocument = documents.find((document) => document.id === selectedDocumentId);
@@ -166,6 +178,7 @@ export function ReviewExtractedInfoClient({
 	const isSaved = selectedDocument?.status === "saved";
 	const isWordDocument = selectedDocument?.id.endsWith(".docx");
 	const canSave = Boolean(selectedPatient) && !isPending;
+	const unsavedDocumentCount = documents.filter((document) => document.status !== "saved").length;
 	const birthDate = selectedPatient?.personalInfo.dateOfBirth;
 	const parsedBirthDate =
 		birthDate && isMatch(birthDate, "yyyy-MM-dd") ? parseISO(birthDate) : undefined;
@@ -221,6 +234,26 @@ export function ReviewExtractedInfoClient({
 
 			setDocuments((prev) => prev.filter((document) => document.id !== removedDocument.id));
 			setReviewAnnouncement(`${removedDocument.label} removed.`);
+		});
+	}
+
+	function continueToDashboard() {
+		setReviewError("");
+		startTransition(async () => {
+			const result = await discardPatientExtractionAction(extractionId);
+
+			if (result.status === "unauthorized") {
+				router.refresh();
+				return;
+			}
+
+			if (result.status === "failed") {
+				setIsLeaveReviewDialogOpen(false);
+				setReviewError(result.error);
+				return;
+			}
+
+			router.push("/dashboard/overview");
 		});
 	}
 
@@ -471,11 +504,7 @@ export function ReviewExtractedInfoClient({
 																						<RiCalendarLine aria-hidden="true" />
 																					</Button>
 																				</PopoverTrigger>
-																				<PopoverContent
-																					align="start"
-																					collisionPadding={16}
-																					className="w-auto overflow-hidden rounded-xl p-0"
-																				>
+																				<PopoverContent collisionPadding={16} className="p-0">
 																					<Calendar
 																						mode="single"
 																						required
@@ -506,7 +535,16 @@ export function ReviewExtractedInfoClient({
 																		</>
 																	) : field.options ? (
 																		<Select
-																			value={String(value).toLowerCase()}
+																			value={
+																				field.options.find(
+																					(option) =>
+																						option.toLowerCase() ===
+																						String(value)
+																							.trim()
+																							.toLowerCase()
+																							.replace(/\s+state$/, ""),
+																				) ?? ""
+																			}
 																			required={isRequired}
 																			disabled={isPending}
 																			onValueChange={(selectedValue) =>
@@ -522,7 +560,7 @@ export function ReviewExtractedInfoClient({
 																			<SelectContent>
 																				<SelectGroup>
 																					{field.options.map((option) => (
-																						<SelectItem key={option} value={option.toLowerCase()}>
+																						<SelectItem key={option} value={option}>
 																							{option}
 																						</SelectItem>
 																					))}
@@ -649,9 +687,56 @@ export function ReviewExtractedInfoClient({
 			</div>
 			<footer className="fixed inset-x-0 bottom-0 z-50 border-t border-gray-100 bg-white px-6 py-4">
 				<div className="mx-auto flex w-full max-w-[31.25rem] flex-wrap items-center justify-between gap-3">
-					<Button variant="outline" className="rounded-lg max-sm:w-full" asChild>
-						<Link href="/dashboard/overview">Continue to dashboard</Link>
-					</Button>
+					{unsavedDocumentCount > 0 ? (
+						<AlertDialog open={isLeaveReviewDialogOpen} onOpenChange={setIsLeaveReviewDialogOpen}>
+							<AlertDialogTrigger asChild>
+								<Button variant="outline" className="rounded-lg max-sm:w-full" disabled={isPending}>
+									Continue to dashboard
+								</Button>
+							</AlertDialogTrigger>
+							<AlertDialogContent>
+								<AlertDialogHeader>
+									<AlertDialogTitle>Leave review?</AlertDialogTitle>
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon"
+										aria-label="Close leave review dialog"
+										disabled={isPending}
+										onClick={() => setIsLeaveReviewDialogOpen(false)}
+									>
+										<RiCloseLine aria-hidden="true" />
+									</Button>
+								</AlertDialogHeader>
+								<AlertDialogDescription>
+									You have {unsavedDocumentCount} unsaved{" "}
+									{unsavedDocumentCount === 1 ? "document" : "documents"}. Leaving will discard them
+									and your edits. Saved patients will remain available.
+								</AlertDialogDescription>
+								<AlertDialogFooter>
+									<AlertDialogCancel disabled={isPending}>Keep reviewing</AlertDialogCancel>
+									<Button
+										type="button"
+										variant="destructive"
+										disabled={isPending}
+										aria-busy={isPending}
+										onClick={continueToDashboard}
+									>
+										{isPending ? "Discarding…" : "Discard and continue"}
+									</Button>
+								</AlertDialogFooter>
+							</AlertDialogContent>
+						</AlertDialog>
+					) : (
+						<Button
+							variant="outline"
+							className="rounded-lg max-sm:w-full"
+							disabled={isPending}
+							onClick={continueToDashboard}
+						>
+							Continue to dashboard
+						</Button>
+					)}
 					<Button
 						type="submit"
 						form={formId}

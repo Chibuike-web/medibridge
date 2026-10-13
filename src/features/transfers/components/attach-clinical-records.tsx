@@ -209,7 +209,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 					<RiArrowDownSLine className="size-5 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
 				</PopoverTrigger>
 
-				<PopoverContent sideOffset={8} className="flex h-[24rem] flex-col rounded-2xl p-0">
+				<PopoverContent className="flex h-[24rem] flex-col rounded-2xl p-0">
 					<div className="flex shrink-0 items-center gap-2 border-b border-gray-200 px-4 py-2 text-gray-400">
 						<RiSearchLine className="size-4" />
 						<input

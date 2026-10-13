@@ -87,8 +87,10 @@ export function MedicationDetailsDrawer({
 					<DrawerTitle className="leading-[1.2] text-gray-800">
 						{isEditingMedicationDetails ? "Edit medication details" : "View medication details"}
 					</DrawerTitle>
-					<DrawerClose aria-label="Close medication details">
-						<RiCloseLine className="size-5" aria-hidden="true" />
+					<DrawerClose asChild>
+						<Button variant="ghost" size="icon" aria-label="Close medication details">
+							<RiCloseLine aria-hidden="true" />
+						</Button>
 					</DrawerClose>
 					<DrawerDescription className="sr-only">
 						{isEditingMedicationDetails
@@ -198,7 +200,7 @@ function MedicationDetailsOverview({
 					</Button>
 				</div>
 
-				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 					<MedicationDetailItem label="Dose" value={medication.dose} />
 					<MedicationDetailItem label="Route" value={medication.route} />
 					<MedicationDetailItem label="Frequency" value={medication.frequency} />
@@ -253,7 +255,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 					) : null}
 				</div>
 
-				<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 					<div className="flex flex-col gap-2 sm:col-span-2">
 						<Label htmlFor="edit-medication-name" className={medicationDetailsFieldLabelClassName}>
 							Medication<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
@@ -527,7 +529,7 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 					<div
 						role="region"
 						aria-labelledby={titleId}
-						className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
+						className="mt-6 grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2"
 					>
 						{historyEvent.items.map((item) => (
 							<MedicationDetailItem
@@ -552,7 +554,7 @@ function MedicationDetailsFallback() {
 			</div>
 			<div className="flex flex-col gap-6">
 				<div className="h-7 w-44 animate-pulse rounded-md bg-gray-100" />
-				<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 					{Array.from({ length: 10 }).map((_, index) => (
 						<div key={index} className="flex flex-col gap-2">
 							<div className="h-4 w-28 animate-pulse rounded bg-gray-100" />
@@ -564,7 +566,7 @@ function MedicationDetailsFallback() {
 			{Array.from({ length: 3 }).map((_, index) => (
 				<div key={index} className="flex flex-col gap-4 rounded-xl border border-gray-200 p-4">
 					<div className="h-5 w-48 animate-pulse rounded bg-gray-100" />
-					<div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
 						<div className="h-5 w-40 animate-pulse rounded bg-gray-100" />
 						<div className="h-5 w-36 animate-pulse rounded bg-gray-100" />
 					</div>

@@ -76,8 +76,10 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 					<DrawerTitle className="leading-[1.2] text-gray-800">
 						{isEditingImagingDetails ? "Edit imaging details" : "View imaging details"}
 					</DrawerTitle>
-					<DrawerClose aria-label="Close imaging details drawer">
-						<RiCloseLine className="size-5" aria-hidden="true" />
+					<DrawerClose asChild>
+						<Button variant="ghost" size="icon" aria-label="Close imaging details drawer">
+							<RiCloseLine aria-hidden="true" />
+						</Button>
 					</DrawerClose>
 					<DrawerDescription className="sr-only">
 						{isEditingImagingDetails
@@ -170,7 +172,7 @@ function ImagingDetailsOverview({
 					</Button>
 				</div>
 
-				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 					<ImagingDetailItem label="Impression" value={imaging.impression} />
 					<ImagingDetailItem label="Region" value={imaging.region} />
 					<ImagingDetailItem label="Modality" value={imaging.modality} />
@@ -329,7 +331,7 @@ function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHist
 					<div
 						role="region"
 						aria-labelledby={titleId}
-						className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
+						className="mt-6 grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2"
 					>
 						{historyEvent.items.map((item) => (
 							<ImagingDetailItem
@@ -419,7 +421,7 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 				) : null}
 			</div>
 
-			<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+			<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 				<div className="flex flex-col gap-2 sm:col-span-2">
 					<Label htmlFor="edit-imaging-study" className={imagingDetailsFieldLabelClassName}>
 						Study<span className={imagingDetailsRequiredLabelClassName}>(required)</span>

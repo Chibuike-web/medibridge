@@ -204,12 +204,11 @@ function PaymentMethodSettings() {
 			<Dialog open={isChangePaymentMethodOpen} onOpenChange={setIsChangePaymentMethodOpen}>
 				<DialogContent className="max-w-[37.5rem] gap-0 p-0">
 					<DialogHeader className="py-4">
-						<DialogTitle className="text-base">Change payment method</DialogTitle>
-						<DialogClose
-							className="rounded-md p-1.5 text-foreground/60 transition-colors hover:bg-gray-100 hover:text-foreground"
-							aria-label="Close change payment method dialog"
-						>
-							<RiCloseLine className="size-5" aria-hidden="true" />
+						<DialogTitle>Change payment method</DialogTitle>
+						<DialogClose asChild>
+							<Button variant="ghost" size="icon" aria-label="Close change payment method dialog">
+								<RiCloseLine aria-hidden="true" />
+							</Button>
 						</DialogClose>
 					</DialogHeader>
 					<DialogDescription className="px-4 py-5 text-sm font-normal text-gray-400">

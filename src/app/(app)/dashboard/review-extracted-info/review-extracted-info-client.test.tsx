@@ -4,14 +4,21 @@ import { beforeEach, expect, test, vi } from "vitest";
 import type { PatientRecord } from "@/features/patients/schemas/patient-schema";
 import { ReviewExtractedInfoClient, type ReviewDocument } from "./review-extracted-info-client";
 
-const { savePatientsMock, retryExtractionMock, removeDocumentMock, refreshMock } = vi.hoisted(
-	() => ({
-		savePatientsMock: vi.fn(),
-		retryExtractionMock: vi.fn(),
-		removeDocumentMock: vi.fn(),
-		refreshMock: vi.fn(),
-	}),
-);
+const {
+	savePatientsMock,
+	retryExtractionMock,
+	removeDocumentMock,
+	discardExtractionMock,
+	refreshMock,
+	pushMock,
+} = vi.hoisted(() => ({
+	savePatientsMock: vi.fn(),
+	retryExtractionMock: vi.fn(),
+	removeDocumentMock: vi.fn(),
+	discardExtractionMock: vi.fn(),
+	refreshMock: vi.fn(),
+	pushMock: vi.fn(),
+}));
 
 vi.mock("@/features/patients/server/save-patients-action", () => ({
 	savePatientsAction: savePatientsMock,
@@ -19,11 +26,14 @@ vi.mock("@/features/patients/server/save-patients-action", () => ({
 vi.mock("@/features/patients/server/remove-extraction-document-action", () => ({
 	removeExtractionDocumentAction: removeDocumentMock,
 }));
+vi.mock("@/features/patients/server/discard-patient-extraction-action", () => ({
+	discardPatientExtractionAction: discardExtractionMock,
+}));
 vi.mock("@/features/patients/server/retry-patient-extraction-action", () => ({
 	retryPatientExtractionAction: retryExtractionMock,
 }));
 vi.mock("next/navigation", () => ({
-	useRouter: () => ({ refresh: refreshMock }),
+	useRouter: () => ({ refresh: refreshMock, push: pushMock }),
 }));
 
 function patient(firstName: string, lastName: string, patientId: string): PatientRecord {
@@ -89,7 +99,10 @@ beforeEach(() => {
 	retryExtractionMock.mockReset();
 	removeDocumentMock.mockReset();
 	removeDocumentMock.mockResolvedValue({ status: "success" });
+	discardExtractionMock.mockReset();
+	discardExtractionMock.mockResolvedValue({ status: "success" });
 	refreshMock.mockReset();
+	pushMock.mockReset();
 });
 
 test("saves the edited patient, marks the document saved and moves to the next ready document", async () => {
@@ -414,4 +427,95 @@ test("prevents edits, removal and selection changes until the patient save finis
 	expect(
 		personalSection().getByRole("textbox", { name: "First name (required)" }),
 	).not.toHaveAttribute("readonly");
+});
+
+test("asks before discarding unsaved documents and keeps reviewing when the user cancels", async () => {
+	const user = userEvent.setup();
+	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
+	await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
+	const dialog = screen.getByRole("alertdialog", { name: "Leave review?" });
+	expect(dialog).toHaveTextContent(
+		"You have 3 unsaved documents. Leaving will discard them and your edits. Saved patients will remain available.",
+	);
+	await user.click(within(dialog).getByRole("button", { name: "Keep reviewing" }));
+	expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+	expect(discardExtractionMock).not.toHaveBeenCalled();
+	expect(pushMock).not.toHaveBeenCalled();
+	expect(screen.getByRole("heading", { name: "Ada Okafor" })).toBeVisible();
+});
+
+test("discards the review and continues to the dashboard when the user confirms", async () => {
+	const user = userEvent.setup();
+	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
+	await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
+	await user.click(screen.getByRole("button", { name: "Discard and continue" }));
+	expect(discardExtractionMock).toHaveBeenCalledWith("extraction-1");
+	await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/dashboard/overview"));
+});
+
+test("continues straight to the dashboard without asking when every document is saved", async () => {
+	const user = userEvent.setup();
+	render(
+		<ReviewExtractedInfoClient
+			extractionId="extraction-1"
+			initialDocuments={[{ ...documents[0], status: "saved" }]}
+		/>,
+	);
+	expect(screen.getByText("Saved")).toBeVisible();
+	await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
+	expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+	expect(discardExtractionMock).toHaveBeenCalledWith("extraction-1");
+	await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/dashboard/overview"));
+});
+
+test("stays on the review and shows the error when discarding fails", async () => {
+	const user = userEvent.setup();
+	discardExtractionMock.mockResolvedValueOnce({
+		status: "failed",
+		error: "We couldn’t clear this review. Please try again.",
+	});
+	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
+	await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
+	await user.click(screen.getByRole("button", { name: "Discard and continue" }));
+	expect(await screen.findByRole("alert")).toHaveTextContent(
+		"We couldn’t clear this review. Please try again.",
+	);
+	expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+	expect(pushMock).not.toHaveBeenCalled();
+	expect(screen.getByRole("heading", { name: "Ada Okafor" })).toBeVisible();
+});
+
+test("offers Nigerian states for state of origin and saves the chosen state", async () => {
+	const user = userEvent.setup();
+	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
+	const contactSection = within(screen.getByRole("region", { name: /Contact Information/ }));
+	const stateOfOrigin = contactSection.getByRole("combobox", {
+		name: "State of origin (required)",
+	});
+	expect(stateOfOrigin).toHaveTextContent("Enugu");
+	expect(
+		contactSection.getByRole("combobox", { name: "Country of origin (required)" }),
+	).toHaveTextContent("Nigeria");
+	await user.click(stateOfOrigin);
+	await user.click(screen.getByRole("option", { name: "Lagos" }));
+	expect(stateOfOrigin).toHaveTextContent("Lagos");
+	await user.click(screen.getByRole("button", { name: "Save patient & review next" }));
+	expect(savePatientsMock).toHaveBeenCalledWith(
+		"extraction-1",
+		"ada.pdf",
+		expect.objectContaining({
+			contactInfo: expect.objectContaining({ stateOfOrigin: "Lagos", countryOfOrigin: "Nigeria" }),
+		}),
+	);
+});
+
+test("matches an extracted state written with a different case and a State suffix", () => {
+	const document = structuredClone(documents[0]);
+	document.patient!.contactInfo.stateOfOrigin = "ENUGU State";
+	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={[document]} />);
+	expect(
+		within(screen.getByRole("region", { name: /Contact Information/ })).getByRole("combobox", {
+			name: "State of origin (required)",
+		}),
+	).toHaveTextContent("Enugu");
 });

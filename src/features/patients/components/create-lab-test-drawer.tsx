@@ -89,8 +89,10 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="leading-[1.2] text-gray-800">Add lab test</DrawerTitle>
-					<DrawerClose aria-label="Close add lab test drawer">
-						<RiCloseLine className="size-5" aria-hidden="true" />
+					<DrawerClose asChild>
+						<Button variant="ghost" size="icon" aria-label="Close add lab test drawer">
+							<RiCloseLine aria-hidden="true" />
+						</Button>
 					</DrawerClose>
 					<DrawerDescription className="sr-only">
 						Create a new laboratory test record for this patient.
@@ -98,7 +100,7 @@ export function CreateLabTestDrawer({ open, onOpenChange }: CreateLabTestDrawerP
 				</DrawerHeader>
 
 				<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-4 py-5 text-sm">
-					<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-test`} className={fieldLabelClassName}>
 								Test<span className={optionalLabelClassName}>(required)</span>

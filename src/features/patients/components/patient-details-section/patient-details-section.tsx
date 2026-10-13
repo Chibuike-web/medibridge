@@ -5,11 +5,7 @@ import { EmergencyContact } from "./emergency-contact";
 import { PersonalInformation } from "./personal-information";
 import { PhysicalInformation } from "./physical-information";
 
-export async function PatientDetailsSection({
-	patientId,
-}: {
-	patientId: string;
-}) {
+export async function PatientDetailsSection({ patientId }: { patientId: string }) {
 	const profile = await getPatientProfile(patientId);
 
 	if (!profile) {
@@ -19,9 +15,7 @@ export async function PatientDetailsSection({
 	return (
 		<div className="p-8">
 			<div className="mx-auto max-w-7xl">
-				<h1 className="mb-6 text-lg font-semibold text-gray-800 no-line-height">
-					Patient Details
-				</h1>
+				<h1 className="mb-6 text-lg font-semibold text-gray-800 no-line-height">Patient Details</h1>
 				<div className="flex flex-col gap-10">
 					<PersonalInformation
 						patientId={patientId}
@@ -31,10 +25,7 @@ export async function PatientDetailsSection({
 						patientId={patientId}
 						contactInformation={profile.contactInformation}
 					/>
-					<EmergencyContact
-						patientId={patientId}
-						emergencyContact={profile.emergencyContact}
-					/>
+					<EmergencyContact patientId={patientId} emergencyContact={profile.emergencyContact} />
 					<PhysicalInformation
 						patientId={patientId}
 						physicalInformation={profile.physicalInformation}

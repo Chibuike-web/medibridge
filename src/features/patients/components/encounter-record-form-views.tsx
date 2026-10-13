@@ -91,7 +91,7 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 		<>
 			<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-4 py-5 text-sm">
 				{recordType === "vitals" ? (
-					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2">
 							<Label htmlFor={`${generatedFormId}-temperature`} className={fieldLabelClassName}>
 								Temperature (°C)<span className={optionalLabelClassName}>(required)</span>
@@ -214,7 +214,7 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 				) : null}
 
 				{recordType === "medication" ? (
-					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-medication`} className={fieldLabelClassName}>
 								Medication<span className={optionalLabelClassName}>(required)</span>
@@ -347,7 +347,7 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 				) : null}
 
 				{recordType === "allergies" ? (
-					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-allergen`} className={fieldLabelClassName}>
 								Allergen<span className={optionalLabelClassName}>(required)</span>
@@ -415,7 +415,7 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 				) : null}
 
 				{recordType === "diagnoses" ? (
-					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-diagnosis-name`} className={fieldLabelClassName}>
 								Diagnosis name<span className={optionalLabelClassName}>(required)</span>
@@ -516,7 +516,7 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 				) : null}
 
 				{recordType === "immunizations" ? (
-					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-vaccine-name`} className={fieldLabelClassName}>
 								Vaccine name<span className={optionalLabelClassName}>(required)</span>
@@ -637,7 +637,7 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 				) : null}
 
 				{recordType === "imaging" ? (
-					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-study`} className={fieldLabelClassName}>
 								Study<span className={optionalLabelClassName}>(required)</span>
@@ -759,7 +759,7 @@ export function EncounterRecordFormView({ recordType }: EncounterRecordFormViewP
 				) : null}
 
 				{recordType === "lab-tests" ? (
-					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-test`} className={fieldLabelClassName}>
 								Test<span className={optionalLabelClassName}>(required)</span>

@@ -249,8 +249,8 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								</Button>
 							) : null}
 							<DialogClose asChild>
-								<Button variant="ghost" type="button" size="icon">
-									<RiCloseLine className="size-5" aria-hidden="true" />
+								<Button variant="ghost" type="button" size="icon" aria-label="Close search">
+									<RiCloseLine aria-hidden="true" />
 								</Button>
 							</DialogClose>
 						</DialogHeader>

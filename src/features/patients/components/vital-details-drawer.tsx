@@ -58,8 +58,10 @@ export function VitalDetailsDrawer({
 					<DrawerTitle className="leading-[1.2] text-gray-800">
 						{isEditingVitalDetails ? "Edit vitals details" : "View vitals details"}
 					</DrawerTitle>
-					<DrawerClose aria-label="Close vitals details">
-						<RiCloseLine className="size-5" aria-hidden="true" />
+					<DrawerClose asChild>
+						<Button variant="ghost" size="icon" aria-label="Close vitals details">
+							<RiCloseLine aria-hidden="true" />
+						</Button>
 					</DrawerClose>
 					<DrawerDescription className="sr-only">
 						{isEditingVitalDetails
@@ -152,7 +154,7 @@ function VitalDetailsOverview({
 					</Button>
 				</div>
 
-				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 					{getVitalDetailItems(vital).map((item) => (
 						<VitalDetailItem key={item.label} label={item.label} value={item.value} />
 					))}
@@ -181,7 +183,7 @@ function VitalDetailsEditForm({ vital }: { vital: VitalType }) {
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+			<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 				<VitalDetailsNumberField label="Systolic" name="systolic" defaultValue={vital.systolic} />
 				<VitalDetailsNumberField
 					label="Diastolic"
@@ -319,7 +321,7 @@ function VitalHistoryCard({ vital }: { vital: VitalType }) {
 					<div
 						role="region"
 						aria-labelledby={titleId}
-						className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
+						className="mt-6 grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2"
 					>
 						{getVitalDetailItems(vital).map((item) => (
 							<VitalDetailItem key={item.label} label={item.label} value={item.value} />

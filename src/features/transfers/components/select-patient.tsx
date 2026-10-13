@@ -113,7 +113,7 @@ export function SelectPatient({
 					<RiArrowDownSLine className="size-4 text-gray-400 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
 				</PopoverTrigger>
 
-				<PopoverContent sideOffset={8} className="rounded-2xl h-[24rem] flex flex-col p-0">
+				<PopoverContent className="rounded-2xl h-[24rem] flex flex-col p-0">
 					<div className="flex shrink-0 items-center gap-2 px-4 py-2 text-gray-400 border-b border-gray-200">
 						<RiSearchLine className="size-4 shrink-0" />
 						<input

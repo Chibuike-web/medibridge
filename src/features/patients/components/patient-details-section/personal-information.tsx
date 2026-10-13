@@ -105,14 +105,15 @@ export function PersonalInformation({
 
 	const action = (
 		<DropdownMenu>
-			<DropdownMenuTrigger
-				type="button"
-				className="group inline-flex size-9 items-center justify-center text-gray-500"
-				aria-label="Open actions for Personal Information"
-			>
-				<span className="inline-flex size-8 items-center justify-center rounded-md transition-colors group-hover:bg-gray-100 group-hover:text-gray-800">
-					<RiMore2Fill className="size-5" aria-hidden />
-				</span>
+			<DropdownMenuTrigger asChild>
+				<Button
+					variant="ghost"
+					size="icon"
+					className="text-gray-500"
+					aria-label="Open actions for Personal Information"
+				>
+					<RiMore2Fill aria-hidden="true" />
+				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="end"
@@ -155,15 +156,21 @@ export function PersonalInformation({
 						<DialogDescription className="sr-only">
 							Form for editing personal information such as name, age, sex, and marital status.
 						</DialogDescription>
-						<DialogClose>
-							<RiCloseLine className="size-6" />
+						<DialogClose asChild>
+							<Button
+								variant="ghost"
+								size="icon"
+								aria-label="Close edit personal information dialog"
+							>
+								<RiCloseLine aria-hidden="true" />
+							</Button>
 						</DialogClose>
 					</DialogHeader>
 
 					<form
 						id={personalInformationFormId}
 						onSubmit={handlePersonalInformationSubmit}
-						className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-x-4 gap-y-6 px-4 py-5 text-sm text-gray-800"
+						className="grid grid-cols-1 gap-x-4 gap-y-6 px-4 py-5 sm:grid-cols-2 text-sm text-gray-800"
 					>
 						<input
 							type="hidden"

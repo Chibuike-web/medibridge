@@ -81,8 +81,10 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 					<DrawerTitle className="leading-[1.2] text-gray-800">
 						{isEditingLabTestDetails ? "Edit lab test details" : "View details"}
 					</DrawerTitle>
-					<DrawerClose aria-label="Close lab test details drawer">
-						<RiCloseLine className="size-5" aria-hidden="true" />
+					<DrawerClose asChild>
+						<Button variant="ghost" size="icon" aria-label="Close lab test details drawer">
+							<RiCloseLine aria-hidden="true" />
+						</Button>
 					</DrawerClose>
 					<DrawerDescription className="sr-only">
 						{isEditingLabTestDetails
@@ -174,7 +176,7 @@ function LabTestDetailsOverview({
 					</Button>
 				</div>
 
-				<div className="grid grid-cols-1 gap-x-16 gap-y-6 sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 					<LabTestDetailItem label="Flag" value={labTest.flag || labTest.interpretation} />
 					<LabTestDetailItem label="Interpretation" value={labTest.interpretation} />
 					<LabTestDetailItem label="Result" value={labTest.result} />
@@ -337,7 +339,7 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 					<div
 						role="region"
 						aria-labelledby={titleId}
-						className="mt-6 grid grid-cols-1 gap-x-16 gap-y-5 sm:grid-cols-2"
+						className="mt-6 grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2"
 					>
 						{historyEvent.items.map((item) => (
 							<LabTestDetailItem
@@ -430,7 +432,7 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 				) : null}
 			</div>
 
-			<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+			<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 				<div className="flex flex-col gap-2 sm:col-span-2">
 					<Label htmlFor="edit-lab-test-name" className={fieldLabelClassName}>
 						Test<span className={optionalLabelClassName}>(required)</span>

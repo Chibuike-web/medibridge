@@ -107,8 +107,10 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="leading-[1.2] text-gray-800">Add procedure</DrawerTitle>
-					<DrawerClose aria-label="Close add procedure drawer">
-						<RiCloseLine className="size-5" aria-hidden="true" />
+					<DrawerClose asChild>
+						<Button variant="ghost" size="icon" aria-label="Close add procedure drawer">
+							<RiCloseLine aria-hidden="true" />
+						</Button>
 					</DrawerClose>
 					<DrawerDescription className="sr-only">
 						Create a new procedure record for this patient.
@@ -116,7 +118,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 				</DrawerHeader>
 
 				<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-4 py-5 text-sm">
-					<div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-procedure`} className={fieldLabelClassName}>
 								Procedure<span className={optionalLabelClassName}>(required)</span>
@@ -229,11 +231,7 @@ export function CreateProcedureDrawer({ open, onOpenChange }: CreateProcedureDra
 										aria-hidden="true"
 									/>
 								</PopoverTrigger>
-								<PopoverContent
-									align="start"
-									sideOffset={8}
-									className="flex flex-col gap-2 rounded-[0.625rem] p-1.5 text-sm text-gray-600"
-								>
+								<PopoverContent className="flex flex-col gap-2 rounded-[0.625rem] p-1.5 text-sm text-gray-600">
 									{assistantRows.map((assistantRow, assistantIndex) => (
 										<div
 											key={assistantRow.id}

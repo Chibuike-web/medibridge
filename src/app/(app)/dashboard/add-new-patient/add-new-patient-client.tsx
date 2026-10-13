@@ -129,12 +129,7 @@ export function AddNewPatientClient() {
 					</div>
 				) : null}
 				{files.length > 0 ? (
-					<div
-						className={cn(
-							"flex flex-col gap-3",
-							allExtractionsFailed && "gap-5",
-						)}
-					>
+					<div className={cn("flex flex-col gap-3", allExtractionsFailed && "gap-5")}>
 						{files.map((file) => {
 							const extension = file.name.split(".").pop()?.toLowerCase() as AllowedFileExtension;
 
@@ -300,37 +295,30 @@ function Footer({
 							</Button>
 						</DialogTrigger>
 						<DialogContent>
-							<DialogHeader className="py-4">
-								<DialogTitle>Confirm Extraction</DialogTitle>
-								<DialogDescription className="sr-only">
-									Confirm that the uploaded patients are complete before starting extraction.
-								</DialogDescription>
-								<DialogClose>
-									<RiCloseLine className="size-6" />
+							<DialogHeader>
+								<DialogTitle>Confirm extraction</DialogTitle>
+								<DialogClose asChild>
+									<Button variant="ghost" size="icon" aria-label="Close extraction confirmation">
+										<RiCloseLine aria-hidden="true" />
+									</Button>
 								</DialogClose>
 							</DialogHeader>
-							<div className="px-4 py-5 text-sm">
-								<p className="text-gray-600 font-normal">
-									Please ensure all required patients are uploaded and correct. Once extraction
-									starts, additional files cannot be added and the process cannot be paused or
-									restarted.
-								</p>
-							</div>
-							<DialogFooter className="mt-16 text-sm">
-								<div className="flex gap-2 ml-auto">
-									<DialogClose asChild>
-										<Button variant="outline">Cancel</Button>
-									</DialogClose>
-									<DialogClose asChild>
-										<Button
-											onClick={async () => {
-												await extractInfo();
-											}}
-										>
-											Start Extraction
-										</Button>
-									</DialogClose>
-								</div>
+							<DialogDescription className="p-4 text-sm text-pretty">
+								We’ll extract patient details from these files. Review them before saving.
+							</DialogDescription>
+							<DialogFooter className="sm:justify-end">
+								<DialogClose asChild>
+									<Button variant="outline">Cancel</Button>
+								</DialogClose>
+								<DialogClose asChild>
+									<Button
+										onClick={async () => {
+											await extractInfo();
+										}}
+									>
+										Start Extraction
+									</Button>
+								</DialogClose>
 							</DialogFooter>
 						</DialogContent>
 					</Dialog>
