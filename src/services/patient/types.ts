@@ -1,12 +1,12 @@
 export type SavePatientsResult =
-  | {
-      status: "success";
-      savedCount: number;
-    }
-  | {
-      status: "failed";
-      error: string;
-    };
+	| {
+			status: "success";
+			savedCount: number;
+	  }
+	| {
+			status: "failed" | "unauthorized";
+			error: string;
+	  };
 
 export type OverviewStats = {
 	totalPatients: number;

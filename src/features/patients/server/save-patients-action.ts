@@ -1,8 +1,12 @@
 "use server";
 
 import { saveExtractedPatientsService } from "@/services/patient/save-extracted-patients-service";
-import type { PatientType } from "../schemas/patient-schema";
+import type { PatientRecord } from "../schemas/patient-schema";
 
-export async function savePatientsAction(records: PatientType) {
-	return saveExtractedPatientsService(records);
+export async function savePatientsAction(
+	extractionId: string,
+	documentId: string,
+	patient: PatientRecord,
+) {
+	return saveExtractedPatientsService(extractionId, documentId, patient);
 }

@@ -207,6 +207,7 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 
 	return (
 		<form
+			method="post"
 			className="flex h-full flex-col gap-10 px-4 py-5"
 			aria-busy={isPending}
 			onSubmit={(event) => {

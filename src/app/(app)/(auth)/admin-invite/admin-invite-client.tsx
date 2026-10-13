@@ -58,7 +58,12 @@ export function AdminInviteClient() {
 
 	return (
 		<>
-			<form className="text-gray-800 mt-12" onSubmit={handleSubmit(onSubmit)} noValidate>
+			<form
+				method="post"
+				className="text-gray-800 mt-12"
+				onSubmit={handleSubmit(onSubmit)}
+				noValidate
+			>
 				<div className="mb-6">
 					<Label htmlFor="name" className="block mb-2 text-sm">
 						Name

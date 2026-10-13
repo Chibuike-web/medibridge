@@ -1,7 +1,11 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { SelectedFile } from "@/lib/types/upload";
 import { useFileExtraction } from "./use-file-extraction";
+
+const { pushMock } = vi.hoisted(() => ({ pushMock: vi.fn() }));
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: pushMock }) }));
 
 const fetchMock = vi.fn();
 
@@ -21,44 +25,13 @@ function uploadedFile(clientId: string, name: string): SelectedFile {
 }
 
 function ExtractionHarness({ files }: { files: SelectedFile[] }) {
-	const { fileExtractions, extractionIds, extractInfo, extractError, isExtracting } =
-		useFileExtraction(files);
+	const { extractInfo, extractError, isExtracting } = useFileExtraction(files);
 	return (
 		<>
 			<button disabled={isExtracting} onClick={() => void extractInfo()}>
 				Extract
 			</button>
 			{extractError && <p role="alert">{extractError}</p>}
-			{files.map((file) => {
-				const extraction = fileExtractions[file.clientId];
-				return (
-					<section key={file.clientId} aria-label={file.name}>
-						<p>
-							{extraction?.status === "extract-complete"
-								? "Extracted"
-								: extraction?.status === "extract-failed"
-									? "Extraction failed"
-									: extraction?.status === "extracting"
-										? "Extracting"
-										: file.status === "upload-complete"
-											? "Uploaded"
-											: file.status === "upload-failed"
-												? "Upload failed"
-												: "Uploading"}
-						</p>
-						{extraction?.status === "extract-failed" && (
-							<button disabled={isExtracting} onClick={() => void extractInfo([file.clientId])}>
-								Try again
-							</button>
-						)}
-					</section>
-				);
-			})}
-			{extractionIds.map((id) => (
-				<a key={id} href={`/dashboard/review-extracted-info?extractionId=${id}`}>
-					Review {id}
-				</a>
-			))}
 		</>
 	);
 }
@@ -69,9 +42,10 @@ async function extract() {
 	});
 }
 
-describe("independent file extraction", () => {
+describe("file extraction", () => {
 	beforeEach(() => {
 		fetchMock.mockReset();
+		pushMock.mockReset();
 		vi.stubGlobal("fetch", fetchMock);
 	});
 
@@ -80,9 +54,10 @@ describe("independent file extraction", () => {
 		vi.restoreAllMocks();
 	});
 
-	test("extracts only uploaded documents and leaves unfinished uploads alone", async () => {
+	test("extracts only uploaded documents and opens the saved extraction for review", async () => {
 		const files: SelectedFile[] = [
-			uploadedFile("ready", "ready.pdf"),
+			uploadedFile("first", "first.pdf"),
+			uploadedFile("second", "second.pdf"),
 			{
 				clientId: "pending",
 				browserFile: new File(["pending"], "pending.pdf"),
@@ -101,112 +76,93 @@ describe("independent file extraction", () => {
 		fetchMock.mockResolvedValueOnce(
 			Response.json({
 				status: "success",
-				extractionId: "ready-extraction",
-				result: [{ name: "saved-ready.pdf", status: "success" }],
+				extractionId: "saved-extraction",
+				hasReadyDocument: true,
 			}),
 		);
 		render(<ExtractionHarness files={files} />);
-		expect(
-			within(screen.getByRole("region", { name: "pending.pdf" })).getByText("Uploading"),
-		).toBeVisible();
-		expect(
-			within(screen.getByRole("region", { name: "failed.pdf" })).getByText("Upload failed"),
-		).toBeVisible();
 		await extract();
 
-		expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ filenames: ["saved-ready.pdf"] });
-		expect(
-			within(screen.getByRole("region", { name: "ready.pdf" })).getByText("Extracted"),
-		).toBeVisible();
-		expect(
-			within(screen.getByRole("region", { name: "pending.pdf" })).getByText("Uploading"),
-		).toBeVisible();
-		expect(
-			within(screen.getByRole("region", { name: "failed.pdf" })).getByText("Upload failed"),
-		).toBeVisible();
-		expect(screen.getByRole("link", { name: "Review ready-extraction" })).toBeVisible();
+		expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+			filenames: ["saved-first.pdf", "saved-second.pdf"],
+		});
+		expect(pushMock).toHaveBeenCalledWith(
+			"/dashboard/review-extracted-info?extractionId=saved-extraction",
+		);
+		expect(screen.getByRole("button", { name: "Extract" })).toBeDisabled();
 	});
 
-	test("shows a plain error after a network failure and lets that document be retried", async () => {
-		vi.spyOn(console, "error").mockImplementation(() => {});
-		fetchMock.mockRejectedValueOnce(new Error("private network details"));
+	test("shows the server error and lets the user extract again when nothing was saved", async () => {
+		fetchMock.mockResolvedValueOnce(
+			Response.json(
+				{
+					status: "failed",
+					error: "We couldn’t save the extracted information. Please try again.",
+				},
+				{ status: 500 },
+			),
+		);
 		render(<ExtractionHarness files={[uploadedFile("ready", "ready.pdf")]} />);
-		expect(screen.getByText("Uploaded")).toBeVisible();
 		await extract();
 		expect(screen.getByRole("alert")).toHaveTextContent(
-			"We couldn’t extract patient information. Please try again.",
+			"We couldn’t save the extracted information. Please try again.",
 		);
-		expect(screen.getByText("Extraction failed")).toBeVisible();
-		expect(screen.queryByRole("link")).not.toBeInTheDocument();
+		expect(pushMock).not.toHaveBeenCalled();
 
-		fetchMock.mockResolvedValueOnce(
-			Response.json({
-				status: "success",
-				extractionId: "retry-extraction",
-				result: [{ name: "saved-ready.pdf", status: "success" }],
-			}),
-		);
-		await act(async () => {
-			fireEvent.click(screen.getByRole("button", { name: "Try again" }));
-		});
-		expect(screen.getByText("Extracted")).toBeVisible();
-		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-		expect(screen.getByRole("link", { name: "Review retry-extraction" })).toBeVisible();
-	});
-
-	test("marks a missing document result as failed instead of leaving extraction running", async () => {
 		fetchMock.mockResolvedValueOnce(
 			Response.json({
 				status: "success",
 				extractionId: "saved-extraction",
-				result: [{ name: "saved-first.pdf", status: "success" }],
+				hasReadyDocument: true,
 			}),
-		);
-		render(
-			<ExtractionHarness
-				files={[uploadedFile("first", "first.pdf"), uploadedFile("second", "second.pdf")]}
-			/>,
 		);
 		await extract();
-		expect(
-			within(screen.getByRole("region", { name: "first.pdf" })).getByText("Extracted"),
-		).toBeVisible();
-		expect(
-			within(screen.getByRole("region", { name: "second.pdf" })).getByText("Extraction failed"),
-		).toBeVisible();
-		expect(
-			within(screen.getByRole("region", { name: "second.pdf" })).getByRole("button", {
-				name: "Try again",
-			}),
-		).toBeEnabled();
-		expect(screen.getByRole("button", { name: "Extract" })).toBeEnabled();
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+		expect(pushMock).toHaveBeenCalledWith(
+			"/dashboard/review-extracted-info?extractionId=saved-extraction",
+		);
 	});
 
-	test("removes stale review links when a document is replaced by a different upload with the same name", async () => {
+	test("retries documents that all failed in the same saved extraction", async () => {
 		fetchMock.mockResolvedValueOnce(
 			Response.json({
 				status: "success",
-				extractionId: "old-extraction",
-				result: [{ name: "saved-old.pdf", status: "success" }],
+				extractionId: "saved-extraction",
+				hasReadyDocument: false,
 			}),
 		);
-		const { rerender } = render(<ExtractionHarness files={[uploadedFile("old", "record.pdf")]} />);
+		render(<ExtractionHarness files={[uploadedFile("ready", "ready.pdf")]} />);
 		await extract();
-		expect(screen.getByRole("link", { name: "Review old-extraction" })).toBeVisible();
-		expect(screen.getByText("Extracted")).toBeVisible();
+		expect(pushMock).not.toHaveBeenCalled();
+		expect(screen.getByRole("button", { name: "Extract" })).toBeEnabled();
 
-		rerender(<ExtractionHarness files={[uploadedFile("new", "record.pdf")]} />);
-		expect(screen.queryByRole("link")).not.toBeInTheDocument();
-		expect(screen.getByText("Uploaded")).toBeVisible();
 		fetchMock.mockResolvedValueOnce(
 			Response.json({
 				status: "success",
-				extractionId: "new-extraction",
-				result: [{ name: "saved-new.pdf", status: "success" }],
+				extractionId: "saved-extraction",
+				hasReadyDocument: true,
 			}),
 		);
 		await extract();
-		expect(screen.getByRole("link", { name: "Review new-extraction" })).toBeVisible();
-		expect(screen.queryByRole("link", { name: "Review old-extraction" })).not.toBeInTheDocument();
+		expect(JSON.parse(fetchMock.mock.lastCall![1].body)).toEqual({
+			filenames: ["saved-ready.pdf"],
+			extractionId: "saved-extraction",
+		});
+		expect(pushMock).toHaveBeenCalledWith(
+			"/dashboard/review-extracted-info?extractionId=saved-extraction",
+		);
+	});
+
+	test("shows a plain error instead of network details when the request fails", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		fetchMock.mockRejectedValueOnce(new Error("private network details"));
+		render(<ExtractionHarness files={[uploadedFile("ready", "ready.pdf")]} />);
+		await extract();
+		expect(screen.getByRole("alert")).toHaveTextContent(
+			"We couldn’t extract patient information. Please try again.",
+		);
+		expect(screen.getByRole("alert")).not.toHaveTextContent("private network details");
+		expect(screen.getByRole("button", { name: "Extract" })).toBeEnabled();
+		expect(pushMock).not.toHaveBeenCalled();
 	});
 });

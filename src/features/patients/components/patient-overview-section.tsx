@@ -69,6 +69,8 @@ export async function PatientOverviewSection({ patientId }: { patientId: string 
 }
 
 function RecentDiagnoses({ recentDiagnoses }: { recentDiagnoses: RecentDiagnosis[] }) {
+	if (recentDiagnoses.length === 0) return null;
+
 	return (
 		<div className="flex flex-col gap-4">
 			<h2 className="text-base font-semibold text-gray-600 no-line-height">Recent Diagnoses</h2>
@@ -111,6 +113,8 @@ function RecentDiagnoses({ recentDiagnoses }: { recentDiagnoses: RecentDiagnosis
 }
 
 function RecentAllergies({ recentAllergies }: { recentAllergies: RecentAllergy[] }) {
+	if (recentAllergies.length === 0) return null;
+
 	return (
 		<div className="flex flex-col gap-4">
 			<h2 className="font-semibold text-base text-gray-600 no-line-height">Recent Allergies</h2>

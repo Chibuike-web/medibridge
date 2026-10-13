@@ -206,7 +206,7 @@ export function NewTransferRequestClient({
 
 	return (
 		<>
-			<form className="w-full">
+			<form method="post" className="w-full">
 				<p className="mb-10 w-full text-center font-medium text-gray-600">
 					Step {currentTransferRequestStep}/2
 				</p>

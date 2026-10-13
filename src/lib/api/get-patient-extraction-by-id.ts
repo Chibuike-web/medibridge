@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { patientExtraction } from "@/db/schemas/patient";
 import { db } from "@/lib/better-auth/auth";
@@ -12,6 +13,17 @@ export const getPatientExtractionById = cache(async (extractionId: string) => {
 	if (!organizationId) {
 		return null;
 	}
+
+	return getPatientExtractionForOrganization(extractionId, organizationId);
+});
+
+export async function getPatientExtractionForOrganization(
+	extractionId: string,
+	organizationId: string,
+) {
+	"use cache";
+	cacheLife("max");
+	cacheTag(`patient-extraction-${organizationId}-${extractionId}`);
 
 	const [extraction] = await db
 		.select({
@@ -30,4 +42,4 @@ export const getPatientExtractionById = cache(async (extractionId: string) => {
 		.limit(1);
 
 	return extraction ?? null;
-});
+}

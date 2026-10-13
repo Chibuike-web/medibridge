@@ -15,6 +15,7 @@ export function ForgotPasswordClient() {
 
 	return (
 		<form
+			method="post"
 			onSubmit={(e) => {
 				e.preventDefault();
 				setRequestFeedback("");

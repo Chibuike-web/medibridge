@@ -41,7 +41,16 @@ export async function savePatientExtractionService(
 		}
 
 		const parsedExtraction = z
-			.array(PatientRecordSchema.extend({ documentId: z.string() }))
+			.array(
+				z.discriminatedUnion("status", [
+					z.object({
+						documentId: z.string(),
+						status: z.literal("ready"),
+						patient: PatientRecordSchema,
+					}),
+					z.object({ documentId: z.string(), status: z.literal("failed"), patient: z.null() }),
+				]),
+			)
 			.min(1)
 			.safeParse(input);
 

@@ -72,6 +72,7 @@ function InvalidOrExpired({ type }: { type: "INVALID_TOKEN" | "TOKEN_EXPIRED" })
 					</div>
 
 					<form
+						method="post"
 						onSubmit={(e) => {
 							e.preventDefault();
 							setResendFeedback(null);

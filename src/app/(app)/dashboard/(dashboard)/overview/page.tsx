@@ -97,11 +97,13 @@ async function OverviewContent() {
 
 async function RecentPatients() {
 	const recentPatients = await getRecentPatients();
+	if (recentPatients.length === 0) return null;
 	return <RecentPatientsTable data={recentPatients} />;
 }
 
 async function RecentTransfers() {
 	const recentTransfers = await getRecentTransfer();
+	if (recentTransfers.length === 0) return null;
 	return <RecentTransfersTable data={recentTransfers} />;
 }
 

@@ -39,34 +39,24 @@ async function ReviewExtractedInfoContent({ searchParams }: ReviewExtractedInfoP
 	}
 
 	const { extractionId } = await searchParams;
-	if (!extractionId) {
+	if (typeof extractionId !== "string") {
 		redirect("/dashboard/add-new-patient");
 	}
 
-	const extractionIds = [...new Set(Array.isArray(extractionId) ? extractionId : [extractionId])];
-	if (extractionIds.some((id) => !id.trim())) {
+	const extraction = await getPatientExtractionById(extractionId);
+	if (!extraction) {
 		notFound();
 	}
 
-	const extractions = await Promise.all(extractionIds.map((id) => getPatientExtractionById(id)));
-	const documents = extractions.flatMap((extraction) => {
-		if (!extraction) {
-			notFound();
-		}
-		return extraction.extractedData.map(({ documentId, ...patient }) => ({
-			id: documentId,
-			fileUrl: `/api/patient-extractions/${extraction.id}/documents/${encodeURIComponent(documentId)}`,
-			patient,
-		}));
-	});
-
 	return (
 		<ReviewExtractedInfoClient
-			key={extractionIds.join(",")}
-			initialDocuments={documents.map((document, index) => ({
-				...document,
+			extractionId={extraction.id}
+			initialDocuments={extraction.extractedData.map(({ documentId, status, patient }, index) => ({
+				id: documentId,
 				label: `Document ${index + 1}`,
-				status: "ready",
+				fileUrl: `/api/patient-extractions/${extraction.id}/documents/${encodeURIComponent(documentId)}`,
+				status,
+				patient,
 			}))}
 		/>
 	);

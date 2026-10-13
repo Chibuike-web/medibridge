@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { PatientExtractionRecord } from "@/db/schemas/patient";
+import type { PatientExtractionDocument } from "@/db/schemas/patient";
 import { savePatientExtractionService } from "./save-patient-extraction-service";
 
 const { getSessionDataMock, getOrganizationIdMock, saveRowMock, savedExtractions } = vi.hoisted(
@@ -19,34 +19,43 @@ vi.mock("@/lib/better-auth/auth", () => ({
 	db: { insert: () => ({ values: saveRowMock }) },
 }));
 
-const extractedRecord: PatientExtractionRecord = {
+const extractedRecord: PatientExtractionDocument = {
 	documentId: "intake.docx",
-	personalInfo: {
-		firstName: "Ada",
-		middleName: null,
-		lastName: "Okafor",
-		patientId: null,
-		dateOfBirth: null,
-		sex: null,
-		age: null,
-		maritalStatus: null,
-		nationalId: null,
+	status: "ready",
+	patient: {
+		personalInfo: {
+			firstName: "Ada",
+			middleName: null,
+			lastName: "Okafor",
+			patientId: null,
+			dateOfBirth: null,
+			sex: null,
+			age: null,
+			maritalStatus: null,
+			nationalId: null,
+		},
+		contactInfo: {
+			phoneNumber: null,
+			emailAddress: null,
+			residentialAddress: null,
+			stateOfOrigin: null,
+			countryOfOrigin: null,
+		},
+		emergencyInfo: {
+			firstName: null,
+			middleName: null,
+			lastName: null,
+			relationship: null,
+			phone: null,
+		},
+		physicalInfo: { height: null, weight: null, bloodGroup: null, genotype: null },
 	},
-	contactInfo: {
-		phoneNumber: null,
-		emailAddress: null,
-		residentialAddress: null,
-		stateOfOrigin: null,
-		countryOfOrigin: null,
-	},
-	emergencyInfo: {
-		firstName: null,
-		middleName: null,
-		lastName: null,
-		relationship: null,
-		phone: null,
-	},
-	physicalInfo: { height: null, weight: null, bloodGroup: null, genotype: null },
+};
+
+const failedRecord: PatientExtractionDocument = {
+	documentId: "scan.pdf",
+	status: "failed",
+	patient: null,
 };
 
 describe("saving patient extractions", () => {
@@ -61,8 +70,8 @@ describe("saving patient extractions", () => {
 
 	afterEach(() => vi.restoreAllMocks());
 
-	test("saves incomplete extracted records with their document IDs to the member's verified hospital", async () => {
-		const records = [extractedRecord, { ...extractedRecord, documentId: "scan.pdf" }];
+	test("saves ready and failed documents with their statuses to the member's verified hospital", async () => {
+		const records = [extractedRecord, failedRecord];
 		const result = await savePatientExtractionService(records);
 
 		expect(result.status).toBe("success");
@@ -134,8 +143,22 @@ describe("saving patient extractions", () => {
 		{
 			scenario: "a malformed patient field",
 			input: [
-				{ ...extractedRecord, personalInfo: { ...extractedRecord.personalInfo, age: "unknown" } },
+				{
+					...extractedRecord,
+					patient: {
+						...extractedRecord.patient,
+						personalInfo: { ...extractedRecord.patient!.personalInfo, age: "unknown" },
+					},
+				},
 			],
+		},
+		{
+			scenario: "a document already marked saved",
+			input: [{ ...extractedRecord, status: "saved" }],
+		},
+		{
+			scenario: "a failed document without a status",
+			input: [{ ...failedRecord, status: undefined }],
 		},
 	])("does not save $scenario", async ({ input }) => {
 		expect(await savePatientExtractionService(input)).toEqual({

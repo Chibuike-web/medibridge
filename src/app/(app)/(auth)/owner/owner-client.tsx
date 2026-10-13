@@ -136,7 +136,6 @@ export function OwnerClient() {
 				</div>
 
 				<Button
-					variant="outline"
 					className="w-full mt-10"
 					disabled={isPending}
 					onClick={() => resendVerificationEmail(verificationEmailAddress)}
@@ -188,7 +187,7 @@ export function OwnerClient() {
 						<Button
 							type="button"
 							variant="link"
-							className="h-auto p-0 font-medium text-gray-800"
+							className="h-auto p-0 font-medium text-gray-800 underline underline-offset-3"
 							onClick={editEmailAddress}
 						>
 							Go back
@@ -198,7 +197,7 @@ export function OwnerClient() {
 						Already verified?{" "}
 						<Link
 							href="/sign-in"
-							className="font-medium text-gray-800 underline-offset-4 hover:underline"
+							className="font-medium text-gray-800 underline underline-offset-3"
 						>
 							Sign in
 						</Link>
@@ -219,7 +218,7 @@ export function OwnerClient() {
 					invite other members.
 				</p>
 			</div>
-			<form onSubmit={handleSubmit(onSubmit)} className="text-gray-800 w-full">
+			<form method="post" onSubmit={handleSubmit(onSubmit)} className="text-gray-800 w-full">
 				<div className="mb-6">
 					<Label htmlFor="name" className="block mb-2 text-sm">
 						Name

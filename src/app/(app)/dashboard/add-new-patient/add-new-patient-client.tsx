@@ -17,21 +17,14 @@ import { useFileUpload } from "@/hooks/use-file-upload";
 import { useFileExtraction } from "@/hooks/use-file-extraction";
 import { cn } from "@/lib/utils/cn";
 import type { AllowedFileExtension, FileExtractionState, SelectedFile } from "@/lib/types/upload";
-import Link from "next/link";
 import { RefObject, useRef, useState } from "react";
 import { RiCloseLine, RiErrorWarningFill, RiLoaderLine } from "@remixicon/react";
 
 export function AddNewPatientClient() {
 	const { files, clearFile, retryUpload, uploadError, setUploadError, handleFiles } =
 		useFileUpload();
-	const {
-		fileExtractions,
-		extractionIds,
-		extractError,
-		setExtractError,
-		extractInfo,
-		isExtracting,
-	} = useFileExtraction(files);
+	const { fileExtractions, extractError, setExtractError, extractInfo, isExtracting } =
+		useFileExtraction(files);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const dropzoneRef = useRef<HTMLDivElement>(null);
 	const [isDropzoneActive, setIsDropzoneActive] = useState(false);
@@ -50,7 +43,11 @@ export function AddNewPatientClient() {
 	const clear = async (id?: string) => {
 		if (!id) return;
 		setExtractError("");
-		await clearFile(id);
+		const extraction = fileExtractions[id];
+		await clearFile(
+			id,
+			extraction?.status === "extract-failed" ? extraction.extractionId : undefined,
+		);
 		if (fileInputRef.current) {
 			fileInputRef.current.value = "";
 		}
@@ -100,12 +97,11 @@ export function AddNewPatientClient() {
 			</div>
 			<header className="text-center">
 				<h1 className="mb-3 text-lg leading-6 font-semibold tracking-[-0.015em] text-balance">
-					{allExtractionsFailed ? "We couldn’t extract these records" : "Upload Patient’s Record"}
+					Upload Patient’s Record
 				</h1>
 				<p className="text-sm leading-[1.4] tracking-[-0.02em] text-gray-600 text-pretty">
-					{allExtractionsFailed
-						? "Retry, or remove them and upload again."
-						: "Upload a document with the patient’s basic details to create their profile. Only essential personal information is needed at this stage. Upload one document per patient."}
+					Upload a document with the patient’s basic details to create their profile. Only essential
+					personal information is needed at this stage. Upload one document per patient.
 				</p>
 			</header>
 			<div className={cn("flex flex-col gap-4", allExtractionsFailed && "gap-6")}>
@@ -137,7 +133,6 @@ export function AddNewPatientClient() {
 						className={cn(
 							"flex flex-col gap-3",
 							allExtractionsFailed && "gap-5",
-							isExtracting && "opacity-50 cursor-not-allowed",
 						)}
 					>
 						{files.map((file) => {
@@ -153,7 +148,7 @@ export function AddNewPatientClient() {
 									uploadStatus={file.status}
 									extractionStatus={fileExtractions[file.clientId]?.status}
 									onRemove={clear}
-									disabled={isExtracting}
+									disabled={fileExtractions[file.clientId]?.status === "extracting"}
 									onRetry={async (clientId) => {
 										if (fileExtractions[clientId]?.status === "extract-failed") {
 											await extractInfo([clientId]);
@@ -217,7 +212,6 @@ export function AddNewPatientClient() {
 				handleFiles={selectFiles}
 				files={files}
 				fileExtractions={fileExtractions}
-				extractionIds={extractionIds}
 				extractInfo={extractInfo}
 				isExtracting={isExtracting}
 			/>
@@ -232,7 +226,6 @@ function Footer({
 	handleFiles,
 	files,
 	fileExtractions,
-	extractionIds,
 	extractInfo,
 	isExtracting,
 }: {
@@ -242,7 +235,6 @@ function Footer({
 	handleFiles: (incomingFiles: File[]) => Promise<void>;
 	files: SelectedFile[];
 	fileExtractions: Partial<Record<string, FileExtractionState>>;
-	extractionIds: string[];
 	extractInfo: (fileIds?: string[]) => Promise<void>;
 	isExtracting: boolean;
 }) {
@@ -250,21 +242,9 @@ function Footer({
 	const uploadComplete =
 		files.length > 0 && files.every((file) => file.status === "upload-complete");
 	const extractionStarted = files.some((file) => fileExtractions[file.clientId] !== undefined);
-	const extractionComplete =
-		files.length > 0 &&
-		files.every(
-			(file) =>
-				file.status === "upload-complete" &&
-				(fileExtractions[file.clientId]?.status === "extract-complete" ||
-					fileExtractions[file.clientId]?.status === "extract-failed"),
-		);
 	const isFailedExtract = files.some(
 		(file) => fileExtractions[file.clientId]?.status === "extract-failed",
 	);
-	const reviewSearchParams = new URLSearchParams();
-	for (const extractionId of extractionIds) {
-		reviewSearchParams.append("extractionId", extractionId);
-	}
 
 	async function retryExtraction() {
 		const failedFileIds = files
@@ -286,7 +266,7 @@ function Footer({
 				isFailedExtract && "py-4",
 			)}
 		>
-			{!isExtracting && !extractionComplete && !isFailedExtract ? (
+			{!isExtracting && !isFailedExtract ? (
 				<div className="flex w-full justify-between items-center max-w-[31.25rem]">
 					<Button type="button" variant="outline" disabled={!uploadComplete || extractionStarted}>
 						<label htmlFor="file-input">
@@ -357,25 +337,17 @@ function Footer({
 				</div>
 			) : null}
 
-			{isExtracting ? (
+			{isExtracting && !isFailedExtract ? (
 				<div className="flex items-center gap-2">
 					<RiLoaderLine className="size-4 animate-spin" /> <span>Extracting patient data...</span>
 				</div>
 			) : null}
 
-			{extractionComplete && !isFailedExtract && extractionIds.length > 0 && (
-				<Button className="w-xl" asChild>
-					<Link href={`/dashboard/review-extracted-info?${reviewSearchParams.toString()}`}>
-						Continue
-					</Link>
-				</Button>
-			)}
-
-			{isFailedExtract && !isExtracting && (
+			{isFailedExtract && (
 				<Button
 					onClick={retryExtraction}
 					disabled={files.some((file) => file.status === "deleting")}
-					className="w-full max-w-[31.25rem] rounded-lg bg-[#222530] bg-[url('/assets/extraction-retry-button.png')] bg-cover bg-center hover:bg-[#222530]/90"
+					className="w-full max-w-[31.25rem] rounded-lg bg-[#222530] hover:bg-[#222530]/90"
 				>
 					Retry all
 				</Button>

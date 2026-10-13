@@ -97,7 +97,12 @@ function CreateInvitedAdminForm({
 
 	return (
 		<>
-			<form className="mt-12 text-gray-800" onSubmit={handleSubmit(onSubmit)} noValidate>
+			<form
+				method="post"
+				className="mt-12 text-gray-800"
+				onSubmit={handleSubmit(onSubmit)}
+				noValidate
+			>
 				<div className="mb-6">
 					<Label htmlFor="name" className="mb-2 block text-sm">
 						Name

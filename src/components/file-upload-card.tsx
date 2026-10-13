@@ -52,8 +52,6 @@ export function FileUploadCard({
 		docx: docFileFormat,
 	};
 	const fileNameId = useId();
-	const isExtractionComplete =
-		uploadStatus === "upload-complete" && extractionStatus === "extract-complete";
 	const isExtractionFailed = extractionStatus === "extract-failed";
 
 	return (
@@ -88,9 +86,7 @@ export function FileUploadCard({
 						<div className="flex flex-wrap items-center gap-1 text-xs text-gray-600">
 							<div className="flex items-center gap-1">
 								<p>{formatFileSize(size)}</p>
-								{!isExtractionComplete && (
-									<span className="size-0.5 block bg-foreground rounded-full" />
-								)}
+								<span className="size-0.5 block bg-foreground rounded-full" />
 							</div>
 							<div className="flex items-center gap-1">
 								{uploadStatus === "upload-complete" && extractionStatus ? (
@@ -173,8 +169,7 @@ export function FileUploadCard({
 								disabled ||
 								uploadStatus === "deleting" ||
 								uploadStatus === "uploading" ||
-								(uploadStatus === "upload-complete" &&
-									(extractionStatus === "extracting" || extractionStatus === "extract-complete"))
+								(uploadStatus === "upload-complete" && extractionStatus === "extracting")
 							}
 							onClick={async () => {
 								if (id) {

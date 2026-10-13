@@ -63,6 +63,7 @@ export function CreateNewPasswordClient({ token, isTokenInvalid }: CreateNewPass
 				</div>
 			) : (
 				<form
+					method="post"
 					onSubmit={(event) => {
 						event.preventDefault();
 						if (newPassword !== confirmedPassword) {

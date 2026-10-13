@@ -84,7 +84,7 @@ async function PatientPageContent({ searchParams, params }: PatientPageProps) {
 			<div className="shrink-0">
 				<nav
 					aria-label="Breadcrumb"
-					className="flex items-center gap-2 border-b border-gray-200 p-4 text-sm"
+					className="flex h-14 items-center gap-2 border-b border-gray-200 px-4 text-sm"
 				>
 					<Button variant="ghost" asChild>
 						<Link href="/dashboard/patients">
@@ -495,7 +495,7 @@ function PatientPageSkeleton() {
 			<div className="shrink-0">
 				<nav
 					aria-label="Breadcrumb"
-					className="flex items-center gap-2 border-b border-gray-200 p-4 text-sm"
+					className="flex h-14 items-center gap-2 border-b border-gray-200 px-4 text-sm"
 				>
 					<Button variant="ghost" asChild>
 						<Link href="/dashboard/patients">

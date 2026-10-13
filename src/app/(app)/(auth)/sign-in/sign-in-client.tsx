@@ -211,6 +211,7 @@ export function SignInClient() {
 				Sign in with your verified hospital credentials.
 			</p>
 			<form
+				method="post"
 				aria-describedby="sign-in-note"
 				onSubmit={handleSubmit(onSubmit)}
 				className="text-gray-800 mt-12"
@@ -249,7 +250,7 @@ export function SignInClient() {
 						<Input
 							id="password"
 							type={isPasswordVisible ? "text" : "password"}
-							placeholder="Enter new password"
+							placeholder="Enter your password"
 							{...register("password")}
 							aria-describedby={errors.password ? "admin-password-error" : undefined}
 							aria-invalid={!!errors.password}

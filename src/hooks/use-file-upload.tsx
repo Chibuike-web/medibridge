@@ -1,6 +1,7 @@
 "use client";
 
 import { deletePatientUploadAction } from "@/features/patients/server/delete-patient-upload-action";
+import { removeExtractionDocumentAction } from "@/features/patients/server/remove-extraction-document-action";
 import { SavedFileTypes, SelectedFile } from "@/lib/types/upload";
 import { startTransition, useRef, useState } from "react";
 
@@ -74,7 +75,7 @@ export function useFileUpload() {
 		}
 	}
 
-	async function clearFile(clientId: string) {
+	async function clearFile(clientId: string, extractionId?: string) {
 		const fileToDelete = files.find((file) => file.clientId === clientId);
 		if (!fileToDelete || fileToDelete.status === "deleting") return;
 		setUploadError("");
@@ -94,7 +95,9 @@ export function useFileUpload() {
 		);
 
 		try {
-			const result = await deletePatientUploadAction(fileToDelete.url);
+			const result = extractionId
+				? await removeExtractionDocumentAction(extractionId, fileToDelete.storedName)
+				: await deletePatientUploadAction(fileToDelete.url);
 			if (result.status === "failed") {
 				setUploadError(result.error);
 				setFiles((prev) => prev.map((file) => (file.clientId === clientId ? fileToDelete : file)));

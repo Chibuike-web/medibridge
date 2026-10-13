@@ -1,17 +1,21 @@
 "use server";
 
-import { PatientSchema, PatientType } from "@/features/patients/schemas/patient-schema";
+import {
+	PatientRecordSchema,
+	type PatientRecord,
+} from "@/features/patients/schemas/patient-schema";
 import {
 	patient,
 	patientContactInformation,
 	patientEmergencyContact,
 	patientPersonalInformation,
+	patientExtraction,
 	patientPhysicalInformation,
 } from "@/db/schemas/patient";
 import { auth, db } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { updateTag } from "next/cache";
-import { inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { SavePatientsResult } from "./types";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { z } from "zod";
@@ -20,57 +24,31 @@ function isBlank(value: string | null | undefined) {
 	return value === null || value === undefined || value.trim() === "";
 }
 
-function validatePatients(records: PatientType) {
-	const patientNumbersById = new Map<string, number>();
-
-	for (const [index, record] of records.entries()) {
-		const label = `Patient ${index + 1}`;
-		const { personalInfo, emergencyInfo } = record;
-
-		if (isBlank(personalInfo.firstName)) return `${label}: first name is required.`;
-		if (isBlank(personalInfo.lastName)) return `${label}: last name is required.`;
-		if (isBlank(personalInfo.patientId)) return `${label}: patient ID is required.`;
-		if (isBlank(personalInfo.dateOfBirth)) return `${label}: date of birth is required.`;
-		if (!z.iso.date().safeParse(personalInfo.dateOfBirth).success) {
-			return `${label}: provide a valid date of birth.`;
-		}
-
-		const patientId = personalInfo.patientId!.trim();
-		const firstPatientNumber = patientNumbersById.get(patientId);
-		if (firstPatientNumber) {
-			return `${label}: patient ID ${patientId} is also used by Patient ${firstPatientNumber}.`;
-		}
-		patientNumbersById.set(patientId, index + 1);
-
-		if (isBlank(emergencyInfo.firstName)) {
-			return `${label}: emergency contact first name is required.`;
-		}
-		if (isBlank(emergencyInfo.lastName)) {
-			return `${label}: emergency contact last name is required.`;
-		}
+function validatePatient({ personalInfo, emergencyInfo }: PatientRecord) {
+	if (isBlank(personalInfo.firstName)) return "First name is required.";
+	if (isBlank(personalInfo.lastName)) return "Last name is required.";
+	if (isBlank(personalInfo.dateOfBirth)) return "Date of birth is required.";
+	if (!z.iso.date().safeParse(personalInfo.dateOfBirth).success) {
+		return "Provide a valid date of birth.";
 	}
-
+	if (isBlank(emergencyInfo.firstName)) return "Emergency contact first name is required.";
+	if (isBlank(emergencyInfo.lastName)) return "Emergency contact last name is required.";
 	return null;
 }
 
 export async function saveExtractedPatientsService(
-	input: PatientType,
+	extractionId: string,
+	documentId: string,
+	input: PatientRecord,
 ): Promise<SavePatientsResult> {
 	try {
-		const parsedRecords = PatientSchema.safeParse(input);
-		if (!parsedRecords.success) {
-			return {
-				status: "failed",
-				error: "Invalid patient payload.",
-			};
+		const parsedRecord = PatientRecordSchema.safeParse(input);
+		if (!parsedRecord.success) {
+			return { status: "failed", error: "Invalid patient payload." };
 		}
 
-		const records = parsedRecords.data;
-		if (records.length === 0) {
-			return { status: "failed", error: "No patients were provided." };
-		}
-
-		const validationError = validatePatients(records);
+		const record = parsedRecord.data;
+		const validationError = validatePatient(record);
 		if (validationError) {
 			return { status: "failed", error: validationError };
 		}
@@ -78,7 +56,7 @@ export async function saveExtractedPatientsService(
 		const session = await auth.api.getSession({ headers: await headers() });
 
 		if (!session?.user?.id) {
-			return { status: "failed", error: "You must be signed in to save patients." };
+			return { status: "unauthorized", error: "You must be signed in to save patients." };
 		}
 
 		if (!session.user.emailVerified) {
@@ -91,92 +69,140 @@ export async function saveExtractedPatientsService(
 			return { status: "failed", error: "No active organization was found for this session." };
 		}
 
-		const patientIds = records.map((record) => record.personalInfo.patientId!.trim());
-		const [existingPatient] = await db
-			.select({ id: patient.id })
-			.from(patient)
-			.where(inArray(patient.id, patientIds))
-			.limit(1);
+		const personalInformation = {
+			firstName: record.personalInfo.firstName!.trim(),
+			middleName: record.personalInfo.middleName,
+			lastName: record.personalInfo.lastName!.trim(),
+			dateOfBirth: record.personalInfo.dateOfBirth,
+			age: record.personalInfo.age,
+			sex: record.personalInfo.sex?.toLowerCase() ?? null,
+			maritalStatus: record.personalInfo.maritalStatus?.toLowerCase() ?? null,
+			nationalId: record.personalInfo.nationalId,
+		};
+		const contactInformation = {
+			phoneNumber: record.contactInfo.phoneNumber,
+			emailAddress: record.contactInfo.emailAddress,
+			residentialAddress: record.contactInfo.residentialAddress,
+			stateOfOrigin: record.contactInfo.stateOfOrigin,
+			countryOfOrigin: record.contactInfo.countryOfOrigin,
+		};
+		const emergencyContact = {
+			firstName: record.emergencyInfo.firstName!.trim(),
+			middleName: record.emergencyInfo.middleName,
+			lastName: record.emergencyInfo.lastName!.trim(),
+			relationship: record.emergencyInfo.relationship,
+			phoneNumber: record.emergencyInfo.phone,
+		};
+		const physicalInformation = {
+			height: record.physicalInfo.height,
+			weight: record.physicalInfo.weight,
+			bloodGroup: record.physicalInfo.bloodGroup,
+			genotype: record.physicalInfo.genotype,
+		};
 
-		if (existingPatient) {
-			const patientNumber = patientIds.indexOf(existingPatient.id) + 1;
-			return {
-				status: "failed",
-				error: `Patient ${patientNumber}: patient ID ${existingPatient.id} is already in use.`,
-			};
+		const saveResult = await db.transaction(
+			async (tx): Promise<{ error: string } | { patientId: string }> => {
+				const [extraction] = await tx
+					.select({ extractedData: patientExtraction.extractedData })
+					.from(patientExtraction)
+					.where(
+						and(
+							eq(patientExtraction.id, extractionId),
+							eq(patientExtraction.organizationId, organizationId),
+						),
+					)
+					.for("update");
+				const document = extraction?.extractedData.find(
+					(document) => document.documentId === documentId,
+				);
+
+				if (!extraction || !document || document.status === "failed") {
+					return { error: "This document can’t be saved." };
+				}
+
+				const patientId =
+					document.status === "saved" && document.patient.personalInfo.patientId
+						? document.patient.personalInfo.patientId
+						: crypto.randomUUID();
+
+				if (document.status === "saved") {
+					const updatedAt = new Date();
+					await tx
+						.update(patientPersonalInformation)
+						.set({ ...personalInformation, updatedAt })
+						.where(eq(patientPersonalInformation.patientId, patientId));
+					await tx
+						.update(patientContactInformation)
+						.set({ ...contactInformation, updatedAt })
+						.where(eq(patientContactInformation.patientId, patientId));
+					await tx
+						.update(patientEmergencyContact)
+						.set({ ...emergencyContact, updatedAt })
+						.where(eq(patientEmergencyContact.patientId, patientId));
+					await tx
+						.update(patientPhysicalInformation)
+						.set({ ...physicalInformation, updatedAt })
+						.where(eq(patientPhysicalInformation.patientId, patientId));
+				} else {
+					await tx.insert(patient).values({ id: patientId, organizationId });
+					await tx.insert(patientPersonalInformation).values({
+						id: crypto.randomUUID(),
+						patientId,
+						...personalInformation,
+					});
+					await tx.insert(patientContactInformation).values({
+						id: crypto.randomUUID(),
+						patientId,
+						...contactInformation,
+					});
+					await tx.insert(patientEmergencyContact).values({
+						id: crypto.randomUUID(),
+						patientId,
+						...emergencyContact,
+					});
+					await tx.insert(patientPhysicalInformation).values({
+						id: crypto.randomUUID(),
+						patientId,
+						...physicalInformation,
+					});
+				}
+
+				await tx
+					.update(patientExtraction)
+					.set({
+						extractedData: extraction.extractedData.map((document) =>
+							document.documentId === documentId
+								? {
+										documentId,
+										status: "saved" as const,
+										patient: { ...record, personalInfo: { ...record.personalInfo, patientId } },
+									}
+								: document,
+						),
+					})
+					.where(eq(patientExtraction.id, extractionId));
+				return { patientId };
+			},
+		);
+
+		if ("error" in saveResult) {
+			return { status: "failed", error: saveResult.error };
 		}
 
-		await db.transaction(async (tx) => {
-			for (const record of records) {
-				const patientRowId = record.personalInfo.patientId!.trim();
-				const personalInformationId = crypto.randomUUID();
-				const contactInformationId = crypto.randomUUID();
-				const emergencyContactId = crypto.randomUUID();
-				const physicalInformationId = crypto.randomUUID();
-
-				await tx.insert(patient).values({
-					id: patientRowId,
-					organizationId,
-				});
-
-				await tx.insert(patientPersonalInformation).values({
-					id: personalInformationId,
-					patientId: patientRowId,
-					firstName: record.personalInfo.firstName!.trim(),
-					middleName: record.personalInfo.middleName,
-					lastName: record.personalInfo.lastName!.trim(),
-					dateOfBirth: record.personalInfo.dateOfBirth,
-					age: record.personalInfo.age,
-					sex: record.personalInfo.sex,
-					maritalStatus: record.personalInfo.maritalStatus,
-					nationalId: record.personalInfo.nationalId,
-				});
-
-				await tx.insert(patientContactInformation).values({
-					id: contactInformationId,
-					patientId: patientRowId,
-					phoneNumber: record.contactInfo.phoneNumber,
-					emailAddress: record.contactInfo.emailAddress,
-					residentialAddress: record.contactInfo.residentialAddress,
-					stateOfOrigin: record.contactInfo.stateOfOrigin,
-					countryOfOrigin: record.contactInfo.countryOfOrigin,
-				});
-
-				await tx.insert(patientEmergencyContact).values({
-					id: emergencyContactId,
-					patientId: patientRowId,
-					firstName: record.emergencyInfo.firstName!.trim(),
-					middleName: record.emergencyInfo.middleName,
-					lastName: record.emergencyInfo.lastName!.trim(),
-					relationship: record.emergencyInfo.relationship,
-					phoneNumber: record.emergencyInfo.phone,
-				});
-
-				await tx.insert(patientPhysicalInformation).values({
-					id: physicalInformationId,
-					patientId: patientRowId,
-					height: record.physicalInfo.height,
-					weight: record.physicalInfo.weight,
-					bloodGroup: record.physicalInfo.bloodGroup,
-					genotype: record.physicalInfo.genotype,
-				});
-			}
-		});
+		const { patientId } = saveResult;
 
 		updateTag(`patients-list-${organizationId}`);
 		updateTag(`recent-patients-${organizationId}`);
 		updateTag(`overview-stats-${organizationId}`);
-		for (const patientId of patientIds) {
-			updateTag(`patient-profile-${organizationId}-${patientId}`);
-			updateTag(`patient-by-id-${organizationId}-${patientId}`);
-		}
+		updateTag(`patient-profile-${organizationId}-${patientId}`);
+		updateTag(`patient-by-id-${organizationId}-${patientId}`);
+		updateTag(`recent-transfers-${organizationId}`);
+		updateTag(`transfers-list-${organizationId}`);
+		updateTag(`patient-extraction-${organizationId}-${extractionId}`);
 
-		return {
-			status: "success",
-			savedCount: records.length,
-		};
+		return { status: "success", savedCount: 1 };
 	} catch (error) {
 		console.error(error);
-		return { status: "failed", error: "We couldn’t save these patients. Please try again." };
+		return { status: "failed", error: "We couldn’t save this patient. Please try again." };
 	}
 }

@@ -95,7 +95,7 @@ async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
 		<div className="flex h-full min-h-0 flex-col overflow-hidden">
 			<nav
 				aria-label="Breadcrumb"
-				className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-gray-200 p-4 text-sm"
+				className="flex h-14 shrink-0 items-center gap-2 overflow-x-auto border-b border-gray-200 px-4 text-sm"
 			>
 				<Button variant="ghost" asChild>
 					<Link href="/dashboard/patients">

@@ -10,7 +10,7 @@ const sessionCookieNames = [
 export function proxy(request: NextRequest) {
 	const hasSessionCookie = sessionCookieNames.some((name) => request.cookies.has(name));
 
-	if (!hasSessionCookie) {
+	if (!hasSessionCookie && !request.headers.has("next-action")) {
 		const signInUrl = new URL("/sign-in", request.url);
 		signInUrl.searchParams.set("callbackUrl", request.nextUrl.pathname + request.nextUrl.search);
 

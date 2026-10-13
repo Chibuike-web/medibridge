@@ -34,16 +34,7 @@ export type SelectedFile = {
 
 export type FileExtractionState =
 	| { status: "extracting" }
-	| { status: "extract-failed"; error: string }
-	| { status: "extract-complete"; extractionId: string };
+	| { status: "extract-failed"; extractionId?: string };
 
 export type FileUploadStatus = SelectedFile["status"];
 export type FileExtractionStatus = FileExtractionState["status"];
-
-export type ExtractionResult = {
-	name: string;
-	path: string;
-	status: "success" | "failed";
-	error?: string;
-	text: string;
-};

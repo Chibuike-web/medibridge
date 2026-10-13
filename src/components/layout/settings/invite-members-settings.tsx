@@ -84,6 +84,7 @@ export function InviteMembersSettings({
 	return (
 		<div className="flex h-full min-h-0 flex-col">
 			<form
+				method="post"
 				id={inviteFormId}
 				className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-4 py-5"
 				onSubmit={handleSendInvitations}

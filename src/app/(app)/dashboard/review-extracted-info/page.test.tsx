@@ -1,7 +1,7 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { renderToReadableStream } from "react-dom/server.browser";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import type { PatientExtractionRecord } from "@/db/schemas/patient/patient-extraction";
+import type { PatientExtractionDocument } from "@/db/schemas/patient/patient-extraction";
 import ReviewExtractedInfo from "./page";
 
 const {
@@ -36,35 +36,38 @@ vi.mock("next/navigation", () => ({
 	useRouter: () => ({ replace: vi.fn() }),
 }));
 
-function savedRecord(firstName: string): PatientExtractionRecord {
+function readyDocument(firstName: string): PatientExtractionDocument {
 	return {
 		documentId: `${firstName}.pdf`,
-		personalInfo: {
-			firstName,
-			lastName: "Okafor",
-			middleName: null,
-			patientId: null,
-			dateOfBirth: null,
-			sex: null,
-			age: null,
-			maritalStatus: null,
-			nationalId: null,
+		status: "ready",
+		patient: {
+			personalInfo: {
+				firstName,
+				lastName: "Okafor",
+				middleName: null,
+				patientId: null,
+				dateOfBirth: null,
+				sex: null,
+				age: null,
+				maritalStatus: null,
+				nationalId: null,
+			},
+			contactInfo: {
+				phoneNumber: null,
+				emailAddress: null,
+				residentialAddress: null,
+				stateOfOrigin: null,
+				countryOfOrigin: null,
+			},
+			emergencyInfo: {
+				firstName: null,
+				middleName: null,
+				lastName: null,
+				relationship: null,
+				phone: null,
+			},
+			physicalInfo: { height: null, weight: null, bloodGroup: null, genotype: null },
 		},
-		contactInfo: {
-			phoneNumber: null,
-			emailAddress: null,
-			residentialAddress: null,
-			stateOfOrigin: null,
-			countryOfOrigin: null,
-		},
-		emergencyInfo: {
-			firstName: null,
-			middleName: null,
-			lastName: null,
-			relationship: null,
-			phone: null,
-		},
-		physicalInfo: { height: null, weight: null, bloodGroup: null, genotype: null },
 	};
 }
 
@@ -86,7 +89,7 @@ describe("review saved patient extractions", () => {
 			organizationId: "hospital-1",
 			isOrganizationVerified: true,
 		});
-		getExtractionMock.mockResolvedValue({ id: "saved", extractedData: [savedRecord("Ada")] });
+		getExtractionMock.mockResolvedValue({ id: "saved", extractedData: [readyDocument("Ada")] });
 	});
 
 	test("loads saved information into the review form using the extraction ID in the URL", async () => {
@@ -100,18 +103,24 @@ describe("review saved patient extractions", () => {
 		expect(getExtractionMock).toHaveBeenCalledWith("saved");
 	});
 
-	test("shows the original and retried documents together without duplicating repeated IDs", async () => {
-		getExtractionMock.mockImplementation(async (id: string) => ({
-			id,
-			extractedData: [savedRecord(id === "original" ? "Ada" : "Bola")],
-		}));
-		await renderReviewPage({ extractionId: ["original", "retry", "original"] });
-		expect(screen.getAllByRole("article")).toHaveLength(2);
+	test("shows every stored document with the status saved in the extraction", async () => {
+		getExtractionMock.mockResolvedValue({
+			id: "saved",
+			extractedData: [
+				readyDocument("Ada"),
+				{ ...readyDocument("Bola"), status: "saved" },
+				{ documentId: "Chi.pdf", status: "failed", patient: null },
+			],
+		});
+		await renderReviewPage();
 		expect(
-			within(screen.getByRole("article", { name: "Document 1" })).getByText("Ada Okafor"),
+			within(screen.getByRole("article", { name: "Document 1" })).getByText("Ready to review"),
 		).toBeVisible();
 		expect(
-			within(screen.getByRole("article", { name: "Document 2" })).getByText("Bola Okafor"),
+			within(screen.getByRole("article", { name: "Document 2" })).getByText("Saved"),
+		).toBeVisible();
+		expect(
+			within(screen.getByRole("article", { name: "Document 3" })).getByText("Extraction failed"),
 		).toBeVisible();
 	});
 
@@ -121,22 +130,21 @@ describe("review saved patient extractions", () => {
 		expect(getExtractionMock).not.toHaveBeenCalled();
 	});
 
-	test("shows not found instead of a partial review when any extraction is missing or inaccessible", async () => {
+	test("returns to uploads when the review URL has more than one extraction ID", async () => {
+		await renderReviewPage({ extractionId: ["saved", "other"] });
+		expect(redirectMock).toHaveBeenCalledWith("/dashboard/add-new-patient");
+		expect(getExtractionMock).not.toHaveBeenCalled();
+	});
+
+	test("shows not found when the extraction is missing or belongs to another hospital", async () => {
 		await renderReviewPage();
 		expect(screen.getByRole("heading", { name: "Ada Okafor" })).toBeVisible();
 		cleanup();
-		getExtractionMock.mockImplementation(async (id: string) =>
-			id === "unavailable" ? null : { id, extractedData: [savedRecord("Ada")] },
-		);
-		await renderReviewPage({ extractionId: ["saved", "unavailable"] });
+		getExtractionMock.mockResolvedValue(null);
+		await renderReviewPage({ extractionId: "unavailable" });
+		expect(getExtractionMock).toHaveBeenCalledWith("unavailable");
 		expect(notFoundMock).toHaveBeenCalled();
 		expect(screen.queryByRole("heading", { name: "Ada Okafor" })).not.toBeInTheDocument();
-	});
-
-	test("rejects an empty extraction ID in a multi-extraction URL", async () => {
-		await renderReviewPage({ extractionId: ["saved", " "] });
-		expect(notFoundMock).toHaveBeenCalled();
-		expect(getExtractionMock).not.toHaveBeenCalled();
 	});
 
 	test.each([

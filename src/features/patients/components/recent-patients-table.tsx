@@ -144,35 +144,24 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 						))}
 					</TableHeader>
 					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
-						{table.getRowModel().rows.length > 0 ? (
-							table.getRowModel().rows.map((row, rowPosition) => (
-								<TableRow key={row.id} className="h-14">
-									{row.getVisibleCells().map((cell) => (
-										<TableCell
-											key={cell.id}
-											className={cn(
-												"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
-												rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
-												rowPosition === 0 && cell.column.getIsFirstColumn() && "rounded-tl-lg",
-												rowPosition === 0 && cell.column.getIsLastColumn() && "rounded-tr-lg",
-												cell.column.id === "age" && "text-right",
-											)}
-										>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</TableCell>
-									))}
-								</TableRow>
-							))
-						) : (
-							<TableRow>
-								<TableCell
-									colSpan={columns.length}
-									className="h-32 bg-white px-3 py-0 text-center text-sm text-gray-500"
-								>
-									No recent patients found.
-								</TableCell>
+						{table.getRowModel().rows.map((row, rowPosition) => (
+							<TableRow key={row.id} className="h-14">
+								{row.getVisibleCells().map((cell) => (
+									<TableCell
+										key={cell.id}
+										className={cn(
+											"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
+											rowPosition === table.getRowModel().rows.length - 1 && "border-b-0",
+											rowPosition === 0 && cell.column.getIsFirstColumn() && "rounded-tl-lg",
+											rowPosition === 0 && cell.column.getIsLastColumn() && "rounded-tr-lg",
+											cell.column.id === "age" && "text-right",
+										)}
+									>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</TableCell>
+								))}
 							</TableRow>
-						)}
+						))}
 					</TableBody>
 				</Table>
 				<div className="flex gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 items-center justify-between">

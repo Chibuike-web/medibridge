@@ -7,6 +7,17 @@ vi.mock("@/features/patients/server/delete-patient-upload-action", () => ({
 	deletePatientUploadAction: vi.fn(),
 }));
 
+const { pushMock, removeDocumentMock } = vi.hoisted(() => ({
+	pushMock: vi.fn(),
+	removeDocumentMock: vi.fn(),
+}));
+
+vi.mock("@/features/patients/server/remove-extraction-document-action", () => ({
+	removeExtractionDocumentAction: removeDocumentMock,
+}));
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: pushMock }) }));
+
 const fetchMock = vi.fn();
 const firstStoredName = "11111111-1111-4111-8111-111111111111.pdf";
 const secondStoredName = "22222222-2222-4222-8222-222222222222.pdf";
@@ -50,6 +61,8 @@ describe("continue to review saved patient extractions", () => {
 	beforeEach(() => {
 		vi.useFakeTimers();
 		fetchMock.mockReset();
+		pushMock.mockReset();
+		removeDocumentMock.mockReset();
 		vi.mocked(deletePatientUploadAction).mockReset();
 		vi.stubGlobal("fetch", fetchMock);
 	});
@@ -60,81 +73,87 @@ describe("continue to review saved patient extractions", () => {
 		vi.restoreAllMocks();
 	});
 
-	test("links to the saved extraction once every uploaded document succeeds", async () => {
+	test("opens the saved extraction for review once any uploaded document is ready", async () => {
 		await uploadRecords();
-		expect(screen.queryByRole("link", { name: "Continue" })).not.toBeInTheDocument();
 		await extractRecords(
 			Response.json({
 				status: "success",
 				extractionId: "saved-extraction",
-				result: [firstStoredName, secondStoredName].map((name) => ({ name, status: "success" })),
+				hasReadyDocument: true,
 			}),
 		);
 
-		expect(screen.getByText("record-1.pdf")).toBeVisible();
-		expect(screen.getByText("record-2.pdf")).toBeVisible();
-		expect(screen.queryByText("Extraction complete")).not.toBeInTheDocument();
-		expect(screen.getByRole("link", { name: "Continue" })).toHaveAttribute(
-			"href",
+		expect(JSON.parse(fetchMock.mock.lastCall![1].body)).toEqual({
+			filenames: [firstStoredName, secondStoredName],
+		});
+		expect(pushMock).toHaveBeenCalledWith(
 			"/dashboard/review-extracted-info?extractionId=saved-extraction",
 		);
 	});
 
-	test("keeps earlier successful records in the review link after retrying a failed document", async () => {
+	test("retries every failed record in the same saved extraction and opens review once one is ready", async () => {
 		await uploadRecords();
 		await extractRecords(
 			Response.json({
 				status: "success",
-				extractionId: "first-extraction",
-				result: [
-					{ name: firstStoredName, status: "success" },
-					{ name: secondStoredName, status: "failed" },
-				],
+				extractionId: "saved-extraction",
+				hasReadyDocument: false,
 			}),
 		);
-		expect(screen.getByText("record-1.pdf")).toBeVisible();
-		expect(screen.queryByText("Extraction complete")).not.toBeInTheDocument();
-		expect(screen.getByText("Extraction failed")).toBeVisible();
-		expect(screen.queryByRole("link", { name: "Continue" })).not.toBeInTheDocument();
+		expect(pushMock).not.toHaveBeenCalled();
 
 		fetchMock.mockResolvedValueOnce(
 			Response.json({
 				status: "success",
-				extractionId: "retry-extraction",
-				result: [{ name: secondStoredName, status: "success" }],
+				extractionId: "saved-extraction",
+				hasReadyDocument: true,
 			}),
 		);
 		await act(async () => {
-			fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+			fireEvent.click(screen.getByRole("button", { name: "Retry all" }));
 		});
-
-		expect(screen.getByText("record-1.pdf")).toBeVisible();
-		expect(screen.getByText("record-2.pdf")).toBeVisible();
-		expect(screen.queryByText("Extraction complete")).not.toBeInTheDocument();
-		expect(screen.getByRole("link", { name: "Continue" })).toHaveAttribute(
-			"href",
-			"/dashboard/review-extracted-info?extractionId=first-extraction&extractionId=retry-extraction",
+		expect(JSON.parse(fetchMock.mock.lastCall![1].body)).toEqual({
+			filenames: [firstStoredName, secondStoredName],
+			extractionId: "saved-extraction",
+		});
+		expect(pushMock).toHaveBeenCalledWith(
+			"/dashboard/review-extracted-info?extractionId=saved-extraction",
 		);
 	});
 
-	test("keeps review unavailable when successful results arrive without a saved extraction ID", async () => {
+	test("retries one failed record in the same saved extraction and keeps it failed when it still cannot be read", async () => {
 		await uploadRecords();
 		await extractRecords(
 			Response.json({
 				status: "success",
-				result: [firstStoredName, secondStoredName].map((name) => ({ name, status: "success" })),
+				extractionId: "saved-extraction",
+				hasReadyDocument: false,
 			}),
 		);
-
-		expect(screen.getByRole("alert")).toHaveTextContent(
-			"We couldn’t load the saved extraction. Please try again.",
+		fetchMock.mockResolvedValueOnce(
+			Response.json({
+				status: "success",
+				extractionId: "saved-extraction",
+				hasReadyDocument: false,
+			}),
 		);
+		await act(async () => {
+			fireEvent.click(
+				within(screen.getByRole("group", { name: "record-1.pdf" })).getByRole("button", {
+					name: "Try again",
+				}),
+			);
+		});
+		expect(JSON.parse(fetchMock.mock.lastCall![1].body)).toEqual({
+			filenames: [firstStoredName],
+			extractionId: "saved-extraction",
+		});
 		for (const name of ["record-1.pdf", "record-2.pdf"]) {
 			expect(
 				within(screen.getByRole("group", { name })).getByText("Extraction failed"),
 			).toBeVisible();
 		}
-		expect(screen.queryByRole("link", { name: "Continue" })).not.toBeInTheDocument();
+		expect(pushMock).not.toHaveBeenCalled();
 	});
 
 	test("shows a save failure and keeps review unavailable when no extraction was saved", async () => {
@@ -157,7 +176,6 @@ describe("continue to review saved patient extractions", () => {
 				within(screen.getByRole("group", { name })).getByText("Extraction failed"),
 			).toBeVisible();
 		}
-		expect(screen.queryByRole("link", { name: "Continue" })).not.toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "Retry all" })).toBeVisible();
 		fireEvent.click(screen.getByRole("button", { name: "Dismiss extraction error" }));
 		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
@@ -165,18 +183,19 @@ describe("continue to review saved patient extractions", () => {
 		expect(screen.getByRole("group", { name: "record-2.pdf" })).toBeVisible();
 	});
 
-	test("shows the all-failed heading and file actions without repeating them in a banner", async () => {
+	test("keeps the upload heading and shows file actions without a banner when every record fails", async () => {
 		await uploadRecords();
 		await extractRecords(
 			Response.json({
 				status: "success",
 				extractionId: "failed-extraction",
-				result: [firstStoredName, secondStoredName].map((name) => ({ name, status: "failed" })),
+				hasReadyDocument: false,
 			}),
 		);
+		expect(screen.getByRole("heading", { name: "Upload Patient’s Record" })).toBeVisible();
 		expect(
-			screen.getByRole("heading", { name: "We couldn’t extract these records" }),
-		).toBeVisible();
+			screen.queryByRole("heading", { name: "We couldn’t extract these records" }),
+		).not.toBeInTheDocument();
 		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 		for (const name of ["record-1.pdf", "record-2.pdf"]) {
 			const card = within(screen.getByRole("group", { name }));
@@ -218,45 +237,16 @@ describe("continue to review saved patient extractions", () => {
 		).toBeVisible();
 	});
 
-	test("retries all failed records while keeping successful results available for review", async () => {
-		await uploadRecords();
-		await extractRecords(
-			Response.json({
-				status: "success",
-				extractionId: "first-extraction",
-				result: [
-					{ name: firstStoredName, status: "success" },
-					{ name: secondStoredName, status: "failed" },
-				],
-			}),
-		);
-		fetchMock.mockResolvedValueOnce(
-			Response.json({
-				status: "success",
-				extractionId: "retry-extraction",
-				result: [{ name: secondStoredName, status: "success" }],
-			}),
-		);
-		await act(async () => {
-			fireEvent.click(screen.getByRole("button", { name: "Retry all" }));
-		});
-		expect(JSON.parse(fetchMock.mock.lastCall![1].body)).toEqual({ filenames: [secondStoredName] });
-		expect(screen.getByRole("link", { name: "Continue" })).toHaveAttribute(
-			"href",
-			"/dashboard/review-extracted-info?extractionId=first-extraction&extractionId=retry-extraction",
-		);
-	});
-
-	test("removes failed records and returns to file selection after the last removal", async () => {
+	test("removes failed records from their saved extraction and returns to file selection after the last removal", async () => {
 		await uploadRecords();
 		await extractRecords(
 			Response.json({
 				status: "success",
 				extractionId: "failed-extraction",
-				result: [firstStoredName, secondStoredName].map((name) => ({ name, status: "failed" })),
+				hasReadyDocument: false,
 			}),
 		);
-		vi.mocked(deletePatientUploadAction).mockResolvedValue({ status: "success" });
+		removeDocumentMock.mockResolvedValue({ status: "success" });
 		await act(async () => {
 			fireEvent.click(
 				within(screen.getByRole("group", { name: "record-1.pdf" })).getByRole("button", {
@@ -264,6 +254,7 @@ describe("continue to review saved patient extractions", () => {
 				}),
 			);
 		});
+		expect(removeDocumentMock).toHaveBeenCalledWith("failed-extraction", firstStoredName);
 		expect(screen.queryByRole("group", { name: "record-1.pdf" })).not.toBeInTheDocument();
 		expect(screen.getByRole("group", { name: "record-2.pdf" })).toBeVisible();
 		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
@@ -274,6 +265,8 @@ describe("continue to review saved patient extractions", () => {
 				}),
 			);
 		});
+		expect(removeDocumentMock).toHaveBeenLastCalledWith("failed-extraction", secondStoredName);
+		expect(deletePatientUploadAction).not.toHaveBeenCalled();
 		expect(screen.getByRole("heading", { name: "Upload Patient’s Record" })).toBeVisible();
 		expect(screen.getByLabelText("Choose files or drag and drop them here.")).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "Browse files" })).toBeEnabled();
@@ -339,25 +332,43 @@ describe("continue to review saved patient extractions", () => {
 					: screen.getByRole("button", { name: action });
 			fireEvent.click(retryButton);
 			expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-			expect(screen.getByText("Extracting patient data...")).toBeVisible();
+			expect(
+				within(screen.getByRole("group", { name: "record-1.pdf" })).getByText("Extracting..."),
+			).toBeVisible();
 			await act(async () => {
 				finishRetry(
 					Response.json({
 						status: "success",
 						extractionId: "retry-extraction",
-						result: (action === "Try again"
-							? [firstStoredName]
-							: [firstStoredName, secondStoredName]
-						).map((name) => ({
-							name,
-							status: "success",
-						})),
+						hasReadyDocument: true,
 					}),
 				);
 			});
 			expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 		},
 	);
+
+	test("Try again on one file keeps the other failed file and Retry all usable", async () => {
+		await uploadRecords();
+		await extractRecords(
+			Response.json({ status: "success", extractionId: "extraction-1", hasReadyDocument: false }),
+		);
+		fetchMock.mockImplementationOnce(() => new Promise<Response>(() => {}));
+		fireEvent.click(
+			within(screen.getByRole("group", { name: "record-1.pdf" })).getByRole("button", {
+				name: "Try again",
+			}),
+		);
+		expect(
+			within(screen.getByRole("group", { name: "record-1.pdf" })).getByText("Extracting..."),
+		).toBeVisible();
+		const otherFile = within(screen.getByRole("group", { name: "record-2.pdf" }));
+		expect(otherFile.getByText("Extraction failed")).toBeVisible();
+		expect(otherFile.getByRole("button", { name: "Try again" })).toBeEnabled();
+		expect(otherFile.getByRole("button", { name: "Remove" })).toBeEnabled();
+		expect(screen.getByRole("button", { name: "Retry all" })).toBeEnabled();
+		expect(screen.queryByText("Extracting patient data...")).not.toBeInTheDocument();
+	});
 
 	test("clears the extraction banner while removal is pending and retains the other failed file", async () => {
 		await uploadRecords();
@@ -389,6 +400,7 @@ describe("continue to review saved patient extractions", () => {
 		await act(async () => {
 			finishRemoval({ status: "success" });
 		});
+		expect(removeDocumentMock).not.toHaveBeenCalled();
 		expect(screen.queryByRole("group", { name: "record-1.pdf" })).not.toBeInTheDocument();
 		expect(
 			within(screen.getByRole("group", { name: "record-2.pdf" })).getByText("Extraction failed"),

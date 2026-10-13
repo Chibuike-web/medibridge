@@ -4,11 +4,15 @@ import { useFileUpload } from "./use-file-upload";
 import { useFileExtraction } from "./use-file-extraction";
 import { FileUploadCard } from "@/components/file-upload-card";
 
-const { deleteUploadMock } = vi.hoisted(() => ({ deleteUploadMock: vi.fn() }));
+const { deleteUploadMock, pushMock } = vi.hoisted(() => ({
+	deleteUploadMock: vi.fn(),
+	pushMock: vi.fn(),
+}));
 
 vi.mock("@/features/patients/server/delete-patient-upload-action", () => ({
 	deletePatientUploadAction: deleteUploadMock,
 }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: pushMock }) }));
 
 const fetchMock = vi.fn();
 const firstStoredName = "11111111-1111-4111-8111-111111111111.pdf";
@@ -16,7 +20,7 @@ const secondStoredName = "22222222-2222-4222-8222-222222222222.pdf";
 
 function UploadHarness() {
 	const { files, handleFiles, clearFile, uploadError } = useFileUpload();
-	const { fileExtractions, extractInfo } = useFileExtraction(files);
+	const { extractInfo } = useFileExtraction(files);
 	return (
 		<>
 			<label>
@@ -30,31 +34,16 @@ function UploadHarness() {
 				/>
 			</label>
 			<button onClick={() => void extractInfo()}>Extract all</button>
-			<button
-				onClick={() =>
-					void extractInfo(
-						files
-							.filter((file) => fileExtractions[file.clientId]?.status === "extract-failed")
-							.map((file) => file.clientId),
-					)
-				}
-			>
-				Retry failed
-			</button>
 			{uploadError && <p role="alert">{uploadError}</p>}
 			{files.map((file) => (
 				<section key={file.clientId} aria-label={file.name}>
 					<p>{file.name}</p>
 					<p>
-						{fileExtractions[file.clientId]?.status === "extract-complete"
-							? "Extracted"
-							: fileExtractions[file.clientId]?.status === "extract-failed"
-								? "Extraction failed"
-								: file.status === "upload-complete"
-									? "Uploaded"
-									: file.status === "upload-failed"
-										? "Upload failed"
-										: "Working"}
+						{file.status === "upload-complete"
+							? "Uploaded"
+							: file.status === "upload-failed"
+								? "Upload failed"
+								: "Working"}
 					</p>
 					<button onClick={() => void clearFile(file.clientId)}>Remove</button>
 				</section>
@@ -137,6 +126,7 @@ describe("Patient uploads with generated storage names", () => {
 		vi.useFakeTimers();
 		fetchMock.mockReset();
 		deleteUploadMock.mockReset();
+		pushMock.mockReset();
 		vi.stubGlobal("fetch", fetchMock);
 	});
 
@@ -145,7 +135,7 @@ describe("Patient uploads with generated storage names", () => {
 		vi.unstubAllGlobals();
 	});
 
-	test("keeps equal display names separate and retries only the failed stored document", async () => {
+	test("keeps equal display names separate and extracts each stored document", async () => {
 		respondToUpload([
 			uploadedFile("report.pdf", firstStoredName),
 			uploadedFile("report.pdf", secondStoredName),
@@ -159,32 +149,17 @@ describe("Patient uploads with generated storage names", () => {
 		fetchMock.mockResolvedValueOnce(
 			Response.json({
 				status: "success",
-				result: [
-					{ name: firstStoredName, status: "success" },
-					{ name: secondStoredName, status: "failed" },
-				],
-				extractionId: "first-extraction",
+				extractionId: "saved-extraction",
+				hasReadyDocument: true,
 			}),
 		);
 		await act(async () => {
 			fireEvent.click(screen.getByRole("button", { name: "Extract all" }));
 		});
 		expect(extractionRequests()).toEqual([[firstStoredName, secondStoredName]]);
-		expect(within(records[0]).getByText("Extracted")).toBeVisible();
-		expect(within(records[1]).getByText("Extraction failed")).toBeVisible();
-
-		fetchMock.mockResolvedValueOnce(
-			Response.json({
-				status: "success",
-				result: [{ name: secondStoredName, status: "success" }],
-				extractionId: "retry-extraction",
-			}),
+		expect(pushMock).toHaveBeenCalledWith(
+			"/dashboard/review-extracted-info?extractionId=saved-extraction",
 		);
-		await act(async () => {
-			fireEvent.click(screen.getByRole("button", { name: "Retry failed" }));
-		});
-		expect(extractionRequests()).toEqual([[firstStoredName, secondStoredName], [secondStoredName]]);
-		for (const record of records) expect(within(record).getByText("Extracted")).toBeVisible();
 	});
 
 	test("uploads a selected JPEG file without showing an invalid file type error", async () => {

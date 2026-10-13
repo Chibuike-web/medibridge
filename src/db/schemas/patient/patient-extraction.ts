@@ -2,7 +2,10 @@ import { index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { organization } from "../auth";
 import type { PatientRecord } from "@/features/patients/schemas/patient-schema";
 
-export type PatientExtractionRecord = PatientRecord & { documentId: string };
+export type PatientExtractionDocument = { documentId: string } & (
+	| { status: "ready" | "saved"; patient: PatientRecord }
+	| { status: "failed"; patient: null }
+);
 
 export const patientExtraction = pgTable(
 	"patient_extractions",
@@ -12,7 +15,7 @@ export const patientExtraction = pgTable(
 			.notNull()
 			.references(() => organization.id, { onDelete: "cascade" }),
 		createdBy: text("created_by").notNull(),
-		extractedData: jsonb("extracted_data").$type<PatientExtractionRecord[]>().notNull(),
+		extractedData: jsonb("extracted_data").$type<PatientExtractionDocument[]>().notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},
 	(table) => [
