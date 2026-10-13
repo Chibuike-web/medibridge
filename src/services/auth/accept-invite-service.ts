@@ -1,4 +1,4 @@
-"use server";
+import "server-only";
 
 import { invitation, member, organization, user } from "@/db/schemas/auth";
 import { auth, db } from "@/lib/better-auth/auth";

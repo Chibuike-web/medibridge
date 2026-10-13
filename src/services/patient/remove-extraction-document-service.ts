@@ -1,4 +1,4 @@
-"use server";
+import "server-only";
 
 import path from "node:path";
 import { rm } from "node:fs/promises";

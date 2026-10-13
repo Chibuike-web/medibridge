@@ -1,4 +1,4 @@
-"use server";
+import "server-only";
 
 import { headers } from "next/headers";
 import { member, user } from "@/db/schemas/auth";
