@@ -1,9 +1,10 @@
 import "server-only";
 
-import { invitation, member, organization, user } from "@/db/schemas/auth";
+import { member } from "@/db/schemas/auth";
 import { auth, db } from "@/lib/better-auth/auth";
-import { and, eq, gt } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { findPendingInvitation } from "./find-pending-invitation";
 
 type AcceptInvitationResult =
 	| { status: "success" }
@@ -27,24 +28,7 @@ export async function acceptInvitationService(
 	}
 
 	try {
-		const [pendingInvitation] = await db
-			.select({
-				email: invitation.email,
-				hasAccount: user.id,
-				isOrganizationVerified: organization.isVerified,
-				organizationName: organization.name,
-			})
-			.from(invitation)
-			.innerJoin(organization, eq(invitation.organizationId, organization.id))
-			.leftJoin(user, eq(user.email, invitation.email))
-			.where(
-				and(
-					eq(invitation.id, invitationId),
-					eq(invitation.status, "pending"),
-					gt(invitation.expiresAt, new Date()),
-				),
-			)
-			.limit(1);
+		const pendingInvitation = await findPendingInvitation(invitationId);
 
 		if (!pendingInvitation) {
 			return { status: "invalid", error: "This invitation is invalid or has expired." };
