@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { auth } from "@/lib/better-auth/auth";
-import { getInvitationPreviewService } from "@/services/auth/accept-invite-service";
+import { getInvitationPreviewService } from "@/services/auth/get-invitation-preview-service";
 import { headers } from "next/headers";
 import { AcceptInviteClient, type AcceptInviteMode } from "./accept-invite-client";
 

@@ -1,37 +1,8 @@
 import "server-only";
+
 import { readFile } from "node:fs/promises";
-import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
-import type { createWorker } from "tesseract.js";
-
-type OcrWorker = Awaited<ReturnType<typeof createWorker>>;
-
-export type ExtractTextResult =
-	| { status: "success"; text: string }
-	| { status: "failed"; error: string };
-
-export async function extractImageText(
-	filePath: string,
-	worker: OcrWorker,
-): Promise<ExtractTextResult> {
-	try {
-		const { data } = await worker.recognize(filePath);
-		return { status: "success", text: data.text.trim() };
-	} catch (error) {
-		console.error("Image text extraction failed:", error);
-		return { status: "failed", error: "We couldn’t read this image. Please try again." };
-	}
-}
-
-export async function extractDocxText(filePath: string): Promise<ExtractTextResult> {
-	try {
-		const result = await mammoth.extractRawText({ path: filePath });
-		return { status: "success", text: result.value };
-	} catch (error) {
-		console.error("DOCX text extraction failed:", error);
-		return { status: "failed", error: "We couldn’t read this Word document. Please try again." };
-	}
-}
+import type { ExtractTextResult, OcrWorker } from "./types";
 
 export async function extractPdfText(
 	filePath: string,

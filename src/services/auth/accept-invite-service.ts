@@ -1,51 +1,10 @@
-"use server";
+import "server-only";
 
-import { invitation, member, organization, user } from "@/db/schemas/auth";
+import { member } from "@/db/schemas/auth";
 import { auth, db } from "@/lib/better-auth/auth";
-import { and, eq, gt } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
-
-async function findPendingInvitation(invitationId: string) {
-	const [pendingInvitation] = await db
-		.select({
-			email: invitation.email,
-			hasAccount: user.id,
-			isOrganizationVerified: organization.isVerified,
-			organizationName: organization.name,
-		})
-		.from(invitation)
-		.innerJoin(organization, eq(invitation.organizationId, organization.id))
-		.leftJoin(user, eq(user.email, invitation.email))
-		.where(
-			and(
-				eq(invitation.id, invitationId),
-				eq(invitation.status, "pending"),
-				gt(invitation.expiresAt, new Date()),
-			),
-		)
-		.limit(1);
-
-	return pendingInvitation ?? null;
-}
-
-export async function getInvitationPreviewService(invitationId: string) {
-	if (!invitationId) {
-		return { status: "invalid" as const };
-	}
-
-	const pendingInvitation = await findPendingInvitation(invitationId);
-
-	if (!pendingInvitation) {
-		return { status: "invalid" as const };
-	}
-
-	return {
-		status: "success" as const,
-		email: pendingInvitation.email,
-		hasAccount: Boolean(pendingInvitation.hasAccount),
-		organizationName: pendingInvitation.organizationName,
-	};
-}
+import { findPendingInvitation } from "./find-pending-invitation";
 
 type AcceptInvitationResult =
 	| { status: "success" }

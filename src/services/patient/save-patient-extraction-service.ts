@@ -1,4 +1,4 @@
-"use server";
+import "server-only";
 
 import { z } from "zod";
 import { patientExtraction } from "@/db/schemas/patient";

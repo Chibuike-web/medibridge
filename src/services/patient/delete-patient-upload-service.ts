@@ -1,4 +1,4 @@
-"use server";
+import "server-only";
 
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getSessionData } from "@/lib/api/get-session-data";
