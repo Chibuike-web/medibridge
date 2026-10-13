@@ -9,12 +9,10 @@ import {
 	PatientRecordSchema,
 	type PatientRecord,
 } from "@/features/patients/schemas/patient-schema";
-import {
-	extractImageText,
-	extractDocxText,
-	extractPdfText,
-	type ExtractTextResult,
-} from "./extract-file-text-service";
+import { extractImageText } from "./extract-image-text-service";
+import { extractDocxText } from "./extract-docx-text-service";
+import { extractPdfText } from "./extract-pdf-text-service";
+import type { ExtractTextResult } from "./types";
 
 const model =
 	process.env.NODE_ENV === "development"

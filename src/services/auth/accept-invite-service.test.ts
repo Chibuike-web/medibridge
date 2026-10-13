@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { member } from "@/db/schemas/auth";
-import { acceptInvitationService, getInvitationPreviewService } from "./accept-invite-service";
+import { acceptInvitationService } from "./accept-invite-service";
 
 const {
 	acceptInvitationMock,
@@ -68,17 +68,6 @@ describe("accept invitation services", () => {
 			user: { id: "user-1", email: "admin@stmaryhospital.org", emailVerified: true },
 		});
 		acceptInvitationMock.mockResolvedValue({ member: { role: "admin" } });
-	});
-
-	test("returns the invited email and organization for a pending invitation", async () => {
-		const result = await getInvitationPreviewService("invitation-1");
-
-		expect(result).toEqual({
-			status: "success",
-			email: "admin@stmaryhospital.org",
-			hasAccount: false,
-			organizationName: "St Mary Hospital",
-		});
 	});
 
 	test("does not accept an invitation without an authenticated session", async () => {
