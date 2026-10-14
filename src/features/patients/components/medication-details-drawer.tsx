@@ -2,6 +2,15 @@
 
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
+import {
+	AlertDialog,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -13,6 +22,13 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -37,13 +53,17 @@ import { cn } from "@/lib/utils/cn";
 import { authClient } from "@/lib/better-auth/auth.client";
 import {
 	RiAddLine,
+	RiArchiveLine,
 	RiArrowDownSLine,
 	RiCalendarLine,
+	RiCheckLine,
 	RiCloseLine,
-	RiEditLine,
+	RiEdit2Line,
+	RiMore2Fill,
+	RiShare2Line,
 } from "@remixicon/react";
 import { format } from "date-fns";
-import { useId, useRef, useState } from "react";
+import { Fragment, useId, useRef, useState } from "react";
 
 type MedicationDetailsDrawerProps = {
 	open: boolean;
@@ -69,6 +89,8 @@ export function MedicationDetailsDrawer({
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [medicationDetailsMode, setMedicationDetailsMode] = useState<"view" | "edit">("view");
+	const [isDiscontinueDialogOpen, setIsDiscontinueDialogOpen] = useState(false);
+	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 
 	function handleMedicationDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
@@ -84,9 +106,61 @@ export function MedicationDetailsDrawer({
 		<Drawer open={open} onOpenChange={handleMedicationDetailsOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
-					<DrawerTitle className="leading-[1.2] text-gray-800">
+					<DrawerTitle className="flex-1 leading-[1.2] text-gray-800">
 						{isEditingMedicationDetails ? "Edit medication details" : "View medication details"}
 					</DrawerTitle>
+					{medication && !isEditingMedicationDetails ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="icon" aria-label="Medication actions">
+									<RiMore2Fill aria-hidden="true" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="end"
+								className="w-50 rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+							>
+								<DropdownMenuItem
+									className="rounded-lg"
+									onSelect={() => setMedicationDetailsMode("edit")}
+								>
+									<RiEdit2Line aria-hidden="true" />
+									Edit
+								</DropdownMenuItem>
+								<DropdownMenuItem className="rounded-lg">
+									<RiShare2Line aria-hidden="true" />
+									Export
+								</DropdownMenuItem>
+								{medication.status === "Active" ? (
+									<>
+										<DropdownMenuItem className="rounded-lg">
+											<RiCheckLine aria-hidden="true" />
+											Mark as completed
+										</DropdownMenuItem>
+										<DropdownMenuItem
+											className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600"
+											onSelect={() => setIsDiscontinueDialogOpen(true)}
+										>
+											<RiCloseLine aria-hidden="true" className="text-current" />
+											Discontinue
+										</DropdownMenuItem>
+									</>
+								) : null}
+								{canArchive ? (
+									<>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											className="rounded-lg"
+											onSelect={() => setIsArchiveDialogOpen(true)}
+										>
+											<RiArchiveLine aria-hidden="true" />
+											Archive
+										</DropdownMenuItem>
+									</>
+								) : null}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					) : null}
 					<DrawerClose asChild>
 						<Button variant="ghost" size="icon" aria-label="Close medication details">
 							<RiCloseLine aria-hidden="true" />
@@ -106,10 +180,7 @@ export function MedicationDetailsDrawer({
 						<MedicationDetailsEditForm medication={medication} />
 					) : medication ? (
 						<div className="flex flex-col gap-10">
-							<MedicationDetailsOverview
-								medication={medication}
-								onEditMedicationDetails={() => setMedicationDetailsMode("edit")}
-							/>
+							<MedicationDetailsOverview medication={medication} />
 							<MedicationHistorySection history={medication.history} />
 						</div>
 					) : (
@@ -119,13 +190,12 @@ export function MedicationDetailsDrawer({
 					)}
 				</div>
 
-				<DrawerFooter className="border-t border-gray-200 text-sm">
-					{isEditingMedicationDetails ? (
+				{isEditingMedicationDetails ? (
+					<DrawerFooter className="border-t border-gray-200 text-sm">
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<Button
 								type="button"
 								variant="outline"
-
 								onClick={() => setMedicationDetailsMode("view")}
 							>
 								Cancel
@@ -138,66 +208,98 @@ export function MedicationDetailsDrawer({
 								Save changes
 							</Button>
 						</div>
-					) : medication?.status === "Active" ? (
-						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
-							<Button type="button" variant="outline">
-								Mark as completed
-							</Button>
-							<Button className="bg-rose-500 text-white hover:bg-rose-600">
-								Discontinue medication
-							</Button>
-						</div>
-					) : (
-						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
-							<DrawerClose asChild>
-								<Button variant="outline">Cancel</Button>
-							</DrawerClose>
-							{canArchive ? <Button>Archive medication</Button> : null}
-						</div>
-					)}
-				</DrawerFooter>
+					</DrawerFooter>
+				) : null}
 			</DrawerContent>
+			<AlertDialog open={isDiscontinueDialogOpen} onOpenChange={setIsDiscontinueDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Discontinue medication?</AlertDialogTitle>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							aria-label="Close discontinue medication dialog"
+							onClick={() => setIsDiscontinueDialogOpen(false)}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</AlertDialogHeader>
+					<AlertDialogDescription>
+						This medication will be removed from the patient’s active medication list. The
+						medication record, related encounters, labs, and full activity history will be retained
+						and can be restored at any time.
+					</AlertDialogDescription>
+					<AlertDialogFooter className="sm:justify-end">
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<Button
+							type="button"
+							className="bg-rose-500 text-white hover:bg-rose-600"
+							onClick={() => setIsDiscontinueDialogOpen(false)}
+						>
+							Discontinue medication
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+			<AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Archive medication</AlertDialogTitle>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							aria-label="Close archive medication dialog"
+							onClick={() => setIsArchiveDialogOpen(false)}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</AlertDialogHeader>
+					<AlertDialogDescription>
+						This medication will be removed from the patient’s active problem list. The record, its
+						related medications, labs, imaging and full activity history are retained and can be
+						restored at any time.
+					</AlertDialogDescription>
+					<AlertDialogFooter className="sm:justify-end">
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<Button type="button" onClick={() => setIsArchiveDialogOpen(false)}>
+							Archive medication
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Drawer>
 	);
 }
 
-function MedicationDetailsOverview({
-	medication,
-	onEditMedicationDetails,
-}: {
-	medication: MedicationDetailsType;
-	onEditMedicationDetails: () => void;
-}) {
+function MedicationDetailsOverview({ medication }: { medication: MedicationDetailsType }) {
 	return (
-		<div className="flex flex-col gap-10">
-			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Medication ID:</span>
-					<CopyIdButton id={medication.medicationId} className="text-sm" />
-				</div>
-				{medication.encounterId ? (
+		<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-4">
+				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
-						<CopyIdButton id={medication.encounterId} className="text-sm" />
+						<span className="text-gray-400">Medication ID:</span>
+						<CopyIdButton id={medication.medicationId} className="text-sm" />
 					</div>
-				) : null}
+					{medication.encounterId ? (
+						<div className="flex items-center gap-2">
+							<span className="text-gray-400">Encounter ID:</span>
+							<CopyIdButton id={medication.encounterId} className="text-sm" />
+						</div>
+					) : null}
+				</div>
+				<p className="flex flex-wrap items-center gap-2 font-medium">
+					<span className="text-gray-600">Created by {medication.createdBy}</span>
+					<span aria-hidden="true" className="size-1 rounded-full bg-gray-300" />
+					<span className="text-gray-400">{medication.createdAt}</span>
+				</p>
 			</div>
 
 			<div className="flex flex-col gap-6">
-				<div className="flex flex-wrap items-center justify-between gap-4">
-					<div className="flex items-center gap-3">
-						<h2 className="text-lg font-semibold text-gray-800">{medication.name}</h2>
-						<StatusBadge status={medication.status} />
-					</div>
-					<Button
-						type="button"
-						onClick={onEditMedicationDetails}
-						variant="ghost"
-						className="text-gray-400 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-gray-300 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent focus-visible:border-0 has-[>svg:first-child]:pl-0"
-					>
-						<RiEditLine className="size-4" aria-hidden="true" />
-						Edit
-					</Button>
+				<div className="flex items-center gap-3">
+					<h2 className="text-lg font-semibold text-gray-800">{medication.name}</h2>
+					<StatusBadge status={medication.status} />
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
@@ -455,11 +557,7 @@ function MedicationDetailItem({ label, value }: { label: string; value: string }
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
-			{label === "Status" ? (
-				<StatusBadge status={value || EMPTY_VALUE} className="w-max" />
-			) : (
-				<span className="font-medium text-gray-600">{value || EMPTY_VALUE}</span>
-			)}
+			<span className="font-medium text-gray-600">{value || EMPTY_VALUE}</span>
 		</div>
 	);
 }
@@ -506,7 +604,13 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 					<span aria-hidden="true" className="text-gray-200">
 						•
 					</span>{" "}
-					<span className="text-gray-400">{historyEvent.timestamp}</span>
+					<span className="text-gray-400">{historyEvent.timestamp}</span>{" "}
+					<span aria-hidden="true" className="text-gray-200">
+						•
+					</span>{" "}
+					<span className="text-gray-400">
+						{historyEvent.items.length} {historyEvent.items.length === 1 ? "change" : "changes"}
+					</span>
 				</p>
 				<RiArrowDownSLine
 					className={cn(
@@ -526,18 +630,15 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 				inert={!isMedicationHistoryExpanded}
 			>
 				<div className="min-h-0 overflow-hidden">
-					<div
-						role="region"
-						aria-labelledby={titleId}
-						className="mt-6 grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2"
-					>
-						{historyEvent.items.map((item) => (
-							<MedicationDetailItem
-								key={`${historyEvent.id}-${item.label}`}
-								label={item.label}
-								value={item.value}
-							/>
-						))}
+					<div role="region" aria-labelledby={titleId} className="mt-4">
+						<dl className="grid grid-cols-[8.75rem_1fr] gap-x-4 gap-y-2">
+							{historyEvent.items.map((item) => (
+								<Fragment key={`${historyEvent.id}-${item.label}`}>
+									<dt className="text-gray-400">{item.label}</dt>
+									<dd className="text-gray-700">{item.value || EMPTY_VALUE}</dd>
+								</Fragment>
+							))}
+						</dl>
 					</div>
 				</div>
 			</div>

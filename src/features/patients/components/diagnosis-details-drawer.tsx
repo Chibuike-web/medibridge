@@ -62,7 +62,7 @@ import {
 	RiShare2Line,
 	RiArchiveLine,
 } from "@remixicon/react";
-import { useId, useState } from "react";
+import { Fragment, useId, useState } from "react";
 import { format } from "date-fns";
 
 type DiagnosisDetailsDrawerProps = {
@@ -492,11 +492,7 @@ function DiagnosisDetailItem({ label, value }: { label: string; value: string })
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
-			{label === "Status" ? (
-				<StatusBadge status={value || EMPTY_VALUE} className="w-max" />
-			) : (
-				<span className="font-medium text-gray-600">{value || EMPTY_VALUE}</span>
-			)}
+			<span className="font-medium text-gray-600">{value || EMPTY_VALUE}</span>
 		</div>
 	);
 }
@@ -545,7 +541,13 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 					<span aria-hidden="true" className="text-gray-200">
 						•
 					</span>{" "}
-					<span className="text-gray-400">{historyEvent.timestamp}</span>
+					<span className="text-gray-400">{historyEvent.timestamp}</span>{" "}
+					<span aria-hidden="true" className="text-gray-200">
+						•
+					</span>{" "}
+					<span className="text-gray-400">
+						{historyEvent.items.length} {historyEvent.items.length === 1 ? "change" : "changes"}
+					</span>
 				</p>
 				<RiArrowDownSLine
 					className={cn(
@@ -565,18 +567,15 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 				inert={!isDiagnosisHistoryExpanded}
 			>
 				<div className="min-h-0 overflow-hidden">
-					<div
-						role="region"
-						aria-labelledby={titleId}
-						className="mt-6 grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2"
-					>
-						{historyEvent.items.map((item) => (
-							<DiagnosisDetailItem
-								key={`${historyEvent.id}-${item.label}`}
-								label={item.label}
-								value={item.value}
-							/>
-						))}
+					<div role="region" aria-labelledby={titleId} className="mt-4">
+						<dl className="grid grid-cols-[8.75rem_1fr] gap-x-4 gap-y-2">
+							{historyEvent.items.map((item) => (
+								<Fragment key={`${historyEvent.id}-${item.label}`}>
+									<dt className="text-gray-400">{item.label}</dt>
+									<dd className="text-gray-700">{item.value || EMPTY_VALUE}</dd>
+								</Fragment>
+							))}
+						</dl>
 					</div>
 				</div>
 			</div>

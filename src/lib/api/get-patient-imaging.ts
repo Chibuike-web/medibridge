@@ -60,32 +60,34 @@ function toDatabaseModalityFilter(modalityFilter: ImagingModalityFilter) {
 	return "Ultrasound";
 }
 
-export const getPatientImaging = cache(async (
-	patientId: string,
-	page = 1,
-	limit = 14,
-	query = "",
-	dateFilters: ImagingDateFilters = {},
-	statusFilters: ImagingStatusFilter[] = [],
-	modalityFilters: ImagingModalityFilter[] = [],
-	encounterId?: string,
-): Promise<{ imagingStudies: ImagingType[]; totalImagingStudies: number }> => {
-	const organizationId = await getOrganizationId();
+export const getPatientImaging = cache(
+	async (
+		patientId: string,
+		page = 1,
+		limit = 14,
+		query = "",
+		dateFilters: ImagingDateFilters = {},
+		statusFilters: ImagingStatusFilter[] = [],
+		modalityFilters: ImagingModalityFilter[] = [],
+		encounterId?: string,
+	): Promise<{ imagingStudies: ImagingType[]; totalImagingStudies: number }> => {
+		const organizationId = await getOrganizationId();
 
-	if (!organizationId) return { imagingStudies: [], totalImagingStudies: 0 };
+		if (!organizationId) return { imagingStudies: [], totalImagingStudies: 0 };
 
-	return getPatientImagingForOrganization(
-		patientId,
-		organizationId,
-		page,
-		limit,
-		query.trim(),
-		dateFilters,
-		statusFilters,
-		modalityFilters,
-		encounterId,
-	);
-});
+		return getPatientImagingForOrganization(
+			patientId,
+			organizationId,
+			page,
+			limit,
+			query.trim(),
+			dateFilters,
+			statusFilters,
+			modalityFilters,
+			encounterId,
+		);
+	},
+);
 
 export async function getPatientImagingForOrganization(
 	patientId: string,
@@ -170,7 +172,12 @@ export async function getPatientImagingForOrganization(
 		? await db
 				.select()
 				.from(patientImagingFile)
-				.where(inArray(patientImagingFile.parentRecordId, rows.map((row) => row.imagingId)))
+				.where(
+					inArray(
+						patientImagingFile.parentRecordId,
+						rows.map((row) => row.imagingId),
+					),
+				)
 		: [];
 	const filesByImagingId = new Map<string, typeof imagingFiles>();
 
@@ -231,19 +238,6 @@ export async function getPatientImagingForOrganization(
 							{ label: "Status", value: status },
 							{ label: "Reported by", value: reportedBy },
 							{ label: "Clinical notes", value: clinicalNote },
-						],
-					},
-					{
-						id: `${imaging.imagingId}-created`,
-						title: "Created",
-						actor: createdBy,
-						timestamp: createdAtLabel,
-						items: [
-							{ label: "Status", value: "Pending" },
-							{ label: "Region", value: imaging.region },
-							{ label: "Modality", value: modality },
-							{ label: "Ordered by", value: orderedBy },
-							{ label: "Ordered at", value: orderedAtLabel },
 						],
 					},
 				],

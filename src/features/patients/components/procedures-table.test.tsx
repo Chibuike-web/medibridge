@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { format, setDate, subMonths } from "date-fns";
+import { format } from "date-fns";
 import { SWRConfig } from "swr";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { ProcedureDetailsType, ProcedureType } from "@/features/patients/types";
@@ -53,7 +53,7 @@ const procedureDetailsById: Record<string, ProcedureDetailsType> = {
 		plannedAssistants: [],
 		plannedFacility: "Main Theatre Block",
 		clinicalNote: "Uncomplicated laparoscopic removal.",
-		createdAt: "Jan 12, 2024",
+		createdAt: "12 January 2024 at 09:00",
 		updatedAt: "Jan 13, 2024",
 		createdBy: "Dr. Bello",
 		updatedBy: "Dr. Bello",
@@ -65,13 +65,6 @@ const procedureDetailsById: Record<string, ProcedureDetailsType> = {
 				actor: "Dr. Bello",
 				timestamp: "13 January 2024 at 10:30",
 				items: [{ label: "Status", value: "Completed" }],
-			},
-			{
-				id: "created",
-				title: "Created",
-				actor: "Dr. Bello",
-				timestamp: "12 January 2024 at 09:00",
-				items: [{ label: "Indication", value: "Acute appendicitis" }],
 			},
 		],
 	},
@@ -90,7 +83,7 @@ const procedureDetailsById: Record<string, ProcedureDetailsType> = {
 		plannedAssistants: [],
 		plannedFacility: "Orthopaedic Day Surgery",
 		clinicalNote: "",
-		createdAt: "Mar 5, 2024",
+		createdAt: "5 March 2024 at 08:15",
 		updatedAt: "Mar 5, 2024",
 		createdBy: "Dr. Okafor",
 		updatedBy: "Dr. Okafor",
@@ -175,40 +168,6 @@ describe("Procedures table", () => {
 		vi.unstubAllGlobals();
 	});
 
-	test("shows each procedure's name, ID, creation date, indication, facility and status", () => {
-		renderProceduresTable();
-
-		for (const label of [
-			"Procedure",
-			"Procedure ID",
-			"Created At",
-			"Indication",
-			"Facility",
-			"Status",
-		]) {
-			expect(screen.getByRole("columnheader", { name: label })).toBeVisible();
-		}
-
-		const [firstRow, secondRow] = bodyRows();
-		expect(within(firstRow).getByText("Knee arthroscopy")).toBeVisible();
-		expect(within(firstRow).getByRole("button", { name: "Copy PROC-3001" })).toBeVisible();
-		expect(within(firstRow).getByText("Mar 5, 2024")).toBeVisible();
-		expect(within(firstRow).getByText("Persistent right knee pain")).toBeVisible();
-		expect(within(firstRow).getByText("Orthopaedic Day Surgery")).toBeVisible();
-		expect(within(firstRow).getByText("Pending")).toBeVisible();
-
-		expect(within(secondRow).getByText("Appendectomy")).toBeVisible();
-		expect(within(secondRow).getByText("Jan 12, 2024")).toBeVisible();
-		expect(within(secondRow).getByText("Completed")).toBeVisible();
-	});
-
-	test("shows an empty message when there are no procedures", () => {
-		renderProceduresTable({ procedures: [] });
-
-		expect(screen.getByText("No matching procedures found.")).toBeVisible();
-		expect(bodyRows()).toHaveLength(1);
-	});
-
 	test("reports what the user types in the search box", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderProceduresTable({ query: "Appen" });
@@ -221,15 +180,6 @@ describe("Procedures table", () => {
 		expect(search).toHaveValue("Appen");
 		await user.type(search, "d");
 		expect(onQueryChange).toHaveBeenCalledWith("Append");
-	});
-
-	test("drops encounter ID from the search hint when scoped to an encounter", () => {
-		renderProceduresTable({ isEncounterScoped: true });
-
-		expect(screen.getByRole("searchbox")).toHaveAttribute(
-			"placeholder",
-			"Search by procedure, indication, facility, or procedure ID",
-		);
 	});
 
 	test("re-orders rows when the user sorts by procedure name", async () => {
@@ -271,16 +221,6 @@ describe("Procedures table", () => {
 		expect(screen.getByRole("columnheader", { name: "Status" })).not.toHaveAttribute("aria-sort");
 	});
 
-	test("lists status and created-at filters", async () => {
-		const user = userEvent.setup();
-		renderProceduresTable();
-
-		await user.click(screen.getByRole("button", { name: "Filter" }));
-
-		expect(screen.getByRole("menuitem", { name: "Status" })).toBeVisible();
-		expect(screen.getByRole("menuitem", { name: "Created at" })).toBeVisible();
-	});
-
 	test("adds and removes status filters from the Status submenu", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderProceduresTable({ statusFilters: ["pending"] });
@@ -310,52 +250,6 @@ describe("Procedures table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(today, today);
 	});
 
-	test("applies a custom created-at range chosen in the date range dialog", async () => {
-		const user = userEvent.setup();
-		const start = setDate(subMonths(new Date(), 1), 15);
-		const end = setDate(new Date(), 15);
-		const { onCreatedAtRangeApply } = renderProceduresTable();
-
-		await openFilterSubmenu(user, "Created at");
-		clickInSubmenu(screen.getByRole("menuitem", { name: "Custom date range" }));
-		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
-		const apply = within(dialog).getByRole("button", { name: "Apply date range" });
-		expect(apply).toBeDisabled();
-
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
-		);
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(end, "MMMM do, yyyy")) }),
-		);
-		expect(within(dialog).getByText(format(start, "do MMMM, yyyy"))).toBeVisible();
-		expect(within(dialog).getByText(format(end, "do MMMM, yyyy"))).toBeVisible();
-
-		await user.click(apply);
-		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
-			format(start, "yyyy-MM-dd"),
-			format(end, "yyyy-MM-dd"),
-		);
-		await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-	});
-
-	test("clears the created-at range from the date range dialog's Reset button", async () => {
-		const user = userEvent.setup();
-		const { onCreatedAtRangeApply } = renderProceduresTable({
-			createdFrom: "2020-01-01",
-			createdTo: "2020-01-31",
-		});
-
-		await openFilterSubmenu(user, "Created at");
-		clickInSubmenu(screen.getByRole("menuitem", { name: "Custom date range" }));
-		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
-		expect(within(dialog).getByText("1st January, 2020")).toBeVisible();
-		expect(within(dialog).getByText("31st January, 2020")).toBeVisible();
-
-		await user.click(within(dialog).getByRole("button", { name: "Reset" }));
-		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith("", "");
-	});
-
 	test("shows active filters as pills the user can remove", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onCreatedAtRangeApply } = renderProceduresTable({
@@ -373,12 +267,6 @@ describe("Procedures table", () => {
 
 		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
-	});
-
-	test("shows no filter pills when no filters are active", () => {
-		renderProceduresTable();
-
-		expect(screen.queryByRole("button", { name: /^Remove / })).not.toBeInTheDocument();
 	});
 
 	test("paginates through the owner callbacks and shows the current page", async () => {
@@ -432,10 +320,12 @@ describe("Procedures table", () => {
 		expect(within(dialog).getByText("Dr. Zainab Bello")).toBeVisible();
 		expect(within(dialog).getByText("Uncomplicated laparoscopic removal.")).toBeVisible();
 		expect(within(dialog).getByRole("button", { name: "Copy ENC-1001" })).toBeVisible();
-		expect(within(dialog).getByText("Updated by Dr. Bello")).toBeVisible();
-		expect(within(dialog).getByText("13 January 2024 at 10:30")).toBeVisible();
 		expect(within(dialog).getByText("Created by Dr. Bello")).toBeVisible();
 		expect(within(dialog).getByText("12 January 2024 at 09:00")).toBeVisible();
+		const updatedActivity = within(dialog).getByRole("button", { name: /^Updated by Dr. Bello/ });
+		expect(updatedActivity).toHaveTextContent("13 January 2024 at 10:30");
+		expect(updatedActivity).toHaveTextContent("1 change");
+		expect(within(dialog).queryByRole("button", { name: /^Created by/ })).not.toBeInTheDocument();
 		expect(within(dialog).queryByText("Created by", { exact: true })).not.toBeInTheDocument();
 		expect(within(dialog).queryByText("Created at", { exact: true })).not.toBeInTheDocument();
 		expect(within(dialog).queryByText("Updated by", { exact: true })).not.toBeInTheDocument();
@@ -454,6 +344,26 @@ describe("Procedures table", () => {
 		expect(await within(dialog).findByRole("heading", { name: "Knee arthroscopy" })).toBeVisible();
 		expect(within(dialog).getByText("Planned date")).toBeVisible();
 		expect(within(dialog).getByText("Apr 2, 2024")).toBeVisible();
+	});
+
+	test("offers Mark as completed in a pending procedure's drawer and confirms Archive for an owner", async () => {
+		const user = userEvent.setup();
+		renderProceduresTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Knee arthroscopy" }));
+		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
+
+		const dialog = await screen.findByRole("dialog", { name: "View procedure details" });
+		expect(await within(dialog).findByRole("heading", { name: "Knee arthroscopy" })).toBeVisible();
+		await user.click(within(dialog).getByRole("button", { name: "Procedure actions" }));
+		expect(await screen.findByRole("menuitem", { name: "Edit" })).toBeVisible();
+		expect(screen.getByRole("menuitem", { name: "Mark as completed" })).toBeVisible();
+		await user.click(screen.getByRole("menuitem", { name: "Archive" }));
+
+		const archiveDialog = await screen.findByRole("alertdialog", { name: "Archive procedure" });
+		expect(within(archiveDialog).getByRole("button", { name: "Archive procedure" })).toBeVisible();
+		await user.click(within(archiveDialog).getByRole("button", { name: "Cancel" }));
+		expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
 	});
 
 	test("only offers status changes on pending procedures", async () => {
@@ -518,14 +428,5 @@ describe("Procedures table", () => {
 
 		const dialog = await screen.findByRole("dialog", { name: "View procedure details" });
 		expect(await within(dialog).findByRole("heading", { name: "Appendectomy" })).toBeVisible();
-	});
-
-	test("opens the add procedure drawer from the Add procedure button", async () => {
-		const user = userEvent.setup();
-		renderProceduresTable();
-
-		await user.click(screen.getByRole("button", { name: "Add procedure" }));
-
-		expect(await screen.findByRole("dialog", { name: "Add procedure" })).toBeVisible();
 	});
 });

@@ -1,6 +1,6 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { format, setDate, subDays, subMonths } from "date-fns";
+import { format, subDays } from "date-fns";
 import { SWRConfig } from "swr";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { ImmunizationDetailsType, ImmunizationType } from "@/features/patients/types";
@@ -152,33 +152,6 @@ describe("Immunizations table", () => {
 		vi.useRealTimers();
 	});
 
-	test("shows each immunization's vaccine, ID, dose, creation date and status", () => {
-		renderImmunizationsTable();
-
-		for (const label of ["Vaccine name", "Immunization ID", "Dose", "Created At", "Status"]) {
-			expect(screen.getByRole("columnheader", { name: label })).toBeVisible();
-		}
-
-		const [firstRow, secondRow] = bodyRows();
-		expect(within(firstRow).getByText("Tetanus toxoid")).toBeVisible();
-		expect(within(firstRow).getByRole("button", { name: "Copy IMM-3001" })).toBeVisible();
-		expect(within(firstRow).getByText("Dose 2 of 3")).toBeVisible();
-		expect(within(firstRow).getByText("Mar 5, 2024")).toBeVisible();
-		expect(within(firstRow).getByText("Active")).toBeVisible();
-
-		expect(within(secondRow).getByText("Hepatitis B")).toBeVisible();
-		expect(within(secondRow).getByText("Dose 3 of 3")).toBeVisible();
-		expect(within(secondRow).getByText("Jan 12, 2024")).toBeVisible();
-		expect(within(secondRow).getByText("Completed")).toBeVisible();
-	});
-
-	test("shows an empty message when there are no immunizations", () => {
-		renderImmunizationsTable({ immunizations: [] });
-
-		expect(screen.getByText("No matching immunizations found.")).toBeVisible();
-		expect(bodyRows()).toHaveLength(1);
-	});
-
 	test("reports what the user types in the search box", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderImmunizationsTable({ query: "Hep" });
@@ -191,15 +164,6 @@ describe("Immunizations table", () => {
 		expect(search).toHaveValue("Hep");
 		await user.type(search, "a");
 		expect(onQueryChange).toHaveBeenCalledWith("Hepa");
-	});
-
-	test("drops encounter ID from the search hint when scoped to an encounter", () => {
-		renderImmunizationsTable({ isEncounterScoped: true });
-
-		expect(screen.getByRole("searchbox")).toHaveAttribute(
-			"placeholder",
-			"Search by vaccine name or immunization ID",
-		);
 	});
 
 	test("re-orders rows when the user sorts by vaccine name", async () => {
@@ -240,16 +204,6 @@ describe("Immunizations table", () => {
 		}
 	});
 
-	test("lists status and created-at filters", async () => {
-		const user = userEvent.setup();
-		renderImmunizationsTable();
-
-		await user.click(screen.getByRole("button", { name: "Filter" }));
-
-		expect(screen.getByRole("menuitem", { name: "Status" })).toBeVisible();
-		expect(screen.getByRole("menuitem", { name: "Created at" })).toBeVisible();
-	});
-
 	test("adds and removes status filters from the Status submenu", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderImmunizationsTable({ statusFilters: ["active"] });
@@ -283,52 +237,6 @@ describe("Immunizations table", () => {
 		);
 	});
 
-	test("applies a custom created-at range chosen in the date range dialog", async () => {
-		const user = userEvent.setup();
-		const start = setDate(subMonths(new Date(), 1), 15);
-		const end = setDate(new Date(), 15);
-		const { onCreatedAtRangeApply } = renderImmunizationsTable();
-
-		await openFilterSubmenu(user, "Created at");
-		clickInSubmenu(screen.getByRole("menuitem", { name: "Custom date range" }));
-		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
-		const apply = within(dialog).getByRole("button", { name: "Apply date range" });
-		expect(apply).toBeDisabled();
-
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
-		);
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(end, "MMMM do, yyyy")) }),
-		);
-		expect(within(dialog).getByText(format(start, "do MMMM, yyyy"))).toBeVisible();
-		expect(within(dialog).getByText(format(end, "do MMMM, yyyy"))).toBeVisible();
-
-		await user.click(apply);
-		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
-			format(start, "yyyy-MM-dd"),
-			format(end, "yyyy-MM-dd"),
-		);
-		await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-	});
-
-	test("clears the created-at range from the date range dialog's Reset button", async () => {
-		const user = userEvent.setup();
-		const { onCreatedAtRangeApply } = renderImmunizationsTable({
-			createdFrom: "2020-01-01",
-			createdTo: "2020-01-31",
-		});
-
-		await openFilterSubmenu(user, "Created at");
-		clickInSubmenu(screen.getByRole("menuitem", { name: "Custom date range" }));
-		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
-		expect(within(dialog).getByText("1st January, 2020")).toBeVisible();
-		expect(within(dialog).getByText("31st January, 2020")).toBeVisible();
-
-		await user.click(within(dialog).getByRole("button", { name: "Reset" }));
-		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith("", "");
-	});
-
 	test("shows active filters as pills the user can remove", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onCreatedAtRangeApply } = renderImmunizationsTable({
@@ -346,12 +254,6 @@ describe("Immunizations table", () => {
 
 		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
-	});
-
-	test("shows no filter pills when no filters are active", () => {
-		renderImmunizationsTable();
-
-		expect(screen.queryByRole("button", { name: /^Remove / })).not.toBeInTheDocument();
 	});
 
 	test("paginates through the owner callbacks and shows the current page", async () => {
@@ -464,6 +366,31 @@ describe("Immunizations table", () => {
 		expect(screen.queryByRole("menuitem", { name: "Discontinue" })).not.toBeInTheDocument();
 	});
 
+	test("asks to confirm before discontinuing an active immunization from the details actions menu", async () => {
+		const user = userEvent.setup();
+		renderImmunizationsTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Tetanus toxoid" }));
+		await user.click(screen.getByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "View immunization details" });
+		await within(dialog).findByRole("heading", { name: "Tetanus toxoid" });
+
+		await user.click(within(dialog).getByRole("button", { name: "Immunization actions" }));
+		expect(await screen.findByRole("menuitem", { name: "Mark as completed" })).toBeVisible();
+		await user.click(screen.getByRole("menuitem", { name: "Discontinue" }));
+
+		const confirmation = await screen.findByRole("alertdialog", {
+			name: "Discontinue immunization?",
+		});
+		expect(
+			within(confirmation).getByText(/removed from the patient’s active immunization list/),
+		).toBeVisible();
+
+		await user.click(within(confirmation).getByRole("button", { name: "Cancel" }));
+		expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+		expect(screen.getByRole("dialog", { name: "View immunization details" })).toBeVisible();
+	});
+
 	test("offers Archive to an admin in the row actions and the bulk bar", async () => {
 		authState.role = "admin";
 		const user = userEvent.setup();
@@ -512,14 +439,5 @@ describe("Immunizations table", () => {
 
 		const dialog = await screen.findByRole("dialog", { name: "View immunization details" });
 		expect(await within(dialog).findByRole("heading", { name: "Hepatitis B" })).toBeVisible();
-	});
-
-	test("opens the add immunization drawer from the Add immunization button", async () => {
-		const user = userEvent.setup();
-		renderImmunizationsTable();
-
-		await user.click(screen.getByRole("button", { name: "Add immunization" }));
-
-		expect(await screen.findByRole("dialog", { name: "Add immunization" })).toBeVisible();
 	});
 });

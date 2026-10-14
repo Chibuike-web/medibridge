@@ -75,32 +75,6 @@ function formatTimelineTimestamp(value: Date | string | null | undefined) {
 	return `${dateLabel} at ${timeLabel}`;
 }
 
-function buildCreatedHistoryEvent(immunization: {
-	seriesType: string | null;
-	currentDose: string | null;
-	totalDoses: string | null;
-	dateAdministered: Date | null;
-	administeredBy: string | null;
-	status: string;
-	createdBy: string | null;
-	createdAt: Date;
-}): ImmunizationDetailsHistoryEvent {
-	return {
-		id: "created",
-		title: "Created",
-		actor: empty(immunization.createdBy),
-		timestamp: formatTimelineTimestamp(immunization.createdAt),
-		items: [
-			{ label: "Series Type", value: empty(immunization.seriesType) },
-			{ label: "Dose", value: empty(immunization.currentDose) },
-			{ label: "Total Doses", value: empty(immunization.totalDoses) },
-			{ label: "Date administered", value: formatDateOnly(immunization.dateAdministered) },
-			{ label: "Administered by", value: empty(immunization.administeredBy) },
-			{ label: "Status", value: normalizeStatus(immunization.status) },
-		],
-	};
-}
-
 function buildUpdatedHistoryEvent(immunization: {
 	currentDose: string | null;
 	dateAdministered: Date | null;
@@ -135,9 +109,7 @@ function mapHistoryEvent(history: {
 		title: "Updated",
 		actor: empty(history.updatedBy),
 		timestamp: formatTimelineTimestamp(history.createdAt),
-		items: [
-			{ label: formatSentenceCaseValue(history.fieldName), value: empty(history.newValue) },
-		],
+		items: [{ label: formatSentenceCaseValue(history.fieldName), value: empty(history.newValue) }],
 	};
 }
 
@@ -178,7 +150,9 @@ export async function getPatientImmunizationDetailsForOrganization(
 		})
 		.from(patientImmunization)
 		.innerJoin(patient, eq(patientImmunization.patientId, patient.id))
-		.where(and(eq(patientImmunization.id, immunizationId), eq(patient.organizationId, organizationId)))
+		.where(
+			and(eq(patientImmunization.id, immunizationId), eq(patient.organizationId, organizationId)),
+		)
 		.limit(1);
 
 	if (!immunization) {
@@ -212,10 +186,6 @@ export async function getPatientImmunizationDetailsForOrganization(
 		createdBy: empty(immunization.createdBy),
 		updatedBy: empty(immunization.updatedBy),
 		clinicalNote: empty(immunization.clinicalNote),
-		history: [
-			...historyRows.map(mapHistoryEvent),
-			buildUpdatedHistoryEvent(immunization),
-			buildCreatedHistoryEvent(immunization),
-		],
+		history: [...historyRows.map(mapHistoryEvent), buildUpdatedHistoryEvent(immunization)],
 	};
 }

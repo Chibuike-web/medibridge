@@ -2,6 +2,15 @@
 
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
+import {
+	AlertDialog,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -13,6 +22,13 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -30,9 +46,19 @@ import type {
 	ImmunizationDetailsType,
 } from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
-import { RiArrowDownSLine, RiCalendarLine, RiCloseLine, RiEditLine } from "@remixicon/react";
+import { authClient } from "@/lib/better-auth/auth.client";
+import {
+	RiArchiveLine,
+	RiArrowDownSLine,
+	RiCalendarLine,
+	RiCheckLine,
+	RiCloseLine,
+	RiEdit2Line,
+	RiMore2Fill,
+	RiShare2Line,
+} from "@remixicon/react";
 import { format } from "date-fns";
-import { useId, useState } from "react";
+import { Fragment, useId, useState } from "react";
 
 type ImmunizationDetailsDrawerProps = {
 	open: boolean;
@@ -55,7 +81,11 @@ export function ImmunizationDetailsDrawer({
 	immunization,
 	isLoading,
 }: ImmunizationDetailsDrawerProps) {
+	const { data: activeMemberRole } = authClient.useActiveMemberRole();
+	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [immunizationDetailsMode, setImmunizationDetailsMode] = useState<"view" | "edit">("view");
+	const [isDiscontinueDialogOpen, setIsDiscontinueDialogOpen] = useState(false);
+	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 
 	function handleImmunizationDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
@@ -71,11 +101,63 @@ export function ImmunizationDetailsDrawer({
 		<Drawer open={open} onOpenChange={handleImmunizationDetailsOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
-					<DrawerTitle className="leading-[1.2] text-gray-800">
+					<DrawerTitle className="flex-1 leading-[1.2] text-gray-800">
 						{isEditingImmunizationDetails
 							? "Edit immunization details"
 							: "View immunization details"}
 					</DrawerTitle>
+					{immunization && !isEditingImmunizationDetails ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="icon" aria-label="Immunization actions">
+									<RiMore2Fill aria-hidden="true" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="end"
+								className="w-50 rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+							>
+								<DropdownMenuItem
+									className="rounded-lg"
+									onSelect={() => setImmunizationDetailsMode("edit")}
+								>
+									<RiEdit2Line aria-hidden="true" />
+									Edit
+								</DropdownMenuItem>
+								<DropdownMenuItem className="rounded-lg">
+									<RiShare2Line aria-hidden="true" />
+									Export
+								</DropdownMenuItem>
+								{immunization.status === "Active" ? (
+									<>
+										<DropdownMenuItem className="rounded-lg">
+											<RiCheckLine aria-hidden="true" />
+											Mark as completed
+										</DropdownMenuItem>
+										<DropdownMenuItem
+											className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600"
+											onSelect={() => setIsDiscontinueDialogOpen(true)}
+										>
+											<RiCloseLine aria-hidden="true" className="text-current" />
+											Discontinue
+										</DropdownMenuItem>
+									</>
+								) : null}
+								{canArchive ? (
+									<>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											className="rounded-lg"
+											onSelect={() => setIsArchiveDialogOpen(true)}
+										>
+											<RiArchiveLine aria-hidden="true" />
+											Archive
+										</DropdownMenuItem>
+									</>
+								) : null}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					) : null}
 					<DrawerClose asChild>
 						<Button variant="ghost" size="icon" aria-label="Close immunization details">
 							<RiCloseLine aria-hidden="true" />
@@ -95,10 +177,7 @@ export function ImmunizationDetailsDrawer({
 						<ImmunizationDetailsEditForm immunization={immunization} />
 					) : immunization ? (
 						<div className="flex flex-col gap-10">
-							<ImmunizationDetailsOverview
-								immunization={immunization}
-								onEditImmunizationDetails={() => setImmunizationDetailsMode("edit")}
-							/>
+							<ImmunizationDetailsOverview immunization={immunization} />
 							<ImmunizationHistorySection history={immunization.history} />
 						</div>
 					) : (
@@ -108,13 +187,12 @@ export function ImmunizationDetailsDrawer({
 					)}
 				</div>
 
-				<DrawerFooter className="border-t border-gray-200 text-sm">
-					{isEditingImmunizationDetails ? (
+				{isEditingImmunizationDetails ? (
+					<DrawerFooter className="border-t border-gray-200 text-sm">
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<Button
 								type="button"
 								variant="outline"
-
 								onClick={() => setImmunizationDetailsMode("view")}
 							>
 								Cancel
@@ -127,59 +205,98 @@ export function ImmunizationDetailsDrawer({
 								Save changes
 							</Button>
 						</div>
-					) : (
-						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
-							<Button type="button" variant="outline">
-								Mark as completed
-							</Button>
-							<Button className="bg-rose-500 text-white hover:bg-rose-600">
-								Discontinue immunization
-							</Button>
-						</div>
-					)}
-				</DrawerFooter>
+					</DrawerFooter>
+				) : null}
 			</DrawerContent>
+			<AlertDialog open={isDiscontinueDialogOpen} onOpenChange={setIsDiscontinueDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Discontinue immunization?</AlertDialogTitle>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							aria-label="Close discontinue immunization dialog"
+							onClick={() => setIsDiscontinueDialogOpen(false)}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</AlertDialogHeader>
+					<AlertDialogDescription>
+						This immunization will be removed from the patient’s active immunization list. The
+						immunization record, related encounters, and full activity history will be retained and
+						can be restored at any time.
+					</AlertDialogDescription>
+					<AlertDialogFooter className="sm:justify-end">
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<Button
+							type="button"
+							className="bg-rose-500 text-white hover:bg-rose-600"
+							onClick={() => setIsDiscontinueDialogOpen(false)}
+						>
+							Discontinue immunization
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+			<AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Archive immunization</AlertDialogTitle>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							aria-label="Close archive immunization dialog"
+							onClick={() => setIsArchiveDialogOpen(false)}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</AlertDialogHeader>
+					<AlertDialogDescription>
+						This immunization will be removed from the patient’s active problem list. The record,
+						its related medications, labs, imaging and full activity history are retained and can be
+						restored at any time.
+					</AlertDialogDescription>
+					<AlertDialogFooter className="sm:justify-end">
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<Button type="button" onClick={() => setIsArchiveDialogOpen(false)}>
+							Archive immunization
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Drawer>
 	);
 }
 
-function ImmunizationDetailsOverview({
-	immunization,
-	onEditImmunizationDetails,
-}: {
-	immunization: ImmunizationDetailsType;
-	onEditImmunizationDetails: () => void;
-}) {
+function ImmunizationDetailsOverview({ immunization }: { immunization: ImmunizationDetailsType }) {
 	return (
-		<div className="flex flex-col gap-10">
-			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Immunization ID:</span>
-					<CopyIdButton id={immunization.immunizationId} className="text-sm" />
-				</div>
-				{immunization.encounterId ? (
+		<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-4">
+				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
-						<CopyIdButton id={immunization.encounterId} className="text-sm" />
+						<span className="text-gray-400">Immunization ID:</span>
+						<CopyIdButton id={immunization.immunizationId} className="text-sm" />
 					</div>
-				) : null}
+					{immunization.encounterId ? (
+						<div className="flex items-center gap-2">
+							<span className="text-gray-400">Encounter ID:</span>
+							<CopyIdButton id={immunization.encounterId} className="text-sm" />
+						</div>
+					) : null}
+				</div>
+				<p className="flex flex-wrap items-center gap-2 font-medium">
+					<span className="text-gray-600">Created by {immunization.createdBy}</span>
+					<span aria-hidden="true" className="size-1 rounded-full bg-gray-300" />
+					<span className="text-gray-400">{immunization.createdAt}</span>
+				</p>
 			</div>
 
 			<div className="flex flex-col gap-6">
-				<div className="flex flex-wrap items-center justify-between gap-4">
-					<div className="flex items-center gap-3">
-						<h2 className="text-lg font-semibold text-gray-800">{immunization.vaccineName}</h2>
-						<StatusBadge status={immunization.status} />
-					</div>
-					<Button
-						type="button"
-						onClick={onEditImmunizationDetails}
-						variant="ghost"
-						className="text-gray-400 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-gray-300 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent focus-visible:border-0 has-[>svg:first-child]:pl-0"
-					>
-						<RiEditLine className="size-4" aria-hidden="true" />
-						Edit
-					</Button>
+				<div className="flex items-center gap-3">
+					<h2 className="text-lg font-semibold text-gray-800">{immunization.vaccineName}</h2>
+					<StatusBadge status={immunization.status} />
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
@@ -391,11 +508,7 @@ function ImmunizationDetailItem({ label, value }: { label: string; value: string
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
-			{label === "Status" ? (
-				<StatusBadge status={value || EMPTY_VALUE} className="w-max" />
-			) : (
-				<span className="font-medium text-gray-600">{value || EMPTY_VALUE}</span>
-			)}
+			<span className="font-medium text-gray-600">{value || EMPTY_VALUE}</span>
 		</div>
 	);
 }
@@ -446,7 +559,13 @@ function ImmunizationHistoryCard({
 					<span aria-hidden="true" className="text-gray-200">
 						•
 					</span>{" "}
-					<span className="text-gray-400">{historyEvent.timestamp}</span>
+					<span className="text-gray-400">{historyEvent.timestamp}</span>{" "}
+					<span aria-hidden="true" className="text-gray-200">
+						•
+					</span>{" "}
+					<span className="text-gray-400">
+						{historyEvent.items.length} {historyEvent.items.length === 1 ? "change" : "changes"}
+					</span>
 				</p>
 				<RiArrowDownSLine
 					className={cn(
@@ -466,18 +585,15 @@ function ImmunizationHistoryCard({
 				inert={!isImmunizationHistoryExpanded}
 			>
 				<div className="min-h-0 overflow-hidden">
-					<div
-						role="region"
-						aria-labelledby={titleId}
-						className="mt-6 grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2"
-					>
-						{historyEvent.items.map((item) => (
-							<ImmunizationDetailItem
-								key={`${historyEvent.id}-${item.label}`}
-								label={item.label}
-								value={item.value}
-							/>
-						))}
+					<div role="region" aria-labelledby={titleId} className="mt-4">
+						<dl className="grid grid-cols-[8.75rem_1fr] gap-x-4 gap-y-2">
+							{historyEvent.items.map((item) => (
+								<Fragment key={`${historyEvent.id}-${item.label}`}>
+									<dt className="text-gray-400">{item.label}</dt>
+									<dd className="text-gray-700">{item.value || EMPTY_VALUE}</dd>
+								</Fragment>
+							))}
+						</dl>
 					</div>
 				</div>
 			</div>

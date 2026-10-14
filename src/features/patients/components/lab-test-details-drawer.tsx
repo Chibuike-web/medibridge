@@ -2,6 +2,15 @@
 
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
+import {
+	AlertDialog,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -13,6 +22,13 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -38,14 +54,18 @@ import pdfFileIcon from "@/assets/file-formats/pdf.svg";
 import pngFileIcon from "@/assets/file-formats/png.svg";
 import {
 	RiAddLine,
+	RiArchiveLine,
 	RiArrowDownSLine,
 	RiCalendarLine,
+	RiCheckLine,
 	RiCloseLine,
-	RiEditLine,
+	RiEdit2Line,
+	RiMore2Fill,
+	RiShare2Line,
 } from "@remixicon/react";
 import { format } from "date-fns";
 import Image from "next/image";
-import { useId, useRef, useState } from "react";
+import { Fragment, useId, useRef, useState } from "react";
 import { ChooseFileCard } from "@/components/choose-file-card";
 
 type LabTestDetailsDrawerProps = {
@@ -63,6 +83,7 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [labTestDetailsMode, setLabTestDetailsMode] = useState<"view" | "edit">("view");
+	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 
 	function handleLabTestDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
@@ -78,9 +99,52 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 		<Drawer open={open} onOpenChange={handleLabTestDetailsOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
-					<DrawerTitle className="leading-[1.2] text-gray-800">
+					<DrawerTitle className="flex-1 leading-[1.2] text-gray-800">
 						{isEditingLabTestDetails ? "Edit lab test details" : "View details"}
 					</DrawerTitle>
+					{labTest && !isEditingLabTestDetails ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="icon" aria-label="Lab test actions">
+									<RiMore2Fill aria-hidden="true" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="end"
+								className="w-50 rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+							>
+								<DropdownMenuItem
+									className="rounded-lg"
+									onSelect={() => setLabTestDetailsMode("edit")}
+								>
+									<RiEdit2Line aria-hidden="true" />
+									Edit
+								</DropdownMenuItem>
+								<DropdownMenuItem className="rounded-lg">
+									<RiShare2Line aria-hidden="true" />
+									Export
+								</DropdownMenuItem>
+								{labTest.status === "Pending" ? (
+									<DropdownMenuItem className="rounded-lg">
+										<RiCheckLine aria-hidden="true" />
+										Mark as completed
+									</DropdownMenuItem>
+								) : null}
+								{canArchive ? (
+									<>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											className="rounded-lg"
+											onSelect={() => setIsArchiveDialogOpen(true)}
+										>
+											<RiArchiveLine aria-hidden="true" />
+											Archive
+										</DropdownMenuItem>
+									</>
+								) : null}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					) : null}
 					<DrawerClose asChild>
 						<Button variant="ghost" size="icon" aria-label="Close lab test details drawer">
 							<RiCloseLine aria-hidden="true" />
@@ -98,10 +162,7 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 						<LabTestDetailsEditForm labTest={labTest} />
 					) : labTest ? (
 						<div className="flex flex-col gap-10">
-							<LabTestDetailsOverview
-								labTest={labTest}
-								onEditLabTestDetails={() => setLabTestDetailsMode("edit")}
-							/>
+							<LabTestDetailsOverview labTest={labTest} />
 							<LabTestFilesSection files={labTest.files} />
 							<LabTestHistorySection history={labTest.history} />
 						</div>
@@ -112,68 +173,71 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 					)}
 				</div>
 
-				<DrawerFooter className="border-t border-gray-200 text-sm">
-					{isEditingLabTestDetails ? (
+				{isEditingLabTestDetails ? (
+					<DrawerFooter className="border-t border-gray-200 text-sm">
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
-							<Button
-								type="button"
-								variant="outline"
-
-								onClick={() => setLabTestDetailsMode("view")}
-							>
+							<Button type="button" variant="outline" onClick={() => setLabTestDetailsMode("view")}>
 								Cancel
 							</Button>
 							<Button type="button" onClick={() => setLabTestDetailsMode("view")}>
 								Save changes
 							</Button>
 						</div>
-					) : (
-						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
-							<DrawerClose asChild>
-								<Button type="button" variant="outline">
-									Cancel
-								</Button>
-							</DrawerClose>
-							{canArchive ? <Button type="button">Archive Lab result</Button> : null}
-						</div>
-					)}
-				</DrawerFooter>
+					</DrawerFooter>
+				) : null}
 			</DrawerContent>
+			<AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Archive lab test</AlertDialogTitle>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							aria-label="Close archive lab test dialog"
+							onClick={() => setIsArchiveDialogOpen(false)}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</AlertDialogHeader>
+					<AlertDialogDescription>
+						This lab test will be removed from the patient’s active problem list. The record, its
+						related medications, labs, imaging and full activity history are retained and can be
+						restored at any time.
+					</AlertDialogDescription>
+					<AlertDialogFooter className="sm:justify-end">
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<Button type="button" onClick={() => setIsArchiveDialogOpen(false)}>
+							Archive lab test
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Drawer>
 	);
 }
 
-function LabTestDetailsOverview({
-	labTest,
-	onEditLabTestDetails,
-}: {
-	labTest: LabTestType;
-	onEditLabTestDetails: () => void;
-}) {
+function LabTestDetailsOverview({ labTest }: { labTest: LabTestType }) {
 	return (
-		<div className="flex flex-col gap-10">
-			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Lab ID</span>
-					<CopyIdButton id={labTest.labId} className="text-sm" />
+		<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-4">
+				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
+					<div className="flex items-center gap-2">
+						<span className="text-gray-400">Lab ID</span>
+						<CopyIdButton id={labTest.labId} className="text-sm" />
+					</div>
 				</div>
+				<p className="flex flex-wrap items-center gap-2 font-medium">
+					<span className="text-gray-600">Created by {labTest.createdBy || "-"}</span>
+					<span aria-hidden="true" className="size-1 rounded-full bg-gray-300" />
+					<span className="text-gray-400">{labTest.createdAtLabel}</span>
+				</p>
 			</div>
 
 			<div className="flex flex-col gap-6">
-				<div className="flex flex-wrap items-center justify-between gap-4">
-					<div className="flex items-center gap-3">
-						<h2 className="text-lg font-semibold text-gray-800">{labTest.test}</h2>
-						<StatusBadge status={labTest.status} />
-					</div>
-					<Button
-						type="button"
-						onClick={onEditLabTestDetails}
-						variant="ghost"
-						className="text-gray-400 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-gray-300 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent focus-visible:border-0 has-[>svg:first-child]:pl-0"
-					>
-						<RiEditLine className="size-4" aria-hidden="true" />
-						Edit
-					</Button>
+				<div className="flex items-center gap-3">
+					<h2 className="text-lg font-semibold text-gray-800">{labTest.test}</h2>
+					<StatusBadge status={labTest.status} />
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
@@ -194,11 +258,7 @@ function LabTestDetailItem({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
-			{label === "Status" ? (
-				<StatusBadge status={value || "Pending"} className="w-max" />
-			) : (
-				<span className="font-medium text-gray-600">{value || "-"}</span>
-			)}
+			<span className="font-medium text-gray-600">{value || "-"}</span>
 		</div>
 	);
 }
@@ -316,7 +376,13 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 					<span aria-hidden="true" className="text-gray-200">
 						•
 					</span>{" "}
-					<span className="text-gray-400">{historyEvent.timestamp}</span>
+					<span className="text-gray-400">{historyEvent.timestamp}</span>{" "}
+					<span aria-hidden="true" className="text-gray-200">
+						•
+					</span>{" "}
+					<span className="text-gray-400">
+						{historyEvent.items.length} {historyEvent.items.length === 1 ? "change" : "changes"}
+					</span>
 				</p>
 				<RiArrowDownSLine
 					className={cn(
@@ -336,18 +402,15 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 				inert={!isLabTestHistoryExpanded}
 			>
 				<div className="min-h-0 overflow-hidden">
-					<div
-						role="region"
-						aria-labelledby={titleId}
-						className="mt-6 grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2"
-					>
-						{historyEvent.items.map((item) => (
-							<LabTestDetailItem
-								key={`${historyEvent.id}-${item.label}`}
-								label={item.label}
-								value={item.value}
-							/>
-						))}
+					<div role="region" aria-labelledby={titleId} className="mt-4">
+						<dl className="grid grid-cols-[8.75rem_1fr] gap-x-4 gap-y-2">
+							{historyEvent.items.map((item) => (
+								<Fragment key={`${historyEvent.id}-${item.label}`}>
+									<dt className="text-gray-400">{item.label}</dt>
+									<dd className="text-gray-700">{item.value || "-"}</dd>
+								</Fragment>
+							))}
+						</dl>
 					</div>
 				</div>
 			</div>

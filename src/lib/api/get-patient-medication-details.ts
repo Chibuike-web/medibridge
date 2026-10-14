@@ -88,31 +88,7 @@ function mapMedicationHistoryEvent(history: {
 		title: "Updated",
 		actor: empty(history.updatedBy),
 		timestamp: formatTimelineTimestamp(history.createdAt),
-		items: [
-			{ label: fieldName, value: empty(history.newValue) },
-		],
-	};
-}
-
-function buildCreatedHistoryEvent(medication: {
-	dose: string | null;
-	route: string | null;
-	indication: string | null;
-	status: string;
-	createdAt: Date;
-}): MedicationDetailsHistoryEvent {
-	return {
-		id: "created",
-		title: "Prescribed",
-		actor: EMPTY_VALUE,
-		timestamp: formatTimelineTimestamp(medication.createdAt),
-		items: [
-			{ label: "Status", value: normalizeStatus(medication.status) },
-			{ label: "Dose", value: empty(medication.dose) },
-			{ label: "Route", value: empty(medication.route) },
-			{ label: "Frequency", value: EMPTY_VALUE },
-			{ label: "Indication", value: empty(medication.indication) },
-		],
+		items: [{ label: fieldName, value: empty(history.newValue) }],
 	};
 }
 
@@ -196,14 +172,10 @@ export async function getPatientMedicationDetailsForOrganization(
 		duration: EMPTY_VALUE,
 		prescribedBy: EMPTY_VALUE,
 		startedAt: formatDateOnly(medication.createdAt),
-		createdAt: formatDateOnly(medication.createdAt),
+		createdAt: formatTimelineTimestamp(medication.createdAt),
 		updatedAt: formatDateOnly(medication.updatedAt),
 		createdBy: EMPTY_VALUE,
 		clinicalNote: EMPTY_VALUE,
-		history: [
-			...historyRows.map(mapMedicationHistoryEvent),
-			buildUpdatedHistoryEvent(medication),
-			buildCreatedHistoryEvent(medication),
-		],
+		history: [...historyRows.map(mapMedicationHistoryEvent), buildUpdatedHistoryEvent(medication)],
 	};
 }

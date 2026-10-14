@@ -2,6 +2,15 @@
 
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
+import {
+	AlertDialog,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
 	Drawer,
@@ -12,6 +21,13 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -30,8 +46,16 @@ import {
 } from "@/features/patients/components/attachment-form-fields";
 import { cn } from "@/lib/utils/cn";
 import { authClient } from "@/lib/better-auth/auth.client";
-import { RiAddLine, RiArrowDownSLine, RiCloseLine, RiEditLine } from "@remixicon/react";
-import { useId, useRef, useState } from "react";
+import {
+	RiAddLine,
+	RiArchiveLine,
+	RiArrowDownSLine,
+	RiCloseLine,
+	RiEdit2Line,
+	RiMore2Fill,
+	RiShare2Line,
+} from "@remixicon/react";
+import { Fragment, useId, useRef, useState } from "react";
 
 type AllergyDetailsDrawerProps = {
 	open: boolean;
@@ -57,6 +81,7 @@ export function AllergyDetailsDrawer({
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [allergyDetailsMode, setAllergyDetailsMode] = useState<"view" | "edit">("view");
+	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 
 	function handleAllergyDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
@@ -72,9 +97,46 @@ export function AllergyDetailsDrawer({
 		<Drawer open={open} onOpenChange={handleAllergyDetailsOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
-					<DrawerTitle className="leading-[1.2] text-gray-800">
+					<DrawerTitle className="flex-1 leading-[1.2] text-gray-800">
 						{isEditingAllergyDetails ? "Edit allergies details" : "View allergies details"}
 					</DrawerTitle>
+					{allergy && !isEditingAllergyDetails ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="icon" aria-label="Allergy actions">
+									<RiMore2Fill aria-hidden="true" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="end"
+								className="w-50 rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+							>
+								<DropdownMenuItem
+									className="rounded-lg"
+									onSelect={() => setAllergyDetailsMode("edit")}
+								>
+									<RiEdit2Line aria-hidden="true" />
+									Edit
+								</DropdownMenuItem>
+								<DropdownMenuItem className="rounded-lg">
+									<RiShare2Line aria-hidden="true" />
+									Export
+								</DropdownMenuItem>
+								{canArchive ? (
+									<>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											className="rounded-lg"
+											onSelect={() => setIsArchiveDialogOpen(true)}
+										>
+											<RiArchiveLine aria-hidden="true" />
+											Archive
+										</DropdownMenuItem>
+									</>
+								) : null}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					) : null}
 					<DrawerClose asChild>
 						<Button variant="ghost" size="icon" aria-label="Close allergy details">
 							<RiCloseLine aria-hidden="true" />
@@ -94,10 +156,7 @@ export function AllergyDetailsDrawer({
 						<AllergyDetailsEditForm allergy={allergy} />
 					) : allergy ? (
 						<div className="flex flex-col gap-10">
-							<AllergyDetailsOverview
-								allergy={allergy}
-								onEditAllergyDetails={() => setAllergyDetailsMode("edit")}
-							/>
+							<AllergyDetailsOverview allergy={allergy} />
 							<AllergyHistorySection history={allergy.history} />
 						</div>
 					) : (
@@ -107,8 +166,8 @@ export function AllergyDetailsDrawer({
 					)}
 				</div>
 
-				<DrawerFooter className="border-t border-gray-200 text-sm">
-					{isEditingAllergyDetails ? (
+				{isEditingAllergyDetails ? (
+					<DrawerFooter className="border-t border-gray-200 text-sm">
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<Button
 								type="button"
@@ -126,57 +185,67 @@ export function AllergyDetailsDrawer({
 								Save changes
 							</Button>
 						</div>
-					) : (
-						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
-							<DrawerClose asChild>
-								<Button variant="outline">Cancel</Button>
-							</DrawerClose>
-							{canArchive ? <Button>Archive allergy</Button> : null}
-						</div>
-					)}
-				</DrawerFooter>
+					</DrawerFooter>
+				) : null}
 			</DrawerContent>
+			<AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Archive allergy</AlertDialogTitle>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							aria-label="Close archive allergy dialog"
+							onClick={() => setIsArchiveDialogOpen(false)}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</AlertDialogHeader>
+					<AlertDialogDescription>
+						This allergy will be removed from the patient’s active problem list. The record, its
+						related medications, labs, imaging and full activity history are retained and can be
+						restored at any time.
+					</AlertDialogDescription>
+					<AlertDialogFooter className="sm:justify-end">
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<Button type="button" onClick={() => setIsArchiveDialogOpen(false)}>
+							Archive allergy
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Drawer>
 	);
 }
 
-function AllergyDetailsOverview({
-	allergy,
-	onEditAllergyDetails,
-}: {
-	allergy: AllergyDetailsType;
-	onEditAllergyDetails: () => void;
-}) {
+function AllergyDetailsOverview({ allergy }: { allergy: AllergyDetailsType }) {
 	return (
-		<div className="flex flex-col gap-10">
-			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Allergy ID:</span>
-					<CopyIdButton id={allergy.allergyId} className="text-sm" />
-				</div>
-				{allergy.encounterId ? (
+		<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-4">
+				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
-						<CopyIdButton id={allergy.encounterId} className="text-sm" />
+						<span className="text-gray-400">Allergy ID:</span>
+						<CopyIdButton id={allergy.allergyId} className="text-sm" />
 					</div>
-				) : null}
+					{allergy.encounterId ? (
+						<div className="flex items-center gap-2">
+							<span className="text-gray-400">Encounter ID:</span>
+							<CopyIdButton id={allergy.encounterId} className="text-sm" />
+						</div>
+					) : null}
+				</div>
+				<p className="flex flex-wrap items-center gap-2 font-medium">
+					<span className="text-gray-600">Created by {allergy.createdBy}</span>
+					<span aria-hidden="true" className="size-1 rounded-full bg-gray-300" />
+					<span className="text-gray-400">{allergy.createdAt}</span>
+				</p>
 			</div>
 
 			<div className="flex flex-col gap-6">
-				<div className="flex flex-wrap items-center justify-between gap-4">
-					<div className="flex items-center gap-3">
-						<h2 className="text-lg font-semibold text-gray-800">{allergy.allergen}</h2>
-						<StatusBadge status={allergy.status} />
-					</div>
-					<Button
-						type="button"
-						onClick={onEditAllergyDetails}
-						variant="ghost"
-						className="text-gray-400 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-gray-300 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent focus-visible:border-0 has-[>svg:first-child]:pl-0"
-					>
-						<RiEditLine className="size-4" aria-hidden="true" />
-						Edit
-					</Button>
+				<div className="flex items-center gap-3">
+					<h2 className="text-lg font-semibold text-gray-800">{allergy.allergen}</h2>
+					<StatusBadge status={allergy.status} />
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
@@ -346,11 +415,7 @@ function AllergyDetailItem({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
-			{label === "Status" ? (
-				<StatusBadge status={value || EMPTY_VALUE} className="w-max" />
-			) : (
-				<span className="font-medium text-gray-600">{value || EMPTY_VALUE}</span>
-			)}
+			<span className="font-medium text-gray-600">{value || EMPTY_VALUE}</span>
 		</div>
 	);
 }
@@ -397,7 +462,13 @@ function AllergyHistoryCard({ historyEvent }: { historyEvent: AllergyDetailsHist
 					<span aria-hidden="true" className="text-gray-200">
 						•
 					</span>{" "}
-					<span className="text-gray-400">{historyEvent.timestamp}</span>
+					<span className="text-gray-400">{historyEvent.timestamp}</span>{" "}
+					<span aria-hidden="true" className="text-gray-200">
+						•
+					</span>{" "}
+					<span className="text-gray-400">
+						{historyEvent.items.length} {historyEvent.items.length === 1 ? "change" : "changes"}
+					</span>
 				</p>
 				<RiArrowDownSLine
 					className={cn(
@@ -417,18 +488,15 @@ function AllergyHistoryCard({ historyEvent }: { historyEvent: AllergyDetailsHist
 				inert={!isAllergyHistoryExpanded}
 			>
 				<div className="min-h-0 overflow-hidden">
-					<div
-						role="region"
-						aria-labelledby={titleId}
-						className="mt-6 grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2"
-					>
-						{historyEvent.items.map((item) => (
-							<AllergyDetailItem
-								key={`${historyEvent.id}-${item.label}`}
-								label={item.label}
-								value={item.value}
-							/>
-						))}
+					<div role="region" aria-labelledby={titleId} className="mt-4">
+						<dl className="grid grid-cols-[8.75rem_1fr] gap-x-4 gap-y-2">
+							{historyEvent.items.map((item) => (
+								<Fragment key={`${historyEvent.id}-${item.label}`}>
+									<dt className="text-gray-400">{item.label}</dt>
+									<dd className="text-gray-700">{item.value || EMPTY_VALUE}</dd>
+								</Fragment>
+							))}
+						</dl>
 					</div>
 				</div>
 			</div>

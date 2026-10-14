@@ -1,24 +1,46 @@
 "use client";
 
 import {
+	AlertDialog,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
 	Drawer,
 	DrawerClose,
 	DrawerContent,
 	DrawerDescription,
-	DrawerFooter,
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/status-badge";
 import {
+	RiAddLine,
+	RiArchiveLine,
 	RiArrowDownSLine,
 	RiCheckboxBlankCircleFill,
 	RiCheckboxBlankCircleLine,
 	RiCheckboxCircleFill,
 	RiCloseLine,
+	RiCornerDownLeftFill,
+	RiEdit2Line,
 	RiMore2Fill,
+	RiSendPlaneLine,
+	RiShare2Line,
 } from "@remixicon/react";
+import Link from "next/link";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { cn } from "@/lib/utils/cn";
 import { useId, useState } from "react";
@@ -30,6 +52,8 @@ type TransferDetailsDrawerProps = {
 	onOpenChange: (open: boolean) => void;
 	transfer: TransferDetailsType | null;
 	isLoading: boolean;
+	canArchive: boolean;
+	returnTo: string;
 };
 
 const EMPTY_VALUE = "-";
@@ -39,7 +63,12 @@ export function TransferDetailsDrawer({
 	onOpenChange,
 	transfer,
 	isLoading,
+	canArchive,
+	returnTo,
 }: TransferDetailsDrawerProps) {
+	const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
@@ -47,9 +76,83 @@ export function TransferDetailsDrawer({
 					<DrawerTitle className="text-gray-800 leading-[1.2] flex-1">
 						View transfer details
 					</DrawerTitle>
-					<Button variant="ghost" size="icon" aria-label="More transfer actions">
-						<RiMore2Fill aria-hidden="true" />
-					</Button>
+					{transfer ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="icon" aria-label="Transfer actions">
+									<RiMore2Fill aria-hidden="true" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="end"
+								className="w-50 rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+							>
+								<DropdownMenuItem className="rounded-lg">
+									<RiShare2Line aria-hidden="true" />
+									Export
+								</DropdownMenuItem>
+								{transfer.status === "pending" ? (
+									<>
+										<DropdownMenuItem className="rounded-lg">
+											<RiSendPlaneLine aria-hidden="true" />
+											Resend request
+										</DropdownMenuItem>
+										<DropdownMenuItem
+											className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600"
+											onSelect={() => setIsCancelDialogOpen(true)}
+										>
+											<RiCloseLine aria-hidden="true" className="text-current" />
+											Cancel transfer
+										</DropdownMenuItem>
+									</>
+								) : null}
+								{transfer.status === "failed" ? (
+									<DropdownMenuItem className="rounded-lg">
+										<RiCornerDownLeftFill aria-hidden="true" />
+										Retry transfer
+									</DropdownMenuItem>
+								) : null}
+								{transfer.status === "cancelled" ? (
+									<DropdownMenuItem className="rounded-lg" asChild>
+										<Link
+											href={{
+												pathname: "/dashboard/new-transfer-request",
+												query: { patientId: transfer.patientId, returnTo },
+											}}
+										>
+											<RiAddLine aria-hidden="true" />
+											Start new transfer
+										</Link>
+									</DropdownMenuItem>
+								) : null}
+								{transfer.status === "rejected" ? (
+									<DropdownMenuItem className="rounded-lg" asChild>
+										<Link
+											href={{
+												pathname: "/dashboard/new-transfer-request",
+												query: { patientId: transfer.patientId, returnTo },
+											}}
+										>
+											<RiEdit2Line aria-hidden="true" />
+											Edit and resend
+										</Link>
+									</DropdownMenuItem>
+								) : null}
+								{canArchive && transfer.status !== "pending" ? (
+									<>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											className="rounded-lg"
+											onSelect={() => setIsArchiveDialogOpen(true)}
+										>
+											<RiArchiveLine aria-hidden="true" />
+											Archive transfer
+										</DropdownMenuItem>
+									</>
+								) : null}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					) : null}
 					<DrawerClose aria-label="Close transfer details" asChild>
 						<Button variant="ghost" size="icon">
 							<RiCloseLine aria-hidden="true" />
@@ -109,17 +212,63 @@ export function TransferDetailsDrawer({
 						</>
 					)}
 				</div>
-				<DrawerFooter className="border-t border-gray-200 text-sm">
-					<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
-						<DrawerClose asChild>
-							<Button className="bg-[#FB3748]" variant="destructive">
-								Cancel transfer
-							</Button>
-						</DrawerClose>
-						<Button>Resend approval request</Button>
-					</div>
-				</DrawerFooter>
 			</DrawerContent>
+			<AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Cancel transfer?</AlertDialogTitle>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							aria-label="Close cancel transfer dialog"
+							onClick={() => setIsCancelDialogOpen(false)}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</AlertDialogHeader>
+					<AlertDialogDescription>
+						The approval request will be withdrawn and the patient will no longer be able to
+						respond. The transfer and its full activity history are retained.
+					</AlertDialogDescription>
+					<AlertDialogFooter className="sm:justify-end">
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<Button
+							type="button"
+							className="bg-rose-500 text-white hover:bg-rose-600"
+							onClick={() => setIsCancelDialogOpen(false)}
+						>
+							Cancel transfer
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+			<AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Archive transfer</AlertDialogTitle>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							aria-label="Close archive transfer dialog"
+							onClick={() => setIsArchiveDialogOpen(false)}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</AlertDialogHeader>
+					<AlertDialogDescription>
+						This transfer will be removed from your transfers list. The transfer, its contents and
+						full activity history are retained and can be restored at any time.
+					</AlertDialogDescription>
+					<AlertDialogFooter className="sm:justify-end">
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<Button type="button" onClick={() => setIsArchiveDialogOpen(false)}>
+							Archive transfer
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Drawer>
 	);
 }

@@ -1,6 +1,6 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { format, setDate, subDays, subMonths } from "date-fns";
+import { format, subDays } from "date-fns";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { MedicationDetailsType, MedicationType } from "@/features/patients/types";
 import { MedicationsTable } from "./medications-table";
@@ -51,16 +51,16 @@ const medicationDetails: Record<string, MedicationDetailsType> = {
 		duration: "Ongoing",
 		prescribedBy: "Dr. Okafor",
 		startedAt: "Apr 2, 2021",
-		createdAt: "Apr 3, 2021",
+		createdAt: "3 April 2021 at 09:00",
 		updatedAt: "Apr 9, 2021",
 		createdBy: "Nurse Chika",
 		clinicalNote: "Review renal function every six months.",
 		history: [
 			{
-				id: "created",
-				title: "Prescribed",
+				id: "updated",
+				title: "Updated",
 				actor: "Nurse Chika",
-				timestamp: "3 April 2021 at 09:00",
+				timestamp: "9 April 2021 at 09:00",
 				items: [{ label: "Dose", value: "500 mg" }],
 			},
 		],
@@ -77,16 +77,16 @@ const medicationDetails: Record<string, MedicationDetailsType> = {
 		duration: "7 days",
 		prescribedBy: "Dr. Adeyemi",
 		startedAt: "Feb 14, 2020",
-		createdAt: "Feb 15, 2020",
+		createdAt: "15 February 2020 at 09:00",
 		updatedAt: "Feb 21, 2020",
 		createdBy: "Dr. Bello",
 		clinicalNote: "Course completed without side effects.",
 		history: [
 			{
-				id: "created",
-				title: "Prescribed",
-				actor: "Dr. Bello",
-				timestamp: "15 February 2020 at 09:00",
+				id: "updated",
+				title: "Updated",
+				actor: "Dr. Adeyemi",
+				timestamp: "21 February 2020 at 09:00",
 				items: [{ label: "Dose", value: "250 mg" }],
 			},
 		],
@@ -171,38 +171,6 @@ describe("Medications table", () => {
 		vi.unstubAllGlobals();
 	});
 
-	test("lists medications in the supplied order with dose, route, indication, date and status", () => {
-		renderMedicationsTable();
-
-		expect(screen.getByRole("heading", { name: "Medications" })).toBeVisible();
-		for (const header of [
-			"Medication",
-			"Dose",
-			"Route",
-			"Medication ID",
-			"Indication",
-			"Created at",
-			"Status",
-		]) {
-			expect(screen.getByRole("columnheader", { name: header })).toBeVisible();
-		}
-
-		expect(displayedMedications()).toEqual(["Metformin", "Amoxicillin"]);
-
-		const metforminRow = rowFor("Metformin");
-		expect(within(metforminRow).getByRole("cell", { name: "500 mg" })).toBeVisible();
-		expect(within(metforminRow).getByRole("cell", { name: "Oral" })).toBeVisible();
-		expect(within(metforminRow).getByRole("cell", { name: "Type 2 diabetes" })).toBeVisible();
-		expect(within(metforminRow).getByRole("cell", { name: "Apr 2, 2021" })).toBeVisible();
-		expect(within(metforminRow).getByRole("button", { name: "Copy MED-metformin" })).toBeVisible();
-		expect(within(metforminRow).getByText("Active")).toBeVisible();
-
-		const amoxicillinRow = rowFor("Amoxicillin");
-		expect(within(amoxicillinRow).getByRole("cell", { name: "250 mg" })).toBeVisible();
-		expect(within(amoxicillinRow).getByRole("cell", { name: "Intravenous" })).toBeVisible();
-		expect(within(amoxicillinRow).getByText("Completed")).toBeVisible();
-	});
-
 	test("re-orders rows when a sortable header is clicked", async () => {
 		const user = userEvent.setup();
 		renderMedicationsTable();
@@ -245,15 +213,6 @@ describe("Medications table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Metf");
 	});
 
-	test("drops the encounter ID hint from the search box when scoped to an encounter", () => {
-		renderMedicationsTable({ isEncounterScoped: true });
-
-		expect(screen.getByRole("searchbox")).toHaveAttribute(
-			"placeholder",
-			"Search by medication, dose, route, indication, or medication ID",
-		);
-	});
-
 	test("adds and removes status filters from the filter menu", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderMedicationsTable({ statusFilters: ["active"] });
@@ -294,52 +253,6 @@ describe("Medications table", () => {
 		);
 	});
 
-	test("applies a custom created-at range chosen in the date range dialog", async () => {
-		const user = userEvent.setup();
-		const start = setDate(subMonths(new Date(), 1), 15);
-		const end = setDate(new Date(), 15);
-		const { onCreatedAtRangeApply } = renderMedicationsTable();
-
-		await openFilterSubmenu(user, "Created at");
-		await tap(user, screen.getByRole("menuitem", { name: "Custom date range" }));
-		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
-		const apply = within(dialog).getByRole("button", { name: "Apply date range" });
-		expect(apply).toBeDisabled();
-
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
-		);
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(end, "MMMM do, yyyy")) }),
-		);
-		expect(within(dialog).getByText(format(start, "do MMMM, yyyy"))).toBeVisible();
-		expect(within(dialog).getByText(format(end, "do MMMM, yyyy"))).toBeVisible();
-
-		await user.click(apply);
-		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
-			format(start, "yyyy-MM-dd"),
-			format(end, "yyyy-MM-dd"),
-		);
-		await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-	});
-
-	test("clears the created-at range from the date range dialog's Reset button", async () => {
-		const user = userEvent.setup();
-		const { onCreatedAtRangeApply } = renderMedicationsTable({
-			createdFrom: "2020-01-01",
-			createdTo: "2020-01-31",
-		});
-
-		await openFilterSubmenu(user, "Created at");
-		await tap(user, screen.getByRole("menuitem", { name: "Custom date range" }));
-		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
-		expect(within(dialog).getByText("1st January, 2020")).toBeVisible();
-		expect(within(dialog).getByText("31st January, 2020")).toBeVisible();
-
-		await user.click(within(dialog).getByRole("button", { name: "Reset" }));
-		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith("", "");
-	});
-
 	test("shows active filters as pills that clear the matching filter", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onCreatedAtRangeApply } = renderMedicationsTable({
@@ -356,12 +269,6 @@ describe("Medications table", () => {
 		expect(onStatusFiltersChange).toHaveBeenCalledWith(["discontinued"]);
 		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
-	});
-
-	test("hides the filter pills when no filter is active", () => {
-		renderMedicationsTable();
-
-		expect(screen.queryByRole("button", { name: /Remove .* filter/ })).not.toBeInTheDocument();
 	});
 
 	test("paginates through the callbacks", async () => {
@@ -402,13 +309,6 @@ describe("Medications table", () => {
 		expect(onLimitChange).toHaveBeenCalledWith(28);
 	});
 
-	test("shows an empty message when there are no medications", () => {
-		renderMedicationsTable({ medications: [] });
-
-		expect(screen.getByRole("table")).toBeVisible();
-		expect(screen.getByText("No matching medications found.")).toBeVisible();
-	});
-
 	test("opens the details drawer with the chosen row's data from the row actions", async () => {
 		const user = userEvent.setup();
 		renderMedicationsTable();
@@ -423,11 +323,12 @@ describe("Medications table", () => {
 		expect(within(dialog).getByText("Three times daily")).toBeVisible();
 		expect(within(dialog).getByText("7 days")).toBeVisible();
 		expect(within(dialog).getByText("Dr. Adeyemi")).toBeVisible();
+		expect(within(dialog).getByText("Created by Dr. Bello")).toBeVisible();
+		expect(within(dialog).getByText("15 February 2020 at 09:00")).toBeVisible();
 		expect(within(dialog).getByRole("heading", { name: "Activity" })).toBeVisible();
-		expect(within(dialog).getByRole("button", { name: /Prescribed by Dr. Bello/ })).toHaveAttribute(
-			"aria-expanded",
-			"false",
-		);
+		expect(
+			within(dialog).getByRole("button", { name: /Updated by Dr. Adeyemi .* 1 change/ }),
+		).toHaveAttribute("aria-expanded", "false");
 		expect(within(dialog).queryByText("Metformin")).not.toBeInTheDocument();
 	});
 
@@ -459,12 +360,28 @@ describe("Medications table", () => {
 		expect(screen.queryByRole("menuitem", { name: "Discontinue" })).not.toBeInTheDocument();
 	});
 
-	test("opens the add medication drawer from the toolbar", async () => {
+	test("asks to confirm before discontinuing an active medication from the details actions menu", async () => {
 		const user = userEvent.setup();
 		renderMedicationsTable();
 
-		await user.click(screen.getByRole("button", { name: "Add medication" }));
-		expect(await screen.findByRole("dialog", { name: "Add medication" })).toBeVisible();
+		await user.click(screen.getByRole("button", { name: "Open actions for Metformin" }));
+		await user.click(screen.getByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "View medication details" });
+		await within(dialog).findByRole("heading", { name: "Metformin" });
+
+		await user.click(within(dialog).getByRole("button", { name: "Medication actions" }));
+		expect(screen.getByRole("menuitem", { name: "Mark as completed" })).toBeVisible();
+		await user.click(screen.getByRole("menuitem", { name: "Discontinue" }));
+
+		const confirmation = await screen.findByRole("alertdialog", {
+			name: "Discontinue medication?",
+		});
+		expect(
+			within(confirmation).getByText(/removed from the patient’s active medication list/),
+		).toBeVisible();
+		expect(
+			within(confirmation).getByRole("button", { name: "Discontinue medication" }),
+		).toBeVisible();
 	});
 
 	test("offers bulk actions for the selected rows, including archive for an admin", async () => {

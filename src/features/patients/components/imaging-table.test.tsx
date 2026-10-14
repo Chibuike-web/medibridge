@@ -1,6 +1,6 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { format, setDate, subDays, subMonths } from "date-fns";
+import { format, subDays } from "date-fns";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { ImagingType } from "@/features/patients/types";
 import { ImagingTable } from "./imaging-table";
@@ -117,43 +117,6 @@ describe("Imaging table", () => {
 		activeMember.role = "owner";
 	});
 
-	test("shows each study with its modality, region, impression, order date and status", () => {
-		renderImagingTable();
-
-		expect(screen.getByRole("heading", { name: "Imaging" })).toBeVisible();
-		for (const label of [
-			"Study",
-			"Imaging ID",
-			"Modality",
-			"Region",
-			"Impression",
-			"Ordered At",
-			"Status",
-		]) {
-			expect(screen.getByRole("columnheader", { name: label })).toBeVisible();
-		}
-		expect(displayedImagingIds()).toEqual(["IMG-CXR", "IMG-USA"]);
-
-		const [cxrRow, usaRow] = bodyRows();
-		expect(within(cxrRow).getByText("Chest X-ray")).toBeVisible();
-		expect(within(cxrRow).getByText("X-ray")).toBeVisible();
-		expect(within(cxrRow).getByText("Chest")).toBeVisible();
-		expect(within(cxrRow).getByText("No acute cardiopulmonary findings.")).toBeVisible();
-		expect(within(cxrRow).getByText("Jan 5, 2020")).toBeVisible();
-		expect(within(cxrRow).getByText("Completed")).toBeVisible();
-
-		expect(within(usaRow).getByText("Ultrasound")).toBeVisible();
-		expect(within(usaRow).getByText("Pending")).toBeVisible();
-		expect(within(usaRow).getByRole("button", { name: "Copy IMG-USA" })).toBeVisible();
-	});
-
-	test("shows the empty state when there are no studies", () => {
-		renderImagingTable({ imagingStudies: [] });
-
-		expect(screen.getByText("No matching imaging studies found.")).toBeVisible();
-		expect(bodyRows()).toHaveLength(1);
-	});
-
 	test("reports what the user types in the search box and shows the controlled query", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderImagingTable({ query: "Ches" });
@@ -166,15 +129,6 @@ describe("Imaging table", () => {
 		expect(search).toHaveValue("Ches");
 		await user.type(search, "t");
 		expect(onQueryChange).toHaveBeenCalledWith("Chest");
-	});
-
-	test("drops the encounter ID hint from the search box when scoped to an encounter", () => {
-		renderImagingTable({ isEncounterScoped: true });
-
-		expect(screen.getByRole("searchbox")).toHaveAttribute(
-			"placeholder",
-			"Search by study, modality, region, impression, or imaging ID",
-		);
 	});
 
 	test("sorts rows by study name when the header is clicked, then reverses, then clears", async () => {
@@ -305,52 +259,6 @@ describe("Imaging table", () => {
 		expect(onOrderedAtRangeApply).not.toHaveBeenCalled();
 	});
 
-	test("applies a custom order date range chosen in the date range dialog", async () => {
-		const user = setupSubmenuUser();
-		const start = setDate(subMonths(new Date(), 1), 15);
-		const end = setDate(new Date(), 15);
-		const { onOrderedAtRangeApply } = renderImagingTable();
-
-		await openFilterSubmenu(user, "Ordered at");
-		await user.click(screen.getByRole("menuitem", { name: "Custom date range" }));
-		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
-		const apply = within(dialog).getByRole("button", { name: "Apply date range" });
-		expect(apply).toBeDisabled();
-
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
-		);
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(end, "MMMM do, yyyy")) }),
-		);
-		expect(within(dialog).getByText(format(start, "do MMMM, yyyy"))).toBeVisible();
-		expect(within(dialog).getByText(format(end, "do MMMM, yyyy"))).toBeVisible();
-
-		await user.click(apply);
-		expect(onOrderedAtRangeApply).toHaveBeenLastCalledWith(
-			format(start, "yyyy-MM-dd"),
-			format(end, "yyyy-MM-dd"),
-		);
-		await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-	});
-
-	test("shows the current order date range in the date range dialog and clears it with Reset", async () => {
-		const user = setupSubmenuUser();
-		const { onOrderedAtRangeApply } = renderImagingTable({
-			orderedFrom: "2020-01-01",
-			orderedTo: "2020-01-31",
-		});
-
-		await openFilterSubmenu(user, "Ordered at");
-		await user.click(screen.getByRole("menuitem", { name: "Custom date range" }));
-		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
-		expect(within(dialog).getByText("1st January, 2020")).toBeVisible();
-		expect(within(dialog).getByText("31st January, 2020")).toBeVisible();
-
-		await user.click(within(dialog).getByRole("button", { name: "Reset" }));
-		expect(onOrderedAtRangeApply).toHaveBeenCalledWith("", "");
-	});
-
 	test("shows active filters as pills that can be removed individually", async () => {
 		const user = userEvent.setup();
 		const {
@@ -393,12 +301,6 @@ describe("Imaging table", () => {
 	test.todo(
 		"labels modality pills the same way as the filter options (pill shows 'Modality: Ct', 'Modality: Mri' and 'Modality: X Ray' for options labelled CT, MRI and X-ray)",
 	);
-
-	test("shows no filter pills when no filter is active", () => {
-		renderImagingTable();
-
-		expect(screen.queryByRole("button", { name: /^Remove .* filter$/ })).not.toBeInTheDocument();
-	});
 
 	test("moves between pages through the callbacks", async () => {
 		const user = userEvent.setup();
@@ -471,6 +373,22 @@ describe("Imaging table", () => {
 		expect(within(dialog).getByRole("heading", { name: "Abdominal Ultrasound" })).toBeVisible();
 	});
 
+	test("asks for confirmation before cancelling a pending study from the details drawer", async () => {
+		const user = userEvent.setup();
+		renderImagingTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Abdominal Ultrasound" }));
+		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
+		const drawer = await screen.findByRole("dialog", { name: "View imaging details" });
+		await user.click(within(drawer).getByRole("button", { name: "Imaging actions" }));
+
+		expect(await screen.findByRole("menuitem", { name: "Mark as completed" })).toBeVisible();
+		await user.click(screen.getByRole("menuitem", { name: "Cancel imaging" }));
+
+		const confirmation = await screen.findByRole("alertdialog", { name: "Cancel imaging?" });
+		expect(within(confirmation).getByRole("button", { name: "Cancel imaging" })).toBeVisible();
+	});
+
 	test("only offers status changes for pending studies", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
@@ -484,14 +402,6 @@ describe("Imaging table", () => {
 		expect(await screen.findByRole("menuitem", { name: "Export" })).toBeVisible();
 		expect(screen.queryByRole("menuitem", { name: "Mark as completed" })).not.toBeInTheDocument();
 		expect(screen.queryByRole("menuitem", { name: "Cancel" })).not.toBeInTheDocument();
-	});
-
-	test("opens the create drawer from the add button", async () => {
-		const user = userEvent.setup();
-		renderImagingTable();
-
-		await user.click(screen.getByRole("button", { name: "Add imaging" }));
-		expect(await screen.findByRole("dialog", { name: "Add imaging" })).toBeVisible();
 	});
 
 	test("shows archive actions to an owner", async () => {

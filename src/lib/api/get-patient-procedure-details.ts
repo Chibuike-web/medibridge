@@ -33,10 +33,12 @@ function empty(value: string | null | undefined) {
 }
 
 function splitList(value: string | null | undefined) {
-	return value
-		?.split(",")
-		.map((item) => item.trim())
-		.filter(Boolean) ?? [];
+	return (
+		value
+			?.split(",")
+			.map((item) => item.trim())
+			.filter(Boolean) ?? []
+	);
 }
 
 function formatSentenceCaseValue(value: string | null | undefined) {
@@ -88,32 +90,6 @@ function formatTimelineTimestamp(value: Date | string | null | undefined) {
 	return `${dateLabel} at ${timeLabel}`;
 }
 
-function buildCreatedHistoryEvent(procedure: {
-	indication: string | null;
-	plannedDate: Date | null;
-	plannedPhysician: string | null;
-	plannedAssistants: string | null;
-	plannedFacility: string | null;
-	status: string;
-	createdBy: string | null;
-	createdAt: Date;
-}): ProcedureDetailsHistoryEvent {
-	return {
-		id: "created",
-		title: "Created",
-		actor: empty(procedure.createdBy),
-		timestamp: formatTimelineTimestamp(procedure.createdAt),
-		items: [
-			{ label: "Indication", value: empty(procedure.indication) },
-			{ label: "Planned date", value: formatDateOnly(procedure.plannedDate) },
-			{ label: "Planned physician", value: empty(procedure.plannedPhysician) },
-			{ label: "Planned Assistants", value: empty(procedure.plannedAssistants) },
-			{ label: "Planned Facility", value: empty(procedure.plannedFacility) },
-			{ label: "Status", value: normalizeStatus(procedure.status) },
-		],
-	};
-}
-
 function buildUpdatedHistoryEvent(procedure: {
 	status: string;
 	procedureDate: Date | null;
@@ -150,9 +126,7 @@ function mapHistoryEvent(history: {
 		title: "Updated",
 		actor: empty(history.updatedBy),
 		timestamp: formatTimelineTimestamp(history.createdAt),
-		items: [
-			{ label: formatSentenceCaseValue(history.fieldName), value: empty(history.newValue) },
-		],
+		items: [{ label: formatSentenceCaseValue(history.fieldName), value: empty(history.newValue) }],
 	};
 }
 
@@ -275,7 +249,7 @@ export async function getPatientProcedureDetailsForOrganization(
 		plannedAssistants: splitList(procedure.plannedAssistants),
 		plannedFacility: empty(procedure.plannedFacility),
 		clinicalNote: empty(procedure.clinicalNote),
-		createdAt: formatDateOnly(procedure.createdAt),
+		createdAt: formatTimelineTimestamp(procedure.createdAt),
 		updatedAt: formatDateOnly(procedure.updatedAt),
 		createdBy: empty(procedure.createdBy),
 		updatedBy: empty(procedure.updatedBy),
@@ -283,10 +257,6 @@ export async function getPatientProcedureDetailsForOrganization(
 			diagnosis: mapRelatedRecord(diagnosisRows[0]),
 			medication: mapRelatedRecord(medicationRows[0]),
 		},
-		history: [
-			...historyRows.map(mapHistoryEvent),
-			buildUpdatedHistoryEvent(procedure),
-			buildCreatedHistoryEvent(procedure),
-		],
+		history: [...historyRows.map(mapHistoryEvent), buildUpdatedHistoryEvent(procedure)],
 	};
 }

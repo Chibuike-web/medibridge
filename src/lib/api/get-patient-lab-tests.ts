@@ -44,32 +44,34 @@ function toDatabaseFlagFilter(flagFilter: LabTestFlagFilter) {
 		.join(" ");
 }
 
-export const getPatientLabTests = cache(async (
-	patientId: string,
-	page = 1,
-	limit = 14,
-	query = "",
-	dateFilters: LabTestDateFilters = {},
-	statusFilters: LabTestStatusFilter[] = [],
-	flagFilters: LabTestFlagFilter[] = [],
-	encounterId?: string,
-): Promise<{ labTests: LabTestType[]; totalLabTests: number }> => {
-	const organizationId = await getOrganizationId();
+export const getPatientLabTests = cache(
+	async (
+		patientId: string,
+		page = 1,
+		limit = 14,
+		query = "",
+		dateFilters: LabTestDateFilters = {},
+		statusFilters: LabTestStatusFilter[] = [],
+		flagFilters: LabTestFlagFilter[] = [],
+		encounterId?: string,
+	): Promise<{ labTests: LabTestType[]; totalLabTests: number }> => {
+		const organizationId = await getOrganizationId();
 
-	if (!organizationId) return { labTests: [], totalLabTests: 0 };
+		if (!organizationId) return { labTests: [], totalLabTests: 0 };
 
-	return getPatientLabTestsForOrganization(
-		patientId,
-		organizationId,
-		page,
-		limit,
-		query.trim(),
-		dateFilters,
-		statusFilters,
-		flagFilters,
-		encounterId,
-	);
-});
+		return getPatientLabTestsForOrganization(
+			patientId,
+			organizationId,
+			page,
+			limit,
+			query.trim(),
+			dateFilters,
+			statusFilters,
+			flagFilters,
+			encounterId,
+		);
+	},
+);
 
 export async function getPatientLabTestsForOrganization(
 	patientId: string,
@@ -118,31 +120,31 @@ export async function getPatientLabTestsForOrganization(
 	const [countRows, rows] = await Promise.all([
 		db
 			.select({ value: count() })
-				.from(patientLabTest)
-				.innerJoin(patient, eq(patientLabTest.patientId, patient.id))
-				.where(labTestFilter),
+			.from(patientLabTest)
+			.innerJoin(patient, eq(patientLabTest.patientId, patient.id))
+			.where(labTestFilter),
 		db
-				.select({
-					testName: patientLabTest.testName,
-					result: patientLabTest.result,
-					labId: patientLabTest.id,
-					encounterId: patientLabTest.encounterId,
-					specimen: patientLabTest.specimen,
-					referenceRange: patientLabTest.referenceRange,
-					interpretation: patientLabTest.interpretation,
-					flag: patientLabTest.flag,
-					orderedAt: patientLabTest.orderedAt,
-					orderedBy: patientLabTest.orderedBy,
-					clinicalNote: patientLabTest.clinicalNote,
-					createdBy: patientLabTest.createdBy,
-					updatedBy: patientLabTest.updatedBy,
-					createdAt: patientLabTest.createdAt,
-					updatedAt: patientLabTest.updatedAt,
-					status: patientLabTest.status,
-				})
-				.from(patientLabTest)
-				.innerJoin(patient, eq(patientLabTest.patientId, patient.id))
-				.where(labTestFilter)
+			.select({
+				testName: patientLabTest.testName,
+				result: patientLabTest.result,
+				labId: patientLabTest.id,
+				encounterId: patientLabTest.encounterId,
+				specimen: patientLabTest.specimen,
+				referenceRange: patientLabTest.referenceRange,
+				interpretation: patientLabTest.interpretation,
+				flag: patientLabTest.flag,
+				orderedAt: patientLabTest.orderedAt,
+				orderedBy: patientLabTest.orderedBy,
+				clinicalNote: patientLabTest.clinicalNote,
+				createdBy: patientLabTest.createdBy,
+				updatedBy: patientLabTest.updatedBy,
+				createdAt: patientLabTest.createdAt,
+				updatedAt: patientLabTest.updatedAt,
+				status: patientLabTest.status,
+			})
+			.from(patientLabTest)
+			.innerJoin(patient, eq(patientLabTest.patientId, patient.id))
+			.where(labTestFilter)
 			.orderBy(desc(patientLabTest.createdAt))
 			.limit(limit)
 			.offset(offset),
@@ -151,7 +153,12 @@ export async function getPatientLabTestsForOrganization(
 		? await db
 				.select()
 				.from(patientLabTestFile)
-				.where(inArray(patientLabTestFile.parentRecordId, rows.map((row) => row.labId)))
+				.where(
+					inArray(
+						patientLabTestFile.parentRecordId,
+						rows.map((row) => row.labId),
+					),
+				)
 		: [];
 	const filesByLabTestId = new Map<string, typeof labTestFiles>();
 
@@ -178,13 +185,13 @@ export async function getPatientLabTestsForOrganization(
 			const clinicalNote = labTest.clinicalNote ?? "";
 			const persistedFiles = filesByLabTestId.get(labTest.labId) ?? [];
 			const files = persistedFiles.map((file) => ({
-						id: file.id,
-						name: file.name,
-						url: file.url ?? "",
-						type: file.type ?? "",
-						size: file.size ?? "",
-						uploadedAtLabel: formatDateTime(file.uploadedAt),
-					}));
+				id: file.id,
+				name: file.name,
+				url: file.url ?? "",
+				type: file.type ?? "",
+				size: file.size ?? "",
+				uploadedAtLabel: formatDateTime(file.uploadedAt),
+			}));
 
 			return {
 				test: formatTestName(labTest.testName, labTest.result),
@@ -221,22 +228,6 @@ export async function getPatientLabTestsForOrganization(
 							{ label: "Result", value: result },
 							{ label: "Status", value: status },
 							{ label: "Clinical notes", value: clinicalNote },
-						],
-					},
-					{
-						id: `${labTest.labId}-created`,
-						title: "Created",
-						actor: labTest.createdBy ?? orderedBy,
-						timestamp: createdAtLabel,
-						items: [
-							{ label: "Status", value: "Pending" },
-							{ label: "Specimen", value: specimen },
-							{ label: "Reference Range", value: referenceRange },
-							{ label: "Ordered at", value: orderedAtLabel },
-							{ label: "Ordered by", value: orderedBy },
-							{ label: "Result", value: "" },
-							{ label: "Interpretation", value: "" },
-							{ label: "Flag", value: "" },
 						],
 					},
 				],

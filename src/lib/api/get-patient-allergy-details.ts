@@ -1,9 +1,6 @@
 import { cache } from "react";
 import { patient, patientAllergy, patientAllergyHistory } from "@/db/schemas";
-import type {
-	AllergyDetailsHistoryEvent,
-	AllergyDetailsType,
-} from "@/features/patients/types";
+import type { AllergyDetailsHistoryEvent, AllergyDetailsType } from "@/features/patients/types";
 import { db } from "@/lib/better-auth/auth";
 import { getOrdinal } from "@/lib/utils/get-ordinal";
 import { and, desc, eq } from "drizzle-orm";
@@ -75,26 +72,6 @@ function formatTimelineTimestamp(value: Date | string | null | undefined) {
 	return `${dateLabel} at ${timeLabel}`;
 }
 
-function buildCreatedHistoryEvent(allergy: {
-	severity: string;
-	reaction: string;
-	status: string;
-	createdBy: string | null;
-	createdAt: Date;
-}): AllergyDetailsHistoryEvent {
-	return {
-		id: "created",
-		title: "Created",
-		actor: empty(allergy.createdBy),
-		timestamp: formatTimelineTimestamp(allergy.createdAt),
-		items: [
-			{ label: "Severity", value: normalizeSeverity(allergy.severity) },
-			{ label: "Reaction", value: empty(allergy.reaction) },
-			{ label: "Status", value: normalizeStatus(allergy.status) },
-		],
-	};
-}
-
 function buildUpdatedHistoryEvent(allergy: {
 	status: string;
 	updatedBy: string | null;
@@ -125,9 +102,7 @@ function mapHistoryEvent(history: {
 		title: "Updated",
 		actor: empty(history.updatedBy),
 		timestamp: formatTimelineTimestamp(history.createdAt),
-		items: [
-			{ label: formatSentenceCaseValue(history.fieldName), value: empty(history.newValue) },
-		],
+		items: [{ label: formatSentenceCaseValue(history.fieldName), value: empty(history.newValue) }],
 	};
 }
 
@@ -191,15 +166,11 @@ export async function getPatientAllergyDetailsForOrganization(
 		reaction: empty(allergy.reaction),
 		severity: normalizeSeverity(allergy.severity),
 		status: normalizeStatus(allergy.status),
-		createdAt: formatDateOnly(allergy.createdAt),
+		createdAt: formatTimelineTimestamp(allergy.createdAt),
 		updatedAt: formatDateOnly(allergy.updatedAt),
 		createdBy: empty(allergy.createdBy),
 		updatedBy: empty(allergy.updatedBy),
 		clinicalNote: empty(allergy.clinicalNote),
-		history: [
-			...historyRows.map(mapHistoryEvent),
-			buildUpdatedHistoryEvent(allergy),
-			buildCreatedHistoryEvent(allergy),
-		],
+		history: [...historyRows.map(mapHistoryEvent), buildUpdatedHistoryEvent(allergy)],
 	};
 }
