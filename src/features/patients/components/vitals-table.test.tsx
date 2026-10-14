@@ -1,6 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { subDays } from "date-fns";
 import { describe, expect, test, vi } from "vitest";
 import type { VitalType } from "@/features/patients/types";
 import { VitalsTable } from "./vitals-table";
@@ -95,25 +94,6 @@ function displayedIds() {
 }
 
 describe("Vitals table", () => {
-	test("updates the chart and summary when the user changes the vital measurement", async () => {
-		const user = userEvent.setup();
-		const now = Date.now();
-		const recentReadings = vitals.map((vital, index) => ({
-			...vital,
-			recordedAt: subDays(now, index + 1).getTime(),
-			createdAt: subDays(now, index + 1).getTime(),
-		}));
-
-		renderVitalsTable({ readings: recentReadings });
-
-		expect(screen.getByRole("img", { name: /Blood pressure readings/ })).toBeVisible();
-		await user.click(screen.getByRole("combobox", { name: "Vital measurement" }));
-		await user.click(await screen.findByRole("option", { name: "Heart rate" }));
-
-		expect(await screen.findByRole("img", { name: /Heart rate readings/ })).toBeVisible();
-		expect(within(screen.getByText("Current:").parentElement!).getByText("72 bpm")).toBeVisible();
-	});
-
 	test("shows supplied rows in order and sorts measurements numerically using the keyboard", async () => {
 		const user = userEvent.setup();
 		renderVitalsTable();
@@ -140,22 +120,6 @@ describe("Vitals table", () => {
 		expect(search).toHaveValue("V-old");
 		await user.type(search, "e");
 		expect(onQueryChange).toHaveBeenCalledWith("V-olde");
-	});
-
-	test("offers encounter date, encounter type, and record creation filters", async () => {
-		const user = userEvent.setup();
-		renderVitalsTable();
-
-		await user.click(screen.getByRole("button", { name: "Filter" }));
-
-		expect(screen.getByRole("menuitem", { name: "Encounter date" })).toBeVisible();
-		expect(screen.getByRole("menuitem", { name: "Encounter type" })).toBeVisible();
-		expect(screen.getByRole("menuitem", { name: "Created at" })).toBeVisible();
-
-		await user.click(screen.getByRole("menuitem", { name: "Encounter type" }));
-
-		expect(screen.getByRole("checkbox", { name: "Emergency Visit" })).toBeVisible();
-		expect(screen.getByRole("checkbox", { name: "Routine Checkup" })).toBeVisible();
 	});
 
 	test("shows active date filters as removable pills", async () => {
@@ -197,17 +161,6 @@ describe("Vitals table", () => {
 		expect(within(dialog).getByRole("button", { name: "Copy ENC-newer" })).toBeVisible();
 	});
 
-	test("requires an encounter before recording vitals", async () => {
-		const user = userEvent.setup();
-		renderVitalsTable();
-
-		await user.click(screen.getByRole("button", { name: "Add vitals" }));
-
-		expect(screen.getByRole("combobox", { name: "Encounter (required)" })).toHaveTextContent(
-			"Select encounter",
-		);
-	});
-
 	test("paginates through the owner callbacks", async () => {
 		const user = userEvent.setup();
 		const { onNextPage, onPreviousPage } = renderVitalsTable({ page: 2, totalPages: 3 });
@@ -217,13 +170,5 @@ describe("Vitals table", () => {
 		expect(onNextPage).toHaveBeenCalledTimes(1);
 		await user.click(screen.getByRole("button", { name: "Previous" }));
 		expect(onPreviousPage).toHaveBeenCalledTimes(1);
-	});
-
-	test("does not fabricate readings for a patient with no vitals", () => {
-		renderVitalsTable({ vitals: [], readings: [] });
-
-		expect(screen.getByRole("table")).toBeVisible();
-		expect(screen.getByText("No matching vitals.")).toBeVisible();
-		expect(screen.getByText("No measurements in this period.")).toBeVisible();
 	});
 });

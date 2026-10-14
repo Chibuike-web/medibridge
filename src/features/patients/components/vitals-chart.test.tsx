@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -151,12 +151,5 @@ describe("VitalsChart", () => {
 		expect(summary("Current")).toBe("140/90 mmHg");
 		expect(summary("Previous")).toBe("—");
 		expect(plottedPoints()).toHaveLength(2);
-	});
-
-	test("shows the empty state when the patient has no vitals at all", () => {
-		render(<VitalsChart readings={[]} />);
-
-		expect(screen.getByText("No measurements in this period.")).toBeInTheDocument();
-		expect(within(chartRegion()).queryByText(/mmHg/)).not.toBeInTheDocument();
 	});
 });

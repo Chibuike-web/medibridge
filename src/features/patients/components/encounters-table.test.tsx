@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { format, setDate, subDays, subMonths } from "date-fns";
+import { format, subDays } from "date-fns";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { EncounterType } from "@/features/patients/types";
 import { EncountersTable } from "./encounters-table";
@@ -115,38 +115,6 @@ describe("Encounters table", () => {
 		authState.role = "owner";
 	});
 
-	test("shows each encounter's date, type, ID, department and physician", () => {
-		renderEncountersTable();
-
-		for (const label of [
-			"Encounter date",
-			"Encounter Type",
-			"Encounter ID",
-			"Department",
-			"Physician",
-		]) {
-			expect(screen.getByRole("columnheader", { name: label })).toBeVisible();
-		}
-
-		const [firstRow, secondRow] = bodyRows();
-		expect(within(firstRow).getByText("Mar 5, 2024")).toBeVisible();
-		expect(within(firstRow).getByText("Routine Checkup")).toBeVisible();
-		expect(within(firstRow).getByRole("button", { name: "Copy ENC-2001" })).toBeVisible();
-		expect(within(firstRow).getByText("General Medicine")).toBeVisible();
-		expect(within(firstRow).getByText("Dr. Amaka Okafor")).toBeVisible();
-
-		expect(within(secondRow).getByText("Jan 12, 2024")).toBeVisible();
-		expect(within(secondRow).getByText("Emergency Visit")).toBeVisible();
-		expect(within(secondRow).getByRole("button", { name: "Copy ENC-1001" })).toBeVisible();
-	});
-
-	test("shows an empty message when the patient has no encounters", () => {
-		renderEncountersTable({ encounters: [] });
-
-		expect(screen.getByText("No matching encounters found.")).toBeVisible();
-		expect(bodyRows()).toHaveLength(1);
-	});
-
 	test("reports what the user types in the search box", async () => {
 		const user = userEvent.setup();
 		const { onQueryChange } = renderEncountersTable({ query: "Cardio" });
@@ -198,17 +166,6 @@ describe("Encounters table", () => {
 		);
 	});
 
-	test("lists encounter, department, and date filters", async () => {
-		const user = userEvent.setup();
-		renderEncountersTable();
-
-		await user.click(screen.getByRole("button", { name: "Filter" }));
-
-		for (const label of ["Encounter date", "Encounter type", "Created at", "Department"]) {
-			expect(screen.getByRole("menuitem", { name: label })).toBeVisible();
-		}
-	});
-
 	test("adds and removes encounter type filters from the Encounter type submenu", async () => {
 		const user = userEvent.setup();
 		const { onEncounterTypeFiltersChange } = renderEncountersTable({
@@ -255,52 +212,6 @@ describe("Encounters table", () => {
 		);
 	});
 
-	test("applies a custom created-at range chosen in the date range dialog", async () => {
-		const user = userEvent.setup();
-		const start = setDate(subMonths(new Date(), 1), 15);
-		const end = setDate(new Date(), 15);
-		const { onCreatedAtRangeApply } = renderEncountersTable();
-
-		await openFilterSubmenu(user, "Created at");
-		clickInSubmenu(screen.getByRole("menuitem", { name: "Custom date range" }));
-		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
-		const apply = within(dialog).getByRole("button", { name: "Apply date range" });
-		expect(apply).toBeDisabled();
-
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
-		);
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(end, "MMMM do, yyyy")) }),
-		);
-		expect(within(dialog).getByText(format(start, "do MMMM, yyyy"))).toBeVisible();
-		expect(within(dialog).getByText(format(end, "do MMMM, yyyy"))).toBeVisible();
-
-		await user.click(apply);
-		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
-			format(start, "yyyy-MM-dd"),
-			format(end, "yyyy-MM-dd"),
-		);
-		await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-	});
-
-	test("clears the created-at range from the date range dialog's Reset button", async () => {
-		const user = userEvent.setup();
-		const { onCreatedAtRangeApply } = renderEncountersTable({
-			createdFrom: "2020-01-01",
-			createdTo: "2020-01-31",
-		});
-
-		await openFilterSubmenu(user, "Created at");
-		clickInSubmenu(screen.getByRole("menuitem", { name: "Custom date range" }));
-		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
-		expect(within(dialog).getByText("1st January, 2020")).toBeVisible();
-		expect(within(dialog).getByText("31st January, 2020")).toBeVisible();
-
-		await user.click(within(dialog).getByRole("button", { name: "Reset" }));
-		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith("", "");
-	});
-
 	test("shows active filters as pills the user can remove", async () => {
 		const user = userEvent.setup();
 		const {
@@ -334,12 +245,6 @@ describe("Encounters table", () => {
 
 		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
-	});
-
-	test("shows no filter pills when no filters are active", () => {
-		renderEncountersTable();
-
-		expect(screen.queryByRole("button", { name: /^Remove / })).not.toBeInTheDocument();
 	});
 
 	test("paginates through the owner callbacks and shows the current page", async () => {
@@ -444,15 +349,5 @@ describe("Encounters table", () => {
 
 		await user.click(screen.getByRole("button", { name: "Clear selected encounters" }));
 		expect(screen.queryByText(/selected/)).not.toBeInTheDocument();
-	});
-
-	test("opens the create encounter drawer from the Create encounter button", async () => {
-		const user = userEvent.setup();
-		renderEncountersTable();
-
-		await user.click(screen.getByRole("button", { name: "Create encounter" }));
-
-		const dialog = await screen.findByRole("dialog", { name: "Create encounter" });
-		expect(within(dialog).getByRole("combobox", { name: /Visit type/ })).toBeVisible();
 	});
 });

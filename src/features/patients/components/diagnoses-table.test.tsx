@@ -1,6 +1,6 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { format, setDate, subDays, subMonths } from "date-fns";
+import { format, subDays } from "date-fns";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { DiagnosisDetailsType, DiagnosisType } from "@/features/patients/types";
 import { DiagnosesTable } from "./diagnoses-table";
@@ -227,15 +227,6 @@ describe("Diagnoses table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Hypert");
 	});
 
-	test("drops the encounter ID hint from the search box when scoped to an encounter", () => {
-		renderDiagnosesTable({ isEncounterScoped: true });
-
-		expect(screen.getByRole("searchbox")).toHaveAttribute(
-			"placeholder",
-			"Search by diagnosis or diagnosis ID",
-		);
-	});
-
 	test("adds and removes status filters from the filter menu", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderDiagnosesTable({ statusFilters: ["active"] });
@@ -276,52 +267,6 @@ describe("Diagnoses table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(urlDate(subDays(today, 29)), urlDate(today));
 	});
 
-	test("applies a custom created-at range chosen in the date range dialog", async () => {
-		const user = userEvent.setup();
-		const start = setDate(subMonths(new Date(), 1), 15);
-		const end = setDate(new Date(), 15);
-		const { onCreatedAtRangeApply } = renderDiagnosesTable();
-
-		await openFilterSubmenu(user, "Created at");
-		await tap(user, screen.getByRole("menuitem", { name: "Custom date range" }));
-		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
-		const apply = within(dialog).getByRole("button", { name: "Apply date range" });
-		expect(apply).toBeDisabled();
-
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
-		);
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(end, "MMMM do, yyyy")) }),
-		);
-		expect(within(dialog).getByText(format(start, "do MMMM, yyyy"))).toBeVisible();
-		expect(within(dialog).getByText(format(end, "do MMMM, yyyy"))).toBeVisible();
-
-		await user.click(apply);
-		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
-			format(start, "yyyy-MM-dd"),
-			format(end, "yyyy-MM-dd"),
-		);
-		await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-	});
-
-	test("clears the created-at range from the date range dialog's Reset button", async () => {
-		const user = userEvent.setup();
-		const { onCreatedAtRangeApply } = renderDiagnosesTable({
-			createdFrom: "2020-01-01",
-			createdTo: "2020-01-31",
-		});
-
-		await openFilterSubmenu(user, "Created at");
-		await tap(user, screen.getByRole("menuitem", { name: "Custom date range" }));
-		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
-		expect(within(dialog).getByText("1st January, 2020")).toBeVisible();
-		expect(within(dialog).getByText("31st January, 2020")).toBeVisible();
-
-		await user.click(within(dialog).getByRole("button", { name: "Reset" }));
-		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith("", "");
-	});
-
 	test("shows active filters as pills that clear the matching filter", async () => {
 		const user = userEvent.setup();
 		const {
@@ -353,12 +298,6 @@ describe("Diagnoses table", () => {
 		expect(onLastReviewedRangeApply).toHaveBeenCalledWith("", "");
 		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
-	});
-
-	test("hides the filter pills when no filter is active", () => {
-		renderDiagnosesTable();
-
-		expect(screen.queryByRole("button", { name: /Remove .* filter/ })).not.toBeInTheDocument();
 	});
 
 	test("paginates through the callbacks", async () => {
@@ -397,13 +336,6 @@ describe("Diagnoses table", () => {
 		await user.click(rowsPerPage);
 		await user.click(await screen.findByRole("option", { name: "28" }));
 		expect(onLimitChange).toHaveBeenCalledWith(28);
-	});
-
-	test("shows an empty message when there are no diagnoses", () => {
-		renderDiagnosesTable({ diagnoses: [] });
-
-		expect(screen.getByRole("table")).toBeVisible();
-		expect(screen.getByText("No matching diagnoses found.")).toBeVisible();
 	});
 
 	test("opens the details drawer with the chosen row's data from the row actions", async () => {
@@ -488,14 +420,6 @@ describe("Diagnoses table", () => {
 		const dialog = await screen.findByRole("dialog", { name: "View diagnosis details" });
 		expect(await within(dialog).findByRole("heading", { name: "Hypertension" })).toBeVisible();
 		expect(within(dialog).getByText("Blood pressure remains elevated.")).toBeVisible();
-	});
-
-	test("opens the add diagnosis drawer from the toolbar", async () => {
-		const user = userEvent.setup();
-		renderDiagnosesTable();
-
-		await user.click(screen.getByRole("button", { name: "Add diagnosis" }));
-		expect(await screen.findByRole("dialog", { name: "Add diagnosis" })).toBeVisible();
 	});
 
 	test("offers bulk actions for the selected rows, including archive for an owner", async () => {

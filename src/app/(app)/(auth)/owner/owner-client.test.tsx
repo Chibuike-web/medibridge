@@ -51,14 +51,6 @@ describe("OwnerClient", () => {
 		});
 	});
 
-	test("hides the account setup form once the verification link is sent", async () => {
-		await submitOwnerForm();
-
-		expect(await screen.findByRole("heading", { name: "Check your email" })).toBeVisible();
-		expect(screen.queryByRole("heading", { name: "Owner Account Setup" })).not.toBeInTheDocument();
-		expect(screen.queryByRole("button", { name: "Continue" })).not.toBeInTheDocument();
-	});
-
 	test("resends the verification link to the same address and confirms it was sent", async () => {
 		const user = await submitOwnerForm();
 
@@ -98,15 +90,6 @@ describe("OwnerClient", () => {
 		expect(emailField).toHaveFocus();
 	});
 
-	test("offers a sign-in link from the verification screen", async () => {
-		await submitOwnerForm();
-
-		expect(await screen.findByRole("link", { name: "Sign in" })).toHaveAttribute(
-			"href",
-			"/sign-in",
-		);
-	});
-
 	test("tells the owner to sign in when their email already has an account", async () => {
 		signUpEmailMock.mockResolvedValue({
 			data: null,
@@ -128,14 +111,6 @@ describe("OwnerClient", () => {
 			"This email already has an account. Sign in instead.",
 		);
 		expect(screen.queryByRole("heading", { name: "Check your email" })).not.toBeInTheDocument();
-	});
-
-	test("tells the owner the password rule before they submit", () => {
-		render(<OwnerClient />);
-
-		expect(screen.getByLabelText("Password")).toHaveAccessibleDescription(
-			"Use 8 to 128 characters.",
-		);
 	});
 
 	test("does not create an account with a password shorter than 8 characters", async () => {

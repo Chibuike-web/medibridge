@@ -101,6 +101,24 @@ describe("date range filter", () => {
 		expect(endCalendarPrevious).toHaveAttribute("aria-disabled", "true");
 	});
 
+	test("shows the current range and clears it with Reset", async () => {
+		const user = userEvent.setup();
+		const onDateRangeApply = vi.fn();
+		render(
+			<SetDateRangeDialog
+				dateRangeFilter={{ from: "2020-01-01", to: "2020-01-31", onDateRangeApply }}
+				onClose={vi.fn()}
+			/>,
+		);
+		const dialog = screen.getByRole("dialog", { name: "Set date range" });
+		expect(within(dialog).getByText("1st January, 2020")).toBeVisible();
+		expect(within(dialog).getByText("31st January, 2020")).toBeVisible();
+
+		await user.click(within(dialog).getByRole("button", { name: "Reset" }));
+
+		expect(onDateRangeApply).toHaveBeenLastCalledWith("", "");
+	});
+
 	test("applies the chosen start and end dates and closes", async () => {
 		const user = userEvent.setup();
 		const today = new Date();
