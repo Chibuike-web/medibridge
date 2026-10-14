@@ -75,42 +75,38 @@ function formatTimelineTimestamp(value: Date | string | null | undefined) {
 	return `${dateLabel} at ${timeLabel}`;
 }
 
-function buildUpdatedHistoryEvent(immunization: {
-	currentDose: string | null;
-	dateAdministered: Date | null;
-	administeredBy: string | null;
-	status: string;
-	updatedBy: string | null;
-	updatedAt: Date;
-}): ImmunizationDetailsHistoryEvent {
-	return {
-		id: "updated",
-		title: "Updated",
-		actor: empty(immunization.updatedBy),
-		timestamp: formatTimelineTimestamp(immunization.updatedAt),
-		items: [
-			{ label: "Dose", value: empty(immunization.currentDose) },
-			{ label: "Date administered", value: formatDateOnly(immunization.dateAdministered) },
-			{ label: "Administered by", value: empty(immunization.administeredBy) },
-			{ label: "Status", value: normalizeStatus(immunization.status) },
-		],
-	};
-}
+function groupHistoryEvents(
+	historyRows: {
+		fieldName: string;
+		oldValue: string | null;
+		newValue: string | null;
+		updatedBy: string | null;
+		createdAt: Date;
+	}[],
+): ImmunizationDetailsHistoryEvent[] {
+	return historyRows.reduce<ImmunizationDetailsHistoryEvent[]>((events, row) => {
+		const id = `${row.updatedBy}-${row.createdAt.getTime()}`;
+		const item = {
+			label: formatSentenceCaseValue(row.fieldName),
+			previousValue: empty(row.oldValue),
+			value: empty(row.newValue),
+		};
+		const event = events.find((historyEvent) => historyEvent.id === id);
 
-function mapHistoryEvent(history: {
-	id: string;
-	fieldName: string;
-	newValue: string | null;
-	updatedBy: string | null;
-	createdAt: Date;
-}): ImmunizationDetailsHistoryEvent {
-	return {
-		id: history.id,
-		title: "Updated",
-		actor: empty(history.updatedBy),
-		timestamp: formatTimelineTimestamp(history.createdAt),
-		items: [{ label: formatSentenceCaseValue(history.fieldName), value: empty(history.newValue) }],
-	};
+		if (event) {
+			event.items.push(item);
+		} else {
+			events.push({
+				id,
+				title: "Updated",
+				actor: empty(row.updatedBy),
+				timestamp: formatTimelineTimestamp(row.createdAt),
+				items: [item],
+			});
+		}
+
+		return events;
+	}, []);
 }
 
 export const getPatientImmunizationDetails = cache(async (immunizationId: string) => {
@@ -163,6 +159,7 @@ export async function getPatientImmunizationDetailsForOrganization(
 		.select({
 			id: patientImmunizationHistory.id,
 			fieldName: patientImmunizationHistory.fieldName,
+			oldValue: patientImmunizationHistory.oldValue,
 			newValue: patientImmunizationHistory.newValue,
 			updatedBy: patientImmunizationHistory.updatedBy,
 			createdAt: patientImmunizationHistory.createdAt,
@@ -186,6 +183,6 @@ export async function getPatientImmunizationDetailsForOrganization(
 		createdBy: empty(immunization.createdBy),
 		updatedBy: empty(immunization.updatedBy),
 		clinicalNote: empty(immunization.clinicalNote),
-		history: [...historyRows.map(mapHistoryEvent), buildUpdatedHistoryEvent(immunization)],
+		history: groupHistoryEvents(historyRows),
 	};
 }

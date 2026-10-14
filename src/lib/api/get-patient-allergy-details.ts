@@ -72,38 +72,38 @@ function formatTimelineTimestamp(value: Date | string | null | undefined) {
 	return `${dateLabel} at ${timeLabel}`;
 }
 
-function buildUpdatedHistoryEvent(allergy: {
-	status: string;
-	updatedBy: string | null;
-	clinicalNote: string | null;
-	updatedAt: Date;
-}): AllergyDetailsHistoryEvent {
-	return {
-		id: "updated",
-		title: "Updated",
-		actor: empty(allergy.updatedBy),
-		timestamp: formatTimelineTimestamp(allergy.updatedAt),
-		items: [
-			{ label: "Status", value: normalizeStatus(allergy.status) },
-			{ label: "Clinical notes", value: empty(allergy.clinicalNote) },
-		],
-	};
-}
+function groupHistoryEvents(
+	historyRows: {
+		fieldName: string;
+		oldValue: string | null;
+		newValue: string | null;
+		updatedBy: string | null;
+		createdAt: Date;
+	}[],
+): AllergyDetailsHistoryEvent[] {
+	return historyRows.reduce<AllergyDetailsHistoryEvent[]>((events, row) => {
+		const id = `${row.updatedBy}-${row.createdAt.getTime()}`;
+		const item = {
+			label: formatSentenceCaseValue(row.fieldName),
+			previousValue: empty(row.oldValue),
+			value: empty(row.newValue),
+		};
+		const event = events.find((historyEvent) => historyEvent.id === id);
 
-function mapHistoryEvent(history: {
-	id: string;
-	fieldName: string;
-	newValue: string | null;
-	updatedBy: string | null;
-	createdAt: Date;
-}): AllergyDetailsHistoryEvent {
-	return {
-		id: history.id,
-		title: "Updated",
-		actor: empty(history.updatedBy),
-		timestamp: formatTimelineTimestamp(history.createdAt),
-		items: [{ label: formatSentenceCaseValue(history.fieldName), value: empty(history.newValue) }],
-	};
+		if (event) {
+			event.items.push(item);
+		} else {
+			events.push({
+				id,
+				title: "Updated",
+				actor: empty(row.updatedBy),
+				timestamp: formatTimelineTimestamp(row.createdAt),
+				items: [item],
+			});
+		}
+
+		return events;
+	}, []);
 }
 
 export const getPatientAllergyDetails = cache(async (allergyId: string) => {
@@ -151,6 +151,7 @@ export async function getPatientAllergyDetailsForOrganization(
 		.select({
 			id: patientAllergyHistory.id,
 			fieldName: patientAllergyHistory.fieldName,
+			oldValue: patientAllergyHistory.oldValue,
 			newValue: patientAllergyHistory.newValue,
 			updatedBy: patientAllergyHistory.updatedBy,
 			createdAt: patientAllergyHistory.createdAt,
@@ -171,6 +172,6 @@ export async function getPatientAllergyDetailsForOrganization(
 		createdBy: empty(allergy.createdBy),
 		updatedBy: empty(allergy.updatedBy),
 		clinicalNote: empty(allergy.clinicalNote),
-		history: [...historyRows.map(mapHistoryEvent), buildUpdatedHistoryEvent(allergy)],
+		history: groupHistoryEvents(historyRows),
 	};
 }

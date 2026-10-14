@@ -9,6 +9,7 @@ export const patientAllergyHistory = pgTable("patient_allergy_history", {
 		.references(() => patientAllergy.id, { onDelete: "cascade" }),
 
 	fieldName: text("field_name").notNull(),
+	oldValue: text("old_value"),
 	newValue: text("new_value"),
 	updatedBy: text("updated_by"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),

@@ -10,6 +10,8 @@ export const patientDiagnosisHistory = pgTable("patient_diagnosis_history", {
 
 	fieldName: text("field_name").notNull(),
 
+	oldValue: text("old_value"),
+
 	newValue: text("new_value"),
 
 	updatedBy: text("updated_by"),

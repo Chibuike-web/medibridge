@@ -89,38 +89,38 @@ function empty(value: string | null | undefined) {
 	return value?.trim() || EMPTY_VALUE;
 }
 
-function buildUpdatedHistoryEvent(diagnosis: {
-	status: string;
-	updatedBy: string | null;
-	updatedAt: Date;
-}): DiagnosisDetailsHistoryEvent {
-	return {
-		id: "updated",
-		title: "Updated",
-		actor: empty(diagnosis.updatedBy),
-		timestamp: formatTimelineTimestamp(diagnosis.updatedAt),
-		items: [
-			{ label: "Status", value: normalizeDiagnosisStatus(diagnosis.status) },
-		],
-	};
-}
+function groupHistoryEvents(
+	historyRows: {
+		fieldName: string;
+		oldValue: string | null;
+		newValue: string | null;
+		updatedBy: string | null;
+		createdAt: Date;
+	}[],
+): DiagnosisDetailsHistoryEvent[] {
+	return historyRows.reduce<DiagnosisDetailsHistoryEvent[]>((events, row) => {
+		const id = `${row.updatedBy}-${row.createdAt.getTime()}`;
+		const item = {
+			label: formatSentenceCaseValue(row.fieldName),
+			previousValue: empty(row.oldValue),
+			value: empty(row.newValue),
+		};
+		const event = events.find((historyEvent) => historyEvent.id === id);
 
-function mapHistoryEvent(history: {
-	id: string;
-	fieldName: string;
-	newValue: string | null;
-	updatedBy: string | null;
-	createdAt: Date;
-}): DiagnosisDetailsHistoryEvent {
-	return {
-		id: history.id,
-		title: "Updated",
-		actor: empty(history.updatedBy),
-		timestamp: formatTimelineTimestamp(history.createdAt),
-		items: [
-			{ label: formatSentenceCaseValue(history.fieldName), value: empty(history.newValue) },
-		],
-	};
+		if (event) {
+			event.items.push(item);
+		} else {
+			events.push({
+				id,
+				title: "Updated",
+				actor: empty(row.updatedBy),
+				timestamp: formatTimelineTimestamp(row.createdAt),
+				items: [item],
+			});
+		}
+
+		return events;
+	}, []);
 }
 
 function mapRelatedRecord(record: {
@@ -191,6 +191,7 @@ export async function getPatientDiagnosisDetailsForOrganization(
 			.select({
 				id: patientDiagnosisHistory.id,
 				fieldName: patientDiagnosisHistory.fieldName,
+				oldValue: patientDiagnosisHistory.oldValue,
 				newValue: patientDiagnosisHistory.newValue,
 				updatedBy: patientDiagnosisHistory.updatedBy,
 				createdAt: patientDiagnosisHistory.createdAt,
@@ -259,11 +260,6 @@ export async function getPatientDiagnosisDetailsForOrganization(
 			.limit(6),
 	]);
 
-	const history = [
-		...historyRows.map(mapHistoryEvent),
-		buildUpdatedHistoryEvent(diagnosis),
-	];
-
 	return {
 		diagnosisId: diagnosis.id,
 		encounterId: diagnosis.encounterId,
@@ -278,7 +274,7 @@ export async function getPatientDiagnosisDetailsForOrganization(
 		createdBy: empty(diagnosis.createdBy),
 		updatedBy: empty(diagnosis.updatedBy),
 		clinicalNote: empty(diagnosis.clinicalNote),
-		history,
+		history: groupHistoryEvents(historyRows),
 		relatedRecords: {
 			medications: medications.map(mapRelatedRecord),
 			labTests: labTests.map(mapRelatedRecord),

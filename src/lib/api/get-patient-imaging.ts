@@ -1,7 +1,8 @@
 import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
-import { patient, patientImaging, patientImagingFile } from "@/db/schemas";
+import { patient, patientImaging, patientImagingFile, patientImagingHistory } from "@/db/schemas";
 import type {
+	ImagingDetailsHistoryEvent,
 	ImagingModalityFilter,
 	ImagingStatusFilter,
 	ImagingType,
@@ -89,6 +90,40 @@ export const getPatientImaging = cache(
 	},
 );
 
+function groupHistoryEvents(
+	historyRows: {
+		fieldName: string;
+		oldValue: string | null;
+		newValue: string | null;
+		updatedBy: string | null;
+		createdAt: Date;
+	}[],
+): ImagingDetailsHistoryEvent[] {
+	return historyRows.reduce<ImagingDetailsHistoryEvent[]>((events, row) => {
+		const id = `${row.updatedBy}-${row.createdAt.getTime()}`;
+		const item = {
+			label: row.fieldName.charAt(0).toUpperCase() + row.fieldName.slice(1).replaceAll("_", " "),
+			previousValue: row.oldValue || "-",
+			value: row.newValue || "-",
+		};
+		const event = events.find((historyEvent) => historyEvent.id === id);
+
+		if (event) {
+			event.items.push(item);
+		} else {
+			events.push({
+				id,
+				title: "Updated",
+				actor: row.updatedBy || "-",
+				timestamp: formatDate(row.createdAt.toISOString()),
+				items: [item],
+			});
+		}
+
+		return events;
+	}, []);
+}
+
 export async function getPatientImagingForOrganization(
 	patientId: string,
 	organizationId: string,
@@ -168,6 +203,18 @@ export async function getPatientImagingForOrganization(
 			.limit(limit)
 			.offset(offset),
 	]);
+	const historyRows = rows.length
+		? await db
+				.select()
+				.from(patientImagingHistory)
+				.where(
+					inArray(
+						patientImagingHistory.imagingId,
+						rows.map((row) => row.imagingId),
+					),
+				)
+				.orderBy(desc(patientImagingHistory.createdAt))
+		: [];
 	const imagingFiles = rows.length
 		? await db
 				.select()
@@ -227,20 +274,9 @@ export async function getPatientImagingForOrganization(
 				updatedBy,
 				createdAtLabel,
 				updatedAtLabel,
-				history: [
-					{
-						id: `${imaging.imagingId}-updated`,
-						title: "Updated",
-						actor: updatedBy,
-						timestamp: updatedAtLabel,
-						items: [
-							{ label: "Impression", value: impression },
-							{ label: "Status", value: status },
-							{ label: "Reported by", value: reportedBy },
-							{ label: "Clinical notes", value: clinicalNote },
-						],
-					},
-				],
+				history: groupHistoryEvents(
+					historyRows.filter((row) => row.imagingId === imaging.imagingId),
+				),
 			};
 		}),
 	};

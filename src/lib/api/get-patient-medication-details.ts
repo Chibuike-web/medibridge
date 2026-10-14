@@ -74,40 +74,38 @@ function formatTimelineTimestamp(value: Date | string | null | undefined) {
 	return `${dateLabel} at ${timeLabel}`;
 }
 
-function mapMedicationHistoryEvent(history: {
-	id: string;
-	fieldName: string;
-	newValue: string | null;
-	updatedBy: string | null;
-	createdAt: Date;
-}): MedicationDetailsHistoryEvent {
-	const fieldName = formatSentenceCaseValue(history.fieldName);
+function groupHistoryEvents(
+	historyRows: {
+		fieldName: string;
+		oldValue: string | null;
+		newValue: string | null;
+		updatedBy: string | null;
+		createdAt: Date;
+	}[],
+): MedicationDetailsHistoryEvent[] {
+	return historyRows.reduce<MedicationDetailsHistoryEvent[]>((events, row) => {
+		const id = `${row.updatedBy}-${row.createdAt.getTime()}`;
+		const item = {
+			label: formatSentenceCaseValue(row.fieldName),
+			previousValue: empty(row.oldValue),
+			value: empty(row.newValue),
+		};
+		const event = events.find((historyEvent) => historyEvent.id === id);
 
-	return {
-		id: history.id,
-		title: "Updated",
-		actor: empty(history.updatedBy),
-		timestamp: formatTimelineTimestamp(history.createdAt),
-		items: [{ label: fieldName, value: empty(history.newValue) }],
-	};
-}
+		if (event) {
+			event.items.push(item);
+		} else {
+			events.push({
+				id,
+				title: "Updated",
+				actor: empty(row.updatedBy),
+				timestamp: formatTimelineTimestamp(row.createdAt),
+				items: [item],
+			});
+		}
 
-function buildUpdatedHistoryEvent(medication: {
-	status: string;
-	dose: string | null;
-	updatedBy: string | null;
-	updatedAt: Date;
-}): MedicationDetailsHistoryEvent {
-	return {
-		id: "updated",
-		title: "Updated",
-		actor: empty(medication.updatedBy),
-		timestamp: formatTimelineTimestamp(medication.updatedAt),
-		items: [
-			{ label: "Status", value: normalizeStatus(medication.status) },
-			{ label: "Dose", value: empty(medication.dose) },
-		],
-	};
+		return events;
+	}, []);
 }
 
 export const getPatientMedicationDetails = cache(async (medicationId: string) => {
@@ -160,6 +158,7 @@ export async function getPatientMedicationDetailsForOrganization(
 		.select({
 			id: patientMedicationHistory.id,
 			fieldName: patientMedicationHistory.fieldName,
+			oldValue: patientMedicationHistory.oldValue,
 			newValue: patientMedicationHistory.newValue,
 			updatedBy: patientMedicationHistory.updatedBy,
 			createdAt: patientMedicationHistory.createdAt,
@@ -184,6 +183,6 @@ export async function getPatientMedicationDetailsForOrganization(
 		updatedAt: formatDateOnly(medication.updatedAt),
 		createdBy: empty(medication.createdBy),
 		clinicalNote: empty(medication.clinicalNote),
-		history: [...historyRows.map(mapMedicationHistoryEvent), buildUpdatedHistoryEvent(medication)],
+		history: groupHistoryEvents(historyRows),
 	};
 }

@@ -362,6 +362,7 @@ describe("Diagnoses table", () => {
 		expect(within(dialog).getByText("Dr. Adeyemi")).toBeVisible();
 		expect(within(dialog).getByText("Symptom free for twelve months.")).toBeVisible();
 		expect(within(dialog).queryByText("Hypertension")).not.toBeInTheDocument();
+		expect(within(dialog).queryByRole("heading", { name: "Activity" })).not.toBeInTheDocument();
 	});
 
 	test("switches the details drawer to edit mode from its actions menu", async () => {

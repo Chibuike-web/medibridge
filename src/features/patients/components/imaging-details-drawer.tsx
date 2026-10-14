@@ -51,6 +51,7 @@ import {
 	RiAddLine,
 	RiArchiveLine,
 	RiArrowDownSLine,
+	RiArrowRightLine,
 	RiCalendarLine,
 	RiCheckLine,
 	RiCloseLine,
@@ -373,6 +374,10 @@ function ImagingFilesSection({ files }: { files: ImagingType["files"] }) {
 }
 
 function ImagingHistorySection({ history }: { history: ImagingDetailsHistoryEvent[] }) {
+	if (history.length === 0) {
+		return null;
+	}
+
 	return (
 		<div className="flex flex-col gap-[14px]">
 			<div className="flex items-center justify-between w-full">
@@ -445,7 +450,12 @@ function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHist
 							{historyEvent.items.map((item) => (
 								<Fragment key={`${historyEvent.id}-${item.label}`}>
 									<dt className="text-gray-400">{item.label}</dt>
-									<dd className="text-gray-700">{item.value || "-"}</dd>
+									<dd className="flex flex-wrap items-center gap-2 text-gray-700">
+										<span className="text-gray-400">{item.previousValue}</span>
+										<RiArrowRightLine className="size-4 shrink-0" aria-hidden="true" />
+										<span className="sr-only">{" changed to "}</span>
+										<span>{item.value}</span>
+									</dd>
 								</Fragment>
 							))}
 						</dl>

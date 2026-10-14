@@ -69,7 +69,7 @@ const medicationDetails: Record<string, MedicationDetailsType> = {
 				title: "Updated",
 				actor: "Nurse Chika",
 				timestamp: "9 April 2021 at 09:00",
-				items: [{ label: "Dose", value: "500 mg" }],
+				items: [{ label: "Dose", previousValue: "1000 mg", value: "500 mg" }],
 			},
 		],
 	},
@@ -95,7 +95,7 @@ const medicationDetails: Record<string, MedicationDetailsType> = {
 				title: "Updated",
 				actor: "Dr. Adeyemi",
 				timestamp: "21 February 2020 at 09:00",
-				items: [{ label: "Dose", value: "250 mg" }],
+				items: [{ label: "Dose", previousValue: "500 mg", value: "250 mg" }],
 			},
 		],
 	},
@@ -337,9 +337,14 @@ describe("Medications table", () => {
 		expect(within(dialog).getByText("Created by Dr. Bello")).toBeVisible();
 		expect(within(dialog).getByText("15 February 2020 at 09:00")).toBeVisible();
 		expect(within(dialog).getByRole("heading", { name: "Activity" })).toBeVisible();
-		expect(
-			within(dialog).getByRole("button", { name: /Updated by Dr. Adeyemi .* 1 change/ }),
-		).toHaveAttribute("aria-expanded", "false");
+		const activityToggle = within(dialog).getByRole("button", {
+			name: /Updated by Dr. Adeyemi .* 1 change/,
+		});
+		expect(activityToggle).toHaveAttribute("aria-expanded", "false");
+		await user.click(activityToggle);
+		const activity = within(dialog).getByRole("region", { name: /Updated by Dr. Adeyemi/ });
+		expect(within(activity).getByRole("term")).toHaveTextContent("Dose");
+		expect(within(activity).getByRole("definition")).toHaveTextContent("500 mg changed to 250 mg");
 		expect(within(dialog).queryByText("Metformin")).not.toBeInTheDocument();
 	});
 

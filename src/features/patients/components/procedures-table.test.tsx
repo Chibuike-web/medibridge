@@ -72,7 +72,7 @@ const procedureDetailsById: Record<string, ProcedureDetailsType> = {
 				title: "Updated",
 				actor: "Dr. Bello",
 				timestamp: "13 January 2024 at 10:30",
-				items: [{ label: "Status", value: "Completed" }],
+				items: [{ label: "Status", previousValue: "Pending", value: "Completed" }],
 			},
 		],
 	},

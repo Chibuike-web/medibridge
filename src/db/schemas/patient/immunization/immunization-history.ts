@@ -9,6 +9,7 @@ export const patientImmunizationHistory = pgTable("patient_immunization_history"
 		.references(() => patientImmunization.id, { onDelete: "cascade" }),
 
 	fieldName: text("field_name").notNull(),
+	oldValue: text("old_value"),
 	newValue: text("new_value"),
 	updatedBy: text("updated_by"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),

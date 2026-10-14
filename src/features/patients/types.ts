@@ -43,6 +43,7 @@ export type DiagnosisDetailsHistoryEvent = {
 	timestamp: string;
 	items: {
 		label: string;
+		previousValue: string;
 		value: string;
 	}[];
 };
@@ -89,6 +90,7 @@ export type AllergyDetailsHistoryEvent = {
 	timestamp: string;
 	items: {
 		label: string;
+		previousValue: string;
 		value: string;
 	}[];
 };
@@ -130,6 +132,7 @@ export type ImmunizationDetailsHistoryEvent = {
 	timestamp: string;
 	items: {
 		label: string;
+		previousValue: string;
 		value: string;
 	}[];
 };
@@ -171,6 +174,7 @@ export type ProcedureDetailsHistoryEvent = {
 	timestamp: string;
 	items: {
 		label: string;
+		previousValue: string;
 		value: string;
 	}[];
 };
@@ -227,6 +231,7 @@ export type MedicationDetailsHistoryEvent = {
 	timestamp: string;
 	items: {
 		label: string;
+		previousValue: string;
 		value: string;
 	}[];
 };
@@ -287,6 +292,7 @@ export type LabTestDetailsHistoryEvent = {
 	timestamp: string;
 	items: {
 		label: string;
+		previousValue: string;
 		value: string;
 	}[];
 };
@@ -347,6 +353,7 @@ export type ImagingDetailsHistoryEvent = {
 	timestamp: string;
 	items: {
 		label: string;
+		previousValue: string;
 		value: string;
 	}[];
 };

@@ -1,7 +1,8 @@
 import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
-import { patient, patientLabTest, patientLabTestFile } from "@/db/schemas";
+import { patient, patientLabTest, patientLabTestFile, patientLabTestHistory } from "@/db/schemas";
 import type {
+	LabTestDetailsHistoryEvent,
 	LabTestFlagFilter,
 	LabTestStatusFilter,
 	LabTestType,
@@ -72,6 +73,40 @@ export const getPatientLabTests = cache(
 		);
 	},
 );
+
+function groupHistoryEvents(
+	historyRows: {
+		fieldName: string;
+		oldValue: string | null;
+		newValue: string | null;
+		updatedBy: string | null;
+		createdAt: Date;
+	}[],
+): LabTestDetailsHistoryEvent[] {
+	return historyRows.reduce<LabTestDetailsHistoryEvent[]>((events, row) => {
+		const id = `${row.updatedBy}-${row.createdAt.getTime()}`;
+		const item = {
+			label: row.fieldName.charAt(0).toUpperCase() + row.fieldName.slice(1).replaceAll("_", " "),
+			previousValue: row.oldValue || "-",
+			value: row.newValue || "-",
+		};
+		const event = events.find((historyEvent) => historyEvent.id === id);
+
+		if (event) {
+			event.items.push(item);
+		} else {
+			events.push({
+				id,
+				title: "Updated",
+				actor: row.updatedBy || "-",
+				timestamp: formatDateTime(row.createdAt),
+				items: [item],
+			});
+		}
+
+		return events;
+	}, []);
+}
 
 export async function getPatientLabTestsForOrganization(
 	patientId: string,
@@ -149,6 +184,18 @@ export async function getPatientLabTestsForOrganization(
 			.limit(limit)
 			.offset(offset),
 	]);
+	const historyRows = rows.length
+		? await db
+				.select()
+				.from(patientLabTestHistory)
+				.where(
+					inArray(
+						patientLabTestHistory.labTestId,
+						rows.map((row) => row.labId),
+					),
+				)
+				.orderBy(desc(patientLabTestHistory.createdAt))
+		: [];
 	const labTestFiles = rows.length
 		? await db
 				.select()
@@ -216,21 +263,7 @@ export async function getPatientLabTestsForOrganization(
 				status,
 				clinicalNote,
 				files,
-				history: [
-					{
-						id: `${labTest.labId}-updated`,
-						title: "Updated",
-						actor: updatedBy || orderedBy,
-						timestamp: updatedAtLabel,
-						items: [
-							{ label: "Flag", value: flag || interpretation },
-							{ label: "Interpretation", value: interpretation },
-							{ label: "Result", value: result },
-							{ label: "Status", value: status },
-							{ label: "Clinical notes", value: clinicalNote },
-						],
-					},
-				],
+				history: groupHistoryEvents(historyRows.filter((row) => row.labTestId === labTest.labId)),
 			};
 		}),
 	};
