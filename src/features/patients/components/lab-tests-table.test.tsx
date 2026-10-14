@@ -1,6 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { format, subDays } from "date-fns";
+import { format, setDate, subDays, subMonths } from "date-fns";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { LabTestType } from "@/features/patients/types";
 import { LabTestsTable } from "./lab-tests-table";
@@ -287,36 +287,36 @@ describe("Lab tests table", () => {
 		);
 	});
 
-	test("applies a custom creation date range picked from the calendar", async () => {
+	test("applies a custom creation date range chosen in the date range dialog", async () => {
 		const user = setupSubmenuUser();
+		const start = setDate(subMonths(new Date(), 1), 15);
+		const end = setDate(new Date(), 15);
 		const { onCreatedAtRangeApply } = renderLabTestsTable();
 
 		await openFilterSubmenu(user, "Created at");
-		const applyButton = await screen.findByRole("button", { name: "Apply" });
-		expect(applyButton).toBeDisabled();
+		await user.click(screen.getByRole("menuitem", { name: "Custom date range" }));
+		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
+		const apply = within(dialog).getByRole("button", { name: "Apply date range" });
+		expect(apply).toBeDisabled();
 
-		const today = new Date();
-		const start = new Date(today.getFullYear(), today.getMonth(), 10);
-		const end = new Date(today.getFullYear(), today.getMonth(), 12);
 		await user.click(
-			screen.getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
+			within(dialog).getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
 		);
 		await user.click(
-			screen.getByRole("button", { name: new RegExp(format(end, "MMMM do, yyyy")) }),
+			within(dialog).getByRole("button", { name: new RegExp(format(end, "MMMM do, yyyy")) }),
 		);
+		expect(within(dialog).getByText(format(start, "do MMMM, yyyy"))).toBeVisible();
+		expect(within(dialog).getByText(format(end, "do MMMM, yyyy"))).toBeVisible();
 
-		expect(screen.getByText(format(start, "dd/MM/yyyy"))).toBeVisible();
-		expect(screen.getByText(format(end, "dd/MM/yyyy"))).toBeVisible();
-		expect(applyButton).toBeEnabled();
-
-		await user.click(applyButton);
-		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(
+		await user.click(apply);
+		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
 			format(start, "yyyy-MM-dd"),
 			format(end, "yyyy-MM-dd"),
 		);
+		await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 	});
 
-	test("clears the creation date range from the calendar reset button", async () => {
+	test("shows the current creation date range in the date range dialog and clears it with Reset", async () => {
 		const user = setupSubmenuUser();
 		const { onCreatedAtRangeApply } = renderLabTestsTable({
 			createdFrom: "2020-01-01",
@@ -324,10 +324,12 @@ describe("Lab tests table", () => {
 		});
 
 		await openFilterSubmenu(user, "Created at");
-		expect(await screen.findByText("01/01/2020")).toBeVisible();
-		expect(screen.getByText("31/01/2020")).toBeVisible();
+		await user.click(screen.getByRole("menuitem", { name: "Custom date range" }));
+		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
+		expect(within(dialog).getByText("1st January, 2020")).toBeVisible();
+		expect(within(dialog).getByText("31st January, 2020")).toBeVisible();
 
-		await user.click(screen.getByRole("button", { name: "Reset" }));
+		await user.click(within(dialog).getByRole("button", { name: "Reset" }));
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 

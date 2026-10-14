@@ -1,5 +1,10 @@
 "use client";
 
+import {
+	DateRangeMenuItems,
+	SetDateRangeDialog,
+	type DateRangeFilter,
+} from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { CreateImagingDrawer } from "@/features/patients/components/create-imaging-drawer";
@@ -14,7 +19,6 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
@@ -65,7 +69,6 @@ const configuredTableFeatures = tableFeatures({
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
-	RiArrowRightLine,
 	RiArrowUpSLine,
 	RiCalendarLine,
 	RiCheckboxCircleLine,
@@ -78,22 +81,11 @@ import {
 	RiSearchLine,
 	RiShare2Line,
 } from "@remixicon/react";
-import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
-import type { DateRange } from "react-day-picker";
+import { format } from "date-fns";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
 type ImagingFilterSubmenu = "status" | "modality" | "ordered-at" | "created-at";
-
-type ImagingDateFilterPreset = {
-	label: string;
-	getRange: (today: Date) => ImagingDateCompleteRange;
-};
-
-type ImagingDateCompleteRange = {
-	from: Date;
-	to: Date;
-};
 
 const imagingStatusFilterOptions: {
 	label: string;
@@ -112,21 +104,6 @@ const imagingModalityFilterOptions: {
 	{ label: "MRI", value: "mri" },
 	{ label: "Ultrasound", value: "ultrasound" },
 	{ label: "X-ray", value: "x-ray" },
-];
-
-const imagingDateFilterPresets: ImagingDateFilterPreset[] = [
-	{
-		label: "Today",
-		getRange: (today) => ({ from: startOfDay(today), to: endOfDay(today) }),
-	},
-	{
-		label: "Last 7 days",
-		getRange: (today) => ({ from: startOfDay(subDays(today, 6)), to: endOfDay(today) }),
-	},
-	{
-		label: "Last 30 days",
-		getRange: (today) => ({ from: startOfDay(subDays(today, 29)), to: endOfDay(today) }),
-	},
 ];
 
 type ImagingTableProps = {
@@ -181,6 +158,7 @@ export function ImagingTable({
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [selectedImagingRows, setSelectedImagingRows] = useState<RowSelectionState>({});
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<ImagingFilterSubmenu | null>(null);
+	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedStudy, setSelectedStudy] = useState<ImagingType | null>(null);
@@ -316,13 +294,13 @@ export function ImagingTable({
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								alignOffset={-5}
-								className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
+								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
-								<ImagingDateFilterContent
+								<DateRangeMenuItems
 									from={orderedFrom}
 									to={orderedTo}
-									isPending={isPending}
 									onDateRangeApply={onOrderedAtRangeApply}
+									onCustomDateRangeSelect={setCustomDateRangeFilter}
 								/>
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
@@ -343,18 +321,22 @@ export function ImagingTable({
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent
 								alignOffset={-5}
-								className="w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
+								className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 							>
-								<ImagingDateFilterContent
+								<DateRangeMenuItems
 									from={createdFrom}
 									to={createdTo}
-									isPending={isPending}
 									onDateRangeApply={onCreatedAtRangeApply}
+									onCustomDateRangeSelect={setCustomDateRangeFilter}
 								/>
 							</DropdownMenuSubContent>
 						</DropdownMenuSub>
 					</DropdownMenuContent>
 				</DropdownMenu>
+				<SetDateRangeDialog
+					dateRangeFilter={customDateRangeFilter}
+					onClose={() => setCustomDateRangeFilter(null)}
+				/>
 				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
@@ -763,174 +745,6 @@ function ImagingFilterPill({ label, onRemove }: { label: string; onRemove: () =>
 	);
 }
 
-function ImagingDateFilterContent({
-	from,
-	to,
-	isPending,
-	onDateRangeApply,
-}: {
-	from: string;
-	to: string;
-	isPending: boolean;
-	onDateRangeApply: (from: string, to: string) => void;
-}) {
-	return (
-		<div className="flex w-max">
-			<div className="flex w-50 shrink-0 flex-col p-1 text-sm text-gray-600">
-				<ImagingDatePresetList from={from} to={to} onDateRangeApply={onDateRangeApply} />
-			</div>
-
-			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
-				<ImagingCustomRangeCalendarPanel
-					key={`${from}:${to}`}
-					from={from}
-					to={to}
-					isPending={isPending}
-					onDateRangeApply={onDateRangeApply}
-				/>
-			</div>
-		</div>
-	);
-}
-
-function ImagingDatePresetList({
-	from,
-	to,
-	onDateRangeApply,
-}: {
-	from: string;
-	to: string;
-	onDateRangeApply: (from: string, to: string) => void;
-}) {
-	const selectedImagingDateRange = getDateRangeFromParams(from, to);
-	const today = new Date();
-
-	return (
-		<>
-			{imagingDateFilterPresets.map((preset) => {
-				const presetRange = preset.getRange(today);
-				return (
-					<ImagingDatePresetButton
-						key={preset.label}
-						label={preset.label}
-						isSelected={isSameDateRange(selectedImagingDateRange, presetRange)}
-						onSelect={() => {
-							onDateRangeApply(formatUrlDate(presetRange.from), formatUrlDate(presetRange.to));
-						}}
-					/>
-				);
-			})}
-		</>
-	);
-}
-
-function ImagingCustomRangeCalendarPanel({
-	from,
-	to,
-	isPending,
-	onDateRangeApply,
-}: {
-	from: string;
-	to: string;
-	isPending: boolean;
-	onDateRangeApply: (from: string, to: string) => void;
-}) {
-	const selectedImagingDateRange = getDateRangeFromParams(from, to);
-	const [draftImagingDateRange, setDraftImagingDateRange] = useState<DateRange | undefined>(
-		selectedImagingDateRange,
-	);
-
-	return (
-		<div className="flex min-w-0 flex-col">
-			<div className="flex items-center gap-3">
-				<ImagingDateFieldPlaceholder value={draftImagingDateRange?.from} label="Start date" />
-				<RiArrowRightLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
-				<ImagingDateFieldPlaceholder value={draftImagingDateRange?.to} label="End date" />
-			</div>
-
-			<Calendar
-				mode="range"
-				selected={draftImagingDateRange}
-				onSelect={(nextDraftImagingDateRange) => {
-					setDraftImagingDateRange(nextDraftImagingDateRange);
-				}}
-				numberOfMonths={1}
-				className="mt-4 p-0"
-				classNames={{
-					month_caption: "flex h-9 w-full items-center justify-center px-9",
-					caption_label: "text-sm font-semibold text-gray-800",
-					weekday: "flex-1 rounded-md text-sm font-medium text-gray-700 select-none",
-					day_button: "rounded-lg text-sm",
-				}}
-				disabled={isPending}
-			/>
-
-			<div className="mt-7 flex justify-end gap-3">
-				<Button
-					type="button"
-					variant="outline"
-					className="min-w-28"
-					disabled={isPending}
-					onClick={() => {
-						setDraftImagingDateRange(undefined);
-						onDateRangeApply("", "");
-					}}
-				>
-					Reset
-				</Button>
-				<Button
-					type="button"
-					className="min-w-40 flex-1"
-					disabled={!draftImagingDateRange?.from || !draftImagingDateRange?.to || isPending}
-					onClick={() => {
-						if (!draftImagingDateRange?.from || !draftImagingDateRange?.to) return;
-
-						onDateRangeApply(
-							formatUrlDate(draftImagingDateRange.from),
-							formatUrlDate(draftImagingDateRange.to),
-						);
-					}}
-				>
-					Apply
-				</Button>
-			</div>
-		</div>
-	);
-}
-
-function ImagingDatePresetButton({
-	isSelected,
-	label,
-	onSelect,
-}: {
-	isSelected: boolean;
-	label: string;
-	onSelect: () => void;
-}) {
-	return (
-		<DropdownMenuItem
-			onSelect={(event) => {
-				event.preventDefault();
-				onSelect();
-			}}
-			className="flex h-9 w-full items-center rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
-		>
-			<span className="flex-1">{label}</span>
-			{isSelected ? <RiCheckLine className="text-gray-700 size-4" aria-hidden="true" /> : null}
-		</DropdownMenuItem>
-	);
-}
-
-function ImagingDateFieldPlaceholder({ label, value }: { label: string; value?: Date }) {
-	return (
-		<div className="flex h-9 min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left text-sm font-medium text-gray-500">
-			<RiCalendarLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
-			<span className="sr-only">{label}</span>
-			<span className="truncate">{value ? format(value, "dd/MM/yyyy") : "DD/MM/YYYY"}</span>
-		</div>
-	);
-}
-
 function formatDateRangeFilterLabel(from: string, to: string) {
 	const parsedFromDate = parseDateParam(from);
 	const parsedToDate = parseDateParam(to);
@@ -948,32 +762,6 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 	}
 
 	return "Any date";
-}
-
-function getDateRangeFromParams(from: string, to: string): DateRange | undefined {
-	const parsedFromDate = parseDateParam(from);
-	const parsedToDate = parseDateParam(to);
-
-	if (!parsedFromDate && !parsedToDate) {
-		return undefined;
-	}
-
-	return {
-		from: parsedFromDate ?? undefined,
-		to: parsedToDate ?? undefined,
-	};
-}
-
-function isSameDateRange(left?: DateRange, right?: DateRange) {
-	if (!left?.from || !left?.to || !right?.from || !right?.to) {
-		return false;
-	}
-
-	return isSameDay(left.from, right.from) && isSameDay(left.to, right.to);
-}
-
-function formatUrlDate(date: Date) {
-	return format(date, "yyyy-MM-dd");
 }
 
 function formatImagingFilterValue(value: string) {

@@ -1,5 +1,10 @@
 "use client";
 
+import {
+	DateRangeMenuItems,
+	SetDateRangeDialog,
+	type DateRangeFilter,
+} from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import Link from "next/link";
@@ -15,7 +20,6 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { CreateEncounterDrawer } from "@/features/patients/components/create-encounter-drawer";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
@@ -63,11 +67,9 @@ const configuredTableFeatures = tableFeatures({
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
-	RiArrowRightLine,
 	RiArrowRightSLine,
 	RiArrowUpSLine,
 	RiCalendarLine,
-	RiCheckLine,
 	RiCloseLine,
 	RiEyeLine,
 	RiFilter3Line,
@@ -77,22 +79,11 @@ import {
 	RiBuilding4Line,
 	RiFileList2Line,
 } from "@remixicon/react";
-import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
-import type { DateRange } from "react-day-picker";
+import { format } from "date-fns";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
 type EncounterFilterSubmenu = "type" | "department" | "encounter-date" | "created-at";
-
-type EncounterDateFilterPreset = {
-	label: string;
-	getRange: (today: Date) => EncounterDateCompleteRange;
-};
-
-type EncounterDateCompleteRange = {
-	from: Date;
-	to: Date;
-};
 
 const encounterTypeFilterOptions: {
 	label: string;
@@ -114,21 +105,6 @@ const encounterDepartmentFilterOptions: {
 	{ label: "Endocrinology", value: "endocrinology" },
 	{ label: "Family Medicine", value: "family-medicine" },
 	{ label: "Nephrology", value: "nephrology" },
-];
-
-const encounterDateFilterPresets: EncounterDateFilterPreset[] = [
-	{
-		label: "Today",
-		getRange: (today) => ({ from: startOfDay(today), to: endOfDay(today) }),
-	},
-	{
-		label: "Last 7 days",
-		getRange: (today) => ({ from: startOfDay(subDays(today, 6)), to: endOfDay(today) }),
-	},
-	{
-		label: "Last 30 days",
-		getRange: (today) => ({ from: startOfDay(subDays(today, 29)), to: endOfDay(today) }),
-	},
 ];
 
 type EncountersTableProps = {
@@ -191,6 +167,7 @@ export function EncountersTable({
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<EncounterFilterSubmenu | null>(
 		null,
 	);
+	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isEncounterFilterMenuOpen, setIsEncounterFilterMenuOpen] = useState(false);
 	const table = useTable({
 		features: configuredTableFeatures,
@@ -291,10 +268,7 @@ export function EncountersTable({
 							id="encounter-filter-submenu-panel"
 							aria-hidden={activeFilterSubmenu === null}
 							className={cn(
-								"absolute top-0 right-[100%] z-50 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[translate,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-								activeFilterSubmenu === "encounter-date" || activeFilterSubmenu === "created-at"
-									? "w-max"
-									: "w-[13.75rem]",
+								"absolute top-0 right-[100%] z-50 w-[13.75rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[translate,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 								activeFilterSubmenu === "type"
 									? "translate-y-10"
 									: activeFilterSubmenu === "created-at"
@@ -305,12 +279,12 @@ export function EncountersTable({
 								activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
 							)}
 						>
-							<div hidden={activeFilterSubmenu !== "encounter-date"}>
-								<EncounterDateFilterContent
+							<div hidden={activeFilterSubmenu !== "encounter-date"} className="p-1">
+								<DateRangeMenuItems
 									from={encounterFrom}
 									to={encounterTo}
-									isPending={isPending}
 									onDateRangeApply={onEncounterDateRangeApply}
+									onCustomDateRangeSelect={setCustomDateRangeFilter}
 								/>
 							</div>
 
@@ -324,12 +298,12 @@ export function EncountersTable({
 								/>
 							</div>
 
-							<div hidden={activeFilterSubmenu !== "created-at"}>
-								<EncounterDateFilterContent
+							<div hidden={activeFilterSubmenu !== "created-at"} className="p-1">
+								<DateRangeMenuItems
 									from={createdFrom}
 									to={createdTo}
-									isPending={isPending}
 									onDateRangeApply={onCreatedAtRangeApply}
+									onCustomDateRangeSelect={setCustomDateRangeFilter}
 								/>
 							</div>
 
@@ -345,6 +319,10 @@ export function EncountersTable({
 						</div>
 					</DropdownMenuContent>
 				</DropdownMenu>
+				<SetDateRangeDialog
+					dateRangeFilter={customDateRangeFilter}
+					onClose={() => setCustomDateRangeFilter(null)}
+				/>
 				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
@@ -359,6 +337,7 @@ export function EncountersTable({
 				<CreateEncounterDrawer
 					open={isCreateEncounterDrawerOpen}
 					onOpenChange={setIsCreateEncounterDrawerOpen}
+					patientId={patientId}
 				/>
 			</div>
 			<EncounterActiveFilterPills
@@ -767,174 +746,6 @@ function EncounterFilterPill({ label, onRemove }: { label: string; onRemove: () 
 	);
 }
 
-function EncounterDateFilterContent({
-	from,
-	to,
-	isPending,
-	onDateRangeApply,
-}: {
-	from: string;
-	to: string;
-	isPending: boolean;
-	onDateRangeApply: (from: string, to: string) => void;
-}) {
-	return (
-		<div className="flex w-max">
-			<div className="flex w-50 shrink-0 flex-col p-1 text-sm text-gray-600">
-				<EncounterDatePresetList from={from} to={to} onDateRangeApply={onDateRangeApply} />
-			</div>
-
-			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
-				<EncounterCustomRangeCalendarPanel
-					key={`${from}:${to}`}
-					from={from}
-					to={to}
-					isPending={isPending}
-					onDateRangeApply={onDateRangeApply}
-				/>
-			</div>
-		</div>
-	);
-}
-
-function EncounterDatePresetList({
-	from,
-	to,
-	onDateRangeApply,
-}: {
-	from: string;
-	to: string;
-	onDateRangeApply: (from: string, to: string) => void;
-}) {
-	const selectedEncounterDateRange = getDateRangeFromParams(from, to);
-	const today = new Date();
-
-	return (
-		<>
-			{encounterDateFilterPresets.map((preset) => {
-				const presetRange = preset.getRange(today);
-				return (
-					<EncounterDatePresetButton
-						key={preset.label}
-						label={preset.label}
-						isSelected={isSameDateRange(selectedEncounterDateRange, presetRange)}
-						onSelect={() => {
-							onDateRangeApply(formatUrlDate(presetRange.from), formatUrlDate(presetRange.to));
-						}}
-					/>
-				);
-			})}
-		</>
-	);
-}
-
-function EncounterCustomRangeCalendarPanel({
-	from,
-	to,
-	isPending,
-	onDateRangeApply,
-}: {
-	from: string;
-	to: string;
-	isPending: boolean;
-	onDateRangeApply: (from: string, to: string) => void;
-}) {
-	const selectedEncounterDateRange = getDateRangeFromParams(from, to);
-	const [draftEncounterDateRange, setDraftEncounterDateRange] = useState<DateRange | undefined>(
-		selectedEncounterDateRange,
-	);
-
-	return (
-		<div className="flex min-w-0 flex-col">
-			<div className="flex items-center gap-3">
-				<EncounterDateFieldPlaceholder value={draftEncounterDateRange?.from} label="Start date" />
-				<RiArrowRightLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
-				<EncounterDateFieldPlaceholder value={draftEncounterDateRange?.to} label="End date" />
-			</div>
-
-			<Calendar
-				mode="range"
-				selected={draftEncounterDateRange}
-				onSelect={(nextDraftEncounterDateRange) => {
-					setDraftEncounterDateRange(nextDraftEncounterDateRange);
-				}}
-				numberOfMonths={1}
-				className="mt-4 p-0"
-				classNames={{
-					month_caption: "flex h-9 w-full items-center justify-center px-9",
-					caption_label: "text-sm font-semibold text-gray-800",
-					weekday: "flex-1 rounded-md text-sm font-medium text-gray-700 select-none",
-					day_button: "rounded-lg text-sm",
-				}}
-				disabled={isPending}
-			/>
-
-			<div className="mt-7 flex justify-end gap-3">
-				<Button
-					type="button"
-					variant="outline"
-					className="min-w-28"
-					disabled={isPending}
-					onClick={() => {
-						setDraftEncounterDateRange(undefined);
-						onDateRangeApply("", "");
-					}}
-				>
-					Reset
-				</Button>
-				<Button
-					type="button"
-					className="min-w-40 flex-1"
-					disabled={!draftEncounterDateRange?.from || !draftEncounterDateRange?.to || isPending}
-					onClick={() => {
-						if (!draftEncounterDateRange?.from || !draftEncounterDateRange?.to) return;
-
-						onDateRangeApply(
-							formatUrlDate(draftEncounterDateRange.from),
-							formatUrlDate(draftEncounterDateRange.to),
-						);
-					}}
-				>
-					Apply
-				</Button>
-			</div>
-		</div>
-	);
-}
-
-function EncounterDatePresetButton({
-	isSelected,
-	label,
-	onSelect,
-}: {
-	isSelected: boolean;
-	label: string;
-	onSelect: () => void;
-}) {
-	return (
-		<DropdownMenuItem
-			onSelect={(event) => {
-				event.preventDefault();
-				onSelect();
-			}}
-			className="flex h-9 w-full items-center rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
-		>
-			<span className="flex-1">{label}</span>
-			{isSelected ? <RiCheckLine className="text-gray-700 size-4" aria-hidden="true" /> : null}
-		</DropdownMenuItem>
-	);
-}
-
-function EncounterDateFieldPlaceholder({ label, value }: { label: string; value?: Date }) {
-	return (
-		<div className="flex h-9 min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left text-sm font-medium text-gray-500">
-			<RiCalendarLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
-			<span className="sr-only">{label}</span>
-			<span className="truncate">{value ? format(value, "dd/MM/yyyy") : "DD/MM/YYYY"}</span>
-		</div>
-	);
-}
-
 function formatDateRangeFilterLabel(from: string, to: string) {
 	const parsedFromDate = parseDateParam(from);
 	const parsedToDate = parseDateParam(to);
@@ -952,32 +763,6 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 	}
 
 	return "Any date";
-}
-
-function getDateRangeFromParams(from: string, to: string): DateRange | undefined {
-	const parsedFromDate = parseDateParam(from);
-	const parsedToDate = parseDateParam(to);
-
-	if (!parsedFromDate && !parsedToDate) {
-		return undefined;
-	}
-
-	return {
-		from: parsedFromDate ?? undefined,
-		to: parsedToDate ?? undefined,
-	};
-}
-
-function isSameDateRange(left?: DateRange, right?: DateRange) {
-	if (!left?.from || !left?.to || !right?.from || !right?.to) {
-		return false;
-	}
-
-	return isSameDay(left.from, right.from) && isSameDay(left.to, right.to);
-}
-
-function formatUrlDate(date: Date) {
-	return format(date, "yyyy-MM-dd");
 }
 
 function formatEncounterFilterValue(value: string) {

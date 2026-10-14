@@ -1,6 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { addDays, format, startOfMonth, subDays } from "date-fns";
+import { format, setDate, subDays, subMonths } from "date-fns";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { AllergyDetailsType, AllergyType } from "@/features/patients/types";
 import { AllergiesTable } from "./allergies-table";
@@ -128,10 +128,6 @@ function rowFor(allergen: string) {
 
 function urlDate(date: Date) {
 	return format(date, "yyyy-MM-dd");
-}
-
-function dayButtonName(date: Date) {
-	return new RegExp(format(date, "EEEE, MMMM do, yyyy"));
 }
 
 type User = ReturnType<typeof userEvent.setup>;
@@ -329,30 +325,49 @@ describe("Allergies table", () => {
 		);
 	});
 
-	test("applies a custom calendar range and can reset it", async () => {
+	test("applies a custom created-at range chosen in the date range dialog", async () => {
 		const user = userEvent.setup();
-		const firstOfMonth = startOfMonth(new Date());
-		const thirdOfMonth = addDays(firstOfMonth, 2);
+		const start = setDate(subMonths(new Date(), 1), 15);
+		const end = setDate(new Date(), 15);
 		const { onCreatedAtRangeApply } = renderAllergiesTable();
 
 		await openFilterSubmenu(user, "Created at");
-
-		const apply = await screen.findByRole("button", { name: "Apply" });
+		await tap(user, screen.getByRole("menuitem", { name: "Custom date range" }));
+		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
+		const apply = within(dialog).getByRole("button", { name: "Apply date range" });
 		expect(apply).toBeDisabled();
 
-		await tap(user, screen.getByRole("button", { name: dayButtonName(firstOfMonth) }));
-		await tap(user, screen.getByRole("button", { name: dayButtonName(thirdOfMonth) }));
-		expect(screen.getByText(format(firstOfMonth, "dd/MM/yyyy"))).toBeVisible();
-		expect(screen.getByText(format(thirdOfMonth, "dd/MM/yyyy"))).toBeVisible();
-		expect(apply).toBeEnabled();
-
-		await tap(user, apply);
-		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
-			urlDate(firstOfMonth),
-			urlDate(thirdOfMonth),
+		await user.click(
+			within(dialog).getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
 		);
+		await user.click(
+			within(dialog).getByRole("button", { name: new RegExp(format(end, "MMMM do, yyyy")) }),
+		);
+		expect(within(dialog).getByText(format(start, "do MMMM, yyyy"))).toBeVisible();
+		expect(within(dialog).getByText(format(end, "do MMMM, yyyy"))).toBeVisible();
 
-		await tap(user, screen.getByRole("button", { name: "Reset" }));
+		await user.click(apply);
+		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
+			format(start, "yyyy-MM-dd"),
+			format(end, "yyyy-MM-dd"),
+		);
+		await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+	});
+
+	test("clears the created-at range from the date range dialog's Reset button", async () => {
+		const user = userEvent.setup();
+		const { onCreatedAtRangeApply } = renderAllergiesTable({
+			createdFrom: "2020-01-01",
+			createdTo: "2020-01-31",
+		});
+
+		await openFilterSubmenu(user, "Created at");
+		await tap(user, screen.getByRole("menuitem", { name: "Custom date range" }));
+		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
+		expect(within(dialog).getByText("1st January, 2020")).toBeVisible();
+		expect(within(dialog).getByText("31st January, 2020")).toBeVisible();
+
+		await user.click(within(dialog).getByRole("button", { name: "Reset" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith("", "");
 	});
 

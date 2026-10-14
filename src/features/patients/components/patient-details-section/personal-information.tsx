@@ -13,7 +13,7 @@ import {
 	RiMore2Fill,
 	RiShare2Line,
 } from "@remixicon/react";
-import { format } from "date-fns";
+import { format, subYears } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -257,6 +257,7 @@ export function PersonalInformation({
 										defaultMonth={dob}
 										selected={dob}
 										onSelect={setDob}
+										startMonth={subYears(new Date(), 100)}
 										autoFocus
 									/>
 								</PopoverContent>

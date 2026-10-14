@@ -1,5 +1,10 @@
 "use client";
 
+import {
+	DateRangeMenuItems,
+	SetDateRangeDialog,
+	type DateRangeFilter,
+} from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
 import {
 	type ColumnDef,
@@ -19,16 +24,13 @@ const configuredTableFeatures = tableFeatures({
 	sortFns,
 	sortedRowModel: createSortedRowModel(),
 });
-import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
-import type { DateRange } from "react-day-picker";
+import { format } from "date-fns";
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
 	RiArrowRightSLine,
-	RiArrowRightLine,
 	RiArrowUpSLine,
 	RiCalendarLine,
-	RiCheckLine,
 	RiCloseLine,
 	RiEyeLine,
 	RiFileList2Line,
@@ -41,7 +43,6 @@ import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
@@ -81,16 +82,6 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 
 type VitalFilterSubmenu = "encounter-date" | "encounter-type" | "created-at";
 
-type VitalDateCompleteRange = {
-	from: Date;
-	to: Date;
-};
-
-type VitalDateFilterPreset = {
-	label: string;
-	getRange: (today: Date) => VitalDateCompleteRange;
-};
-
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
 const numericVitalColumnIds = new Set([
@@ -102,21 +93,6 @@ const numericVitalColumnIds = new Set([
 	"weight",
 	"bmi",
 ]);
-
-const vitalDateFilterPresets: VitalDateFilterPreset[] = [
-	{
-		label: "Today",
-		getRange: (today) => ({ from: startOfDay(today), to: endOfDay(today) }),
-	},
-	{
-		label: "Last 7 days",
-		getRange: (today) => ({ from: startOfDay(subDays(today, 6)), to: endOfDay(today) }),
-	},
-	{
-		label: "Last 30 days",
-		getRange: (today) => ({ from: startOfDay(subDays(today, 29)), to: endOfDay(today) }),
-	},
-];
 
 const vitalEncounterTypeFilterOptions: {
 	label: string;
@@ -181,6 +157,7 @@ export function VitalsTable({
 	);
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<VitalFilterSubmenu | null>(null);
+	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isVitalsFilterMenuOpen, setIsVitalsFilterMenuOpen] = useState(false);
 	const [selectedEncounterTypeFilters, setSelectedEncounterTypeFilters] = useState<
 		EncounterTypeFilter[]
@@ -278,10 +255,7 @@ export function VitalsTable({
 							id="vitals-filter-submenu-panel"
 							aria-hidden={activeFilterSubmenu === null}
 							className={cn(
-								"absolute top-0 right-[100%] z-50 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[translate,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-								activeFilterSubmenu === "encounter-date" || activeFilterSubmenu === "created-at"
-									? "w-max"
-									: "w-[13.75rem]",
+								"absolute top-0 right-[100%] z-50 w-[13.75rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[translate,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 								activeFilterSubmenu === "encounter-type"
 									? "translate-y-10"
 									: activeFilterSubmenu === "created-at"
@@ -290,12 +264,12 @@ export function VitalsTable({
 								activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
 							)}
 						>
-							<div hidden={activeFilterSubmenu !== "encounter-date"}>
-								<VitalDateFilterContent
+							<div hidden={activeFilterSubmenu !== "encounter-date"} className="p-1">
+								<DateRangeMenuItems
 									from={recordedFrom}
 									to={recordedTo}
-									isPending={isPending}
 									onDateRangeApply={onRecordedAtRangeApply}
+									onCustomDateRangeSelect={setCustomDateRangeFilter}
 								/>
 							</div>
 
@@ -328,17 +302,21 @@ export function VitalsTable({
 								})}
 							</div>
 
-							<div hidden={activeFilterSubmenu !== "created-at"}>
-								<VitalDateFilterContent
+							<div hidden={activeFilterSubmenu !== "created-at"} className="p-1">
+								<DateRangeMenuItems
 									from={createdFrom}
 									to={createdTo}
-									isPending={isPending}
 									onDateRangeApply={onCreatedAtRangeApply}
+									onCustomDateRangeSelect={setCustomDateRangeFilter}
 								/>
 							</div>
 						</div>
 					</DropdownMenuContent>
 				</DropdownMenu>
+				<SetDateRangeDialog
+					dateRangeFilter={customDateRangeFilter}
+					onClose={() => setCustomDateRangeFilter(null)}
+				/>
 				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
 					Export
@@ -740,148 +718,6 @@ function VitalFilterPill({ label, onRemove }: { label: string; onRemove: () => v
 	);
 }
 
-function VitalDateFilterContent({
-	from,
-	to,
-	isPending,
-	onDateRangeApply,
-}: {
-	from: string;
-	to: string;
-	isPending: boolean;
-	onDateRangeApply: (from: string, to: string) => void;
-}) {
-	return (
-		<div className="flex w-max">
-			<div className="flex w-50 shrink-0 flex-col p-1 text-sm text-gray-600">
-				<VitalDatePresetList from={from} to={to} onDateRangeApply={onDateRangeApply} />
-			</div>
-			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
-				<VitalCustomRangeCalendarPanel
-					key={`${from}:${to}`}
-					from={from}
-					to={to}
-					isPending={isPending}
-					onDateRangeApply={onDateRangeApply}
-				/>
-			</div>
-		</div>
-	);
-}
-
-function VitalDatePresetList({
-	from,
-	to,
-	onDateRangeApply,
-}: {
-	from: string;
-	to: string;
-	onDateRangeApply: (from: string, to: string) => void;
-}) {
-	const selectedDateRange = getDateRangeFromParams(from, to);
-	const today = new Date();
-
-	return (
-		<>
-			{vitalDateFilterPresets.map((preset) => {
-				const presetRange = preset.getRange(today);
-
-				return (
-					<DropdownMenuItem
-						key={preset.label}
-						onSelect={(event) => {
-							event.preventDefault();
-							onDateRangeApply(formatUrlDate(presetRange.from), formatUrlDate(presetRange.to));
-						}}
-						className="flex h-9 w-full items-center rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
-					>
-						<span className="flex-1">{preset.label}</span>
-						{isSameDateRange(selectedDateRange, presetRange) ? (
-							<RiCheckLine className="text-gray-700 size-4" aria-hidden="true" />
-						) : null}
-					</DropdownMenuItem>
-				);
-			})}
-		</>
-	);
-}
-
-function VitalCustomRangeCalendarPanel({
-	from,
-	to,
-	isPending,
-	onDateRangeApply,
-}: {
-	from: string;
-	to: string;
-	isPending: boolean;
-	onDateRangeApply: (from: string, to: string) => void;
-}) {
-	const [draftDateRange, setDraftDateRange] = useState<DateRange | undefined>(
-		getDateRangeFromParams(from, to),
-	);
-
-	return (
-		<div className="flex min-w-0 flex-col">
-			<div className="flex items-center gap-3">
-				<VitalDateFieldPlaceholder value={draftDateRange?.from} label="Start date" />
-				<RiArrowRightLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
-				<VitalDateFieldPlaceholder value={draftDateRange?.to} label="End date" />
-			</div>
-			<Calendar
-				mode="range"
-				selected={draftDateRange}
-				onSelect={setDraftDateRange}
-				numberOfMonths={1}
-				className="mt-4 p-0"
-				classNames={{
-					month_caption: "flex h-9 w-full items-center justify-center px-9",
-					caption_label: "text-sm font-semibold text-gray-800",
-					weekday: "flex-1 rounded-md text-sm font-medium text-gray-700 select-none",
-					day_button: "rounded-lg text-sm",
-				}}
-				disabled={isPending}
-			/>
-			<div className="mt-7 flex justify-end gap-3">
-				<Button
-					type="button"
-					variant="outline"
-					className="min-w-28"
-					disabled={isPending}
-					onClick={() => {
-						setDraftDateRange(undefined);
-						onDateRangeApply("", "");
-					}}
-				>
-					Reset
-				</Button>
-				<Button
-					type="button"
-					className="min-w-40 flex-1"
-					disabled={!draftDateRange?.from || !draftDateRange?.to || isPending}
-					onClick={() => {
-						if (!draftDateRange?.from || !draftDateRange?.to) return;
-
-						onDateRangeApply(formatUrlDate(draftDateRange.from), formatUrlDate(draftDateRange.to));
-					}}
-				>
-					Apply
-				</Button>
-			</div>
-		</div>
-	);
-}
-
-function VitalDateFieldPlaceholder({ label, value }: { label: string; value?: Date }) {
-	return (
-		<div className="flex h-9 min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left text-sm font-medium text-gray-500">
-			<RiCalendarLine className="size-5 shrink-0 text-gray-400" aria-hidden="true" />
-			<span className="sr-only">{label}</span>
-			<span className="truncate">{value ? format(value, "dd/MM/yyyy") : "DD/MM/YYYY"}</span>
-		</div>
-	);
-}
-
 function formatDateRangeFilterLabel(from: string, to: string) {
 	const parsedFromDate = parseDateParam(from);
 	const parsedToDate = parseDateParam(to);
@@ -895,25 +731,6 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 	if (parsedToDate) return `Until ${format(parsedToDate, "MMM d, yyyy")}`;
 
 	return "Any date";
-}
-
-function getDateRangeFromParams(from: string, to: string): DateRange | undefined {
-	const parsedFromDate = parseDateParam(from);
-	const parsedToDate = parseDateParam(to);
-
-	if (!parsedFromDate && !parsedToDate) return undefined;
-
-	return { from: parsedFromDate, to: parsedToDate };
-}
-
-function isSameDateRange(range: DateRange | undefined, presetRange: VitalDateCompleteRange) {
-	if (!range?.from || !range.to) return false;
-
-	return isSameDay(range.from, presetRange.from) && isSameDay(range.to, presetRange.to);
-}
-
-function formatUrlDate(date: Date) {
-	return format(date, "yyyy-MM-dd");
 }
 
 function getVitalsColumns({

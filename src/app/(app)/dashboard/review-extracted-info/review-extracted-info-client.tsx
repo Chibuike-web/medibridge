@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, isMatch, parseISO } from "date-fns";
+import { format, isMatch, parseISO, subYears } from "date-fns";
 import {
 	Select,
 	SelectContent,
@@ -576,14 +576,18 @@ export function ReviewExtractedInfoClient({
 																						<RiCalendarLine aria-hidden="true" />
 																					</Button>
 																				</PopoverTrigger>
-																				<PopoverContent collisionPadding={16} className="p-0">
+																				<PopoverContent
+																					align="end"
+																					collisionPadding={16}
+																					className="p-0"
+																				>
 																					<Calendar
 																						mode="single"
 																						required
 																						selected={parsedBirthDate}
 																						defaultMonth={parsedBirthDate}
 																						disabled={{ after: new Date() }}
-																						className="[--cell-size:2.25rem] sm:[--cell-size:2.5rem]"
+																						startMonth={subYears(new Date(), 100)}
 																						onSelect={(date) => {
 																							changeField(
 																								section.key,

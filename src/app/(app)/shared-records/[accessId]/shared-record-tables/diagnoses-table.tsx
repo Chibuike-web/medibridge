@@ -1,5 +1,10 @@
 "use client";
 
+import {
+	DateRangeMenuItems,
+	SetDateRangeDialog,
+	type DateRangeFilter,
+} from "@/components/date-range-filter";
 import { useMemo, useRef, useState, useTransition } from "react";
 import {
 	RiArrowDownSLine,
@@ -10,9 +15,7 @@ import {
 	RiMore2Fill,
 	RiSearchLine,
 	RiCloseLine,
-	RiArrowRightLine,
 	RiCalendarLine,
-	RiCheckLine,
 	RiCheckboxCircleLine,
 	RiHistoryLine,
 	RiPulseLine,
@@ -36,7 +39,6 @@ const configuredTableFeatures = tableFeatures({
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
@@ -59,8 +61,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
-import { endOfDay, format, isSameDay, startOfDay, subDays } from "date-fns";
-import type { DateRange } from "react-day-picker";
+import { format } from "date-fns";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { getSharedDiagnosesTableAction } from "../shared-record-table-actions";
 
@@ -69,30 +70,6 @@ const diagnosisStatusFilterOptions = [
 	{ label: "Active", value: "Active" },
 	{ label: "Resolved", value: "Resolved" },
 ] as const;
-const diagnosisDateFilterPresets = [
-	{
-		label: "Today",
-		getRange: (today: Date) => ({
-			from: startOfDay(today),
-			to: endOfDay(today),
-		}),
-	},
-	{
-		label: "Last 7 days",
-		getRange: (today: Date) => ({
-			from: startOfDay(subDays(today, 6)),
-			to: endOfDay(today),
-		}),
-	},
-	{
-		label: "Last 30 days",
-		getRange: (today: Date) => ({
-			from: startOfDay(subDays(today, 29)),
-			to: endOfDay(today),
-		}),
-	},
-];
-
 export type SharedDiagnosisRow = {
 	name: string;
 	diagnosedAt: string;
@@ -124,6 +101,7 @@ export function SharedDiagnosesTable({
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<DiagnosisFilterSubmenu | null>(
 		null,
 	);
+	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isPending, startTransition] = useTransition();
 	const latestRequestIdRef = useRef(0);
 	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
@@ -297,13 +275,12 @@ export function SharedDiagnosesTable({
 							onOpenChange={(open) => setActiveFilterSubmenu(open ? "last-reviewed" : null)}
 							icon={<RiHistoryLine className="text-lg" />}
 							label="Last updated"
-							wide
 						>
-							<DateFilterContent
+							<DateRangeMenuItems
 								from={reviewedFrom}
 								to={reviewedTo}
-								isPending={isPending}
 								onDateRangeApply={handleReviewedRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
 							/>
 						</FilterSubmenu>
 						<FilterSubmenu
@@ -311,13 +288,12 @@ export function SharedDiagnosesTable({
 							onOpenChange={(open) => setActiveFilterSubmenu(open ? "diagnosed-at" : null)}
 							icon={<RiPulseLine className="size-4.5" />}
 							label="Diagnosed At"
-							wide
 						>
-							<DateFilterContent
+							<DateRangeMenuItems
 								from={diagnosedFrom}
 								to={diagnosedTo}
-								isPending={isPending}
 								onDateRangeApply={handleDiagnosedRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
 							/>
 						</FilterSubmenu>
 						<FilterSubmenu
@@ -325,17 +301,20 @@ export function SharedDiagnosesTable({
 							onOpenChange={(open) => setActiveFilterSubmenu(open ? "created-at" : null)}
 							icon={<RiCalendarLine className="size-4.5" />}
 							label="Created at"
-							wide
 						>
-							<DateFilterContent
+							<DateRangeMenuItems
 								from={createdFrom}
 								to={createdTo}
-								isPending={isPending}
 								onDateRangeApply={handleCreatedRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
 							/>
 						</FilterSubmenu>
 					</DropdownMenuContent>
 				</DropdownMenu>
+				<SetDateRangeDialog
+					dateRangeFilter={customDateRangeFilter}
+					onClose={() => setCustomDateRangeFilter(null)}
+				/>
 				<Button type="button" variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
 					<RiShare2Line aria-hidden="true" />
 					Export
@@ -496,14 +475,12 @@ function FilterSubmenu({
 	onOpenChange,
 	icon,
 	label,
-	wide = false,
 	children,
 }: {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	icon: React.ReactNode;
 	label: string;
-	wide?: boolean;
 	children: React.ReactNode;
 }) {
 	return (
@@ -514,11 +491,7 @@ function FilterSubmenu({
 			</DropdownMenuSubTrigger>
 			<DropdownMenuSubContent
 				alignOffset={-5}
-				className={
-					wide
-						? "w-max max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-0 text-sm text-gray-700 shadow-xl"
-						: "w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
-				}
+				className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
 			>
 				{children}
 			</DropdownMenuSubContent>
@@ -570,145 +543,6 @@ function CheckboxFilterList<TValue extends string>({
 		);
 	});
 }
-function DateFilterContent({
-	from,
-	to,
-	isPending,
-	onDateRangeApply,
-}: {
-	from: string;
-	to: string;
-	isPending: boolean;
-	onDateRangeApply: (from: string, to: string) => void;
-}) {
-	return (
-		<div className="flex w-max">
-			<div className="flex w-50 shrink-0 flex-col p-1 text-sm text-gray-600">
-				<DatePresetList from={from} to={to} onDateRangeApply={onDateRangeApply} />
-			</div>
-			<div className="w-88 shrink-0 border-l border-gray-100 p-3">
-				<CustomRangeCalendarPanel
-					key={`${from}:${to}`}
-					from={from}
-					to={to}
-					isPending={isPending}
-					onDateRangeApply={onDateRangeApply}
-				/>
-			</div>
-		</div>
-	);
-}
-function DatePresetList({
-	from,
-	to,
-	onDateRangeApply,
-}: {
-	from: string;
-	to: string;
-	onDateRangeApply: (from: string, to: string) => void;
-}) {
-	const selected = getDateRangeFromParams(from, to);
-	const today = new Date();
-	return diagnosisDateFilterPresets.map((preset) => {
-		const range = preset.getRange(today);
-		const isSelected = Boolean(
-			selected?.from &&
-			selected.to &&
-			isSameDay(selected.from, range.from) &&
-			isSameDay(selected.to, range.to),
-		);
-		return (
-			<DropdownMenuItem
-				key={preset.label}
-				onSelect={(event) => {
-					event.preventDefault();
-					onDateRangeApply(formatUrlDate(range.from), formatUrlDate(range.to));
-				}}
-				className="flex h-9 w-full items-center rounded-lg px-3 text-left font-medium text-gray-700 focus:bg-gray-50"
-			>
-				<span className="flex-1">{preset.label}</span>
-				{isSelected ? <RiCheckLine className="text-gray-700 size-4" aria-hidden /> : null}
-			</DropdownMenuItem>
-		);
-	});
-}
-function CustomRangeCalendarPanel({
-	from,
-	to,
-	isPending,
-	onDateRangeApply,
-}: {
-	from: string;
-	to: string;
-	isPending: boolean;
-	onDateRangeApply: (from: string, to: string) => void;
-}) {
-	const [draftRange, setDraftRange] = useState<DateRange | undefined>(
-		getDateRangeFromParams(from, to),
-	);
-	return (
-		<div className="flex min-w-0 flex-col">
-			<div className="flex items-center gap-3">
-				<DateField value={draftRange?.from} label="Start date" />
-				<RiArrowRightLine className="size-5 shrink-0 text-gray-400" aria-hidden />
-				<DateField value={draftRange?.to} label="End date" />
-			</div>
-			<Calendar
-				mode="range"
-				selected={draftRange}
-				onSelect={setDraftRange}
-				numberOfMonths={1}
-				className="mt-4 p-0"
-				classNames={{
-					month_caption: "flex h-9 w-full items-center justify-center px-9",
-					caption_label: "text-sm font-semibold text-gray-800",
-					weekday: "flex-1 rounded-md text-sm font-medium text-gray-700 select-none",
-					day_button: "rounded-lg text-sm",
-				}}
-				disabled={isPending}
-			/>
-			<div className="mt-7 flex justify-end gap-3">
-				<Button
-					type="button"
-					variant="outline"
-					className="min-w-28"
-					disabled={isPending}
-					onClick={() => {
-						setDraftRange(undefined);
-						onDateRangeApply("", "");
-					}}
-				>
-					Reset
-				</Button>
-				<Button
-					type="button"
-					className="min-w-40 flex-1"
-					disabled={!draftRange?.from || !draftRange?.to || isPending}
-					onClick={() => {
-						if (draftRange?.from && draftRange.to)
-							onDateRangeApply(formatUrlDate(draftRange.from), formatUrlDate(draftRange.to));
-					}}
-				>
-					Apply
-				</Button>
-			</div>
-		</div>
-	);
-}
-function DateField({ label, value }: { label: string; value?: Date }) {
-	return (
-		<div className="flex h-9 min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-2 text-left text-sm font-medium text-gray-500">
-			<RiCalendarLine className="size-5 shrink-0 text-gray-400" aria-hidden />
-			<span className="sr-only">{label}</span>
-			<span className="truncate">{value ? format(value, "dd/MM/yyyy") : "DD/MM/YYYY"}</span>
-		</div>
-	);
-}
-function getDateRangeFromParams(from: string, to: string): DateRange | undefined {
-	const fromDate = parseDateParam(from);
-	const toDate = parseDateParam(to);
-	return fromDate || toDate ? { from: fromDate, to: toDate } : undefined;
-}
 function formatDateRangeFilterLabel(from: string, to: string) {
 	const fromDate = parseDateParam(from);
 	const toDate = parseDateParam(to);
@@ -718,10 +552,6 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 	if (toDate) return `Until ${format(toDate, "MMM d, yyyy")}`;
 	return "Any date";
 }
-function formatUrlDate(date: Date) {
-	return format(date, "yyyy-MM-dd");
-}
-
 function RowMenu() {
 	return (
 		<DropdownMenu>

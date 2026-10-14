@@ -1,6 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { addDays, format, startOfMonth, subDays } from "date-fns";
+import { format, setDate, subDays, subMonths } from "date-fns";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { DiagnosisDetailsType, DiagnosisType } from "@/features/patients/types";
 import { DiagnosesTable } from "./diagnoses-table";
@@ -126,10 +126,6 @@ function rowFor(name: string) {
 
 function urlDate(date: Date) {
 	return format(date, "yyyy-MM-dd");
-}
-
-function dayButtonName(date: Date) {
-	return new RegExp(format(date, "EEEE, MMMM do, yyyy"));
 }
 
 type User = ReturnType<typeof userEvent.setup>;
@@ -280,31 +276,49 @@ describe("Diagnoses table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(urlDate(subDays(today, 29)), urlDate(today));
 	});
 
-	test("applies a custom calendar range and can reset it", async () => {
+	test("applies a custom created-at range chosen in the date range dialog", async () => {
 		const user = userEvent.setup();
-		const firstOfMonth = startOfMonth(new Date());
-		const thirdOfMonth = addDays(firstOfMonth, 2);
+		const start = setDate(subMonths(new Date(), 1), 15);
+		const end = setDate(new Date(), 15);
 		const { onCreatedAtRangeApply } = renderDiagnosesTable();
 
 		await openFilterSubmenu(user, "Created at");
-
-		const apply = await screen.findByRole("button", { name: "Apply" });
+		await tap(user, screen.getByRole("menuitem", { name: "Custom date range" }));
+		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
+		const apply = within(dialog).getByRole("button", { name: "Apply date range" });
 		expect(apply).toBeDisabled();
 
-		await tap(user, screen.getByRole("button", { name: dayButtonName(firstOfMonth) }));
-		expect(screen.getAllByText(format(firstOfMonth, "dd/MM/yyyy"))).toHaveLength(2);
-		await tap(user, screen.getByRole("button", { name: dayButtonName(thirdOfMonth) }));
-		expect(screen.getByText(format(firstOfMonth, "dd/MM/yyyy"))).toBeVisible();
-		expect(screen.getByText(format(thirdOfMonth, "dd/MM/yyyy"))).toBeVisible();
-		expect(apply).toBeEnabled();
-
-		await tap(user, apply);
-		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
-			urlDate(firstOfMonth),
-			urlDate(thirdOfMonth),
+		await user.click(
+			within(dialog).getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
 		);
+		await user.click(
+			within(dialog).getByRole("button", { name: new RegExp(format(end, "MMMM do, yyyy")) }),
+		);
+		expect(within(dialog).getByText(format(start, "do MMMM, yyyy"))).toBeVisible();
+		expect(within(dialog).getByText(format(end, "do MMMM, yyyy"))).toBeVisible();
 
-		await tap(user, screen.getByRole("button", { name: "Reset" }));
+		await user.click(apply);
+		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
+			format(start, "yyyy-MM-dd"),
+			format(end, "yyyy-MM-dd"),
+		);
+		await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+	});
+
+	test("clears the created-at range from the date range dialog's Reset button", async () => {
+		const user = userEvent.setup();
+		const { onCreatedAtRangeApply } = renderDiagnosesTable({
+			createdFrom: "2020-01-01",
+			createdTo: "2020-01-31",
+		});
+
+		await openFilterSubmenu(user, "Created at");
+		await tap(user, screen.getByRole("menuitem", { name: "Custom date range" }));
+		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
+		expect(within(dialog).getByText("1st January, 2020")).toBeVisible();
+		expect(within(dialog).getByText("31st January, 2020")).toBeVisible();
+
+		await user.click(within(dialog).getByRole("button", { name: "Reset" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith("", "");
 	});
 
@@ -407,6 +421,61 @@ describe("Diagnoses table", () => {
 		expect(within(dialog).getByText("Dr. Adeyemi")).toBeVisible();
 		expect(within(dialog).getByText("Symptom free for twelve months.")).toBeVisible();
 		expect(within(dialog).queryByText("Hypertension")).not.toBeInTheDocument();
+	});
+
+	test("switches the details drawer to edit mode from its actions menu", async () => {
+		const user = userEvent.setup();
+		renderDiagnosesTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Asthma" }));
+		await user.click(screen.getByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "View diagnosis details" });
+		await within(dialog).findByRole("heading", { name: "Asthma" });
+
+		await user.click(within(dialog).getByRole("button", { name: "Diagnosis actions" }));
+		await user.click(screen.getByRole("menuitem", { name: "Edit" }));
+
+		const editDialog = await screen.findByRole("dialog", { name: "Edit diagnosis details" });
+		expect(within(editDialog).getByRole("button", { name: "Save changes" })).toBeVisible();
+	});
+
+	test("asks an owner to confirm before archiving from the details actions menu", async () => {
+		const user = userEvent.setup();
+		renderDiagnosesTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Asthma" }));
+		await user.click(screen.getByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "View diagnosis details" });
+		await within(dialog).findByRole("heading", { name: "Asthma" });
+
+		await user.click(within(dialog).getByRole("button", { name: "Diagnosis actions" }));
+		await user.click(screen.getByRole("menuitem", { name: "Archive" }));
+
+		const confirmation = await screen.findByRole("alertdialog", { name: "Archive diagnosis" });
+		expect(
+			within(confirmation).getByText(/removed from the patient’s active problem list/),
+		).toBeVisible();
+
+		await user.click(within(confirmation).getByRole("button", { name: "Cancel" }));
+		expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+		expect(screen.getByRole("dialog", { name: "View diagnosis details" })).toBeVisible();
+	});
+
+	test("hides Archive from a member in the details actions menu", async () => {
+		auth.role = "member";
+		const user = userEvent.setup();
+		renderDiagnosesTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Asthma" }));
+		await user.click(screen.getByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "View diagnosis details" });
+		await within(dialog).findByRole("heading", { name: "Asthma" });
+
+		await user.click(within(dialog).getByRole("button", { name: "Diagnosis actions" }));
+
+		expect(screen.getByRole("menuitem", { name: "Edit" })).toBeVisible();
+		expect(screen.getByRole("menuitem", { name: "Export" })).toBeVisible();
+		expect(screen.queryByRole("menuitem", { name: "Archive" })).not.toBeInTheDocument();
 	});
 
 	test("opens the details drawer when a row is activated with the keyboard", async () => {

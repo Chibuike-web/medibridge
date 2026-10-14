@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { format, setDate, startOfMonth, subDays } from "date-fns";
+import { format, setDate, subDays, subMonths } from "date-fns";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { EncounterType } from "@/features/patients/types";
 import { EncountersTable } from "./encounters-table";
@@ -11,6 +11,7 @@ const router = vi.hoisted(() => ({ push: vi.fn(), prefetch: vi.fn() }));
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
 		useActiveMemberRole: () => ({ data: { role: authState.role } }),
+		useSession: () => ({ data: { user: { name: "Ada Obi" } } }),
 	},
 }));
 
@@ -107,10 +108,6 @@ function clickInSubmenu(element: HTMLElement) {
 async function openFilterSubmenu(user: ReturnType<typeof userEvent.setup>, label: string) {
 	await user.click(screen.getByRole("button", { name: "Filter" }));
 	await user.click(screen.getByRole("menuitem", { name: label }));
-}
-
-function calendarDay(date: Date) {
-	return screen.getByRole("button", { name: new RegExp(format(date, "MMMM do, yyyy")) });
 }
 
 describe("Encounters table", () => {
@@ -258,31 +255,49 @@ describe("Encounters table", () => {
 		);
 	});
 
-	test("applies a custom created-at range picked on the calendar and can reset it", async () => {
+	test("applies a custom created-at range chosen in the date range dialog", async () => {
 		const user = userEvent.setup();
+		const start = setDate(subMonths(new Date(), 1), 15);
+		const end = setDate(new Date(), 15);
 		const { onCreatedAtRangeApply } = renderEncountersTable();
 
 		await openFilterSubmenu(user, "Created at");
+		clickInSubmenu(screen.getByRole("menuitem", { name: "Custom date range" }));
+		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
+		const apply = within(dialog).getByRole("button", { name: "Apply date range" });
+		expect(apply).toBeDisabled();
 
-		const applyButton = await screen.findByRole("button", { name: "Apply" });
-		expect(applyButton).toBeDisabled();
-
-		const rangeStart = setDate(startOfMonth(new Date()), 3);
-		const rangeEnd = setDate(startOfMonth(new Date()), 5);
-		clickInSubmenu(calendarDay(rangeStart));
-		clickInSubmenu(calendarDay(rangeEnd));
-
-		expect(screen.getByText(format(rangeStart, "dd/MM/yyyy"))).toBeVisible();
-		expect(screen.getByText(format(rangeEnd, "dd/MM/yyyy"))).toBeVisible();
-		expect(applyButton).toBeEnabled();
-
-		clickInSubmenu(applyButton);
-		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(
-			format(rangeStart, "yyyy-MM-dd"),
-			format(rangeEnd, "yyyy-MM-dd"),
+		await user.click(
+			within(dialog).getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
 		);
+		await user.click(
+			within(dialog).getByRole("button", { name: new RegExp(format(end, "MMMM do, yyyy")) }),
+		);
+		expect(within(dialog).getByText(format(start, "do MMMM, yyyy"))).toBeVisible();
+		expect(within(dialog).getByText(format(end, "do MMMM, yyyy"))).toBeVisible();
 
-		clickInSubmenu(screen.getByRole("button", { name: "Reset" }));
+		await user.click(apply);
+		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
+			format(start, "yyyy-MM-dd"),
+			format(end, "yyyy-MM-dd"),
+		);
+		await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+	});
+
+	test("clears the created-at range from the date range dialog's Reset button", async () => {
+		const user = userEvent.setup();
+		const { onCreatedAtRangeApply } = renderEncountersTable({
+			createdFrom: "2020-01-01",
+			createdTo: "2020-01-31",
+		});
+
+		await openFilterSubmenu(user, "Created at");
+		clickInSubmenu(screen.getByRole("menuitem", { name: "Custom date range" }));
+		const dialog = await screen.findByRole("dialog", { name: "Set date range" });
+		expect(within(dialog).getByText("1st January, 2020")).toBeVisible();
+		expect(within(dialog).getByText("31st January, 2020")).toBeVisible();
+
+		await user.click(within(dialog).getByRole("button", { name: "Reset" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith("", "");
 	});
 
@@ -438,6 +453,6 @@ describe("Encounters table", () => {
 		await user.click(screen.getByRole("button", { name: "Create encounter" }));
 
 		const dialog = await screen.findByRole("dialog", { name: "Create encounter" });
-		expect(within(dialog).getByRole("button", { name: /Vitals/ })).toBeVisible();
+		expect(within(dialog).getByRole("combobox", { name: /Visit type/ })).toBeVisible();
 	});
 });
