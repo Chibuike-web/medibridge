@@ -144,21 +144,19 @@ function getGender(gender: unknown): PatientGenderFilter {
 
 function PatientsPageSkeleton() {
 	return (
-		<div className="flex h-full flex-col">
-			<header className="sticky top-0 z-20 flex shrink-0 items-center border-b border-gray-200 bg-white p-4">
-				<div className="h-6 w-40 animate-pulse rounded bg-gray-100" />
-				<div className="ml-auto flex items-center gap-2">
-					<div className="h-9 w-[18rem] animate-pulse rounded bg-gray-100" />
-					<div className="h-9 w-10 animate-pulse rounded bg-gray-100" />
-					<div className="h-9 w-24 animate-pulse rounded bg-gray-100" />
-					<div className="h-9 w-40 animate-pulse rounded bg-gray-100" />
-				</div>
-			</header>
-			<div className="min-h-0 flex-1 overflow-y-auto">
-				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
-					<PatientsTableSkeleton />
-				</section>
-			</div>
+		<div className="h-full overflow-y-auto">
+			<section className="mx-auto flex w-full max-w-7xl flex-col px-6 py-6 lg:px-10">
+				<header className="mb-4 flex items-center gap-4 text-sm">
+					<div className="h-6 w-40 animate-pulse rounded bg-gray-100" />
+					<div className="ml-auto flex items-center gap-2">
+						<div className="h-9 w-[18rem] animate-pulse rounded bg-gray-100" />
+						<div className="h-9 w-10 animate-pulse rounded bg-gray-100" />
+						<div className="h-9 w-24 animate-pulse rounded bg-gray-100" />
+						<div className="h-9 w-40 animate-pulse rounded bg-gray-100" />
+					</div>
+				</header>
+				<PatientsTableSkeleton />
+			</section>
 		</div>
 	);
 }

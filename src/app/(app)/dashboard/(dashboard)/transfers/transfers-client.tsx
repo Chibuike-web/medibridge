@@ -344,65 +344,62 @@ export function TransfersClient({
 	}, [transfers, page, limit, totalPages]);
 
 	return (
-		<div className="flex h-full flex-col">
-			<header className="border-b border-gray-200 bg-white p-4 flex items-center sticky top-0 z-20 shrink-0 text-sm">
-				<h1 className="text-lg font-semibold text-balance text-gray-800 tracking-[-0.015em]">
-					Transfers
-				</h1>
-				<div className="flex items-center gap-2 flex-1 justify-end">
-					<div className="relative min-w-[12.5rem] max-w-[31.25rem] flex-1">
-						<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
-						<Input
-							type="search"
-							className="pl-8"
-							placeholder="Search by patient name or ID"
-							value={transferSearchQuery}
-							onChange={(event) => handleQueryChange(event.target.value)}
+		<div className="h-full overflow-y-auto">
+			<section className="mx-auto flex w-full max-w-7xl flex-col px-6 py-6 lg:px-10">
+				<header className="mb-4 flex items-center gap-4 text-sm">
+					<h1 className="text-lg font-semibold text-balance text-gray-800 tracking-[-0.015em]">
+						Transfers
+					</h1>
+					<div className="flex items-center gap-2 flex-1 justify-end">
+						<div className="relative min-w-[12.5rem] max-w-[31.25rem] flex-1">
+							<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
+							<Input
+								type="search"
+								className="pl-8"
+								placeholder="Search by patient name or ID"
+								value={transferSearchQuery}
+								onChange={(event) => handleQueryChange(event.target.value)}
+							/>
+						</div>
+
+						<FilterButton
+							requestedFrom={optimisticRequestedAtRange.requestedFrom}
+							requestedTo={optimisticRequestedAtRange.requestedTo}
+							isPending={isPending}
+							onRequestedAtRangeApply={handleRequestedAtRangeApply}
+							onStatusFiltersChange={handleStatusFiltersChange}
+							statusFilters={optimisticStatusFilters}
 						/>
+						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+							<RiShare2Line aria-hidden className="size-5 text-gray-600" />
+							Export
+						</Button>
+
+						<Button asChild>
+							<Link href={newTransferRequestHref} prefetch={true}>
+								New transfer request{" "}
+							</Link>
+						</Button>
 					</div>
-
-					<FilterButton
-						requestedFrom={optimisticRequestedAtRange.requestedFrom}
-						requestedTo={optimisticRequestedAtRange.requestedTo}
-						isPending={isPending}
-						onRequestedAtRangeApply={handleRequestedAtRangeApply}
-						onStatusFiltersChange={handleStatusFiltersChange}
-						statusFilters={optimisticStatusFilters}
-					/>
-					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-						Export
-					</Button>
-
-					<Button asChild>
-						<Link href={newTransferRequestHref} prefetch={true}>
-							New transfer request{" "}
-						</Link>
-					</Button>
-				</div>
-			</header>
-
-			<div className="min-h-0 flex-1 overflow-y-auto">
-				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
-					<TransferActiveFilterPills
-						requestedFrom={optimisticRequestedAtRange.requestedFrom}
-						requestedTo={optimisticRequestedAtRange.requestedTo}
-						statusFilters={optimisticStatusFilters}
-						onRequestedAtRangeApply={handleRequestedAtRangeApply}
-						onStatusFiltersChange={handleStatusFiltersChange}
-					/>
-					<TransferTable
-						data={tableData.transfers}
-						page={optimisticPage}
-						limit={optimisticLimit}
-						totalPages={tableData.totalPages}
-						isPending={isPending}
-						onPreviousPage={handlePreviousPage}
-						onNextPage={handleNextPage}
-						onLimitChange={handleLimitChange}
-					/>
-				</section>
-			</div>
+				</header>
+				<TransferActiveFilterPills
+					requestedFrom={optimisticRequestedAtRange.requestedFrom}
+					requestedTo={optimisticRequestedAtRange.requestedTo}
+					statusFilters={optimisticStatusFilters}
+					onRequestedAtRangeApply={handleRequestedAtRangeApply}
+					onStatusFiltersChange={handleStatusFiltersChange}
+				/>
+				<TransferTable
+					data={tableData.transfers}
+					page={optimisticPage}
+					limit={optimisticLimit}
+					totalPages={tableData.totalPages}
+					isPending={isPending}
+					onPreviousPage={handlePreviousPage}
+					onNextPage={handleNextPage}
+					onLimitChange={handleLimitChange}
+				/>
+			</section>
 		</div>
 	);
 }

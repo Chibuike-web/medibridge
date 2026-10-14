@@ -76,20 +76,15 @@ async function OverviewContent() {
 			);
 		}
 		return (
-			<div className="flex h-full flex-col">
-				<header className="sticky top-0 z-20 flex shrink-0 items-center border-b border-gray-200 bg-white p-4">
-					<h1 className="text-lg font-semibold tracking-[-0.015em] text-gray-800 text-balance">
+			<div className="h-full overflow-y-auto">
+				<section className="mx-auto flex w-full max-w-7xl flex-col px-6 py-6 lg:px-10">
+					<h1 className="mb-4 text-lg font-semibold tracking-[-0.015em] text-gray-800 text-balance">
 						Overview
 					</h1>
-				</header>
-
-				<div className="min-h-0 flex-1 overflow-y-auto">
-					<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
-						<Cards stats={stats} />
-						<RecentPatients />
-						<RecentTransfers />
-					</section>
-				</div>
+					<Cards stats={stats} />
+					<RecentPatients />
+					<RecentTransfers />
+				</section>
 			</div>
 		);
 	});
@@ -109,23 +104,18 @@ async function RecentTransfers() {
 
 function OverviewPageSkeleton() {
 	return (
-		<div className="flex h-full flex-col">
-			<header className="sticky top-0 z-20 flex shrink-0 items-center border-b border-gray-200 bg-white p-4">
-				<div className="h-6 w-32 animate-pulse rounded bg-gray-100" />
-			</header>
-
-			<div className="min-h-0 flex-1 overflow-y-auto">
-				<section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-8 lg:px-10">
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-						<CardSkeleton />
-						<CardSkeleton />
-						<CardSkeleton />
-						<CardSkeleton />
-					</div>
-					<RecentPatientsSkeleton />
-					<RecentTransfersSkeleton />
-				</section>
-			</div>
+		<div className="h-full overflow-y-auto">
+			<section className="mx-auto flex w-full max-w-7xl flex-col px-6 py-6 lg:px-10">
+				<div className="mb-4 h-6 w-32 animate-pulse rounded bg-gray-100" />
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+					<CardSkeleton />
+					<CardSkeleton />
+					<CardSkeleton />
+					<CardSkeleton />
+				</div>
+				<RecentPatientsSkeleton />
+				<RecentTransfersSkeleton />
+			</section>
 		</div>
 	);
 }
