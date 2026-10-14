@@ -10,14 +10,6 @@ type InviterAccess = {
 	isOrganizationVerified: boolean;
 };
 
-export function assertOwnerEmail(email: string) {
-	if (!email.toLowerCase().endsWith(".org")) {
-		throw new APIError("BAD_REQUEST", {
-			message: "Use your official hospital email address (.org).",
-		});
-	}
-}
-
 export function assertCanJoinHospital(hasHospitalMembership: boolean) {
 	if (hasHospitalMembership) {
 		throw new APIError("FORBIDDEN", {

@@ -243,7 +243,7 @@ export function OwnerClient() {
 					</Label>
 					<Input
 						id="email"
-						placeholder="sarah.thompson@stmaryhospital.org"
+						placeholder="sarah@example.com"
 						type="email"
 						{...register("email")}
 						aria-describedby={errors.email ? "email-error" : "email-info"}
@@ -257,7 +257,7 @@ export function OwnerClient() {
 						<p id="email-info" className="flex gap-1 items-center mt-2">
 							<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
 							<span className="text-sm text-gray-400">
-								Must be official verified hospital email
+								Use an email address you can access. We’ll send a verification link.
 							</span>
 						</p>
 					)}

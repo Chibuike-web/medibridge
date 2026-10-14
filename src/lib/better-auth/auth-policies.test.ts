@@ -6,25 +6,11 @@ import {
 	assertCanJoinHospital,
 	assertInvitationAllowed,
 	assertInviteeCanJoinHospital,
-	assertOwnerEmail,
 } from "./auth-policies";
 
 const verifiedOwner = { inviterRole: "owner", isOrganizationVerified: true };
 const verifiedAdmin = { inviterRole: "admin", isOrganizationVerified: true };
 const verifiedMember = { inviterRole: "member", isOrganizationVerified: true };
-
-describe("assertOwnerEmail", () => {
-	test("accepts an official .org hospital email regardless of letter case", () => {
-		expect(() => assertOwnerEmail("sarah@stmaryhospital.org")).not.toThrow();
-		expect(() => assertOwnerEmail("SARAH@STMARYHOSPITAL.ORG")).not.toThrow();
-	});
-
-	test("rejects an email outside the .org domain", () => {
-		expect(() => assertOwnerEmail("sarah@gmail.com")).toThrow(
-			"Use your official hospital email address (.org).",
-		);
-	});
-});
 
 describe("assertCanJoinHospital", () => {
 	test("lets an account without a hospital join one", () => {

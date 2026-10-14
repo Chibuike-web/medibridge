@@ -8,8 +8,7 @@ export const ownerSchema = z.object({
 		.toLowerCase()
 		.min(1, "Email is required")
 		.min(6, "Enter a valid email address")
-		.refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), "Invalid email address")
-		.refine((val) => val.endsWith(".org"), { message: "Email must end with .org" }),
+		.refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), "Invalid email address"),
 	password: z
 		.string()
 		.min(8, "Password must be at least 8 characters")

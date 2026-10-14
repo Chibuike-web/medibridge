@@ -1,8 +1,10 @@
 # Auth
 
-Last updated 2026-10-07. This is the single record for MediBridge auth: what is still open, the decisions made so far, and what has been fixed. It replaces `auth-bug.md`, the earlier `auth.md` and `auth.hole.md`. Old finding numbers are kept so commits and past notes still make sense (see [ID key](#id-key)).
+Last updated 2026-10-14. This is the single record for MediBridge auth: what is still open, the decisions made so far, and what has been fixed. It replaces `auth-bug.md`, the earlier `auth.md` and `auth.hole.md`. Old finding numbers are kept so commits and past notes still make sense (see [ID key](#id-key)).
 
 ## Status
+
+- Owner email policy, 2026-10-14: any valid email address can register an owner account and submit hospital details. Email verification, accreditation upload, manual hospital approval, and one-hospital-per-account rules still apply. The `.org` checks described in the historical review below have been removed.
 
 - Auth is ready to leave for onboarding. The 2026-10-07 reviews found no way to take over an account or to read another hospital's patients.
 - The 2026-10-07 fix pass (P1–P16), the sign-up wording revert, the P1 revert and the follow-up fixes were committed in d60a040 and pushed to `main` on 2026-10-07.
@@ -213,8 +215,8 @@ Its validation: database suites 35 of 35; full unit run 420 passed, with two tim
 ## Accepted risks and not bugs
 
 - Pre-registration (#14), decision of 2026-10-07. Someone who signs up with an email before its owner keeps a working password, name and image if the owner then opens the verification link. The owner can take the account back with "Forgot password". Asking for the password only after verification would close this without extra steps.
-- Sign-up reveals whether an email has an account (decision of 2026-10-05). For a non-`.org` email, the `.org` error also shows whether a pending invitation exists.
-- The `.org` rule is weak, since anyone can register a `.org` domain. Manual approval is the real gate.
+- Sign-up reveals whether an email has an account (decision of 2026-10-05).
+- Manual hospital approval is the gate for patient access; an owner email domain is not proof of hospital accreditation.
 - Anyone holding an invitation link sees the invitee's email, the hospital name and whether the invitee already has an account. Invitation IDs carry about 190 bits of randomness.
 - Password reset and change-password don't reveal whether an email has an account. A reset revokes sessions, and changing the password signs out other sessions.
 - The shared-record cookie and the transfer-approval token both use `BETTER_AUTH_SECRET`. They can't be confused today, because approval tokens carry a `purpose` claim.

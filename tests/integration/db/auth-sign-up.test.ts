@@ -103,12 +103,15 @@ describe.skipIf(!testDatabaseUrl)("POST /api/auth/sign-up/email", () => {
 		return accounts.map((account) => account.email);
 	}
 
-	test("lets a hospital owner create an account with an official .org email", async () => {
-		const response = await signUp("ada@stmaryhospital.org");
+	test.each(["ada@gmail.com", "ada@clinic.com", "ada@hospital.co.uk", "ada@stmaryhospital.org"])(
+		"lets a hospital owner create an account without an invitation using %s",
+		async (email) => {
+			const response = await signUp(email);
 
-		expect(response.status).toBe(200);
-		expect(await findAccountEmails("ada@stmaryhospital.org")).toEqual(["ada@stmaryhospital.org"]);
-	});
+			expect(response.status).toBe(200);
+			expect(await findAccountEmails(email)).toEqual([email]);
+		},
+	);
 
 	test("tells someone signing up with an existing email, in any letter case, that it already has an account", async () => {
 		await createHospitalWithOwner();
@@ -127,11 +130,11 @@ describe.skipIf(!testDatabaseUrl)("POST /api/auth/sign-up/email", () => {
 		expect(await findAccountEmails("owner@approved.org")).toEqual(["owner@approved.org"]);
 	});
 
-	test("does not create an account outside .org for someone without an invitation", async () => {
-		const response = await signUp("ada@gmail.com");
+	test("does not create an account with an invalid email", async () => {
+		const response = await signUp("invalid-email");
 
 		expect(response.status).toBe(400);
-		expect(await findAccountEmails("ada@gmail.com")).toEqual([]);
+		expect(await findAccountEmails("invalid-email")).toEqual([]);
 	});
 
 	test("lets an invited administrator create an account with an email on any domain", async () => {
@@ -146,7 +149,7 @@ describe.skipIf(!testDatabaseUrl)("POST /api/auth/sign-up/email", () => {
 		expect(await findAccountEmails("ada@gmail.com")).toEqual(["ada@gmail.com"]);
 	});
 
-	test("does not treat an expired invitation as permission to sign up outside .org", async () => {
+	test("lets an owner sign up with a valid email even when an old invitation has expired", async () => {
 		await createInvitation({
 			email: "ada@gmail.com",
 			expiresAt: new Date(Date.now() - 60 * 1000),
@@ -154,7 +157,7 @@ describe.skipIf(!testDatabaseUrl)("POST /api/auth/sign-up/email", () => {
 
 		const response = await signUp("ada@gmail.com");
 
-		expect(response.status).toBe(400);
-		expect(await findAccountEmails("ada@gmail.com")).toEqual([]);
+		expect(response.status).toBe(200);
+		expect(await findAccountEmails("ada@gmail.com")).toEqual(["ada@gmail.com"]);
 	});
 });
