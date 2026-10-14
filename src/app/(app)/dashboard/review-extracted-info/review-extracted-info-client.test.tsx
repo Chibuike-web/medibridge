@@ -105,7 +105,7 @@ beforeEach(() => {
 	pushMock.mockReset();
 });
 
-test("saves the edited patient, marks the document saved and moves to the next ready document", async () => {
+test("saves the edited patient, removes its document from review and moves to the next ready document", async () => {
 	const user = userEvent.setup();
 	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
 	fireEvent.change(personalSection().getByRole("textbox", { name: "First name (required)" }), {
@@ -121,75 +121,61 @@ test("saves the edited patient, marks the document saved and moves to the next r
 		"extraction-1",
 		"ada.pdf",
 		expect.objectContaining({
-			personalInfo: expect.objectContaining({ firstName: "Adanna", patientId: "PAT-001" }),
+			personalInfo: expect.objectContaining({ firstName: "Adanna" }),
 		}),
 	);
-	const savedCard = within(screen.getByRole("article", { name: "Document 1" }));
-	expect(await savedCard.findByText("Saved")).toBeVisible();
-	expect(savedCard.queryByRole("button", { name: /Remove/ })).not.toBeInTheDocument();
+	await waitFor(() =>
+		expect(screen.queryByRole("article", { name: "Document 1" })).not.toBeInTheDocument(),
+	);
 	expect(screen.getByRole("heading", { name: "Grace Musa" })).toBeVisible();
-	const savedDocumentButton = screen.getByRole("button", { name: "Review Document 1" });
-	await waitFor(() => expect(savedDocumentButton).toBeEnabled());
-	await user.click(savedDocumentButton);
-	expect(screen.getByRole("heading", { name: "Adanna Okafor" })).toBeVisible();
-	expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled();
+	expect(screen.getByRole("status")).toHaveTextContent("Adanna Okafor saved.");
+	expect(pushMock).not.toHaveBeenCalled();
 });
 
-test("edits a saved patient without a patient ID field and saves the changes on the same document", async () => {
+test("continues to the dashboard after the last document is saved", async () => {
 	const user = userEvent.setup();
-	const savedDocument: ReviewDocument = { ...documents[0], status: "saved" };
 	render(
-		<ReviewExtractedInfoClient
-			extractionId="extraction-1"
-			initialDocuments={[savedDocument, documents[1]]}
-		/>,
+		<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={[documents[0]]} />,
 	);
-	expect(
-		within(screen.getByRole("article", { name: "Document 1" })).getByText("Saved"),
-	).toBeVisible();
-	expect(screen.getByRole("heading", { name: "Grace Musa" })).toBeVisible();
-	await user.click(screen.getByRole("button", { name: "Review Document 1" }));
-	expect(screen.getByRole("heading", { name: "Ada Okafor" })).toBeVisible();
-	expect(personalSection().getByRole("textbox", { name: "First name (required)" })).toHaveValue(
-		"Ada",
-	);
-	expect(personalSection().queryByRole("textbox", { name: /Patient ID/ })).not.toBeInTheDocument();
-	fireEvent.change(personalSection().getByRole("textbox", { name: "First name (required)" }), {
-		target: { value: "Adanna" },
+	await user.click(screen.getByRole("button", { name: "Save patient & review next" }));
+	expect(savePatientsMock).toHaveBeenCalledWith("extraction-1", "ada.pdf", expect.anything());
+	await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/dashboard/overview"));
+});
+
+test("drops a document that can no longer be saved, explains why and opens the next one", async () => {
+	const user = userEvent.setup();
+	savePatientsMock.mockResolvedValueOnce({
+		status: "invalid",
+		error: "This document can’t be saved.",
 	});
-	await user.click(screen.getByRole("button", { name: "Save changes" }));
-	expect(savePatientsMock).toHaveBeenCalledWith(
-		"extraction-1",
-		"ada.pdf",
-		expect.objectContaining({
-			personalInfo: expect.objectContaining({ firstName: "Adanna", patientId: "PAT-001" }),
-		}),
-	);
-	expect(await screen.findByRole("status")).toHaveTextContent("Changes to Adanna Okafor saved.");
-	expect(screen.getByRole("button", { name: "Review Document 1" })).toHaveAttribute(
-		"aria-pressed",
-		"true",
-	);
-	expect(screen.getByRole("heading", { name: "Adanna Okafor" })).toBeVisible();
+	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
+	expect(screen.getByRole("article", { name: "Document 1" })).toBeVisible();
+	await user.click(screen.getByRole("button", { name: "Save patient & review next" }));
+	expect(await screen.findByRole("alert")).toHaveTextContent("This document can’t be saved.");
+	expect(screen.queryByRole("article", { name: "Document 1" })).not.toBeInTheDocument();
+	expect(screen.getByRole("heading", { name: "Grace Musa" })).toBeVisible();
+	expect(screen.getByRole("status")).not.toHaveTextContent("saved.");
 });
 
 test("keeps the document ready and shows the error when saving fails", async () => {
 	const user = userEvent.setup();
 	savePatientsMock.mockResolvedValueOnce({
 		status: "failed",
-		error: "Patient 1: patient ID PAT-001 is already in use.",
+		error: "We couldn’t save this patient. Please try again.",
 	});
 	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
 	const saveButton = screen.getByRole("button", { name: "Save patient & review next" });
 	await user.click(saveButton);
 	expect(await screen.findByRole("alert")).toHaveTextContent(
-		"Patient 1: patient ID PAT-001 is already in use.",
+		"We couldn’t save this patient. Please try again.",
 	);
 	const card = within(screen.getByRole("article", { name: "Document 1" }));
 	expect(card.getByText("Ready to review")).toBeVisible();
 	await waitFor(() => expect(saveButton).toBeEnabled());
 	await user.click(saveButton);
-	expect(await card.findByText("Saved")).toBeVisible();
+	await waitFor(() =>
+		expect(screen.queryByRole("article", { name: "Document 1" })).not.toBeInTheDocument(),
+	);
 	expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
 
@@ -240,24 +226,54 @@ test("opens a PDF source document in a new tab and offers a Word source document
 	expect(screen.queryByRole("link", { name: "View document" })).not.toBeInTheDocument();
 });
 
-test("opens on the first ready document and does not open a failed document for review", async () => {
+test("opens on the first ready document and explains why a failed document cannot be reviewed", async () => {
+	const user = userEvent.setup();
 	render(
 		<ReviewExtractedInfoClient
 			extractionId="extraction-1"
 			initialDocuments={[documents[2], documents[0]]}
 		/>,
 	);
-	const failedCard = within(screen.getByRole("article", { name: "Document 3" }));
-	expect(failedCard.getByText("Extraction failed")).toBeVisible();
-	expect(failedCard.queryByRole("button", { name: "Review Document 3" })).not.toBeInTheDocument();
 	expect(screen.getByRole("button", { name: "Review Document 1" })).toHaveAttribute(
 		"aria-pressed",
 		"true",
 	);
 	expect(screen.getByRole("heading", { name: "Ada Okafor" })).toBeVisible();
-	expect(
-		screen.queryByRole("heading", { name: "We couldn’t extract this record" }),
-	).not.toBeInTheDocument();
+	await user.click(screen.getByRole("button", { name: "Review Document 3" }));
+	expect(screen.getByRole("heading", { name: "We couldn’t extract this record" })).toBeVisible();
+	expect(screen.getByText("Try again, or remove the document from the list.")).toBeVisible();
+	const viewDocument = screen.getByRole("link", { name: "View document" });
+	expect(viewDocument).toHaveAttribute("href", "/files/emeka.pdf");
+	expect(viewDocument).toHaveAttribute("target", "_blank");
+	expect(screen.queryByRole("heading", { name: "Ada Okafor" })).not.toBeInTheDocument();
+	expect(screen.getByRole("button", { name: "Save patient & review next" })).toBeDisabled();
+});
+
+test("opens the next ready document after removing the failed document under review", async () => {
+	const user = userEvent.setup();
+	render(
+		<ReviewExtractedInfoClient
+			extractionId="extraction-1"
+			initialDocuments={[documents[2], documents[0]]}
+		/>,
+	);
+	await user.click(screen.getByRole("button", { name: "Review Document 3" }));
+	expect(screen.getByRole("heading", { name: "We couldn’t extract this record" })).toBeVisible();
+	await user.click(screen.getByRole("button", { name: "Remove Document 3" }));
+	expect(await screen.findByRole("heading", { name: "Ada Okafor" })).toBeVisible();
+	expect(screen.queryByRole("article", { name: "Document 3" })).not.toBeInTheDocument();
+	expect(pushMock).not.toHaveBeenCalled();
+});
+
+test("continues to the dashboard after the last document is removed", async () => {
+	const user = userEvent.setup();
+	render(
+		<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={[documents[2]]} />,
+	);
+	expect(screen.getByRole("heading", { name: "We couldn’t extract this record" })).toBeVisible();
+	await user.click(screen.getByRole("button", { name: "Remove Document 3" }));
+	expect(removeDocumentMock).toHaveBeenCalledWith("extraction-1", "emeka.pdf");
+	await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/dashboard/overview"));
 });
 
 test("retries a failed document in the saved extraction and opens its patient for review", async () => {
@@ -419,9 +435,7 @@ test("prevents edits, removal and selection changes until the patient save finis
 	await act(async () => {
 		completeSave({ status: "success", savedCount: 1 });
 	});
-	expect(
-		within(screen.getByRole("article", { name: "Document 1" })).getByText("Saved"),
-	).toBeVisible();
+	expect(screen.queryByRole("article", { name: "Document 1" })).not.toBeInTheDocument();
 	expect(screen.getByRole("heading", { name: "Grace Musa" })).toBeVisible();
 	expect(screen.getByRole("button", { name: "Remove Document 3" })).toBeEnabled();
 	expect(
@@ -435,7 +449,7 @@ test("asks before discarding unsaved documents and keeps reviewing when the user
 	await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
 	const dialog = screen.getByRole("alertdialog", { name: "Leave review?" });
 	expect(dialog).toHaveTextContent(
-		"You have 3 unsaved documents. Leaving will discard them and your edits. Saved patients will remain available.",
+		"You have 2 patients you haven’t saved. Leaving will discard them and the 1 document that couldn’t be extracted. Saved patients will remain available.",
 	);
 	await user.click(within(dialog).getByRole("button", { name: "Keep reviewing" }));
 	expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
@@ -444,26 +458,67 @@ test("asks before discarding unsaved documents and keeps reviewing when the user
 	expect(screen.getByRole("heading", { name: "Ada Okafor" })).toBeVisible();
 });
 
+test.each([
+	{ button: "Remove Document 3", action: removeDocumentMock },
+	{ button: "Try again for Document 3", action: retryExtractionMock },
+])(
+	"drops a document already removed elsewhere and says so after $button",
+	async ({ button, action }) => {
+		const user = userEvent.setup();
+		action.mockResolvedValueOnce({
+			status: "invalid",
+			error: "This document was already removed.",
+		});
+		render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
+		expect(screen.getByRole("article", { name: "Document 3" })).toBeVisible();
+		await user.click(screen.getByRole("button", { name: button }));
+		expect(await screen.findByRole("alert")).toHaveTextContent(
+			"This document was already removed.",
+		);
+		expect(screen.queryByRole("article", { name: "Document 3" })).not.toBeInTheDocument();
+		expect(screen.getByRole("article", { name: "Document 1" })).toBeVisible();
+	},
+);
+
+test("opens a remaining document when the one selected during its retry was already removed", async () => {
+	const user = userEvent.setup();
+	let finishRetry!: (result: unknown) => void;
+	retryExtractionMock.mockImplementationOnce(
+		() =>
+			new Promise((resolve) => {
+				finishRetry = resolve;
+			}),
+	);
+	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
+	await user.click(screen.getByRole("button", { name: "Try again for Document 3" }));
+	await user.click(screen.getByRole("button", { name: "Review Document 3" }));
+	expect(screen.getByRole("button", { name: "Review Document 3" })).toHaveAttribute(
+		"aria-pressed",
+		"true",
+	);
+	await act(async () =>
+		finishRetry({ status: "invalid", error: "This document was already removed." }),
+	);
+	expect(screen.queryByRole("article", { name: "Document 3" })).not.toBeInTheDocument();
+	expect(screen.getByRole("heading", { name: "Ada Okafor" })).toBeVisible();
+});
+
+test("only mentions the documents that couldn’t be extracted when no patients are left to save", async () => {
+	const user = userEvent.setup();
+	render(
+		<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={[documents[2]]} />,
+	);
+	await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
+	expect(screen.getByRole("alertdialog", { name: "Leave review?" })).toHaveTextContent(
+		"Leaving will discard the 1 document that couldn’t be extracted. Saved patients will remain available.",
+	);
+});
+
 test("discards the review and continues to the dashboard when the user confirms", async () => {
 	const user = userEvent.setup();
 	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
 	await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
 	await user.click(screen.getByRole("button", { name: "Discard and continue" }));
-	expect(discardExtractionMock).toHaveBeenCalledWith("extraction-1");
-	await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/dashboard/overview"));
-});
-
-test("continues straight to the dashboard without asking when every document is saved", async () => {
-	const user = userEvent.setup();
-	render(
-		<ReviewExtractedInfoClient
-			extractionId="extraction-1"
-			initialDocuments={[{ ...documents[0], status: "saved" }]}
-		/>,
-	);
-	expect(screen.getByText("Saved")).toBeVisible();
-	await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
-	expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
 	expect(discardExtractionMock).toHaveBeenCalledWith("extraction-1");
 	await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/dashboard/overview"));
 });
@@ -518,4 +573,88 @@ test("matches an extracted state written with a different case and a State suffi
 			name: "State of origin (required)",
 		}),
 	).toHaveTextContent("Enugu");
+});
+
+test("keeps edited patient fields and lets the user retry when a save request is rejected", async () => {
+	const user = userEvent.setup();
+	savePatientsMock.mockRejectedValueOnce(new Error("Connection lost"));
+	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
+	fireEvent.change(personalSection().getByRole("textbox", { name: "First name (required)" }), {
+		target: { value: "Adanna" },
+	});
+	await user.click(screen.getByRole("button", { name: "Save patient & review next" }));
+	expect(await screen.findByRole("alert")).toHaveTextContent(
+		"We couldn’t save this patient. Please try again.",
+	);
+	expect(personalSection().getByRole("textbox", { name: "First name (required)" })).toHaveValue(
+		"Adanna",
+	);
+	const saveButton = await screen.findByRole("button", { name: "Save patient & review next" });
+	await waitFor(() => expect(saveButton).toBeEnabled());
+	await user.click(saveButton);
+	expect(savePatientsMock).toHaveBeenLastCalledWith(
+		"extraction-1",
+		"ada.pdf",
+		expect.objectContaining({ personalInfo: expect.objectContaining({ firstName: "Adanna" }) }),
+	);
+	await waitFor(() =>
+		expect(screen.queryByRole("article", { name: "Document 1" })).not.toBeInTheDocument(),
+	);
+});
+
+test("keeps a failed document removable after a rejected removal request", async () => {
+	const user = userEvent.setup();
+	removeDocumentMock.mockRejectedValueOnce(new Error("Connection lost"));
+	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
+	const card = within(screen.getByRole("article", { name: "Document 3" }));
+	await user.click(card.getByRole("button", { name: "Remove Document 3" }));
+	expect(await screen.findByRole("alert")).toHaveTextContent(
+		"We couldn’t remove this document. Please try again.",
+	);
+	expect(card.getByText("Extraction failed")).toBeVisible();
+	const removeButton = card.getByRole("button", { name: "Remove Document 3" });
+	await waitFor(() => expect(removeButton).toBeEnabled());
+	await user.click(removeButton);
+	await waitFor(() =>
+		expect(screen.queryByRole("article", { name: "Document 3" })).not.toBeInTheDocument(),
+	);
+});
+
+test("restores retry controls after a rejected extraction request and can retry again", async () => {
+	const user = userEvent.setup();
+	retryExtractionMock.mockRejectedValueOnce(new Error("Connection lost"));
+	retryExtractionMock.mockResolvedValueOnce({
+		status: "success",
+		documents: [
+			{ documentId: "emeka.pdf", status: "ready", patient: patient("Emeka", "Okafor", "PAT-003") },
+		],
+	});
+	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
+	const card = within(screen.getByRole("article", { name: "Document 3" }));
+	await user.click(card.getByRole("button", { name: "Try again for Document 3" }));
+	expect(await screen.findByRole("alert")).toHaveTextContent(
+		"We couldn’t extract Document 3. Please try again.",
+	);
+	expect(card.getByText("Extraction failed")).toBeVisible();
+	await user.click(card.getByRole("button", { name: "Try again for Document 3" }));
+	expect(await card.findByText("Ready to review")).toBeVisible();
+});
+
+test("keeps the review available after a rejected discard request and can leave on retry", async () => {
+	const user = userEvent.setup();
+	discardExtractionMock.mockRejectedValueOnce(new Error("Connection lost"));
+	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
+	await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
+	await user.click(screen.getByRole("button", { name: "Discard and continue" }));
+	expect(await screen.findByRole("alert")).toHaveTextContent(
+		"We couldn’t clear this review. Please try again.",
+	);
+	expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+	expect(screen.getByRole("heading", { name: "Ada Okafor" })).toBeVisible();
+	expect(pushMock).not.toHaveBeenCalled();
+	const continueButton = screen.getByRole("button", { name: "Continue to dashboard" });
+	await waitFor(() => expect(continueButton).toBeEnabled());
+	await user.click(continueButton);
+	await user.click(screen.getByRole("button", { name: "Discard and continue" }));
+	await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/dashboard/overview"));
 });

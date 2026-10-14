@@ -107,6 +107,8 @@ export function AddNewPatientClient() {
 			<div className={cn("flex flex-col gap-4", allExtractionsFailed && "gap-6")}>
 				{showExtractionError ? (
 					<div
+						key={extractError}
+						ref={(banner) => banner?.scrollIntoView({ behavior: "smooth", block: "center" })}
 						id={extractErrorId}
 						role="alert"
 						className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
@@ -123,6 +125,30 @@ export function AddNewPatientClient() {
 							className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
 							aria-label="Dismiss extraction error"
 							onClick={() => setExtractError("")}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</div>
+				) : null}
+				{uploadError ? (
+					<div
+						key={uploadError}
+						ref={(banner) => banner?.scrollIntoView({ behavior: "smooth", block: "center" })}
+						id={uploadErrorId}
+						role="alert"
+						aria-live="assertive"
+						aria-atomic="true"
+						className="flex items-center gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
+					>
+						<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
+						<span className="min-w-0 flex-1">{uploadError}</span>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+							aria-label="Dismiss upload error"
+							onClick={() => setUploadError("")}
 						>
 							<RiCloseLine aria-hidden="true" />
 						</Button>
@@ -177,28 +203,6 @@ export function AddNewPatientClient() {
 						error={uploadError}
 					/>
 				)}
-				{uploadError ? (
-					<div
-						id={uploadErrorId}
-						role="alert"
-						aria-live="assertive"
-						aria-atomic="true"
-						className="flex items-center gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
-					>
-						<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
-						<span className="min-w-0 flex-1">{uploadError}</span>
-						<Button
-							type="button"
-							variant="ghost"
-							size="icon"
-							className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
-							aria-label="Dismiss upload error"
-							onClick={() => setUploadError("")}
-						>
-							<RiCloseLine aria-hidden="true" />
-						</Button>
-					</div>
-				) : null}
 			</div>
 			<Footer
 				fileInputRef={fileInputRef}

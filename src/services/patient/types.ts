@@ -12,7 +12,7 @@ export type SavePatientsResult =
 			savedCount: number;
 	  }
 	| {
-			status: "failed" | "unauthorized";
+			status: "failed" | "unauthorized" | "invalid";
 			error: string;
 	  };
 

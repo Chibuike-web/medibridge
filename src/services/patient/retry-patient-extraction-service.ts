@@ -12,7 +12,7 @@ import { extractPatientDocumentsService } from "./extract-patient-documents-serv
 
 type RetryPatientExtractionResult =
 	| { status: "success"; documents: PatientExtractionDocument[] }
-	| { status: "failed" | "unauthorized"; error: string };
+	| { status: "failed" | "unauthorized" | "invalid"; error: string };
 
 export async function retryPatientExtractionService(
 	extractionId: string,
@@ -40,21 +40,27 @@ export async function retryPatientExtractionService(
 	try {
 		const extraction = await getPatientExtractionById(extractionId);
 
-		if (
-			!extraction ||
-			documentIds.length === 0 ||
-			!documentIds.every((documentId) =>
-				extraction.extractedData.some(
-					(document) => document.documentId === documentId && document.status === "failed",
-				),
-			)
-		) {
-			return { status: "failed", error: "These documents can’t be extracted again." };
+		if (!extraction) {
+			return { status: "invalid", error: "This review was already cleared." };
+		}
+
+		const requestedDocuments = extraction.extractedData.filter((document) =>
+			documentIds.includes(document.documentId),
+		);
+		if (requestedDocuments.length !== documentIds.length) {
+			return { status: "invalid", error: "This document was already removed." };
+		}
+
+		const failedDocumentIds = requestedDocuments
+			.filter((document) => document.status === "failed")
+			.map((document) => document.documentId);
+		if (failedDocumentIds.length === 0) {
+			return { status: "success", documents: requestedDocuments };
 		}
 
 		const retriedDocuments = await extractPatientDocumentsService(
 			path.resolve("patient-uploads", organizationId, extraction.createdBy),
-			documentIds,
+			failedDocumentIds,
 		);
 
 		const isUpdated = await db.transaction(async (tx) => {
@@ -82,12 +88,20 @@ export async function retryPatientExtractionService(
 		});
 
 		if (!isUpdated) {
-			return { status: "failed", error: "These documents can’t be extracted again." };
+			return { status: "invalid", error: "This review was already cleared." };
 		}
 
 		revalidateTag(`patient-extraction-${organizationId}-${extractionId}`, { expire: 0 });
 
-		return { status: "success", documents: retriedDocuments };
+		return {
+			status: "success",
+			documents: requestedDocuments.map(
+				(document) =>
+					retriedDocuments.find(
+						(retriedDocument) => retriedDocument.documentId === document.documentId,
+					) ?? document,
+			),
+		};
 	} catch (error) {
 		console.error("Retrying patient extraction failed:", error);
 		return { status: "failed", error: "We couldn’t extract these records. Please try again." };

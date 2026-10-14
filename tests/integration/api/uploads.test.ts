@@ -917,14 +917,14 @@ describe("Uploads and extraction API", () => {
 			expect(generateTextMock).toHaveBeenCalled();
 			expect(response.status).toBe(400);
 			expect(await response.json()).toEqual({
-				status: "failed",
-				error: "These documents can’t be extracted again.",
+				status: "invalid",
+				error: "This review was already cleared.",
 			});
 			expect(storedExtraction.extractedData).toEqual([failedDocument]);
 			expect(revalidateTagMock).not.toHaveBeenCalled();
 		});
 
-		test("does not retry a document that is not failed in the saved extraction", async () => {
+		test("returns the stored result without extracting again when the document is already ready", async () => {
 			getPatientExtractionByIdMock.mockResolvedValue({
 				id: "saved-extraction",
 				createdBy: "owner-1",
@@ -935,10 +935,31 @@ describe("Uploads and extraction API", () => {
 				extractFileRequest({ filenames: ["first.docx"], extractionId: "saved-extraction" }),
 			);
 
+			expect(response.status).toBe(200);
+			expect(await response.json()).toEqual({
+				status: "success",
+				extractionId: "saved-extraction",
+				hasReadyDocument: true,
+			});
+			expect(createWorkerMock).not.toHaveBeenCalled();
+			expect(generateTextMock).not.toHaveBeenCalled();
+		});
+
+		test("explains a retried document was already removed", async () => {
+			getPatientExtractionByIdMock.mockResolvedValue({
+				id: "saved-extraction",
+				createdBy: "owner-1",
+				extractedData: [readyDocument("other.docx")],
+			});
+
+			const response = await extractFile(
+				extractFileRequest({ filenames: ["first.docx"], extractionId: "saved-extraction" }),
+			);
+
 			expect(response.status).toBe(400);
 			expect(await response.json()).toEqual({
-				status: "failed",
-				error: "These documents can’t be extracted again.",
+				status: "invalid",
+				error: "This document was already removed.",
 			});
 			expect(generateTextMock).not.toHaveBeenCalled();
 		});

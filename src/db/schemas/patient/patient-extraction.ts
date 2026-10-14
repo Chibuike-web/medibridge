@@ -3,7 +3,7 @@ import { organization } from "../auth";
 import type { PatientRecord } from "@/features/patients/schemas/patient-schema";
 
 export type PatientExtractionDocument = { documentId: string } & (
-	| { status: "ready" | "saved"; patient: PatientRecord }
+	| { status: "ready"; patient: PatientRecord }
 	| { status: "failed"; patient: null }
 );
 

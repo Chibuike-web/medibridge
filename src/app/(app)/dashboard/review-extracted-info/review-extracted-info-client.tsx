@@ -40,7 +40,6 @@ import { getDocumentFileIcon } from "@/lib/utils/document-file-icon";
 import {
 	RiArrowDownSLine,
 	RiCalendarLine,
-	RiCheckboxCircleFill,
 	RiCheckboxCircleLine,
 	RiDownloadLine,
 	RiErrorWarningFill,
@@ -53,7 +52,7 @@ export type ReviewDocument = {
 	id: string;
 	label: string;
 	fileUrl: string;
-	status: "saved" | "ready" | "extracting" | "failed";
+	status: "ready" | "extracting" | "failed";
 	patient: PatientRecord | null;
 };
 
@@ -124,10 +123,6 @@ const reviewSections: ReviewSection[] = [
 ];
 
 const documentStatuses = {
-	saved: {
-		label: "Saved",
-		icon: <RiCheckboxCircleFill className="size-4 text-green-500" aria-hidden="true" />,
-	},
 	ready: {
 		label: "Ready to review",
 		icon: <RiCheckboxCircleLine className="size-4 text-gray-500" aria-hidden="true" />,
@@ -159,10 +154,8 @@ export function ReviewExtractedInfoClient({
 	const router = useRouter();
 	const [documents, setDocuments] = useState(initialDocuments);
 	const [selectedDocumentId, setSelectedDocumentId] = useState(
-		(
-			initialDocuments.find((document) => document.status === "ready") ??
-			initialDocuments.find((document) => document.patient)
-		)?.id ?? "",
+		(initialDocuments.find((document) => document.status === "ready") ?? initialDocuments[0])?.id ??
+			"",
 	);
 	const [collapsedSections, setCollapsedSections] = useState<
 		Partial<Record<keyof PatientRecord, boolean>>
@@ -175,10 +168,14 @@ export function ReviewExtractedInfoClient({
 	const formId = useId();
 	const selectedDocument = documents.find((document) => document.id === selectedDocumentId);
 	const selectedPatient = selectedDocument?.patient;
-	const isSaved = selectedDocument?.status === "saved";
+	const isExtracting = selectedDocument?.status === "extracting";
+	const failedDocumentCount = documents.filter((document) => document.status === "failed").length;
+	const unsavedPatientCount = documents.length - failedDocumentCount;
+	const unsavedPatients = `${unsavedPatientCount} ${unsavedPatientCount === 1 ? "patient" : "patients"}`;
+	const discardedPatients = unsavedPatientCount === 1 ? "it" : "them";
+	const failedDocuments = `the ${failedDocumentCount} ${failedDocumentCount === 1 ? "document" : "documents"} that couldn’t be extracted`;
 	const isWordDocument = selectedDocument?.id.endsWith(".docx");
 	const canSave = Boolean(selectedPatient) && !isPending;
-	const unsavedDocumentCount = documents.filter((document) => document.status !== "saved").length;
 	const birthDate = selectedPatient?.personalInfo.dateOfBirth;
 	const parsedBirthDate =
 		birthDate && isMatch(birthDate, "yyyy-MM-dd") ? parseISO(birthDate) : undefined;
@@ -220,7 +217,15 @@ export function ReviewExtractedInfoClient({
 		if (isPending || removedDocument.status !== "failed") return;
 		setReviewError("");
 		startTransition(async () => {
-			const result = await removeExtractionDocumentAction(extractionId, removedDocument.id);
+			const result = await removeExtractionDocumentAction(extractionId, removedDocument.id).catch(
+				(error) => {
+					console.error("Removing extraction document failed:", error);
+					return {
+						status: "failed",
+						error: "We couldn’t remove this document. Please try again.",
+					} as const;
+				},
+			);
 
 			if (result.status === "unauthorized") {
 				router.refresh();
@@ -232,15 +237,38 @@ export function ReviewExtractedInfoClient({
 				return;
 			}
 
+			if (result.status === "invalid") {
+				setReviewError(result.error);
+			} else {
+				setReviewAnnouncement(`${removedDocument.label} removed.`);
+			}
+			const remainingDocuments = documents.filter((document) => document.id !== removedDocument.id);
+			if (remainingDocuments.length === 0) {
+				router.push("/dashboard/overview");
+				return;
+			}
 			setDocuments((prev) => prev.filter((document) => document.id !== removedDocument.id));
-			setReviewAnnouncement(`${removedDocument.label} removed.`);
+			if (removedDocument.id === selectedDocumentId) {
+				setSelectedDocumentId(
+					(
+						remainingDocuments.find((document) => document.status === "ready") ??
+						remainingDocuments[0]
+					).id,
+				);
+			}
 		});
 	}
 
 	function continueToDashboard() {
 		setReviewError("");
 		startTransition(async () => {
-			const result = await discardPatientExtractionAction(extractionId);
+			const result = await discardPatientExtractionAction(extractionId).catch((error) => {
+				console.error("Discarding patient extraction failed:", error);
+				return {
+					status: "failed",
+					error: "We couldn’t clear this review. Please try again.",
+				} as const;
+			});
 
 			if (result.status === "unauthorized") {
 				router.refresh();
@@ -264,10 +292,37 @@ export function ReviewExtractedInfoClient({
 				document.id === retriedDocument.id ? { ...document, status: "extracting" } : document,
 			),
 		);
-		const result = await retryPatientExtractionAction(extractionId, [retriedDocument.id]);
+		const result = await retryPatientExtractionAction(extractionId, [retriedDocument.id]).catch(
+			(error) => {
+				console.error("Retrying patient extraction failed:", error);
+				return {
+					status: "failed",
+					error: `We couldn’t extract ${retriedDocument.label}. Please try again.`,
+				} as const;
+			},
+		);
 
 		if (result.status === "unauthorized") {
 			router.refresh();
+			return;
+		}
+
+		if (result.status === "invalid") {
+			setReviewError(result.error);
+			const remainingDocuments = documents.filter((document) => document.id !== retriedDocument.id);
+			if (remainingDocuments.length === 0) {
+				router.push("/dashboard/overview");
+				return;
+			}
+			setDocuments((prev) => prev.filter((document) => document.id !== retriedDocument.id));
+			setSelectedDocumentId((prev) =>
+				prev === retriedDocument.id
+					? (
+							remainingDocuments.find((document) => document.status === "ready") ??
+							remainingDocuments[0]
+						).id
+					: prev,
+			);
 			return;
 		}
 
@@ -307,7 +362,17 @@ export function ReviewExtractedInfoClient({
 		}
 		setReviewError("");
 		startTransition(async () => {
-			const result = await savePatientsAction(extractionId, selectedDocument.id, selectedPatient);
+			const result = await savePatientsAction(
+				extractionId,
+				selectedDocument.id,
+				selectedPatient,
+			).catch((error) => {
+				console.error("Saving extracted patient failed:", error);
+				return {
+					status: "failed",
+					error: "We couldn’t save this patient. Please try again.",
+				} as const;
+			});
 
 			if (result.status === "unauthorized") {
 				router.refresh();
@@ -319,19 +384,26 @@ export function ReviewExtractedInfoClient({
 				return;
 			}
 
-			setDocuments((prev) =>
-				prev.map((document) =>
-					document.id === selectedDocument.id ? { ...document, status: "saved" } : document,
-				),
+			if (result.status === "invalid") {
+				setReviewError(result.error);
+			} else {
+				setReviewAnnouncement(`${formatPatientLabel(selectedPatient.personalInfo)} saved.`);
+			}
+			const remainingDocuments = documents.filter(
+				(document) => document.id !== selectedDocument.id,
 			);
-			const nextDocument = documents.find(
-				(document) => document.id !== selectedDocument.id && document.status === "ready",
+			if (remainingDocuments.length === 0) {
+				router.push("/dashboard/overview");
+				return;
+			}
+			setDocuments((prev) => prev.filter((document) => document.id !== selectedDocument.id));
+			setSelectedDocumentId(
+				(
+					remainingDocuments.find((document) => document.status === "ready") ??
+					remainingDocuments[0]
+				).id,
 			);
-			if (!isSaved && nextDocument) setSelectedDocumentId(nextDocument.id);
-			const patientLabel = formatPatientLabel(selectedPatient.personalInfo);
-			setReviewAnnouncement(
-				isSaved ? `Changes to ${patientLabel} saved.` : `${patientLabel} saved.`,
-			);
+			window.scrollTo({ top: 0 });
 		});
 	}
 
@@ -371,7 +443,7 @@ export function ReviewExtractedInfoClient({
 			</p>
 			<div className="relative mx-auto mt-12 grid w-full max-w-[31.25rem] gap-10 lg:mt-16 lg:max-w-[56.125rem] lg:grid-cols-[31.25rem_21.875rem] lg:gap-12 2xl:max-w-[31.25rem] 2xl:grid-cols-1">
 				<div className="min-w-0">
-					{selectedDocument && selectedPatient && (
+					{selectedDocument && selectedPatient ? (
 						<>
 							<div className="mb-8 flex items-end justify-between gap-2.5">
 								<div className="flex min-w-0 flex-col gap-2">
@@ -592,6 +664,44 @@ export function ReviewExtractedInfoClient({
 								})}
 							</form>
 						</>
+					) : (
+						<div className="flex min-h-60 flex-col items-center justify-center gap-3 text-center">
+							{isExtracting ? (
+								<RiLoader2Fill
+									className="size-5 animate-spin text-blue-500 motion-reduce:animate-none"
+									aria-hidden="true"
+								/>
+							) : (
+								<RiErrorWarningFill className="size-5 text-red-700" aria-hidden="true" />
+							)}
+							<h2 className="text-base font-semibold text-balance">
+								{isExtracting
+									? "Extracting patient information…"
+									: "We couldn’t extract this record"}
+							</h2>
+							<p className="text-sm text-pretty text-gray-600">
+								{isExtracting
+									? "You can review another document while this one is processing."
+									: "Try again, or remove the document from the list."}
+							</p>
+							{selectedDocument?.status === "failed" && (
+								<Button variant="outline" className="rounded-lg" asChild>
+									<a href={selectedDocument.fileUrl} target="_blank" rel="noopener noreferrer">
+										{isWordDocument ? (
+											<>
+												Download document
+												<RiDownloadLine aria-hidden="true" />
+											</>
+										) : (
+											<>
+												View document
+												<RiExternalLinkLine aria-hidden="true" />
+											</>
+										)}
+									</a>
+								</Button>
+							)}
+						</div>
 					)}
 				</div>
 				<aside
@@ -615,17 +725,15 @@ export function ReviewExtractedInfoClient({
 										selectedDocumentId === document.id && "border-gray-800",
 									)}
 								>
-									{document.patient && (
-										<Button
-											type="button"
-											variant="ghost"
-											aria-label={`Review ${document.label}`}
-											aria-pressed={selectedDocumentId === document.id}
-											disabled={isPending}
-											onClick={() => selectDocument(document.id)}
-											className="absolute inset-0 h-full w-full rounded-xl border-0 hover:bg-transparent active:scale-100"
-										/>
-									)}
+									<Button
+										type="button"
+										variant="ghost"
+										aria-label={`Review ${document.label}`}
+										aria-pressed={selectedDocumentId === document.id}
+										disabled={isPending}
+										onClick={() => selectDocument(document.id)}
+										className="absolute inset-0 h-full w-full rounded-xl border-0 hover:bg-transparent active:scale-100"
+									/>
 									<div className="pointer-events-none relative flex min-w-0 items-center gap-1">
 										<Image
 											src={getDocumentFileIcon(document.id, "")}
@@ -687,56 +795,48 @@ export function ReviewExtractedInfoClient({
 			</div>
 			<footer className="fixed inset-x-0 bottom-0 z-50 border-t border-gray-100 bg-white px-6 py-4">
 				<div className="mx-auto flex w-full max-w-[31.25rem] flex-wrap items-center justify-between gap-3">
-					{unsavedDocumentCount > 0 ? (
-						<AlertDialog open={isLeaveReviewDialogOpen} onOpenChange={setIsLeaveReviewDialogOpen}>
-							<AlertDialogTrigger asChild>
-								<Button variant="outline" className="rounded-lg max-sm:w-full" disabled={isPending}>
-									Continue to dashboard
+					<AlertDialog open={isLeaveReviewDialogOpen} onOpenChange={setIsLeaveReviewDialogOpen}>
+						<AlertDialogTrigger asChild>
+							<Button variant="outline" className="rounded-lg max-sm:w-full" disabled={isPending}>
+								Continue to dashboard
+							</Button>
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Leave review?</AlertDialogTitle>
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon"
+									aria-label="Close leave review dialog"
+									disabled={isPending}
+									onClick={() => setIsLeaveReviewDialogOpen(false)}
+								>
+									<RiCloseLine aria-hidden="true" />
 								</Button>
-							</AlertDialogTrigger>
-							<AlertDialogContent>
-								<AlertDialogHeader>
-									<AlertDialogTitle>Leave review?</AlertDialogTitle>
-									<Button
-										type="button"
-										variant="ghost"
-										size="icon"
-										aria-label="Close leave review dialog"
-										disabled={isPending}
-										onClick={() => setIsLeaveReviewDialogOpen(false)}
-									>
-										<RiCloseLine aria-hidden="true" />
-									</Button>
-								</AlertDialogHeader>
-								<AlertDialogDescription>
-									You have {unsavedDocumentCount} unsaved{" "}
-									{unsavedDocumentCount === 1 ? "document" : "documents"}. Leaving will discard them
-									and your edits. Saved patients will remain available.
-								</AlertDialogDescription>
-								<AlertDialogFooter>
-									<AlertDialogCancel disabled={isPending}>Keep reviewing</AlertDialogCancel>
-									<Button
-										type="button"
-										variant="destructive"
-										disabled={isPending}
-										aria-busy={isPending}
-										onClick={continueToDashboard}
-									>
-										{isPending ? "Discarding…" : "Discard and continue"}
-									</Button>
-								</AlertDialogFooter>
-							</AlertDialogContent>
-						</AlertDialog>
-					) : (
-						<Button
-							variant="outline"
-							className="rounded-lg max-sm:w-full"
-							disabled={isPending}
-							onClick={continueToDashboard}
-						>
-							Continue to dashboard
-						</Button>
-					)}
+							</AlertDialogHeader>
+							<AlertDialogDescription>
+								{unsavedPatientCount === 0
+									? `Leaving will discard ${failedDocuments}.`
+									: failedDocumentCount === 0
+										? `You have ${unsavedPatients} you haven’t saved. Leaving will discard ${discardedPatients}.`
+										: `You have ${unsavedPatients} you haven’t saved. Leaving will discard ${discardedPatients} and ${failedDocuments}.`}{" "}
+								Saved patients will remain available.
+							</AlertDialogDescription>
+							<AlertDialogFooter>
+								<AlertDialogCancel disabled={isPending}>Keep reviewing</AlertDialogCancel>
+								<Button
+									type="button"
+									variant="destructive"
+									disabled={isPending}
+									aria-busy={isPending}
+									onClick={continueToDashboard}
+								>
+									{isPending ? "Discarding…" : "Discard and continue"}
+								</Button>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
 					<Button
 						type="submit"
 						form={formId}
@@ -744,7 +844,7 @@ export function ReviewExtractedInfoClient({
 						aria-busy={isPending}
 						className="rounded-lg bg-[#222530] hover:bg-[#222530]/90 max-sm:w-full"
 					>
-						{isPending ? "Saving…" : isSaved ? "Save changes" : "Save patient & review next"}
+						{isPending ? "Saving…" : "Save patient & review next"}
 					</Button>
 				</div>
 			</footer>

@@ -108,7 +108,6 @@ describe("review saved patient extractions", () => {
 			id: "saved",
 			extractedData: [
 				readyDocument("Ada"),
-				{ ...readyDocument("Bola"), status: "saved" },
 				{ documentId: "Chi.pdf", status: "failed", patient: null },
 			],
 		});
@@ -117,10 +116,7 @@ describe("review saved patient extractions", () => {
 			within(screen.getByRole("article", { name: "Document 1" })).getByText("Ready to review"),
 		).toBeVisible();
 		expect(
-			within(screen.getByRole("article", { name: "Document 2" })).getByText("Saved"),
-		).toBeVisible();
-		expect(
-			within(screen.getByRole("article", { name: "Document 3" })).getByText("Extraction failed"),
+			within(screen.getByRole("article", { name: "Document 2" })).getByText("Extraction failed"),
 		).toBeVisible();
 	});
 

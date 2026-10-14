@@ -12,12 +12,12 @@ import {
 	patientExtraction,
 	patientPhysicalInformation,
 } from "@/db/schemas/patient";
-import { auth, db } from "@/lib/better-auth/auth";
-import { headers } from "next/headers";
+import { db } from "@/lib/better-auth/auth";
 import { updateTag } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { SavePatientsResult } from "./types";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
+import { getSessionData } from "@/lib/api/get-session-data";
 import { z } from "zod";
 
 function isBlank(value: string | null | undefined) {
@@ -53,7 +53,7 @@ export async function saveExtractedPatientsService(
 			return { status: "failed", error: validationError };
 		}
 
-		const session = await auth.api.getSession({ headers: await headers() });
+		const session = await getSessionData();
 
 		if (!session?.user?.id) {
 			return { status: "unauthorized", error: "You must be signed in to save patients." };
@@ -100,102 +100,79 @@ export async function saveExtractedPatientsService(
 			genotype: record.physicalInfo.genotype,
 		};
 
-		const saveResult = await db.transaction(
-			async (tx): Promise<{ error: string } | { patientId: string }> => {
-				const [extraction] = await tx
-					.select({ extractedData: patientExtraction.extractedData })
-					.from(patientExtraction)
-					.where(
-						and(
-							eq(patientExtraction.id, extractionId),
-							eq(patientExtraction.organizationId, organizationId),
-						),
-					)
-					.for("update");
-				const document = extraction?.extractedData.find(
-					(document) => document.documentId === documentId,
-				);
+		const saveResult = await db.transaction(async (tx) => {
+			const [extraction] = await tx
+				.select({ extractedData: patientExtraction.extractedData })
+				.from(patientExtraction)
+				.where(
+					and(
+						eq(patientExtraction.id, extractionId),
+						eq(patientExtraction.organizationId, organizationId),
+					),
+				)
+				.for("update");
 
-				if (!extraction || !document || document.status === "failed") {
-					return { error: "This document can’t be saved." };
-				}
+			if (!extraction) {
+				return { status: "invalid", error: "This review was already cleared." } as const;
+			}
 
-				const patientId =
-					document.status === "saved" && document.patient.personalInfo.patientId
-						? document.patient.personalInfo.patientId
-						: crypto.randomUUID();
+			const document = extraction.extractedData.find(
+				(document) => document.documentId === documentId,
+			);
+			if (!document) {
+				return { status: "invalid", error: "This patient was already saved." } as const;
+			}
+			if (document.status !== "ready") {
+				return { status: "failed", error: "This document can’t be saved." } as const;
+			}
 
-				if (document.status === "saved") {
-					const updatedAt = new Date();
-					await tx
-						.update(patientPersonalInformation)
-						.set({ ...personalInformation, updatedAt })
-						.where(eq(patientPersonalInformation.patientId, patientId));
-					await tx
-						.update(patientContactInformation)
-						.set({ ...contactInformation, updatedAt })
-						.where(eq(patientContactInformation.patientId, patientId));
-					await tx
-						.update(patientEmergencyContact)
-						.set({ ...emergencyContact, updatedAt })
-						.where(eq(patientEmergencyContact.patientId, patientId));
-					await tx
-						.update(patientPhysicalInformation)
-						.set({ ...physicalInformation, updatedAt })
-						.where(eq(patientPhysicalInformation.patientId, patientId));
-				} else {
-					await tx.insert(patient).values({ id: patientId, organizationId });
-					await tx.insert(patientPersonalInformation).values({
-						id: crypto.randomUUID(),
-						patientId,
-						...personalInformation,
-					});
-					await tx.insert(patientContactInformation).values({
-						id: crypto.randomUUID(),
-						patientId,
-						...contactInformation,
-					});
-					await tx.insert(patientEmergencyContact).values({
-						id: crypto.randomUUID(),
-						patientId,
-						...emergencyContact,
-					});
-					await tx.insert(patientPhysicalInformation).values({
-						id: crypto.randomUUID(),
-						patientId,
-						...physicalInformation,
-					});
-				}
+			const patientId = crypto.randomUUID();
+			await tx.insert(patient).values({ id: patientId, organizationId });
+			await tx.insert(patientPersonalInformation).values({
+				id: crypto.randomUUID(),
+				patientId,
+				...personalInformation,
+			});
+			await tx.insert(patientContactInformation).values({
+				id: crypto.randomUUID(),
+				patientId,
+				...contactInformation,
+			});
+			await tx.insert(patientEmergencyContact).values({
+				id: crypto.randomUUID(),
+				patientId,
+				...emergencyContact,
+			});
+			await tx.insert(patientPhysicalInformation).values({
+				id: crypto.randomUUID(),
+				patientId,
+				...physicalInformation,
+			});
 
+			const remainingDocuments = extraction.extractedData.filter(
+				(document) => document.documentId !== documentId,
+			);
+			if (remainingDocuments.length === 0) {
+				await tx.delete(patientExtraction).where(eq(patientExtraction.id, extractionId));
+			} else {
 				await tx
 					.update(patientExtraction)
-					.set({
-						extractedData: extraction.extractedData.map((document) =>
-							document.documentId === documentId
-								? {
-										documentId,
-										status: "saved" as const,
-										patient: { ...record, personalInfo: { ...record.personalInfo, patientId } },
-									}
-								: document,
-						),
-					})
+					.set({ extractedData: remainingDocuments })
 					.where(eq(patientExtraction.id, extractionId));
-				return { patientId };
-			},
-		);
+			}
 
-		if ("error" in saveResult) {
-			return { status: "failed", error: saveResult.error };
+			return { status: "success", patientId } as const;
+		});
+
+		if (saveResult.status !== "success") {
+			return saveResult;
 		}
-
-		const { patientId } = saveResult;
 
 		updateTag(`patients-list-${organizationId}`);
 		updateTag(`recent-patients-${organizationId}`);
 		updateTag(`overview-stats-${organizationId}`);
-		updateTag(`patient-profile-${organizationId}-${patientId}`);
-		updateTag(`patient-by-id-${organizationId}-${patientId}`);
+		updateTag(`patient-profile-${organizationId}-${saveResult.patientId}`);
+		updateTag(`patient-by-id-${organizationId}-${saveResult.patientId}`);
 		updateTag(`recent-transfers-${organizationId}`);
 		updateTag(`transfers-list-${organizationId}`);
 		updateTag(`patient-extraction-${organizationId}-${extractionId}`);

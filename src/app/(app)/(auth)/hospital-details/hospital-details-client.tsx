@@ -139,7 +139,7 @@ export function HospitalDetailsClient() {
 					inputId="hospital-file"
 				/>
 			)}
-			{uploadError && (
+			{file && uploadError && (
 				<p id="file-upload-error" className="text-red-500 font-medium text-sm mt-2" role="alert">
 					{uploadError}
 				</p>

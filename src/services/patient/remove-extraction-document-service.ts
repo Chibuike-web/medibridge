@@ -11,7 +11,7 @@ import { db } from "@/lib/better-auth/auth";
 
 type RemoveExtractionDocumentResult =
 	| { status: "success" }
-	| { status: "failed" | "unauthorized"; error: string };
+	| { status: "failed" | "unauthorized" | "invalid"; error: string };
 
 export async function removeExtractionDocumentService(
 	extractionId: string,
@@ -37,7 +37,7 @@ export async function removeExtractionDocumentService(
 	}
 
 	try {
-		const uploadedBy = await db.transaction(async (tx) => {
+		const removal = await db.transaction(async (tx) => {
 			const [extraction] = await tx
 				.select({
 					createdBy: patientExtraction.createdBy,
@@ -52,12 +52,18 @@ export async function removeExtractionDocumentService(
 				)
 				.for("update");
 
-			if (
-				!extraction?.extractedData.some(
-					(document) => document.documentId === documentId && document.status !== "saved",
-				)
-			) {
-				return null;
+			if (!extraction) {
+				return { status: "invalid", error: "This review was already cleared." } as const;
+			}
+
+			const document = extraction.extractedData.find(
+				(document) => document.documentId === documentId,
+			);
+			if (!document) {
+				return { status: "invalid", error: "This document was already removed." } as const;
+			}
+			if (document.status !== "failed") {
+				return { status: "failed", error: "This document can’t be removed." } as const;
 			}
 
 			const remainingDocuments = extraction.extractedData.filter(
@@ -73,16 +79,16 @@ export async function removeExtractionDocumentService(
 					.where(eq(patientExtraction.id, extractionId));
 			}
 
-			return extraction.createdBy;
+			return { status: "success", uploadedBy: extraction.createdBy } as const;
 		});
 
-		if (!uploadedBy) {
-			return { status: "failed", error: "This document can’t be removed." };
+		if (removal.status !== "success") {
+			return removal;
 		}
 
 		updateTag(`patient-extraction-${organizationId}-${extractionId}`);
 
-		const uploadRoot = path.resolve("patient-uploads", organizationId, uploadedBy);
+		const uploadRoot = path.resolve("patient-uploads", organizationId, removal.uploadedBy);
 		const filePath = path.resolve(uploadRoot, documentId);
 
 		if (path.dirname(filePath) === uploadRoot) {

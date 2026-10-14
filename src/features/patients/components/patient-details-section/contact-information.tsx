@@ -60,19 +60,8 @@ export function ContactInformation({
 		optimisticContactInformation,
 		"Country of origin",
 	);
-	const [selectedStateOfOrigin, setSelectedStateOfOrigin] = useState(
-		nigerianStates.find(
-			(state) =>
-				state.toLowerCase() ===
-				savedStateOfOrigin
-					.trim()
-					.toLowerCase()
-					.replace(/\s+state$/, ""),
-		) ?? "",
-	);
-	const [selectedCountryOfOrigin, setSelectedCountryOfOrigin] = useState(
-		savedCountryOfOrigin.trim().toLowerCase() === "nigeria" ? "Nigeria" : "",
-	);
+	const [selectedStateOfOrigin, setSelectedStateOfOrigin] = useState("");
+	const [selectedCountryOfOrigin, setSelectedCountryOfOrigin] = useState("");
 
 	function handleContactInformationSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>) {
 		event.preventDefault();
@@ -121,6 +110,19 @@ export function ContactInformation({
 				<DropdownMenuItem
 					onSelect={(e) => {
 						e.preventDefault();
+						setSelectedStateOfOrigin(
+							nigerianStates.find(
+								(state) =>
+									state.toLowerCase() ===
+									savedStateOfOrigin
+										.trim()
+										.toLowerCase()
+										.replace(/\s+state$/, ""),
+							) ?? "",
+						);
+						setSelectedCountryOfOrigin(
+							savedCountryOfOrigin.trim().toLowerCase() === "nigeria" ? "Nigeria" : "",
+						);
 						setIsContactInformationDialogOpen(true);
 					}}
 					className="flex items-center rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"

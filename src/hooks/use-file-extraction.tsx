@@ -6,7 +6,7 @@ import { useState } from "react";
 
 type ExtractFileResponse =
 	| { status: "success"; extractionId: string; hasReadyDocument: boolean }
-	| { status: "failed"; error: string };
+	| { status: "failed" | "invalid"; error: string };
 
 export function useFileExtraction(files: SelectedFile[]) {
 	const router = useRouter();
@@ -57,7 +57,7 @@ export function useFileExtraction(files: SelectedFile[]) {
 			return;
 		}
 
-		if (data.status === "failed") {
+		if (data.status !== "success") {
 			setExtractError(data.error);
 		}
 		setFileExtractions((prev) => {

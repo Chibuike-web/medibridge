@@ -55,6 +55,13 @@ export async function discardPatientExtractionService(
 				return null;
 			}
 
+			const uploadRoot = path.resolve("patient-uploads", organizationId, extraction.createdBy);
+			for (const document of extraction.extractedData) {
+				const filePath = path.resolve(uploadRoot, document.documentId);
+				if (path.dirname(filePath) !== uploadRoot) continue;
+				await rm(filePath, { force: true });
+			}
+
 			await tx.delete(patientExtraction).where(eq(patientExtraction.id, extractionId));
 			return extraction;
 		});
@@ -64,20 +71,6 @@ export async function discardPatientExtractionService(
 		}
 
 		updateTag(`patient-extraction-${organizationId}-${extractionId}`);
-
-		const uploadRoot = path.resolve(
-			"patient-uploads",
-			organizationId,
-			discardedExtraction.createdBy,
-		);
-		for (const document of discardedExtraction.extractedData) {
-			const filePath = path.resolve(uploadRoot, document.documentId);
-			if (document.status === "saved" || path.dirname(filePath) !== uploadRoot) continue;
-
-			await rm(filePath, { force: true }).catch((error) => {
-				console.error("Removing patient upload failed:", error);
-			});
-		}
 
 		return { status: "success" };
 	} catch (error) {

@@ -140,30 +140,31 @@ describe("removing a document from a saved extraction", () => {
 	});
 
 	test.each([
-		{ scenario: "a saved patient's document", documentId: "ada.pdf", status: "saved" as const },
 		{
-			scenario: "a document not in the extraction",
-			documentId: "other.pdf",
-			status: "ready" as const,
+			scenario: "a document that is ready for review",
+			documentId: "ada.pdf",
+			result: { status: "failed", error: "This document can’t be removed." },
 		},
-	])("does not remove $scenario", async ({ documentId, status }) => {
-		storedExtraction.current!.extractedData = [{ ...readyDocument, status }, failedDocument];
+		{
+			scenario: "a document that was already removed",
+			documentId: "other.pdf",
+			result: { status: "invalid", error: "This document was already removed." },
+		},
+	])("does not remove $scenario", async ({ documentId, result }) => {
+		storedExtraction.current!.extractedData = [readyDocument, failedDocument];
 
-		expect(await removeExtractionDocumentService("extraction-1", documentId)).toEqual({
-			status: "failed",
-			error: "This document can’t be removed.",
-		});
+		expect(await removeExtractionDocumentService("extraction-1", documentId)).toEqual(result);
 		expect(storedExtraction.current?.extractedData).toHaveLength(2);
 		expect(removeFileMock).not.toHaveBeenCalled();
 		expect(updateTagMock).not.toHaveBeenCalled();
 	});
 
-	test("does not remove anything when the extraction is not found for the member's hospital", async () => {
+	test("explains the review was cleared when the extraction is not found for the member's hospital", async () => {
 		storedExtraction.current = null;
 
 		expect(await removeExtractionDocumentService("extraction-1", "scan.pdf")).toEqual({
-			status: "failed",
-			error: "This document can’t be removed.",
+			status: "invalid",
+			error: "This review was already cleared.",
 		});
 		expect(removeFileMock).not.toHaveBeenCalled();
 	});

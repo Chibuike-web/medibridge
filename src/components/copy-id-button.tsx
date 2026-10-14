@@ -34,7 +34,7 @@ export function CopyIdButton({ id, className }: CopyIdButtonProps) {
 				handleCopy();
 			}}
 			className={cn(
-				"flex w-max max-w-40 min-w-0 gap-1.5 border-gray-200 bg-gray-100 p-1 text-left text-gray-600 h-auto justify-start font-normal hover:bg-gray-100 hover:text-gray-600",
+				"flex w-max max-w-28 min-w-0 gap-1.5 border-gray-200 bg-gray-100 p-1 text-left text-gray-600 h-auto justify-start font-normal hover:bg-gray-100 hover:text-gray-600",
 				className,
 			)}
 			aria-label={isCopied ? `${id} copied` : `Copy ${id}`}

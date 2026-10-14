@@ -7,8 +7,7 @@ import { saveExtractedPatientsService } from "./save-extracted-patients-service"
 
 const {
 	getOrganizationIdMock,
-	getSessionMock,
-	headersMock,
+	getSessionDataMock,
 	insertedRows,
 	updatedRows,
 	extractionRow,
@@ -16,22 +15,18 @@ const {
 	updateTagMock,
 } = vi.hoisted(() => ({
 	getOrganizationIdMock: vi.fn(),
-	getSessionMock: vi.fn(),
-	headersMock: vi.fn(),
+	getSessionDataMock: vi.fn(),
 	insertedRows: [] as Record<string, unknown>[],
 	updatedRows: [] as Record<string, unknown>[],
-	extractionRow: { extractedData: [] as PatientExtractionDocument[] },
+	extractionRow: { extractedData: [] as PatientExtractionDocument[], isDeleted: false },
 	transactionMock: vi.fn(),
 	updateTagMock: vi.fn(),
 }));
 
-vi.mock("next/headers", () => ({ headers: headersMock }));
 vi.mock("next/cache", () => ({ updateTag: updateTagMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
-vi.mock("@/lib/better-auth/auth", () => ({
-	auth: { api: { getSession: getSessionMock } },
-	db: { transaction: transactionMock },
-}));
+vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
+vi.mock("@/lib/better-auth/auth", () => ({ db: { transaction: transactionMock } }));
 
 function createPatientRecord(patientId: string | null, firstName: string): PatientRecord {
 	return {
@@ -79,18 +74,20 @@ describe("saveExtractedPatientsService", () => {
 	beforeEach(() => {
 		insertedRows.length = 0;
 		updatedRows.length = 0;
-		headersMock.mockResolvedValue(new Headers());
-		getSessionMock.mockResolvedValue({ user: { id: "member-1", emailVerified: true } });
+		getSessionDataMock.mockResolvedValue({ user: { id: "member-1", emailVerified: true } });
 		getOrganizationIdMock.mockResolvedValue("hospital-1");
 		extractionRow.extractedData = [
 			{ documentId: "ada.pdf", status: "ready", patient: createPatientRecord("P-0001", "Ada") },
 			failedDocument,
 		];
+		extractionRow.isDeleted = false;
 		transactionMock.mockImplementation(async (save) =>
 			save({
 				select: () => ({
 					from: () => ({
-						where: () => ({ for: async () => [structuredClone(extractionRow)] }),
+						where: () => ({
+							for: async () => (extractionRow.isDeleted ? [] : [structuredClone(extractionRow)]),
+						}),
 					}),
 				}),
 				insert: () => ({
@@ -109,6 +106,11 @@ describe("saveExtractedPatientsService", () => {
 						},
 					}),
 				}),
+				delete: () => ({
+					where: async () => {
+						extractionRow.isDeleted = true;
+					},
+				}),
 			}),
 		);
 	});
@@ -126,7 +128,7 @@ describe("saveExtractedPatientsService", () => {
 		);
 	});
 
-	test("creates the patient with a generated ID and stores the saved details in the extraction", async () => {
+	test("creates the patient with a generated ID and removes its document from the extraction", async () => {
 		const editedPatient = createPatientRecord("ID-FROM-DOCUMENT", "Adanna");
 
 		const result = await saveExtractedPatientsService("extraction-1", "ada.pdf", editedPatient);
@@ -140,22 +142,29 @@ describe("saveExtractedPatientsService", () => {
 			expect.objectContaining({ patientId: generatedId, firstName: "Adanna" }),
 		);
 		expect(updatedRows).toEqual([]);
-		expect(extractionRow.extractedData).toEqual([
-			{
-				documentId: "ada.pdf",
-				status: "saved",
-				patient: {
-					...editedPatient,
-					personalInfo: { ...editedPatient.personalInfo, patientId: generatedId },
-				},
-			},
-			failedDocument,
-		]);
+		expect(extractionRow.isDeleted).toBe(false);
+		expect(extractionRow.extractedData).toEqual([failedDocument]);
 		expect(updateTagMock).toHaveBeenCalledWith("patients-list-hospital-1");
 		expect(updateTagMock).toHaveBeenCalledWith("recent-patients-hospital-1");
 		expect(updateTagMock).toHaveBeenCalledWith("overview-stats-hospital-1");
 		expect(updateTagMock).toHaveBeenCalledWith(`patient-profile-hospital-1-${generatedId}`);
 		expect(updateTagMock).toHaveBeenCalledWith(`patient-by-id-hospital-1-${generatedId}`);
+	});
+
+	test("deletes the extraction once its last document is saved", async () => {
+		extractionRow.extractedData = [
+			{ documentId: "ada.pdf", status: "ready", patient: createPatientRecord(null, "Ada") },
+		];
+
+		expect(
+			await saveExtractedPatientsService(
+				"extraction-1",
+				"ada.pdf",
+				createPatientRecord(null, "Ada"),
+			),
+		).toEqual({ status: "success", savedCount: 1 });
+		expect(insertedRows).toContainEqual(expect.objectContaining({ organizationId: "hospital-1" }));
+		expect(extractionRow.isDeleted).toBe(true);
 	});
 
 	test("gives each newly saved patient a different ID", async () => {
@@ -180,28 +189,18 @@ describe("saveExtractedPatientsService", () => {
 		expect(new Set(createdPatientIds).size).toBe(2);
 	});
 
-	test("updates a saved patient under their stored ID instead of creating them again", async () => {
-		extractionRow.extractedData = [
-			{ documentId: "ada.pdf", status: "saved", patient: createPatientRecord("P-0001", "Ada") },
-		];
-		const editedPatient = createPatientRecord("ANOTHER-ID", "Adanna");
+	test("does not create a second patient when the same document is saved again", async () => {
+		const editedPatient = createPatientRecord(null, "Ada");
+		expect(await saveExtractedPatientsService("extraction-1", "ada.pdf", editedPatient)).toEqual({
+			status: "success",
+			savedCount: 1,
+		});
 
-		const result = await saveExtractedPatientsService("extraction-1", "ada.pdf", editedPatient);
-
-		expect(result).toEqual({ status: "success", savedCount: 1 });
-		expect(insertedRows).toEqual([]);
-		expect(updatedRows).toContainEqual(expect.objectContaining({ firstName: "Adanna" }));
-		expect(extractionRow.extractedData).toEqual([
-			{
-				documentId: "ada.pdf",
-				status: "saved",
-				patient: {
-					...editedPatient,
-					personalInfo: { ...editedPatient.personalInfo, patientId: "P-0001" },
-				},
-			},
-		]);
-		expect(updateTagMock).toHaveBeenCalledWith("patient-profile-hospital-1-P-0001");
+		expect(await saveExtractedPatientsService("extraction-1", "ada.pdf", editedPatient)).toEqual({
+			status: "invalid",
+			error: "This patient was already saved.",
+		});
+		expect(insertedRows.filter((row) => "organizationId" in row)).toHaveLength(1);
 	});
 
 	test("does not save a patient from a document whose extraction failed", async () => {
@@ -236,7 +235,7 @@ describe("saveExtractedPatientsService", () => {
 			error: "Verify your email before saving patients.",
 		},
 	])("does not save the patient when the user is $scenario", async ({ session, status, error }) => {
-		getSessionMock.mockResolvedValue(session);
+		getSessionDataMock.mockResolvedValue(session);
 		expect(
 			await saveExtractedPatientsService(
 				"extraction-1",

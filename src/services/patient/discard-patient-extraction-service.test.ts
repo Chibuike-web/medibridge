@@ -87,7 +87,6 @@ describe("discarding a patient extraction", () => {
 		storedExtraction.current = {
 			createdBy: "uploader-1",
 			extractedData: [
-				{ documentId: "saved.pdf", status: "saved", patient },
 				{ documentId: "ready.pdf", status: "ready", patient },
 				{ documentId: "failed.pdf", status: "failed", patient: null },
 			],
@@ -96,22 +95,27 @@ describe("discarding a patient extraction", () => {
 
 	afterEach(() => vi.restoreAllMocks());
 
-	test("deletes the extraction and the files of unsaved documents but keeps saved patients' files", async () => {
+	test("clears the review and all of its uploaded files", async () => {
 		expect(await discardPatientExtractionService("extraction-1")).toEqual({ status: "success" });
 		expect(storedExtraction.current).toBeNull();
 		expect(removeFileMock).toHaveBeenCalledWith(uploadedFile("ready.pdf"), { force: true });
 		expect(removeFileMock).toHaveBeenCalledWith(uploadedFile("failed.pdf"), { force: true });
-		expect(removeFileMock).not.toHaveBeenCalledWith(uploadedFile("saved.pdf"), expect.anything());
 		expect(updateTagMock).toHaveBeenCalledWith("patient-extraction-hospital-1-extraction-1");
 	});
 
-	test("still discards the extraction when an uploaded file cannot be deleted", async () => {
+	test("keeps the review available for cleanup retry when an uploaded file cannot be deleted", async () => {
 		const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 		removeFileMock.mockRejectedValue(new Error("Private file system detail"));
 
+		expect(await discardPatientExtractionService("extraction-1")).toEqual({
+			status: "failed",
+			error: "We couldn’t clear this review. Please try again.",
+		});
+		expect(storedExtraction.current?.extractedData).toHaveLength(2);
+		expect(consoleErrorSpy).toHaveBeenCalled();
+		removeFileMock.mockResolvedValue(undefined);
 		expect(await discardPatientExtractionService("extraction-1")).toEqual({ status: "success" });
 		expect(storedExtraction.current).toBeNull();
-		expect(consoleErrorSpy).toHaveBeenCalled();
 	});
 
 	test("lets the member leave without deleting files when the extraction is already gone", async () => {
@@ -150,7 +154,7 @@ describe("discarding a patient extraction", () => {
 			getOrganizationIdMock.mockResolvedValue(organizationId);
 
 			expect(await discardPatientExtractionService("extraction-1")).toEqual(result);
-			expect(storedExtraction.current?.extractedData).toHaveLength(3);
+			expect(storedExtraction.current?.extractedData).toHaveLength(2);
 			expect(removeFileMock).not.toHaveBeenCalled();
 		},
 	);

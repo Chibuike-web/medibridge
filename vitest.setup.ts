@@ -4,6 +4,7 @@ import { afterEach } from "vitest";
 
 if (typeof Element !== "undefined") {
 	Element.prototype.scrollIntoView = () => {};
+	window.scrollTo = () => {};
 }
 
 if (typeof HTMLElement !== "undefined") {
