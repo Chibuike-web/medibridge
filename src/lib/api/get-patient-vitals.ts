@@ -62,6 +62,7 @@ export const getPatientVitals = cache(
 		limit = 14,
 		query = "",
 		dateFilters: VitalDateFilters = {},
+		encounterId?: string,
 	): Promise<{ vitals: VitalType[]; totalVitals: number }> => {
 		const organizationId = await getOrganizationId();
 
@@ -74,6 +75,7 @@ export const getPatientVitals = cache(
 			limit,
 			query.trim(),
 			dateFilters,
+			encounterId,
 		);
 	},
 );
@@ -85,6 +87,7 @@ export async function getPatientVitalsForOrganization(
 	limit: number,
 	normalizedQuery: string,
 	dateFilters: VitalDateFilters,
+	encounterId?: string,
 ): Promise<{ vitals: VitalType[]; totalVitals: number }> {
 	"use cache";
 	cacheLife("max");
@@ -100,6 +103,7 @@ export async function getPatientVitalsForOrganization(
 	const vitalFilter = and(
 		eq(patientVital.patientId, patientId),
 		eq(patient.organizationId, organizationId),
+		encounterId ? eq(patientVital.encounterId, encounterId) : undefined,
 		recordedFromDate ? gte(patientVital.recordedAt, startOfDay(recordedFromDate)) : undefined,
 		recordedToDate ? lte(patientVital.recordedAt, endOfDay(recordedToDate)) : undefined,
 		createdFromDate ? gte(patientVital.createdAt, startOfDay(createdFromDate)) : undefined,
@@ -132,17 +136,20 @@ export async function getPatientVitalsForOrganization(
 	};
 }
 
-export const getPatientVitalReadings = cache(async (patientId: string): Promise<VitalType[]> => {
-	const organizationId = await getOrganizationId();
+export const getPatientVitalReadings = cache(
+	async (patientId: string, encounterId?: string): Promise<VitalType[]> => {
+		const organizationId = await getOrganizationId();
 
-	if (!organizationId) return [];
+		if (!organizationId) return [];
 
-	return getPatientVitalReadingsForOrganization(patientId, organizationId);
-});
+		return getPatientVitalReadingsForOrganization(patientId, organizationId, encounterId);
+	},
+);
 
 export async function getPatientVitalReadingsForOrganization(
 	patientId: string,
 	organizationId: string,
+	encounterId?: string,
 ): Promise<VitalType[]> {
 	"use cache";
 	cacheLife("max");
@@ -153,7 +160,13 @@ export async function getPatientVitalReadingsForOrganization(
 		.from(patientVital)
 		.innerJoin(patient, eq(patientVital.patientId, patient.id))
 		.innerJoin(patientEncounter, eq(patientVital.encounterId, patientEncounter.id))
-		.where(and(eq(patientVital.patientId, patientId), eq(patient.organizationId, organizationId)))
+		.where(
+			and(
+				eq(patientVital.patientId, patientId),
+				eq(patient.organizationId, organizationId),
+				encounterId ? eq(patientVital.encounterId, encounterId) : undefined,
+			),
+		)
 		.orderBy(desc(patientVital.recordedAt), desc(patientVital.id));
 
 	return rows.map(({ vital, encounterType }) => toVitalType(vital, encounterType));

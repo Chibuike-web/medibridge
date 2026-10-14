@@ -10,6 +10,7 @@ export const patientEncounter = pgTable("patient_encounter", {
 	department: text("department").notNull(),
 	physician: text("physician").notNull(),
 	encounterDate: timestamp("encounter_date").notNull(),
+	reason: text("reason"),
 	createdBy: text("created_by").notNull(),
 	updatedBy: text("updated_by").notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),

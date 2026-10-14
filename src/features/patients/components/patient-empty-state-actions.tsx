@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { Button } from "@/components/ui/button";
 import { CreateAllergyDrawer } from "@/features/patients/components/create-allergy-drawer";
 import { CreateEncounterDrawer } from "@/features/patients/components/create-encounter-drawer";
@@ -14,12 +14,14 @@ import { CreateVitalsDrawer } from "@/features/patients/components/create-vitals
 import type { VitalEncounterOption } from "@/features/patients/types";
 import { useRouter } from "next/navigation";
 
-export function CreateDiagnosisEmptyStateAction() {
+type ButtonVariant = ComponentProps<typeof Button>["variant"];
+
+export function CreateDiagnosisEmptyStateAction({ variant }: { variant?: ButtonVariant }) {
 	const [isCreateDiagnosisDrawerOpen, setIsCreateDiagnosisDrawerOpen] = useState(false);
 
 	return (
 		<>
-			<Button type="button" onClick={() => setIsCreateDiagnosisDrawerOpen(true)}>
+			<Button type="button" variant={variant} onClick={() => setIsCreateDiagnosisDrawerOpen(true)}>
 				Add diagnosis
 			</Button>
 			<CreateDiagnosisDrawer
@@ -33,16 +35,18 @@ export function CreateDiagnosisEmptyStateAction() {
 export function CreateVitalsEmptyStateAction({
 	patientId,
 	encounterOptions,
+	variant,
 }: {
 	patientId: string;
 	encounterOptions: VitalEncounterOption[];
+	variant?: ButtonVariant;
 }) {
 	const router = useRouter();
 	const [isCreateVitalsDrawerOpen, setIsCreateVitalsDrawerOpen] = useState(false);
 
 	return (
 		<>
-			<Button type="button" onClick={() => setIsCreateVitalsDrawerOpen(true)}>
+			<Button type="button" variant={variant} onClick={() => setIsCreateVitalsDrawerOpen(true)}>
 				Add vitals
 			</Button>
 			<CreateVitalsDrawer
@@ -56,12 +60,12 @@ export function CreateVitalsEmptyStateAction({
 	);
 }
 
-export function CreateAllergyEmptyStateAction() {
+export function CreateAllergyEmptyStateAction({ variant }: { variant?: ButtonVariant }) {
 	const [isCreateAllergyDrawerOpen, setIsCreateAllergyDrawerOpen] = useState(false);
 
 	return (
 		<>
-			<Button type="button" onClick={() => setIsCreateAllergyDrawerOpen(true)}>
+			<Button type="button" variant={variant} onClick={() => setIsCreateAllergyDrawerOpen(true)}>
 				Add allergy
 			</Button>
 			<CreateAllergyDrawer
@@ -72,12 +76,16 @@ export function CreateAllergyEmptyStateAction() {
 	);
 }
 
-export function CreateImmunizationEmptyStateAction() {
+export function CreateImmunizationEmptyStateAction({ variant }: { variant?: ButtonVariant }) {
 	const [isCreateImmunizationDrawerOpen, setIsCreateImmunizationDrawerOpen] = useState(false);
 
 	return (
 		<>
-			<Button type="button" onClick={() => setIsCreateImmunizationDrawerOpen(true)}>
+			<Button
+				type="button"
+				variant={variant}
+				onClick={() => setIsCreateImmunizationDrawerOpen(true)}
+			>
 				Add immunization
 			</Button>
 			<CreateImmunizationDrawer
@@ -88,12 +96,12 @@ export function CreateImmunizationEmptyStateAction() {
 	);
 }
 
-export function CreateProcedureEmptyStateAction() {
+export function CreateProcedureEmptyStateAction({ variant }: { variant?: ButtonVariant }) {
 	const [isCreateProcedureDrawerOpen, setIsCreateProcedureDrawerOpen] = useState(false);
 
 	return (
 		<>
-			<Button type="button" onClick={() => setIsCreateProcedureDrawerOpen(true)}>
+			<Button type="button" variant={variant} onClick={() => setIsCreateProcedureDrawerOpen(true)}>
 				Add procedure
 			</Button>
 			<CreateProcedureDrawer
@@ -104,12 +112,12 @@ export function CreateProcedureEmptyStateAction() {
 	);
 }
 
-export function CreateMedicationEmptyStateAction() {
+export function CreateMedicationEmptyStateAction({ variant }: { variant?: ButtonVariant }) {
 	const [isCreateMedicationDrawerOpen, setIsCreateMedicationDrawerOpen] = useState(false);
 
 	return (
 		<>
-			<Button type="button" onClick={() => setIsCreateMedicationDrawerOpen(true)}>
+			<Button type="button" variant={variant} onClick={() => setIsCreateMedicationDrawerOpen(true)}>
 				Add medication
 			</Button>
 			<CreateMedicationDrawer
@@ -120,28 +128,29 @@ export function CreateMedicationEmptyStateAction() {
 	);
 }
 
-export function CreateEncounterEmptyStateAction() {
+export function CreateEncounterEmptyStateAction({ patientId }: { patientId: string }) {
 	const [isCreateEncounterDrawerOpen, setIsCreateEncounterDrawerOpen] = useState(false);
 
 	return (
 		<>
 			<Button type="button" onClick={() => setIsCreateEncounterDrawerOpen(true)}>
-				Add encounter
+				Create encounter
 			</Button>
 			<CreateEncounterDrawer
 				open={isCreateEncounterDrawerOpen}
 				onOpenChange={setIsCreateEncounterDrawerOpen}
+				patientId={patientId}
 			/>
 		</>
 	);
 }
 
-export function CreateLabTestEmptyStateAction() {
+export function CreateLabTestEmptyStateAction({ variant }: { variant?: ButtonVariant }) {
 	const [isCreateLabTestDrawerOpen, setIsCreateLabTestDrawerOpen] = useState(false);
 
 	return (
 		<>
-			<Button type="button" onClick={() => setIsCreateLabTestDrawerOpen(true)}>
+			<Button type="button" variant={variant} onClick={() => setIsCreateLabTestDrawerOpen(true)}>
 				Add lab test
 			</Button>
 			<CreateLabTestDrawer
@@ -152,12 +161,12 @@ export function CreateLabTestEmptyStateAction() {
 	);
 }
 
-export function CreateImagingEmptyStateAction() {
+export function CreateImagingEmptyStateAction({ variant }: { variant?: ButtonVariant }) {
 	const [isCreateImagingDrawerOpen, setIsCreateImagingDrawerOpen] = useState(false);
 
 	return (
 		<>
-			<Button type="button" onClick={() => setIsCreateImagingDrawerOpen(true)}>
+			<Button type="button" variant={variant} onClick={() => setIsCreateImagingDrawerOpen(true)}>
 				Add imaging
 			</Button>
 			<CreateImagingDrawer

@@ -21,7 +21,7 @@ type EncounterDateFilters = {
 	createdTo?: string;
 };
 
-function normalizeEncounterType(value: string): EncounterType["encounterType"] {
+export function normalizeEncounterType(value: string): EncounterType["encounterType"] {
 	if (
 		value === "Emergency Visit" ||
 		value === "Routine Checkup" ||

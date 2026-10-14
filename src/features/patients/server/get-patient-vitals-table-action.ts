@@ -11,6 +11,7 @@ export async function getPatientVitalsTableAction({
 	recordedTo = "",
 	createdFrom = "",
 	createdTo = "",
+	encounterId,
 }: {
 	patientId: string;
 	page: number | string;
@@ -20,6 +21,7 @@ export async function getPatientVitalsTableAction({
 	recordedTo?: string;
 	createdFrom?: string;
 	createdTo?: string;
+	encounterId?: string;
 }) {
 	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
 	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
@@ -29,6 +31,7 @@ export async function getPatientVitalsTableAction({
 		currentLimit,
 		query,
 		{ recordedFrom, recordedTo, createdFrom, createdTo },
+		encounterId,
 	);
 
 	return {

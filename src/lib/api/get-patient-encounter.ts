@@ -6,6 +6,7 @@ import { formatDateTime } from "@/lib/utils/format-date-time";
 import { toSortValue } from "@/lib/utils/to-sort-value";
 import { and, eq } from "drizzle-orm";
 import { getOrganizationId } from "./get-organization-id";
+import { normalizeEncounterType } from "./get-patient-encounters";
 
 export const getPatientEncounter = cache(async (patientId: string, encounterId: string) => {
 	const organizationId = await getOrganizationId();
@@ -32,6 +33,7 @@ export async function getPatientEncounterForOrganization(
 			department: patientEncounter.department,
 			physician: patientEncounter.physician,
 			encounterDate: patientEncounter.encounterDate,
+			reason: patientEncounter.reason,
 			createdAt: patientEncounter.createdAt,
 			updatedAt: patientEncounter.updatedAt,
 			createdBy: patientEncounter.createdBy,
@@ -52,6 +54,7 @@ export async function getPatientEncounterForOrganization(
 
 	return {
 		...encounter,
+		encounterType: normalizeEncounterType(encounter.encounterType),
 		encounterDateLabel: formatDateTime(encounter.encounterDate),
 		encounterDateSortValue: toSortValue(encounter.encounterDate),
 		createdAtLabel: formatDateTime(encounter.createdAt),

@@ -5,6 +5,21 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { CopyIdButton } from "@/components/copy-id-button";
+import {
+	DetailItem,
+	DetailsSection,
+} from "@/features/patients/components/patient-details-section/detail-fields";
+import { EncounterCreatedBanner } from "@/features/patients/components/encounter-created-banner";
+import {
+	CreateAllergyEmptyStateAction,
+	CreateDiagnosisEmptyStateAction,
+	CreateImagingEmptyStateAction,
+	CreateImmunizationEmptyStateAction,
+	CreateLabTestEmptyStateAction,
+	CreateMedicationEmptyStateAction,
+	CreateProcedureEmptyStateAction,
+	CreateVitalsEmptyStateAction,
+} from "@/features/patients/components/patient-empty-state-actions";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientById } from "@/lib/api/get-patient-by-id";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
@@ -14,6 +29,7 @@ import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
 import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
 import { getPatientMedications } from "@/lib/api/get-patient-medications";
 import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
+import { getPatientVitalReadings, getPatientVitals } from "@/lib/api/get-patient-vitals";
 import { verifySession } from "@/lib/api/verify-session";
 import { getOrganizationContext } from "@/lib/api/get-organization-id";
 import {
@@ -24,6 +40,7 @@ import {
 	LabTestsClient,
 	MedicationsClient,
 	ProceduresClient,
+	VitalsClient,
 } from "../../patient-section-table-clients";
 
 export const metadata = {
@@ -35,18 +52,18 @@ const INITIAL_LIMIT = 14;
 
 type EncounterDetailsPageProps = Pick<
 	PageProps<"/dashboard/patients/[patientId]/encounters/[encounterId]">,
-	"params"
+	"params" | "searchParams"
 >;
 
-export default function EncounterDetailsPage({ params }: EncounterDetailsPageProps) {
+export default function EncounterDetailsPage({ params, searchParams }: EncounterDetailsPageProps) {
 	return (
 		<Suspense fallback={<EncounterDetailsPageSkeleton />}>
-			<EncounterDetailsContent params={params} />
+			<EncounterDetailsContent params={params} searchParams={searchParams} />
 		</Suspense>
 	);
 }
 
-async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
+async function EncounterDetailsContent({ params, searchParams }: EncounterDetailsPageProps) {
 	const session = await verifySession();
 	if (!session.user.emailVerified) {
 		redirect("/email-verified?error=unverified");
@@ -62,6 +79,7 @@ async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
 	}
 
 	const { patientId, encounterId } = await params;
+	const { created } = await searchParams;
 
 	const [
 		patient,
@@ -73,6 +91,8 @@ async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
 		proceduresResult,
 		labTestsResult,
 		imagingResult,
+		vitalsResult,
+		vitalReadings,
 	] = await Promise.all([
 		getPatientById(patientId),
 		getPatientEncounter(patientId, encounterId),
@@ -83,6 +103,8 @@ async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
 		getPatientProcedures(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], encounterId),
 		getPatientLabTests(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], [], encounterId),
 		getPatientImaging(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], [], encounterId),
+		getPatientVitals(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, encounterId),
+		getPatientVitalReadings(patientId, encounterId),
 	]);
 
 	if (!patient || !encounter) {
@@ -90,6 +112,16 @@ async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
 	}
 
 	const backHref = `/dashboard/patients/${patientId}?section=encounters` as Route;
+	const encounterOptions = [
+		{
+			encounterId: encounter.encounterId,
+			encounterType: encounter.encounterType,
+			encounterDateLabel: encounter.encounterDateLabel,
+		},
+	];
+	const visitDateLabel = new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(
+		encounter.encounterDate,
+	);
 
 	return (
 		<div className="flex h-full min-h-0 flex-col overflow-hidden">
@@ -117,47 +149,56 @@ async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
 
 			<main className="min-h-0 flex-1 overflow-y-auto px-6 py-8">
 				<div className="mx-auto max-w-7xl">
-					<div className="flex flex-wrap gap-x-6 gap-y-3">
-						<div className="flex items-center gap-2 whitespace-nowrap">
-							<span className="text-sm text-gray-500">Patient ID</span>
-							<CopyIdButton id={encounter.patientId} className="text-sm" />
-						</div>
-						<div className="flex items-center gap-2 whitespace-nowrap">
-							<span className="text-sm text-gray-500">Encounter ID: </span>
+					{created === "true" && <EncounterCreatedBanner />}
+					<DetailsSection title="Encounter details">
+						<DetailItem label="Visit type" value={encounter.encounterType} />
+						<DetailItem label="Department" value={encounter.department} />
+						<DetailItem label="Attending physician" value={encounter.physician} />
+						<DetailItem label="Visit date" value={visitDateLabel} />
+						<div className="flex flex-col items-start gap-2">
+							<span className="text-sm text-gray-400">Encounter ID</span>
 							<CopyIdButton id={encounter.encounterId} className="text-sm" />
 						</div>
-						<div className="flex items-center gap-2 whitespace-nowrap">
-							<span className="text-sm text-gray-500">Department: </span>
-							<span className="text-sm font-medium">{encounter.department}</span>
+						<div className="flex flex-col items-start gap-2">
+							<span className="text-sm text-gray-400">Patient ID</span>
+							<CopyIdButton id={encounter.patientId} className="text-sm" />
 						</div>
-						<div className="flex items-center gap-2 whitespace-nowrap">
-							<span className="text-sm text-gray-500">Physician: </span>
-							<span className="text-sm font-medium">{encounter.physician}</span>
-						</div>
-						<div className="flex items-center gap-2 whitespace-nowrap">
-							<span className="text-sm text-gray-500">Encounter date:</span>
-							<span className="text-sm font-medium">{encounter.encounterDateLabel}</span>
-						</div>
-						<div className="flex items-center gap-2 whitespace-nowrap">
-							<span className="text-sm text-gray-500">Created At:</span>
-							<span className="text-sm font-medium">{encounter.createdAtLabel}</span>
-						</div>
-						<div className="flex items-center gap-2 whitespace-nowrap">
-							<span className="text-sm text-gray-500">Created By:</span>
-							<span className="text-sm font-medium">{encounter.createdBy}</span>
-						</div>
-						<div className="flex items-center gap-2 whitespace-nowrap">
-							<span className="text-sm text-gray-500">Updated At:</span>
-							<span className="text-sm font-medium">{encounter.updatedAtLabel}</span>
-						</div>
-						<div className="flex items-center gap-2 whitespace-nowrap">
-							<span className="text-sm text-gray-500">Updated By</span>
-							<span className="text-sm font-medium">{encounter.updatedBy}</span>
-						</div>
-					</div>
+						<DetailItem label="Reason for visit" value={encounter.reason} />
+						<DetailItem
+							label="Created"
+							value={`${encounter.createdBy} · ${encounter.createdAtLabel}`}
+						/>
+					</DetailsSection>
 
-					<div className="mt-10 space-y-10 [&>section>div]:px-0 [&>section>div]:py-0">
-						<EncounterSection>
+					<div className="mt-8 space-y-6 [&>section>div]:px-0 [&>section>div]:py-0">
+						<EncounterSection
+							title="Vitals"
+							isEmpty={vitalsResult.totalVitals === 0}
+							addAction={
+								<CreateVitalsEmptyStateAction
+									patientId={patientId}
+									encounterOptions={encounterOptions}
+									variant="outline"
+								/>
+							}
+						>
+							<VitalsClient
+								patientId={patientId}
+								encounterId={encounterId}
+								encounterOptions={encounterOptions}
+								vitals={vitalsResult.vitals}
+								readings={vitalReadings}
+								page={INITIAL_PAGE}
+								limit={INITIAL_LIMIT}
+								totalPages={getTotalPages(vitalsResult.totalVitals)}
+							/>
+						</EncounterSection>
+
+						<EncounterSection
+							title="Medications"
+							isEmpty={medicationsResult.totalMedications === 0}
+							addAction={<CreateMedicationEmptyStateAction variant="outline" />}
+						>
 							<MedicationsClient
 								patientId={patientId}
 								encounterId={encounterId}
@@ -168,7 +209,11 @@ async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
 							/>
 						</EncounterSection>
 
-						<EncounterSection>
+						<EncounterSection
+							title="Allergies"
+							isEmpty={allergiesResult.totalAllergies === 0}
+							addAction={<CreateAllergyEmptyStateAction variant="outline" />}
+						>
 							<AllergiesClient
 								patientId={patientId}
 								encounterId={encounterId}
@@ -179,7 +224,11 @@ async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
 							/>
 						</EncounterSection>
 
-						<EncounterSection>
+						<EncounterSection
+							title="Diagnoses"
+							isEmpty={diagnosesResult.totalDiagnoses === 0}
+							addAction={<CreateDiagnosisEmptyStateAction variant="outline" />}
+						>
 							<DiagnosesClient
 								patientId={patientId}
 								encounterId={encounterId}
@@ -190,7 +239,11 @@ async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
 							/>
 						</EncounterSection>
 
-						<EncounterSection>
+						<EncounterSection
+							title="Immunizations"
+							isEmpty={immunizationsResult.totalImmunizations === 0}
+							addAction={<CreateImmunizationEmptyStateAction variant="outline" />}
+						>
 							<ImmunizationsClient
 								patientId={patientId}
 								encounterId={encounterId}
@@ -201,7 +254,11 @@ async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
 							/>
 						</EncounterSection>
 
-						<EncounterSection>
+						<EncounterSection
+							title="Procedures"
+							isEmpty={proceduresResult.totalProcedures === 0}
+							addAction={<CreateProcedureEmptyStateAction variant="outline" />}
+						>
 							<ProceduresClient
 								patientId={patientId}
 								encounterId={encounterId}
@@ -212,7 +269,11 @@ async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
 							/>
 						</EncounterSection>
 
-						<EncounterSection>
+						<EncounterSection
+							title="Lab tests"
+							isEmpty={labTestsResult.totalLabTests === 0}
+							addAction={<CreateLabTestEmptyStateAction variant="outline" />}
+						>
 							<LabTestsClient
 								patientId={patientId}
 								encounterId={encounterId}
@@ -223,7 +284,11 @@ async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
 							/>
 						</EncounterSection>
 
-						<EncounterSection>
+						<EncounterSection
+							title="Imaging"
+							isEmpty={imagingResult.totalImagingStudies === 0}
+							addAction={<CreateImagingEmptyStateAction variant="outline" />}
+						>
 							<ImagingClient
 								patientId={patientId}
 								encounterId={encounterId}
@@ -240,8 +305,30 @@ async function EncounterDetailsContent({ params }: EncounterDetailsPageProps) {
 	);
 }
 
-function EncounterSection({ children }: { children: ReactNode }) {
-	return <section>{children}</section>;
+function EncounterSection({
+	title,
+	isEmpty,
+	addAction,
+	children,
+}: {
+	title: string;
+	isEmpty: boolean;
+	addAction: ReactNode;
+	children: ReactNode;
+}) {
+	if (!isEmpty) return <section>{children}</section>;
+
+	return (
+		<section className="flex items-center justify-between gap-4 rounded-xl px-4 py-3 ring-1 ring-gray-200">
+			<div className="flex flex-col gap-1">
+				<h2 className="font-semibold text-gray-800">{title}</h2>
+				<p className="text-sm text-gray-500">
+					No {title.toLowerCase()} recorded for this encounter.
+				</p>
+			</div>
+			{addAction}
+		</section>
+	);
 }
 
 function getTotalPages(totalRows: number) {

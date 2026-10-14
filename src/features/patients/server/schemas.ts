@@ -39,3 +39,32 @@ export const updatePatientPhysicalInformationSchema = z.object({
 	bloodGroup: z.string().trim().optional(),
 	genotype: z.string().trim().optional(),
 });
+
+export const encounterTypes = [
+	"Outpatient Visit",
+	"Follow-up Visit",
+	"Routine Checkup",
+	"Emergency Visit",
+] as const;
+
+export const encounterDepartments = [
+	"General Medicine",
+	"Family Medicine",
+	"Emergency Medicine",
+	"Cardiology",
+	"Endocrinology",
+	"Nephrology",
+] as const;
+
+export const createPatientEncounterSchema = z.object({
+	encounterType: z.enum(encounterTypes, "Select a visit type."),
+	department: z.enum(encounterDepartments, "Select a department."),
+	physician: z.string().trim().min(1, "Enter the attending physician."),
+	encounterDate: z.coerce
+		.date("Enter the date of the visit.")
+		.refine(
+			(date) => date.getTime() <= Date.now() + 5 * 60 * 1000,
+			"The visit can’t be in the future.",
+		),
+	reason: z.string().trim().optional(),
+});

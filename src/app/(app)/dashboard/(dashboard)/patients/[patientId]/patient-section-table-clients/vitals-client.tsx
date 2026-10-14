@@ -15,6 +15,7 @@ type VitalsTableState = {
 
 export function VitalsClient({
 	patientId,
+	encounterId,
 	encounterOptions,
 	vitals,
 	readings,
@@ -23,6 +24,7 @@ export function VitalsClient({
 	totalPages,
 }: {
 	patientId: string;
+	encounterId?: string;
 	encounterOptions: VitalEncounterOption[];
 	vitals: VitalType[];
 	readings: VitalType[];
@@ -80,6 +82,7 @@ export function VitalsClient({
 				recordedTo: nextRecordedTo,
 				createdFrom: nextCreatedFrom,
 				createdTo: nextCreatedTo,
+				encounterId,
 			});
 
 			if (latestVitalsRequestIdRef.current !== requestId) return;

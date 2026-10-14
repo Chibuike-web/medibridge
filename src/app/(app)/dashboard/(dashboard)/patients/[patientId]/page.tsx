@@ -389,8 +389,8 @@ async function EncountersSection({ patientId }: { patientId: string }) {
 	if (encounters.length === 0) {
 		return renderEmptyState({
 			title: "No encounters yet",
-			description: "No encounters have been recorded for this patient.",
-			action: <CreateEncounterEmptyStateAction />,
+			description: "Create one to record vitals, diagnoses, and medications.",
+			action: <CreateEncounterEmptyStateAction patientId={patientId} />,
 		});
 	}
 
