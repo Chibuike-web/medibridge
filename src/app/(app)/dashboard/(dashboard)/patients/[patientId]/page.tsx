@@ -280,7 +280,7 @@ async function DiagnosesSection({ patientId }: { patientId: string }) {
 		return renderEmptyState({
 			title: "No diagnoses yet",
 			description: "No diagnoses have been recorded for this patient.",
-			action: <CreateDiagnosisEmptyStateAction />,
+			action: <CreateDiagnosisEmptyStateAction patientId={patientId} />,
 		});
 	}
 

@@ -6,13 +6,19 @@ import type { DiagnosisDetailsType, DiagnosisType } from "@/features/patients/ty
 import { DiagnosesTable } from "./diagnoses-table";
 
 const auth = vi.hoisted(() => ({ role: "owner" }));
+const { createPatientDiagnosisMock } = vi.hoisted(() => ({ createPatientDiagnosisMock: vi.fn() }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
 		useActiveMemberRole: () => ({ data: { role: auth.role } }),
+		useSession: () => ({ data: { user: { name: "Dr. Okafor" } } }),
 	},
+}));
+
+vi.mock("@/features/patients/server/create-patient-diagnosis-action", () => ({
+	createPatientDiagnosisAction: createPatientDiagnosisMock,
 }));
 
 const diagnoses: DiagnosisType[] = [
@@ -81,6 +87,7 @@ type DiagnosesTableProps = React.ComponentProps<typeof DiagnosesTable>;
 
 function buildProps(overrides: Partial<DiagnosesTableProps> = {}): DiagnosesTableProps {
 	return {
+		patientId: "patient-1",
 		diagnoses,
 		page: 1,
 		limit: 14,
@@ -102,6 +109,7 @@ function buildProps(overrides: Partial<DiagnosesTableProps> = {}): DiagnosesTabl
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
+		onDiagnosisCreated: vi.fn(),
 		...overrides,
 	};
 }
@@ -145,6 +153,7 @@ async function tap(user: User, target: Element) {
 describe("Diagnoses table", () => {
 	beforeEach(() => {
 		auth.role = "owner";
+		createPatientDiagnosisMock.mockReset();
 		vi.stubGlobal(
 			"fetch",
 			vi.fn(async (input: RequestInfo | URL) => {
@@ -454,5 +463,61 @@ describe("Diagnoses table", () => {
 		expect(within(bulkBar).getByRole("button", { name: "View details" })).toBeVisible();
 		expect(within(bulkBar).getByRole("button", { name: "Export" })).toBeVisible();
 		expect(within(bulkBar).queryByRole("button", { name: /Archive/ })).not.toBeInTheDocument();
+	});
+
+	test("adds a diagnosis to the encounter it was opened from and refreshes the table", async () => {
+		createPatientDiagnosisMock.mockResolvedValue({ status: "success", diagnosisId: "DX-new" });
+		const user = userEvent.setup();
+		const { onDiagnosisCreated } = renderDiagnosesTable({ encounterId: "ENC-1" });
+		const today = new Date();
+
+		await user.click(screen.getByRole("button", { name: "Add diagnosis" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add diagnosis" });
+		await user.type(within(drawer).getByLabelText(/Diagnosis name/), "Essential hypertension");
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Active" }));
+		await user.click(within(drawer).getByRole("button", { name: /Diagnosed at/ }));
+		await user.click(
+			await screen.findByRole("button", { name: new RegExp(format(today, "MMMM do, yyyy")) }),
+		);
+		expect(within(drawer).getByLabelText(/Diagnosed by/)).toHaveValue("Dr. Okafor");
+		await user.click(within(drawer).getByRole("button", { name: "Add diagnosis" }));
+
+		expect(createPatientDiagnosisMock).toHaveBeenCalledTimes(1);
+		const [patientId, formData] = createPatientDiagnosisMock.mock.calls[0] as [string, FormData];
+		expect(patientId).toBe("patient-1");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				diagnosisName: "Essential hypertension",
+				status: "Active",
+				diagnosedAt: format(today, "yyyy-MM-dd"),
+				diagnosedBy: "Dr. Okafor",
+				encounterId: "ENC-1",
+			}),
+		);
+		expect(onDiagnosisCreated).toHaveBeenCalled();
+		expect(screen.queryByRole("dialog", { name: "Add diagnosis" })).not.toBeInTheDocument();
+	});
+
+	test("keeps the add diagnosis drawer open and shows why the diagnosis was not saved", async () => {
+		createPatientDiagnosisMock.mockResolvedValue({
+			status: "failed",
+			error: "Select the diagnosis date.",
+		});
+		const user = userEvent.setup();
+		const { onDiagnosisCreated } = renderDiagnosesTable();
+
+		await user.click(screen.getByRole("button", { name: "Add diagnosis" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add diagnosis" });
+		await user.type(within(drawer).getByLabelText(/Diagnosis name/), "Asthma");
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Active" }));
+		await user.click(within(drawer).getByRole("button", { name: "Add diagnosis" }));
+
+		expect(await within(drawer).findByRole("alert")).toHaveTextContent(
+			"Select the diagnosis date.",
+		);
+		expect(within(drawer).getByLabelText(/Diagnosis name/)).toHaveValue("Asthma");
+		expect(onDiagnosisCreated).not.toHaveBeenCalled();
 	});
 });

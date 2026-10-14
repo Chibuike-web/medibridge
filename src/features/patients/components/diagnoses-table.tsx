@@ -101,8 +101,9 @@ const diagnosisStatusFilterOptions: {
 ];
 
 type DiagnosesTableProps = {
+	patientId: string;
+	encounterId?: string;
 	diagnoses: DiagnosisType[];
-	isEncounterScoped?: boolean;
 	page: number;
 	limit: number;
 	totalPages: number;
@@ -123,11 +124,13 @@ type DiagnosesTableProps = {
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
 	onStatusFiltersChange: (statusFilters: DiagnosisStatusFilter[]) => void;
+	onDiagnosisCreated: () => void;
 };
 
 export function DiagnosesTable({
+	patientId,
+	encounterId,
 	diagnoses,
-	isEncounterScoped = false,
 	page,
 	limit,
 	totalPages,
@@ -148,6 +151,7 @@ export function DiagnosesTable({
 	onNextPage,
 	onLimitChange,
 	onStatusFiltersChange,
+	onDiagnosisCreated,
 }: DiagnosesTableProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
@@ -198,7 +202,7 @@ export function DiagnosesTable({
 						type="search"
 						className="pl-8"
 						placeholder={
-							isEncounterScoped
+							encounterId
 								? "Search by diagnosis or diagnosis ID"
 								: "Search by diagnosis, diagnosis ID, or encounter ID"
 						}
@@ -394,7 +398,13 @@ export function DiagnosesTable({
 				onNextPage={onNextPage}
 				onLimitChange={onLimitChange}
 			/>
-			<CreateDiagnosisDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
+			<CreateDiagnosisDrawer
+				open={isCreateDrawerOpen}
+				onOpenChange={setIsCreateDrawerOpen}
+				patientId={patientId}
+				encounterId={encounterId}
+				onDiagnosisCreated={onDiagnosisCreated}
+			/>
 			<SetDateRangeDialog
 				dateRangeFilter={customDateRangeFilter}
 				onClose={() => setCustomDateRangeFilter(null)}

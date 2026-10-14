@@ -152,7 +152,8 @@ export function DiagnosesClient({
 
 	return (
 		<DiagnosesTable
-			isEncounterScoped={Boolean(encounterId)}
+			patientId={patientId}
+			encounterId={encounterId}
 			diagnoses={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}
@@ -174,6 +175,7 @@ export function DiagnosesClient({
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}
 			onStatusFiltersChange={handleStatusFiltersChange}
+			onDiagnosisCreated={() => refreshDiagnosesTable({ nextPage: tableData.page })}
 		/>
 	);
 }

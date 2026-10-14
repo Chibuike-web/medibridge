@@ -227,7 +227,13 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 						<EncounterSection
 							title="Diagnoses"
 							isEmpty={diagnosesResult.totalDiagnoses === 0}
-							addAction={<CreateDiagnosisEmptyStateAction variant="outline" />}
+							addAction={
+								<CreateDiagnosisEmptyStateAction
+									patientId={patientId}
+									encounterId={encounterId}
+									variant="outline"
+								/>
+							}
 						>
 							<DiagnosesClient
 								patientId={patientId}

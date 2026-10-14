@@ -16,7 +16,16 @@ import { useRouter } from "next/navigation";
 
 type ButtonVariant = ComponentProps<typeof Button>["variant"];
 
-export function CreateDiagnosisEmptyStateAction({ variant }: { variant?: ButtonVariant }) {
+export function CreateDiagnosisEmptyStateAction({
+	patientId,
+	encounterId,
+	variant,
+}: {
+	patientId: string;
+	encounterId?: string;
+	variant?: ButtonVariant;
+}) {
+	const router = useRouter();
 	const [isCreateDiagnosisDrawerOpen, setIsCreateDiagnosisDrawerOpen] = useState(false);
 
 	return (
@@ -27,6 +36,9 @@ export function CreateDiagnosisEmptyStateAction({ variant }: { variant?: ButtonV
 			<CreateDiagnosisDrawer
 				open={isCreateDiagnosisDrawerOpen}
 				onOpenChange={setIsCreateDiagnosisDrawerOpen}
+				patientId={patientId}
+				encounterId={encounterId}
+				onDiagnosisCreated={() => router.refresh()}
 			/>
 		</>
 	);

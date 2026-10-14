@@ -1,3 +1,4 @@
+import { addDays, format } from "date-fns";
 import { z } from "zod";
 
 export const updatePatientPersonalInformationSchema = z.object({
@@ -67,4 +68,29 @@ export const createPatientEncounterSchema = z.object({
 			"The visit can’t be in the future.",
 		),
 	reason: z.string().trim().optional(),
+});
+
+export const diagnosisSeverityStages = [
+	"Mild",
+	"Moderate",
+	"Severe",
+	"Stage 1",
+	"Stage 2",
+	"Stage 3",
+] as const;
+
+export const diagnosisStatuses = ["Active", "Resolved"] as const;
+
+export const createPatientDiagnosisSchema = z.object({
+	diagnosisName: z.string().trim().min(1, "Enter the diagnosis name."),
+	severityStage: z.enum(diagnosisSeverityStages, "Select a severity or stage.").optional(),
+	status: z.enum(diagnosisStatuses, "Select a status."),
+	diagnosedAt: z.iso
+		.date("Select the diagnosis date.")
+		.refine(
+			(date) => date <= format(addDays(new Date(), 1), "yyyy-MM-dd"),
+			"The diagnosis date can’t be in the future.",
+		),
+	diagnosedBy: z.string().trim().min(1, "Enter who made the diagnosis."),
+	clinicalNote: z.string().trim().optional(),
 });
