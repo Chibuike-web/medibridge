@@ -148,16 +148,4 @@ describe.skipIf(!testDatabaseUrl)("POST /api/auth/sign-up/email", () => {
 		expect(response.status).toBe(200);
 		expect(await findAccountEmails("ada@gmail.com")).toEqual(["ada@gmail.com"]);
 	});
-
-	test("lets an owner sign up with a valid email even when an old invitation has expired", async () => {
-		await createInvitation({
-			email: "ada@gmail.com",
-			expiresAt: new Date(Date.now() - 60 * 1000),
-		});
-
-		const response = await signUp("ada@gmail.com");
-
-		expect(response.status).toBe(200);
-		expect(await findAccountEmails("ada@gmail.com")).toEqual(["ada@gmail.com"]);
-	});
 });

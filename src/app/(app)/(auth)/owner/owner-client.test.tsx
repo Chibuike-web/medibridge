@@ -171,9 +171,9 @@ describe("OwnerClient", () => {
 		await submitOwnerForm({ email: "sarah@hospital" });
 
 		const emailField = screen.getByRole("textbox", { name: "Email" });
-		expect(await screen.findByText("Invalid email address")).toBeVisible();
+		expect(await screen.findByText("Enter a valid email address")).toBeVisible();
 		expect(emailField).toBeInvalid();
-		expect(emailField).toHaveAccessibleDescription("Invalid email address");
+		expect(emailField).toHaveAccessibleDescription("Enter a valid email address");
 		expect(signUpEmailMock).not.toHaveBeenCalled();
 	});
 
