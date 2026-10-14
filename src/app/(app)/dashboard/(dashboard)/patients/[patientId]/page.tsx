@@ -346,7 +346,7 @@ async function ProceduresSection({ patientId }: { patientId: string }) {
 		return renderEmptyState({
 			title: "No procedures yet",
 			description: "No procedures have been recorded for this patient.",
-			action: <CreateProcedureEmptyStateAction />,
+			action: <CreateProcedureEmptyStateAction patientId={patientId} />,
 		});
 	}
 

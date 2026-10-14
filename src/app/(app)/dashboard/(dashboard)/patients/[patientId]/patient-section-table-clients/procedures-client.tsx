@@ -127,7 +127,8 @@ export function ProceduresClient({
 
 	return (
 		<ProceduresTable
-			isEncounterScoped={Boolean(encounterId)}
+			patientId={patientId}
+			encounterId={encounterId}
 			procedures={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}
@@ -140,6 +141,7 @@ export function ProceduresClient({
 			onQueryChange={handleQueryChange}
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
 			onStatusFiltersChange={handleStatusFiltersChange}
+			onProcedureCreated={() => refreshProceduresTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

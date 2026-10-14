@@ -132,7 +132,16 @@ export function CreateImmunizationEmptyStateAction({
 	);
 }
 
-export function CreateProcedureEmptyStateAction({ variant }: { variant?: ButtonVariant }) {
+export function CreateProcedureEmptyStateAction({
+	patientId,
+	encounterId,
+	variant,
+}: {
+	patientId: string;
+	encounterId?: string;
+	variant?: ButtonVariant;
+}) {
+	const router = useRouter();
 	const [isCreateProcedureDrawerOpen, setIsCreateProcedureDrawerOpen] = useState(false);
 
 	return (
@@ -143,6 +152,9 @@ export function CreateProcedureEmptyStateAction({ variant }: { variant?: ButtonV
 			<CreateProcedureDrawer
 				open={isCreateProcedureDrawerOpen}
 				onOpenChange={setIsCreateProcedureDrawerOpen}
+				patientId={patientId}
+				encounterId={encounterId}
+				onProcedureCreated={() => router.refresh()}
 			/>
 		</>
 	);

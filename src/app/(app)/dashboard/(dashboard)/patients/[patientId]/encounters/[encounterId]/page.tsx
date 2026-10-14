@@ -281,7 +281,13 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 						<EncounterSection
 							title="Procedures"
 							isEmpty={proceduresResult.totalProcedures === 0}
-							addAction={<CreateProcedureEmptyStateAction variant="outline" />}
+							addAction={
+								<CreateProcedureEmptyStateAction
+									patientId={patientId}
+									encounterId={encounterId}
+									variant="outline"
+								/>
+							}
 						>
 							<ProceduresClient
 								patientId={patientId}

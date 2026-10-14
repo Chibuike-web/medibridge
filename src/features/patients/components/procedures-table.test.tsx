@@ -7,13 +7,21 @@ import type { ProcedureDetailsType, ProcedureType } from "@/features/patients/ty
 import { ProceduresTable } from "./procedures-table";
 
 const authState = vi.hoisted(() => ({ role: "owner" }));
+const { createPatientProcedureMock } = vi.hoisted(() => ({
+	createPatientProcedureMock: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
 		useActiveMemberRole: () => ({ data: { role: authState.role } }),
+		useSession: () => ({ data: { user: { name: "Dr. Bello" } } }),
 	},
+}));
+
+vi.mock("@/features/patients/server/create-patient-procedure-action", () => ({
+	createPatientProcedureAction: createPatientProcedureMock,
 }));
 
 const procedures: ProcedureType[] = [
@@ -96,6 +104,7 @@ function renderProceduresTable(
 	overrides: Partial<React.ComponentProps<typeof ProceduresTable>> = {},
 ) {
 	const props: React.ComponentProps<typeof ProceduresTable> = {
+		patientId: "patient-1",
 		procedures,
 		page: 1,
 		limit: 14,
@@ -108,6 +117,7 @@ function renderProceduresTable(
 		onQueryChange: vi.fn(),
 		onCreatedAtRangeApply: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
+		onProcedureCreated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -152,6 +162,7 @@ async function openFilterSubmenu(user: ReturnType<typeof userEvent.setup>, label
 describe("Procedures table", () => {
 	beforeEach(() => {
 		authState.role = "owner";
+		createPatientProcedureMock.mockReset();
 		vi.stubGlobal(
 			"fetch",
 			vi.fn(async (input: string) => {
@@ -428,5 +439,72 @@ describe("Procedures table", () => {
 
 		const dialog = await screen.findByRole("dialog", { name: "View procedure details" });
 		expect(await within(dialog).findByRole("heading", { name: "Appendectomy" })).toBeVisible();
+	});
+
+	test("adds a procedure to the encounter it was opened from and refreshes the table", async () => {
+		createPatientProcedureMock.mockResolvedValue({ status: "success", procedureId: "PRO-new" });
+		const user = userEvent.setup();
+		const { onProcedureCreated } = renderProceduresTable({ encounterId: "ENC-1" });
+		const today = new Date();
+
+		await user.click(screen.getByRole("button", { name: "Add procedure" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add procedure" });
+		await user.type(within(drawer).getByLabelText(/^Procedure/), "Appendectomy");
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Completed" }));
+		await user.click(within(drawer).getByRole("button", { name: /^Date/ }));
+		await user.click(
+			await screen.findByRole("button", { name: new RegExp(format(today, "MMMM do, yyyy")) }),
+		);
+		await user.click(within(drawer).getByRole("button", { name: /Assistants/ }));
+		await user.click(await screen.findByRole("button", { name: "Add more" }));
+		await user.type(screen.getByRole("textbox", { name: "Assistant 1 name" }), "Dr. Ekene");
+		await user.keyboard("{Escape}");
+		await user.type(
+			within(drawer).getByLabelText(/Facility/),
+			"Lagos University Teaching Hospital",
+		);
+		expect(within(drawer).getByLabelText(/Physician/)).toHaveValue("Dr. Bello");
+		await user.click(within(drawer).getByRole("button", { name: "Add procedure" }));
+
+		expect(createPatientProcedureMock).toHaveBeenCalledTimes(1);
+		const [patientId, formData] = createPatientProcedureMock.mock.calls[0] as [string, FormData];
+		expect(patientId).toBe("patient-1");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				procedureName: "Appendectomy",
+				status: "Completed",
+				procedureDate: format(today, "yyyy-MM-dd"),
+				physician: "Dr. Bello",
+				assistants: "Dr. Ekene",
+				facility: "Lagos University Teaching Hospital",
+				encounterId: "ENC-1",
+			}),
+		);
+		expect(onProcedureCreated).toHaveBeenCalled();
+		expect(screen.queryByRole("dialog", { name: "Add procedure" })).not.toBeInTheDocument();
+	});
+
+	test("keeps the add procedure drawer open and shows why it was not saved", async () => {
+		createPatientProcedureMock.mockResolvedValue({
+			status: "failed",
+			error: "Add at least one assistant.",
+		});
+		const user = userEvent.setup();
+		const { onProcedureCreated } = renderProceduresTable();
+
+		await user.click(screen.getByRole("button", { name: "Add procedure" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add procedure" });
+		await user.type(within(drawer).getByLabelText(/^Procedure/), "Colonoscopy");
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Pending" }));
+		await user.type(within(drawer).getByLabelText(/Facility/), "Endoscopy suite");
+		await user.click(within(drawer).getByRole("button", { name: "Add procedure" }));
+
+		expect(await within(drawer).findByRole("alert")).toHaveTextContent(
+			"Add at least one assistant.",
+		);
+		expect(within(drawer).getByLabelText(/^Procedure/)).toHaveValue("Colonoscopy");
+		expect(onProcedureCreated).not.toHaveBeenCalled();
 	});
 });

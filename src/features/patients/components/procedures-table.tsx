@@ -100,8 +100,9 @@ const procedureStatusFilterOptions: {
 ];
 
 type ProceduresTableProps = {
+	patientId: string;
+	encounterId?: string;
 	procedures: ProcedureType[];
-	isEncounterScoped?: boolean;
 	page: number;
 	limit: number;
 	totalPages: number;
@@ -113,14 +114,16 @@ type ProceduresTableProps = {
 	onQueryChange: (query: string) => void;
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: ProcedureStatusFilter[]) => void;
+	onProcedureCreated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
 };
 
 export function ProceduresTable({
+	patientId,
+	encounterId,
 	procedures,
-	isEncounterScoped = false,
 	page,
 	limit,
 	totalPages,
@@ -132,6 +135,7 @@ export function ProceduresTable({
 	onQueryChange,
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
+	onProcedureCreated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -197,7 +201,7 @@ export function ProceduresTable({
 						type="search"
 						className="pl-8"
 						placeholder={
-							isEncounterScoped
+							encounterId
 								? "Search by procedure, indication, facility, or procedure ID"
 								: "Search by procedure, indication, facility, procedure ID, or encounter ID"
 						}
@@ -496,7 +500,13 @@ export function ProceduresTable({
 				onClearSelection={() => table.resetRowSelection()}
 				onViewProcedureDetails={handleViewProcedureDetails}
 			/>
-			<CreateProcedureDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
+			<CreateProcedureDrawer
+				open={isCreateDrawerOpen}
+				onOpenChange={setIsCreateDrawerOpen}
+				patientId={patientId}
+				encounterId={encounterId}
+				onProcedureCreated={onProcedureCreated}
+			/>
 			<ProcedureDetailsDrawer
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}

@@ -158,3 +158,23 @@ export const createPatientImmunizationSchema = z
 	.refine((immunization) => immunization.currentDose <= immunization.totalDoses, {
 		message: "The current dose can’t be more than the total doses.",
 	});
+
+export const procedureStatuses = ["Pending", "Completed", "Cancelled"] as const;
+
+export const createPatientProcedureSchema = z
+	.object({
+		procedureName: z.string().trim().min(1, "Enter the procedure."),
+		indication: z.string().trim().optional(),
+		status: z.enum(procedureStatuses, "Select a status."),
+		procedureDate: z.iso.date("Select the procedure date."),
+		physician: z.string().trim().min(1, "Enter the physician."),
+		assistants: z.string().trim().min(1, "Add at least one assistant."),
+		facility: z.string().trim().min(1, "Enter the facility."),
+		clinicalNote: z.string().trim().optional(),
+	})
+	.refine(
+		(procedure) =>
+			procedure.status !== "Completed" ||
+			procedure.procedureDate <= format(addDays(new Date(), 1), "yyyy-MM-dd"),
+		{ message: "A completed procedure can’t be dated in the future." },
+	);
