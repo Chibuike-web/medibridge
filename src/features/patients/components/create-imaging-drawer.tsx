@@ -162,7 +162,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 										<RiCalendarLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
 									</Button>
 								</PopoverTrigger>
-								<PopoverContent className="p-0">
+								<PopoverContent align="end" className="p-0">
 									<Calendar mode="single" selected={orderedAt} onSelect={setOrderedAt} autoFocus />
 								</PopoverContent>
 							</Popover>

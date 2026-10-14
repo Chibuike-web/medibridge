@@ -399,7 +399,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 									<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
 								</Button>
 							</PopoverTrigger>
-							<PopoverContent className="p-0">
+							<PopoverContent align="end" className="p-0">
 								<Calendar mode="single" selected={startedAt} onSelect={setStartedAt} autoFocus />
 							</PopoverContent>
 						</Popover>
