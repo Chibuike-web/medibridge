@@ -67,7 +67,7 @@ describe("adding a patient diagnosis", () => {
 	test("a verified hospital member can add a diagnosis without an encounter", async () => {
 		const result = await createPatientDiagnosisAction("patient-1", diagnosisForm());
 
-		expect(result).toEqual({ status: "success", diagnosisId: expect.stringMatching(/^DX-/) });
+		expect(result).toEqual({ status: "success", diagnosisId: expect.stringMatching(/^DIA-/) });
 		expect(savedDiagnoses).toEqual([
 			{
 				id: result.status === "success" ? result.diagnosisId : "",

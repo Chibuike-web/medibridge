@@ -94,3 +94,15 @@ export const createPatientDiagnosisSchema = z.object({
 	diagnosedBy: z.string().trim().min(1, "Enter who made the diagnosis."),
 	clinicalNote: z.string().trim().optional(),
 });
+
+export const allergySeverities = ["Mild", "Moderate", "Severe"] as const;
+
+export const allergyStatuses = ["Active", "Inactive"] as const;
+
+export const createPatientAllergySchema = z.object({
+	allergen: z.string().trim().min(1, "Enter the allergen."),
+	severity: z.enum(allergySeverities, "Select a severity."),
+	status: z.enum(allergyStatuses, "Select a status."),
+	reaction: z.string().trim().min(1, "Describe the reaction."),
+	clinicalNote: z.string().trim().optional(),
+});

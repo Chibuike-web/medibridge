@@ -6,6 +6,7 @@ import type { AllergyDetailsType, AllergyType } from "@/features/patients/types"
 import { AllergiesTable } from "./allergies-table";
 
 const auth = vi.hoisted(() => ({ role: "owner" }));
+const { createPatientAllergyMock } = vi.hoisted(() => ({ createPatientAllergyMock: vi.fn() }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
@@ -13,6 +14,10 @@ vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
 		useActiveMemberRole: () => ({ data: { role: auth.role } }),
 	},
+}));
+
+vi.mock("@/features/patients/server/create-patient-allergy-action", () => ({
+	createPatientAllergyAction: createPatientAllergyMock,
 }));
 
 const allergies: AllergyType[] = [
@@ -87,6 +92,7 @@ type AllergiesTableProps = React.ComponentProps<typeof AllergiesTable>;
 
 function buildProps(overrides: Partial<AllergiesTableProps> = {}): AllergiesTableProps {
 	return {
+		patientId: "patient-1",
 		allergies,
 		page: 1,
 		limit: 14,
@@ -101,6 +107,7 @@ function buildProps(overrides: Partial<AllergiesTableProps> = {}): AllergiesTabl
 		onCreatedAtRangeApply: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
 		onSeverityFiltersChange: vi.fn(),
+		onAllergyCreated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -147,6 +154,7 @@ async function tap(user: User, target: Element) {
 describe("Allergies table", () => {
 	beforeEach(() => {
 		auth.role = "owner";
+		createPatientAllergyMock.mockReset();
 		vi.stubGlobal(
 			"fetch",
 			vi.fn(async (input: RequestInfo | URL) => {
@@ -413,5 +421,61 @@ describe("Allergies table", () => {
 		expect(within(bulkBar).getByRole("button", { name: "View details" })).toBeVisible();
 		expect(within(bulkBar).getByRole("button", { name: "Export" })).toBeVisible();
 		expect(within(bulkBar).queryByRole("button", { name: /Archive/ })).not.toBeInTheDocument();
+	});
+
+	test("adds an allergy to the encounter it was opened from and refreshes the table", async () => {
+		createPatientAllergyMock.mockResolvedValue({ status: "success", allergyId: "ALLE-new" });
+		const user = userEvent.setup();
+		const { onAllergyCreated } = renderAllergiesTable({ encounterId: "ENC-1" });
+
+		await user.click(screen.getByRole("button", { name: "Add allergy" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add allergy" });
+		await user.type(within(drawer).getByLabelText(/Allergen/), "Penicillin");
+		await user.click(within(drawer).getByRole("combobox", { name: /Severity/ }));
+		await user.click(await screen.findByRole("option", { name: "Severe" }));
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Active" }));
+		await user.type(within(drawer).getByLabelText(/Reaction/), "Facial swelling");
+		await user.click(within(drawer).getByRole("button", { name: "Add allergy" }));
+
+		expect(createPatientAllergyMock).toHaveBeenCalledTimes(1);
+		const [patientId, formData] = createPatientAllergyMock.mock.calls[0] as [string, FormData];
+		expect(patientId).toBe("patient-1");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				allergen: "Penicillin",
+				severity: "Severe",
+				status: "Active",
+				reaction: "Facial swelling",
+				encounterId: "ENC-1",
+			}),
+		);
+		expect(onAllergyCreated).toHaveBeenCalled();
+		expect(screen.queryByRole("dialog", { name: "Add allergy" })).not.toBeInTheDocument();
+	});
+
+	test("keeps the add allergy drawer open and shows why the allergy was not saved", async () => {
+		createPatientAllergyMock.mockResolvedValue({
+			status: "failed",
+			error: "We couldn’t add this allergy. Please try again.",
+		});
+		const user = userEvent.setup();
+		const { onAllergyCreated } = renderAllergiesTable();
+
+		await user.click(screen.getByRole("button", { name: "Add allergy" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add allergy" });
+		await user.type(within(drawer).getByLabelText(/Allergen/), "Latex");
+		await user.click(within(drawer).getByRole("combobox", { name: /Severity/ }));
+		await user.click(await screen.findByRole("option", { name: "Mild" }));
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Active" }));
+		await user.type(within(drawer).getByLabelText(/Reaction/), "Itching");
+		await user.click(within(drawer).getByRole("button", { name: "Add allergy" }));
+
+		expect(await within(drawer).findByRole("alert")).toHaveTextContent(
+			"We couldn’t add this allergy. Please try again.",
+		);
+		expect(within(drawer).getByLabelText(/Allergen/)).toHaveValue("Latex");
+		expect(onAllergyCreated).not.toHaveBeenCalled();
 	});
 });

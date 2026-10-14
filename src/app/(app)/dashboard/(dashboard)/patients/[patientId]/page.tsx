@@ -302,7 +302,7 @@ async function AllergiesSection({ patientId }: { patientId: string }) {
 		return renderEmptyState({
 			title: "No allergies yet",
 			description: "No allergies have been recorded for this patient.",
-			action: <CreateAllergyEmptyStateAction />,
+			action: <CreateAllergyEmptyStateAction patientId={patientId} />,
 		});
 	}
 

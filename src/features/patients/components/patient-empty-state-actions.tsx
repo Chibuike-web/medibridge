@@ -72,7 +72,16 @@ export function CreateVitalsEmptyStateAction({
 	);
 }
 
-export function CreateAllergyEmptyStateAction({ variant }: { variant?: ButtonVariant }) {
+export function CreateAllergyEmptyStateAction({
+	patientId,
+	encounterId,
+	variant,
+}: {
+	patientId: string;
+	encounterId?: string;
+	variant?: ButtonVariant;
+}) {
+	const router = useRouter();
 	const [isCreateAllergyDrawerOpen, setIsCreateAllergyDrawerOpen] = useState(false);
 
 	return (
@@ -83,6 +92,9 @@ export function CreateAllergyEmptyStateAction({ variant }: { variant?: ButtonVar
 			<CreateAllergyDrawer
 				open={isCreateAllergyDrawerOpen}
 				onOpenChange={setIsCreateAllergyDrawerOpen}
+				patientId={patientId}
+				encounterId={encounterId}
+				onAllergyCreated={() => router.refresh()}
 			/>
 		</>
 	);

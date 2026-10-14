@@ -73,7 +73,7 @@ export async function createPatientDiagnosisAction(
 	}
 
 	const createdBy = session.user.name || session.user.email;
-	const diagnosisId = `DX-${crypto.randomUUID()}`;
+	const diagnosisId = `DIA-${crypto.randomUUID()}`;
 	const { severityStage, clinicalNote, ...diagnosis } = parsedDiagnosis.data;
 
 	try {

@@ -110,8 +110,9 @@ const allergySeverityFilterOptions: {
 ];
 
 type AllergiesTableProps = {
+	patientId: string;
+	encounterId?: string;
 	allergies: AllergyType[];
-	isEncounterScoped?: boolean;
 	page: number;
 	limit: number;
 	totalPages: number;
@@ -125,14 +126,16 @@ type AllergiesTableProps = {
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: AllergyStatusFilter[]) => void;
 	onSeverityFiltersChange: (severityFilters: AllergySeverityFilter[]) => void;
+	onAllergyCreated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
 };
 
 export function AllergiesTable({
+	patientId,
+	encounterId,
 	allergies,
-	isEncounterScoped = false,
 	page,
 	limit,
 	totalPages,
@@ -146,6 +149,7 @@ export function AllergiesTable({
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
 	onSeverityFiltersChange,
+	onAllergyCreated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -194,7 +198,7 @@ export function AllergiesTable({
 						type="search"
 						className="pl-8"
 						placeholder={
-							isEncounterScoped
+							encounterId
 								? "Search by allergen, reaction, severity, or allergy ID"
 								: "Search by allergen, reaction, severity, allergy ID, or encounter ID"
 						}
@@ -337,7 +341,13 @@ export function AllergiesTable({
 				onNextPage={onNextPage}
 				onLimitChange={onLimitChange}
 			/>
-			<CreateAllergyDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
+			<CreateAllergyDrawer
+				open={isCreateDrawerOpen}
+				onOpenChange={setIsCreateDrawerOpen}
+				patientId={patientId}
+				encounterId={encounterId}
+				onAllergyCreated={onAllergyCreated}
+			/>
 			<AllergyDetailsDrawer
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}

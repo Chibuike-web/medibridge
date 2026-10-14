@@ -137,7 +137,8 @@ export function AllergiesClient({
 
 	return (
 		<AllergiesTable
-			isEncounterScoped={Boolean(encounterId)}
+			patientId={patientId}
+			encounterId={encounterId}
 			allergies={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}
@@ -152,6 +153,7 @@ export function AllergiesClient({
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
 			onStatusFiltersChange={handleStatusFiltersChange}
 			onSeverityFiltersChange={handleSeverityFiltersChange}
+			onAllergyCreated={() => refreshAllergiesTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

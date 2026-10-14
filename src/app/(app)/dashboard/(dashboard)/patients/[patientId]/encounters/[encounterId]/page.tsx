@@ -212,7 +212,13 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 						<EncounterSection
 							title="Allergies"
 							isEmpty={allergiesResult.totalAllergies === 0}
-							addAction={<CreateAllergyEmptyStateAction variant="outline" />}
+							addAction={
+								<CreateAllergyEmptyStateAction
+									patientId={patientId}
+									encounterId={encounterId}
+									variant="outline"
+								/>
+							}
 						>
 							<AllergiesClient
 								patientId={patientId}
