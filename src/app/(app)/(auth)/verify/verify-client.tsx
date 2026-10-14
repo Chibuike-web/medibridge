@@ -24,7 +24,7 @@ const initialVerificationSteps: VerificationStep[] = [
 	{
 		id: "email-verification",
 		label: "Email address verification",
-		description: "Check your inbox to verify your hospital email address.",
+		description: "Check your inbox to verify your email address.",
 		status: "pending",
 		statusLabel: "Pending",
 	},

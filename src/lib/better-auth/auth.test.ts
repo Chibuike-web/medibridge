@@ -180,18 +180,47 @@ describe("Configured authentication endpoints", () => {
 		expect((await sessionResponse.json()).user.email).toBe("ada@hospital.org");
 	});
 
-	test("does not create an account outside .org unless it has a current invitation", async () => {
-		const deniedResponse = await requestAuth("/sign-up/email", {
-			body: { name: "Ada Obi", email: "ada@gmail.com", password: "recipient-password" },
+	test.each(["ada@gmail.com", "ada@clinic.com", "ada@hospital.co.uk", "ada@hospital.org"])(
+		"lets an owner register, verify, sign in, and create a hospital using %s",
+		async (email) => {
+			const registeredUser = await registerAccount(email, "/email-verified");
+			expect(registeredUser.email).toBe(email);
+			expect((await signIn(email, "password-before-verification")).status).toBe(403);
+
+			const verificationUrl = sendEmailMock.mock.calls[0][1] as string;
+			expect(sendEmailMock).toHaveBeenCalledWith(email, verificationUrl);
+			const verifiedResponse = await auth.handler(new Request(verificationUrl));
+			expect(verifiedResponse.status).toBe(302);
+			const sessionResponse = await requestAuth("/get-session", {
+				cookie: responseCookies(verifiedResponse),
+			});
+			expect((await sessionResponse.json()).user).toEqual(
+				expect.objectContaining({ email, emailVerified: true }),
+			);
+			expect((await signIn(email, "password-before-verification")).status).toBe(200);
+
+			const hospital = await auth.api.createOrganization({
+				body: {
+					name: "Owner's Hospital",
+					slug: `hospital-${registeredUser.id}`,
+					userId: registeredUser.id,
+				},
+			});
+			expect(hospital).toEqual(expect.objectContaining({ name: "Owner's Hospital" }));
+			expect(hospital?.members).toEqual([
+				expect.objectContaining({ userId: registeredUser.id, role: "owner" }),
+			]);
+		},
+	);
+
+	test("rejects an invalid email without creating an account", async () => {
+		const response = await requestAuth("/sign-up/email", {
+			body: { name: "Ada Obi", email: "invalid-email", password: "recipient-password" },
 		});
-		expect(deniedResponse.status).toBe(400);
-		expect(await (await auth.$context).internalAdapter.findUserByEmail("ada@gmail.com")).toBeNull();
-		selectRowsMock.mockResolvedValue([{ id: "current-invitation" }]);
-		const allowedResponse = await requestAuth("/sign-up/email", {
-			body: { name: "Ada Obi", email: "ada@gmail.com", password: "recipient-password" },
-		});
-		expect(allowedResponse.status).toBe(200);
-		expect((await allowedResponse.json()).user.email).toBe("ada@gmail.com");
+
+		expect(response.status).toBe(400);
+		expect(await (await auth.$context).internalAdapter.findUserByEmail("invalid-email")).toBeNull();
+		expect(sendEmailMock).not.toHaveBeenCalled();
 	});
 
 	test("prevents hospital owners from deleting their account and lets a member delete theirs", async () => {

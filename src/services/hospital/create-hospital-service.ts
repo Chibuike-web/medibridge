@@ -36,9 +36,6 @@ export async function createHospitalService(
 		if (!session.user.emailVerified) {
 			return { status: "failed", error: "Verify your email before submitting hospital details." };
 		}
-		if (!session.user.email.toLowerCase().endsWith(".org")) {
-			return { status: "failed", error: "Use your official hospital email address (.org)." };
-		}
 
 		const [existingHospital] = await db
 			.select({ id: hospitalDetails.id })

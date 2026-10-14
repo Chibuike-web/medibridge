@@ -90,30 +90,7 @@ describe("createHospitalService", () => {
 		expect(insertMock).not.toHaveBeenCalled();
 	});
 
-	test("does not let a verified invited account outside .org create a hospital", async () => {
-		getSessionMock.mockResolvedValue({
-			user: {
-				id: "invited-admin-1",
-				name: "Invited Administrator",
-				email: "administrator@gmail.com",
-				emailVerified: true,
-			},
-		});
-
-		const result = await createHospitalService({
-			hospitalName: "St Mary's Hospital",
-			hospitalAddress: "12 Health Street",
-		});
-
-		expect(result).toEqual({
-			status: "failed",
-			error: "Use your official hospital email address (.org).",
-		});
-		expect(createOrganizationMock).not.toHaveBeenCalled();
-		expect(insertMock).not.toHaveBeenCalled();
-	});
-
-	test.each(["sarah@stmary.org", "SARAH@STMARY.ORG"])(
+	test.each(["sarah@gmail.com", "sarah@clinic.com", "sarah@hospital.co.uk", "sarah@stmary.org"])(
 		"creates hospital records for a verified owner with email %s",
 		async (email) => {
 			getSessionMock.mockResolvedValue({

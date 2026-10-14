@@ -155,13 +155,26 @@ describe("OwnerClient", () => {
 		expect(signUpEmailMock).toHaveBeenCalledWith(expect.objectContaining({ password: "12345678" }));
 	});
 
-	test("accepts an official .org email typed in capitals and sends it in lowercase", async () => {
-		await submitOwnerForm({ email: "SARAH@STMARY.ORG" });
+	test.each(["sarah@gmail.com", "sarah@clinic.com", "sarah@hospital.co.uk", "SARAH@STMARY.ORG"])(
+		"accepts a valid email on any domain and sends it in lowercase: %s",
+		async (email) => {
+			await submitOwnerForm({ email });
 
-		expect(await screen.findByRole("heading", { name: "Check your email" })).toBeVisible();
-		expect(signUpEmailMock).toHaveBeenCalledWith(
-			expect.objectContaining({ email: "sarah@stmary.org" }),
-		);
+			expect(await screen.findByRole("heading", { name: "Check your email" })).toBeVisible();
+			expect(signUpEmailMock).toHaveBeenCalledWith(
+				expect.objectContaining({ email: email.toLowerCase() }),
+			);
+		},
+	);
+
+	test("does not create an owner account with an invalid email address", async () => {
+		await submitOwnerForm({ email: "sarah@hospital" });
+
+		const emailField = screen.getByRole("textbox", { name: "Email" });
+		expect(await screen.findByText("Enter a valid email address")).toBeVisible();
+		expect(emailField).toBeInvalid();
+		expect(emailField).toHaveAccessibleDescription("Enter a valid email address");
+		expect(signUpEmailMock).not.toHaveBeenCalled();
 	});
 
 	test("keeps the owner form available and shows the account-creation error", async () => {

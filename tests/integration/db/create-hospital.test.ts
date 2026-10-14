@@ -143,21 +143,24 @@ describe.skipIf(!testDatabaseUrl)("createHospitalService", () => {
 		};
 	}
 
-	test("saves the hospital, the owner's membership and the hospital details, and makes it the active hospital", async () => {
-		const ownerId = await signInVerifiedOwner();
+	test.each(["sarah@stmary.org", "sarah@gmail.com", "sarah@clinic.com", "sarah@hospital.co.uk"])(
+		"saves the hospital and owner membership and sets the active hospital for %s",
+		async (email) => {
+			const ownerId = await signInVerifiedOwner(email);
 
-		const result = await submitHospitalDetails();
+			const result = await submitHospitalDetails();
 
-		const { organizations, memberships, details, activeOrganizationId } =
-			await findOwnerHospital(ownerId);
-		expect(result).toEqual({ status: "success", message: "Hospital data successfully saved" });
-		expect(organizations).toEqual([{ id: expect.any(String), name: "St Mary's Hospital" }]);
-		expect(memberships).toEqual([{ organizationId: organizations[0].id, role: "owner" }]);
-		expect(details).toEqual([
-			{ organizationId: organizations[0].id, documentPath: `${ownerId}/accreditation.pdf` },
-		]);
-		expect(activeOrganizationId).toBe(organizations[0].id);
-	});
+			const { organizations, memberships, details, activeOrganizationId } =
+				await findOwnerHospital(ownerId);
+			expect(result).toEqual({ status: "success", message: "Hospital data successfully saved" });
+			expect(organizations).toEqual([{ id: expect.any(String), name: "St Mary's Hospital" }]);
+			expect(memberships).toEqual([{ organizationId: organizations[0].id, role: "owner" }]);
+			expect(details).toEqual([
+				{ organizationId: organizations[0].id, documentPath: `${ownerId}/accreditation.pdf` },
+			]);
+			expect(activeOrganizationId).toBe(organizations[0].id);
+		},
+	);
 
 	test("creates only one complete hospital when the owner submits onboarding twice at the same time", async () => {
 		const ownerId = await signInVerifiedOwner();
@@ -185,23 +188,6 @@ describe.skipIf(!testDatabaseUrl)("createHospitalService", () => {
 			{ organizationId: organizations[0].id, documentPath: `${ownerId}/accreditation.pdf` },
 		]);
 		expect(activeOrganizationId).toBe(organizations[0].id);
-	});
-
-	test("does not let a verified account outside .org create any hospital records", async () => {
-		const invitedUserId = await signInVerifiedOwner("invited-admin@gmail.com");
-
-		const result = await submitHospitalDetails();
-
-		expect(result).toEqual({
-			status: "failed",
-			error: "Use your official hospital email address (.org).",
-		});
-		expect(await findOwnerHospital(invitedUserId)).toEqual({
-			organizations: [],
-			memberships: [],
-			details: [],
-			activeOrganizationId: null,
-		});
 	});
 
 	test("removes the new hospital when its details can't be saved, so the owner can submit again", async () => {

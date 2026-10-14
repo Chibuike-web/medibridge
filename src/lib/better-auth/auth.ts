@@ -9,13 +9,12 @@ import postgres from "postgres";
 import * as schema from "@/db/schemas/auth";
 import { ENV } from "../utils/env";
 import { sendEmail, sendPasswordResetEmail } from "../utils/send-email";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import {
 	assertAccountCanBeDeleted,
 	assertCanJoinHospital,
 	assertInvitationAllowed,
 	assertInviteeCanJoinHospital,
-	assertOwnerEmail,
 } from "./auth-policies";
 import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
 
@@ -46,22 +45,6 @@ async function hasHospitalMembership(userId: string) {
 		.limit(1);
 
 	return Boolean(membership);
-}
-
-async function hasPendingInvitation(email: string) {
-	const [pendingInvitation] = await db
-		.select({ id: schema.invitation.id })
-		.from(schema.invitation)
-		.where(
-			and(
-				eq(schema.invitation.email, email.toLowerCase()),
-				eq(schema.invitation.status, "pending"),
-				gt(schema.invitation.expiresAt, new Date()),
-			),
-		)
-		.limit(1);
-
-	return Boolean(pendingInvitation);
 }
 
 export const auth = betterAuth({
@@ -121,16 +104,6 @@ export const auth = betterAuth({
 					.where(eq(schema.member.userId, user.id));
 
 				assertAccountCanBeDeleted(memberships.map((membership) => membership.role));
-			},
-		},
-	},
-	databaseHooks: {
-		user: {
-			create: {
-				before: async (user) => {
-					if (await hasPendingInvitation(user.email)) return;
-					assertOwnerEmail(user.email);
-				},
 			},
 		},
 	},
@@ -232,7 +205,6 @@ export const auth = betterAuth({
 			requireEmailVerificationOnInvitation: true,
 			organizationHooks: {
 				beforeCreateOrganization: async ({ user }) => {
-					assertOwnerEmail(user.email);
 					assertCanJoinHospital(await hasHospitalMembership(user.id));
 				},
 				// Runs when a hospital is created and when a member is added directly.
