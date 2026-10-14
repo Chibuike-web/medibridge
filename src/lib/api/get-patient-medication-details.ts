@@ -95,12 +95,13 @@ function mapMedicationHistoryEvent(history: {
 function buildUpdatedHistoryEvent(medication: {
 	status: string;
 	dose: string | null;
+	updatedBy: string | null;
 	updatedAt: Date;
 }): MedicationDetailsHistoryEvent {
 	return {
 		id: "updated",
 		title: "Updated",
-		actor: EMPTY_VALUE,
+		actor: empty(medication.updatedBy),
 		timestamp: formatTimelineTimestamp(medication.updatedAt),
 		items: [
 			{ label: "Status", value: normalizeStatus(medication.status) },
@@ -136,6 +137,13 @@ export async function getPatientMedicationDetailsForOrganization(
 			route: patientMedication.route,
 			indication: patientMedication.indication,
 			status: patientMedication.status,
+			prescribedBy: patientMedication.prescribedBy,
+			frequency: patientMedication.frequency,
+			duration: patientMedication.duration,
+			startedAt: patientMedication.startedAt,
+			clinicalNote: patientMedication.clinicalNote,
+			createdBy: patientMedication.createdBy,
+			updatedBy: patientMedication.updatedBy,
 			createdAt: patientMedication.createdAt,
 			updatedAt: patientMedication.updatedAt,
 		})
@@ -168,14 +176,14 @@ export async function getPatientMedicationDetailsForOrganization(
 		route: empty(medication.route),
 		indication: empty(medication.indication),
 		status: normalizeStatus(medication.status),
-		frequency: EMPTY_VALUE,
-		duration: EMPTY_VALUE,
-		prescribedBy: EMPTY_VALUE,
-		startedAt: formatDateOnly(medication.createdAt),
+		frequency: empty(medication.frequency),
+		duration: empty(medication.duration),
+		prescribedBy: empty(medication.prescribedBy),
+		startedAt: formatDateOnly(medication.startedAt ?? medication.createdAt),
 		createdAt: formatTimelineTimestamp(medication.createdAt),
 		updatedAt: formatDateOnly(medication.updatedAt),
-		createdBy: EMPTY_VALUE,
-		clinicalNote: EMPTY_VALUE,
+		createdBy: empty(medication.createdBy),
+		clinicalNote: empty(medication.clinicalNote),
 		history: [...historyRows.map(mapMedicationHistoryEvent), buildUpdatedHistoryEvent(medication)],
 	};
 }

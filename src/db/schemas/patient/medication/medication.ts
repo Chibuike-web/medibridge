@@ -15,6 +15,13 @@ export const patientMedication = pgTable("patient_medication", {
 	route: text("route"),
 	indication: text("indication"),
 	status: text("status").notNull(),
+	prescribedBy: text("prescribed_by"),
+	frequency: text("frequency"),
+	duration: text("duration"),
+	startedAt: text("started_at"),
+	clinicalNote: text("clinical_note"),
+	createdBy: text("created_by"),
+	updatedBy: text("updated_by"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

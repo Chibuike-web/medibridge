@@ -368,7 +368,7 @@ async function MedicationsSection({ patientId }: { patientId: string }) {
 		return renderEmptyState({
 			title: "No medications yet",
 			description: "No medications have been recorded for this patient.",
-			action: <CreateMedicationEmptyStateAction />,
+			action: <CreateMedicationEmptyStateAction patientId={patientId} />,
 		});
 	}
 

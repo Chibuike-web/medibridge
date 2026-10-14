@@ -6,13 +6,21 @@ import type { MedicationDetailsType, MedicationType } from "@/features/patients/
 import { MedicationsTable } from "./medications-table";
 
 const auth = vi.hoisted(() => ({ role: "owner" }));
+const { createPatientMedicationMock } = vi.hoisted(() => ({
+	createPatientMedicationMock: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
 		useActiveMemberRole: () => ({ data: { role: auth.role } }),
+		useSession: () => ({ data: { user: { name: "Dr. Okafor" } } }),
 	},
+}));
+
+vi.mock("@/features/patients/server/create-patient-medication-action", () => ({
+	createPatientMedicationAction: createPatientMedicationMock,
 }));
 
 const medications: MedicationType[] = [
@@ -97,6 +105,7 @@ type MedicationsTableProps = React.ComponentProps<typeof MedicationsTable>;
 
 function buildProps(overrides: Partial<MedicationsTableProps> = {}): MedicationsTableProps {
 	return {
+		patientId: "patient-1",
 		medications,
 		page: 1,
 		limit: 14,
@@ -109,6 +118,7 @@ function buildProps(overrides: Partial<MedicationsTableProps> = {}): Medications
 		onQueryChange: vi.fn(),
 		onCreatedAtRangeApply: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
+		onMedicationCreated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -155,6 +165,7 @@ async function tap(user: User, target: Element) {
 describe("Medications table", () => {
 	beforeEach(() => {
 		auth.role = "owner";
+		createPatientMedicationMock.mockReset();
 		vi.stubGlobal(
 			"fetch",
 			vi.fn(async (input: RequestInfo | URL) => {
@@ -417,5 +428,78 @@ describe("Medications table", () => {
 		expect(within(bulkBar).getByRole("button", { name: "View details" })).toBeVisible();
 		expect(within(bulkBar).getByRole("button", { name: "Export" })).toBeVisible();
 		expect(within(bulkBar).queryByRole("button", { name: /Archive/ })).not.toBeInTheDocument();
+	});
+
+	test("adds a medication to the encounter it was opened from and refreshes the table", async () => {
+		createPatientMedicationMock.mockResolvedValue({ status: "success", medicationId: "MED-new" });
+		const user = userEvent.setup();
+		const { onMedicationCreated } = renderMedicationsTable({ encounterId: "ENC-1" });
+		const today = new Date();
+
+		await user.click(screen.getByRole("button", { name: "Add medication" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add medication" });
+		await user.type(within(drawer).getByLabelText(/^Medication/), "Amlodipine");
+		await user.type(within(drawer).getByLabelText(/Indication/), "Essential hypertension");
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Active" }));
+		await user.type(within(drawer).getByLabelText(/Dose/), "5 mg");
+		await user.click(within(drawer).getByRole("combobox", { name: /Route/ }));
+		await user.click(await screen.findByRole("option", { name: "Oral" }));
+		await user.type(within(drawer).getByLabelText(/Frequency/), "Once daily");
+		await user.type(within(drawer).getByLabelText(/Duration/), "3 months");
+		await user.click(within(drawer).getByRole("button", { name: /Started at/ }));
+		await user.click(
+			await screen.findByRole("button", { name: new RegExp(format(today, "MMMM do, yyyy")) }),
+		);
+		expect(within(drawer).getByLabelText(/Prescribed by/)).toHaveValue("Dr. Okafor");
+		await user.click(within(drawer).getByRole("button", { name: "Add medication" }));
+
+		expect(createPatientMedicationMock).toHaveBeenCalledTimes(1);
+		const [patientId, formData] = createPatientMedicationMock.mock.calls[0] as [string, FormData];
+		expect(patientId).toBe("patient-1");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				medicationName: "Amlodipine",
+				indication: "Essential hypertension",
+				status: "Active",
+				dose: "5 mg",
+				route: "Oral",
+				prescribedBy: "Dr. Okafor",
+				frequency: "Once daily",
+				duration: "3 months",
+				startedAt: format(today, "yyyy-MM-dd"),
+				encounterId: "ENC-1",
+			}),
+		);
+		expect(onMedicationCreated).toHaveBeenCalled();
+		expect(screen.queryByRole("dialog", { name: "Add medication" })).not.toBeInTheDocument();
+	});
+
+	test("keeps the add medication drawer open and shows why the medication was not saved", async () => {
+		createPatientMedicationMock.mockResolvedValue({
+			status: "failed",
+			error: "We couldn’t add this medication. Please try again.",
+		});
+		const user = userEvent.setup();
+		const { onMedicationCreated } = renderMedicationsTable();
+
+		await user.click(screen.getByRole("button", { name: "Add medication" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add medication" });
+		await user.type(within(drawer).getByLabelText(/^Medication/), "Metformin");
+		await user.type(within(drawer).getByLabelText(/Indication/), "Type 2 diabetes");
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Active" }));
+		await user.type(within(drawer).getByLabelText(/Dose/), "500 mg");
+		await user.click(within(drawer).getByRole("combobox", { name: /Route/ }));
+		await user.click(await screen.findByRole("option", { name: "Oral" }));
+		await user.type(within(drawer).getByLabelText(/Frequency/), "Twice daily");
+		await user.type(within(drawer).getByLabelText(/Duration/), "6 months");
+		await user.click(within(drawer).getByRole("button", { name: "Add medication" }));
+
+		expect(await within(drawer).findByRole("alert")).toHaveTextContent(
+			"We couldn’t add this medication. Please try again.",
+		);
+		expect(within(drawer).getByLabelText(/^Medication/)).toHaveValue("Metformin");
+		expect(onMedicationCreated).not.toHaveBeenCalled();
 	});
 });

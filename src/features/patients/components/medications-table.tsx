@@ -100,8 +100,9 @@ const medicationStatusFilterOptions: {
 ];
 
 type MedicationsTableProps = {
+	patientId: string;
+	encounterId?: string;
 	medications: MedicationType[];
-	isEncounterScoped?: boolean;
 	page: number;
 	limit: number;
 	totalPages: number;
@@ -113,14 +114,16 @@ type MedicationsTableProps = {
 	onQueryChange: (query: string) => void;
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: MedicationStatusFilter[]) => void;
+	onMedicationCreated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
 };
 
 export function MedicationsTable({
+	patientId,
+	encounterId,
 	medications,
-	isEncounterScoped = false,
 	page,
 	limit,
 	totalPages,
@@ -132,6 +135,7 @@ export function MedicationsTable({
 	onQueryChange,
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
+	onMedicationCreated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -198,7 +202,7 @@ export function MedicationsTable({
 						type="search"
 						className="pl-8"
 						placeholder={
-							isEncounterScoped
+							encounterId
 								? "Search by medication, dose, route, indication, or medication ID"
 								: "Search by medication, dose, route, indication, medication ID, or encounter ID"
 						}
@@ -475,7 +479,13 @@ export function MedicationsTable({
 				onClearSelection={() => table.resetRowSelection()}
 				onViewMedicationDetails={handleViewMedicationDetails}
 			/>
-			<CreateMedicationDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
+			<CreateMedicationDrawer
+				open={isCreateDrawerOpen}
+				onOpenChange={setIsCreateDrawerOpen}
+				patientId={patientId}
+				encounterId={encounterId}
+				onMedicationCreated={onMedicationCreated}
+			/>
 			<MedicationDetailsDrawer
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}

@@ -106,3 +106,25 @@ export const createPatientAllergySchema = z.object({
 	reaction: z.string().trim().min(1, "Describe the reaction."),
 	clinicalNote: z.string().trim().optional(),
 });
+
+export const medicationStatuses = ["Active", "Completed", "Discontinued"] as const;
+
+export const medicationRoutes = ["Oral", "IV", "Inhalation"] as const;
+
+export const createPatientMedicationSchema = z.object({
+	medicationName: z.string().trim().min(1, "Enter the medication."),
+	indication: z.string().trim().min(1, "Enter the indication."),
+	status: z.enum(medicationStatuses, "Select a status."),
+	dose: z.string().trim().min(1, "Enter the dose."),
+	route: z.enum(medicationRoutes, "Select a route."),
+	prescribedBy: z.string().trim().min(1, "Enter who prescribed it."),
+	frequency: z.string().trim().min(1, "Enter how often it is taken."),
+	duration: z.string().trim().min(1, "Enter how long it is taken for."),
+	startedAt: z.iso
+		.date("Select the start date.")
+		.refine(
+			(date) => date <= format(addDays(new Date(), 1), "yyyy-MM-dd"),
+			"The start date can’t be in the future.",
+		),
+	clinicalNote: z.string().trim().optional(),
+});

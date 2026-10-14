@@ -127,7 +127,8 @@ export function MedicationsClient({
 
 	return (
 		<MedicationsTable
-			isEncounterScoped={Boolean(encounterId)}
+			patientId={patientId}
+			encounterId={encounterId}
 			medications={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}
@@ -140,6 +141,7 @@ export function MedicationsClient({
 			onQueryChange={handleQueryChange}
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
 			onStatusFiltersChange={handleStatusFiltersChange}
+			onMedicationCreated={() => refreshMedicationsTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}
