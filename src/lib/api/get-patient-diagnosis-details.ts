@@ -89,27 +89,6 @@ function empty(value: string | null | undefined) {
 	return value?.trim() || EMPTY_VALUE;
 }
 
-function buildCreatedHistoryEvent(diagnosis: {
-	severityStage: string | null;
-	diagnosedAt: string | null;
-	status: string;
-	diagnosedBy: string | null;
-	createdAt: Date;
-}): DiagnosisDetailsHistoryEvent {
-	return {
-		id: "created",
-		title: "Created",
-		actor: empty(diagnosis.diagnosedBy),
-		timestamp: formatTimelineTimestamp(diagnosis.createdAt),
-		items: [
-			{ label: "Severity/Stage", value: formatSentenceCaseValue(diagnosis.severityStage) },
-			{ label: "Onset", value: formatDateOnly(diagnosis.diagnosedAt) },
-			{ label: "Status", value: normalizeDiagnosisStatus(diagnosis.status) },
-			{ label: "Diagnosed by", value: empty(diagnosis.diagnosedBy) },
-		],
-	};
-}
-
 function buildUpdatedHistoryEvent(diagnosis: {
 	status: string;
 	updatedBy: string | null;
@@ -283,7 +262,6 @@ export async function getPatientDiagnosisDetailsForOrganization(
 	const history = [
 		...historyRows.map(mapHistoryEvent),
 		buildUpdatedHistoryEvent(diagnosis),
-		buildCreatedHistoryEvent(diagnosis),
 	];
 
 	return {
@@ -293,7 +271,7 @@ export async function getPatientDiagnosisDetailsForOrganization(
 		status: normalizeDiagnosisStatus(diagnosis.status),
 		severityStage: formatSentenceCaseValue(diagnosis.severityStage),
 		diagnosedAt: formatDateOnly(diagnosis.diagnosedAt),
-		createdAt: formatDateOnly(diagnosis.createdAt),
+		createdAt: formatTimelineTimestamp(diagnosis.createdAt),
 		updatedAt: formatDateOnly(diagnosis.updatedAt),
 		lastReviewedAt: formatDateOnly(diagnosis.lastReviewedAt ?? diagnosis.updatedAt),
 		diagnosedBy: empty(diagnosis.diagnosedBy),

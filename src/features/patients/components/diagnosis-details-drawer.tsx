@@ -2,6 +2,15 @@
 
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
+import {
+	AlertDialog,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -13,6 +22,13 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -41,7 +57,10 @@ import {
 	RiArrowDownSLine,
 	RiCalendarLine,
 	RiCloseLine,
-	RiEditLine,
+	RiEdit2Line,
+	RiMore2Fill,
+	RiShare2Line,
+	RiArchiveLine,
 } from "@remixicon/react";
 import { useId, useState } from "react";
 import { format } from "date-fns";
@@ -70,6 +89,7 @@ export function DiagnosisDetailsDrawer({
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [diagnosisDetailsMode, setDiagnosisDetailsMode] = useState<"view" | "edit">("view");
+	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 
 	function handleDiagnosisDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
@@ -85,9 +105,46 @@ export function DiagnosisDetailsDrawer({
 		<Drawer open={open} onOpenChange={handleDiagnosisDetailsOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
-					<DrawerTitle className="leading-[1.2] text-gray-800">
+					<DrawerTitle className="flex-1 leading-[1.2] text-gray-800">
 						{isEditingDiagnosisDetails ? "Edit diagnosis details" : "View diagnosis details"}
 					</DrawerTitle>
+					{diagnosis && !isEditingDiagnosisDetails ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="icon" aria-label="Diagnosis actions">
+									<RiMore2Fill aria-hidden="true" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="end"
+								className="w-50 rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+							>
+								<DropdownMenuItem
+									className="rounded-lg"
+									onSelect={() => setDiagnosisDetailsMode("edit")}
+								>
+									<RiEdit2Line aria-hidden="true" />
+									Edit
+								</DropdownMenuItem>
+								<DropdownMenuItem className="rounded-lg">
+									<RiShare2Line aria-hidden="true" />
+									Export
+								</DropdownMenuItem>
+								{canArchive ? (
+									<>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											className="rounded-lg"
+											onSelect={() => setIsArchiveDialogOpen(true)}
+										>
+											<RiArchiveLine aria-hidden="true" />
+											Archive
+										</DropdownMenuItem>
+									</>
+								) : null}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					) : null}
 					<DrawerClose asChild>
 						<Button variant="ghost" size="icon" aria-label="Close diagnosis details">
 							<RiCloseLine aria-hidden="true" />
@@ -107,12 +164,9 @@ export function DiagnosisDetailsDrawer({
 						<DiagnosisDetailsEditForm diagnosis={diagnosis} />
 					) : diagnosis ? (
 						<div className="flex flex-col gap-12">
-							<DiagnosisDetailsOverview
-								diagnosis={diagnosis}
-								onEditDiagnosisDetails={() => setDiagnosisDetailsMode("edit")}
-							/>
-							<DiagnosisHistorySection history={diagnosis.history} />
+							<DiagnosisDetailsOverview diagnosis={diagnosis} />
 							<DiagnosisRelatedRecords relatedRecords={diagnosis.relatedRecords} />
+							<DiagnosisHistorySection history={diagnosis.history} />
 						</div>
 					) : (
 						<div className="rounded-2xl border border-gray-200 p-5 text-gray-500">
@@ -121,8 +175,8 @@ export function DiagnosisDetailsDrawer({
 					)}
 				</div>
 
-				<DrawerFooter className="border-t border-gray-200 text-sm">
-					{isEditingDiagnosisDetails ? (
+				{isEditingDiagnosisDetails ? (
+					<DrawerFooter className="border-t border-gray-200 text-sm">
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<Button
 								type="button"
@@ -140,59 +194,69 @@ export function DiagnosisDetailsDrawer({
 								Save changes
 							</Button>
 						</div>
-					) : (
-						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
-							<DrawerClose asChild>
-								<Button variant="outline">Cancel</Button>
-							</DrawerClose>
-							{canArchive ? <Button>Archive diagnosis</Button> : null}
-						</div>
-					)}
-				</DrawerFooter>
+					</DrawerFooter>
+				) : null}
 			</DrawerContent>
+			<AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Archive diagnosis</AlertDialogTitle>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							aria-label="Close archive diagnosis dialog"
+							onClick={() => setIsArchiveDialogOpen(false)}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</AlertDialogHeader>
+					<AlertDialogDescription>
+						This diagnosis will be removed from the patient’s active problem list. The record, its
+						related medications, labs, imaging and full activity history are retained and can be
+						restored at any time.
+					</AlertDialogDescription>
+					<AlertDialogFooter className="sm:justify-end">
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<Button type="button" onClick={() => setIsArchiveDialogOpen(false)}>
+							Archive diagnosis
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Drawer>
 	);
 }
 
-function DiagnosisDetailsOverview({
-	diagnosis,
-	onEditDiagnosisDetails,
-}: {
-	diagnosis: DiagnosisDetailsType;
-	onEditDiagnosisDetails: () => void;
-}) {
+function DiagnosisDetailsOverview({ diagnosis }: { diagnosis: DiagnosisDetailsType }) {
 	return (
-		<div className="flex flex-col gap-10">
-			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Diagnosis ID:</span>
-					<CopyIdButton id={diagnosis.diagnosisId} className="text-sm" />
+		<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-4">
+				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
+					<div className="flex items-center gap-2">
+						<span className="text-gray-400">Diagnosis ID:</span>
+						<CopyIdButton id={diagnosis.diagnosisId} className="text-sm" />
+					</div>
+					<div className="flex items-center gap-2">
+						{diagnosis.encounterId ? (
+							<>
+								<span className="text-gray-400">Encounter ID:</span>
+								<CopyIdButton id={diagnosis.encounterId} className="text-sm" />
+							</>
+						) : null}
+					</div>
 				</div>
-				<div className="flex items-center gap-2">
-					{diagnosis.encounterId ? (
-						<>
-							<span className="text-gray-400">Encounter ID:</span>
-							<CopyIdButton id={diagnosis.encounterId} className="text-sm" />
-						</>
-					) : null}
-				</div>
+				<p className="flex flex-wrap items-center gap-2 font-medium">
+					<span className="text-gray-600">Created by {diagnosis.createdBy}</span>
+					<span aria-hidden="true" className="size-1 rounded-full bg-gray-300" />
+					<span className="text-gray-400">{diagnosis.createdAt}</span>
+				</p>
 			</div>
 
 			<div className="flex flex-col gap-6">
-				<div className="flex flex-wrap items-center justify-between gap-4">
-					<div className="flex items-center gap-3">
-						<h2 className="text-lg font-semibold text-gray-800">{diagnosis.name}</h2>
-						<StatusBadge status={diagnosis.status} />
-					</div>
-					<Button
-						type="button"
-						onClick={onEditDiagnosisDetails}
-						variant="ghost"
-						className="text-gray-400 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-gray-300 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent focus-visible:border-0 has-[>svg:first-child]:pl-0"
-					>
-						<RiEditLine className="size-4" aria-hidden="true" />
-						Edit
-					</Button>
+				<div className="flex items-center gap-3">
+					<h2 className="text-lg font-semibold text-gray-800">{diagnosis.name}</h2>
+					<StatusBadge status={diagnosis.status} />
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
