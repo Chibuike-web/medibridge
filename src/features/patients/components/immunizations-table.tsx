@@ -101,8 +101,9 @@ const immunizationStatusFilterOptions: {
 ];
 
 type ImmunizationsTableProps = {
+	patientId: string;
+	encounterId?: string;
 	immunizations: ImmunizationType[];
-	isEncounterScoped?: boolean;
 	page: number;
 	limit: number;
 	totalPages: number;
@@ -114,14 +115,16 @@ type ImmunizationsTableProps = {
 	onQueryChange: (query: string) => void;
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: ImmunizationStatusFilter[]) => void;
+	onImmunizationCreated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
 };
 
 export function ImmunizationsTable({
+	patientId,
+	encounterId,
 	immunizations,
-	isEncounterScoped = false,
 	page,
 	limit,
 	totalPages,
@@ -133,6 +136,7 @@ export function ImmunizationsTable({
 	onQueryChange,
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
+	onImmunizationCreated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -201,7 +205,7 @@ export function ImmunizationsTable({
 						type="search"
 						className="pl-8"
 						placeholder={
-							isEncounterScoped
+							encounterId
 								? "Search by vaccine name or immunization ID"
 								: "Search by vaccine name, immunization ID, or encounter ID"
 						}
@@ -500,7 +504,13 @@ export function ImmunizationsTable({
 				onClearSelection={() => table.resetRowSelection()}
 				onViewImmunizationDetails={handleViewImmunizationDetails}
 			/>
-			<CreateImmunizationDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
+			<CreateImmunizationDrawer
+				open={isCreateDrawerOpen}
+				onOpenChange={setIsCreateDrawerOpen}
+				patientId={patientId}
+				encounterId={encounterId}
+				onImmunizationCreated={onImmunizationCreated}
+			/>
 			<ImmunizationDetailsDrawer
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}

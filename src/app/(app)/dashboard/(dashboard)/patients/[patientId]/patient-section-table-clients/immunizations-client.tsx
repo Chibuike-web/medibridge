@@ -125,7 +125,8 @@ export function ImmunizationsClient({
 
 	return (
 		<ImmunizationsTable
-			isEncounterScoped={Boolean(encounterId)}
+			patientId={patientId}
+			encounterId={encounterId}
 			immunizations={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}
@@ -138,6 +139,7 @@ export function ImmunizationsClient({
 			onQueryChange={handleQueryChange}
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
 			onStatusFiltersChange={handleStatusFiltersChange}
+			onImmunizationCreated={() => refreshImmunizationsTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

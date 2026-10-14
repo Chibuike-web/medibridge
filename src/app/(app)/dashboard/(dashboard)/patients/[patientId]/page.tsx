@@ -324,7 +324,7 @@ async function ImmunizationSection({ patientId }: { patientId: string }) {
 		return renderEmptyState({
 			title: "No immunizations yet",
 			description: "No immunizations have been recorded for this patient.",
-			action: <CreateImmunizationEmptyStateAction />,
+			action: <CreateImmunizationEmptyStateAction patientId={patientId} />,
 		});
 	}
 

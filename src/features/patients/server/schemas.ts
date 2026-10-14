@@ -128,3 +128,33 @@ export const createPatientMedicationSchema = z.object({
 		),
 	clinicalNote: z.string().trim().optional(),
 });
+
+export const immunizationSeriesTypes = ["Primary", "Booster"] as const;
+
+export const immunizationStatuses = ["Active", "Completed", "Cancelled", "Discontinued"] as const;
+
+export const createPatientImmunizationSchema = z
+	.object({
+		vaccineName: z.string().trim().min(1, "Enter the vaccine name."),
+		seriesType: z.enum(immunizationSeriesTypes, "Select a series type.").optional(),
+		currentDose: z.coerce
+			.number("Enter the current dose as a number.")
+			.int()
+			.min(1, "Enter the current dose as a number."),
+		totalDoses: z.coerce
+			.number("Enter the total doses as a number.")
+			.int()
+			.min(1, "Enter the total doses as a number."),
+		status: z.enum(immunizationStatuses, "Select a status."),
+		dateAdministered: z.iso
+			.date("Select the date administered.")
+			.refine(
+				(date) => date <= format(addDays(new Date(), 1), "yyyy-MM-dd"),
+				"The date administered can’t be in the future.",
+			),
+		administeredBy: z.string().trim().min(1, "Enter who administered it."),
+		clinicalNote: z.string().trim().optional(),
+	})
+	.refine((immunization) => immunization.currentDose <= immunization.totalDoses, {
+		message: "The current dose can’t be more than the total doses.",
+	});

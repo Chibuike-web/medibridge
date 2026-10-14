@@ -100,7 +100,16 @@ export function CreateAllergyEmptyStateAction({
 	);
 }
 
-export function CreateImmunizationEmptyStateAction({ variant }: { variant?: ButtonVariant }) {
+export function CreateImmunizationEmptyStateAction({
+	patientId,
+	encounterId,
+	variant,
+}: {
+	patientId: string;
+	encounterId?: string;
+	variant?: ButtonVariant;
+}) {
+	const router = useRouter();
 	const [isCreateImmunizationDrawerOpen, setIsCreateImmunizationDrawerOpen] = useState(false);
 
 	return (
@@ -115,6 +124,9 @@ export function CreateImmunizationEmptyStateAction({ variant }: { variant?: Butt
 			<CreateImmunizationDrawer
 				open={isCreateImmunizationDrawerOpen}
 				onOpenChange={setIsCreateImmunizationDrawerOpen}
+				patientId={patientId}
+				encounterId={encounterId}
+				onImmunizationCreated={() => router.refresh()}
 			/>
 		</>
 	);

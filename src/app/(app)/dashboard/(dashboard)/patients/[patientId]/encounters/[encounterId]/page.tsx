@@ -260,7 +260,13 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 						<EncounterSection
 							title="Immunizations"
 							isEmpty={immunizationsResult.totalImmunizations === 0}
-							addAction={<CreateImmunizationEmptyStateAction variant="outline" />}
+							addAction={
+								<CreateImmunizationEmptyStateAction
+									patientId={patientId}
+									encounterId={encounterId}
+									variant="outline"
+								/>
+							}
 						>
 							<ImmunizationsClient
 								patientId={patientId}

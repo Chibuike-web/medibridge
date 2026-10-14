@@ -8,13 +8,21 @@ import { ImmunizationsTable } from "./immunizations-table";
 
 const authState = vi.hoisted(() => ({ role: "owner" }));
 const { refreshMock } = vi.hoisted(() => ({ refreshMock: vi.fn() }));
+const { createPatientImmunizationMock } = vi.hoisted(() => ({
+	createPatientImmunizationMock: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: refreshMock }) }));
 
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
 		useActiveMemberRole: () => ({ data: { role: authState.role } }),
+		useSession: () => ({ data: { user: { name: "Nurse Chika" } } }),
 	},
+}));
+
+vi.mock("@/features/patients/server/create-patient-immunization-action", () => ({
+	createPatientImmunizationAction: createPatientImmunizationMock,
 }));
 
 const immunizations: ImmunizationType[] = [
@@ -77,6 +85,7 @@ function renderImmunizationsTable(
 	overrides: Partial<React.ComponentProps<typeof ImmunizationsTable>> = {},
 ) {
 	const props: React.ComponentProps<typeof ImmunizationsTable> = {
+		patientId: "patient-1",
 		immunizations,
 		page: 1,
 		limit: 14,
@@ -89,6 +98,7 @@ function renderImmunizationsTable(
 		onQueryChange: vi.fn(),
 		onCreatedAtRangeApply: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
+		onImmunizationCreated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -133,6 +143,7 @@ async function openFilterSubmenu(user: ReturnType<typeof userEvent.setup>, label
 describe("Immunizations table", () => {
 	beforeEach(() => {
 		authState.role = "owner";
+		createPatientImmunizationMock.mockReset();
 		vi.stubGlobal(
 			"fetch",
 			vi.fn(async (input: string) => {
@@ -439,5 +450,70 @@ describe("Immunizations table", () => {
 
 		const dialog = await screen.findByRole("dialog", { name: "View immunization details" });
 		expect(await within(dialog).findByRole("heading", { name: "Hepatitis B" })).toBeVisible();
+	});
+
+	test("adds an immunization to the encounter it was opened from and refreshes the table", async () => {
+		createPatientImmunizationMock.mockResolvedValue({
+			status: "success",
+			immunizationId: "IMM-new",
+		});
+		const user = userEvent.setup();
+		const { onImmunizationCreated } = renderImmunizationsTable({ encounterId: "ENC-1" });
+		const today = new Date();
+
+		await user.click(screen.getByRole("button", { name: "Add immunization" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add immunization" });
+		await user.type(within(drawer).getByLabelText(/Vaccine name/), "Hepatitis B");
+		await user.type(within(drawer).getByLabelText(/Current Dose/), "2");
+		await user.type(within(drawer).getByLabelText(/Total Dosage/), "3");
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Active" }));
+		await user.click(within(drawer).getByRole("button", { name: /Date administered/ }));
+		await user.click(
+			await screen.findByRole("button", { name: new RegExp(format(today, "MMMM do, yyyy")) }),
+		);
+		expect(within(drawer).getByLabelText(/Administered by/)).toHaveValue("Nurse Chika");
+		await user.click(within(drawer).getByRole("button", { name: "Add immunization" }));
+
+		expect(createPatientImmunizationMock).toHaveBeenCalledTimes(1);
+		const [patientId, formData] = createPatientImmunizationMock.mock.calls[0] as [string, FormData];
+		expect(patientId).toBe("patient-1");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				vaccineName: "Hepatitis B",
+				currentDose: "2",
+				totalDoses: "3",
+				status: "Active",
+				dateAdministered: format(today, "yyyy-MM-dd"),
+				administeredBy: "Nurse Chika",
+				encounterId: "ENC-1",
+			}),
+		);
+		expect(onImmunizationCreated).toHaveBeenCalled();
+		expect(screen.queryByRole("dialog", { name: "Add immunization" })).not.toBeInTheDocument();
+	});
+
+	test("keeps the add immunization drawer open and shows why it was not saved", async () => {
+		createPatientImmunizationMock.mockResolvedValue({
+			status: "failed",
+			error: "The current dose can’t be more than the total doses.",
+		});
+		const user = userEvent.setup();
+		const { onImmunizationCreated } = renderImmunizationsTable();
+
+		await user.click(screen.getByRole("button", { name: "Add immunization" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add immunization" });
+		await user.type(within(drawer).getByLabelText(/Vaccine name/), "BCG");
+		await user.type(within(drawer).getByLabelText(/Current Dose/), "3");
+		await user.type(within(drawer).getByLabelText(/Total Dosage/), "1");
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Completed" }));
+		await user.click(within(drawer).getByRole("button", { name: "Add immunization" }));
+
+		expect(await within(drawer).findByRole("alert")).toHaveTextContent(
+			"The current dose can’t be more than the total doses.",
+		);
+		expect(within(drawer).getByLabelText(/Vaccine name/)).toHaveValue("BCG");
+		expect(onImmunizationCreated).not.toHaveBeenCalled();
 	});
 });
