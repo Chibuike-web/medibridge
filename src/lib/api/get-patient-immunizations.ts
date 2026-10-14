@@ -105,6 +105,7 @@ export async function getPatientImmunizationsForOrganization(
 				vaccineName: patientImmunization.vaccineName,
 				immunizationId: patientImmunization.id,
 				currentDose: patientImmunization.currentDose,
+				totalDoses: patientImmunization.totalDoses,
 				createdAt: patientImmunization.createdAt,
 				status: patientImmunization.status,
 			})
@@ -121,7 +122,10 @@ export async function getPatientImmunizationsForOrganization(
 		immunizations: rows.map((immunization) => ({
 			vaccineName: immunization.vaccineName,
 			immunizationId: immunization.immunizationId,
-			dose: immunization.currentDose ?? "-",
+			dose:
+				immunization.currentDose && immunization.totalDoses
+					? `Dose ${immunization.currentDose} of ${immunization.totalDoses}`
+					: (immunization.currentDose ?? "-"),
 			createdAtLabel: formatDateTime(immunization.createdAt),
 			createdAtSortValue: toSortValue(immunization.createdAt),
 			status: normalizeStatus(immunization.status),

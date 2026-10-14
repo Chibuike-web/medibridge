@@ -83,6 +83,7 @@ export async function getPatientProceduresForOrganization(
 			encounterId ? undefined : ilike(patientProcedure.encounterId, searchPattern),
 			ilike(patientProcedure.indication, searchPattern),
 			ilike(patientProcedure.facility, searchPattern),
+			ilike(patientProcedure.plannedFacility, searchPattern),
 			ilike(patientProcedure.status, searchPattern),
 		),
 	);
@@ -100,6 +101,7 @@ export async function getPatientProceduresForOrganization(
 				createdAt: patientProcedure.createdAt,
 				indication: patientProcedure.indication,
 				facility: patientProcedure.facility,
+				plannedFacility: patientProcedure.plannedFacility,
 				status: patientProcedure.status,
 			})
 			.from(patientProcedure)
@@ -118,7 +120,7 @@ export async function getPatientProceduresForOrganization(
 			createdAtLabel: formatDateTime(procedure.createdAt),
 			createdAtSortValue: toSortValue(procedure.createdAt),
 			indication: procedure.indication ?? "-",
-			facility: procedure.facility ?? "-",
+			facility: procedure.facility ?? procedure.plannedFacility ?? "-",
 			status: normalizeStatus(procedure.status),
 		})),
 	};

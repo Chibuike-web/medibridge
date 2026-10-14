@@ -12,7 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SettingsDialog } from "@/components/layout/settings-dialog";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState, useSyncExternalStore, useTransition } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import {
 	RiExpandUpDownLine,
@@ -29,8 +29,14 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 	const user = session?.user;
 	const [isPending, startTransition] = useTransition();
 	const [signOutError, setSignOutError] = useState("");
+	// The session can already be cached on the client, so keep the server's skeleton until hydration.
+	const isHydrated = useSyncExternalStore(
+		() => () => {},
+		() => true,
+		() => false,
+	);
 
-	if (isLoadingUserSession) {
+	if (!isHydrated || isLoadingUserSession) {
 		return <UserProfileSkeleton isCollapsed={isCollapsed} />;
 	}
 

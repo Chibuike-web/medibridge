@@ -75,6 +75,7 @@ export function CreateEncounterDrawer({
 				return;
 			}
 
+			onOpenChange(false);
 			router.push(
 				`/dashboard/patients/${patientId}/encounters/${result.encounterId}?created=true` as Route,
 			);
