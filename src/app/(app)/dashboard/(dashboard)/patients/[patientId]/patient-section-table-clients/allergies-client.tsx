@@ -135,6 +135,19 @@ export function AllergiesClient({
 		refreshAllergiesTable({ nextSeverityFilters });
 	}
 
+	function handleFiltersClear() {
+		setCreatedFrom("");
+		setCreatedTo("");
+		setStatusFilters([]);
+		setSeverityFilters([]);
+		refreshAllergiesTable({
+			nextCreatedFrom: "",
+			nextCreatedTo: "",
+			nextStatusFilters: [],
+			nextSeverityFilters: [],
+		});
+	}
+
 	return (
 		<AllergiesTable
 			patientId={patientId}
@@ -153,6 +166,7 @@ export function AllergiesClient({
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
 			onStatusFiltersChange={handleStatusFiltersChange}
 			onSeverityFiltersChange={handleSeverityFiltersChange}
+			onFiltersClear={handleFiltersClear}
 			onAllergyCreated={() => refreshAllergiesTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}

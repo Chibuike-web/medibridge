@@ -114,6 +114,7 @@ type ProceduresTableProps = {
 	onQueryChange: (query: string) => void;
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: ProcedureStatusFilter[]) => void;
+	onFiltersClear: () => void;
 	onProcedureCreated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
@@ -135,6 +136,7 @@ export function ProceduresTable({
 	onQueryChange,
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
+	onFiltersClear,
 	onProcedureCreated,
 	onPreviousPage,
 	onNextPage,
@@ -329,6 +331,7 @@ export function ProceduresTable({
 				statusFilters={statusFilters}
 				onCreatedAtRangeApply={onCreatedAtRangeApply}
 				onStatusFiltersChange={onStatusFiltersChange}
+				onFiltersClear={onFiltersClear}
 			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left">
@@ -593,12 +596,14 @@ function ProcedureActiveFilterPills({
 	statusFilters,
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
+	onFiltersClear,
 }: {
 	createdFrom: string;
 	createdTo: string;
 	statusFilters: ProcedureStatusFilter[];
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: ProcedureStatusFilter[]) => void;
+	onFiltersClear: () => void;
 }) {
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
 	const hasStatusFilters = statusFilters.length > 0;
@@ -608,30 +613,43 @@ function ProcedureActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{statusFilters.map((statusFilter) => {
-				const statusOption = procedureStatusFilterOptions.find(
-					(option) => option.value === statusFilter,
-				);
+		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
+			<div className="flex flex-1 flex-wrap gap-2">
+				{statusFilters.map((statusFilter) => {
+					const statusOption = procedureStatusFilterOptions.find(
+						(option) => option.value === statusFilter,
+					);
 
-				return (
+					return (
+						<ProcedureFilterPill
+							key={statusFilter}
+							label={`Status: ${statusOption?.label ?? formatProcedureFilterValue(statusFilter)}`}
+							onRemove={() => {
+								onStatusFiltersChange(
+									statusFilters.filter(
+										(currentStatusFilter) => currentStatusFilter !== statusFilter,
+									),
+								);
+							}}
+						/>
+					);
+				})}
+				{hasCreatedAtFilter ? (
 					<ProcedureFilterPill
-						key={statusFilter}
-						label={`Status: ${statusOption?.label ?? formatProcedureFilterValue(statusFilter)}`}
-						onRemove={() => {
-							onStatusFiltersChange(
-								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
-							);
-						}}
+						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+						onRemove={() => onCreatedAtRangeApply("", "")}
 					/>
-				);
-			})}
-			{hasCreatedAtFilter ? (
-				<ProcedureFilterPill
-					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
+				) : null}
+			</div>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				className="h-8.5 text-gray-600"
+				onClick={onFiltersClear}
+			>
+				Clear all
+			</Button>
 		</div>
 	);
 }

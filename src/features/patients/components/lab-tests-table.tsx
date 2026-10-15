@@ -129,6 +129,7 @@ type LabTestsTableProps = {
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: LabTestStatusFilter[]) => void;
 	onFlagFiltersChange: (flagFilters: LabTestFlagFilter[]) => void;
+	onFiltersClear: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -151,6 +152,7 @@ export function LabTestsTable({
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
 	onFlagFiltersChange,
+	onFiltersClear,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -331,6 +333,7 @@ export function LabTestsTable({
 				onCreatedAtRangeApply={onCreatedAtRangeApply}
 				onStatusFiltersChange={onStatusFiltersChange}
 				onFlagFiltersChange={onFlagFiltersChange}
+				onFiltersClear={onFiltersClear}
 			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left">
@@ -644,6 +647,7 @@ function LabTestActiveFilterPills({
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
 	onFlagFiltersChange,
+	onFiltersClear,
 }: {
 	createdFrom: string;
 	createdTo: string;
@@ -652,6 +656,7 @@ function LabTestActiveFilterPills({
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: LabTestStatusFilter[]) => void;
 	onFlagFiltersChange: (flagFilters: LabTestFlagFilter[]) => void;
+	onFiltersClear: () => void;
 }) {
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
 	const hasStatusFilters = statusFilters.length > 0;
@@ -662,35 +667,46 @@ function LabTestActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{statusFilters.map((statusFilter) => (
-				<LabTestFilterPill
-					key={statusFilter}
-					label={`Status: ${formatLabTestFilterValue(statusFilter)}`}
-					onRemove={() => {
-						onStatusFiltersChange(
-							statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
-						);
-					}}
-				/>
-			))}
-			{flagFilters.map((flagFilter) => (
-				<LabTestFilterPill
-					key={flagFilter}
-					label={`Flag: ${formatLabTestFilterValue(flagFilter)}`}
-					onRemove={() => {
-						onFlagFiltersChange(
-							flagFilters.filter((currentFlagFilter) => currentFlagFilter !== flagFilter),
-						);
-					}}
-				/>
-			))}
-			{hasCreatedAtFilter ? (
-				<LabTestFilterPill
-					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
+		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
+			<div className="flex flex-1 flex-wrap gap-2">
+				{statusFilters.map((statusFilter) => (
+					<LabTestFilterPill
+						key={statusFilter}
+						label={`Status: ${formatLabTestFilterValue(statusFilter)}`}
+						onRemove={() => {
+							onStatusFiltersChange(
+								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
+							);
+						}}
+					/>
+				))}
+				{flagFilters.map((flagFilter) => (
+					<LabTestFilterPill
+						key={flagFilter}
+						label={`Flag: ${formatLabTestFilterValue(flagFilter)}`}
+						onRemove={() => {
+							onFlagFiltersChange(
+								flagFilters.filter((currentFlagFilter) => currentFlagFilter !== flagFilter),
+							);
+						}}
+					/>
+				))}
+				{hasCreatedAtFilter ? (
+					<LabTestFilterPill
+						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+						onRemove={() => onCreatedAtRangeApply("", "")}
+					/>
+				) : null}
+			</div>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				className="h-8.5 text-gray-600"
+				onClick={onFiltersClear}
+			>
+				Clear all
+			</Button>
 		</div>
 	);
 }

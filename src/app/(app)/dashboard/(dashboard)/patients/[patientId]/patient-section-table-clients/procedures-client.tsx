@@ -110,6 +110,14 @@ export function ProceduresClient({
 		refreshProceduresTable({ nextStatusFilters });
 	}
 
+	function handleFiltersClear() {
+		setCreatedFrom("");
+		setCreatedTo("");
+		setStatusFilters([]);
+
+		refreshProceduresTable({ nextCreatedFrom: "", nextCreatedTo: "", nextStatusFilters: [] });
+	}
+
 	function handlePreviousPage() {
 		const nextPage = Math.max(tableData.page - 1, 1);
 
@@ -141,6 +149,7 @@ export function ProceduresClient({
 			onQueryChange={handleQueryChange}
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
 			onStatusFiltersChange={handleStatusFiltersChange}
+			onFiltersClear={handleFiltersClear}
 			onProcedureCreated={() => refreshProceduresTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}

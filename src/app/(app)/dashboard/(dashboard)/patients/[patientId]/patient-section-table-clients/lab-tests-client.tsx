@@ -136,6 +136,19 @@ export function LabTestsClient({
 		refreshLabTestsTable({ nextFlagFilters });
 	}
 
+	function handleFiltersClear() {
+		setCreatedFrom("");
+		setCreatedTo("");
+		setStatusFilters([]);
+		setFlagFilters([]);
+		refreshLabTestsTable({
+			nextCreatedFrom: "",
+			nextCreatedTo: "",
+			nextStatusFilters: [],
+			nextFlagFilters: [],
+		});
+	}
+
 	return (
 		<LabTestsTable
 			patientId={patientId}
@@ -144,17 +157,18 @@ export function LabTestsClient({
 			page={optimisticPage}
 			limit={optimisticLimit}
 			totalPages={tableData.totalPages}
-				query={query}
-				createdFrom={createdFrom}
-				createdTo={createdTo}
-				statusFilters={statusFilters}
-				flagFilters={flagFilters}
-				isPending={isPending}
-				onQueryChange={handleQueryChange}
-				onCreatedAtRangeApply={handleCreatedAtRangeApply}
-				onStatusFiltersChange={handleStatusFiltersChange}
-				onFlagFiltersChange={handleFlagFiltersChange}
-				onPreviousPage={handlePreviousPage}
+			query={query}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+			statusFilters={statusFilters}
+			flagFilters={flagFilters}
+			isPending={isPending}
+			onQueryChange={handleQueryChange}
+			onCreatedAtRangeApply={handleCreatedAtRangeApply}
+			onStatusFiltersChange={handleStatusFiltersChange}
+			onFlagFiltersChange={handleFlagFiltersChange}
+			onFiltersClear={handleFiltersClear}
+			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}
 		/>

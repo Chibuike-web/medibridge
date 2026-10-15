@@ -119,6 +119,7 @@ type DiagnosesTableProps = {
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onDiagnosedAtRangeApply: (diagnosedFrom: string, diagnosedTo: string) => void;
 	onLastReviewedRangeApply: (lastReviewedFrom: string, lastReviewedTo: string) => void;
+	onFiltersClear: () => void;
 	onQueryChange: (query: string) => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
@@ -146,6 +147,7 @@ export function DiagnosesTable({
 	onCreatedAtRangeApply,
 	onDiagnosedAtRangeApply,
 	onLastReviewedRangeApply,
+	onFiltersClear,
 	onQueryChange,
 	onPreviousPage,
 	onNextPage,
@@ -381,6 +383,7 @@ export function DiagnosesTable({
 				onDiagnosedAtRangeApply={onDiagnosedAtRangeApply}
 				onLastReviewedRangeApply={onLastReviewedRangeApply}
 				onStatusFiltersChange={onStatusFiltersChange}
+				onFiltersClear={onFiltersClear}
 			/>
 			<DiagnosesTableContent
 				key={visibleDiagnosisRowIds}
@@ -727,6 +730,7 @@ function DiagnosisActiveFilterPills({
 	onDiagnosedAtRangeApply,
 	onLastReviewedRangeApply,
 	onStatusFiltersChange,
+	onFiltersClear,
 }: {
 	createdFrom: string;
 	createdTo: string;
@@ -739,6 +743,7 @@ function DiagnosisActiveFilterPills({
 	onDiagnosedAtRangeApply: (diagnosedFrom: string, diagnosedTo: string) => void;
 	onLastReviewedRangeApply: (lastReviewedFrom: string, lastReviewedTo: string) => void;
 	onStatusFiltersChange: (statusFilters: DiagnosisStatusFilter[]) => void;
+	onFiltersClear: () => void;
 }) {
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
 	const hasDiagnosedAtFilter = Boolean(diagnosedFrom || diagnosedTo);
@@ -750,42 +755,55 @@ function DiagnosisActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{statusFilters.map((statusFilter) => {
-				const statusOption = diagnosisStatusFilterOptions.find(
-					(option) => option.value === statusFilter,
-				);
+		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
+			<div className="flex flex-1 flex-wrap gap-2">
+				{statusFilters.map((statusFilter) => {
+					const statusOption = diagnosisStatusFilterOptions.find(
+						(option) => option.value === statusFilter,
+					);
 
-				return (
+					return (
+						<DiagnosisFilterPill
+							key={statusFilter}
+							label={`Status: ${statusOption?.label ?? statusFilter}`}
+							onRemove={() => {
+								onStatusFiltersChange(
+									statusFilters.filter(
+										(currentStatusFilter) => currentStatusFilter !== statusFilter,
+									),
+								);
+							}}
+						/>
+					);
+				})}
+				{hasDiagnosedAtFilter ? (
 					<DiagnosisFilterPill
-						key={statusFilter}
-						label={`Status: ${statusOption?.label ?? statusFilter}`}
-						onRemove={() => {
-							onStatusFiltersChange(
-								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
-							);
-						}}
+						label={`Diagnosed: ${formatDateRangeFilterLabel(diagnosedFrom, diagnosedTo)}`}
+						onRemove={() => onDiagnosedAtRangeApply("", "")}
 					/>
-				);
-			})}
-			{hasDiagnosedAtFilter ? (
-				<DiagnosisFilterPill
-					label={`Diagnosed: ${formatDateRangeFilterLabel(diagnosedFrom, diagnosedTo)}`}
-					onRemove={() => onDiagnosedAtRangeApply("", "")}
-				/>
-			) : null}
-			{hasLastReviewedFilter ? (
-				<DiagnosisFilterPill
-					label={`Last reviewed: ${formatDateRangeFilterLabel(lastReviewedFrom, lastReviewedTo)}`}
-					onRemove={() => onLastReviewedRangeApply("", "")}
-				/>
-			) : null}
-			{hasCreatedAtFilter ? (
-				<DiagnosisFilterPill
-					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
+				) : null}
+				{hasLastReviewedFilter ? (
+					<DiagnosisFilterPill
+						label={`Last reviewed: ${formatDateRangeFilterLabel(lastReviewedFrom, lastReviewedTo)}`}
+						onRemove={() => onLastReviewedRangeApply("", "")}
+					/>
+				) : null}
+				{hasCreatedAtFilter ? (
+					<DiagnosisFilterPill
+						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+						onRemove={() => onCreatedAtRangeApply("", "")}
+					/>
+				) : null}
+			</div>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				className="h-8.5 text-gray-600"
+				onClick={onFiltersClear}
+			>
+				Clear all
+			</Button>
 		</div>
 	);
 }

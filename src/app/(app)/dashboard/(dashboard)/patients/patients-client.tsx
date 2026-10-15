@@ -273,6 +273,51 @@ export function PatientsClient({
 		});
 	}
 
+	function handleFiltersClear() {
+		latestPatientsTableRequestIdRef.current += 1;
+		const patientsTableRequestId = latestPatientsTableRequestIdRef.current;
+
+		startTransition(async () => {
+			setOptimisticPage(1);
+			setOptimisticCreatedAtRange({
+				createdFrom: "",
+				createdTo: "",
+			});
+			setOptimisticGenderFilter("");
+			setOptimisticAgeGroupFilter("");
+
+			const result = await getPatientsTableAction({
+				page: 1,
+				limit: tableData.limit,
+				query: patientSearchQuery,
+			});
+
+			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
+				return;
+			}
+
+			setTableData({
+				patients: result.patients,
+				page: result.page,
+				limit: result.limit,
+				totalPages: result.totalPages,
+			});
+
+			router.push(
+				(pathname +
+					"?" +
+					createQueryString({
+						page: "1",
+						limit: String(tableData.limit),
+						createdFrom: "",
+						createdTo: "",
+						gender: "",
+						ageGroup: "",
+					})) as Route,
+			);
+		});
+	}
+
 	function handleQueryChange(nextQuery: string) {
 		setPatientSearchQuery(nextQuery);
 		debouncedSearch(nextQuery);
@@ -465,6 +510,7 @@ export function PatientsClient({
 					onAgeGroupFilterChange={handleAgeGroupFilterChange}
 					onCreatedAtRangeApply={handleCreatedAtRangeApply}
 					onGenderFilterChange={handleGenderFilterChange}
+					onFiltersClear={handleFiltersClear}
 				/>
 				<PatientsTable
 					patients={tableData.patients}
@@ -489,6 +535,7 @@ function PatientActiveFilterPills({
 	onAgeGroupFilterChange,
 	onCreatedAtRangeApply,
 	onGenderFilterChange,
+	onFiltersClear,
 }: {
 	ageGroupFilter: PatientAgeGroupFilter;
 	createdFrom: string;
@@ -497,6 +544,7 @@ function PatientActiveFilterPills({
 	onAgeGroupFilterChange: (ageGroupFilter: PatientAgeGroupFilter) => void;
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onGenderFilterChange: (genderFilter: PatientGenderFilter) => void;
+	onFiltersClear: () => void;
 }) {
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
 
@@ -505,25 +553,36 @@ function PatientActiveFilterPills({
 	}
 
 	return (
-		<div className="mb-4 flex flex-wrap gap-2">
-			{genderFilter ? (
-				<PatientFilterPill
-					label={`Gender: ${patientGenderFilterLabels[genderFilter]}`}
-					onRemove={() => onGenderFilterChange("")}
-				/>
-			) : null}
-			{ageGroupFilter ? (
-				<PatientFilterPill
-					label={`Age: ${patientAgeGroupFilterLabels[ageGroupFilter]}`}
-					onRemove={() => onAgeGroupFilterChange("")}
-				/>
-			) : null}
-			{hasCreatedAtFilter ? (
-				<PatientFilterPill
-					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
+		<div className="mb-4 flex items-start gap-4">
+			<div className="flex flex-1 flex-wrap gap-2">
+				{genderFilter ? (
+					<PatientFilterPill
+						label={`Gender: ${patientGenderFilterLabels[genderFilter]}`}
+						onRemove={() => onGenderFilterChange("")}
+					/>
+				) : null}
+				{ageGroupFilter ? (
+					<PatientFilterPill
+						label={`Age: ${patientAgeGroupFilterLabels[ageGroupFilter]}`}
+						onRemove={() => onAgeGroupFilterChange("")}
+					/>
+				) : null}
+				{hasCreatedAtFilter ? (
+					<PatientFilterPill
+						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+						onRemove={() => onCreatedAtRangeApply("", "")}
+					/>
+				) : null}
+			</div>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				className="h-8.5 text-gray-600"
+				onClick={onFiltersClear}
+			>
+				Clear all
+			</Button>
 		</div>
 	);
 }

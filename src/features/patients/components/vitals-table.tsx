@@ -121,6 +121,7 @@ type VitalsTableProps = {
 	onQueryChange: (query: string) => void;
 	onRecordedAtRangeApply: (recordedFrom: string, recordedTo: string) => void;
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
+	onFiltersClear: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -144,6 +145,7 @@ export function VitalsTable({
 	onQueryChange,
 	onRecordedAtRangeApply,
 	onCreatedAtRangeApply,
+	onFiltersClear,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -332,6 +334,7 @@ export function VitalsTable({
 				createdTo={createdTo}
 				onRecordedAtRangeApply={onRecordedAtRangeApply}
 				onCreatedAtRangeApply={onCreatedAtRangeApply}
+				onFiltersClear={onFiltersClear}
 			/>
 			<VitalsTableContent
 				key={visibleVitalRowIds}
@@ -670,6 +673,7 @@ function VitalActiveFilterPills({
 	createdTo,
 	onRecordedAtRangeApply,
 	onCreatedAtRangeApply,
+	onFiltersClear,
 }: {
 	recordedFrom: string;
 	recordedTo: string;
@@ -677,6 +681,7 @@ function VitalActiveFilterPills({
 	createdTo: string;
 	onRecordedAtRangeApply: (recordedFrom: string, recordedTo: string) => void;
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
+	onFiltersClear: () => void;
 }) {
 	const hasRecordedAtFilter = Boolean(recordedFrom || recordedTo);
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
@@ -684,19 +689,30 @@ function VitalActiveFilterPills({
 	if (!hasRecordedAtFilter && !hasCreatedAtFilter) return null;
 
 	return (
-		<div className="mx-auto flex w-full max-w-7xl flex-wrap gap-2">
-			{hasRecordedAtFilter ? (
-				<VitalFilterPill
-					label={`Encounter: ${formatDateRangeFilterLabel(recordedFrom, recordedTo)}`}
-					onRemove={() => onRecordedAtRangeApply("", "")}
-				/>
-			) : null}
-			{hasCreatedAtFilter ? (
-				<VitalFilterPill
-					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
+		<div className="mx-auto flex w-full max-w-7xl items-start gap-4">
+			<div className="flex flex-1 flex-wrap gap-2">
+				{hasRecordedAtFilter ? (
+					<VitalFilterPill
+						label={`Encounter: ${formatDateRangeFilterLabel(recordedFrom, recordedTo)}`}
+						onRemove={() => onRecordedAtRangeApply("", "")}
+					/>
+				) : null}
+				{hasCreatedAtFilter ? (
+					<VitalFilterPill
+						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+						onRemove={() => onCreatedAtRangeApply("", "")}
+					/>
+				) : null}
+			</div>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				className="h-8.5 text-gray-600"
+				onClick={onFiltersClear}
+			>
+				Clear all
+			</Button>
 		</div>
 	);
 }

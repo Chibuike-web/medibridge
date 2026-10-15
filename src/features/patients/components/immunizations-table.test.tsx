@@ -98,6 +98,7 @@ function renderImmunizationsTable(
 		onQueryChange: vi.fn(),
 		onCreatedAtRangeApply: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
+		onFiltersClear: vi.fn(),
 		onImmunizationCreated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
@@ -265,6 +266,17 @@ describe("Immunizations table", () => {
 
 		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
+	});
+
+	test("clears every active filter at once", async () => {
+		const user = userEvent.setup();
+		const { onFiltersClear } = renderImmunizationsTable({
+			statusFilters: ["active"],
+			createdFrom: "2024-01-01",
+		});
+
+		await user.click(screen.getByRole("button", { name: "Clear all" }));
+		expect(onFiltersClear).toHaveBeenCalledTimes(1);
 	});
 
 	test("paginates through the owner callbacks and shows the current page", async () => {

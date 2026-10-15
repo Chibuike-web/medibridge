@@ -137,6 +137,12 @@ export function SharedProceduresTable({
 		setCreatedTo(nextCreatedTo);
 		refreshTable({ nextCreatedFrom, nextCreatedTo });
 	}
+	function handleFiltersClear() {
+		setStatusFilters([]);
+		setCreatedFrom("");
+		setCreatedTo("");
+		refreshTable({ nextStatusFilters: [], nextCreatedFrom: "", nextCreatedTo: "" });
+	}
 	const columns = useMemo<ColumnDef<typeof configuredTableFeatures, SharedProcedureRow>[]>(
 		() => [
 			{
@@ -214,22 +220,33 @@ export function SharedProceduresTable({
 				</Button>
 			</div>
 			{statusFilters.length > 0 || createdFrom || createdTo ? (
-				<div className="mb-4 flex flex-wrap gap-2">
-					{statusFilters.map((status) => (
-						<FilterPill
-							key={status}
-							label={`Status: ${status}`}
-							onRemove={() =>
-								handleStatusFiltersChange(statusFilters.filter((value) => value !== status))
-							}
-						/>
-					))}
-					{createdFrom || createdTo ? (
-						<FilterPill
-							label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-							onRemove={() => handleCreatedAtRangeApply("", "")}
-						/>
-					) : null}
+				<div className="mb-4 flex items-start gap-4">
+					<div className="flex flex-1 flex-wrap gap-2">
+						{statusFilters.map((status) => (
+							<FilterPill
+								key={status}
+								label={`Status: ${status}`}
+								onRemove={() =>
+									handleStatusFiltersChange(statusFilters.filter((value) => value !== status))
+								}
+							/>
+						))}
+						{createdFrom || createdTo ? (
+							<FilterPill
+								label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+								onRemove={() => handleCreatedAtRangeApply("", "")}
+							/>
+						) : null}
+					</div>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="h-8.5 text-gray-600"
+						onClick={handleFiltersClear}
+					>
+						Clear all
+					</Button>
 				</div>
 			) : null}
 			<div className="overflow-hidden rounded-xl border border-gray-200 bg-white">

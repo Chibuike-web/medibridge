@@ -209,6 +209,49 @@ export function TransfersClient({
 		});
 	}
 
+	function handleFiltersClear() {
+		latestTransfersTableRequestIdRef.current += 1;
+		const transfersTableRequestId = latestTransfersTableRequestIdRef.current;
+
+		startTransition(async () => {
+			setOptimisticPage(1);
+			setOptimisticRequestedAtRange({
+				requestedFrom: "",
+				requestedTo: "",
+			});
+			setOptimisticStatusFilters([]);
+
+			const result = await getTransfersTableAction({
+				page: 1,
+				limit: tableData.limit,
+				query: transferSearchQuery,
+			});
+
+			if (latestTransfersTableRequestIdRef.current !== transfersTableRequestId) {
+				return;
+			}
+
+			setTableData({
+				transfers: result.transfers,
+				page: result.page,
+				limit: result.limit,
+				totalPages: result.totalPages,
+			});
+
+			router.push(
+				(pathname +
+					"?" +
+					createQueryString({
+						page: "1",
+						limit: String(tableData.limit),
+						requestedFrom: "",
+						requestedTo: "",
+						status: "",
+					})) as Route,
+			);
+		});
+	}
+
 	function handlePreviousPage() {
 		latestTransfersTableRequestIdRef.current += 1;
 		const transfersTableRequestId = latestTransfersTableRequestIdRef.current;
@@ -388,6 +431,7 @@ export function TransfersClient({
 					statusFilters={optimisticStatusFilters}
 					onRequestedAtRangeApply={handleRequestedAtRangeApply}
 					onStatusFiltersChange={handleStatusFiltersChange}
+					onFiltersClear={handleFiltersClear}
 				/>
 				<TransferTable
 					data={tableData.transfers}
@@ -410,12 +454,14 @@ function TransferActiveFilterPills({
 	statusFilters,
 	onRequestedAtRangeApply,
 	onStatusFiltersChange,
+	onFiltersClear,
 }: {
 	requestedFrom: string;
 	requestedTo: string;
 	statusFilters: TransferStatusFilter[];
 	onRequestedAtRangeApply: (requestedFrom: string, requestedTo: string) => void;
 	onStatusFiltersChange: (statusFilters: TransferStatusFilter[]) => void;
+	onFiltersClear: () => void;
 }) {
 	const hasRequestedAtFilter = Boolean(requestedFrom || requestedTo);
 	const hasStatusFilters = statusFilters.length > 0;
@@ -425,24 +471,35 @@ function TransferActiveFilterPills({
 	}
 
 	return (
-		<div className="mb-4 flex flex-wrap gap-2">
-			{statusFilters.map((statusFilter) => (
-				<TransferFilterPill
-					key={statusFilter}
-					label={`Status: ${transferStatusFilterLabels[statusFilter]}`}
-					onRemove={() => {
-						onStatusFiltersChange(
-							statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
-						);
-					}}
-				/>
-			))}
-			{hasRequestedAtFilter ? (
-				<TransferFilterPill
-					label={`Requested: ${formatDateRangeFilterLabel(requestedFrom, requestedTo)}`}
-					onRemove={() => onRequestedAtRangeApply("", "")}
-				/>
-			) : null}
+		<div className="mb-4 flex items-start gap-4">
+			<div className="flex flex-1 flex-wrap gap-2">
+				{statusFilters.map((statusFilter) => (
+					<TransferFilterPill
+						key={statusFilter}
+						label={`Status: ${transferStatusFilterLabels[statusFilter]}`}
+						onRemove={() => {
+							onStatusFiltersChange(
+								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
+							);
+						}}
+					/>
+				))}
+				{hasRequestedAtFilter ? (
+					<TransferFilterPill
+						label={`Requested: ${formatDateRangeFilterLabel(requestedFrom, requestedTo)}`}
+						onRemove={() => onRequestedAtRangeApply("", "")}
+					/>
+				) : null}
+			</div>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				className="h-8.5 text-gray-600"
+				onClick={onFiltersClear}
+			>
+				Clear all
+			</Button>
 		</div>
 	);
 }

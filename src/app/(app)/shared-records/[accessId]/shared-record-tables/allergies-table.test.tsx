@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
+import { getSharedAllergiesTableAction } from "../shared-record-table-actions";
 import { SharedAllergiesTable, type SharedAllergyRow } from "./allergies-table";
 
 vi.mock("../shared-record-table-actions", () => ({
@@ -33,4 +34,45 @@ test("shared records display and sort every supplied allergy without hiding late
 	);
 	await user.click(screen.getByRole("columnheader", { name: "Allergen" }));
 	expect(displayedAllergens()).toEqual(rows.map((allergy) => allergy.allergen).reverse());
+});
+
+test("Clear all removes every filter pill and reloads the allergies without filters", async () => {
+	const user = userEvent.setup();
+	const rows: SharedAllergyRow[] = [
+		{
+			allergen: "Penicillin",
+			allergyId: "AL-1",
+			reaction: "Rash",
+			createdAt: "Sep 1, 2026",
+			createdAtValue: "2026-09-01",
+			severity: "Mild",
+			status: "Inactive",
+		},
+	];
+	const getSharedAllergies = vi.mocked(getSharedAllergiesTableAction).mockResolvedValue(rows);
+	render(<SharedAllergiesTable accessId="test-access" rows={rows} />);
+
+	await user.click(screen.getByRole("button", { name: "Filter" }));
+	await user.click(screen.getByRole("menuitem", { name: "Status" }));
+	await user.pointer({
+		keys: "[TouchA]",
+		target: await screen.findByRole("checkbox", { name: "Inactive" }),
+	});
+	await user.keyboard("{Escape}{Escape}");
+	expect(await screen.findByText("Status: Inactive")).toBeVisible();
+
+	getSharedAllergies.mockClear();
+	await user.click(screen.getByRole("button", { name: "Clear all" }));
+
+	expect(screen.queryByText("Status: Inactive")).not.toBeInTheDocument();
+	expect(screen.queryByRole("button", { name: "Clear all" })).not.toBeInTheDocument();
+	expect(getSharedAllergies).toHaveBeenCalledTimes(1);
+	expect(getSharedAllergies).toHaveBeenCalledWith({
+		accessId: "test-access",
+		query: "",
+		statusFilters: [],
+		severityFilters: [],
+		createdFrom: "",
+		createdTo: "",
+	});
 });

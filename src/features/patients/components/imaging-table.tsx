@@ -125,6 +125,7 @@ type ImagingTableProps = {
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: ImagingStatusFilter[]) => void;
 	onModalityFiltersChange: (modalityFilters: ImagingModalityFilter[]) => void;
+	onFiltersClear: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -149,6 +150,7 @@ export function ImagingTable({
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
 	onModalityFiltersChange,
+	onFiltersClear,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -356,6 +358,7 @@ export function ImagingTable({
 				onCreatedAtRangeApply={onCreatedAtRangeApply}
 				onStatusFiltersChange={onStatusFiltersChange}
 				onModalityFiltersChange={onModalityFiltersChange}
+				onFiltersClear={onFiltersClear}
 			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left">
@@ -665,6 +668,7 @@ function ImagingActiveFilterPills({
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
 	onModalityFiltersChange,
+	onFiltersClear,
 }: {
 	orderedFrom: string;
 	orderedTo: string;
@@ -676,6 +680,7 @@ function ImagingActiveFilterPills({
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: ImagingStatusFilter[]) => void;
 	onModalityFiltersChange: (modalityFilters: ImagingModalityFilter[]) => void;
+	onFiltersClear: () => void;
 }) {
 	const hasOrderedAtFilter = Boolean(orderedFrom || orderedTo);
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
@@ -687,43 +692,54 @@ function ImagingActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{statusFilters.map((statusFilter) => (
-				<ImagingFilterPill
-					key={statusFilter}
-					label={`Status: ${formatImagingFilterValue(statusFilter)}`}
-					onRemove={() => {
-						onStatusFiltersChange(
-							statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
-						);
-					}}
-				/>
-			))}
-			{modalityFilters.map((modalityFilter) => (
-				<ImagingFilterPill
-					key={modalityFilter}
-					label={`Modality: ${formatImagingFilterValue(modalityFilter)}`}
-					onRemove={() => {
-						onModalityFiltersChange(
-							modalityFilters.filter(
-								(currentModalityFilter) => currentModalityFilter !== modalityFilter,
-							),
-						);
-					}}
-				/>
-			))}
-			{hasOrderedAtFilter ? (
-				<ImagingFilterPill
-					label={`Ordered: ${formatDateRangeFilterLabel(orderedFrom, orderedTo)}`}
-					onRemove={() => onOrderedAtRangeApply("", "")}
-				/>
-			) : null}
-			{hasCreatedAtFilter ? (
-				<ImagingFilterPill
-					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
+		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
+			<div className="flex flex-1 flex-wrap gap-2">
+				{statusFilters.map((statusFilter) => (
+					<ImagingFilterPill
+						key={statusFilter}
+						label={`Status: ${formatImagingFilterValue(statusFilter)}`}
+						onRemove={() => {
+							onStatusFiltersChange(
+								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
+							);
+						}}
+					/>
+				))}
+				{modalityFilters.map((modalityFilter) => (
+					<ImagingFilterPill
+						key={modalityFilter}
+						label={`Modality: ${formatImagingFilterValue(modalityFilter)}`}
+						onRemove={() => {
+							onModalityFiltersChange(
+								modalityFilters.filter(
+									(currentModalityFilter) => currentModalityFilter !== modalityFilter,
+								),
+							);
+						}}
+					/>
+				))}
+				{hasOrderedAtFilter ? (
+					<ImagingFilterPill
+						label={`Ordered: ${formatDateRangeFilterLabel(orderedFrom, orderedTo)}`}
+						onRemove={() => onOrderedAtRangeApply("", "")}
+					/>
+				) : null}
+				{hasCreatedAtFilter ? (
+					<ImagingFilterPill
+						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+						onRemove={() => onCreatedAtRangeApply("", "")}
+					/>
+				) : null}
+			</div>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				className="h-8.5 text-gray-600"
+				onClick={onFiltersClear}
+			>
+				Clear all
+			</Button>
 		</div>
 	);
 }

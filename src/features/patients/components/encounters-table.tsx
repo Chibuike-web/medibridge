@@ -126,6 +126,7 @@ type EncountersTableProps = {
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onEncounterTypeFiltersChange: (encounterTypeFilters: EncounterTypeFilter[]) => void;
 	onDepartmentFiltersChange: (departmentFilters: EncounterDepartmentFilter[]) => void;
+	onFiltersClear: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -150,6 +151,7 @@ export function EncountersTable({
 	onCreatedAtRangeApply,
 	onEncounterTypeFiltersChange,
 	onDepartmentFiltersChange,
+	onFiltersClear,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -351,6 +353,7 @@ export function EncountersTable({
 				onCreatedAtRangeApply={onCreatedAtRangeApply}
 				onEncounterTypeFiltersChange={onEncounterTypeFiltersChange}
 				onDepartmentFiltersChange={onDepartmentFiltersChange}
+				onFiltersClear={onFiltersClear}
 			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left">
@@ -659,6 +662,7 @@ function EncounterActiveFilterPills({
 	onCreatedAtRangeApply,
 	onEncounterTypeFiltersChange,
 	onDepartmentFiltersChange,
+	onFiltersClear,
 }: {
 	encounterFrom: string;
 	encounterTo: string;
@@ -670,6 +674,7 @@ function EncounterActiveFilterPills({
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onEncounterTypeFiltersChange: (encounterTypeFilters: EncounterTypeFilter[]) => void;
 	onDepartmentFiltersChange: (departmentFilters: EncounterDepartmentFilter[]) => void;
+	onFiltersClear: () => void;
 }) {
 	const hasEncounterDateFilter = Boolean(encounterFrom || encounterTo);
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
@@ -686,45 +691,57 @@ function EncounterActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{encounterTypeFilters.map((encounterTypeFilter) => (
-				<EncounterFilterPill
-					key={encounterTypeFilter}
-					label={`Type: ${formatEncounterFilterValue(encounterTypeFilter)}`}
-					onRemove={() => {
-						onEncounterTypeFiltersChange(
-							encounterTypeFilters.filter(
-								(currentEncounterTypeFilter) => currentEncounterTypeFilter !== encounterTypeFilter,
-							),
-						);
-					}}
-				/>
-			))}
-			{departmentFilters.map((departmentFilter) => (
-				<EncounterFilterPill
-					key={departmentFilter}
-					label={`Department: ${formatEncounterFilterValue(departmentFilter)}`}
-					onRemove={() => {
-						onDepartmentFiltersChange(
-							departmentFilters.filter(
-								(currentDepartmentFilter) => currentDepartmentFilter !== departmentFilter,
-							),
-						);
-					}}
-				/>
-			))}
-			{hasEncounterDateFilter ? (
-				<EncounterFilterPill
-					label={`Encounter: ${formatDateRangeFilterLabel(encounterFrom, encounterTo)}`}
-					onRemove={() => onEncounterDateRangeApply("", "")}
-				/>
-			) : null}
-			{hasCreatedAtFilter ? (
-				<EncounterFilterPill
-					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
+		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
+			<div className="flex flex-1 flex-wrap gap-2">
+				{encounterTypeFilters.map((encounterTypeFilter) => (
+					<EncounterFilterPill
+						key={encounterTypeFilter}
+						label={`Type: ${formatEncounterFilterValue(encounterTypeFilter)}`}
+						onRemove={() => {
+							onEncounterTypeFiltersChange(
+								encounterTypeFilters.filter(
+									(currentEncounterTypeFilter) =>
+										currentEncounterTypeFilter !== encounterTypeFilter,
+								),
+							);
+						}}
+					/>
+				))}
+				{departmentFilters.map((departmentFilter) => (
+					<EncounterFilterPill
+						key={departmentFilter}
+						label={`Department: ${formatEncounterFilterValue(departmentFilter)}`}
+						onRemove={() => {
+							onDepartmentFiltersChange(
+								departmentFilters.filter(
+									(currentDepartmentFilter) => currentDepartmentFilter !== departmentFilter,
+								),
+							);
+						}}
+					/>
+				))}
+				{hasEncounterDateFilter ? (
+					<EncounterFilterPill
+						label={`Encounter: ${formatDateRangeFilterLabel(encounterFrom, encounterTo)}`}
+						onRemove={() => onEncounterDateRangeApply("", "")}
+					/>
+				) : null}
+				{hasCreatedAtFilter ? (
+					<EncounterFilterPill
+						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+						onRemove={() => onCreatedAtRangeApply("", "")}
+					/>
+				) : null}
+			</div>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				className="h-8.5 text-gray-600"
+				onClick={onFiltersClear}
+			>
+				Clear all
+			</Button>
 		</div>
 	);
 }

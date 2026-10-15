@@ -74,6 +74,7 @@ function renderEncountersTable(
 		onCreatedAtRangeApply: vi.fn(),
 		onEncounterTypeFiltersChange: vi.fn(),
 		onDepartmentFiltersChange: vi.fn(),
+		onFiltersClear: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -245,6 +246,17 @@ describe("Encounters table", () => {
 
 		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
+	});
+
+	test("clears every active filter at once", async () => {
+		const user = userEvent.setup();
+		const { onFiltersClear } = renderEncountersTable({
+			departmentFilters: ["nephrology"],
+			encounterFrom: "2024-01-01",
+		});
+
+		await user.click(screen.getByRole("button", { name: "Clear all" }));
+		expect(onFiltersClear).toHaveBeenCalledTimes(1);
 	});
 
 	test("paginates through the owner callbacks and shows the current page", async () => {

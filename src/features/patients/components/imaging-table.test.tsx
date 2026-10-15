@@ -77,6 +77,7 @@ function renderImagingTable(overrides: Partial<React.ComponentProps<typeof Imagi
 		onCreatedAtRangeApply: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
 		onModalityFiltersChange: vi.fn(),
+		onFiltersClear: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -296,6 +297,17 @@ describe("Imaging table", () => {
 			screen.getByRole("button", { name: "Remove Created: From Feb 1, 2020 filter" }),
 		);
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
+	});
+
+	test("clears every active filter at once", async () => {
+		const user = userEvent.setup();
+		const { onFiltersClear } = renderImagingTable({
+			statusFilters: ["pending"],
+			modalityFilters: ["ultrasound"],
+		});
+
+		await user.click(screen.getByRole("button", { name: "Clear all" }));
+		expect(onFiltersClear).toHaveBeenCalledTimes(1);
 	});
 
 	test.todo(

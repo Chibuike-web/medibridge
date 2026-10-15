@@ -109,6 +109,7 @@ function buildProps(overrides: Partial<DiagnosesTableProps> = {}): DiagnosesTabl
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
+		onFiltersClear: vi.fn(),
 		onDiagnosisCreated: vi.fn(),
 		...overrides,
 	};
@@ -307,6 +308,17 @@ describe("Diagnoses table", () => {
 		expect(onLastReviewedRangeApply).toHaveBeenCalledWith("", "");
 		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
+	});
+
+	test("clears every active filter at once", async () => {
+		const user = userEvent.setup();
+		const { onFiltersClear } = renderDiagnosesTable({
+			statusFilters: ["resolved"],
+			diagnosedFrom: "2020-01-01",
+		});
+
+		await user.click(screen.getByRole("button", { name: "Clear all" }));
+		expect(onFiltersClear).toHaveBeenCalledTimes(1);
 	});
 
 	test("paginates through the callbacks", async () => {

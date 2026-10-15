@@ -167,6 +167,24 @@ export function SharedDiagnosesTable({
 		setCreatedTo(nextCreatedTo);
 		refreshTable({ nextCreatedFrom, nextCreatedTo });
 	}
+	function handleFiltersClear() {
+		setStatusFilters([]);
+		setDiagnosedFrom("");
+		setDiagnosedTo("");
+		setReviewedFrom("");
+		setReviewedTo("");
+		setCreatedFrom("");
+		setCreatedTo("");
+		refreshTable({
+			nextStatusFilters: [],
+			nextDiagnosedFrom: "",
+			nextDiagnosedTo: "",
+			nextReviewedFrom: "",
+			nextReviewedTo: "",
+			nextCreatedFrom: "",
+			nextCreatedTo: "",
+		});
+	}
 	const columns = useMemo<ColumnDef<typeof configuredTableFeatures, SharedDiagnosisRow>[]>(
 		() => [
 			{
@@ -327,34 +345,45 @@ export function SharedDiagnosesTable({
 			reviewedTo ||
 			createdFrom ||
 			createdTo ? (
-				<div className="mb-4 flex flex-wrap gap-2">
-					{statusFilters.map((status) => (
-						<FilterPill
-							key={status}
-							label={`Status: ${status}`}
-							onRemove={() =>
-								handleStatusFiltersChange(statusFilters.filter((value) => value !== status))
-							}
-						/>
-					))}
-					{diagnosedFrom || diagnosedTo ? (
-						<FilterPill
-							label={`Diagnosed: ${formatDateRangeFilterLabel(diagnosedFrom, diagnosedTo)}`}
-							onRemove={() => handleDiagnosedRangeApply("", "")}
-						/>
-					) : null}
-					{reviewedFrom || reviewedTo ? (
-						<FilterPill
-							label={`Reviewed: ${formatDateRangeFilterLabel(reviewedFrom, reviewedTo)}`}
-							onRemove={() => handleReviewedRangeApply("", "")}
-						/>
-					) : null}
-					{createdFrom || createdTo ? (
-						<FilterPill
-							label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-							onRemove={() => handleCreatedRangeApply("", "")}
-						/>
-					) : null}
+				<div className="mb-4 flex items-start gap-4">
+					<div className="flex flex-1 flex-wrap gap-2">
+						{statusFilters.map((status) => (
+							<FilterPill
+								key={status}
+								label={`Status: ${status}`}
+								onRemove={() =>
+									handleStatusFiltersChange(statusFilters.filter((value) => value !== status))
+								}
+							/>
+						))}
+						{diagnosedFrom || diagnosedTo ? (
+							<FilterPill
+								label={`Diagnosed: ${formatDateRangeFilterLabel(diagnosedFrom, diagnosedTo)}`}
+								onRemove={() => handleDiagnosedRangeApply("", "")}
+							/>
+						) : null}
+						{reviewedFrom || reviewedTo ? (
+							<FilterPill
+								label={`Reviewed: ${formatDateRangeFilterLabel(reviewedFrom, reviewedTo)}`}
+								onRemove={() => handleReviewedRangeApply("", "")}
+							/>
+						) : null}
+						{createdFrom || createdTo ? (
+							<FilterPill
+								label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+								onRemove={() => handleCreatedRangeApply("", "")}
+							/>
+						) : null}
+					</div>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="h-8.5 text-gray-600"
+						onClick={handleFiltersClear}
+					>
+						Clear all
+					</Button>
 				</div>
 			) : null}
 

@@ -111,6 +111,14 @@ export function MedicationsClient({
 		refreshMedicationsTable({ nextStatusFilters });
 	}
 
+	function handleFiltersClear() {
+		setCreatedFrom("");
+		setCreatedTo("");
+		setStatusFilters([]);
+
+		refreshMedicationsTable({ nextCreatedFrom: "", nextCreatedTo: "", nextStatusFilters: [] });
+	}
+
 	function handlePreviousPage() {
 		const nextPage = Math.max(tableData.page - 1, 1);
 		refreshMedicationsTable({ nextPage });
@@ -141,6 +149,7 @@ export function MedicationsClient({
 			onQueryChange={handleQueryChange}
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
 			onStatusFiltersChange={handleStatusFiltersChange}
+			onFiltersClear={handleFiltersClear}
 			onMedicationCreated={() => refreshMedicationsTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}

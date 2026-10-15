@@ -114,6 +114,7 @@ type MedicationsTableProps = {
 	onQueryChange: (query: string) => void;
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: MedicationStatusFilter[]) => void;
+	onFiltersClear: () => void;
 	onMedicationCreated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
@@ -135,6 +136,7 @@ export function MedicationsTable({
 	onQueryChange,
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
+	onFiltersClear,
 	onMedicationCreated,
 	onPreviousPage,
 	onNextPage,
@@ -301,6 +303,7 @@ export function MedicationsTable({
 				statusFilters={statusFilters}
 				onCreatedAtRangeApply={onCreatedAtRangeApply}
 				onStatusFiltersChange={onStatusFiltersChange}
+				onFiltersClear={onFiltersClear}
 			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left">
@@ -625,12 +628,14 @@ function MedicationActiveFilterPills({
 	statusFilters,
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
+	onFiltersClear,
 }: {
 	createdFrom: string;
 	createdTo: string;
 	statusFilters: MedicationStatusFilter[];
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: MedicationStatusFilter[]) => void;
+	onFiltersClear: () => void;
 }) {
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
 	const hasStatusFilters = statusFilters.length > 0;
@@ -640,30 +645,43 @@ function MedicationActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{statusFilters.map((statusFilter) => {
-				const statusOption = medicationStatusFilterOptions.find(
-					(option) => option.value === statusFilter,
-				);
+		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
+			<div className="flex flex-1 flex-wrap gap-2">
+				{statusFilters.map((statusFilter) => {
+					const statusOption = medicationStatusFilterOptions.find(
+						(option) => option.value === statusFilter,
+					);
 
-				return (
+					return (
+						<MedicationFilterPill
+							key={statusFilter}
+							label={`Status: ${statusOption?.label ?? formatMedicationFilterValue(statusFilter)}`}
+							onRemove={() => {
+								onStatusFiltersChange(
+									statusFilters.filter(
+										(currentStatusFilter) => currentStatusFilter !== statusFilter,
+									),
+								);
+							}}
+						/>
+					);
+				})}
+				{hasCreatedAtFilter ? (
 					<MedicationFilterPill
-						key={statusFilter}
-						label={`Status: ${statusOption?.label ?? formatMedicationFilterValue(statusFilter)}`}
-						onRemove={() => {
-							onStatusFiltersChange(
-								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
-							);
-						}}
+						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+						onRemove={() => onCreatedAtRangeApply("", "")}
 					/>
-				);
-			})}
-			{hasCreatedAtFilter ? (
-				<MedicationFilterPill
-					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
+				) : null}
+			</div>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				className="h-8.5 text-gray-600"
+				onClick={onFiltersClear}
+			>
+				Clear all
+			</Button>
 		</div>
 	);
 }

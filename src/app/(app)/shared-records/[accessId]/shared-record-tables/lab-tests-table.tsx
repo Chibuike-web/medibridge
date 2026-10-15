@@ -164,6 +164,18 @@ export function SharedLabTestsTable({
 		setCreatedTo(nextCreatedTo);
 		refreshTable({ nextCreatedFrom, nextCreatedTo });
 	}
+	function handleFiltersClear() {
+		setStatusFilters([]);
+		setInterpretationFilters([]);
+		setCreatedFrom("");
+		setCreatedTo("");
+		refreshTable({
+			nextStatusFilters: [],
+			nextFlagFilters: [],
+			nextCreatedFrom: "",
+			nextCreatedTo: "",
+		});
+	}
 	const columns = useMemo<ColumnDef<typeof configuredTableFeatures, SharedLabTestRow>[]>(
 		() => [
 			{
@@ -301,33 +313,44 @@ export function SharedLabTestsTable({
 				</Button>
 			</div>
 			{statusFilters.length > 0 || interpretationFilters.length > 0 || createdFrom || createdTo ? (
-				<div className="mb-4 flex flex-wrap gap-2">
-					{statusFilters.map((status) => (
-						<FilterPill
-							key={status}
-							label={`Status: ${status}`}
-							onRemove={() =>
-								handleStatusFiltersChange(statusFilters.filter((value) => value !== status))
-							}
-						/>
-					))}
-					{interpretationFilters.map((interpretation) => (
-						<FilterPill
-							key={interpretation}
-							label={`Flag: ${interpretation}`}
-							onRemove={() =>
-								handleFlagFiltersChange(
-									interpretationFilters.filter((value) => value !== interpretation),
-								)
-							}
-						/>
-					))}
-					{createdFrom || createdTo ? (
-						<FilterPill
-							label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-							onRemove={() => handleCreatedRangeApply("", "")}
-						/>
-					) : null}
+				<div className="mb-4 flex items-start gap-4">
+					<div className="flex flex-1 flex-wrap gap-2">
+						{statusFilters.map((status) => (
+							<FilterPill
+								key={status}
+								label={`Status: ${status}`}
+								onRemove={() =>
+									handleStatusFiltersChange(statusFilters.filter((value) => value !== status))
+								}
+							/>
+						))}
+						{interpretationFilters.map((interpretation) => (
+							<FilterPill
+								key={interpretation}
+								label={`Flag: ${interpretation}`}
+								onRemove={() =>
+									handleFlagFiltersChange(
+										interpretationFilters.filter((value) => value !== interpretation),
+									)
+								}
+							/>
+						))}
+						{createdFrom || createdTo ? (
+							<FilterPill
+								label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+								onRemove={() => handleCreatedRangeApply("", "")}
+							/>
+						) : null}
+					</div>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="h-8.5 text-gray-600"
+						onClick={handleFiltersClear}
+					>
+						Clear all
+					</Button>
 				</div>
 			) : null}
 			<div className="overflow-hidden rounded-xl border border-gray-200 bg-white">

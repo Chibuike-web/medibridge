@@ -126,6 +126,7 @@ type AllergiesTableProps = {
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: AllergyStatusFilter[]) => void;
 	onSeverityFiltersChange: (severityFilters: AllergySeverityFilter[]) => void;
+	onFiltersClear: () => void;
 	onAllergyCreated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
@@ -149,6 +150,7 @@ export function AllergiesTable({
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
 	onSeverityFiltersChange,
+	onFiltersClear,
 	onAllergyCreated,
 	onPreviousPage,
 	onNextPage,
@@ -324,6 +326,7 @@ export function AllergiesTable({
 				onCreatedAtRangeApply={onCreatedAtRangeApply}
 				onStatusFiltersChange={onStatusFiltersChange}
 				onSeverityFiltersChange={onSeverityFiltersChange}
+				onFiltersClear={onFiltersClear}
 			/>
 			<AllergiesTableContent
 				key={visibleAllergyRowIds}
@@ -710,6 +713,7 @@ function AllergyActiveFilterPills({
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
 	onSeverityFiltersChange,
+	onFiltersClear,
 }: {
 	createdFrom: string;
 	createdTo: string;
@@ -718,6 +722,7 @@ function AllergyActiveFilterPills({
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: AllergyStatusFilter[]) => void;
 	onSeverityFiltersChange: (severityFilters: AllergySeverityFilter[]) => void;
+	onFiltersClear: () => void;
 }) {
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
 	const hasStatusFilters = statusFilters.length > 0;
@@ -728,37 +733,48 @@ function AllergyActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{statusFilters.map((statusFilter) => (
-				<AllergyFilterPill
-					key={statusFilter}
-					label={`Status: ${formatAllergyFilterValue(statusFilter)}`}
-					onRemove={() => {
-						onStatusFiltersChange(
-							statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
-						);
-					}}
-				/>
-			))}
-			{severityFilters.map((severityFilter) => (
-				<AllergyFilterPill
-					key={severityFilter}
-					label={`Severity: ${formatAllergyFilterValue(severityFilter)}`}
-					onRemove={() => {
-						onSeverityFiltersChange(
-							severityFilters.filter(
-								(currentSeverityFilter) => currentSeverityFilter !== severityFilter,
-							),
-						);
-					}}
-				/>
-			))}
-			{hasCreatedAtFilter ? (
-				<AllergyFilterPill
-					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
+		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
+			<div className="flex flex-1 flex-wrap gap-2">
+				{statusFilters.map((statusFilter) => (
+					<AllergyFilterPill
+						key={statusFilter}
+						label={`Status: ${formatAllergyFilterValue(statusFilter)}`}
+						onRemove={() => {
+							onStatusFiltersChange(
+								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
+							);
+						}}
+					/>
+				))}
+				{severityFilters.map((severityFilter) => (
+					<AllergyFilterPill
+						key={severityFilter}
+						label={`Severity: ${formatAllergyFilterValue(severityFilter)}`}
+						onRemove={() => {
+							onSeverityFiltersChange(
+								severityFilters.filter(
+									(currentSeverityFilter) => currentSeverityFilter !== severityFilter,
+								),
+							);
+						}}
+					/>
+				))}
+				{hasCreatedAtFilter ? (
+					<AllergyFilterPill
+						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+						onRemove={() => onCreatedAtRangeApply("", "")}
+					/>
+				) : null}
+			</div>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				className="h-8.5 text-gray-600"
+				onClick={onFiltersClear}
+			>
+				Clear all
+			</Button>
 		</div>
 	);
 }

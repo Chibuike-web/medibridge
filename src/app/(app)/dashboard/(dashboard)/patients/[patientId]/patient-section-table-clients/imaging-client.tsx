@@ -150,6 +150,23 @@ export function ImagingClient({
 		refreshImagingTable({ nextModalityFilters });
 	}
 
+	function handleFiltersClear() {
+		setOrderedFrom("");
+		setOrderedTo("");
+		setCreatedFrom("");
+		setCreatedTo("");
+		setStatusFilters([]);
+		setModalityFilters([]);
+		refreshImagingTable({
+			nextOrderedFrom: "",
+			nextOrderedTo: "",
+			nextCreatedFrom: "",
+			nextCreatedTo: "",
+			nextStatusFilters: [],
+			nextModalityFilters: [],
+		});
+	}
+
 	return (
 		<ImagingTable
 			isEncounterScoped={Boolean(encounterId)}
@@ -170,6 +187,7 @@ export function ImagingClient({
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
 			onStatusFiltersChange={handleStatusFiltersChange}
 			onModalityFiltersChange={handleModalityFiltersChange}
+			onFiltersClear={handleFiltersClear}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

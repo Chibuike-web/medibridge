@@ -130,6 +130,19 @@ export function VitalsClient({
 		refreshVitalsTable({ nextCreatedFrom, nextCreatedTo });
 	}
 
+	function handleFiltersClear() {
+		setRecordedFrom("");
+		setRecordedTo("");
+		setCreatedFrom("");
+		setCreatedTo("");
+		refreshVitalsTable({
+			nextRecordedFrom: "",
+			nextRecordedTo: "",
+			nextCreatedFrom: "",
+			nextCreatedTo: "",
+		});
+	}
+
 	function handleVitalCreated(vital: VitalType) {
 		setChartReadings((previousReadings) => [vital, ...previousReadings]);
 		refreshVitalsTable({ nextPage: tableData.page });
@@ -153,6 +166,7 @@ export function VitalsClient({
 			onQueryChange={handleQueryChange}
 			onRecordedAtRangeApply={handleRecordedAtRangeApply}
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
+			onFiltersClear={handleFiltersClear}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

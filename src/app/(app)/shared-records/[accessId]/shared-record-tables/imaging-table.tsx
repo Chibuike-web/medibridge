@@ -168,6 +168,22 @@ export function SharedImagingTable({
 		setCreatedTo(nextCreatedTo);
 		refreshTable({ nextCreatedFrom, nextCreatedTo });
 	}
+	function handleFiltersClear() {
+		setStatusFilters([]);
+		setModalityFilters([]);
+		setOrderedFrom("");
+		setOrderedTo("");
+		setCreatedFrom("");
+		setCreatedTo("");
+		refreshTable({
+			nextStatusFilters: [],
+			nextModalityFilters: [],
+			nextOrderedFrom: "",
+			nextOrderedTo: "",
+			nextCreatedFrom: "",
+			nextCreatedTo: "",
+		});
+	}
 	const columns = useMemo<ColumnDef<typeof configuredTableFeatures, SharedImagingRow>[]>(
 		() => [
 			{
@@ -321,37 +337,48 @@ export function SharedImagingTable({
 			orderedTo ||
 			createdFrom ||
 			createdTo ? (
-				<div className="mb-4 flex flex-wrap gap-2">
-					{statusFilters.map((status) => (
-						<FilterPill
-							key={status}
-							label={`Status: ${status}`}
-							onRemove={() =>
-								handleStatusFiltersChange(statusFilters.filter((value) => value !== status))
-							}
-						/>
-					))}
-					{modalityFilters.map((modality) => (
-						<FilterPill
-							key={modality}
-							label={`Modality: ${modality}`}
-							onRemove={() =>
-								handleModalityFiltersChange(modalityFilters.filter((value) => value !== modality))
-							}
-						/>
-					))}
-					{orderedFrom || orderedTo ? (
-						<FilterPill
-							label={`Ordered: ${formatDateRangeFilterLabel(orderedFrom, orderedTo)}`}
-							onRemove={() => handleOrderedRangeApply("", "")}
-						/>
-					) : null}
-					{createdFrom || createdTo ? (
-						<FilterPill
-							label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-							onRemove={() => handleCreatedRangeApply("", "")}
-						/>
-					) : null}
+				<div className="mb-4 flex items-start gap-4">
+					<div className="flex flex-1 flex-wrap gap-2">
+						{statusFilters.map((status) => (
+							<FilterPill
+								key={status}
+								label={`Status: ${status}`}
+								onRemove={() =>
+									handleStatusFiltersChange(statusFilters.filter((value) => value !== status))
+								}
+							/>
+						))}
+						{modalityFilters.map((modality) => (
+							<FilterPill
+								key={modality}
+								label={`Modality: ${modality}`}
+								onRemove={() =>
+									handleModalityFiltersChange(modalityFilters.filter((value) => value !== modality))
+								}
+							/>
+						))}
+						{orderedFrom || orderedTo ? (
+							<FilterPill
+								label={`Ordered: ${formatDateRangeFilterLabel(orderedFrom, orderedTo)}`}
+								onRemove={() => handleOrderedRangeApply("", "")}
+							/>
+						) : null}
+						{createdFrom || createdTo ? (
+							<FilterPill
+								label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+								onRemove={() => handleCreatedRangeApply("", "")}
+							/>
+						) : null}
+					</div>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="h-8.5 text-gray-600"
+						onClick={handleFiltersClear}
+					>
+						Clear all
+					</Button>
 				</div>
 			) : null}
 			<div className="overflow-hidden rounded-xl border border-gray-200 bg-white">

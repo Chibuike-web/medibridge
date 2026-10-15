@@ -75,6 +75,7 @@ function renderVitalsTable(overrides: Partial<React.ComponentProps<typeof Vitals
 		onQueryChange: vi.fn(),
 		onRecordedAtRangeApply: vi.fn(),
 		onCreatedAtRangeApply: vi.fn(),
+		onFiltersClear: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -133,6 +134,17 @@ describe("Vitals table", () => {
 		expect(pill).toBeVisible();
 		await user.click(screen.getByRole("button", { name: /Remove Encounter/ }));
 		expect(onRecordedAtRangeApply).toHaveBeenCalledWith("", "");
+	});
+
+	test("clears every active filter at once", async () => {
+		const user = userEvent.setup();
+		const { onFiltersClear } = renderVitalsTable({
+			recordedFrom: "2020-01-01",
+			createdFrom: "2020-02-01",
+		});
+
+		await user.click(screen.getByRole("button", { name: "Clear all" }));
+		expect(onFiltersClear).toHaveBeenCalledTimes(1);
 	});
 
 	test("opens the details drawer from the row actions available to an owner", async () => {

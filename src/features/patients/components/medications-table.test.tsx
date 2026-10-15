@@ -118,6 +118,7 @@ function buildProps(overrides: Partial<MedicationsTableProps> = {}): Medications
 		onQueryChange: vi.fn(),
 		onCreatedAtRangeApply: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
+		onFiltersClear: vi.fn(),
 		onMedicationCreated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
@@ -280,6 +281,17 @@ describe("Medications table", () => {
 		expect(onStatusFiltersChange).toHaveBeenCalledWith(["discontinued"]);
 		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
+	});
+
+	test("clears every active filter at once", async () => {
+		const user = userEvent.setup();
+		const { onFiltersClear } = renderMedicationsTable({
+			statusFilters: ["completed"],
+			createdFrom: "2020-01-01",
+		});
+
+		await user.click(screen.getByRole("button", { name: "Clear all" }));
+		expect(onFiltersClear).toHaveBeenCalledTimes(1);
 	});
 
 	test("paginates through the callbacks", async () => {

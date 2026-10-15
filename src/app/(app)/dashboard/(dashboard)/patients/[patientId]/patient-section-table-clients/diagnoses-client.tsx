@@ -150,6 +150,25 @@ export function DiagnosesClient({
 		refreshDiagnosesTable({ nextLastReviewedFrom, nextLastReviewedTo });
 	}
 
+	function handleFiltersClear() {
+		setCreatedFrom("");
+		setCreatedTo("");
+		setDiagnosedFrom("");
+		setDiagnosedTo("");
+		setLastReviewedFrom("");
+		setLastReviewedTo("");
+		setStatusFilters([]);
+		refreshDiagnosesTable({
+			nextCreatedFrom: "",
+			nextCreatedTo: "",
+			nextDiagnosedFrom: "",
+			nextDiagnosedTo: "",
+			nextLastReviewedFrom: "",
+			nextLastReviewedTo: "",
+			nextStatusFilters: [],
+		});
+	}
+
 	return (
 		<DiagnosesTable
 			patientId={patientId}
@@ -175,6 +194,7 @@ export function DiagnosesClient({
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}
 			onStatusFiltersChange={handleStatusFiltersChange}
+			onFiltersClear={handleFiltersClear}
 			onDiagnosisCreated={() => refreshDiagnosesTable({ nextPage: tableData.page })}
 		/>
 	);

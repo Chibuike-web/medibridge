@@ -117,6 +117,7 @@ function renderProceduresTable(
 		onQueryChange: vi.fn(),
 		onCreatedAtRangeApply: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
+		onFiltersClear: vi.fn(),
 		onProcedureCreated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
@@ -278,6 +279,17 @@ describe("Procedures table", () => {
 
 		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
+	});
+
+	test("clears every active filter at once", async () => {
+		const user = userEvent.setup();
+		const { onFiltersClear } = renderProceduresTable({
+			statusFilters: ["pending"],
+			createdTo: "2024-02-29",
+		});
+
+		await user.click(screen.getByRole("button", { name: "Clear all" }));
+		expect(onFiltersClear).toHaveBeenCalledTimes(1);
 	});
 
 	test("paginates through the owner callbacks and shows the current page", async () => {

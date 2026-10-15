@@ -150,6 +150,18 @@ export function SharedAllergiesTable({
 		setCreatedTo(nextCreatedTo);
 		refreshAllergiesTable({ nextCreatedFrom, nextCreatedTo });
 	}
+	function handleFiltersClear() {
+		setStatusFilters([]);
+		setSeverityFilters([]);
+		setCreatedFrom("");
+		setCreatedTo("");
+		refreshAllergiesTable({
+			nextStatusFilters: [],
+			nextSeverityFilters: [],
+			nextCreatedFrom: "",
+			nextCreatedTo: "",
+		});
+	}
 	const columns = useMemo<ColumnDef<typeof configuredTableFeatures, SharedAllergyRow>[]>(
 		() => [
 			{
@@ -284,31 +296,42 @@ export function SharedAllergiesTable({
 				</Button>
 			</div>
 			{statusFilters.length > 0 || severityFilters.length > 0 || createdFrom || createdTo ? (
-				<div className="mb-4 flex flex-wrap gap-2">
-					{statusFilters.map((status) => (
-						<FilterPill
-							key={status}
-							label={`Status: ${status}`}
-							onRemove={() =>
-								handleStatusFiltersChange(statusFilters.filter((value) => value !== status))
-							}
-						/>
-					))}
-					{severityFilters.map((severity) => (
-						<FilterPill
-							key={severity}
-							label={`Severity: ${severity}`}
-							onRemove={() =>
-								handleSeverityFiltersChange(severityFilters.filter((value) => value !== severity))
-							}
-						/>
-					))}
-					{createdFrom || createdTo ? (
-						<FilterPill
-							label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-							onRemove={() => handleCreatedAtRangeApply("", "")}
-						/>
-					) : null}
+				<div className="mb-4 flex items-start gap-4">
+					<div className="flex flex-1 flex-wrap gap-2">
+						{statusFilters.map((status) => (
+							<FilterPill
+								key={status}
+								label={`Status: ${status}`}
+								onRemove={() =>
+									handleStatusFiltersChange(statusFilters.filter((value) => value !== status))
+								}
+							/>
+						))}
+						{severityFilters.map((severity) => (
+							<FilterPill
+								key={severity}
+								label={`Severity: ${severity}`}
+								onRemove={() =>
+									handleSeverityFiltersChange(severityFilters.filter((value) => value !== severity))
+								}
+							/>
+						))}
+						{createdFrom || createdTo ? (
+							<FilterPill
+								label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+								onRemove={() => handleCreatedAtRangeApply("", "")}
+							/>
+						) : null}
+					</div>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="h-8.5 text-gray-600"
+						onClick={handleFiltersClear}
+					>
+						Clear all
+					</Button>
 				</div>
 			) : null}
 

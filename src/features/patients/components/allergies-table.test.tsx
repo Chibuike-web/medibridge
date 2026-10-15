@@ -107,6 +107,7 @@ function buildProps(overrides: Partial<AllergiesTableProps> = {}): AllergiesTabl
 		onCreatedAtRangeApply: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
 		onSeverityFiltersChange: vi.fn(),
+		onFiltersClear: vi.fn(),
 		onAllergyCreated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
@@ -315,6 +316,17 @@ describe("Allergies table", () => {
 		expect(onSeverityFiltersChange).toHaveBeenCalledWith(["severe"]);
 		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
+	});
+
+	test("clears every active filter at once", async () => {
+		const user = userEvent.setup();
+		const { onFiltersClear } = renderAllergiesTable({
+			statusFilters: ["inactive"],
+			severityFilters: ["mild"],
+		});
+
+		await user.click(screen.getByRole("button", { name: "Clear all" }));
+		expect(onFiltersClear).toHaveBeenCalledTimes(1);
 	});
 
 	test("paginates through the callbacks", async () => {

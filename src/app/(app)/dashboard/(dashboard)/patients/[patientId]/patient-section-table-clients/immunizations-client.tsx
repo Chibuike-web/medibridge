@@ -123,6 +123,13 @@ export function ImmunizationsClient({
 		refreshImmunizationsTable({ nextStatusFilters });
 	}
 
+	function handleFiltersClear() {
+		setCreatedFrom("");
+		setCreatedTo("");
+		setStatusFilters([]);
+		refreshImmunizationsTable({ nextCreatedFrom: "", nextCreatedTo: "", nextStatusFilters: [] });
+	}
+
 	return (
 		<ImmunizationsTable
 			patientId={patientId}
@@ -139,6 +146,7 @@ export function ImmunizationsClient({
 			onQueryChange={handleQueryChange}
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
 			onStatusFiltersChange={handleStatusFiltersChange}
+			onFiltersClear={handleFiltersClear}
 			onImmunizationCreated={() => refreshImmunizationsTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}

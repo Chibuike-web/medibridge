@@ -146,6 +146,23 @@ export function EncountersClient({
 		refreshEncountersTable({ nextDepartmentFilters });
 	}
 
+	function handleFiltersClear() {
+		setEncounterFrom("");
+		setEncounterTo("");
+		setCreatedFrom("");
+		setCreatedTo("");
+		setEncounterTypeFilters([]);
+		setDepartmentFilters([]);
+		refreshEncountersTable({
+			nextEncounterFrom: "",
+			nextEncounterTo: "",
+			nextCreatedFrom: "",
+			nextCreatedTo: "",
+			nextEncounterTypeFilters: [],
+			nextDepartmentFilters: [],
+		});
+	}
+
 	return (
 		<EncountersTable
 			patientId={patientId}
@@ -166,6 +183,7 @@ export function EncountersClient({
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
 			onEncounterTypeFiltersChange={handleEncounterTypeFiltersChange}
 			onDepartmentFiltersChange={handleDepartmentFiltersChange}
+			onFiltersClear={handleFiltersClear}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

@@ -83,6 +83,7 @@ function renderLabTestsTable(overrides: Partial<React.ComponentProps<typeof LabT
 		onCreatedAtRangeApply: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
 		onFlagFiltersChange: vi.fn(),
+		onFiltersClear: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -275,6 +276,17 @@ describe("Lab tests table", () => {
 			screen.getByRole("button", { name: "Remove Created: Jan 1, 2020 - Jan 31, 2020 filter" }),
 		);
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
+	});
+
+	test("clears every active filter at once", async () => {
+		const user = userEvent.setup();
+		const { onFiltersClear } = renderLabTestsTable({
+			statusFilters: ["pending"],
+			flagFilters: ["within-range"],
+		});
+
+		await user.click(screen.getByRole("button", { name: "Clear all" }));
+		expect(onFiltersClear).toHaveBeenCalledTimes(1);
 	});
 
 	test("describes a one-sided date filter in the pill", () => {

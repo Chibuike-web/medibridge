@@ -115,6 +115,7 @@ type ImmunizationsTableProps = {
 	onQueryChange: (query: string) => void;
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: ImmunizationStatusFilter[]) => void;
+	onFiltersClear: () => void;
 	onImmunizationCreated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
@@ -136,6 +137,7 @@ export function ImmunizationsTable({
 	onQueryChange,
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
+	onFiltersClear,
 	onImmunizationCreated,
 	onPreviousPage,
 	onNextPage,
@@ -333,6 +335,7 @@ export function ImmunizationsTable({
 				statusFilters={statusFilters}
 				onCreatedAtRangeApply={onCreatedAtRangeApply}
 				onStatusFiltersChange={onStatusFiltersChange}
+				onFiltersClear={onFiltersClear}
 			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
 				<Table className="min-w-[64rem] border-separate border-spacing-0 bg-gray-50 text-left">
@@ -598,12 +601,14 @@ function ImmunizationActiveFilterPills({
 	statusFilters,
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
+	onFiltersClear,
 }: {
 	createdFrom: string;
 	createdTo: string;
 	statusFilters: ImmunizationStatusFilter[];
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: ImmunizationStatusFilter[]) => void;
+	onFiltersClear: () => void;
 }) {
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
 	const hasStatusFilters = statusFilters.length > 0;
@@ -613,30 +618,43 @@ function ImmunizationActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{statusFilters.map((statusFilter) => {
-				const statusOption = immunizationStatusFilterOptions.find(
-					(option) => option.value === statusFilter,
-				);
+		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
+			<div className="flex flex-1 flex-wrap gap-2">
+				{statusFilters.map((statusFilter) => {
+					const statusOption = immunizationStatusFilterOptions.find(
+						(option) => option.value === statusFilter,
+					);
 
-				return (
+					return (
+						<ImmunizationFilterPill
+							key={statusFilter}
+							label={`Status: ${statusOption?.label ?? formatImmunizationFilterValue(statusFilter)}`}
+							onRemove={() => {
+								onStatusFiltersChange(
+									statusFilters.filter(
+										(currentStatusFilter) => currentStatusFilter !== statusFilter,
+									),
+								);
+							}}
+						/>
+					);
+				})}
+				{hasCreatedAtFilter ? (
 					<ImmunizationFilterPill
-						key={statusFilter}
-						label={`Status: ${statusOption?.label ?? formatImmunizationFilterValue(statusFilter)}`}
-						onRemove={() => {
-							onStatusFiltersChange(
-								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
-							);
-						}}
+						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+						onRemove={() => onCreatedAtRangeApply("", "")}
 					/>
-				);
-			})}
-			{hasCreatedAtFilter ? (
-				<ImmunizationFilterPill
-					label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
+				) : null}
+			</div>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				className="h-8.5 text-gray-600"
+				onClick={onFiltersClear}
+			>
+				Clear all
+			</Button>
 		</div>
 	);
 }
