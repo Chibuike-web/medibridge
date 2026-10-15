@@ -71,12 +71,15 @@ export async function getPatientProceduresForOrganization(
 		createdFromDate ? gte(patientProcedure.createdAt, startOfDay(createdFromDate)) : undefined,
 		createdToDate ? lte(patientProcedure.createdAt, endOfDay(createdToDate)) : undefined,
 	].filter((condition) => condition !== undefined);
+	const databaseStatusFilters = statusFilters.map(toTitleCase);
 	const procedureFilter = and(
 		eq(patientProcedure.patientId, patientId),
 		eq(patient.organizationId, organizationId),
 		encounterId ? eq(patientProcedure.encounterId, encounterId) : undefined,
 		...createdAtConditions,
-		...(statusFilters.length > 0 ? [inArray(patientProcedure.status, statusFilters)] : []),
+		databaseStatusFilters.length > 0
+			? inArray(patientProcedure.status, databaseStatusFilters)
+			: undefined,
 		or(
 			ilike(patientProcedure.procedureName, searchPattern),
 			ilike(patientProcedure.id, searchPattern),
@@ -124,4 +127,8 @@ export async function getPatientProceduresForOrganization(
 			status: normalizeStatus(procedure.status),
 		})),
 	};
+}
+
+function toTitleCase(value: string) {
+	return value.charAt(0).toUpperCase() + value.slice(1);
 }

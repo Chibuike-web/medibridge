@@ -70,7 +70,7 @@ export async function getPatientMedicationsForOrganization(
 	const searchPattern = `%${normalizedQuery}%`;
 	const createdFromDate = parseDateFilter(dateFilters.createdFrom);
 	const createdToDate = parseDateFilter(dateFilters.createdTo);
-	const databaseStatusFilters = statusFilters.map((statusFilter) => statusFilter.toLowerCase());
+	const databaseStatusFilters = statusFilters.map(toTitleCase);
 	const filters = and(
 		eq(patientMedication.patientId, patientId),
 		eq(patient.organizationId, organizationId),
@@ -147,4 +147,8 @@ function endOfDay(date: Date) {
 	const nextDate = new Date(date);
 	nextDate.setHours(23, 59, 59, 999);
 	return nextDate;
+}
+
+function toTitleCase(value: string) {
+	return value.charAt(0).toUpperCase() + value.slice(1);
 }
