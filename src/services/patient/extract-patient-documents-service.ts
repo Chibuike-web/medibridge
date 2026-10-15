@@ -17,10 +17,10 @@ import type { ExtractTextResult } from "./types";
 const model =
 	process.env.NODE_ENV === "development"
 		? wrapLanguageModel({
-				model: gateway("openai/gpt-5.6-luna"),
+				model: gateway("openai/gpt-5.2"),
 				middleware: devToolsMiddleware(),
 			})
-		: gateway("openai/gpt-5.6-luna");
+		: gateway("openai/gpt-5.2");
 
 export async function extractPatientDocumentsService(
 	uploadDir: string,
