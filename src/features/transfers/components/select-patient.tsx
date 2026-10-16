@@ -125,9 +125,11 @@ export function SelectPatient({
 						/>
 					</div>
 					<div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
-						<div className="flex flex-col gap-1">
+						<div className="flex min-h-full flex-col gap-1">
 							{patientOptions.length === 0 ? (
-								<p className="px-3 py-4 text-sm text-gray-500">No patients available.</p>
+								<p className="flex flex-1 items-center justify-center px-3 py-4 text-center text-sm text-gray-500">
+									No patients available.
+								</p>
 							) : (
 								patientOptions.map((patient) => {
 									const isSelected = selectedTransferPatients.some(

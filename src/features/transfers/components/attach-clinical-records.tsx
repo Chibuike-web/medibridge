@@ -95,7 +95,6 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 	const clinicalRecordOptionsData = clinicalRecordOptionsQuery.data;
 	const recordsForActiveTab = clinicalRecordOptionsData?.records ?? [];
 	const currentTotalPages = clinicalRecordOptionsData?.totalPages ?? 1;
-	const totalRecordsForActiveTab = clinicalRecordOptionsData?.totalRecords ?? 0;
 	const isUpdatingClinicalRecordOptions =
 		clinicalRecordOptionsQuery.isLoading || clinicalRecordOptionsQuery.isValidating;
 
@@ -244,7 +243,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 					</div>
 
 					<div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-						<div className="flex flex-col gap-1">
+						<div className="flex min-h-full flex-col gap-1">
 							{isUpdatingClinicalRecordOptions &&
 								recordsForActiveTab.length === 0 &&
 								Array.from({ length: 5 }).map((_, index) => (
@@ -252,7 +251,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 								))}
 
 							{!isUpdatingClinicalRecordOptions && recordsForActiveTab.length === 0 && (
-								<div className="px-3 py-4 text-sm text-gray-500">
+								<div className="flex flex-1 items-center justify-center px-3 py-4 text-center text-sm text-gray-500">
 									{normalizedSearchQuery
 										? `No ${activeTab.label.toLowerCase()} match "${searchQuery.trim()}".`
 										: `No ${activeTab.label.toLowerCase()} available for this patient.`}
@@ -292,11 +291,8 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 						>
 							Previous
 						</Button>
-						<span className="justify-self-center text-center text-sm font-medium text-gray-600">
+						<span className="justify-self-center text-sm font-medium text-gray-600">
 							Page {clinicalRecordOptionsPage} of {currentTotalPages}
-							<span className="block text-xs font-normal text-gray-400">
-								{totalRecordsForActiveTab} total
-							</span>
 						</span>
 						<Button
 							type="button"
