@@ -21,6 +21,8 @@ import { useSelectedTransferPatients } from "@/features/transfers/stores/use-sel
 import { useRouter } from "next/navigation";
 import { RiCheckLine, RiCloseLine } from "@remixicon/react";
 import { AttachClinicalRecords } from "@/features/transfers/components/attach-clinical-records";
+import { AnimatedPill } from "@/features/transfers/components/animated-pill";
+import { AnimatePresence } from "motion/react";
 import { EMPTY_PATIENT_TRANSFER_DATA, PatientTransferData } from "@/features/transfers/types";
 import { SelectPatient } from "@/features/transfers/components/select-patient";
 import { usePatientTransferData } from "@/features/transfers/stores/use-patient-transfer-data";
@@ -237,40 +239,42 @@ export function NewTransferRequestClient({
 					</>
 				) : (
 					<div>
-						<div className="flex flex-wrap gap-2">
-							{selectedTransferPatients.map((s) => (
-								<span
-									key={s.patientId}
-									className={cn(
-										"inline-flex items-center gap-2 rounded-full py-1.5 pr-1.5 pl-3 text-sm",
-										{
-											"bg-gray-800 text-white": activePatient === s.patientId,
-											"bg-gray-200 text-gray-600": activePatient !== s.patientId,
-										},
-									)}
-								>
-									<button
-										type="button"
-										aria-pressed={activePatient === s.patientId}
-										onClick={() => setActiveTransferPatientId(s.patientId)}
-										className="rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
+						<div className="relative flex flex-wrap gap-2">
+							<AnimatePresence mode="popLayout" initial={false}>
+								{selectedTransferPatients.map((s) => (
+									<AnimatedPill
+										key={s.patientId}
+										className={cn(
+											"inline-flex items-center gap-2 rounded-full py-1.5 pr-1.5 pl-3 text-sm",
+											{
+												"bg-gray-800 text-white": activePatient === s.patientId,
+												"bg-gray-200 text-gray-600": activePatient !== s.patientId,
+											},
+										)}
 									>
-										{s.name.split(" ")[0]} - {truncateId(s.patientId)}
-									</button>
-									<Button
-										type="button"
-										size="icon"
-										aria-label={`Remove ${s.name}`}
-										onClick={() => handleRemovePatient(s)}
-										className={cn("size-5 rounded-full", {
-											"bg-white text-gray-800 hover:bg-white": activePatient === s.patientId,
-											"bg-gray-800 text-white hover:bg-gray-800": activePatient !== s.patientId,
-										})}
-									>
-										<RiCloseLine className="size-4" aria-hidden="true" />
-									</Button>
-								</span>
-							))}
+										<button
+											type="button"
+											aria-pressed={activePatient === s.patientId}
+											onClick={() => setActiveTransferPatientId(s.patientId)}
+											className="rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
+										>
+											{s.name.split(" ")[0]} - {truncateId(s.patientId)}
+										</button>
+										<Button
+											type="button"
+											size="icon"
+											aria-label={`Remove ${s.name}`}
+											onClick={() => handleRemovePatient(s)}
+											className={cn("size-5 rounded-full", {
+												"bg-white text-gray-800 hover:bg-white": activePatient === s.patientId,
+												"bg-gray-800 text-white hover:bg-gray-800": activePatient !== s.patientId,
+											})}
+										>
+											<RiCloseLine className="size-4" aria-hidden="true" />
+										</Button>
+									</AnimatedPill>
+								))}
+							</AnimatePresence>
 						</div>
 						<Fragment key={activePatient}>
 							<AttachClinicalRecords activePatient={activePatient} />

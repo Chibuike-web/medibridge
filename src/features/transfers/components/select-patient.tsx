@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils/cn";
 import { useRouter } from "next/navigation";
 import { useAttachClinicalRecords } from "../stores/use-attach-clinical-records";
 import { useState } from "react";
+import { AnimatePresence } from "motion/react";
+import { AnimatedPill } from "./animated-pill";
 import { truncateId } from "@/lib/utils/truncate-id";
 import type { Route } from "next";
 import useSWR from "swr";
@@ -192,30 +194,32 @@ export function SelectPatient({
 					</div>
 				</PopoverContent>
 			</Popover>
-			<div className="mt-3 flex flex-wrap items-center gap-3">
-				{selectedTransferPatients.map((s) => (
-					<div
-						key={s.patientId}
-						className="text-sm bg-gray-200 text-gray-600 flex items-center gap-2 py-1.5 pl-3 pr-1.5 rounded-full"
-					>
-						{s.name.split(" ")[0]} - <span title={s.patientId}>{truncateId(s.patientId)}</span>
-						<Button
-							type="button"
-							size="icon"
-							className="size-5 flex text-white rounded-full hover:bg-gray-800"
-							onClick={() => {
-								removeSelectedTransferPatient(s);
-
-								if (s.patientId === patientId) {
-									router.replace(clearPatientIdHref ?? "/dashboard/new-transfer-request");
-								}
-								removeAttachedClinicalRecordsForPatient(s.patientId);
-							}}
+			<div className="relative mt-3 flex flex-wrap items-center gap-3">
+				<AnimatePresence mode="popLayout" initial={false}>
+					{selectedTransferPatients.map((s) => (
+						<AnimatedPill
+							key={s.patientId}
+							className="text-sm bg-gray-200 text-gray-600 flex items-center gap-2 py-1.5 pl-3 pr-1.5 rounded-full"
 						>
-							<RiCloseLine size={16} />
-						</Button>
-					</div>
-				))}
+							{s.name.split(" ")[0]} - <span title={s.patientId}>{truncateId(s.patientId)}</span>
+							<Button
+								type="button"
+								size="icon"
+								className="size-5 flex text-white rounded-full hover:bg-gray-800"
+								onClick={() => {
+									removeSelectedTransferPatient(s);
+
+									if (s.patientId === patientId) {
+										router.replace(clearPatientIdHref ?? "/dashboard/new-transfer-request");
+									}
+									removeAttachedClinicalRecordsForPatient(s.patientId);
+								}}
+							>
+								<RiCloseLine size={16} />
+							</Button>
+						</AnimatedPill>
+					))}
+				</AnimatePresence>
 			</div>
 		</div>
 	);
