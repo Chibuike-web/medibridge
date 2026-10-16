@@ -253,6 +253,7 @@ export async function getPatientProcedureDetailsForOrganization(
 			medication: mapRelatedRecord(medicationRows[0]),
 		},
 		editValues: {
+			updatedAt: procedure.updatedAt.toISOString(),
 			indication: procedure.indication ?? "",
 			procedureDate:
 				(procedure.status === "Pending"

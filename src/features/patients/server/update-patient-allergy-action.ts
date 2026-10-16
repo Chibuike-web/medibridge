@@ -55,6 +55,7 @@ export async function updatePatientAllergyAction(
 			status: patientAllergy.status,
 			reaction: patientAllergy.reaction,
 			clinicalNote: patientAllergy.clinicalNote,
+			updatedAt: patientAllergy.updatedAt,
 		})
 		.from(patientAllergy)
 		.innerJoin(patient, eq(patientAllergy.patientId, patient.id))
@@ -65,7 +66,15 @@ export async function updatePatientAllergyAction(
 		return { status: "failed", error: "Allergy could not be found." };
 	}
 
-	const { patientId, ...previousAllergy } = currentAllergy;
+	const { patientId, updatedAt: lastSavedAt, ...previousAllergy } = currentAllergy;
+
+	if (lastSavedAt.toISOString() !== formData.get("updatedAt")) {
+		return {
+			status: "failed",
+			error:
+				"This allergy was changed after you opened it. Close it and open it again to see the latest version.",
+		};
+	}
 	const { clinicalNote, ...allergy } = parsedAllergy.data;
 	const nextAllergy = { ...allergy, clinicalNote: clinicalNote || null };
 	const changedFields = (Object.keys(nextAllergy) as (keyof typeof nextAllergy)[]).filter(

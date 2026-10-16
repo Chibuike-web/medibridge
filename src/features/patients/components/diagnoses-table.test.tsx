@@ -70,6 +70,7 @@ const diagnosisDetails: Record<string, DiagnosisDetailsType> = {
 		updatedBy: "Dr. Bello",
 		clinicalNote: "Blood pressure remains elevated.",
 		editValues: {
+			updatedAt: "2026-01-02T09:00:00.000Z",
 			severityStage: "Stage 2",
 			diagnosedAt: "2020-01-05",
 			diagnosedBy: "Dr. Okafor",
@@ -93,6 +94,7 @@ const diagnosisDetails: Record<string, DiagnosisDetailsType> = {
 		updatedBy: "Dr. Bello",
 		clinicalNote: "Symptom free for twelve months.",
 		editValues: {
+			updatedAt: "2026-01-02T09:00:00.000Z",
 			severityStage: "Mild",
 			diagnosedAt: "2019-02-10",
 			diagnosedBy: "Dr. Adeyemi",

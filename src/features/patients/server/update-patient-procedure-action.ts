@@ -66,6 +66,7 @@ export async function updatePatientProcedureAction(
 			plannedAssistants: patientProcedure.plannedAssistants,
 			plannedFacility: patientProcedure.plannedFacility,
 			clinicalNote: patientProcedure.clinicalNote,
+			updatedAt: patientProcedure.updatedAt,
 		})
 		.from(patientProcedure)
 		.innerJoin(patient, eq(patientProcedure.patientId, patient.id))
@@ -74,6 +75,14 @@ export async function updatePatientProcedureAction(
 
 	if (!currentProcedure) {
 		return { status: "failed", error: "Procedure could not be found." };
+	}
+
+	if (currentProcedure.updatedAt.toISOString() !== formData.get("updatedAt")) {
+		return {
+			status: "failed",
+			error:
+				"This procedure was changed after you opened it. Close it and open it again to see the latest version.",
+		};
 	}
 
 	const isPlanned = currentProcedure.status === "Pending";

@@ -281,6 +281,7 @@ export async function getPatientImagingForOrganization(
 				updatedBy,
 				createdAtLabel,
 				updatedAtLabel,
+				updatedAtValue: imaging.updatedAt.toISOString(),
 				history: groupHistoryEvents(
 					historyRows.filter((row) => row.imagingId === imaging.imagingId),
 				),

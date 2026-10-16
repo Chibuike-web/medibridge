@@ -275,6 +275,7 @@ export async function getPatientDiagnosisDetailsForOrganization(
 		updatedBy: empty(diagnosis.updatedBy),
 		clinicalNote: empty(diagnosis.clinicalNote),
 		editValues: {
+			updatedAt: diagnosis.updatedAt.toISOString(),
 			severityStage: diagnosis.severityStage ?? "",
 			diagnosedAt: diagnosis.diagnosedAt ?? "",
 			diagnosedBy: diagnosis.diagnosedBy ?? "",

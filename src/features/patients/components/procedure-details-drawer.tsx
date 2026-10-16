@@ -409,6 +409,7 @@ function ProcedureDetailsEditForm({
 
 	return (
 		<form id={procedureDetailsFormId} onSubmit={onSubmit} className="flex flex-col gap-12">
+			<input type="hidden" name="updatedAt" value={procedure.editValues.updatedAt} />
 			<div className="flex flex-col gap-8">
 				{formError && (
 					<div

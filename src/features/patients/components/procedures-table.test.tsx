@@ -72,6 +72,7 @@ const procedureDetailsById: Record<string, ProcedureDetailsType> = {
 		updatedBy: "Dr. Bello",
 		relatedRecords: { diagnosis: null, medication: null },
 		editValues: {
+			updatedAt: "2026-01-02T09:00:00.000Z",
 			indication: "Acute appendicitis",
 			procedureDate: "2024-01-12",
 			physician: "Dr. Zainab Bello",
@@ -110,6 +111,7 @@ const procedureDetailsById: Record<string, ProcedureDetailsType> = {
 		updatedBy: "Dr. Okafor",
 		relatedRecords: { diagnosis: null, medication: null },
 		editValues: {
+			updatedAt: "2026-01-02T09:00:00.000Z",
 			indication: "Persistent right knee pain",
 			procedureDate: "2024-04-02",
 			physician: "Dr. Amaka Okafor",

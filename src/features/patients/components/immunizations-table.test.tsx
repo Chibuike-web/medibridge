@@ -66,6 +66,7 @@ const immunizationDetailsById: Record<string, ImmunizationDetailsType> = {
 		updatedBy: "Dr. Bello",
 		clinicalNote: "No adverse reaction observed.",
 		editValues: {
+			updatedAt: "2026-01-02T09:00:00.000Z",
 			seriesType: "Primary",
 			currentDose: "3",
 			totalDoses: "3",
@@ -91,6 +92,7 @@ const immunizationDetailsById: Record<string, ImmunizationDetailsType> = {
 		updatedBy: "Dr. Okafor",
 		clinicalNote: "",
 		editValues: {
+			updatedAt: "2026-01-02T09:00:00.000Z",
 			seriesType: "Booster",
 			currentDose: "2",
 			totalDoses: "3",

@@ -63,6 +63,7 @@ const allergyDetails: Record<string, AllergyDetailsType> = {
 		updatedBy: "Dr. Bello",
 		clinicalNote: "Carries an epinephrine auto-injector.",
 		editValues: {
+			updatedAt: "2026-01-02T09:00:00.000Z",
 			reaction: "Anaphylaxis within minutes",
 			clinicalNote: "Carries an epinephrine auto-injector.",
 		},
@@ -89,6 +90,7 @@ const allergyDetails: Record<string, AllergyDetailsType> = {
 		updatedBy: "Dr. Adeyemi",
 		clinicalNote: "Avoid latex gloves.",
 		editValues: {
+			updatedAt: "2026-01-02T09:00:00.000Z",
 			reaction: "Contact rash on hands",
 			clinicalNote: "Avoid latex gloves.",
 		},

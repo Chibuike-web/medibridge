@@ -70,6 +70,7 @@ export async function updatePatientImagingAction(
 			status: patientImaging.status,
 			impression: patientImaging.impression,
 			clinicalNote: patientImaging.clinicalNote,
+			updatedAt: patientImaging.updatedAt,
 		})
 		.from(patientImaging)
 		.innerJoin(patient, eq(patientImaging.patientId, patient.id))
@@ -97,7 +98,15 @@ export async function updatePatientImagingAction(
 		extension: recordFileExtensions[file.type as keyof typeof recordFileExtensions],
 	}));
 
-	const { patientId, orderedAt, ...savedImaging } = currentImaging;
+	const { patientId, updatedAt: lastSavedAt, orderedAt, ...savedImaging } = currentImaging;
+
+	if (lastSavedAt.toISOString() !== formData.get("updatedAt")) {
+		return {
+			status: "failed",
+			error:
+				"This imaging study was changed after you opened it. Close it and open it again to see the latest version.",
+		};
+	}
 	const previousImaging = {
 		...savedImaging,
 		orderedAt: orderedAt?.toISOString().slice(0, 10) ?? null,

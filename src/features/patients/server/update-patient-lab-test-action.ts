@@ -74,6 +74,7 @@ export async function updatePatientLabTestAction(
 			result: patientLabTest.result,
 			interpretation: patientLabTest.interpretation,
 			clinicalNote: patientLabTest.clinicalNote,
+			updatedAt: patientLabTest.updatedAt,
 		})
 		.from(patientLabTest)
 		.innerJoin(patient, eq(patientLabTest.patientId, patient.id))
@@ -105,7 +106,15 @@ export async function updatePatientLabTestAction(
 		return { status: "failed", error: "Attach the report for a completed lab test." };
 	}
 
-	const { patientId, orderedAt, ...savedLabTest } = currentLabTest;
+	const { patientId, updatedAt: lastSavedAt, orderedAt, ...savedLabTest } = currentLabTest;
+
+	if (lastSavedAt.toISOString() !== formData.get("updatedAt")) {
+		return {
+			status: "failed",
+			error:
+				"This lab test was changed after you opened it. Close it and open it again to see the latest version.",
+		};
+	}
 	const previousLabTest = {
 		...savedLabTest,
 		orderedAt: orderedAt?.toISOString().slice(0, 10) ?? null,

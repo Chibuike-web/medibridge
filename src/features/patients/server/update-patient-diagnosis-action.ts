@@ -58,6 +58,7 @@ export async function updatePatientDiagnosisAction(
 			diagnosedAt: patientDiagnosis.diagnosedAt,
 			diagnosedBy: patientDiagnosis.diagnosedBy,
 			clinicalNote: patientDiagnosis.clinicalNote,
+			updatedAt: patientDiagnosis.updatedAt,
 		})
 		.from(patientDiagnosis)
 		.innerJoin(patient, eq(patientDiagnosis.patientId, patient.id))
@@ -68,7 +69,15 @@ export async function updatePatientDiagnosisAction(
 		return { status: "failed", error: "Diagnosis could not be found." };
 	}
 
-	const { patientId, ...previousDiagnosis } = currentDiagnosis;
+	const { patientId, updatedAt: lastSavedAt, ...previousDiagnosis } = currentDiagnosis;
+
+	if (lastSavedAt.toISOString() !== formData.get("updatedAt")) {
+		return {
+			status: "failed",
+			error:
+				"This diagnosis was changed after you opened it. Close it and open it again to see the latest version.",
+		};
+	}
 	const { severityStage, clinicalNote, ...diagnosis } = parsedDiagnosis.data;
 	const nextDiagnosis = {
 		...diagnosis,

@@ -8,7 +8,7 @@ const { getSessionDataMock, getOrganizationIdMock, updateTagMock, database } = v
 	getOrganizationIdMock: vi.fn(),
 	updateTagMock: vi.fn(),
 	database: {
-		medications: [] as Record<string, string | null>[],
+		medications: [] as Record<string, string | Date | null>[],
 		updates: [] as Record<string, unknown>[],
 		history: [] as Record<string, unknown>[],
 		failWrites: false,
@@ -55,6 +55,7 @@ vi.mock("@/lib/better-auth/auth", () => ({
 
 const savedMedication = {
 	patientId: "patient-1",
+	updatedAt: new Date("2026-10-14T09:00:00.000Z"),
 	medicationName: "Salbutamol",
 	indication: "Asthma",
 	status: "Active",
@@ -80,6 +81,7 @@ function medicationForm(overrides: Record<string, string> = {}) {
 		duration: "3 months",
 		startedAt: "2019-02-10",
 		clinicalNote: "Uses a spacer.",
+		updatedAt: "2026-10-14T09:00:00.000Z",
 		...overrides,
 	}))
 		formData.set(field, value);
@@ -180,5 +182,22 @@ describe("editing a patient medication", () => {
 			await updatePatientMedicationAction("MED-1", medicationForm({ status: "Discontinued" })),
 		).toEqual({ status: "failed", error: "We couldn’t save these changes. Please try again." });
 		expect(updateTagMock).not.toHaveBeenCalled();
+	});
+	test("refuses to save over changes made after the form was opened", async () => {
+		const result = await updatePatientMedicationAction(
+			"MED-1",
+			medicationForm({
+				updatedAt: "2026-10-13T09:00:00.000Z",
+				clinicalNote: "Changed in an old tab.",
+			}),
+		);
+
+		expect(result).toEqual({
+			status: "failed",
+			error:
+				"This medication was changed after you opened it. Close it and open it again to see the latest version.",
+		});
+		expect(database.updates).toEqual([]);
+		expect(database.history).toEqual([]);
 	});
 });

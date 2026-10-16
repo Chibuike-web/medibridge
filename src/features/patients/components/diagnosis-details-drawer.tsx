@@ -351,6 +351,7 @@ function DiagnosisDetailsEditForm({
 
 	return (
 		<form id={diagnosisDetailsFormId} onSubmit={onSubmit} className="flex flex-col gap-12">
+			<input type="hidden" name="updatedAt" value={diagnosis.editValues.updatedAt} />
 			<div className="flex flex-col gap-8">
 				{formError && (
 					<div

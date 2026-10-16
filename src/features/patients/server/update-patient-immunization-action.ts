@@ -62,6 +62,7 @@ export async function updatePatientImmunizationAction(
 			dateAdministered: patientImmunization.dateAdministered,
 			administeredBy: patientImmunization.administeredBy,
 			clinicalNote: patientImmunization.clinicalNote,
+			updatedAt: patientImmunization.updatedAt,
 		})
 		.from(patientImmunization)
 		.innerJoin(patient, eq(patientImmunization.patientId, patient.id))
@@ -74,7 +75,20 @@ export async function updatePatientImmunizationAction(
 		return { status: "failed", error: "Immunization could not be found." };
 	}
 
-	const { patientId, dateAdministered, ...savedImmunization } = currentImmunization;
+	const {
+		patientId,
+		updatedAt: lastSavedAt,
+		dateAdministered,
+		...savedImmunization
+	} = currentImmunization;
+
+	if (lastSavedAt.toISOString() !== formData.get("updatedAt")) {
+		return {
+			status: "failed",
+			error:
+				"This immunization was changed after you opened it. Close it and open it again to see the latest version.",
+		};
+	}
 	const previousImmunization = {
 		...savedImmunization,
 		dateAdministered: dateAdministered?.toISOString().slice(0, 10) ?? null,

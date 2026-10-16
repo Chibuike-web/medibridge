@@ -635,6 +635,7 @@ function ImagingDetailsEditForm({
 
 	return (
 		<form id={imagingDetailsFormId} onSubmit={handleSubmit} className="flex flex-col gap-12">
+			<input type="hidden" name="updatedAt" value={imaging.updatedAtValue} />
 			<div className="flex flex-col gap-8">
 				{formError && (
 					<div

@@ -70,6 +70,7 @@ const medicationDetails: Record<string, MedicationDetailsType> = {
 		createdBy: "Nurse Chika",
 		clinicalNote: "Review renal function every six months.",
 		editValues: {
+			updatedAt: "2026-01-02T09:00:00.000Z",
 			indication: "Type 2 diabetes",
 			dose: "500 mg",
 			route: "Oral",
@@ -106,6 +107,7 @@ const medicationDetails: Record<string, MedicationDetailsType> = {
 		createdBy: "Dr. Bello",
 		clinicalNote: "Course completed without side effects.",
 		editValues: {
+			updatedAt: "2026-01-02T09:00:00.000Z",
 			indication: "Ear infection",
 			dose: "250 mg",
 			route: "IV",

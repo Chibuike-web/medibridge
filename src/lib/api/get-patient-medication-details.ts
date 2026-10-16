@@ -184,6 +184,7 @@ export async function getPatientMedicationDetailsForOrganization(
 		createdBy: empty(medication.createdBy),
 		clinicalNote: empty(medication.clinicalNote),
 		editValues: {
+			updatedAt: medication.updatedAt.toISOString(),
 			indication: medication.indication ?? "",
 			dose: medication.dose ?? "",
 			route: medication.route ?? "",

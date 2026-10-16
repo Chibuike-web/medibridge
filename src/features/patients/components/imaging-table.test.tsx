@@ -57,6 +57,7 @@ const imagingStudies: ImagingType[] = [
 		updatedBy: "Nurse Ada",
 		createdAtLabel: "Jan 6, 2020",
 		updatedAtLabel: "Jan 7, 2020",
+		updatedAtValue: "2026-01-02T09:00:00.000Z",
 		history: [],
 	},
 	{
@@ -78,6 +79,7 @@ const imagingStudies: ImagingType[] = [
 		updatedBy: "Nurse Ada",
 		createdAtLabel: "Jan 2, 2020",
 		updatedAtLabel: "Jan 2, 2020",
+		updatedAtValue: "2026-01-02T09:00:00.000Z",
 		history: [],
 	},
 ];

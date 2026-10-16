@@ -258,6 +258,7 @@ export async function getPatientLabTestsForOrganization(
 				createdAtLabel,
 				createdAtSortValue: toSortValue(labTest.createdAt),
 				updatedAtLabel,
+				updatedAtValue: labTest.updatedAt.toISOString(),
 				updatedAtSortValue: toSortValue(labTest.updatedAt),
 				createdBy: labTest.createdBy ?? "",
 				updatedBy,

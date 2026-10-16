@@ -55,6 +55,7 @@ vi.mock("@/lib/better-auth/auth", () => ({
 
 const savedImmunization = {
 	patientId: "patient-1",
+	updatedAt: new Date("2026-10-14T09:00:00.000Z"),
 	vaccineName: "Hepatitis B",
 	seriesType: "Primary",
 	currentDose: "2",
@@ -76,6 +77,7 @@ function immunizationForm(overrides: Record<string, string> = {}) {
 		dateAdministered: "2024-01-10",
 		administeredBy: "Nurse Bello",
 		clinicalNote: "No reaction after the first dose.",
+		updatedAt: "2026-10-14T09:00:00.000Z",
 		...overrides,
 	}))
 		formData.set(field, value);
@@ -193,5 +195,22 @@ describe("editing a patient immunization", () => {
 			await updatePatientImmunizationAction("IMM-1", immunizationForm({ currentDose: "3" })),
 		).toEqual({ status: "failed", error: "We couldn’t save these changes. Please try again." });
 		expect(updateTagMock).not.toHaveBeenCalled();
+	});
+	test("refuses to save over changes made after the form was opened", async () => {
+		const result = await updatePatientImmunizationAction(
+			"IMM-1",
+			immunizationForm({
+				updatedAt: "2026-10-13T09:00:00.000Z",
+				clinicalNote: "Changed in an old tab.",
+			}),
+		);
+
+		expect(result).toEqual({
+			status: "failed",
+			error:
+				"This immunization was changed after you opened it. Close it and open it again to see the latest version.",
+		});
+		expect(database.updates).toEqual([]);
+		expect(database.history).toEqual([]);
 	});
 });

@@ -66,6 +66,7 @@ export async function updatePatientMedicationAction(
 			duration: patientMedication.duration,
 			startedAt: patientMedication.startedAt,
 			clinicalNote: patientMedication.clinicalNote,
+			updatedAt: patientMedication.updatedAt,
 		})
 		.from(patientMedication)
 		.innerJoin(patient, eq(patientMedication.patientId, patient.id))
@@ -76,7 +77,15 @@ export async function updatePatientMedicationAction(
 		return { status: "failed", error: "Medication could not be found." };
 	}
 
-	const { patientId, ...previousMedication } = currentMedication;
+	const { patientId, updatedAt: lastSavedAt, ...previousMedication } = currentMedication;
+
+	if (lastSavedAt.toISOString() !== formData.get("updatedAt")) {
+		return {
+			status: "failed",
+			error:
+				"This medication was changed after you opened it. Close it and open it again to see the latest version.",
+		};
+	}
 	const { clinicalNote, ...medication } = parsedMedication.data;
 	const nextMedication = { ...medication, clinicalNote: clinicalNote || null };
 	const changedFields = (Object.keys(nextMedication) as (keyof typeof nextMedication)[]).filter(

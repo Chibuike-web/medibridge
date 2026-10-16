@@ -184,6 +184,7 @@ export async function getPatientImmunizationDetailsForOrganization(
 		updatedBy: empty(immunization.updatedBy),
 		clinicalNote: empty(immunization.clinicalNote),
 		editValues: {
+			updatedAt: immunization.updatedAt.toISOString(),
 			seriesType: immunization.seriesType ?? "",
 			currentDose: immunization.currentDose ?? "",
 			totalDoses: immunization.totalDoses ?? "",

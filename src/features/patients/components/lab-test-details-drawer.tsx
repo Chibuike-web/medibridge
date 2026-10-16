@@ -603,6 +603,7 @@ function LabTestDetailsEditForm({
 
 	return (
 		<form id={labTestDetailsFormId} onSubmit={handleSubmit} className="flex flex-col gap-12">
+			<input type="hidden" name="updatedAt" value={labTest.updatedAtValue} />
 			<div className="flex flex-col gap-8">
 				{formError && (
 					<div

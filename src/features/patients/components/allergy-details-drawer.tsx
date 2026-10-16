@@ -335,6 +335,7 @@ function AllergyDetailsEditForm({
 
 	return (
 		<form id={allergyDetailsFormId} onSubmit={onSubmit} className="flex flex-col gap-12">
+			<input type="hidden" name="updatedAt" value={allergy.editValues.updatedAt} />
 			<div className="flex flex-col gap-8">
 				{formError && (
 					<div

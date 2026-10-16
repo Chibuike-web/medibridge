@@ -63,6 +63,7 @@ export type DiagnosisDetailsType = {
 	updatedBy: string;
 	clinicalNote: string;
 	editValues: {
+		updatedAt: string;
 		severityStage: string;
 		diagnosedAt: string;
 		diagnosedBy: string;
@@ -114,6 +115,7 @@ export type AllergyDetailsType = {
 	updatedBy: string;
 	clinicalNote: string;
 	editValues: {
+		updatedAt: string;
 		reaction: string;
 		clinicalNote: string;
 	};
@@ -163,6 +165,7 @@ export type ImmunizationDetailsType = {
 	updatedBy: string;
 	clinicalNote: string;
 	editValues: {
+		updatedAt: string;
 		seriesType: string;
 		currentDose: string;
 		totalDoses: string;
@@ -227,6 +230,7 @@ export type ProcedureDetailsType = {
 		medication: ProcedureDetailsRelatedRecord | null;
 	};
 	editValues: {
+		updatedAt: string;
 		indication: string;
 		procedureDate: string;
 		physician: string;
@@ -279,6 +283,7 @@ export type MedicationDetailsType = {
 	createdBy: string;
 	clinicalNote: string;
 	editValues: {
+		updatedAt: string;
 		indication: string;
 		dose: string;
 		route: string;
@@ -360,6 +365,7 @@ export type LabTestType = {
 	createdAtSortValue: string;
 	updatedAtLabel: string;
 	updatedAtSortValue: string;
+	updatedAtValue: string;
 	createdBy: string;
 	updatedBy: string;
 	status: "Pending" | "Completed" | "Cancelled";
@@ -413,6 +419,7 @@ export type ImagingType = {
 	updatedBy: string;
 	createdAtLabel: string;
 	updatedAtLabel: string;
+	updatedAtValue: string;
 	history: ImagingDetailsHistoryEvent[];
 };
 

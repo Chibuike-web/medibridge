@@ -85,6 +85,7 @@ const savedCbcPath = path.join(labTestFolder, "file-cbc.pdf");
 const savedFilmPath = path.join(labTestFolder, "file-film.png");
 const savedLabTest = {
 	patientId: "patient-1",
+	updatedAt: new Date("2026-10-14T09:00:00.000Z"),
 	testName: "Full blood count",
 	status: "Pending",
 	flag: null,
@@ -120,6 +121,7 @@ function labTestForm(
 		result: "",
 		interpretation: "",
 		clinicalNote: "Fasting sample.",
+		updatedAt: "2026-10-14T09:00:00.000Z",
 		...overrides,
 	}))
 		formData.set(field, value);
@@ -312,5 +314,22 @@ describe("editing a patient lab test", () => {
 		expect(new Set(disk.files.keys())).toEqual(new Set([savedCbcPath, savedFilmPath]));
 		expect(database.files).toEqual(savedFiles);
 		expect(updateTagMock).not.toHaveBeenCalled();
+	});
+	test("refuses to save over changes made after the form was opened", async () => {
+		const result = await updatePatientLabTestAction(
+			"LAB-1",
+			labTestForm({
+				updatedAt: "2026-10-13T09:00:00.000Z",
+				clinicalNote: "Changed in an old tab.",
+			}),
+		);
+
+		expect(result).toEqual({
+			status: "failed",
+			error:
+				"This lab test was changed after you opened it. Close it and open it again to see the latest version.",
+		});
+		expect(database.updates).toEqual([]);
+		expect(database.history).toEqual([]);
 	});
 });

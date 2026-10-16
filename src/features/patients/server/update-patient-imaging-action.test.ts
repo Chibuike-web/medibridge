@@ -85,6 +85,7 @@ const savedFrontalPath = path.join(imagingFolder, "file-frontal.png");
 const savedLateralPath = path.join(imagingFolder, "file-lateral.jpg");
 const savedImaging = {
 	patientId: "patient-1",
+	updatedAt: new Date("2026-10-14T09:00:00.000Z"),
 	study: "Chest X-ray",
 	region: "Chest",
 	modality: "X-ray",
@@ -116,6 +117,7 @@ function imagingForm(
 		status: "Pending",
 		impression: "",
 		clinicalNote: "Persistent cough.",
+		updatedAt: "2026-10-14T09:00:00.000Z",
 		...overrides,
 	}))
 		formData.set(field, value);
@@ -316,5 +318,22 @@ describe("editing a patient imaging study", () => {
 		expect(new Set(disk.files.keys())).toEqual(new Set([savedFrontalPath, savedLateralPath]));
 		expect(database.files).toEqual(savedFiles);
 		expect(updateTagMock).not.toHaveBeenCalled();
+	});
+	test("refuses to save over changes made after the form was opened", async () => {
+		const result = await updatePatientImagingAction(
+			"IMG-1",
+			imagingForm({
+				updatedAt: "2026-10-13T09:00:00.000Z",
+				clinicalNote: "Changed in an old tab.",
+			}),
+		);
+
+		expect(result).toEqual({
+			status: "failed",
+			error:
+				"This imaging study was changed after you opened it. Close it and open it again to see the latest version.",
+		});
+		expect(database.updates).toEqual([]);
+		expect(database.history).toEqual([]);
 	});
 });

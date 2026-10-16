@@ -173,6 +173,7 @@ export async function getPatientAllergyDetailsForOrganization(
 		updatedBy: empty(allergy.updatedBy),
 		clinicalNote: empty(allergy.clinicalNote),
 		editValues: {
+			updatedAt: allergy.updatedAt.toISOString(),
 			reaction: allergy.reaction ?? "",
 			clinicalNote: allergy.clinicalNote ?? "",
 		},

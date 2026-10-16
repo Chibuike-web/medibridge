@@ -55,6 +55,7 @@ vi.mock("@/lib/better-auth/auth", () => ({
 
 const completedProcedure = {
 	patientId: "patient-1",
+	updatedAt: new Date("2026-10-14T09:00:00.000Z"),
 	procedureName: "Knee arthroscopy",
 	indication: "Torn meniscus",
 	status: "Completed",
@@ -71,6 +72,7 @@ const completedProcedure = {
 
 const pendingProcedure = {
 	patientId: "patient-1",
+	updatedAt: new Date("2026-10-14T09:00:00.000Z"),
 	procedureName: "Knee arthroscopy",
 	indication: "Torn meniscus",
 	status: "Pending",
@@ -96,6 +98,7 @@ function procedureForm(overrides: Record<string, string> = {}) {
 		assistants: "Nurse Bello",
 		facility: "Theatre 2",
 		clinicalNote: "Left knee.",
+		updatedAt: "2026-10-14T09:00:00.000Z",
 		...overrides,
 	}))
 		formData.set(field, value);
@@ -267,5 +270,22 @@ describe("editing a patient procedure", () => {
 			),
 		).toEqual({ status: "failed", error: "We couldn’t save these changes. Please try again." });
 		expect(updateTagMock).not.toHaveBeenCalled();
+	});
+	test("refuses to save over changes made after the form was opened", async () => {
+		const result = await updatePatientProcedureAction(
+			"PRO-1",
+			procedureForm({
+				updatedAt: "2026-10-13T09:00:00.000Z",
+				clinicalNote: "Changed in an old tab.",
+			}),
+		);
+
+		expect(result).toEqual({
+			status: "failed",
+			error:
+				"This procedure was changed after you opened it. Close it and open it again to see the latest version.",
+		});
+		expect(database.updates).toEqual([]);
+		expect(database.history).toEqual([]);
 	});
 });

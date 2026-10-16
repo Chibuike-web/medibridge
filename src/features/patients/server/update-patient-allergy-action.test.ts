@@ -8,7 +8,7 @@ const { getSessionDataMock, getOrganizationIdMock, updateTagMock, database } = v
 	getOrganizationIdMock: vi.fn(),
 	updateTagMock: vi.fn(),
 	database: {
-		allergies: [] as Record<string, string | null>[],
+		allergies: [] as Record<string, string | Date | null>[],
 		updates: [] as Record<string, unknown>[],
 		history: [] as Record<string, unknown>[],
 		failWrites: false,
@@ -55,6 +55,7 @@ vi.mock("@/lib/better-auth/auth", () => ({
 
 const savedAllergy = {
 	patientId: "patient-1",
+	updatedAt: new Date("2026-10-14T09:00:00.000Z"),
 	allergen: "Penicillin",
 	severity: "Moderate",
 	status: "Active",
@@ -70,6 +71,7 @@ function allergyForm(overrides: Record<string, string> = {}) {
 		status: "Active",
 		reaction: "Hives across the chest.",
 		clinicalNote: "Carries an antihistamine.",
+		updatedAt: "2026-10-14T09:00:00.000Z",
 		...overrides,
 	}))
 		formData.set(field, value);
@@ -173,5 +175,22 @@ describe("editing a patient allergy", () => {
 			error: "We couldn’t save these changes. Please try again.",
 		});
 		expect(updateTagMock).not.toHaveBeenCalled();
+	});
+	test("refuses to save over changes made after the form was opened", async () => {
+		const result = await updatePatientAllergyAction(
+			"ALL-1",
+			allergyForm({
+				updatedAt: "2026-10-13T09:00:00.000Z",
+				clinicalNote: "Changed in an old tab.",
+			}),
+		);
+
+		expect(result).toEqual({
+			status: "failed",
+			error:
+				"This allergy was changed after you opened it. Close it and open it again to see the latest version.",
+		});
+		expect(database.updates).toEqual([]);
+		expect(database.history).toEqual([]);
 	});
 });

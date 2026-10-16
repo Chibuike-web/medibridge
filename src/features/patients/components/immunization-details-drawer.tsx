@@ -373,6 +373,7 @@ function ImmunizationDetailsEditForm({
 
 	return (
 		<form id={immunizationDetailsFormId} onSubmit={onSubmit} className="flex flex-col gap-12">
+			<input type="hidden" name="updatedAt" value={immunization.editValues.updatedAt} />
 			<div className="flex flex-col gap-8">
 				{formError && (
 					<div

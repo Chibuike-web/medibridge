@@ -8,7 +8,7 @@ const { getSessionDataMock, getOrganizationIdMock, updateTagMock, database } = v
 	getOrganizationIdMock: vi.fn(),
 	updateTagMock: vi.fn(),
 	database: {
-		diagnoses: [] as Record<string, string | null>[],
+		diagnoses: [] as Record<string, string | Date | null>[],
 		updates: [] as Record<string, unknown>[],
 		history: [] as Record<string, unknown>[],
 		failWrites: false,
@@ -55,6 +55,7 @@ vi.mock("@/lib/better-auth/auth", () => ({
 
 const savedDiagnosis = {
 	patientId: "patient-1",
+	updatedAt: new Date("2026-10-14T09:00:00.000Z"),
 	diagnosisName: "Asthma",
 	severityStage: "Mild",
 	status: "Active",
@@ -72,6 +73,7 @@ function diagnosisForm(overrides: Record<string, string> = {}) {
 		diagnosedAt: "2019-02-10",
 		diagnosedBy: "Dr. Adeyemi",
 		clinicalNote: "Uses an inhaler at night.",
+		updatedAt: "2026-10-14T09:00:00.000Z",
 		...overrides,
 	}))
 		formData.set(field, value);
@@ -188,5 +190,22 @@ describe("editing a patient diagnosis", () => {
 			await updatePatientDiagnosisAction("DIA-1", diagnosisForm({ status: "Resolved" })),
 		).toEqual({ status: "failed", error: "We couldn’t save these changes. Please try again." });
 		expect(updateTagMock).not.toHaveBeenCalled();
+	});
+	test("refuses to save over changes made after the form was opened", async () => {
+		const result = await updatePatientDiagnosisAction(
+			"DIA-1",
+			diagnosisForm({
+				updatedAt: "2026-10-13T09:00:00.000Z",
+				clinicalNote: "Changed in an old tab.",
+			}),
+		);
+
+		expect(result).toEqual({
+			status: "failed",
+			error:
+				"This diagnosis was changed after you opened it. Close it and open it again to see the latest version.",
+		});
+		expect(database.updates).toEqual([]);
+		expect(database.history).toEqual([]);
 	});
 });
