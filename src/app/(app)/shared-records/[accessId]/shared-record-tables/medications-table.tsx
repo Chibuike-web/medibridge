@@ -72,6 +72,8 @@ const medicationStatusFilterOptions = [
 export type SharedMedicationRow = {
 	medication: string;
 	dose: string;
+	frequency: string;
+	duration: string;
 	route: string;
 	indication: string;
 	medicationId: string;
@@ -160,6 +162,8 @@ export function SharedMedicationsTable({
 				cell: ({ row }) => <span className="font-medium">{row.original.medication}</span>,
 			},
 			{ header: "Dose", accessorKey: "dose", enableSorting: true },
+			{ header: "Frequency", accessorKey: "frequency", enableSorting: true },
+			{ header: "Duration", accessorKey: "duration", enableSorting: true },
 			{ header: "Route", accessorKey: "route", enableSorting: true },
 			{ header: "Indication", accessorKey: "indication", enableSorting: true },
 			{

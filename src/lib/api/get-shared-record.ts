@@ -390,6 +390,8 @@ export async function getSharedRecord(accessId: string) {
 			medications: medications.map((record) => ({
 				medication: record.medicationName,
 				dose: String(display(record.dose)),
+				frequency: String(display(record.frequency)),
+				duration: String(display(record.duration)),
 				route: String(display(record.route)),
 				indication: String(display(record.indication)),
 				medicationId: record.id,

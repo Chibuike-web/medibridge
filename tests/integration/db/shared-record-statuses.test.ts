@@ -30,25 +30,21 @@ describe.skipIf(!testDatabaseUrl)("Shared record statuses", () => {
 			createdAt: new Date(),
 			isVerified: true,
 		});
-		await authModule.db
-			.insert(schema.user)
-			.values({
-				id: "staff-statuses",
-				name: "Staff",
-				email: "staff@source.org",
-				emailVerified: true,
-			});
+		await authModule.db.insert(schema.user).values({
+			id: "staff-statuses",
+			name: "Staff",
+			email: "staff@source.org",
+			emailVerified: true,
+		});
 		await authModule.db
 			.insert(schema.patient)
 			.values({ id: "patient-statuses", organizationId: "hospital-statuses" });
-		await authModule.db
-			.insert(schema.patientPersonalInformation)
-			.values({
-				id: "personal-statuses",
-				patientId: "patient-statuses",
-				firstName: "Ada",
-				lastName: "Obi",
-			});
+		await authModule.db.insert(schema.patientPersonalInformation).values({
+			id: "personal-statuses",
+			patientId: "patient-statuses",
+			firstName: "Ada",
+			lastName: "Obi",
+		});
 		await authModule.db.insert(schema.patientTransfer).values({
 			id: "TRF-statuses",
 			patientId: "patient-statuses",
@@ -63,6 +59,9 @@ describe.skipIf(!testDatabaseUrl)("Shared record statuses", () => {
 			id: "MED-discontinued",
 			patientId: "patient-statuses",
 			medicationName: "Amoxicillin",
+			dose: "500 mg",
+			frequency: "Three times daily",
+			duration: "7 days",
 			status: "Discontinued",
 		});
 		await authModule.db.insert(schema.patientLabTest).values({
@@ -99,6 +98,19 @@ describe.skipIf(!testDatabaseUrl)("Shared record statuses", () => {
 		]);
 		expect(sharedRecord?.records.labTests).toEqual([
 			expect.objectContaining({ status: "Completed" }),
+		]);
+	});
+
+	test("shows the receiving hospital how much, how often and how long each medication is taken", async () => {
+		const sharedRecord = await getSharedRecord(accessId);
+
+		expect(sharedRecord?.records.medications).toEqual([
+			expect.objectContaining({
+				medication: "Amoxicillin",
+				dose: "500 mg",
+				frequency: "Three times daily",
+				duration: "7 days",
+			}),
 		]);
 	});
 });
