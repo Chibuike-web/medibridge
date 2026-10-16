@@ -73,7 +73,7 @@ export function FilterButton({
 				<DropdownMenuContent
 					onPointerLeave={() => setActiveFilterSubmenu(null)}
 					align="end"
-					className="relative w-[13.75rem] overflow-visible rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+					className="relative w-[13.75rem] overflow-visible rounded-xl bg-white text-sm text-gray-700"
 				>
 					<DropdownMenuItem
 						data-active={activeFilterSubmenu === "gender"}
@@ -115,7 +115,7 @@ export function FilterButton({
 						id="patient-filter-submenu-panel"
 						aria-hidden={activeFilterSubmenu === null}
 						className={cn(
-							"absolute top-0 right-[100%] z-50 w-[13.75rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 bg-white text-sm text-gray-700 shadow-xl transition-[translate,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+							"absolute top-0 right-[100%] z-50 w-[13.75rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl bg-white text-sm text-gray-700 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_1px_2px_-1px_rgba(0,0,0,0.06),0_0.5rem_1.5rem_-0.25rem_rgba(0,0,0,0.12)] transition-[translate,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 							activeFilterSubmenu === "age"
 								? "translate-y-9"
 								: activeFilterSubmenu === "created-at"

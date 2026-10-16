@@ -384,7 +384,7 @@ function ProcedureFilterMenu({
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
 					align="end"
-					className="w-[13.75rem] rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+					className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
 				>
 					<DropdownMenuSub
 						open={activeFilterSubmenu === "status"}
@@ -396,7 +396,7 @@ function ProcedureFilterMenu({
 						</DropdownMenuSubTrigger>
 						<DropdownMenuSubContent
 							alignOffset={-5}
-							className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							className="w-[13.75rem] rounded-xl bg-white p-1 text-sm text-gray-700"
 						>
 							<CheckboxFilterList
 								name="shared-procedure-status"
@@ -417,7 +417,7 @@ function ProcedureFilterMenu({
 						</DropdownMenuSubTrigger>
 						<DropdownMenuSubContent
 							alignOffset={-5}
-							className="w-[13.75rem] rounded-xl border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-xl"
+							className="w-[13.75rem] rounded-xl bg-white p-1 text-sm text-gray-700"
 						>
 							<DateRangeMenuItems
 								from={createdFrom}

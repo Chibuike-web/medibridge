@@ -156,7 +156,7 @@ export function ImmunizationDetailsDrawer({
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
 								align="end"
-								className="w-50 rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl"
+								className="w-50 rounded-xl bg-white text-sm text-gray-700"
 							>
 								<DropdownMenuItem
 									className="rounded-lg"

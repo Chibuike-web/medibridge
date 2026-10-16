@@ -80,7 +80,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
 					className={cn(
-						"rounded-xl border-gray-200 bg-white text-sm text-gray-700 shadow-xl",
+						"rounded-xl bg-white text-sm text-gray-700",
 						isCollapsed ? "w-[15.9375rem]" : "w-(--radix-dropdown-menu-trigger-width)",
 					)}
 					side={isCollapsed ? "right" : "top"}
