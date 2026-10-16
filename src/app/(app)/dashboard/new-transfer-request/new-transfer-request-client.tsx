@@ -231,7 +231,7 @@ export function NewTransferRequestClient({
 
 	return (
 		<>
-			<form method="post" className="w-full">
+			<form method="post" className="w-full pb-24">
 				<p className="mb-10 w-full text-center font-medium text-gray-600">
 					Step {currentTransferRequestStep}/2
 				</p>
@@ -248,18 +248,22 @@ export function NewTransferRequestClient({
 							limit={patientOptionsLimit}
 							totalPages={totalPatientPages}
 						/>
-						<Button
-							className="mt-16 w-full"
-							type="button"
-							onClick={() => {
-								if (selectedTransferPatients.length > 0) {
-									setCurrentTransferRequestStep(2);
-								}
-							}}
-							disabled={selectedTransferPatients.length === 0}
-						>
-							Continue
-						</Button>
+						<footer className="fixed inset-x-0 bottom-0 z-50 border-t border-gray-100 bg-white px-6 py-4">
+							<div className="mx-auto flex w-full max-w-[31.25rem] items-center justify-between gap-3">
+								<Button
+									className="w-full"
+									type="button"
+									onClick={() => {
+										if (selectedTransferPatients.length > 0) {
+											setCurrentTransferRequestStep(2);
+										}
+									}}
+									disabled={selectedTransferPatients.length === 0}
+								>
+									Continue
+								</Button>
+							</div>
+						</footer>
 					</>
 				) : (
 					<div>
@@ -405,108 +409,113 @@ export function NewTransferRequestClient({
 							</div>
 						</Fragment>
 
-						<div className="flex items-center mt-16 justify-between">
-							<Button
-								variant="outline"
-								type="button"
-								onClick={() => setCurrentTransferRequestStep(1)}
-							>
-								Back
-							</Button>
-							<Dialog
-								open={isTransferConfirmationOpen}
-								onOpenChange={(isOpen) => {
-									setIsTransferConfirmationOpen(isOpen);
-									if (!isOpen) {
-										setIsTransferConfirmationChecked(false);
-										setTransferSubmissionError(null);
-									}
-								}}
-							>
-								<DialogTrigger asChild>
-									<Button type="button" disabled={!isComplete}>
-										Continue
-									</Button>
-								</DialogTrigger>
-								<DialogContent>
-									<DialogHeader className="py-4">
-										<DialogTitle>Confirm Transfer Request</DialogTitle>
-										<DialogDescription className="sr-only">
-											Review the selected patients and attached clinical records before submitting
-											this transfer request.
-										</DialogDescription>
-										<DialogClose asChild>
-											<Button
-												variant="ghost"
-												size="icon"
-												aria-label="Close transfer request confirmation"
-											>
-												<RiCloseLine aria-hidden="true" />
-											</Button>
-										</DialogClose>
-									</DialogHeader>
-									<div className="px-4 py-5 text-sm">
-										<p className="text-gray-600 font-normal">
-											Before this transfer request is sent, please review and confirm the following
-										</p>
-										<ul className="mt-6 mb-8 text-gray-600 flex flex-col gap-1">
-											<li className="flex items-center gap-2">
-												<span aria-hidden>
-													<RiCheckLine className="size-5" />
-												</span>
-												<span>Selected patients are correct</span>
-											</li>
-											<li className="flex items-center gap-2">
-												<span aria-hidden>
-													<RiCheckLine className="size-5" />
-												</span>
-												<span>The appropriate clinical records are attached for each patient</span>
-											</li>
-											<li className="flex items-center gap-2">
-												<span aria-hidden>
-													<RiCheckLine className="size-5" />
-												</span>
-												<span>Target hospital details are accurate for every patient</span>
-											</li>
-										</ul>
-										<Label className="gap-4 px-5 py-3.5 rounded-lg bg-gray-50">
-											<Checkbox
-												checked={isTransferConfirmationChecked}
-												onCheckedChange={(checked) => {
-													setIsTransferConfirmationChecked(checked === true);
-													setTransferSubmissionError(null);
-												}}
-											/>
-											<div className="leading-[1.4em] font-normal">
-												I have reviewed the patient details, selected records, and target hospital
-												information. Everything is accurate and ready to proceed.
-											</div>
-										</Label>
-									</div>
-									{transferSubmissionError ? (
-										<p className="mt-4 text-sm font-medium text-red-600" role="alert">
-											{transferSubmissionError}
-										</p>
-									) : null}
-									<DialogFooter className="mt-16 text-sm">
-										<div className="flex gap-2 ml-auto">
+						<footer className="fixed inset-x-0 bottom-0 z-50 border-t border-gray-100 bg-white px-6 py-4">
+							<div className="mx-auto flex w-full max-w-[31.25rem] items-center justify-between gap-3">
+								<Button
+									variant="outline"
+									type="button"
+									onClick={() => setCurrentTransferRequestStep(1)}
+								>
+									Back
+								</Button>
+								<Dialog
+									open={isTransferConfirmationOpen}
+									onOpenChange={(isOpen) => {
+										setIsTransferConfirmationOpen(isOpen);
+										if (!isOpen) {
+											setIsTransferConfirmationChecked(false);
+											setTransferSubmissionError(null);
+										}
+									}}
+								>
+									<DialogTrigger asChild>
+										<Button type="button" disabled={!isComplete}>
+											Continue
+										</Button>
+									</DialogTrigger>
+									<DialogContent>
+										<DialogHeader className="py-4">
+											<DialogTitle>Confirm Transfer Request</DialogTitle>
+											<DialogDescription className="sr-only">
+												Review the selected patients and attached clinical records before submitting
+												this transfer request.
+											</DialogDescription>
 											<DialogClose asChild>
-												<Button variant="outline" type="button">
-													Cancel
+												<Button
+													variant="ghost"
+													size="icon"
+													aria-label="Close transfer request confirmation"
+												>
+													<RiCloseLine aria-hidden="true" />
 												</Button>
 											</DialogClose>
-											<Button
-												type="button"
-												disabled={isSubmittingTransferRequests || !isTransferConfirmationChecked}
-												onClick={handleSubmitTransferRequests}
-											>
-												{isSubmittingTransferRequests ? "Sending..." : "Send for Approval"}
-											</Button>
+										</DialogHeader>
+										<div className="px-4 py-5 text-sm">
+											<p className="text-gray-600 font-normal">
+												Before this transfer request is sent, please review and confirm the
+												following
+											</p>
+											<ul className="mt-6 mb-8 text-gray-600 flex flex-col gap-1">
+												<li className="flex items-center gap-2">
+													<span aria-hidden>
+														<RiCheckLine className="size-5" />
+													</span>
+													<span>Selected patients are correct</span>
+												</li>
+												<li className="flex items-center gap-2">
+													<span aria-hidden>
+														<RiCheckLine className="size-5" />
+													</span>
+													<span>
+														The appropriate clinical records are attached for each patient
+													</span>
+												</li>
+												<li className="flex items-center gap-2">
+													<span aria-hidden>
+														<RiCheckLine className="size-5" />
+													</span>
+													<span>Target hospital details are accurate for every patient</span>
+												</li>
+											</ul>
+											<Label className="gap-4 px-5 py-3.5 rounded-lg bg-gray-50">
+												<Checkbox
+													checked={isTransferConfirmationChecked}
+													onCheckedChange={(checked) => {
+														setIsTransferConfirmationChecked(checked === true);
+														setTransferSubmissionError(null);
+													}}
+												/>
+												<div className="leading-[1.4em] font-normal">
+													I have reviewed the patient details, selected records, and target hospital
+													information. Everything is accurate and ready to proceed.
+												</div>
+											</Label>
 										</div>
-									</DialogFooter>
-								</DialogContent>
-							</Dialog>
-						</div>
+										{transferSubmissionError ? (
+											<p className="mt-4 text-sm font-medium text-red-600" role="alert">
+												{transferSubmissionError}
+											</p>
+										) : null}
+										<DialogFooter className="mt-16 text-sm">
+											<div className="flex gap-2 ml-auto">
+												<DialogClose asChild>
+													<Button variant="outline" type="button">
+														Cancel
+													</Button>
+												</DialogClose>
+												<Button
+													type="button"
+													disabled={isSubmittingTransferRequests || !isTransferConfirmationChecked}
+													onClick={handleSubmitTransferRequests}
+												>
+													{isSubmittingTransferRequests ? "Sending..." : "Send for Approval"}
+												</Button>
+											</div>
+										</DialogFooter>
+									</DialogContent>
+								</Dialog>
+							</div>
+						</footer>
 					</div>
 				)}
 			</form>
