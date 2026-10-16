@@ -307,7 +307,7 @@ function Footer({
 									</Button>
 								</DialogClose>
 							</DialogHeader>
-							<DialogDescription className="p-4 text-sm text-pretty">
+							<DialogDescription className="px-4 py-5 text-sm text-pretty">
 								We’ll extract patient details from these files. Review them before saving.
 							</DialogDescription>
 							<DialogFooter className="sm:justify-end">

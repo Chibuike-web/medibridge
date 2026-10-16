@@ -496,7 +496,7 @@ export function NewTransferRequestClient({
 												{transferSubmissionError}
 											</p>
 										) : null}
-										<DialogFooter className="mt-16 text-sm">
+										<DialogFooter className="text-sm">
 											<div className="flex gap-2 ml-auto">
 												<DialogClose asChild>
 													<Button variant="outline" type="button">

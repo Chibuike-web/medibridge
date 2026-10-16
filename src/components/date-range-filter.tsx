@@ -133,30 +133,34 @@ function DateRangeFields({
 
 	return (
 		<>
-			<div className="grid gap-3.5 p-4 sm:grid-cols-2">
-				{dateFields.map((dateField) => (
-					<div key={dateField.label} className="flex min-w-0 flex-col gap-3.5">
-						<p className="text-sm font-medium text-gray-600">{dateField.label}</p>
-						<p
-							className={`flex h-9 items-center rounded-lg border border-gray-200 px-3 text-sm ${dateField.date ? "text-gray-800" : "text-gray-400"}`}
-						>
-							{dateField.date ? format(dateField.date, "do MMMM, yyyy") : "Eg. 22nd December, 2026"}
-						</p>
-					</div>
-				))}
+			<div className="py-5">
+				<div className="grid gap-3.5 px-4 pb-4 sm:grid-cols-2">
+					{dateFields.map((dateField) => (
+						<div key={dateField.label} className="flex min-w-0 flex-col gap-3.5">
+							<p className="text-sm font-medium text-gray-600">{dateField.label}</p>
+							<p
+								className={`flex h-9 items-center rounded-lg border border-gray-200 px-3 text-sm ${dateField.date ? "text-gray-800" : "text-gray-400"}`}
+							>
+								{dateField.date
+									? format(dateField.date, "do MMMM, yyyy")
+									: "Eg. 22nd December, 2026"}
+							</p>
+						</div>
+					))}
+				</div>
+				<Calendar
+					mode="range"
+					numberOfMonths={2}
+					showOutsideDays={false}
+					resetOnSelect
+					selected={draftDateRange}
+					onSelect={setDraftDateRange}
+					month={calendarMonth}
+					onMonthChange={setCalendarMonth}
+					disabled={{ after: today }}
+					endMonth={today}
+				/>
 			</div>
-			<Calendar
-				mode="range"
-				numberOfMonths={2}
-				showOutsideDays={false}
-				resetOnSelect
-				selected={draftDateRange}
-				onSelect={setDraftDateRange}
-				month={calendarMonth}
-				onMonthChange={setCalendarMonth}
-				disabled={{ after: today }}
-				endMonth={today}
-			/>
 			<DialogFooter className="gap-3 p-4 sm:justify-end">
 				<Button
 					type="button"
