@@ -276,13 +276,13 @@ function DiagnosisDetailsOverview({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Diagnosis ID:</span>
-						<CopyIdButton id={diagnosis.diagnosisId} className="text-sm" />
+						<CopyIdButton id={diagnosis.diagnosisId} />
 					</div>
 					<div className="flex items-center gap-2">
 						{diagnosis.encounterId ? (
 							<>
 								<span className="text-gray-400">Encounter ID:</span>
-								<CopyIdButton id={diagnosis.encounterId} className="text-sm" />
+								<CopyIdButton id={diagnosis.encounterId} />
 							</>
 						) : null}
 					</div>
@@ -376,12 +376,12 @@ function DiagnosisDetailsEditForm({
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Diagnosis ID:</span>
-						<CopyIdButton id={diagnosis.diagnosisId} className="text-sm" />
+						<CopyIdButton id={diagnosis.diagnosisId} />
 					</div>
 					{diagnosis.encounterId ? (
 						<div className="flex items-center gap-2">
 							<span className="text-gray-400">Encounter ID:</span>
-							<CopyIdButton id={diagnosis.encounterId} className="text-sm" />
+							<CopyIdButton id={diagnosis.encounterId} />
 						</div>
 					) : null}
 				</div>
@@ -780,7 +780,7 @@ function DiagnosisRelatedRecordSection({
 									<span className="min-w-0 truncate font-medium text-gray-600">{record.name}</span>
 									<StatusBadge status={record.status} className="shrink-0" />
 								</div>
-								<CopyIdButton id={record.id} className="text-sm" />
+								<CopyIdButton id={record.id} />
 							</div>
 						))}
 					</div>

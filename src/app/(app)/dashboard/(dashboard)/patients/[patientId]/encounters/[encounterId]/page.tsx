@@ -157,11 +157,11 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 						<DetailItem label="Visit date" value={visitDateLabel} />
 						<div className="flex flex-col items-start gap-2">
 							<span className="text-sm text-gray-400">Encounter ID</span>
-							<CopyIdButton id={encounter.encounterId} className="text-sm" />
+							<CopyIdButton id={encounter.encounterId} />
 						</div>
 						<div className="flex flex-col items-start gap-2">
 							<span className="text-sm text-gray-400">Patient ID</span>
-							<CopyIdButton id={encounter.patientId} className="text-sm" />
+							<CopyIdButton id={encounter.patientId} />
 						</div>
 						<DetailItem label="Reason for visit" value={encounter.reason} />
 						<DetailItem

@@ -267,12 +267,12 @@ function AllergyDetailsOverview({ allergy }: { allergy: AllergyDetailsType }) {
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Allergy ID:</span>
-						<CopyIdButton id={allergy.allergyId} className="text-sm" />
+						<CopyIdButton id={allergy.allergyId} />
 					</div>
 					{allergy.encounterId ? (
 						<div className="flex items-center gap-2">
 							<span className="text-gray-400">Encounter ID:</span>
-							<CopyIdButton id={allergy.encounterId} className="text-sm" />
+							<CopyIdButton id={allergy.encounterId} />
 						</div>
 					) : null}
 				</div>
@@ -360,12 +360,12 @@ function AllergyDetailsEditForm({
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Allergy ID:</span>
-						<CopyIdButton id={allergy.allergyId} className="text-sm" />
+						<CopyIdButton id={allergy.allergyId} />
 					</div>
 					{allergy.encounterId ? (
 						<div className="flex items-center gap-2">
 							<span className="text-gray-400">Encounter ID:</span>
-							<CopyIdButton id={allergy.encounterId} className="text-sm" />
+							<CopyIdButton id={allergy.encounterId} />
 						</div>
 					) : null}
 				</div>

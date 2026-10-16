@@ -319,12 +319,12 @@ function ImmunizationDetailsOverview({ immunization }: { immunization: Immunizat
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Immunization ID:</span>
-						<CopyIdButton id={immunization.immunizationId} className="text-sm" />
+						<CopyIdButton id={immunization.immunizationId} />
 					</div>
 					{immunization.encounterId ? (
 						<div className="flex items-center gap-2">
 							<span className="text-gray-400">Encounter ID:</span>
-							<CopyIdButton id={immunization.encounterId} className="text-sm" />
+							<CopyIdButton id={immunization.encounterId} />
 						</div>
 					) : null}
 				</div>
@@ -398,12 +398,12 @@ function ImmunizationDetailsEditForm({
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Immunization ID:</span>
-						<CopyIdButton id={immunization.immunizationId} className="text-sm" />
+						<CopyIdButton id={immunization.immunizationId} />
 					</div>
 					{immunization.encounterId ? (
 						<div className="flex items-center gap-2">
 							<span className="text-gray-400">Encounter ID:</span>
-							<CopyIdButton id={immunization.encounterId} className="text-sm" />
+							<CopyIdButton id={immunization.encounterId} />
 						</div>
 					) : null}
 				</div>

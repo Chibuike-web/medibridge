@@ -130,11 +130,11 @@ function VitalDetailsOverview({
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
 					<span className="text-gray-400">Vital ID:</span>
-					<CopyIdButton id={vital.vitalId} className="text-sm" />
+					<CopyIdButton id={vital.vitalId} />
 				</div>
 				<div className="flex items-center gap-2">
 					<span className="text-gray-400">Encounter ID:</span>
-					<CopyIdButton id={vital.encounterId} className="text-sm" />
+					<CopyIdButton id={vital.encounterId} />
 				</div>
 			</div>
 
@@ -175,11 +175,11 @@ function VitalDetailsEditForm({ vital }: { vital: VitalType }) {
 			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 				<div className="flex items-center gap-2">
 					<span className="text-gray-400">Vital ID:</span>
-					<CopyIdButton id={vital.vitalId} className="text-sm" />
+					<CopyIdButton id={vital.vitalId} />
 				</div>
 				<div className="flex items-center gap-2">
 					<span className="text-gray-400">Encounter ID:</span>
-					<CopyIdButton id={vital.encounterId} className="text-sm" />
+					<CopyIdButton id={vital.encounterId} />
 				</div>
 			</div>
 

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { RiInformationLine } from "@remixicon/react";
+import { RiInformationFill } from "@remixicon/react";
 import { SharedRecordsClient } from "./shared-records-client";
 import { getSharedSection, type SharedPatient } from "./shared-record-sections";
 import { SharedTabs } from "./shared-tabs";
@@ -76,8 +76,8 @@ function SharedAccessBanner({
 }) {
 	return (
 		<div className="bg-[#fff3c4] text-[#b94600]">
-			<div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-6 py-4">
-				<RiInformationLine className="shrink-0" aria-hidden="true" />
+			<div className="mx-auto flex w-full max-w-7xl items-start gap-2 px-6 py-4">
+				<RiInformationFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
 				<div className="flex flex-col gap-1 text-sm leading-5">
 					<p className="font-semibold">Shared Patient Record</p>
 					<p>

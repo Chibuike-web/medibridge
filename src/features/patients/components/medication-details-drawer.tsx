@@ -322,12 +322,12 @@ function MedicationDetailsOverview({ medication }: { medication: MedicationDetai
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Medication ID:</span>
-						<CopyIdButton id={medication.medicationId} className="text-sm" />
+						<CopyIdButton id={medication.medicationId} />
 					</div>
 					{medication.encounterId ? (
 						<div className="flex items-center gap-2">
 							<span className="text-gray-400">Encounter ID:</span>
-							<CopyIdButton id={medication.encounterId} className="text-sm" />
+							<CopyIdButton id={medication.encounterId} />
 						</div>
 					) : null}
 				</div>
@@ -422,12 +422,12 @@ function MedicationDetailsEditForm({
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Medication ID:</span>
-						<CopyIdButton id={medication.medicationId} className="text-sm" />
+						<CopyIdButton id={medication.medicationId} />
 					</div>
 					{medication.encounterId ? (
 						<div className="flex items-center gap-2">
 							<span className="text-gray-400">Encounter ID:</span>
-							<CopyIdButton id={medication.encounterId} className="text-sm" />
+							<CopyIdButton id={medication.encounterId} />
 						</div>
 					) : null}
 				</div>

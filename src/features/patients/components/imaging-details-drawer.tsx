@@ -328,12 +328,12 @@ function ImagingDetailsOverview({ imaging }: { imaging: ImagingType }) {
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Imaging ID:</span>
-						<CopyIdButton id={imaging.imagingId} className="text-sm" />
+						<CopyIdButton id={imaging.imagingId} />
 					</div>
 					{imaging.encounterId ? (
 						<div className="flex items-center gap-2">
 							<span className="text-gray-400">Encounter ID:</span>
-							<CopyIdButton id={imaging.encounterId} className="text-sm" />
+							<CopyIdButton id={imaging.encounterId} />
 						</div>
 					) : null}
 				</div>
@@ -660,12 +660,12 @@ function ImagingDetailsEditForm({
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Imaging ID:</span>
-						<CopyIdButton id={imaging.imagingId} className="text-sm" />
+						<CopyIdButton id={imaging.imagingId} />
 					</div>
 					{imaging.encounterId ? (
 						<div className="flex items-center gap-2">
 							<span className="text-gray-400">Encounter ID:</span>
-							<CopyIdButton id={imaging.encounterId} className="text-sm" />
+							<CopyIdButton id={imaging.encounterId} />
 						</div>
 					) : null}
 				</div>

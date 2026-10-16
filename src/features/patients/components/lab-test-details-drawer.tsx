@@ -289,7 +289,7 @@ function LabTestDetailsOverview({ labTest }: { labTest: LabTestType }) {
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Lab ID</span>
-						<CopyIdButton id={labTest.labId} className="text-sm" />
+						<CopyIdButton id={labTest.labId} />
 					</div>
 				</div>
 				<p className="flex flex-wrap items-center gap-2 font-medium">
@@ -628,12 +628,12 @@ function LabTestDetailsEditForm({
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Lab ID:</span>
-						<CopyIdButton id={labTest.labId} className="text-sm" />
+						<CopyIdButton id={labTest.labId} />
 					</div>
 					{labTest.encounterId ? (
 						<div className="flex items-center gap-2">
 							<span className="text-gray-400">Encounter ID:</span>
-							<CopyIdButton id={labTest.encounterId} className="text-sm" />
+							<CopyIdButton id={labTest.encounterId} />
 						</div>
 					) : null}
 				</div>

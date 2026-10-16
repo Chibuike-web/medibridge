@@ -1,6 +1,6 @@
 "use client";
 
-import { RiCloseLine } from "@remixicon/react";
+import { RiCheckboxCircleFill, RiCloseLine, RiErrorWarningFill } from "@remixicon/react";
 
 import { useState, useTransition } from "react";
 import { approvePatientTransferAction, rejectPatientTransferAction } from "./actions";
@@ -85,6 +85,26 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 			</div>
 
 			<div className="grid gap-6 p-6">
+				{hasPatientApprovedTransfer ? (
+					<StatusMessage
+						key="approved"
+						tone="success"
+						message="You approved this transfer request."
+					/>
+				) : null}
+
+				{hasPatientRejectedTransfer ? (
+					<StatusMessage
+						key="rejected"
+						tone="danger"
+						message={
+							rejectionReason
+								? `You rejected this transfer request. Reason: ${rejectionReason}`
+								: "You rejected this transfer request."
+						}
+					/>
+				) : null}
+
 				<div className="grid gap-4 rounded-xl bg-gray-50 p-4 ring-1 ring-gray-200 sm:grid-cols-2">
 					<DetailItem label="Patient" value={transfer.patientName} />
 					<DetailItem label="Patient ID" value={transfer.patientId} />
@@ -115,26 +135,6 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 						)}
 					</div>
 				</div>
-
-				{hasPatientApprovedTransfer ? (
-					<StatusMessage
-						key="approved"
-						tone="success"
-						message="You approved this transfer request."
-					/>
-				) : null}
-
-				{hasPatientRejectedTransfer ? (
-					<StatusMessage
-						key="rejected"
-						tone="danger"
-						message={
-							rejectionReason
-								? `You rejected this transfer request. Reason: ${rejectionReason}`
-								: "You rejected this transfer request."
-						}
-					/>
-				) : null}
 
 				{approvalSubmissionError && canPatientStillApproveOrRejectTransfer ? (
 					<p className="text-sm text-red-600">{approvalSubmissionError}</p>
@@ -231,16 +231,25 @@ function StatusMessage({ tone, message }: { tone: "success" | "danger"; message:
 			role={tone === "success" ? "status" : "alert"}
 			className={
 				tone === "success"
-					? "flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
-					: "flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+					? "flex items-start gap-2 rounded-xl bg-emerald-50 px-3 py-3 text-left text-sm font-medium text-emerald-700"
+					: "flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
 			}
 		>
-			<span className="min-w-0 flex-1">{message}</span>
+			{tone === "success" ? (
+				<RiCheckboxCircleFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+			) : (
+				<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+			)}
+			<p className="min-w-0 flex-1 text-pretty">{message}</p>
 			<Button
 				type="button"
 				variant="ghost"
 				size="icon"
-				className="ml-auto -my-1 size-6 rounded-full"
+				className={
+					tone === "success"
+						? "ml-auto -my-1 size-6 rounded-full text-emerald-700 hover:bg-emerald-100 hover:text-emerald-700"
+						: "ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+				}
 				aria-label="Dismiss status message"
 				onClick={() => setIsStatusMessageDismissed(true)}
 			>

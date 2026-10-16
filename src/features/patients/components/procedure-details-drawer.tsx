@@ -296,12 +296,12 @@ function ProcedureDetailsOverview({ procedure }: { procedure: ProcedureDetailsTy
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Procedure ID:</span>
-						<CopyIdButton id={procedure.procedureId} className="text-sm" />
+						<CopyIdButton id={procedure.procedureId} />
 					</div>
 					{procedure.encounterId ? (
 						<div className="flex items-center gap-2">
 							<span className="text-gray-400">Encounter ID:</span>
-							<CopyIdButton id={procedure.encounterId} className="text-sm" />
+							<CopyIdButton id={procedure.encounterId} />
 						</div>
 					) : null}
 				</div>
@@ -434,12 +434,12 @@ function ProcedureDetailsEditForm({
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Procedure ID:</span>
-						<CopyIdButton id={procedure.procedureId} className="text-sm" />
+						<CopyIdButton id={procedure.procedureId} />
 					</div>
 					{procedure.encounterId ? (
 						<div className="flex items-center gap-2">
 							<span className="text-gray-400">Encounter ID:</span>
-							<CopyIdButton id={procedure.encounterId} className="text-sm" />
+							<CopyIdButton id={procedure.encounterId} />
 						</div>
 					) : null}
 				</div>
@@ -813,7 +813,7 @@ function ProcedureRelatedRecordSection({
 							<span className="min-w-0 truncate font-medium text-gray-600">{record.name}</span>
 							<StatusBadge status={record.status} className="shrink-0" />
 						</div>
-						<CopyIdButton id={record.id} className="text-sm" />
+						<CopyIdButton id={record.id} />
 					</div>
 				</div>
 			</div>
