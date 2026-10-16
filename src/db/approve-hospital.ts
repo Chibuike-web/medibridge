@@ -5,7 +5,7 @@ import * as schema from "./schemas";
 import { ENV } from "../lib/utils/env";
 import { sendHospitalApprovedEmail } from "../lib/utils/send-email";
 
-const sql = postgres(ENV.DATABASE_URL!);
+const sql = postgres(ENV.DATABASE_URL!, { connection: { TimeZone: "UTC" } });
 const db = drizzle({ client: sql, schema });
 
 async function listPendingHospitals() {
