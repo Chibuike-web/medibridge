@@ -389,12 +389,12 @@ export function TransfersClient({
 	return (
 		<div className="h-full overflow-y-auto">
 			<section className="mx-auto flex w-full max-w-7xl flex-col px-6 py-6 lg:px-10">
-				<header className="mb-4 flex items-center gap-4 text-sm">
+				<header className="mb-4 flex flex-col gap-4 text-sm">
 					<h1 className="text-lg font-semibold text-balance text-gray-800 tracking-[-0.015em]">
 						Transfers
 					</h1>
-					<div className="flex items-center gap-2 flex-1 justify-end">
-						<div className="relative min-w-[12.5rem] max-w-[31.25rem] flex-1">
+					<div className="flex items-center gap-2">
+						<div className="relative flex-1">
 							<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 							<Input
 								type="search"
