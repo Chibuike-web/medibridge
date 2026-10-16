@@ -93,8 +93,7 @@ export function PhysicalInformation({
 				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
 				<DropdownMenuItem
-					onSelect={(e) => {
-						e.preventDefault();
+					onSelect={() => {
 						setIsPhysicalInformationDialogOpen(true);
 					}}
 					className="flex items-center rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
@@ -173,7 +172,6 @@ export function PhysicalInformation({
 								name="height"
 								defaultValue={getPhysicalInformationValue(optimisticPhysicalInformation, "Height")}
 								placeholder="e.g. 172 cm"
-								type="number"
 							/>
 						</div>
 
@@ -184,7 +182,6 @@ export function PhysicalInformation({
 								name="weight"
 								defaultValue={getPhysicalInformationValue(optimisticPhysicalInformation, "Weight")}
 								placeholder="e.g. 68 kg"
-								type="number"
 							/>
 						</div>
 
