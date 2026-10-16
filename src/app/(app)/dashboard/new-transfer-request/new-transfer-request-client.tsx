@@ -2,7 +2,7 @@
 
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils/cn";
-import { Fragment, startTransition, use, useEffect, useMemo, useState, useTransition } from "react";
+import { Fragment, use, useEffect, useMemo, useState, useTransition } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -17,25 +17,26 @@ import {
 } from "@/components/ui/dialog";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useSelectedTransferPatients } from "@/features/transfers/stores/use-selected-transfer-patients";
 import { useRouter } from "next/navigation";
 import { RiCheckLine, RiCloseLine } from "@remixicon/react";
 import { AttachClinicalRecords } from "@/features/transfers/components/attach-clinical-records";
 import { AnimatedPill } from "@/features/transfers/components/animated-pill";
 import { AnimatePresence } from "motion/react";
-import { EMPTY_PATIENT_TRANSFER_DATA, PatientTransferData } from "@/features/transfers/types";
+import {
+	EMPTY_PATIENT_TRANSFER_DATA,
+	type AttachedClinicalRecordsType,
+	type ClinicalRecordItem,
+	type PatientTransferData,
+	type PatientTransferDataByPatientId,
+	type SelectedTransferPatient,
+} from "@/features/transfers/types";
 import { SelectPatient } from "@/features/transfers/components/select-patient";
-import { usePatientTransferData } from "@/features/transfers/stores/use-patient-transfer-data";
 import { useShowSuccess } from "@/hooks/use-show-success";
 import { SuccessModal } from "@/components/success-modal";
-import { useAttachClinicalRecords } from "@/features/transfers/stores/use-attach-clinical-records";
 import { getPatientByIdAction } from "@/features/patients/server/get-patient-by-id-action";
-import type { SelectedTransferPatient } from "@/features/transfers/stores/use-selected-transfer-patients";
 import { truncateId } from "@/lib/utils/truncate-id";
-import type { Route } from "next";
 import { createTransferRequestsAction } from "@/features/transfers/server/actions";
 import { clinicalRecords } from "@/features/transfers/data";
-import { getStringParam } from "@/lib/utils/search-params";
 
 type NewTransferRequestClientProps = Pick<
 	PageProps<"/dashboard/new-transfer-request">,
@@ -52,24 +53,13 @@ export function NewTransferRequestClient({
 	patientOptionsLimit,
 	totalPatientPages,
 }: NewTransferRequestClientProps) {
-	const {
-		selectedTransferPatients,
-		removeSelectedTransferPatient,
-		addSelectedTransferPatient,
-		clearSelectedTransferPatients,
-	} = useSelectedTransferPatients();
-	const {
-		patientTransferDataByPatientId,
-		setPatientTransferDataByPatientId,
-		removePatientTransferDataByPatientId,
-		clearPatientTransferDataByPatientId,
-		isPatientTransferDataHydrated,
-	} = usePatientTransferData();
-	const {
-		attachedClinicalRecordsByPatientId,
-		removeAttachedClinicalRecordsForPatient,
-		clearAttachedClinicalRecords,
-	} = useAttachClinicalRecords();
+	const [selectedTransferPatients, setSelectedTransferPatients] = useState<
+		SelectedTransferPatient[]
+	>([]);
+	const [patientTransferDataByPatientId, setPatientTransferDataByPatientId] =
+		useState<PatientTransferDataByPatientId>({});
+	const [attachedClinicalRecordsByPatientId, setAttachedClinicalRecordsByPatientId] =
+		useState<AttachedClinicalRecordsType>({});
 	const { isSuccessModalOpen, setIsSuccessModalOpen } = useShowSuccess();
 	const [activeTransferPatientId, setActiveTransferPatientId] = useState<string | null>(null);
 	const router = useRouter();
@@ -79,12 +69,9 @@ export function NewTransferRequestClient({
 	const [transferSubmissionError, setTransferSubmissionError] = useState<string | null>(null);
 	const [transferSubmissionMessage, setTransferSubmissionMessage] = useState("");
 	const [isSubmittingTransferRequests, startTransferRequestSubmission] = useTransition();
+	const [isRestoringPatients, startRestoringPatients] = useTransition();
 	const params = use(searchParams);
 	const patientIds = useMemo(() => normalizePatientIds(params.patientId), [params.patientId]);
-	const primaryPatientId = patientIds[0];
-	const transferRequestHrefWithoutPatientIds = getTransferRequestHrefWithoutPatientIds(
-		getStringParam(params.returnTo),
-	);
 
 	const isComplete = selectedTransferPatients.every((p) => {
 		const transferData = patientTransferDataByPatientId[p.patientId] ?? EMPTY_PATIENT_TRANSFER_DATA;
@@ -102,14 +89,26 @@ export function NewTransferRequestClient({
 		...(patientTransferDataByPatientId[activePatient] ?? {}),
 	};
 
-	function handleRemovePatient(patient: { patientId: string; name: string }) {
-		removeSelectedTransferPatient(patient);
-		removePatientTransferDataByPatientId(patient.patientId);
-		removeAttachedClinicalRecordsForPatient(patient.patientId);
+	function handleRemovePatient(patient: SelectedTransferPatient) {
+		setSelectedTransferPatients((prev) =>
+			prev.filter((selectedPatient) => selectedPatient.patientId !== patient.patientId),
+		);
+		setPatientTransferDataByPatientId((prev) =>
+			Object.fromEntries(
+				Object.entries(prev).filter(([patientId]) => patientId !== patient.patientId),
+			),
+		);
+		setAttachedClinicalRecordsByPatientId((prev) =>
+			Object.fromEntries(
+				Object.entries(prev).filter(([patientId]) => patientId !== patient.patientId),
+			),
+		);
 
-		if (patientIds.includes(patient.patientId)) {
-			router.replace(transferRequestHrefWithoutPatientIds);
-		}
+		replacePatientIdsInUrl(
+			selectedTransferPatients
+				.filter((selectedPatient) => selectedPatient.patientId !== patient.patientId)
+				.map((selectedPatient) => selectedPatient.patientId),
+		);
 
 		if (selectedTransferPatients.length === 1) {
 			setCurrentTransferRequestStep(1);
@@ -132,31 +131,57 @@ export function NewTransferRequestClient({
 	const clinicalRecordLabelByType: Record<string, string> = Object.fromEntries(
 		clinicalRecords.map((clinicalRecord) => [clinicalRecord.id, clinicalRecord.label]),
 	);
-	const selectedPatientIds = new Set(selectedTransferPatients.map((patient) => patient.patientId));
+	function handleTogglePatient(patient: SelectedTransferPatient) {
+		if (
+			selectedTransferPatients.some(
+				(selectedPatient) => selectedPatient.patientId === patient.patientId,
+			)
+		) {
+			handleRemovePatient(patient);
+			return;
+		}
+
+		setSelectedTransferPatients((prev) => [...prev, patient]);
+		replacePatientIdsInUrl([
+			...selectedTransferPatients.map((selectedPatient) => selectedPatient.patientId),
+			patient.patientId,
+		]);
+	}
+
+	function handleToggleAttachedRecord(record: ClinicalRecordItem) {
+		setAttachedClinicalRecordsByPatientId((prev) => {
+			const records = prev[activePatient] ?? [];
+
+			return {
+				...prev,
+				[activePatient]: records.some((attachedRecord) => attachedRecord.id === record.id)
+					? records.filter((attachedRecord) => attachedRecord.id !== record.id)
+					: [...records, record],
+			};
+		});
+	}
 
 	useEffect(
 		function initializePatientsFromParams() {
 			if (patientIds.length === 0) return;
 
-			const patientIdsToAdd = patientIds.filter((patientId) => !selectedPatientIds.has(patientId));
-
-			if (patientIdsToAdd.length === 0) return;
-
-			startTransition(async () => {
+			startRestoringPatients(async () => {
 				const patientsToAdd = await Promise.all(
-					patientIdsToAdd.map((patientIdToAdd) => getPatientByIdAction(patientIdToAdd)),
+					patientIds.map((patientIdToAdd) => getPatientByIdAction(patientIdToAdd)),
 				);
 
-				patientsToAdd.forEach((patient) => {
-					if (!patient) return;
-					addSelectedTransferPatient({
-						name: `${patient.firstName} ${patient.lastName}`,
-						patientId: patient.patientId,
-					});
-				});
+				setSelectedTransferPatients((prev) => [
+					...prev,
+					...patientsToAdd.flatMap((patient) =>
+						patient &&
+						!prev.some((selectedPatient) => selectedPatient.patientId === patient.patientId)
+							? [{ name: `${patient.firstName} ${patient.lastName}`, patientId: patient.patientId }]
+							: [],
+					),
+				]);
 			});
 		},
-		[addSelectedTransferPatient, patientIds],
+		[patientIds],
 	);
 
 	function handleSubmitTransferRequests() {
@@ -192,19 +217,16 @@ export function NewTransferRequestClient({
 				return;
 			}
 
-			clearSelectedTransferPatients();
-			clearPatientTransferDataByPatientId();
-			clearAttachedClinicalRecords();
+			setSelectedTransferPatients([]);
+			replacePatientIdsInUrl([]);
+			setPatientTransferDataByPatientId({});
+			setAttachedClinicalRecordsByPatientId({});
 			setTransferSubmissionMessage(result.message);
 			setIsTransferConfirmationOpen(false);
 			setIsTransferConfirmationChecked(false);
 			setIsSuccessModalOpen(true);
 			router.refresh();
 		});
-	}
-
-	if (!isPatientTransferDataHydrated) {
-		return <div className="w-full" />;
 	}
 
 	return (
@@ -217,8 +239,10 @@ export function NewTransferRequestClient({
 				{currentTransferRequestStep === 1 ? (
 					<>
 						<SelectPatient
-							patientId={primaryPatientId}
-							clearPatientIdHref={transferRequestHrefWithoutPatientIds}
+							selectedTransferPatients={selectedTransferPatients}
+							isRestoringPatients={isRestoringPatients}
+							onPatientToggle={handleTogglePatient}
+							onPatientRemove={handleRemovePatient}
 							patients={patients}
 							page={1}
 							limit={patientOptionsLimit}
@@ -277,7 +301,11 @@ export function NewTransferRequestClient({
 							</AnimatePresence>
 						</div>
 						<Fragment key={activePatient}>
-							<AttachClinicalRecords activePatient={activePatient} />
+							<AttachClinicalRecords
+								activePatient={activePatient}
+								attachedRecords={attachedRecordsForActivePatient}
+								onRecordToggle={handleToggleAttachedRecord}
+							/>
 
 							<div className="mt-3 flex flex-col gap-2.5 text-sm text-foreground/70">
 								{attachedRecordsForActivePatient.length > 0 && (
@@ -516,11 +544,9 @@ function normalizePatientIds(value: string | string[] | undefined) {
 	return [...new Set(patientIds.map((patientId) => patientId.trim()).filter(Boolean))];
 }
 
-function getTransferRequestHrefWithoutPatientIds(returnTo: string | undefined): Route {
-	if (!returnTo) return "/dashboard/new-transfer-request";
-
-	const nextParams = new URLSearchParams();
-	nextParams.set("returnTo", returnTo);
-
-	return `/dashboard/new-transfer-request?${nextParams.toString()}` as Route;
+function replacePatientIdsInUrl(patientIds: string[]) {
+	const url = new URL(window.location.href);
+	url.searchParams.delete("patientId");
+	patientIds.forEach((patientId) => url.searchParams.append("patientId", patientId));
+	window.history.replaceState(null, "", url);
 }

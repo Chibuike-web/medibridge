@@ -4,13 +4,24 @@ export type ClinicalRecord = {
 };
 
 export type ClinicalRecordType =
-	"diagnoses" | "allergies" | "immunizations" | "procedures" | "medications" | "lab-tests" | "imaging";
+	| "diagnoses"
+	| "allergies"
+	| "immunizations"
+	| "procedures"
+	| "medications"
+	| "lab-tests"
+	| "imaging";
 
 export type ClinicalRecordItem = {
 	id: string;
 	name: string;
 	type: ClinicalRecordType;
 	createdAt?: string;
+};
+
+export type SelectedTransferPatient = {
+	name: string;
+	patientId: string;
 };
 
 export type PatientTransferData = {

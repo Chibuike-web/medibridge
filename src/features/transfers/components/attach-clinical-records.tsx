@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MultiSelectItem } from "@/components/multi-select-item";
 import { clinicalRecords } from "@/features/transfers/data";
-import { useAttachClinicalRecords } from "@/features/transfers/stores/use-attach-clinical-records";
 import type { ClinicalRecordItem, ClinicalRecordType } from "@/features/transfers/types";
 import { cn } from "@/lib/utils/cn";
 
@@ -26,10 +25,16 @@ const clinicalRecordOptionsLimit = 8;
 
 type ClinicalRecordOptionsRequestError = Error & { status?: number };
 
-export function AttachClinicalRecords({ activePatient }: { activePatient: string }) {
+export function AttachClinicalRecords({
+	activePatient,
+	attachedRecords,
+	onRecordToggle,
+}: {
+	activePatient: string;
+	attachedRecords: ClinicalRecordItem[];
+	onRecordToggle: (record: ClinicalRecordItem) => void;
+}) {
 	const router = useRouter();
-	const { attachedClinicalRecordsByPatientId, toggleAttachedClinicalRecordForPatient } =
-		useAttachClinicalRecords();
 	const [activeTabId, setActiveTabId] = useState(clinicalRecords[0].id);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [clinicalRecordOptionsPage, setClinicalRecordOptionsPage] = useState(1);
@@ -62,7 +67,6 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 		[activeTabId],
 	);
 
-	const allSelectedRecordsForPatient = attachedClinicalRecordsByPatientId[activePatient] ?? [];
 	const activeTab =
 		clinicalRecords.find((record) => record.id === activeTabId) ?? clinicalRecords[0];
 	const normalizedSearchQuery = searchQuery.trim().toLowerCase();
@@ -99,10 +103,10 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 		clinicalRecordOptionsQuery.isLoading || clinicalRecordOptionsQuery.isValidating;
 
 	const selectedRecordIds = useMemo(
-		() => new Set(allSelectedRecordsForPatient.map((record) => record.id)),
-		[allSelectedRecordsForPatient],
+		() => new Set(attachedRecords.map((record) => record.id)),
+		[attachedRecords],
 	);
-	const selectedRecordsForActiveTab = allSelectedRecordsForPatient.filter(
+	const selectedRecordsForActiveTab = attachedRecords.filter(
 		(record) => record.type === activeTab.id,
 	);
 	const selectedVisibleRecordsCount = recordsForActiveTab.filter((record) =>
@@ -118,7 +122,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 			const isSelected = selectedRecordIds.has(id);
 
 			if (areAllVisibleRecordsSelected ? isSelected : !isSelected) {
-				toggleAttachedClinicalRecordForPatient(activePatient, {
+				onRecordToggle({
 					id,
 					name,
 					type: activeTab.id,
@@ -263,7 +267,7 @@ export function AttachClinicalRecords({ activePatient }: { activePatient: string
 									key={id}
 									isSelected={selectedRecordIds.has(id)}
 									onClick={() =>
-										toggleAttachedClinicalRecordForPatient(activePatient, {
+										onRecordToggle({
 											id,
 											name,
 											type: activeTab.id,

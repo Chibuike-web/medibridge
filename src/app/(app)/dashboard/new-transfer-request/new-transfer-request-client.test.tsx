@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SWRConfig } from "swr";
-import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import type { ClinicalRecordItem, SelectedTransferPatient } from "@/features/transfers/types";
+import { NewTransferRequestClient } from "./new-transfer-request-client";
 
 vi.mock("next/navigation", () => ({
 	useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
@@ -18,69 +20,80 @@ const amara = { patientId: "patient-amara", name: "Amara Okafor" };
 
 async function renderStepTwo({
 	patients,
-	attachedRecords,
+	records = [],
 }: {
-	patients: (typeof fatima)[];
-	attachedRecords: Record<string, { id: string; name: string; type: string }[]>;
+	patients: SelectedTransferPatient[];
+	records?: ClinicalRecordItem[];
 }) {
-	localStorage.setItem(
-		"selected-transfer-patients",
-		JSON.stringify({ state: { selectedTransferPatients: patients }, version: 0 }),
+	vi.stubGlobal(
+		"fetch",
+		vi.fn(async (url: string) => {
+			const type = new URL(url, "http://localhost").searchParams.get("type");
+			const recordsOfType = records.filter((record) => record.type === type);
+
+			return Response.json({
+				patients,
+				records: recordsOfType,
+				page: 1,
+				totalPages: 1,
+				totalRecords: recordsOfType.length,
+			});
+		}),
 	);
-	localStorage.setItem(
-		"attached-clinical-records",
-		JSON.stringify({ state: { attachedClinicalRecordsByPatientId: attachedRecords }, version: 2 }),
-	);
-	const { NewTransferRequestClient } = await import("./new-transfer-request-client");
 	const user = userEvent.setup();
 
 	render(
 		<SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
 			<NewTransferRequestClient
 				searchParams={Object.assign(Promise.resolve({}), { status: "fulfilled", value: {} })}
-				patients={[]}
+				patients={patients}
 				patientOptionsLimit={20}
 				totalPatientPages={1}
 			/>
 		</SWRConfig>,
 	);
-	await user.click(await screen.findByRole("button", { name: "Continue" }));
+	await user.click(screen.getByRole("button", { name: "Select patient" }));
+	for (const patient of patients) {
+		await user.click(screen.getByRole("button", { name: new RegExp(patient.name) }));
+	}
+	await user.keyboard("{Escape}");
+	await user.click(screen.getByRole("button", { name: "Continue" }));
 	await screen.findByText("Step 2/2");
 
 	return user;
 }
 
+async function attachRecords(
+	user: ReturnType<typeof userEvent.setup>,
+	tab: string,
+	recordNames: string[],
+) {
+	await user.click(screen.getByRole("tab", { name: tab }));
+	await user.click(screen.getByRole("button", { name: `Select ${tab.toLowerCase()} records` }));
+	for (const recordName of recordNames) {
+		await user.click(await screen.findByRole("button", { name: new RegExp(recordName) }));
+	}
+	await user.keyboard("{Escape}");
+}
+
 describe("new transfer request, step 2", () => {
-	beforeAll(async () => {
-		await import("./new-transfer-request-client");
-	}, 30_000);
-
-	beforeEach(() => {
-		vi.resetModules();
-		localStorage.clear();
-		vi.stubGlobal(
-			"fetch",
-			vi.fn(async () =>
-				Response.json({ patients: [], records: [], page: 1, totalPages: 1, totalRecords: 0 }),
-			),
-		);
-	});
-
 	afterEach(() => {
 		vi.unstubAllGlobals();
+		window.history.replaceState(null, "", "/");
 	});
 
 	test("counts every attached record, not the number of record types", async () => {
-		await renderStepTwo({
+		const user = await renderStepTwo({
 			patients: [fatima],
-			attachedRecords: {
-				[fatima.patientId]: [
-					{ id: "DIA-1", name: "Asthma", type: "diagnoses" },
-					{ id: "DIA-2", name: "Hypertension", type: "diagnoses" },
-					{ id: "ALLE-1", name: "Penicillin", type: "allergies" },
-				],
-			},
+			records: [
+				{ id: "DIA-1", name: "Asthma", type: "diagnoses" },
+				{ id: "DIA-2", name: "Hypertension", type: "diagnoses" },
+				{ id: "ALLE-1", name: "Penicillin", type: "allergies" },
+			],
 		});
+
+		await attachRecords(user, "Diagnoses", ["Asthma", "Hypertension"]);
+		await attachRecords(user, "Allergies", ["Penicillin"]);
 
 		expect(screen.getByText("3 records selected")).toBeVisible();
 	});
@@ -88,10 +101,9 @@ describe("new transfer request, step 2", () => {
 	test("lets the user continue as soon as the target hospital details are typed", async () => {
 		const user = await renderStepTwo({
 			patients: [fatima],
-			attachedRecords: {
-				[fatima.patientId]: [{ id: "DIA-1", name: "Asthma", type: "diagnoses" }],
-			},
+			records: [{ id: "DIA-1", name: "Asthma", type: "diagnoses" }],
 		});
+		await attachRecords(user, "Diagnoses", ["Asthma"]);
 		const continueButton = screen.getByRole("button", { name: "Continue" });
 		expect(continueButton).toBeDisabled();
 
@@ -104,7 +116,7 @@ describe("new transfer request, step 2", () => {
 	});
 
 	test("removes a selected patient from the keyboard and keeps the others", async () => {
-		const user = await renderStepTwo({ patients: [fatima, amara], attachedRecords: {} });
+		const user = await renderStepTwo({ patients: [fatima, amara] });
 		const removeFatimaButton = screen.getByRole("button", { name: "Remove Fatima Bello" });
 		expect(screen.getByRole("button", { name: "Remove Amara Okafor" })).toBeVisible();
 
@@ -113,5 +125,33 @@ describe("new transfer request, step 2", () => {
 
 		expect(screen.queryByRole("button", { name: "Remove Fatima Bello" })).not.toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "Remove Amara Okafor" })).toBeVisible();
+	});
+
+	test("keeps the selected patients in the address so a reload brings them back", async () => {
+		const user = await renderStepTwo({ patients: [fatima, amara] });
+
+		expect(new URL(window.location.href).searchParams.getAll("patientId")).toEqual([
+			fatima.patientId,
+			amara.patientId,
+		]);
+
+		await user.click(screen.getByRole("button", { name: "Remove Fatima Bello" }));
+
+		expect(new URL(window.location.href).searchParams.getAll("patientId")).toEqual([
+			amara.patientId,
+		]);
+	});
+
+	test("keeps nothing from the request in the browser's storage", async () => {
+		const user = await renderStepTwo({
+			patients: [fatima],
+			records: [{ id: "DIA-1", name: "Asthma", type: "diagnoses" }],
+		});
+		await attachRecords(user, "Diagnoses", ["Asthma"]);
+		await user.type(screen.getByLabelText(/Target Hospital Name/), "Enugu State Teaching Hospital");
+
+		expect(screen.getByText("1 record selected")).toBeVisible();
+		expect(localStorage.length).toBe(0);
+		expect(sessionStorage.length).toBe(0);
 	});
 });

@@ -21,7 +21,16 @@ function renderPatientPicker() {
 				revalidateOnReconnect: false,
 			}}
 		>
-			<SelectPatient patients={[]} page={1} limit={20} totalPages={1} />
+			<SelectPatient
+				selectedTransferPatients={[]}
+				isRestoringPatients={false}
+				onPatientToggle={vi.fn()}
+				onPatientRemove={vi.fn()}
+				patients={[]}
+				page={1}
+				limit={20}
+				totalPages={1}
+			/>
 		</SWRConfig>,
 	);
 }

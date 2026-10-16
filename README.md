@@ -102,7 +102,6 @@ The application uses the Next.js App Router. Pages and layouts live under `src/a
 - Vercel AI SDK and AI Gateway for structured patient extraction
 - Tesseract.js, PDF Parse, and Mammoth for source-document extraction
 - Resend for verification and access-code email
-- Zustand for short-lived, persisted client workflow state
 - React Hook Form and Zod for form handling and validation
 - TanStack Table for data-heavy patient and transfer views
 
@@ -117,8 +116,8 @@ src/
 │   └── drizzle/         # Generated migrations
 ├── features/
 │   ├── auth/            # Auth schemas and server-action boundaries
-│   ├── patients/        # Patient tables, drawers, actions, stores, and types
-│   └── transfers/       # Transfer UI, validation, actions, and local workflow state
+│   ├── patients/        # Patient tables, drawers, actions, and types
+│   └── transfers/       # Transfer UI, validation, and actions
 ├── lib/
 │   ├── api/             # Organization-scoped database queries
 │   ├── better-auth/     # Auth server and client configuration

@@ -10,7 +10,11 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 function renderAttachmentTabs() {
 	render(
 		<SWRConfig value={{ provider: () => new Map(), revalidateOnFocus: false }}>
-			<AttachClinicalRecords activePatient="synthetic-patient" />
+			<AttachClinicalRecords
+				activePatient="synthetic-patient"
+				attachedRecords={[]}
+				onRecordToggle={vi.fn()}
+			/>
 		</SWRConfig>,
 	);
 }

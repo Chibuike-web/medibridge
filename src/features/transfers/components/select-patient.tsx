@@ -2,19 +2,14 @@
 
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import {
-	type SelectedTransferPatient,
-	useSelectedTransferPatients,
-} from "@/features/transfers/stores/use-selected-transfer-patients";
+import type { SelectedTransferPatient } from "@/features/transfers/types";
 import { RiArrowDownSLine, RiCheckLine, RiCloseLine, RiSearchLine } from "@remixicon/react";
 import { cn } from "@/lib/utils/cn";
 import { useRouter } from "next/navigation";
-import { useAttachClinicalRecords } from "../stores/use-attach-clinical-records";
 import { useState } from "react";
 import { AnimatePresence } from "motion/react";
 import { AnimatedPill } from "./animated-pill";
 import { truncateId } from "@/lib/utils/truncate-id";
-import type { Route } from "next";
 import useSWR from "swr";
 
 type PatientOptionsData = {
@@ -26,15 +21,19 @@ type PatientOptionsData = {
 type PatientOptionsRequestError = Error & { status?: number };
 
 export function SelectPatient({
-	patientId,
-	clearPatientIdHref,
+	selectedTransferPatients,
+	isRestoringPatients,
+	onPatientToggle,
+	onPatientRemove,
 	patients,
 	page,
 	limit,
 	totalPages,
 }: {
-	patientId?: string;
-	clearPatientIdHref?: Route;
+	selectedTransferPatients: SelectedTransferPatient[];
+	isRestoringPatients: boolean;
+	onPatientToggle: (patient: SelectedTransferPatient) => void;
+	onPatientRemove: (patient: SelectedTransferPatient) => void;
 	patients: SelectedTransferPatient[];
 	page: number;
 	limit: number;
@@ -73,11 +72,6 @@ export function SelectPatient({
 				error.status !== 401 && error.status !== 403,
 		},
 	);
-	const { removeAttachedClinicalRecordsForPatient } = useAttachClinicalRecords();
-
-	const { selectedTransferPatients, toggleSelectedTransferPatient, removeSelectedTransferPatient } =
-		useSelectedTransferPatients();
-
 	const selectedCount = selectedTransferPatients.length;
 	const selectedSummary =
 		selectedCount === 0 ? (
@@ -142,7 +136,7 @@ export function SelectPatient({
 										<Button
 											key={patient.patientId + patient.name}
 											type="button"
-											onClick={() => toggleSelectedTransferPatient(patient)}
+											onClick={() => onPatientToggle(patient)}
 											variant="ghost"
 											className={cn(
 												"flex w-full text-left justify-between px-3 gap-0 border-0 font-normal focus-visible:border-0",
@@ -195,31 +189,26 @@ export function SelectPatient({
 				</PopoverContent>
 			</Popover>
 			<div className="relative mt-3 flex flex-wrap items-center gap-3">
-				<AnimatePresence mode="popLayout" initial={false}>
-					{selectedTransferPatients.map((s) => (
-						<AnimatedPill
-							key={s.patientId}
-							className="text-sm bg-gray-200 text-gray-600 flex items-center gap-2 py-1.5 pl-3 pr-1.5 rounded-full"
-						>
-							{s.name.split(" ")[0]} - <span title={s.patientId}>{truncateId(s.patientId)}</span>
-							<Button
-								type="button"
-								size="icon"
-								className="size-5 flex text-white rounded-full hover:bg-gray-800"
-								onClick={() => {
-									removeSelectedTransferPatient(s);
-
-									if (s.patientId === patientId) {
-										router.replace(clearPatientIdHref ?? "/dashboard/new-transfer-request");
-									}
-									removeAttachedClinicalRecordsForPatient(s.patientId);
-								}}
+				{isRestoringPatients ? null : (
+					<AnimatePresence mode="popLayout" initial={false}>
+						{selectedTransferPatients.map((s) => (
+							<AnimatedPill
+								key={s.patientId}
+								className="text-sm bg-gray-200 text-gray-600 flex items-center gap-2 py-1.5 pl-3 pr-1.5 rounded-full"
 							>
-								<RiCloseLine size={16} />
-							</Button>
-						</AnimatedPill>
-					))}
-				</AnimatePresence>
+								{s.name.split(" ")[0]} - <span title={s.patientId}>{truncateId(s.patientId)}</span>
+								<Button
+									type="button"
+									size="icon"
+									className="size-5 flex text-white rounded-full hover:bg-gray-800"
+									onClick={() => onPatientRemove(s)}
+								>
+									<RiCloseLine size={16} />
+								</Button>
+							</AnimatedPill>
+						))}
+					</AnimatePresence>
+				)}
 			</div>
 		</div>
 	);
