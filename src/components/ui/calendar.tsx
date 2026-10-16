@@ -135,7 +135,12 @@ function Calendar({
 					<CalendarDropdown {...props} align="start" menuClassName="min-w-40" />
 				),
 				YearsDropdown: (props) => (
-					<CalendarDropdown {...props} align="end" menuClassName="min-w-30" />
+					<CalendarDropdown
+						{...props}
+						options={props.options && [...props.options].reverse()}
+						align="end"
+						menuClassName="min-w-30"
+					/>
 				),
 				WeekNumber: ({ children, ...props }) => {
 					return (

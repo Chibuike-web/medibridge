@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { addMonths, format, startOfMonth, subDays, subMonths, subYears } from "date-fns";
+import { format, startOfMonth, subDays, subMonths, subYears } from "date-fns";
+import type { DateRange } from "react-day-picker";
 import { RiArrowRightSLine, RiCalendarLine, RiCheckLine, RiCloseLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -116,39 +117,18 @@ function DateRangeFields({
 	dateRangeFilter: DateRangeFilter;
 	onClose: () => void;
 }) {
-	const [draftStartDate, setDraftStartDate] = useState(
-		() => parseDateParam(dateRangeFilter.from) ?? undefined,
-	);
-	const [draftEndDate, setDraftEndDate] = useState(
-		() => parseDateParam(dateRangeFilter.to) ?? undefined,
-	);
 	const today = new Date();
-	const [startCalendarMonth, setStartCalendarMonth] = useState(() =>
-		startOfMonth(draftStartDate ?? subMonths(today, 1)),
-	);
-	const [endCalendarMonth, setEndCalendarMonth] = useState(() =>
-		startOfMonth(draftEndDate ?? today),
+	const [draftDateRange, setDraftDateRange] = useState<DateRange | undefined>(() => {
+		const from = parseDateParam(dateRangeFilter.from) ?? undefined;
+		const to = parseDateParam(dateRangeFilter.to) ?? undefined;
+		return from ? { from, to } : undefined;
+	});
+	const [calendarMonth, setCalendarMonth] = useState(() =>
+		startOfMonth(subMonths(draftDateRange?.to ?? today, 1)),
 	);
 	const dateFields = [
-		{
-			label: "Start date",
-			date: draftStartDate,
-			onSelect: setDraftStartDate,
-			disabled: draftEndDate ? { after: draftEndDate } : undefined,
-			month: startCalendarMonth,
-			onMonthChange: setStartCalendarMonth,
-			endMonth: today,
-		},
-		{
-			label: "End date",
-			date: draftEndDate,
-			onSelect: setDraftEndDate,
-			disabled: draftStartDate ? { before: draftStartDate } : undefined,
-			month: endCalendarMonth,
-			onMonthChange: setEndCalendarMonth,
-			startMonth: addMonths(startCalendarMonth, 1),
-			endMonth: new Date(today.getFullYear() + 10, 11),
-		},
+		{ label: "Start date", date: draftDateRange?.from },
+		{ label: "End date", date: draftDateRange?.to },
 	];
 
 	return (
@@ -165,40 +145,37 @@ function DateRangeFields({
 					</div>
 				))}
 			</div>
-			<div className="grid sm:grid-cols-2">
-				{dateFields.map((dateField) => (
-					<Calendar
-						key={dateField.label}
-						mode="single"
-						selected={dateField.date}
-						onSelect={dateField.onSelect}
-						month={dateField.month}
-						onMonthChange={dateField.onMonthChange}
-						disabled={dateField.disabled}
-						startMonth={dateField.startMonth}
-						endMonth={dateField.endMonth}
-					/>
-				))}
-			</div>
+			<Calendar
+				mode="range"
+				numberOfMonths={2}
+				showOutsideDays={false}
+				resetOnSelect
+				selected={draftDateRange}
+				onSelect={setDraftDateRange}
+				month={calendarMonth}
+				onMonthChange={setCalendarMonth}
+				disabled={{ after: today }}
+				endMonth={today}
+			/>
 			<DialogFooter className="gap-3 p-4 sm:justify-end">
 				<Button
 					type="button"
 					variant="outline"
 					onClick={() => {
+						setDraftDateRange(undefined);
 						dateRangeFilter.onDateRangeApply("", "");
-						onClose();
 					}}
 				>
 					Reset
 				</Button>
 				<Button
 					type="button"
-					disabled={!draftStartDate || !draftEndDate}
+					disabled={!draftDateRange?.from || !draftDateRange.to}
 					onClick={() => {
-						if (!draftStartDate || !draftEndDate) return;
+						if (!draftDateRange?.from || !draftDateRange.to) return;
 						dateRangeFilter.onDateRangeApply(
-							formatUrlDate(draftStartDate),
-							formatUrlDate(draftEndDate),
+							formatUrlDate(draftDateRange.from),
+							formatUrlDate(draftDateRange.to),
 						);
 						onClose();
 					}}
