@@ -13,6 +13,7 @@ import {
 	patientProcedure,
 	patientTransfer,
 	patientTransferContent,
+	user,
 } from "@/db/schemas";
 import type {
 	TransferContent,
@@ -280,9 +281,15 @@ export async function getTransferDetailsForOrganization(
 			status: patientTransfer.status,
 			patientId: patientTransfer.patientId,
 			requestedAt: patientTransfer.requestedAt,
-			requestedBy: patientTransfer.requestedBy,
-			createdBy: patientTransfer.createdBy,
-			updatedBy: patientTransfer.updatedBy,
+			requestedByName: user.name,
+			notes: patientTransfer.notes,
+			patientApprovalStatus: patientTransfer.patientApprovalStatus,
+			patientRejectionReason: patientTransfer.patientRejectionReason,
+			deliveryStatus: patientTransfer.deliveryStatus,
+			approvedAt: patientTransfer.approvedAt,
+			rejectedAt: patientTransfer.rejectedAt,
+			sentAt: patientTransfer.sentAt,
+			failedAt: patientTransfer.failedAt,
 			targetHospitalName: patientTransfer.targetHospitalName,
 			targetHospitalEmail: patientTransfer.targetHospitalEmail,
 			firstName: patientPersonalInformation.firstName,
@@ -295,6 +302,7 @@ export async function getTransferDetailsForOrganization(
 			patientPersonalInformation,
 			eq(patient.id, patientPersonalInformation.patientId),
 		)
+		.leftJoin(user, eq(patientTransfer.requestedBy, user.id))
 		.where(
 			and(
 				eq(patientTransfer.id, transferId),
@@ -331,9 +339,15 @@ export async function getTransferDetailsForOrganization(
 		patientId: transfer.patientId,
 		status: toTransferStatus(transfer.status),
 		requestedAt: transfer.requestedAt.toISOString(),
-		requestedBy: transfer.requestedBy,
-		createdBy: transfer.createdBy,
-		updatedBy: transfer.updatedBy,
+		requestedByName: transfer.requestedByName,
+		notes: transfer.notes,
+		patientApprovalStatus: transfer.patientApprovalStatus,
+		patientRejectionReason: transfer.patientRejectionReason,
+		deliveryStatus: transfer.deliveryStatus,
+		approvedAt: transfer.approvedAt?.toISOString() ?? null,
+		rejectedAt: transfer.rejectedAt?.toISOString() ?? null,
+		sentAt: transfer.sentAt?.toISOString() ?? null,
+		failedAt: transfer.failedAt?.toISOString() ?? null,
 		targetHospitalName: transfer.targetHospitalName,
 		targetHospitalEmail: transfer.targetHospitalEmail,
 		transferContent: shareableTransferContent.map((content) => {

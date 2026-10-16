@@ -50,8 +50,14 @@ export type TransferType = {
 export type TransferStatusFilter = TransferType["status"];
 
 export type TransferDetailsType = TransferType & {
-	requestedBy: string | null;
-	createdBy: string | null;
-	updatedBy: string | null;
+	requestedByName: string | null;
+	notes: string | null;
+	patientApprovalStatus: string | null;
+	patientRejectionReason: string | null;
+	deliveryStatus: string | null;
+	approvedAt: string | null;
+	rejectedAt: string | null;
+	sentAt: string | null;
+	failedAt: string | null;
 	transferContent: TransferContent[];
 };

@@ -33,6 +33,7 @@ import {
 	RiCheckboxBlankCircleFill,
 	RiCheckboxBlankCircleLine,
 	RiCheckboxCircleFill,
+	RiCloseCircleFill,
 	RiCloseLine,
 	RiCornerDownLeftFill,
 	RiEdit2Line,
@@ -173,7 +174,7 @@ export function TransferDetailsDrawer({
 									<div className="flex items-center gap-2 shrink-0">
 										<span className="text-gray-400">Transfer Status:</span>
 										{transfer ? (
-											<StatusBadge status={transfer.status} className="text-sm" />
+											<StatusBadge status={transfer.status} />
 										) : (
 											<span className="text-gray-600 font-medium">{EMPTY_VALUE}</span>
 										)}
@@ -181,7 +182,7 @@ export function TransferDetailsDrawer({
 									<div className="flex items-center gap-2 shrink-0">
 										<span className="text-gray-400">Patient ID:</span>
 										{transfer ? (
-											<CopyIdButton id={transfer.patientId} className="text-sm" />
+											<CopyIdButton id={transfer.patientId} />
 										) : (
 											<span className="text-gray-600 font-medium">{EMPTY_VALUE}</span>
 										)}
@@ -189,26 +190,23 @@ export function TransferDetailsDrawer({
 									<div className="flex items-center gap-2 shrink-0">
 										<span className="text-gray-400">Transfer ID:</span>
 										{transfer ? (
-											<CopyIdButton id={transfer.id} className="text-sm" />
+											<CopyIdButton id={transfer.id} />
 										) : (
 											<span className="text-gray-600 font-medium">{EMPTY_VALUE}</span>
 										)}
 									</div>
 								</div>
 								<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-									<DetailItem label="Patient Name:" value={transfer?.patientName} />
-									<DetailItem label="Target Hospital:" value={transfer?.targetHospitalName} />
+									<DetailItem label="Patient Name" value={transfer?.patientName} />
+									<DetailItem label="Target Hospital" value={transfer?.targetHospitalName} />
 									<DetailItem label="Target Hospital Email" value={transfer?.targetHospitalEmail} />
+									{transfer?.notes ? <DetailItem label="Notes" value={transfer.notes} /> : null}
 								</div>
 								{transfer && transfer.transferContent.length > 0 ? (
 									<TransferContentSections transferContent={transfer.transferContent} />
 								) : null}
 							</div>
-							<TransferProgress
-								requestedAt={transfer?.requestedAt}
-								requestedBy={transfer?.requestedBy}
-								createdBy={transfer?.createdBy}
-							/>
+							{transfer ? <TransferProgress transfer={transfer} /> : null}
 						</>
 					)}
 				</div>
@@ -378,7 +376,7 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 										<StatusBadge status={content.status} className="shrink-0" />
 									) : null}
 								</div>
-								<CopyIdButton id={content.recordId} className="text-sm" />
+								<CopyIdButton id={content.recordId} />
 							</div>
 						))}
 					</div>
@@ -397,71 +395,91 @@ function DetailItem({ label, value }: { label: string; value?: string | null }) 
 	);
 }
 
-function TransferProgress({
-	requestedAt,
-	requestedBy,
-	createdBy,
-}: {
-	requestedAt?: string | null;
-	requestedBy?: string | null;
-	createdBy?: string | null;
-}) {
+function TransferProgress({ transfer }: { transfer: TransferDetailsType }) {
+	const isApproved = transfer.patientApprovalStatus === "approved";
+	const isRejected = transfer.patientApprovalStatus === "rejected";
+	const isSent = transfer.deliveryStatus === "sent";
+	const isFailed = transfer.deliveryStatus === "failed";
+	const steps = [
+		{
+			title: "Requested",
+			state: "done",
+			date: transfer.requestedAt,
+			description: transfer.requestedByName ? `Requested by ${transfer.requestedByName}` : null,
+		},
+		{
+			title: "Patient approval",
+			state: isApproved ? "done" : isRejected ? "failed" : "current",
+			date: isApproved ? transfer.approvedAt : isRejected ? transfer.rejectedAt : null,
+			description: isApproved
+				? "Approved by the patient"
+				: isRejected
+					? `Rejected by the patient: ${transfer.patientRejectionReason}`
+					: "Waiting for patient response",
+		},
+		{
+			title: "Sent",
+			state: isSent ? "done" : isFailed ? "failed" : isApproved ? "current" : "upcoming",
+			date: isSent ? transfer.sentAt : isFailed ? transfer.failedAt : null,
+			description: isSent
+				? `Access code sent to ${transfer.targetHospitalEmail}`
+				: isFailed
+					? "The access email could not be sent"
+					: isRejected
+						? "Not sent"
+						: "Not started",
+		},
+	];
+
 	return (
 		<div className="mt-6 flex flex-col">
-			<h2 className="text-left text-sm font-semibold text-gray-800">Activity </h2>
-
-			<div className="mt-4 flex flex-col gap-1 px-2">
-				{/* Item */}
-				<div className="grid grid-cols-[auto_1fr] gap-3">
-					{/* Left column */}
-					<div className="flex flex-col items-center gap-1">
-						<RiCheckboxCircleFill aria-hidden="true" className="text-green-500" />
-						<div className="h-[2.375rem] w-0.5 bg-gray-800" />
-					</div>
-
-					{/* Right column */}
-					<div>
-						<div className="flex gap-2 items-center">
-							<span className="font-medium text-gray-600">Requested</span>
-							<span className="inline-block bg-gray-200 size-1 rounded-full" />
-							<span className="font-medium text-gray-400">{formatDate(requestedAt ?? "")}</span>
+			<h2 className="text-left text-sm font-semibold text-gray-800">Activity</h2>
+			<ol className="mt-4 flex flex-col gap-1 px-2">
+				{steps.map((step, index) => (
+					<li key={step.title} className="grid grid-cols-[auto_1fr] gap-3">
+						<div className="flex flex-col items-center gap-1">
+							{step.state === "done" ? (
+								<RiCheckboxCircleFill aria-hidden="true" className="text-green-500" />
+							) : step.state === "failed" ? (
+								<RiCloseCircleFill aria-hidden="true" className="text-red-500" />
+							) : step.state === "current" ? (
+								<div className="relative">
+									<RiCheckboxBlankCircleLine aria-hidden="true" />
+									<RiCheckboxBlankCircleFill
+										aria-hidden="true"
+										className="absolute top-1/2 left-1/2 size-3 -translate-x-1/2 -translate-y-1/2"
+									/>
+								</div>
+							) : (
+								<RiCheckboxBlankCircleLine aria-hidden="true" className="text-gray-400" />
+							)}
+							{index < steps.length - 1 ? (
+								<div
+									className={cn(
+										"h-[2.375rem] w-0.5",
+										step.state === "done" ? "bg-gray-800" : "bg-gray-400",
+									)}
+								/>
+							) : null}
 						</div>
-						<p className="text-gray-400">Initiated by {requestedBy || createdBy}</p>
-					</div>
-				</div>
-
-				{/* Item */}
-				<div className="grid grid-cols-[auto_1fr] gap-3">
-					<div className="flex flex-col items-center gap-1">
-						<div className="relative">
-							<RiCheckboxBlankCircleLine aria-hidden="true" />
-							<RiCheckboxBlankCircleFill
-								aria-hidden="true"
-								className="size-3 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2"
-							/>
+						<div>
+							<div className="flex items-center gap-2">
+								<span className="font-medium text-gray-600">{step.title}</span>
+								{step.date ? (
+									<>
+										<span
+											aria-hidden="true"
+											className="inline-block size-1 rounded-full bg-gray-200"
+										/>
+										<span className="font-medium text-gray-400">{formatDate(step.date)}</span>
+									</>
+								) : null}
+							</div>
+							{step.description ? <p className="text-gray-400">{step.description}</p> : null}
 						</div>
-						<div className="h-[2.375rem] w-0.5 bg-gray-400" />
-					</div>
-
-					<div>
-						<div className="flex gap-2 items-center">
-							<span className="font-medium text-gray-600">Patient Approval</span>
-							<span className="inline-block bg-gray-200 size-1 rounded-full" />
-							<span className="font-medium text-gray-400">22 January 2026 at 14:10</span>
-						</div>
-						<p className="text-gray-400">Waiting for patient response</p>
-					</div>
-				</div>
-
-				{/* Last item (no line) */}
-				<div className="grid grid-cols-[auto_1fr] gap-3">
-					<RiCheckboxBlankCircleLine aria-hidden="true" className="text-gray-400" />
-					<div>
-						<span className="font-semibold text-gray-600">Sent</span>
-						<p className="text-gray-400">Not started</p>
-					</div>
-				</div>
-			</div>
+					</li>
+				))}
+			</ol>
 		</div>
 	);
 }
