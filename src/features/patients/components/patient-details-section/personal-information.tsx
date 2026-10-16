@@ -120,8 +120,7 @@ export function PersonalInformation({
 				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
 				<DropdownMenuItem
-					onSelect={(e) => {
-						e.preventDefault();
+					onSelect={() => {
 						setIsPersonalInformationDialogOpen(true);
 					}}
 					className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"

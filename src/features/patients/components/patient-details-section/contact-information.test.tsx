@@ -29,6 +29,7 @@ test.each(["Cancel", "Close edit contact information dialog", "Escape"])(
 		await user.click(screen.getByRole("button", { name: "Open actions for Contact Information" }));
 		await user.click(screen.getByRole("menuitem", { name: "Edit info" }));
 		let dialog = within(screen.getByRole("dialog", { name: "Edit Contact Information" }));
+		expect(screen.queryByRole("menu")).not.toBeInTheDocument();
 		await user.click(dialog.getByRole("combobox", { name: "State of origin" }));
 		await user.click(screen.getByRole("option", { name: "Lagos" }));
 		expect(dialog.getByRole("combobox", { name: "State of origin" })).toHaveTextContent("Lagos");
@@ -37,6 +38,7 @@ test.each(["Cancel", "Close edit contact information dialog", "Escape"])(
 		await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 		expect(updateContactMock).not.toHaveBeenCalled();
 
+		await user.click(screen.getByRole("button", { name: "Open actions for Contact Information" }));
 		await user.click(screen.getByRole("menuitem", { name: "Edit info" }));
 		dialog = within(screen.getByRole("dialog", { name: "Edit Contact Information" }));
 		expect(dialog.getByRole("combobox", { name: "State of origin" })).toHaveTextContent("Enugu");
@@ -76,6 +78,7 @@ test("submits the chosen state and uses the latest saved state when editing agai
 			)}
 		/>,
 	);
+	await user.click(screen.getByRole("button", { name: "Open actions for Contact Information" }));
 	await user.click(screen.getByRole("menuitem", { name: "Edit info" }));
 	expect(
 		within(screen.getByRole("dialog")).getByRole("combobox", { name: "State of origin" }),

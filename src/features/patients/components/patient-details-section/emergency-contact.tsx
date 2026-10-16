@@ -92,8 +92,7 @@ export function EmergencyContact({
 				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
 				<DropdownMenuItem
-					onSelect={(e) => {
-						e.preventDefault();
+					onSelect={() => {
 						setIsEmergencyContactDialogOpen(true);
 					}}
 					className="flex items-center rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
