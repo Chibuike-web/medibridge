@@ -111,6 +111,8 @@ function revalidateTransferApproval({
 	revalidatePath(`/transfer-approval/${transferId}`);
 	revalidateTag(`transfers-list-${sourceOrganizationId}`, "max");
 	revalidateTag(`transfer-details-${sourceOrganizationId}-${transferId}`, "max");
+	revalidateTag(`recent-transfers-${sourceOrganizationId}`, "max");
+	revalidateTag(`overview-stats-${sourceOrganizationId}`, "max");
 }
 
 export async function approvePatientTransferAction(

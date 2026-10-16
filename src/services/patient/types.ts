@@ -18,7 +18,7 @@ export type SavePatientsResult =
 
 export type OverviewStats = {
 	totalPatients: number;
-	transferredRecords: number;
+	completedTransfers: number;
 	pendingTransfers: number;
 	patientCreatedAt: string[];
 	patientTransferredAt: string[];

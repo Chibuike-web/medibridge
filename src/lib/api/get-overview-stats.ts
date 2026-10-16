@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
-import { count, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { patient, patientEncounter, patientTransfer } from "@/db/schemas";
 import { db } from "../better-auth/auth";
 import { getOrganizationId } from "./get-organization-id";
@@ -11,7 +11,7 @@ export const getOverviewStats = cache(async () => {
 	if (!organizationId) {
 		return {
 			totalPatients: 0,
-			transferredRecords: 0,
+			completedTransfers: 0,
 			pendingTransfers: 0,
 			patientCreatedAt: [],
 			patientTransferredAt: [],
@@ -31,10 +31,10 @@ export async function getOverviewStatsForOrganization(organizationId: string) {
 
 	const [
 		patientCountRows,
-		transferCountRows,
+		completedTransferCountRows,
 		pendingTransferCountRows,
 		patientRows,
-		transferRows,
+		completedTransferRows,
 		pendingRows,
 		encounterRows,
 	] = await Promise.all([
@@ -43,12 +43,22 @@ export async function getOverviewStatsForOrganization(organizationId: string) {
 		db
 			.select({ value: count() })
 			.from(patientTransfer)
-			.where(eq(patientTransfer.sourceOrganizationId, organizationId)),
+			.where(
+				and(
+					eq(patientTransfer.sourceOrganizationId, organizationId),
+					eq(patientTransfer.status, "completed"),
+				),
+			),
 
 		db
 			.select({ value: count() })
 			.from(patientTransfer)
-			.where(eq(patientTransfer.targetOrganizationId, organizationId)),
+			.where(
+				and(
+					eq(patientTransfer.sourceOrganizationId, organizationId),
+					eq(patientTransfer.status, "pending"),
+				),
+			),
 
 		db
 			.select({ createdAt: patient.createdAt })
@@ -56,14 +66,24 @@ export async function getOverviewStatsForOrganization(organizationId: string) {
 			.where(eq(patient.organizationId, organizationId)),
 
 		db
-			.select({ createdAt: patientTransfer.createdAt })
+			.select({ completedAt: patientTransfer.completedAt })
 			.from(patientTransfer)
-			.where(eq(patientTransfer.sourceOrganizationId, organizationId)),
+			.where(
+				and(
+					eq(patientTransfer.sourceOrganizationId, organizationId),
+					eq(patientTransfer.status, "completed"),
+				),
+			),
 
 		db
 			.select({ createdAt: patientTransfer.createdAt })
 			.from(patientTransfer)
-			.where(eq(patientTransfer.targetOrganizationId, organizationId)),
+			.where(
+				and(
+					eq(patientTransfer.sourceOrganizationId, organizationId),
+					eq(patientTransfer.status, "pending"),
+				),
+			),
 
 		db
 			.select({ createdAt: patientEncounter.createdAt })
@@ -76,10 +96,12 @@ export async function getOverviewStatsForOrganization(organizationId: string) {
 
 	return {
 		totalPatients,
-		transferredRecords: transferCountRows[0]?.value ?? 0,
+		completedTransfers: completedTransferCountRows[0]?.value ?? 0,
 		pendingTransfers: pendingTransferCountRows[0]?.value ?? 0,
 		patientCreatedAt: patientRows.map((row) => row.createdAt.toISOString()),
-		patientTransferredAt: transferRows.map((row) => row.createdAt.toISOString()),
+		patientTransferredAt: completedTransferRows.flatMap((row) =>
+			row.completedAt ? [row.completedAt.toISOString()] : [],
+		),
 		pendingTransferredAt: pendingRows.map((row) => row.createdAt.toISOString()),
 		encounterCreatedAt: encounterRows.map((row) => row.createdAt.toISOString()),
 		hasPatients: totalPatients > 0,

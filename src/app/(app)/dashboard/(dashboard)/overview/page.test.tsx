@@ -23,7 +23,7 @@ vi.mock("@/lib/api/get-organization-id", () => ({
 vi.mock("@/lib/api/get-overview-stats", () => ({
 	getOverviewStats: async () => ({
 		totalPatients: 1,
-		transferredRecords: 0,
+		completedTransfers: 0,
 		pendingTransfers: 0,
 		patientCreatedAt: [],
 		patientTransferredAt: [],

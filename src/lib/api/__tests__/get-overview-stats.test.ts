@@ -52,7 +52,7 @@ describe("getOverviewStats", () => {
 
 		expect(result).toEqual({
 			totalPatients: 0,
-			transferredRecords: 0,
+			completedTransfers: 0,
 			pendingTransfers: 0,
 			patientCreatedAt: [],
 			patientTransferredAt: [],
@@ -75,7 +75,7 @@ describe("getOverviewStats", () => {
 			.mockReturnValueOnce(whereQuery([{ value: 2 }]))
 			.mockReturnValueOnce(whereQuery([{ value: 1 }]))
 			.mockReturnValueOnce(whereQuery([{ createdAt: patientCreatedAt }]))
-			.mockReturnValueOnce(whereQuery([{ createdAt: transferredAt }]))
+			.mockReturnValueOnce(whereQuery([{ completedAt: transferredAt }]))
 			.mockReturnValueOnce(whereQuery([{ createdAt: pendingAt }]))
 			.mockReturnValueOnce(joinedWhereQuery([{ createdAt: encounterCreatedAt }]));
 
@@ -83,7 +83,7 @@ describe("getOverviewStats", () => {
 
 		expect(result).toEqual({
 			totalPatients: 4,
-			transferredRecords: 2,
+			completedTransfers: 2,
 			pendingTransfers: 1,
 			patientCreatedAt: [patientCreatedAt.toISOString()],
 			patientTransferredAt: [transferredAt.toISOString()],

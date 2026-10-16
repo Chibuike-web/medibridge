@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils/cn";
 
 const TOTAL_PATIENTS_LABEL = "Total No. of Patients";
-const TRANSFERRED_RECORDS_LABEL = "Transferred Records";
+const COMPLETED_TRANSFERS_LABEL = "Completed Transfers";
 const PENDING_TRANSFERS_LABEL = "Pending Transfers";
 const NEW_ENCOUNTERS_LABEL = "New Encounter";
 
@@ -49,8 +49,8 @@ function getOverviewCards(
 			growth: patientGrowth,
 		},
 		{
-			label: TRANSFERRED_RECORDS_LABEL,
-			value: stats.transferredRecords,
+			label: COMPLETED_TRANSFERS_LABEL,
+			value: stats.completedTransfers,
 			growth: transferredGrowth,
 		},
 		{
