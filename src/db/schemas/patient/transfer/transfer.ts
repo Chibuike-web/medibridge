@@ -42,6 +42,10 @@ export const patientTransfer = pgTable("patient_transfer", {
 
 	requestedAt: timestamp("requested_at").defaultNow().notNull(),
 
+	approvedAt: timestamp("approved_at"),
+
+	rejectedAt: timestamp("rejected_at"),
+
 	sentAt: timestamp("sent_at"),
 
 	completedAt: timestamp("completed_at"),

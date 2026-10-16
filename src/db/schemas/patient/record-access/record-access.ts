@@ -32,6 +32,7 @@ export const patientRecordAccess = pgTable("patient_record_access", {
 
 	patientTransferId: text("patient_transfer_id")
 		.notNull()
+		.unique("patient_record_access_patient_transfer_id_unique")
 		.references(() => patientTransfer.id, { onDelete: "cascade" }),
 
 	patientId: text("patient_id")

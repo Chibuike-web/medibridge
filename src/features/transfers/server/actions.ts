@@ -205,69 +205,77 @@ export async function createTransferRequestsAction(input: CreateTransferRequests
 		};
 	});
 
-	await db.transaction(async (tx) => {
-		await tx.insert(patientTransfer).values(
-			createdTransfers.map((transfer) => ({
-				id: transfer.transferId,
-				patientId: transfer.patientId,
-				sourceOrganizationId: organizationId,
-				targetOrganizationId: transfer.targetOrganizationId,
-				targetHospitalName: transfer.targetHospitalName,
-				targetHospitalEmail: transfer.targetHospitalEmail,
-				notes: transfer.notes || null,
-				status: "pending",
-				patientApprovalStatus: "waiting",
-				deliveryStatus: "not_started",
-				requestedBy: userId,
-				createdBy: userId,
-				updatedBy: userId,
-				requestedAt: now,
-				createdAt: now,
-				updatedAt: now,
-			})),
-		);
-
-		await tx.insert(patientTransferContent).values(
-			createdTransfers.flatMap((transfer) =>
-				transfer.records.map((record) => ({
-					id: `TCO-${crypto.randomUUID()}`,
-					transferId: transfer.transferId,
-					contentType: record.type,
-					recordId: record.id,
+	try {
+		await db.transaction(async (tx) => {
+			await tx.insert(patientTransfer).values(
+				createdTransfers.map((transfer) => ({
+					id: transfer.transferId,
+					patientId: transfer.patientId,
+					sourceOrganizationId: organizationId,
+					targetOrganizationId: transfer.targetOrganizationId,
+					targetHospitalName: transfer.targetHospitalName,
+					targetHospitalEmail: transfer.targetHospitalEmail,
+					notes: transfer.notes || null,
+					status: "pending",
+					patientApprovalStatus: "waiting",
+					deliveryStatus: "not_started",
+					requestedBy: userId,
+					createdBy: userId,
+					updatedBy: userId,
+					requestedAt: now,
 					createdAt: now,
+					updatedAt: now,
 				})),
-			),
-		);
+			);
 
-		await tx.insert(patientTransferProgress).values(
-			createdTransfers.flatMap((transfer) => [
-				{
-					id: `TPR-${crypto.randomUUID()}`,
-					transferId: transfer.transferId,
-					title: "Transfer requested",
-					description: "Transfer request created by source hospital.",
-					status: "completed",
-					createdAt: now,
-				},
-				{
-					id: `TPR-${crypto.randomUUID()}`,
-					transferId: transfer.transferId,
-					title: "Patient approval",
-					description: "Waiting for patient approval.",
-					status: "waiting",
-					createdAt: now,
-				},
-				{
-					id: `TPR-${crypto.randomUUID()}`,
-					transferId: transfer.transferId,
-					title: "Clinical packet sent",
-					description: "Selected records have not been sent yet.",
-					status: "not_started",
-					createdAt: now,
-				},
-			]),
-		);
-	});
+			await tx.insert(patientTransferContent).values(
+				createdTransfers.flatMap((transfer) =>
+					transfer.records.map((record) => ({
+						id: `TCO-${crypto.randomUUID()}`,
+						transferId: transfer.transferId,
+						contentType: record.type,
+						recordId: record.id,
+						createdAt: now,
+					})),
+				),
+			);
+
+			await tx.insert(patientTransferProgress).values(
+				createdTransfers.flatMap((transfer) => [
+					{
+						id: `TPR-${crypto.randomUUID()}`,
+						transferId: transfer.transferId,
+						title: "Transfer requested",
+						description: "Transfer request created by source hospital.",
+						status: "completed",
+						createdAt: now,
+					},
+					{
+						id: `TPR-${crypto.randomUUID()}`,
+						transferId: transfer.transferId,
+						title: "Patient approval",
+						description: "Waiting for patient approval.",
+						status: "waiting",
+						createdAt: now,
+					},
+					{
+						id: `TPR-${crypto.randomUUID()}`,
+						transferId: transfer.transferId,
+						title: "Clinical packet sent",
+						description: "Selected records have not been sent yet.",
+						status: "not_started",
+						createdAt: now,
+					},
+				]),
+			);
+		});
+	} catch (error) {
+		console.error("Creating transfer requests failed:", error);
+		return {
+			status: "failed" as const,
+			error: "We couldn’t create these transfer requests. Please try again.",
+		};
+	}
 
 	const approvalEmailResults = await Promise.allSettled(
 		createdTransfers.map(async (transfer) => {

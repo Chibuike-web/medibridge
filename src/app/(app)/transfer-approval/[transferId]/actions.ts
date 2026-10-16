@@ -3,7 +3,7 @@
 import bcrypt from "bcrypt";
 import { randomInt, randomUUID } from "crypto";
 import { and, eq } from "drizzle-orm";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import {
 	patientRecordAccess,
 	patientRecordAccessVerification,
@@ -109,10 +109,10 @@ function revalidateTransferApproval({
 	sourceOrganizationId: string;
 }) {
 	revalidatePath(`/transfer-approval/${transferId}`);
-	revalidateTag(`transfers-list-${sourceOrganizationId}`, "max");
-	revalidateTag(`transfer-details-${sourceOrganizationId}-${transferId}`, "max");
-	revalidateTag(`recent-transfers-${sourceOrganizationId}`, "max");
-	revalidateTag(`overview-stats-${sourceOrganizationId}`, "max");
+	updateTag(`transfers-list-${sourceOrganizationId}`);
+	updateTag(`transfer-details-${sourceOrganizationId}-${transferId}`);
+	updateTag(`recent-transfers-${sourceOrganizationId}`);
+	updateTag(`overview-stats-${sourceOrganizationId}`);
 }
 
 export async function approvePatientTransferAction(
@@ -180,64 +180,85 @@ export async function approvePatientTransferAction(
 		};
 	}
 
-	const [existingAccess] = await db
-		.select({ id: patientRecordAccess.id })
-		.from(patientRecordAccess)
-		.where(eq(patientRecordAccess.patientTransferId, transfer.transferId))
-		.limit(1);
-
 	const now = new Date();
 	const accessExpiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-	const accessId = existingAccess?.id ?? randomUUID();
+	const accessId = randomUUID();
 	const verificationCode = randomInt(100000, 1000000).toString();
 	const verificationCodeHash = await bcrypt.hash(verificationCode, 10);
 	const verificationCodeExpiresAt = new Date(now.getTime() + 10 * 60 * 1000);
 
-	await db
-		.update(patientTransfer)
-		.set({
-			patientApprovalStatus: "approved",
-			patientRejectionReason: null,
-			deliveryStatus: "not_started",
-			updatedAt: new Date(),
-		})
-		.where(eq(patientTransfer.id, transfer.transferId));
+	try {
+		const isApproved = await db.transaction(async (tx) => {
+			const [approvedTransfer] = await tx
+				.update(patientTransfer)
+				.set({
+					patientApprovalStatus: "approved",
+					patientRejectionReason: null,
+					deliveryStatus: "not_started",
+					approvedAt: now,
+					updatedAt: now,
+				})
+				.where(
+					and(
+						eq(patientTransfer.id, transfer.transferId),
+						eq(patientTransfer.patientApprovalStatus, "waiting"),
+					),
+				)
+				.returning({ id: patientTransfer.id });
 
-	await db
-		.update(patientTransferProgress)
-		.set({
-			status: "approved",
-			description: "Patient approved the transfer request.",
-		})
-		.where(
-			and(
-				eq(patientTransferProgress.transferId, transfer.transferId),
-				eq(patientTransferProgress.title, "Patient approval"),
-			),
-		);
+			if (!approvedTransfer) return false;
 
-	if (!existingAccess) {
-		await db.insert(patientRecordAccess).values({
-			id: accessId,
-			patientTransferId: transfer.transferId,
-			patientId: transfer.patientId,
-			createdByOrganizationId: transfer.sourceOrganizationId,
-			createdByUserId: transfer.createdBy ?? transfer.requestedBy!,
-			status: "pending",
-			expiresAt: accessExpiresAt,
-			permissions: buildAccessPermissions(selectedRecordIds),
-			selectedRecordIds,
+			await tx
+				.update(patientTransferProgress)
+				.set({
+					status: "approved",
+					description: "Patient approved the transfer request.",
+				})
+				.where(
+					and(
+						eq(patientTransferProgress.transferId, transfer.transferId),
+						eq(patientTransferProgress.title, "Patient approval"),
+					),
+				);
+
+			await tx.insert(patientRecordAccess).values({
+				id: accessId,
+				patientTransferId: transfer.transferId,
+				patientId: transfer.patientId,
+				createdByOrganizationId: transfer.sourceOrganizationId,
+				createdByUserId: transfer.createdBy ?? transfer.requestedBy!,
+				status: "pending",
+				expiresAt: accessExpiresAt,
+				permissions: buildAccessPermissions(selectedRecordIds),
+				selectedRecordIds,
+			});
+
+			await tx.insert(patientRecordAccessVerification).values({
+				id: randomUUID(),
+				accessId,
+				codeHash: verificationCodeHash,
+				codeExpiresAt: verificationCodeExpiresAt,
+				targetHospitalEmail: transfer.targetHospitalEmail,
+				targetHospitalName: transfer.targetHospitalName,
+			});
+
+			return true;
 		});
-	}
 
-	await db.insert(patientRecordAccessVerification).values({
-		id: randomUUID(),
-		accessId,
-		codeHash: verificationCodeHash,
-		codeExpiresAt: verificationCodeExpiresAt,
-		targetHospitalEmail: transfer.targetHospitalEmail,
-		targetHospitalName: transfer.targetHospitalName,
-	});
+		if (!isApproved) {
+			const answeredTransfer = await getTransferForAction(transferId);
+
+			return answeredTransfer?.patientApprovalStatus === "approved"
+				? { status: "success", message: "This transfer is already approved." }
+				: {
+						status: "failed",
+						error: "This transfer has already been rejected and cannot be approved.",
+					};
+		}
+	} catch (error) {
+		console.error("Approving the transfer failed:", error);
+		return { status: "failed", error: "We couldn’t approve this transfer. Please try again." };
+	}
 
 	try {
 		const emailResult = await sendAccessCodeEmail({
@@ -348,28 +369,59 @@ export async function rejectPatientTransferAction({
 		};
 	}
 
-	await db
-		.update(patientTransfer)
-		.set({
-			status: "rejected",
-			patientApprovalStatus: "rejected",
-			patientRejectionReason: rejectionReason,
-			updatedAt: new Date(),
-		})
-		.where(eq(patientTransfer.id, transfer.transferId));
+	const now = new Date();
 
-	await db
-		.update(patientTransferProgress)
-		.set({
-			status: "rejected",
-			description: `Patient rejected the transfer request: ${rejectionReason}`,
-		})
-		.where(
-			and(
-				eq(patientTransferProgress.transferId, transfer.transferId),
-				eq(patientTransferProgress.title, "Patient approval"),
-			),
-		);
+	try {
+		const isRejected = await db.transaction(async (tx) => {
+			const [rejectedTransfer] = await tx
+				.update(patientTransfer)
+				.set({
+					status: "rejected",
+					patientApprovalStatus: "rejected",
+					patientRejectionReason: rejectionReason,
+					rejectedAt: now,
+					updatedAt: now,
+				})
+				.where(
+					and(
+						eq(patientTransfer.id, transfer.transferId),
+						eq(patientTransfer.patientApprovalStatus, "waiting"),
+					),
+				)
+				.returning({ id: patientTransfer.id });
+
+			if (!rejectedTransfer) return false;
+
+			await tx
+				.update(patientTransferProgress)
+				.set({
+					status: "rejected",
+					description: `Patient rejected the transfer request: ${rejectionReason}`,
+				})
+				.where(
+					and(
+						eq(patientTransferProgress.transferId, transfer.transferId),
+						eq(patientTransferProgress.title, "Patient approval"),
+					),
+				);
+
+			return true;
+		});
+
+		if (!isRejected) {
+			const answeredTransfer = await getTransferForAction(transferId);
+
+			return answeredTransfer?.patientApprovalStatus === "approved"
+				? {
+						status: "failed",
+						error: "This transfer has already been approved and cannot be rejected.",
+					}
+				: { status: "success", message: "This transfer is already rejected." };
+		}
+	} catch (error) {
+		console.error("Rejecting the transfer failed:", error);
+		return { status: "failed", error: "We couldn’t reject this transfer. Please try again." };
+	}
 
 	revalidateTransferApproval(transfer);
 
