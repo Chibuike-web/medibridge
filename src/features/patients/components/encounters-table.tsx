@@ -18,6 +18,7 @@ import type {
 import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
+import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
 import { CreateEncounterDrawer } from "@/features/patients/components/create-encounter-drawer";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -556,7 +557,7 @@ function EncountersBulkActionBar({
 	if (selectedEncounterCount === 0) return null;
 
 	return (
-		<div className="no-scrollbar fixed right-4 bottom-6 left-4 z-50 flex h-12 items-center gap-4 overflow-x-auto rounded-xl border border-white/20 bg-gray-800 pl-4 pr-2 text-white shadow-[0_1rem_2.5rem_rgba(15,23,42,0.35)] ring ring-gray-800 sm:right-auto sm:left-1/2 sm:w-max sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-4 animation-duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:animate-none">
+		<AnimatedBulkBar>
 			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
 				{selectedEncounterCount} {selectedEncounterCount === 1 ? "item" : "items"} selected
 			</span>
@@ -605,7 +606,7 @@ function EncountersBulkActionBar({
 			>
 				<RiCloseLine className="size-5" aria-hidden />
 			</Button>
-		</div>
+		</AnimatedBulkBar>
 	);
 }
 
