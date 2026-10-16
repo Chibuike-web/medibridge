@@ -412,7 +412,7 @@ async function LabTestsSection({ patientId }: { patientId: string }) {
 		return renderEmptyState({
 			title: "No lab tests yet",
 			description: "No lab tests have been recorded for this patient.",
-			action: <CreateLabTestEmptyStateAction />,
+			action: <CreateLabTestEmptyStateAction patientId={patientId} />,
 		});
 	}
 
@@ -434,7 +434,7 @@ async function ImagingSection({ patientId }: { patientId: string }) {
 		return renderEmptyState({
 			title: "No imaging yet",
 			description: "No imaging studies have been recorded for this patient.",
-			action: <CreateImagingEmptyStateAction />,
+			action: <CreateImagingEmptyStateAction patientId={patientId} />,
 		});
 	}
 

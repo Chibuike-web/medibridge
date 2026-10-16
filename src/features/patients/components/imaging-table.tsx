@@ -107,8 +107,9 @@ const imagingModalityFilterOptions: {
 ];
 
 type ImagingTableProps = {
+	patientId: string;
+	encounterId?: string;
 	imagingStudies: ImagingType[];
-	isEncounterScoped?: boolean;
 	page: number;
 	limit: number;
 	totalPages: number;
@@ -126,14 +127,17 @@ type ImagingTableProps = {
 	onStatusFiltersChange: (statusFilters: ImagingStatusFilter[]) => void;
 	onModalityFiltersChange: (modalityFilters: ImagingModalityFilter[]) => void;
 	onFiltersClear: () => void;
+	onImagingCreated: () => void;
+	onImagingUpdated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
 };
 
 export function ImagingTable({
+	patientId,
+	encounterId,
 	imagingStudies,
-	isEncounterScoped = false,
 	page,
 	limit,
 	totalPages,
@@ -151,6 +155,8 @@ export function ImagingTable({
 	onStatusFiltersChange,
 	onModalityFiltersChange,
 	onFiltersClear,
+	onImagingCreated,
+	onImagingUpdated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -199,7 +205,7 @@ export function ImagingTable({
 						type="search"
 						className="pl-8"
 						placeholder={
-							isEncounterScoped
+							encounterId
 								? "Search by study, modality, region, impression, or imaging ID"
 								: "Search by study, modality, region, impression, imaging ID, or encounter ID"
 						}
@@ -524,11 +530,21 @@ export function ImagingTable({
 				onClearSelection={() => table.resetRowSelection()}
 				onViewImagingDetails={handleViewImagingDetails}
 			/>
-			<CreateImagingDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
+			<CreateImagingDrawer
+				open={isCreateDrawerOpen}
+				onOpenChange={setIsCreateDrawerOpen}
+				patientId={patientId}
+				encounterId={encounterId}
+				onImagingCreated={onImagingCreated}
+			/>
 			<ImagingDetailsDrawer
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}
-				imaging={selectedStudy}
+				imaging={
+					imagingStudies.find((imaging) => imaging.imagingId === selectedStudy?.imagingId) ??
+					selectedStudy
+				}
+				onImagingUpdated={onImagingUpdated}
 			/>
 		</div>
 	);
@@ -878,7 +894,7 @@ function getImagingColumns({
 					className="max-w-[18rem] whitespace-normal"
 					onClick={(event) => event.stopPropagation()}
 				>
-					{row.original.impression}
+					{row.original.impression || "-"}
 				</div>
 			),
 		},

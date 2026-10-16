@@ -114,7 +114,7 @@ const labTestFlagFilterOptions: {
 
 type LabTestsTableProps = {
 	patientId: string;
-	isEncounterScoped?: boolean;
+	encounterId?: string;
 	labTests: LabTestType[];
 	page: number;
 	limit: number;
@@ -130,6 +130,8 @@ type LabTestsTableProps = {
 	onStatusFiltersChange: (statusFilters: LabTestStatusFilter[]) => void;
 	onFlagFiltersChange: (flagFilters: LabTestFlagFilter[]) => void;
 	onFiltersClear: () => void;
+	onLabTestCreated: () => void;
+	onLabTestUpdated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -137,7 +139,7 @@ type LabTestsTableProps = {
 
 export function LabTestsTable({
 	patientId,
-	isEncounterScoped = false,
+	encounterId,
 	labTests,
 	page,
 	limit,
@@ -153,11 +155,12 @@ export function LabTestsTable({
 	onStatusFiltersChange,
 	onFlagFiltersChange,
 	onFiltersClear,
+	onLabTestCreated,
+	onLabTestUpdated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
 }: LabTestsTableProps) {
-	void patientId;
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 
@@ -204,7 +207,7 @@ export function LabTestsTable({
 						type="search"
 						className="pl-8"
 						placeholder={
-							isEncounterScoped
+							encounterId
 								? "Search by test, result, or lab ID"
 								: "Search by test, result, lab ID, or encounter ID"
 						}
@@ -506,11 +509,18 @@ export function LabTestsTable({
 				onClearSelection={() => table.resetRowSelection()}
 				onViewLabTestDetails={handleViewLabTestDetails}
 			/>
-			<CreateLabTestDrawer open={isCreateDrawerOpen} onOpenChange={setIsCreateDrawerOpen} />
+			<CreateLabTestDrawer
+				open={isCreateDrawerOpen}
+				onOpenChange={setIsCreateDrawerOpen}
+				patientId={patientId}
+				encounterId={encounterId}
+				onLabTestCreated={onLabTestCreated}
+			/>
 			<LabTestDetailsDrawer
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}
-				labTest={selectedTest}
+				labTest={labTests.find((labTest) => labTest.labId === selectedTest?.labId) ?? selectedTest}
+				onLabTestUpdated={onLabTestUpdated}
 			/>
 		</div>
 	);
@@ -822,7 +832,7 @@ function getLabTestsColumns({
 			enableSorting: false,
 			cell: ({ row }) => (
 				<div className="ml-auto w-max" onClick={(event) => event.stopPropagation()}>
-					{row.original.referenceRange}
+					{row.original.referenceRange || "-"}
 				</div>
 			),
 		},
@@ -832,7 +842,7 @@ function getLabTestsColumns({
 			enableSorting: true,
 			cell: ({ row }) => (
 				<div className="w-max" onClick={(event) => event.stopPropagation()}>
-					{row.original.flag || row.original.interpretation}
+					{row.original.flag || "-"}
 				</div>
 			),
 		},

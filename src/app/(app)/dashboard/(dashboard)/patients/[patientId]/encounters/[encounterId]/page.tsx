@@ -302,7 +302,13 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 						<EncounterSection
 							title="Lab tests"
 							isEmpty={labTestsResult.totalLabTests === 0}
-							addAction={<CreateLabTestEmptyStateAction variant="outline" />}
+							addAction={
+								<CreateLabTestEmptyStateAction
+									patientId={patientId}
+									encounterId={encounterId}
+									variant="outline"
+								/>
+							}
 						>
 							<LabTestsClient
 								patientId={patientId}
@@ -317,7 +323,13 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 						<EncounterSection
 							title="Imaging"
 							isEmpty={imagingResult.totalImagingStudies === 0}
-							addAction={<CreateImagingEmptyStateAction variant="outline" />}
+							addAction={
+								<CreateImagingEmptyStateAction
+									patientId={patientId}
+									encounterId={encounterId}
+									variant="outline"
+								/>
+							}
 						>
 							<ImagingClient
 								patientId={patientId}

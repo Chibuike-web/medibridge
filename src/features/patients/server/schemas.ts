@@ -178,3 +178,79 @@ export const patientProcedureSchema = z
 			procedure.procedureDate <= format(addDays(new Date(), 1), "yyyy-MM-dd"),
 		{ message: "A completed procedure can’t be dated in the future." },
 	);
+
+export const recordFileExtensions = {
+	"application/pdf": ".pdf",
+	"image/png": ".png",
+	"image/jpeg": ".jpg",
+} as const;
+
+export const recordFilesSchema = z.array(
+	z
+		.file()
+		.mime(
+			Object.keys(recordFileExtensions) as (keyof typeof recordFileExtensions)[],
+			"Files must be PDF, PNG or JPG.",
+		)
+		.max(50 * 1024 * 1024, "Each file can be up to 50 MB."),
+);
+
+export const labTestStatuses = ["Pending", "Completed", "Cancelled"] as const;
+
+export const labTestFlags = [
+	"Within range",
+	"Low",
+	"High",
+	"Critical",
+	"Abnormal",
+	"Inconclusive",
+] as const;
+
+export const patientLabTestSchema = z
+	.object({
+		testName: z.string().trim().min(1, "Enter the test."),
+		status: z.enum(labTestStatuses, "Select a status."),
+		flag: z.enum(labTestFlags, "Select a flag.").optional(),
+		referenceRange: z.string().trim().optional(),
+		orderedBy: z.string().trim().min(1, "Enter who ordered the test."),
+		orderedAt: z.iso
+			.date("Select the order date.")
+			.refine(
+				(date) => date <= format(addDays(new Date(), 1), "yyyy-MM-dd"),
+				"The order date can’t be in the future.",
+			),
+		specimen: z.string().trim().min(1, "Enter the specimen."),
+		result: z.string().trim().optional(),
+		interpretation: z.string().trim().optional(),
+		clinicalNote: z.string().trim().optional(),
+	})
+	.refine((labTest) => labTest.status !== "Completed" || labTest.result, {
+		message: "Enter the result of a completed lab test.",
+	})
+	.refine((labTest) => labTest.status !== "Completed" || labTest.flag, {
+		message: "Select a flag for a completed lab test.",
+	});
+
+export const imagingStatuses = ["Pending", "Completed", "Cancelled"] as const;
+
+export const imagingModalities = ["CT", "MRI", "Ultrasound", "X-ray"] as const;
+
+export const patientImagingSchema = z
+	.object({
+		study: z.string().trim().min(1, "Enter the study."),
+		region: z.string().trim().min(1, "Enter the region."),
+		modality: z.enum(imagingModalities, "Select a modality."),
+		orderedAt: z.iso
+			.date("Select the order date.")
+			.refine(
+				(date) => date <= format(addDays(new Date(), 1), "yyyy-MM-dd"),
+				"The order date can’t be in the future.",
+			),
+		orderedBy: z.string().trim().min(1, "Enter who ordered the study."),
+		status: z.enum(imagingStatuses, "Select a status."),
+		impression: z.string().trim().optional(),
+		clinicalNote: z.string().trim().optional(),
+	})
+	.refine((imaging) => imaging.status !== "Completed" || imaging.impression, {
+		message: "Enter the impression of a completed study.",
+	});

@@ -45,7 +45,13 @@ import {
 	AttachmentFormFields,
 	type AttachmentFormRow,
 } from "@/features/patients/components/attachment-form-fields";
-import type { LabTestDetailsHistoryEvent, LabTestType } from "@/features/patients/types";
+import { labTestFlags, labTestStatuses } from "@/features/patients/server/schemas";
+import { updatePatientLabTestAction } from "@/features/patients/server/update-patient-lab-test-action";
+import type {
+	LabTestDetailsHistoryEvent,
+	LabTestType,
+	RecordFile,
+} from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
 import { authClient } from "@/lib/better-auth/auth.client";
 import docFileIcon from "@/assets/file-formats/doc.svg";
@@ -61,37 +67,86 @@ import {
 	RiCheckLine,
 	RiCloseLine,
 	RiEdit2Line,
+	RiErrorWarningFill,
 	RiMore2Fill,
 	RiShare2Line,
 } from "@remixicon/react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import Image from "next/image";
-import { Fragment, useId, useRef, useState } from "react";
+import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
 import { ChooseFileCard } from "@/components/choose-file-card";
+import { useRouter } from "next/navigation";
 
 type LabTestDetailsDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	labTest: LabTestType | null;
+	onLabTestUpdated: () => void;
 };
+
+const labTestDetailsFormId = "lab-test-details-form";
 
 const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
-export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDetailsDrawerProps) {
+export function LabTestDetailsDrawer({
+	open,
+	onOpenChange,
+	labTest,
+	onLabTestUpdated,
+}: LabTestDetailsDrawerProps) {
+	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [labTestDetailsMode, setLabTestDetailsMode] = useState<"view" | "edit">("view");
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+	const [formError, setFormError] = useState("");
+	const [isPending, startTransition] = useTransition();
+
+	function handleLabTestDetailsModeChange(nextMode: "view" | "edit") {
+		setFormError("");
+		setLabTestDetailsMode(nextMode);
+	}
 
 	function handleLabTestDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
-			setLabTestDetailsMode("view");
+			handleLabTestDetailsModeChange("view");
 		}
 
 		onOpenChange(nextOpen);
+	}
+
+	function handleSave(formData: FormData) {
+		if (!labTest) return;
+
+		setFormError("");
+
+		if (
+			formData.getAll("files").reduce((totalSize, file) => totalSize + (file as File).size, 0) >
+			100 * 1024 * 1024
+		) {
+			setFormError("Files can add up to 100 MB per save.");
+			return;
+		}
+
+		startTransition(async () => {
+			const result = await updatePatientLabTestAction(labTest.labId, formData);
+
+			if (result.status === "unauthorized") {
+				router.refresh();
+				return;
+			}
+
+			if (result.status !== "success") {
+				setFormError(result.error);
+				return;
+			}
+
+			setLabTestDetailsMode("view");
+			onLabTestUpdated();
+		});
 	}
 
 	const isEditingLabTestDetails = labTestDetailsMode === "edit" && Boolean(labTest);
@@ -116,7 +171,7 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 							>
 								<DropdownMenuItem
 									className="rounded-lg"
-									onSelect={() => setLabTestDetailsMode("edit")}
+									onSelect={() => handleLabTestDetailsModeChange("edit")}
 								>
 									<RiEdit2Line aria-hidden="true" />
 									Edit
@@ -160,7 +215,12 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 
 				<div className="min-h-0 overflow-y-auto px-4 py-5 text-sm">
 					{isEditingLabTestDetails && labTest ? (
-						<LabTestDetailsEditForm labTest={labTest} />
+						<LabTestDetailsEditForm
+							labTest={labTest}
+							formError={formError}
+							onFormErrorDismiss={() => setFormError("")}
+							onSave={handleSave}
+						/>
 					) : labTest ? (
 						<div className="flex flex-col gap-10">
 							<LabTestDetailsOverview labTest={labTest} />
@@ -177,11 +237,15 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 				{isEditingLabTestDetails ? (
 					<DrawerFooter className="border-t border-gray-200 text-sm">
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
-							<Button type="button" variant="outline" onClick={() => setLabTestDetailsMode("view")}>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => handleLabTestDetailsModeChange("view")}
+							>
 								Cancel
 							</Button>
-							<Button type="button" onClick={() => setLabTestDetailsMode("view")}>
-								Save changes
+							<Button type="submit" form={labTestDetailsFormId} disabled={isPending}>
+								{isPending ? "Saving…" : "Save changes"}
 							</Button>
 						</div>
 					</DrawerFooter>
@@ -242,7 +306,7 @@ function LabTestDetailsOverview({ labTest }: { labTest: LabTestType }) {
 				</div>
 
 				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-					<LabTestDetailItem label="Flag" value={labTest.flag || labTest.interpretation} />
+					<LabTestDetailItem label="Flag" value={labTest.flag} />
 					<LabTestDetailItem label="Interpretation" value={labTest.interpretation} />
 					<LabTestDetailItem label="Result" value={labTest.result} />
 					<LabTestDetailItem label="Specimen" value={labTest.specimen} />
@@ -307,6 +371,8 @@ function LabTestFilesSection({ files }: { files: LabTestType["files"] }) {
 						<Image
 							src={getLabTestFileIcon(file.name, file.type)}
 							alt=""
+							width={36}
+							height={36}
 							className="size-9 shrink-0"
 							aria-hidden="true"
 						/>
@@ -317,7 +383,16 @@ function LabTestFilesSection({ files }: { files: LabTestType["files"] }) {
 							</p>
 						</div>
 						<div className="flex shrink-0 items-center gap-2">
-							<Button variant="outline">Download</Button> <Button>Open</Button>
+							<Button asChild variant="outline">
+								<a href={`${file.url}?download`} download={file.name}>
+									Download
+								</a>
+							</Button>
+							<Button asChild>
+								<a href={file.url} target="_blank" rel="noreferrer">
+									Open
+								</a>
+							</Button>
 						</div>
 					</div>
 				))}
@@ -436,49 +511,77 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 	);
 }
 
-function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
+function LabTestDetailsEditForm({
+	labTest,
+	formError,
+	onFormErrorDismiss,
+	onSave,
+}: {
+	labTest: LabTestType;
+	formError: string;
+	onFormErrorDismiss: () => void;
+	onSave: (formData: FormData) => void;
+}) {
 	const generatedAttachmentRowId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
-	const [orderedAt, setOrderedAt] = useState<Date | undefined>();
+	const [orderedAt, setOrderedAt] = useState<Date | undefined>(() =>
+		labTest.orderedAtValue ? parseISO(labTest.orderedAtValue.slice(0, 10)) : undefined,
+	);
 	const [labTestAttachmentRows, setLabTestAttachmentRows] = useState<AttachmentFormRow[]>([]);
-	const selectedStatusValue = labTest.status.toLowerCase();
-	const selectedFlagValue = getLabTestSelectValue(labTest.flag || labTest.interpretation);
-	const orderedAtDisplayValue = orderedAt
-		? format(orderedAt, "PPP")
-		: labTest.orderedAtLabel !== "-"
-			? labTest.orderedAtLabel
-			: "Select date";
-
 	const labTestFileInputRef = useRef<HTMLInputElement>(null);
-	const [editableLabTestFiles, setEditableLabTestFiles] = useState(labTest.files ?? []);
+	const [editableLabTestFiles, setEditableLabTestFiles] = useState<
+		(RecordFile & { file?: File })[]
+	>(labTest.files);
 	const [pendingLabTestFileRemovalId, setPendingLabTestFileRemovalId] = useState<string | null>(
 		null,
 	);
 
 	const hasLabTestFiles = editableLabTestFiles.length > 0;
 
+	function handleSubmit(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		const formData = new FormData(event.currentTarget);
+
+		for (const labTestFile of editableLabTestFiles) {
+			if (labTestFile.file) formData.append("files", labTestFile.file);
+		}
+
+		for (const savedFile of labTest.files) {
+			if (!editableLabTestFiles.some((labTestFile) => labTestFile.id === savedFile.id)) {
+				formData.append("removedFileIds", savedFile.id);
+			}
+		}
+
+		onSave(formData);
+	}
+
 	function handleRemoveLabTestFile(fileId: string) {
-		setEditableLabTestFiles((previousFiles) =>
-			previousFiles.filter((previousFile) => previousFile.id !== fileId),
-		);
+		setEditableLabTestFiles((prev) => prev.filter((labTestFile) => labTestFile.id !== fileId));
 		setPendingLabTestFileRemovalId(null);
 	}
+
 	function handleLabTestFilesChange(event: React.ChangeEvent<HTMLInputElement>) {
 		const selectedFiles = Array.from(event.target.files ?? []);
 
-		const nextFiles = selectedFiles.map((file) => ({
-			id: crypto.randomUUID(),
-			name: file.name,
-			url: URL.createObjectURL(file),
-			type: file.type,
-			size: `${Math.round(file.size / 1024)}KB`,
-			uploadedAtLabel: "Uploaded just now",
-		}));
-
-		setEditableLabTestFiles((previousFiles) => [...previousFiles, ...nextFiles]);
+		setEditableLabTestFiles((prev) => [
+			...prev,
+			...selectedFiles.map((file) => ({
+				id: crypto.randomUUID(),
+				name: file.name,
+				url: URL.createObjectURL(file),
+				type: file.type,
+				size:
+					file.size >= 1024 * 1024
+						? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+						: `${Math.ceil(file.size / 1024)} KB`,
+				uploadedAtLabel: "",
+				file,
+			})),
+		]);
 
 		event.target.value = "";
 	}
+
 	function handleAddLabTestAttachmentRow() {
 		nextAttachmentRowNumberRef.current += 1;
 
@@ -499,168 +602,218 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 	}
 
 	return (
-		<form className="flex flex-col gap-12">
-			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Lab ID:</span>
-					<CopyIdButton id={labTest.labId} className="text-sm" />
-				</div>
-				{labTest.encounterId ? (
-					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
-						<CopyIdButton id={labTest.encounterId} className="text-sm" />
+		<form id={labTestDetailsFormId} onSubmit={handleSubmit} className="flex flex-col gap-12">
+			<div className="flex flex-col gap-8">
+				{formError && (
+					<div
+						key={formError}
+						ref={(banner) => banner?.scrollIntoView({ behavior: "smooth", block: "center" })}
+						role="alert"
+						className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
+					>
+						<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+						<p className="min-w-0 flex-1 text-pretty">{formError}</p>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+							aria-label="Dismiss error"
+							onClick={onFormErrorDismiss}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
 					</div>
-				) : null}
-			</div>
-
-			<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-lab-test-name" className={fieldLabelClassName}>
-						Test<span className={optionalLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-lab-test-name"
-						name="testName"
-						defaultValue={labTest.testName || labTest.test}
-						className={fieldControlClassName}
-					/>
+				)}
+				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
+					<div className="flex items-center gap-2">
+						<span className="text-gray-400">Lab ID:</span>
+						<CopyIdButton id={labTest.labId} className="text-sm" />
+					</div>
+					{labTest.encounterId ? (
+						<div className="flex items-center gap-2">
+							<span className="text-gray-400">Encounter ID:</span>
+							<CopyIdButton id={labTest.encounterId} className="text-sm" />
+						</div>
+					) : null}
 				</div>
 
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-lab-test-flag" className={fieldLabelClassName}>
-						Flag<span className={optionalLabelClassName}>(required)</span>
-					</Label>
-					<Select defaultValue={selectedFlagValue}>
-						<SelectTrigger id="edit-lab-test-flag" className={`${fieldControlClassName} w-full`}>
-							<SelectValue placeholder="Select flag" />
-						</SelectTrigger>
-						<SelectContent>
-							<LabTestFlagOptions />
-						</SelectContent>
-					</Select>
-				</div>
+				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label htmlFor="edit-lab-test-name" className={fieldLabelClassName}>
+							Test<span className={optionalLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-lab-test-name"
+							name="testName"
+							defaultValue={labTest.testName}
+							className={fieldControlClassName}
+							required
+						/>
+					</div>
 
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-lab-test-status" className={fieldLabelClassName}>
-						Status<span className={optionalLabelClassName}>(required)</span>
-					</Label>
-					<Select defaultValue={selectedStatusValue}>
-						<SelectTrigger id="edit-lab-test-status" className={`${fieldControlClassName} w-full`}>
-							<SelectValue placeholder="Select status" />
-						</SelectTrigger>
-						<SelectContent>
-							<LabTestStatusOptions />
-						</SelectContent>
-					</Select>
-				</div>
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-lab-test-flag" className={fieldLabelClassName}>
+							Flag<span className={optionalLabelClassName}>(required if completed)</span>
+						</Label>
+						<Select name="flag" defaultValue={labTest.flag || undefined}>
+							<SelectTrigger id="edit-lab-test-flag" className={`${fieldControlClassName} w-full`}>
+								<SelectValue placeholder="Select flag" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectGroup>
+									{labTestFlags.map((flag) => (
+										<SelectItem key={flag} value={flag}>
+											{flag}
+										</SelectItem>
+									))}
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
 
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-lab-test-reference-range" className={fieldLabelClassName}>
-						Reference Range<span className={optionalLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-lab-test-reference-range"
-						name="referenceRange"
-						defaultValue={labTest.referenceRange === "-" ? "" : labTest.referenceRange}
-						className={fieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-lab-test-ordered-by" className={fieldLabelClassName}>
-						Ordered by<span className={optionalLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-lab-test-ordered-by"
-						name="orderedBy"
-						defaultValue={labTest.orderedBy}
-						placeholder="e.g. Dr. Adebayo Johnson"
-						className={fieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label className={fieldLabelClassName}>
-						Ordered at<span className={optionalLabelClassName}>(required)</span>
-					</Label>
-					<input
-						type="hidden"
-						name="orderedAt"
-						value={orderedAt ? format(orderedAt, "yyyy-MM-dd") : ""}
-					/>
-					<Popover>
-						<PopoverTrigger asChild>
-							<Button
-								type="button"
-								variant="outline"
-								data-empty={!orderedAt && labTest.orderedAtLabel === "-"}
-								className={`${fieldControlClassName} flex w-full justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-lab-test-status" className={fieldLabelClassName}>
+							Status<span className={optionalLabelClassName}>(required)</span>
+						</Label>
+						<Select name="status" defaultValue={labTest.status} required>
+							<SelectTrigger
+								id="edit-lab-test-status"
+								className={`${fieldControlClassName} w-full`}
 							>
-								<span className="min-w-0 truncate">{orderedAtDisplayValue}</span>
-								<RiCalendarLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent className="p-0">
-							<Calendar mode="single" selected={orderedAt} onSelect={setOrderedAt} autoFocus />
-						</PopoverContent>
-					</Popover>
-				</div>
+								<SelectValue placeholder="Select status" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectGroup>
+									{labTestStatuses.map((status) => (
+										<SelectItem key={status} value={status}>
+											{status}
+										</SelectItem>
+									))}
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
 
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-lab-test-specimen" className={fieldLabelClassName}>
-						Specimen<span className={optionalLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-lab-test-specimen"
-						name="specimen"
-						defaultValue={labTest.specimen}
-						placeholder="e.g. Whole blood"
-						className={fieldControlClassName}
-					/>
-				</div>
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-lab-test-reference-range" className={fieldLabelClassName}>
+							Reference Range<span className={optionalLabelClassName}>(optional)</span>
+						</Label>
+						<Input
+							id="edit-lab-test-reference-range"
+							name="referenceRange"
+							defaultValue={labTest.referenceRange}
+							className={fieldControlClassName}
+						/>
+					</div>
 
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-lab-test-result" className={fieldLabelClassName}>
-						Result<span className={optionalLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-lab-test-result"
-						name="result"
-						defaultValue={labTest.result}
-						placeholder="e.g. 14.8 x10^9/L"
-						className={fieldControlClassName}
-					/>
-				</div>
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-lab-test-ordered-by" className={fieldLabelClassName}>
+							Ordered by<span className={optionalLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-lab-test-ordered-by"
+							name="orderedBy"
+							defaultValue={labTest.orderedBy}
+							placeholder="e.g. Dr. Adebayo Johnson"
+							className={fieldControlClassName}
+							required
+						/>
+					</div>
 
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-lab-test-interpretation" className={fieldLabelClassName}>
-						Interpretation<span className={optionalLabelClassName}>(required)</span>
-					</Label>
-					<Textarea
-						id="edit-lab-test-interpretation"
-						name="interpretation"
-						defaultValue={labTest.interpretation === "-" ? "" : labTest.interpretation}
-						placeholder="e.g. Elevated white blood cell count suggesting possible infection"
-						className="min-h-20 bg-white text-sm text-gray-700 placeholder:text-gray-400"
-					/>
-				</div>
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-lab-test-ordered-at" className={fieldLabelClassName}>
+							Ordered at<span className={optionalLabelClassName}>(required)</span>
+						</Label>
+						<input
+							type="hidden"
+							name="orderedAt"
+							value={orderedAt ? format(orderedAt, "yyyy-MM-dd") : ""}
+						/>
+						<Popover>
+							<PopoverTrigger asChild>
+								<Button
+									id="edit-lab-test-ordered-at"
+									type="button"
+									variant="outline"
+									data-empty={!orderedAt}
+									className={`${fieldControlClassName} flex w-full justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+								>
+									<span className="min-w-0 truncate">
+										{orderedAt ? format(orderedAt, "PPP") : "Select date"}
+									</span>
+									<RiCalendarLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
+								</Button>
+							</PopoverTrigger>
+							<PopoverContent className="p-0">
+								<Calendar
+									mode="single"
+									selected={orderedAt}
+									onSelect={setOrderedAt}
+									disabled={{ after: new Date() }}
+									autoFocus
+								/>
+							</PopoverContent>
+						</Popover>
+					</div>
 
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-lab-test-clinical-notes" className={fieldLabelClassName}>
-						Clinical notes<span className={optionalLabelClassName}>(optional)</span>
-					</Label>
-					<Textarea
-						id="edit-lab-test-clinical-notes"
-						name="clinicalNote"
-						defaultValue={labTest.clinicalNote}
-						placeholder="Add additional laboratory observations or recommendations"
-						className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
-					/>
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-lab-test-specimen" className={fieldLabelClassName}>
+							Specimen<span className={optionalLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-lab-test-specimen"
+							name="specimen"
+							defaultValue={labTest.specimen}
+							placeholder="e.g. Whole blood"
+							className={fieldControlClassName}
+							required
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label htmlFor="edit-lab-test-result" className={fieldLabelClassName}>
+							Result<span className={optionalLabelClassName}>(required if completed)</span>
+						</Label>
+						<Input
+							id="edit-lab-test-result"
+							name="result"
+							defaultValue={labTest.result}
+							placeholder="e.g. 14.8 x10^9/L"
+							className={fieldControlClassName}
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label htmlFor="edit-lab-test-interpretation" className={fieldLabelClassName}>
+							Interpretation<span className={optionalLabelClassName}>(optional)</span>
+						</Label>
+						<Textarea
+							id="edit-lab-test-interpretation"
+							name="interpretation"
+							defaultValue={labTest.interpretation}
+							placeholder="e.g. Elevated white blood cell count suggesting possible infection"
+							className="min-h-20 bg-white text-sm text-gray-700 placeholder:text-gray-400"
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label htmlFor="edit-lab-test-clinical-notes" className={fieldLabelClassName}>
+							Clinical notes<span className={optionalLabelClassName}>(optional)</span>
+						</Label>
+						<Textarea
+							id="edit-lab-test-clinical-notes"
+							name="clinicalNote"
+							defaultValue={labTest.clinicalNote}
+							placeholder="Add additional laboratory observations or recommendations"
+							className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
+						/>
+					</div>
 				</div>
 			</div>
 			<div className="space-y-3 sm:col-span-2">
 				<Label className={fieldLabelClassName}>
-					Files <span className="text-gray-400">(required)</span>
+					Files <span className="text-gray-400">(required if completed)</span>
 				</Label>
 				{hasLabTestFiles ? (
 					<>
@@ -689,7 +842,8 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 											<p className="truncate font-semibold text-gray-800">{file.name}</p>
 
 											<p className="truncate text-gray-400">
-												{file.size} · Uploaded on {file.uploadedAtLabel}
+												{file.size} ·{" "}
+												{file.file ? "Not saved yet" : `Uploaded on ${file.uploadedAtLabel}`}
 											</p>
 										</div>
 
@@ -751,6 +905,7 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 						<input
 							ref={labTestFileInputRef}
 							type="file"
+							aria-label="Choose files to add"
 							multiple
 							accept="image/jpeg,image/png,application/pdf"
 							className="sr-only"
@@ -806,31 +961,4 @@ function LabTestDetailsEditForm({ labTest }: { labTest: LabTestType }) {
 			</div>
 		</form>
 	);
-}
-
-function LabTestFlagOptions() {
-	return (
-		<SelectGroup>
-			<SelectItem value="within-range">Within range</SelectItem>
-			<SelectItem value="low">Low</SelectItem>
-			<SelectItem value="high">High</SelectItem>
-			<SelectItem value="critical">Critical</SelectItem>
-			<SelectItem value="abnormal">Abnormal</SelectItem>
-			<SelectItem value="inconclusive">Inconclusive</SelectItem>
-		</SelectGroup>
-	);
-}
-
-function LabTestStatusOptions() {
-	return (
-		<SelectGroup>
-			<SelectItem value="pending">Pending</SelectItem>
-			<SelectItem value="completed">Completed</SelectItem>
-			<SelectItem value="cancelled">Cancelled</SelectItem>
-		</SelectGroup>
-	);
-}
-
-function getLabTestSelectValue(value: string) {
-	return value.trim().toLowerCase().replace(/\s+/g, "-") || undefined;
 }

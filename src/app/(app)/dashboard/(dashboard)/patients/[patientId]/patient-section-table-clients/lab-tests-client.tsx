@@ -152,7 +152,7 @@ export function LabTestsClient({
 	return (
 		<LabTestsTable
 			patientId={patientId}
-			isEncounterScoped={Boolean(encounterId)}
+			encounterId={encounterId}
 			labTests={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}
@@ -168,6 +168,8 @@ export function LabTestsClient({
 			onStatusFiltersChange={handleStatusFiltersChange}
 			onFlagFiltersChange={handleFlagFiltersChange}
 			onFiltersClear={handleFiltersClear}
+			onLabTestCreated={() => refreshLabTestsTable({ nextPage: tableData.page })}
+			onLabTestUpdated={() => refreshLabTestsTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

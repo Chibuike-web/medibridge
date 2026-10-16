@@ -169,7 +169,8 @@ export function ImagingClient({
 
 	return (
 		<ImagingTable
-			isEncounterScoped={Boolean(encounterId)}
+			patientId={patientId}
+			encounterId={encounterId}
 			imagingStudies={tableData.rows}
 			page={optimisticPage}
 			limit={optimisticLimit}
@@ -188,6 +189,8 @@ export function ImagingClient({
 			onStatusFiltersChange={handleStatusFiltersChange}
 			onModalityFiltersChange={handleModalityFiltersChange}
 			onFiltersClear={handleFiltersClear}
+			onImagingCreated={() => refreshImagingTable({ nextPage: tableData.page })}
+			onImagingUpdated={() => refreshImagingTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

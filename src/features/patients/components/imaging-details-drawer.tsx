@@ -33,17 +33,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
 	AttachmentFormFields,
 	type AttachmentFormRow,
 } from "@/features/patients/components/attachment-form-fields";
-import {
-	ImagingModalityOptions,
-	ImagingStatusOptions,
-} from "@/features/patients/components/create-imaging-drawer";
-import type { ImagingDetailsHistoryEvent, ImagingType } from "@/features/patients/types";
+import { imagingModalities, imagingStatuses } from "@/features/patients/server/schemas";
+import { updatePatientImagingAction } from "@/features/patients/server/update-patient-imaging-action";
+import type {
+	ImagingDetailsHistoryEvent,
+	ImagingType,
+	RecordFile,
+} from "@/features/patients/types";
 import { cn } from "@/lib/utils/cn";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { getDocumentFileIcon } from "@/lib/utils/document-file-icon";
@@ -56,18 +65,23 @@ import {
 	RiCheckLine,
 	RiCloseLine,
 	RiEdit2Line,
+	RiErrorWarningFill,
 	RiMore2Fill,
 	RiShare2Line,
 } from "@remixicon/react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import Image from "next/image";
-import { Fragment, useId, useRef, useState } from "react";
+import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 type ImagingDetailsDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	imaging: ImagingType | null;
+	onImagingUpdated: () => void;
 };
+
+const imagingDetailsFormId = "imaging-details-form";
 
 const imagingDetailsFieldLabelClassName =
 	"inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
@@ -75,19 +89,63 @@ const imagingDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const imagingDetailsFieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
-export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDetailsDrawerProps) {
+export function ImagingDetailsDrawer({
+	open,
+	onOpenChange,
+	imaging,
+	onImagingUpdated,
+}: ImagingDetailsDrawerProps) {
+	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [imagingDetailsMode, setImagingDetailsMode] = useState<"view" | "edit">("view");
 	const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+	const [formError, setFormError] = useState("");
+	const [isPending, startTransition] = useTransition();
+
+	function handleImagingDetailsModeChange(nextMode: "view" | "edit") {
+		setFormError("");
+		setImagingDetailsMode(nextMode);
+	}
 
 	function handleImagingDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
-			setImagingDetailsMode("view");
+			handleImagingDetailsModeChange("view");
 		}
 
 		onOpenChange(nextOpen);
+	}
+
+	function handleSave(formData: FormData) {
+		if (!imaging) return;
+
+		setFormError("");
+
+		if (
+			formData.getAll("files").reduce((totalSize, file) => totalSize + (file as File).size, 0) >
+			100 * 1024 * 1024
+		) {
+			setFormError("Files can add up to 100 MB per save.");
+			return;
+		}
+
+		startTransition(async () => {
+			const result = await updatePatientImagingAction(imaging.imagingId, formData);
+
+			if (result.status === "unauthorized") {
+				router.refresh();
+				return;
+			}
+
+			if (result.status !== "success") {
+				setFormError(result.error);
+				return;
+			}
+
+			setImagingDetailsMode("view");
+			onImagingUpdated();
+		});
 	}
 
 	const isEditingImagingDetails = imagingDetailsMode === "edit" && Boolean(imaging);
@@ -112,7 +170,7 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 							>
 								<DropdownMenuItem
 									className="rounded-lg"
-									onSelect={() => setImagingDetailsMode("edit")}
+									onSelect={() => handleImagingDetailsModeChange("edit")}
 								>
 									<RiEdit2Line aria-hidden="true" />
 									Edit
@@ -165,7 +223,12 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 
 				<div className="min-h-0 overflow-y-auto px-4 py-5 text-sm">
 					{isEditingImagingDetails && imaging ? (
-						<ImagingDetailsEditForm imaging={imaging} />
+						<ImagingDetailsEditForm
+							imaging={imaging}
+							formError={formError}
+							onFormErrorDismiss={() => setFormError("")}
+							onSave={handleSave}
+						/>
 					) : imaging ? (
 						<div className="flex flex-col gap-10">
 							<ImagingDetailsOverview imaging={imaging} />
@@ -182,11 +245,15 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 				{isEditingImagingDetails ? (
 					<DrawerFooter className="border-t border-gray-200 text-sm">
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
-							<Button type="button" variant="outline" onClick={() => setImagingDetailsMode("view")}>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => handleImagingDetailsModeChange("view")}
+							>
 								Cancel
 							</Button>
-							<Button type="button" onClick={() => setImagingDetailsMode("view")}>
-								Save Changes
+							<Button type="submit" form={imagingDetailsFormId} disabled={isPending}>
+								{isPending ? "Saving…" : "Save changes"}
 							</Button>
 						</div>
 					</DrawerFooter>
@@ -342,7 +409,7 @@ function ImagingFilesSection({ files }: { files: ImagingType["files"] }) {
 			<div className="space-y-3">
 				{visibleFiles.map((file) => (
 					<div
-						key={file.url}
+						key={file.id}
 						className="flex items-center gap-4 rounded-xl border border-gray-200 p-4"
 					>
 						<Image
@@ -355,15 +422,19 @@ function ImagingFilesSection({ files }: { files: ImagingType["files"] }) {
 						<div className="min-w-0 flex-1">
 							<p className="truncate font-semibold text-gray-800">{file.name}</p>
 							<p className="truncate text-gray-400">
-								{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}
+								{file.size} · Uploaded on {file.uploadedAtLabel}
 							</p>
 						</div>
 						<div className="flex shrink-0 items-center gap-2">
-							<Button type="button" variant="outline">
-								Download
+							<Button asChild variant="outline">
+								<a href={`${file.url}?download`} download={file.name}>
+									Download
+								</a>
 							</Button>
 							<Button asChild type="button">
-								<a href={file.url}>Open</a>
+								<a href={file.url} target="_blank" rel="noreferrer">
+									Open
+								</a>
 							</Button>
 						</div>
 					</div>
@@ -474,24 +545,48 @@ function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHist
 	);
 }
 
-function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
+function ImagingDetailsEditForm({
+	imaging,
+	formError,
+	onFormErrorDismiss,
+	onSave,
+}: {
+	imaging: ImagingType;
+	formError: string;
+	onFormErrorDismiss: () => void;
+	onSave: (formData: FormData) => void;
+}) {
 	const generatedAttachmentRowId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
-	const [orderedAt, setOrderedAt] = useState<Date | undefined>();
+	const [orderedAt, setOrderedAt] = useState<Date | undefined>(() =>
+		imaging.orderedAtValue ? parseISO(imaging.orderedAtValue.slice(0, 10)) : undefined,
+	);
 	const [imagingAttachmentRows, setImagingAttachmentRows] = useState<AttachmentFormRow[]>([]);
 	const imagingFileInputRef = useRef<HTMLInputElement>(null);
-	const [editableImagingFiles, setEditableImagingFiles] = useState(imaging.files ?? []);
-	const [pendingImagingFileRemovalUrl, setPendingImagingFileRemovalUrl] = useState<string | null>(
+	const [editableImagingFiles, setEditableImagingFiles] = useState<
+		(RecordFile & { file?: File })[]
+	>(imaging.files);
+	const [pendingImagingFileRemovalId, setPendingImagingFileRemovalId] = useState<string | null>(
 		null,
 	);
 	const hasImagingFiles = editableImagingFiles.length > 0;
-	const selectedModalityValue = getImagingSelectValue(imaging.modality);
-	const selectedStatusValue = imaging.status.toLowerCase();
-	const orderedAtDisplayValue = orderedAt
-		? format(orderedAt, "PPP")
-		: imaging.orderedAtLabel !== "-"
-			? imaging.orderedAtLabel
-			: "Select date";
+
+	function handleSubmit(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		const formData = new FormData(event.currentTarget);
+
+		for (const imagingFile of editableImagingFiles) {
+			if (imagingFile.file) formData.append("files", imagingFile.file);
+		}
+
+		for (const savedFile of imaging.files) {
+			if (!editableImagingFiles.some((imagingFile) => imagingFile.id === savedFile.id)) {
+				formData.append("removedFileIds", savedFile.id);
+			}
+		}
+
+		onSave(formData);
+	}
 
 	function handleAddImagingAttachmentRow() {
 		nextAttachmentRowNumberRef.current += 1;
@@ -512,168 +607,221 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 		);
 	}
 
-	function handleRemoveImagingFile(fileUrl: string) {
-		setEditableImagingFiles((previousFiles) =>
-			previousFiles.filter((previousFile) => previousFile.url !== fileUrl),
-		);
-		setPendingImagingFileRemovalUrl(null);
+	function handleRemoveImagingFile(fileId: string) {
+		setEditableImagingFiles((prev) => prev.filter((imagingFile) => imagingFile.id !== fileId));
+		setPendingImagingFileRemovalId(null);
 	}
 
 	function handleImagingFilesChange(event: React.ChangeEvent<HTMLInputElement>) {
 		const selectedFiles = Array.from(event.target.files ?? []);
-		const nextFiles = selectedFiles.map((file) => ({
-			name: file.name,
-			type: file.type,
-			url: URL.createObjectURL(file),
-			size: `${Math.round(file.size / 1024)}KB`,
-			uploadedAt: new Date().toISOString(),
-		}));
 
-		setEditableImagingFiles((previousFiles) => [...previousFiles, ...nextFiles]);
+		setEditableImagingFiles((prev) => [
+			...prev,
+			...selectedFiles.map((file) => ({
+				id: crypto.randomUUID(),
+				name: file.name,
+				type: file.type,
+				url: URL.createObjectURL(file),
+				size:
+					file.size >= 1024 * 1024
+						? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+						: `${Math.ceil(file.size / 1024)} KB`,
+				uploadedAtLabel: "",
+				file,
+			})),
+		]);
 		event.target.value = "";
 	}
 
 	return (
-		<form className="flex flex-col gap-12">
-			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Imaging ID:</span>
-					<CopyIdButton id={imaging.imagingId} className="text-sm" />
-				</div>
-				{imaging.encounterId ? (
-					<div className="flex items-center gap-2">
-						<span className="text-gray-400">Encounter ID:</span>
-						<CopyIdButton id={imaging.encounterId} className="text-sm" />
-					</div>
-				) : null}
-			</div>
-
-			<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-imaging-study" className={imagingDetailsFieldLabelClassName}>
-						Study<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-imaging-study"
-						name="study"
-						defaultValue={imaging.study}
-						className={imagingDetailsFieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-imaging-region" className={imagingDetailsFieldLabelClassName}>
-						Region<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-imaging-region"
-						name="region"
-						defaultValue={imaging.region}
-						className={imagingDetailsFieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-imaging-modality" className={imagingDetailsFieldLabelClassName}>
-						Modality<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Select defaultValue={selectedModalityValue}>
-						<SelectTrigger
-							id="edit-imaging-modality"
-							className={`${imagingDetailsFieldControlClassName} w-full`}
-						>
-							<SelectValue placeholder="Select modality" />
-						</SelectTrigger>
-						<SelectContent>
-							<ImagingModalityOptions />
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label className={imagingDetailsFieldLabelClassName}>
-						Ordered at<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<input
-						type="hidden"
-						name="orderedAt"
-						value={orderedAt ? format(orderedAt, "yyyy-MM-dd") : imaging.orderedAtValue}
-					/>
-					<Popover>
-						<PopoverTrigger asChild>
-							<Button
-								type="button"
-								variant="outline"
-								data-empty={!orderedAt && imaging.orderedAtLabel === "-"}
-								className={`${imagingDetailsFieldControlClassName} flex w-full justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
-							>
-								<span className="min-w-0 truncate">{orderedAtDisplayValue}</span>
-								<RiCalendarLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent align="end" className="p-0">
-							<Calendar mode="single" selected={orderedAt} onSelect={setOrderedAt} autoFocus />
-						</PopoverContent>
-					</Popover>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-imaging-ordered-by" className={imagingDetailsFieldLabelClassName}>
-						Ordered by<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Input
-						id="edit-imaging-ordered-by"
-						name="orderedBy"
-						defaultValue={imaging.orderedBy}
-						placeholder="e.g. Dr. Adebayo Johnson"
-						className={imagingDetailsFieldControlClassName}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<Label htmlFor="edit-imaging-status" className={imagingDetailsFieldLabelClassName}>
-						Status<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Select defaultValue={selectedStatusValue}>
-						<SelectTrigger
-							id="edit-imaging-status"
-							className={`${imagingDetailsFieldControlClassName} w-full`}
-						>
-							<SelectValue placeholder="Select status" />
-						</SelectTrigger>
-						<SelectContent>
-							<ImagingStatusOptions />
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label htmlFor="edit-imaging-impression" className={imagingDetailsFieldLabelClassName}>
-						Impression<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
-					</Label>
-					<Textarea
-						id="edit-imaging-impression"
-						name="impression"
-						defaultValue={imaging.impression === "-" ? "" : imaging.impression}
-						placeholder="e.g. Suspicious liver lesion identified in the right hepatic lobe"
-						className="min-h-20 bg-white text-sm text-gray-700 placeholder:text-gray-400"
-					/>
-				</div>
-
-				<div className="flex flex-col gap-2 sm:col-span-2">
-					<Label
-						htmlFor="edit-imaging-clinical-notes"
-						className={imagingDetailsFieldLabelClassName}
+		<form id={imagingDetailsFormId} onSubmit={handleSubmit} className="flex flex-col gap-12">
+			<div className="flex flex-col gap-8">
+				{formError && (
+					<div
+						key={formError}
+						ref={(banner) => banner?.scrollIntoView({ behavior: "smooth", block: "center" })}
+						role="alert"
+						className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
 					>
-						Clinical notes<span className={imagingDetailsRequiredLabelClassName}>(optional)</span>
-					</Label>
-					<Textarea
-						id="edit-imaging-clinical-notes"
-						name="clinicalNote"
-						defaultValue={imaging.clinicalNote === "-" ? "" : imaging.clinicalNote}
-						placeholder="Add additional findings, preparation instructions, or radiology notes"
-						className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
-					/>
+						<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+						<p className="min-w-0 flex-1 text-pretty">{formError}</p>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+							aria-label="Dismiss error"
+							onClick={onFormErrorDismiss}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</div>
+				)}
+				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
+					<div className="flex items-center gap-2">
+						<span className="text-gray-400">Imaging ID:</span>
+						<CopyIdButton id={imaging.imagingId} className="text-sm" />
+					</div>
+					{imaging.encounterId ? (
+						<div className="flex items-center gap-2">
+							<span className="text-gray-400">Encounter ID:</span>
+							<CopyIdButton id={imaging.encounterId} className="text-sm" />
+						</div>
+					) : null}
+				</div>
+
+				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label htmlFor="edit-imaging-study" className={imagingDetailsFieldLabelClassName}>
+							Study<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-imaging-study"
+							name="study"
+							defaultValue={imaging.study}
+							className={imagingDetailsFieldControlClassName}
+							required
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label htmlFor="edit-imaging-region" className={imagingDetailsFieldLabelClassName}>
+							Region<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-imaging-region"
+							name="region"
+							defaultValue={imaging.region}
+							className={imagingDetailsFieldControlClassName}
+							required
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-imaging-modality" className={imagingDetailsFieldLabelClassName}>
+							Modality<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Select name="modality" defaultValue={imaging.modality} required>
+							<SelectTrigger
+								id="edit-imaging-modality"
+								className={`${imagingDetailsFieldControlClassName} w-full`}
+							>
+								<SelectValue placeholder="Select modality" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectGroup>
+									{imagingModalities.map((modality) => (
+										<SelectItem key={modality} value={modality}>
+											{modality}
+										</SelectItem>
+									))}
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-imaging-ordered-at" className={imagingDetailsFieldLabelClassName}>
+							Ordered at<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<input
+							type="hidden"
+							name="orderedAt"
+							value={orderedAt ? format(orderedAt, "yyyy-MM-dd") : ""}
+						/>
+						<Popover>
+							<PopoverTrigger asChild>
+								<Button
+									id="edit-imaging-ordered-at"
+									type="button"
+									variant="outline"
+									data-empty={!orderedAt}
+									className={`${imagingDetailsFieldControlClassName} flex w-full justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+								>
+									<span className="min-w-0 truncate">
+										{orderedAt ? format(orderedAt, "PPP") : "Select date"}
+									</span>
+									<RiCalendarLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
+								</Button>
+							</PopoverTrigger>
+							<PopoverContent align="end" className="p-0">
+								<Calendar
+									mode="single"
+									selected={orderedAt}
+									onSelect={setOrderedAt}
+									disabled={{ after: new Date() }}
+									autoFocus
+								/>
+							</PopoverContent>
+						</Popover>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-imaging-ordered-by" className={imagingDetailsFieldLabelClassName}>
+							Ordered by<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Input
+							id="edit-imaging-ordered-by"
+							name="orderedBy"
+							defaultValue={imaging.orderedBy}
+							placeholder="e.g. Dr. Adebayo Johnson"
+							className={imagingDetailsFieldControlClassName}
+							required
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="edit-imaging-status" className={imagingDetailsFieldLabelClassName}>
+							Status<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
+						</Label>
+						<Select name="status" defaultValue={imaging.status} required>
+							<SelectTrigger
+								id="edit-imaging-status"
+								className={`${imagingDetailsFieldControlClassName} w-full`}
+							>
+								<SelectValue placeholder="Select status" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectGroup>
+									{imagingStatuses.map((status) => (
+										<SelectItem key={status} value={status}>
+											{status}
+										</SelectItem>
+									))}
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+					</div>
+
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label htmlFor="edit-imaging-impression" className={imagingDetailsFieldLabelClassName}>
+							Impression
+							<span className={imagingDetailsRequiredLabelClassName}>(required if completed)</span>
+						</Label>
+						<Textarea
+							id="edit-imaging-impression"
+							name="impression"
+							defaultValue={imaging.impression}
+							placeholder="e.g. Suspicious liver lesion identified in the right hepatic lobe"
+							className="min-h-20 bg-white text-sm text-gray-700 placeholder:text-gray-400"
+						/>
+					</div>
+
+					<div className="flex flex-col gap-2 sm:col-span-2">
+						<Label
+							htmlFor="edit-imaging-clinical-notes"
+							className={imagingDetailsFieldLabelClassName}
+						>
+							Clinical notes<span className={imagingDetailsRequiredLabelClassName}>(optional)</span>
+						</Label>
+						<Textarea
+							id="edit-imaging-clinical-notes"
+							name="clinicalNote"
+							defaultValue={imaging.clinicalNote}
+							placeholder="Add additional findings, preparation instructions, or radiology notes"
+							className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -687,12 +835,10 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 						<div className="space-y-3">
 							{editableImagingFiles.map((file) => (
 								<div
-									key={file.url}
+									key={file.id}
 									className={cn(
 										"rounded-xl border p-4",
-										pendingImagingFileRemovalUrl === file.url
-											? "border-red-500"
-											: "border-gray-200",
+										pendingImagingFileRemovalId === file.id ? "border-red-500" : "border-gray-200",
 									)}
 								>
 									<div className="flex items-center gap-4">
@@ -701,22 +847,23 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 											alt=""
 											width={36}
 											height={36}
-											className={`size-9 shrink-0 transition-opacity duration-200 ${pendingImagingFileRemovalUrl === file.url ? "opacity-40" : "opacity-100"}`}
+											className={`size-9 shrink-0 transition-opacity duration-200 ${pendingImagingFileRemovalId === file.id ? "opacity-40" : "opacity-100"}`}
 										/>
 										<div
-											className={`min-w-0 flex-1 transition-opacity duration-200 ${pendingImagingFileRemovalUrl === file.url ? "opacity-40" : "opacity-100"}`}
+											className={`min-w-0 flex-1 transition-opacity duration-200 ${pendingImagingFileRemovalId === file.id ? "opacity-40" : "opacity-100"}`}
 										>
 											<p className="truncate font-semibold text-gray-800">{file.name}</p>
 											<p className="truncate text-gray-400">
-												{file.size} · Uploaded on {file.uploadedAt.slice(0, 10)}
+												{file.size} ·{" "}
+												{file.file ? "Not saved yet" : `Uploaded on ${file.uploadedAtLabel}`}
 											</p>
 										</div>
-										{pendingImagingFileRemovalUrl !== file.url ? (
+										{pendingImagingFileRemovalId !== file.id ? (
 											<div className="flex shrink-0 items-center gap-2">
 												<Button
 													type="button"
 													variant="outline"
-													onClick={() => setPendingImagingFileRemovalUrl(file.url)}
+													onClick={() => setPendingImagingFileRemovalId(file.id)}
 												>
 													Remove
 												</Button>
@@ -731,12 +878,12 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 									<div
 										className={cn(
 											"grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none",
-											pendingImagingFileRemovalUrl === file.url
+											pendingImagingFileRemovalId === file.id
 												? "grid-rows-[1fr] opacity-100"
 												: "grid-rows-[0fr] opacity-0",
 										)}
-										aria-hidden={pendingImagingFileRemovalUrl !== file.url}
-										inert={pendingImagingFileRemovalUrl !== file.url}
+										aria-hidden={pendingImagingFileRemovalId !== file.id}
+										inert={pendingImagingFileRemovalId !== file.id}
 									>
 										<div className="min-h-0 overflow-hidden">
 											<div className="mt-6 flex flex-wrap items-center justify-between gap-4">
@@ -747,14 +894,14 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 													<Button
 														type="button"
 														variant="outline"
-														onClick={() => setPendingImagingFileRemovalUrl(null)}
+														onClick={() => setPendingImagingFileRemovalId(null)}
 													>
 														Cancel
 													</Button>
 													<Button
 														type="button"
 														className="bg-red-500 hover:bg-red-600 focus-visible:ring-red-300"
-														onClick={() => handleRemoveImagingFile(file.url)}
+														onClick={() => handleRemoveImagingFile(file.id)}
 													>
 														Remove file
 													</Button>
@@ -769,6 +916,7 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 						<input
 							ref={imagingFileInputRef}
 							type="file"
+							aria-label="Choose files to add"
 							multiple
 							accept="image/jpeg,image/png,application/pdf"
 							className="sr-only"
@@ -819,8 +967,4 @@ function ImagingDetailsEditForm({ imaging }: { imaging: ImagingType }) {
 			</div>
 		</form>
 	);
-}
-
-function getImagingSelectValue(value: string) {
-	return value.toLowerCase().replaceAll(" ", "-");
 }

@@ -28,14 +28,21 @@ import {
 	AttachmentFormFields,
 	type AttachmentFormRow,
 } from "@/features/patients/components/attachment-form-fields";
-import { RiAddLine, RiCalendarLine, RiCloseLine } from "@remixicon/react";
+import { createPatientImagingAction } from "@/features/patients/server/create-patient-imaging-action";
+import { imagingModalities, imagingStatuses } from "@/features/patients/server/schemas";
+import { authClient } from "@/lib/better-auth/auth.client";
+import { RiAddLine, RiCalendarLine, RiCloseLine, RiErrorWarningFill } from "@remixicon/react";
 import { format } from "date-fns";
-import { useId, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useId, useRef, useState, useTransition, type FormEvent } from "react";
 import { CreateSelectedFiles } from "@/components/create-selected-files";
 
 type CreateImagingDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	patientId: string;
+	encounterId?: string;
+	onImagingCreated: () => void;
 };
 
 const imagingFieldLabelClassName =
@@ -44,26 +51,75 @@ const imagingRequiredLabelClassName = "font-normal text-gray-400";
 const imagingFieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
-export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerProps) {
+export function CreateImagingDrawer({
+	open,
+	onOpenChange,
+	patientId,
+	encounterId,
+	onImagingCreated,
+}: CreateImagingDrawerProps) {
+	const router = useRouter();
 	const generatedFormId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
+	const { data: session } = authClient.useSession();
+	const [formError, setFormError] = useState("");
 	const [orderedAt, setOrderedAt] = useState<Date | undefined>();
 	const [imagingAttachmentRows, setImagingAttachmentRows] = useState<AttachmentFormRow[]>([]);
 	const imagingFileInputRef = useRef<HTMLInputElement>(null);
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+	const [isPending, startTransition] = useTransition();
+
+	function handleOpenChange(isOpen: boolean) {
+		if (!isOpen) {
+			setFormError("");
+			setOrderedAt(undefined);
+			setImagingAttachmentRows([]);
+			setSelectedFiles([]);
+		}
+		onOpenChange(isOpen);
+	}
+
+	function handleCreate(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		setFormError("");
+
+		if (selectedFiles.reduce((totalSize, file) => totalSize + file.size, 0) > 100 * 1024 * 1024) {
+			setFormError("Files can add up to 100 MB per save.");
+			return;
+		}
+
+		const formData = new FormData(event.currentTarget);
+		for (const file of selectedFiles) formData.append("files", file);
+		if (encounterId) formData.set("encounterId", encounterId);
+
+		startTransition(async () => {
+			const result = await createPatientImagingAction(patientId, formData);
+
+			if (result.status === "unauthorized") {
+				router.refresh();
+				return;
+			}
+
+			if (result.status !== "success") {
+				setFormError(result.error);
+				return;
+			}
+
+			handleOpenChange(false);
+			onImagingCreated();
+		});
+	}
 
 	function handleFilesSelected(event: React.ChangeEvent<HTMLInputElement>) {
 		const nextFiles = Array.from(event.target.files ?? []);
 
-		setSelectedFiles((previousFiles) => [...previousFiles, ...nextFiles]);
+		setSelectedFiles((prev) => [...prev, ...nextFiles]);
 
 		event.target.value = "";
 	}
 
 	function handleRemoveFile(file: File) {
-		setSelectedFiles((previousFiles) =>
-			previousFiles.filter((previousFile) => previousFile !== file),
-		);
+		setSelectedFiles((prev) => prev.filter((previousFile) => previousFile !== file));
 	}
 
 	function handleAddImagingAttachmentRow() {
@@ -86,7 +142,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 	}
 
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
+		<Drawer open={open} onOpenChange={handleOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="leading-[1.2] text-gray-800">Add imaging</DrawerTitle>
@@ -100,16 +156,43 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<form className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-4 py-5 text-sm">
+				<form
+					id={generatedFormId}
+					onSubmit={handleCreate}
+					className="flex min-h-0 flex-1 flex-col gap-12 overflow-y-auto px-4 py-5 text-sm"
+				>
 					<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+						{formError && (
+							<div
+								key={formError}
+								ref={(banner) => banner?.scrollIntoView({ behavior: "smooth", block: "center" })}
+								role="alert"
+								className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700 sm:col-span-2"
+							>
+								<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+								<p className="min-w-0 flex-1 text-pretty">{formError}</p>
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon"
+									className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+									aria-label="Dismiss error"
+									onClick={() => setFormError("")}
+								>
+									<RiCloseLine aria-hidden="true" />
+								</Button>
+							</div>
+						)}
 						<div className="flex flex-col gap-2 sm:col-span-2">
 							<Label htmlFor={`${generatedFormId}-study`} className={imagingFieldLabelClassName}>
 								Study<span className={imagingRequiredLabelClassName}>(required)</span>
 							</Label>
 							<Input
 								id={`${generatedFormId}-study`}
+								name="study"
 								placeholder="e.g. CT Abdomen with Contrast"
 								className={imagingFieldControlClassName}
+								required
 							/>
 						</div>
 
@@ -119,8 +202,10 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 							</Label>
 							<Input
 								id={`${generatedFormId}-region`}
+								name="region"
 								placeholder="e.g. Abdomen"
 								className={imagingFieldControlClassName}
+								required
 							/>
 						</div>
 
@@ -128,18 +213,27 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 							<Label htmlFor={`${generatedFormId}-modality`} className={imagingFieldLabelClassName}>
 								Modality<span className={imagingRequiredLabelClassName}>(required)</span>
 							</Label>
-							<Select>
+							<Select name="modality" required>
 								<SelectTrigger id={`${generatedFormId}-modality`} className="w-full">
 									<SelectValue placeholder="Select modality" />
 								</SelectTrigger>
 								<SelectContent>
-									<ImagingModalityOptions />
+									<SelectGroup>
+										{imagingModalities.map((modality) => (
+											<SelectItem key={modality} value={modality}>
+												{modality}
+											</SelectItem>
+										))}
+									</SelectGroup>
 								</SelectContent>
 							</Select>
 						</div>
 
 						<div className="flex flex-col gap-2">
-							<Label className={imagingFieldLabelClassName}>
+							<Label
+								htmlFor={`${generatedFormId}-ordered-at`}
+								className={imagingFieldLabelClassName}
+							>
 								Ordered at<span className={imagingRequiredLabelClassName}>(required)</span>
 							</Label>
 							<input
@@ -163,7 +257,13 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 									</Button>
 								</PopoverTrigger>
 								<PopoverContent align="end" className="p-0">
-									<Calendar mode="single" selected={orderedAt} onSelect={setOrderedAt} autoFocus />
+									<Calendar
+										mode="single"
+										selected={orderedAt}
+										onSelect={setOrderedAt}
+										disabled={{ after: new Date() }}
+										autoFocus
+									/>
 								</PopoverContent>
 							</Popover>
 						</div>
@@ -177,8 +277,11 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 							</Label>
 							<Input
 								id={`${generatedFormId}-ordered-by`}
+								name="orderedBy"
+								defaultValue={session?.user.name}
 								placeholder="e.g. Dr. Adebayo Johnson"
 								className={imagingFieldControlClassName}
+								required
 							/>
 						</div>
 
@@ -186,12 +289,18 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 							<Label htmlFor={`${generatedFormId}-status`} className={imagingFieldLabelClassName}>
 								Status<span className={imagingRequiredLabelClassName}>(required)</span>
 							</Label>
-							<Select>
+							<Select name="status" required>
 								<SelectTrigger id={`${generatedFormId}-status`} className="w-full">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>
 								<SelectContent>
-									<ImagingStatusOptions />
+									<SelectGroup>
+										{imagingStatuses.map((status) => (
+											<SelectItem key={status} value={status}>
+												{status}
+											</SelectItem>
+										))}
+									</SelectGroup>
 								</SelectContent>
 							</Select>
 						</div>
@@ -201,10 +310,12 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 								htmlFor={`${generatedFormId}-impression`}
 								className={imagingFieldLabelClassName}
 							>
-								Impression<span className={imagingRequiredLabelClassName}>(required)</span>
+								Impression
+								<span className={imagingRequiredLabelClassName}>(required if completed)</span>
 							</Label>
 							<Textarea
 								id={`${generatedFormId}-impression`}
+								name="impression"
 								placeholder="e.g. Suspicious liver lesion identified in the right hepatic lobe"
 								className="min-h-20 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 							/>
@@ -219,6 +330,7 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 							</Label>
 							<Textarea
 								id={`${generatedFormId}-clinical-notes`}
+								name="clinicalNote"
 								placeholder="Add additional findings, preparation instructions, or radiology notes"
 								className="min-h-20 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 							/>
@@ -284,31 +396,12 @@ export function CreateImagingDrawer({ open, onOpenChange }: CreateImagingDrawerP
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="button">Add imaging</Button>
+						<Button type="submit" form={generatedFormId} disabled={isPending}>
+							{isPending ? "Adding…" : "Add imaging"}
+						</Button>
 					</div>
 				</DrawerFooter>
 			</DrawerContent>
 		</Drawer>
-	);
-}
-
-export function ImagingModalityOptions() {
-	return (
-		<SelectGroup>
-			<SelectItem value="ct">CT</SelectItem>
-			<SelectItem value="mri">MRI</SelectItem>
-			<SelectItem value="ultrasound">Ultrasound</SelectItem>
-			<SelectItem value="x-ray">X-ray</SelectItem>
-		</SelectGroup>
-	);
-}
-
-export function ImagingStatusOptions() {
-	return (
-		<SelectGroup>
-			<SelectItem value="pending">Pending</SelectItem>
-			<SelectItem value="completed">Completed</SelectItem>
-			<SelectItem value="cancelled">Cancelled</SelectItem>
-		</SelectGroup>
 	);
 }

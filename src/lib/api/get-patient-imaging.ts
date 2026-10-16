@@ -145,7 +145,9 @@ export async function getPatientImagingForOrganization(
 	const orderedToDate = parseDateParam(dateFilters.orderedTo ?? "");
 	const createdFromDate = parseDateParam(dateFilters.createdFrom ?? "");
 	const createdToDate = parseDateParam(dateFilters.createdTo ?? "");
-	const databaseStatusFilters = statusFilters.map((statusFilter) => statusFilter.toLowerCase());
+	const databaseStatusFilters = statusFilters.map(
+		(statusFilter) => statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1),
+	);
 	const databaseModalityFilters = modalityFilters.map(toDatabaseModalityFilter);
 	const imagingFilter = and(
 		eq(patientImaging.patientId, patientId),
@@ -238,12 +240,16 @@ export async function getPatientImagingForOrganization(
 		totalImagingStudies: countRows[0]?.value ?? 0,
 		imagingStudies: rows.map((imaging) => {
 			const modality = normalizeModality(imaging.modality);
-			const impression = imaging.impression ?? "-";
-			const orderedAtLabel = imaging.orderedAt ? formatDate(imaging.orderedAt.toISOString()) : "-";
-			const orderedBy = imaging.orderedBy ?? "-";
+			const impression = imaging.impression ?? "";
+			const orderedAtLabel = imaging.orderedAt
+				? new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "UTC" }).format(
+						imaging.orderedAt,
+					)
+				: "-";
+			const orderedBy = imaging.orderedBy ?? "";
 			const reportedBy = imaging.reportedBy ?? imaging.orderedBy ?? "-";
 			const status = normalizeStatus(imaging.status);
-			const clinicalNote = imaging.clinicalNote ?? "-";
+			const clinicalNote = imaging.clinicalNote ?? "";
 			const createdBy = imaging.createdBy ?? imaging.orderedBy ?? "-";
 			const updatedBy = imaging.updatedBy ?? imaging.reportedBy ?? imaging.orderedBy ?? "-";
 			const createdAtLabel = formatDate(imaging.createdAt.toISOString());
@@ -264,11 +270,12 @@ export async function getPatientImagingForOrganization(
 				status,
 				clinicalNote,
 				files: (filesByImagingId.get(imaging.imagingId) ?? []).map((file) => ({
+					id: file.id,
 					name: file.name,
 					type: file.type ?? "",
 					url: file.url ?? "",
 					size: file.size ?? "",
-					uploadedAt: file.uploadedAt.toISOString(),
+					uploadedAtLabel: formatDate(file.uploadedAt.toISOString()),
 				})),
 				createdBy,
 				updatedBy,

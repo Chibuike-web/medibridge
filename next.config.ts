@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
 	logging: { fetches: { fullUrl: true } },
 	serverExternalPackages: ["tesseract.js", "pdf-parse", "mammoth"],
 	experimental: {
+		serverActions: { bodySizeLimit: "100mb" },
+		proxyClientMaxBodySize: "100mb",
 		turbopackRustReactCompiler: true,
 		optimizePackageImports: [
 			"@radix-ui/react-label",

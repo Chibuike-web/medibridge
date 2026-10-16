@@ -333,7 +333,7 @@ export type LabTestDetailsHistoryEvent = {
 	}[];
 };
 
-export type LabTestFile = {
+export type RecordFile = {
 	id: string;
 	name: string;
 	url: string;
@@ -364,7 +364,7 @@ export type LabTestType = {
 	updatedBy: string;
 	status: "Pending" | "Completed" | "Cancelled";
 	clinicalNote: string;
-	files: LabTestFile[];
+	files: RecordFile[];
 	history: LabTestDetailsHistoryEvent[];
 };
 
@@ -408,7 +408,7 @@ export type ImagingType = {
 	reportedBy: string;
 	status: "Pending" | "Completed" | "Cancelled";
 	clinicalNote: string;
-	files: DocumentFileType[];
+	files: RecordFile[];
 	createdBy: string;
 	updatedBy: string;
 	createdAtLabel: string;
@@ -419,14 +419,6 @@ export type ImagingType = {
 export type ImagingStatusFilter = "pending" | "completed" | "cancelled";
 
 export type ImagingModalityFilter = "ct" | "mri" | "ultrasound" | "x-ray";
-
-export type DocumentFileType = {
-	name: string;
-	type: string;
-	url: string;
-	size: string;
-	uploadedAt: string;
-};
 
 export type PatientSectionProps = {
 	section: string;

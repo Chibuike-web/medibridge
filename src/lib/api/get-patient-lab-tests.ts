@@ -39,10 +39,7 @@ function formatTestName(testName: string, result: string | null) {
 }
 
 function toDatabaseFlagFilter(flagFilter: LabTestFlagFilter) {
-	return flagFilter
-		.split("-")
-		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-		.join(" ");
+	return flagFilter.charAt(0).toUpperCase() + flagFilter.slice(1).replaceAll("-", " ");
 }
 
 export const getPatientLabTests = cache(
@@ -127,7 +124,9 @@ export async function getPatientLabTestsForOrganization(
 	const searchPattern = `%${normalizedQuery}%`;
 	const createdFromDate = parseDateParam(dateFilters.createdFrom ?? "");
 	const createdToDate = parseDateParam(dateFilters.createdTo ?? "");
-	const databaseStatusFilters = statusFilters.map((statusFilter) => statusFilter.toLowerCase());
+	const databaseStatusFilters = statusFilters.map(
+		(statusFilter) => statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1),
+	);
 	const databaseFlagFilters = flagFilters.map(toDatabaseFlagFilter);
 	const labTestFilter = and(
 		eq(patient.id, patientId),
@@ -138,9 +137,7 @@ export async function getPatientLabTestsForOrganization(
 		databaseStatusFilters.length > 0
 			? inArray(patientLabTest.status, databaseStatusFilters)
 			: undefined,
-		databaseFlagFilters.length > 0
-			? inArray(patientLabTest.interpretation, databaseFlagFilters)
-			: undefined,
+		databaseFlagFilters.length > 0 ? inArray(patientLabTest.flag, databaseFlagFilters) : undefined,
 		or(
 			ilike(patientLabTest.testName, searchPattern),
 			ilike(patientLabTest.result, searchPattern),
@@ -221,10 +218,14 @@ export async function getPatientLabTestsForOrganization(
 			const status = normalizeStatus(labTest.status);
 			const result = labTest.result ?? "";
 			const specimen = labTest.specimen ?? "";
-			const referenceRange = labTest.referenceRange ?? "-";
-			const interpretation = labTest.interpretation ?? "-";
+			const referenceRange = labTest.referenceRange ?? "";
+			const interpretation = labTest.interpretation ?? "";
 			const flag = labTest.flag ?? "";
-			const orderedAtLabel = labTest.orderedAt ? formatDateTime(labTest.orderedAt) : "-";
+			const orderedAtLabel = labTest.orderedAt
+				? new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "UTC" }).format(
+						labTest.orderedAt,
+					)
+				: "-";
 			const orderedBy = labTest.orderedBy ?? "";
 			const createdAtLabel = formatDateTime(labTest.createdAt);
 			const updatedAtLabel = formatDateTime(labTest.updatedAt);

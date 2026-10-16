@@ -6,11 +6,26 @@ import type { ImagingType } from "@/features/patients/types";
 import { ImagingTable } from "./imaging-table";
 
 const activeMember = vi.hoisted(() => ({ role: "owner" }));
+const { createImagingMock, updateImagingMock } = vi.hoisted(() => ({
+	createImagingMock: vi.fn(),
+	updateImagingMock: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
 		useActiveMemberRole: () => ({ data: { role: activeMember.role } }),
+		useSession: () => ({ data: { user: { name: "Dr. Okafor" } } }),
 	},
+}));
+
+vi.mock("@/features/patients/server/create-patient-imaging-action", () => ({
+	createPatientImagingAction: createImagingMock,
+}));
+
+vi.mock("@/features/patients/server/update-patient-imaging-action", () => ({
+	updatePatientImagingAction: updateImagingMock,
 }));
 
 const imagingStudies: ImagingType[] = [
@@ -28,7 +43,16 @@ const imagingStudies: ImagingType[] = [
 		reportedBy: "Dr. Musa",
 		status: "Completed",
 		clinicalNote: "Follow-up in six weeks.",
-		files: [],
+		files: [
+			{
+				id: "FILE-cxr",
+				name: "chest-xray.png",
+				url: "/api/patient-record-files/FILE-cxr",
+				type: "image/png",
+				size: "2.4 MB",
+				uploadedAtLabel: "Jan 6, 2020",
+			},
+		],
 		createdBy: "Nurse Ada",
 		updatedBy: "Nurse Ada",
 		createdAtLabel: "Jan 6, 2020",
@@ -41,7 +65,7 @@ const imagingStudies: ImagingType[] = [
 		encounterId: "ENC-2",
 		modality: "Ultrasound",
 		region: "Abdomen",
-		impression: "-",
+		impression: "",
 		orderedAtLabel: "Jan 1, 2020",
 		orderedAtValue: "2020-01-01",
 		orderedAtSortValue: "2020-01-01T00:00:00.000Z",
@@ -60,6 +84,7 @@ const imagingStudies: ImagingType[] = [
 
 function renderImagingTable(overrides: Partial<React.ComponentProps<typeof ImagingTable>> = {}) {
 	const props: React.ComponentProps<typeof ImagingTable> = {
+		patientId: "patient-a",
 		imagingStudies,
 		page: 1,
 		limit: 14,
@@ -78,6 +103,8 @@ function renderImagingTable(overrides: Partial<React.ComponentProps<typeof Imagi
 		onStatusFiltersChange: vi.fn(),
 		onModalityFiltersChange: vi.fn(),
 		onFiltersClear: vi.fn(),
+		onImagingCreated: vi.fn(),
+		onImagingUpdated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -116,6 +143,8 @@ function bulkActionBar() {
 describe("Imaging table", () => {
 	beforeEach(() => {
 		activeMember.role = "owner";
+		createImagingMock.mockReset();
+		updateImagingMock.mockReset();
 	});
 
 	test("reports what the user types in the search box and shows the controlled query", async () => {
@@ -483,5 +512,131 @@ describe("Imaging table", () => {
 
 		const dialog = await screen.findByRole("dialog", { name: "View imaging details" });
 		expect(within(dialog).getByRole("heading", { name: "Abdominal Ultrasound" })).toBeVisible();
+	});
+
+	test("adds a pending imaging study to the encounter and refreshes the table", async () => {
+		createImagingMock.mockResolvedValue({ status: "success", imagingId: "IMG-new" });
+		const user = userEvent.setup();
+		const { onImagingCreated } = renderImagingTable({ encounterId: "ENC-1" });
+		const today = new Date();
+
+		await user.click(screen.getByRole("button", { name: "Add imaging" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add imaging" });
+		await user.type(within(drawer).getByLabelText(/^Study/), "CT Abdomen with Contrast");
+		await user.type(within(drawer).getByLabelText(/^Region/), "Abdomen");
+		await user.click(within(drawer).getByRole("combobox", { name: /Modality/ }));
+		await user.click(await screen.findByRole("option", { name: "CT" }));
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Pending" }));
+		await user.click(within(drawer).getByRole("button", { name: /Ordered at/ }));
+		await user.click(
+			await screen.findByRole("button", { name: new RegExp(format(today, "MMMM do, yyyy")) }),
+		);
+		await user.click(within(drawer).getByRole("button", { name: "Add imaging" }));
+
+		const [patientId, formData] = createImagingMock.mock.calls[0] as [string, FormData];
+		expect(patientId).toBe("patient-a");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				study: "CT Abdomen with Contrast",
+				region: "Abdomen",
+				modality: "CT",
+				status: "Pending",
+				orderedAt: format(today, "yyyy-MM-dd"),
+				orderedBy: "Dr. Okafor",
+				encounterId: "ENC-1",
+			}),
+		);
+		expect(formData.getAll("files")).toEqual([]);
+		expect(onImagingCreated).toHaveBeenCalledTimes(1);
+		expect(screen.queryByRole("dialog", { name: "Add imaging" })).not.toBeInTheDocument();
+	});
+
+	test("keeps the add imaging drawer open and shows why the study was not saved", async () => {
+		createImagingMock.mockResolvedValue({
+			status: "failed",
+			error: "Enter the impression of a completed study.",
+		});
+		const user = userEvent.setup();
+		const { onImagingCreated } = renderImagingTable();
+
+		await user.click(screen.getByRole("button", { name: "Add imaging" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add imaging" });
+		await user.type(within(drawer).getByLabelText(/^Study/), "MRI Brain");
+		await user.type(within(drawer).getByLabelText(/^Region/), "Head");
+		await user.click(within(drawer).getByRole("combobox", { name: /Modality/ }));
+		await user.click(await screen.findByRole("option", { name: "MRI" }));
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Completed" }));
+		await user.click(within(drawer).getByRole("button", { name: "Add imaging" }));
+
+		expect(await within(drawer).findByRole("alert")).toHaveTextContent(
+			"Enter the impression of a completed study.",
+		);
+		expect(within(drawer).getByLabelText(/^Study/)).toHaveValue("MRI Brain");
+		expect(onImagingCreated).not.toHaveBeenCalled();
+	});
+
+	test("opens and downloads a saved image from the details drawer", async () => {
+		const user = userEvent.setup();
+		renderImagingTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Chest X-ray" }));
+		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "View imaging details" });
+
+		expect(within(dialog).getByText("chest-xray.png")).toBeVisible();
+		expect(within(dialog).getByRole("link", { name: "Open" })).toHaveAttribute(
+			"href",
+			"/api/patient-record-files/FILE-cxr",
+		);
+		expect(within(dialog).getByRole("link", { name: "Download" })).toHaveAttribute(
+			"href",
+			"/api/patient-record-files/FILE-cxr?download",
+		);
+	});
+
+	test("saves edits with an added image and returns to the details view", async () => {
+		updateImagingMock.mockResolvedValue({ status: "success" });
+		const user = userEvent.setup();
+		const { onImagingUpdated } = renderImagingTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Chest X-ray" }));
+		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "View imaging details" });
+		await user.click(within(dialog).getByRole("button", { name: "Imaging actions" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
+		const editDialog = await screen.findByRole("dialog", { name: "Edit imaging details" });
+
+		const impression = within(editDialog).getByLabelText(/^Impression/);
+		expect(impression).toHaveValue("No acute cardiopulmonary findings.");
+		await user.clear(impression);
+		await user.type(impression, "Small left pleural effusion.");
+		await user.upload(
+			within(editDialog).getByLabelText("Choose files to add"),
+			new File(["png"], "chest-xray-lateral.png", { type: "image/png" }),
+		);
+		expect(within(editDialog).getByText("chest-xray.png")).toBeVisible();
+		expect(within(editDialog).getByText("chest-xray-lateral.png")).toBeVisible();
+		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
+
+		const [imagingId, formData] = updateImagingMock.mock.calls[0] as [string, FormData];
+		expect(imagingId).toBe("IMG-CXR");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				study: "Chest X-ray",
+				region: "Chest",
+				modality: "X-ray",
+				status: "Completed",
+				orderedAt: "2020-01-05",
+				impression: "Small left pleural effusion.",
+			}),
+		);
+		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual([
+			"chest-xray-lateral.png",
+		]);
+		expect(formData.getAll("removedFileIds")).toEqual([]);
+		expect(await screen.findByRole("dialog", { name: "View imaging details" })).toBeVisible();
+		expect(onImagingUpdated).toHaveBeenCalledTimes(1);
 	});
 });

@@ -205,7 +205,16 @@ export function CreateEncounterEmptyStateAction({ patientId }: { patientId: stri
 	);
 }
 
-export function CreateLabTestEmptyStateAction({ variant }: { variant?: ButtonVariant }) {
+export function CreateLabTestEmptyStateAction({
+	patientId,
+	encounterId,
+	variant,
+}: {
+	patientId: string;
+	encounterId?: string;
+	variant?: ButtonVariant;
+}) {
+	const router = useRouter();
 	const [isCreateLabTestDrawerOpen, setIsCreateLabTestDrawerOpen] = useState(false);
 
 	return (
@@ -216,12 +225,24 @@ export function CreateLabTestEmptyStateAction({ variant }: { variant?: ButtonVar
 			<CreateLabTestDrawer
 				open={isCreateLabTestDrawerOpen}
 				onOpenChange={setIsCreateLabTestDrawerOpen}
+				patientId={patientId}
+				encounterId={encounterId}
+				onLabTestCreated={() => router.refresh()}
 			/>
 		</>
 	);
 }
 
-export function CreateImagingEmptyStateAction({ variant }: { variant?: ButtonVariant }) {
+export function CreateImagingEmptyStateAction({
+	patientId,
+	encounterId,
+	variant,
+}: {
+	patientId: string;
+	encounterId?: string;
+	variant?: ButtonVariant;
+}) {
+	const router = useRouter();
 	const [isCreateImagingDrawerOpen, setIsCreateImagingDrawerOpen] = useState(false);
 
 	return (
@@ -232,6 +253,9 @@ export function CreateImagingEmptyStateAction({ variant }: { variant?: ButtonVar
 			<CreateImagingDrawer
 				open={isCreateImagingDrawerOpen}
 				onOpenChange={setIsCreateImagingDrawerOpen}
+				patientId={patientId}
+				encounterId={encounterId}
+				onImagingCreated={() => router.refresh()}
 			/>
 		</>
 	);

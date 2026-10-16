@@ -6,11 +6,26 @@ import type { LabTestType } from "@/features/patients/types";
 import { LabTestsTable } from "./lab-tests-table";
 
 const activeMember = vi.hoisted(() => ({ role: "owner" }));
+const { createLabTestMock, updateLabTestMock } = vi.hoisted(() => ({
+	createLabTestMock: vi.fn(),
+	updateLabTestMock: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
 		useActiveMemberRole: () => ({ data: { role: activeMember.role } }),
+		useSession: () => ({ data: { user: { name: "Dr. Okafor" } } }),
 	},
+}));
+
+vi.mock("@/features/patients/server/create-patient-lab-test-action", () => ({
+	createPatientLabTestAction: createLabTestMock,
+}));
+
+vi.mock("@/features/patients/server/update-patient-lab-test-action", () => ({
+	updatePatientLabTestAction: updateLabTestMock,
 }));
 
 const labTests: LabTestType[] = [
@@ -36,7 +51,16 @@ const labTests: LabTestType[] = [
 		updatedBy: "Nurse Ada",
 		status: "Completed",
 		clinicalNote: "Repeat in three months.",
-		files: [],
+		files: [
+			{
+				id: "FILE-a1c",
+				name: "a1c-report.pdf",
+				url: "/api/patient-record-files/FILE-a1c",
+				type: "application/pdf",
+				size: "120 KB",
+				uploadedAtLabel: "Jan 6, 2020",
+			},
+		],
 		history: [],
 	},
 	{
@@ -84,6 +108,8 @@ function renderLabTestsTable(overrides: Partial<React.ComponentProps<typeof LabT
 		onStatusFiltersChange: vi.fn(),
 		onFlagFiltersChange: vi.fn(),
 		onFiltersClear: vi.fn(),
+		onLabTestCreated: vi.fn(),
+		onLabTestUpdated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -122,6 +148,8 @@ function bulkActionBar() {
 describe("Lab tests table", () => {
 	beforeEach(() => {
 		activeMember.role = "owner";
+		createLabTestMock.mockReset();
+		updateLabTestMock.mockReset();
 	});
 
 	test("reports what the user types in the search box and shows the controlled query", async () => {
@@ -467,5 +495,132 @@ describe("Lab tests table", () => {
 
 		const dialog = await screen.findByRole("dialog", { name: "View details" });
 		expect(within(dialog).getByRole("heading", { name: "Basic Metabolic Panel" })).toBeVisible();
+	});
+
+	test("adds a pending lab test with its report to the encounter and refreshes the table", async () => {
+		createLabTestMock.mockResolvedValue({ status: "success", labTestId: "LAB-new" });
+		const user = userEvent.setup();
+		const { onLabTestCreated } = renderLabTestsTable({ encounterId: "ENC-1" });
+		const today = new Date();
+
+		await user.click(screen.getByRole("button", { name: "Add lab test" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add lab test" });
+		await user.type(within(drawer).getByLabelText(/^Test/), "Full Blood Count");
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Pending" }));
+		await user.click(within(drawer).getByRole("button", { name: /Ordered at/ }));
+		await user.click(
+			await screen.findByRole("button", { name: new RegExp(format(today, "MMMM do, yyyy")) }),
+		);
+		await user.type(within(drawer).getByLabelText(/Specimen/), "Whole blood");
+		await user.upload(
+			within(drawer).getByLabelText(/Choose one or more files/),
+			new File(["%PDF-1.4"], "fbc-request.pdf", { type: "application/pdf" }),
+		);
+		expect(within(drawer).getByText("fbc-request.pdf")).toBeVisible();
+		await user.click(within(drawer).getByRole("button", { name: "Add lab test" }));
+
+		const [patientId, formData] = createLabTestMock.mock.calls[0] as [string, FormData];
+		expect(patientId).toBe("patient-a");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				testName: "Full Blood Count",
+				status: "Pending",
+				orderedAt: format(today, "yyyy-MM-dd"),
+				orderedBy: "Dr. Okafor",
+				specimen: "Whole blood",
+				encounterId: "ENC-1",
+			}),
+		);
+		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual([
+			"fbc-request.pdf",
+		]);
+		expect(onLabTestCreated).toHaveBeenCalledTimes(1);
+		expect(screen.queryByRole("dialog", { name: "Add lab test" })).not.toBeInTheDocument();
+	});
+
+	test("keeps the add lab test drawer open and shows why the lab test was not saved", async () => {
+		createLabTestMock.mockResolvedValue({
+			status: "failed",
+			error: "Attach the report for a completed lab test.",
+		});
+		const user = userEvent.setup();
+		const { onLabTestCreated } = renderLabTestsTable();
+
+		await user.click(screen.getByRole("button", { name: "Add lab test" }));
+		const drawer = await screen.findByRole("dialog", { name: "Add lab test" });
+		await user.type(within(drawer).getByLabelText(/^Test/), "Lipid panel");
+		await user.click(within(drawer).getByRole("combobox", { name: /Status/ }));
+		await user.click(await screen.findByRole("option", { name: "Completed" }));
+		await user.type(within(drawer).getByLabelText(/Specimen/), "Serum");
+		await user.click(within(drawer).getByRole("button", { name: "Add lab test" }));
+
+		expect(await within(drawer).findByRole("alert")).toHaveTextContent(
+			"Attach the report for a completed lab test.",
+		);
+		expect(within(drawer).getByLabelText(/^Test/)).toHaveValue("Lipid panel");
+		expect(onLabTestCreated).not.toHaveBeenCalled();
+	});
+
+	test("opens and downloads a saved lab report from the details drawer", async () => {
+		const user = userEvent.setup();
+		renderLabTestsTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Hemoglobin A1c" }));
+		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "View details" });
+
+		expect(within(dialog).getByText("a1c-report.pdf")).toBeVisible();
+		expect(within(dialog).getByRole("link", { name: "Open" })).toHaveAttribute(
+			"href",
+			"/api/patient-record-files/FILE-a1c",
+		);
+		expect(within(dialog).getByRole("link", { name: "Download" })).toHaveAttribute(
+			"href",
+			"/api/patient-record-files/FILE-a1c?download",
+		);
+	});
+
+	test("saves edits with a replaced report and returns to the details view", async () => {
+		updateLabTestMock.mockResolvedValue({ status: "success" });
+		const user = userEvent.setup();
+		const { onLabTestUpdated } = renderLabTestsTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Hemoglobin A1c" }));
+		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "View details" });
+		await user.click(within(dialog).getByRole("button", { name: "Lab test actions" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
+		const editDialog = await screen.findByRole("dialog", { name: "Edit lab test details" });
+
+		const resultInput = within(editDialog).getByLabelText(/^Result/);
+		expect(resultInput).toHaveValue("6.1 %");
+		await user.clear(resultInput);
+		await user.type(resultInput, "5.4 %");
+		await user.click(within(editDialog).getByRole("button", { name: "Remove" }));
+		await user.click(within(editDialog).getByRole("button", { name: "Remove file" }));
+		expect(within(editDialog).queryByText("a1c-report.pdf")).not.toBeInTheDocument();
+		await user.upload(
+			within(editDialog).getByLabelText(/Choose one or more files/),
+			new File(["%PDF-1.4"], "a1c-repeat.pdf", { type: "application/pdf" }),
+		);
+		expect(within(editDialog).getByText(/Not saved yet/)).toBeVisible();
+		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
+
+		const [labTestId, formData] = updateLabTestMock.mock.calls[0] as [string, FormData];
+		expect(labTestId).toBe("LAB-A1C");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				testName: "Hemoglobin A1c",
+				status: "Completed",
+				flag: "High",
+				result: "5.4 %",
+				orderedAt: "2020-01-05",
+				removedFileIds: "FILE-a1c",
+			}),
+		);
+		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual(["a1c-repeat.pdf"]);
+		expect(await screen.findByRole("dialog", { name: "View details" })).toBeVisible();
+		expect(onLabTestUpdated).toHaveBeenCalledTimes(1);
 	});
 });
