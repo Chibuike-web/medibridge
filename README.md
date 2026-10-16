@@ -2,7 +2,7 @@
 
 MediBridge is a hospital-facing patient record and controlled record-sharing platform. It gives a healthcare organization one workspace for onboarding patients, reviewing longitudinal clinical data, and preparing selected records for another hospital without exposing the patient's entire chart.
 
-> **Repository status:** active prototype development. Patient onboarding, record-reading, transfer submission, approval, and access-scoped sharing are database-backed. Clinical record authoring and durable attachment storage are still incomplete. This repository is not ready for production clinical use.
+> **Repository status:** active prototype development. Patient onboarding, clinical record reading and editing, transfer submission, approval, and access-scoped sharing are database-backed. Vitals and encounter editing, transfer recovery actions, and durable attachment storage are still incomplete. This repository is not ready for production clinical use.
 
 ## What the product does
 
@@ -24,17 +24,17 @@ The intended end-to-end journey is:
 
 ## Current implementation
 
-| Area                                   | Current state                                                                                                                                                                                                                                                                  |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Hospital onboarding and authentication | Email/password registration and sign-in use Better Auth. Organization creation, owner membership, email verification, and hospital verification-document upload are present. Admin invitation and password-recovery screens exist but are not fully connected end to end.      |
-| Dashboard                              | Database-backed organization statistics, recent patients, recent transfers, and empty states.                                                                                                                                                                                  |
-| Patient import                         | Uploads PDF, PNG, JPG, DOC, and DOCX files up to 50 MB. Text is extracted with PDF Parse, Tesseract OCR, or Mammoth, then structured with an AI Gateway model. Users can review and correct multiple extracted patients before saving.                                         |
-| Patient directory                      | Database-backed patient list with search, filters, pagination, profile headers, and editable personal, contact, emergency-contact, and physical information.                                                                                                                   |
-| Clinical records                       | Database-backed list/detail views for diagnoses, allergies, immunizations, procedures, medications, encounters, lab tests, imaging, and documents. Detail/history UI is present. Document metadata supports create, update, and delete.                                        |
-| Record authoring                       | Creation/edit drawers exist for several clinical sections, but most do not persist yet. Vitals and encounter creation are placeholders. Attachment controls in several record drawers are local UI only.                                                                       |
-| Transfers                              | The request builder reads organization-scoped patients and clinical records, validates record ownership, and atomically creates transfer, content, and progress rows. Target hospital identity is entered by staff and receives a runtime identifier for patient confirmation. |
-| Patient approval and delivery          | Patients receive a signed, expiring approval link. Approval or rejection updates the transfer; approval creates an exact record-access snapshot, then sends the receiving hospital an OTP-protected access link.                                                               |
-| Shared record portal                   | OTP verification creates a signed, expiring external session. Patient details and clinical tables are loaded from PostgreSQL and restricted to the patient and record IDs captured in the approved access grant.                                                               |
+| Area                                   | Current state                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hospital onboarding and authentication | Email/password registration and sign-in use Better Auth. Organization creation, owner membership, email verification, and hospital verification-document upload are present. Admin invitation and password-recovery screens exist but are not fully connected end to end.                                                                                                                                                                                                     |
+| Dashboard                              | Database-backed organization statistics, recent patients, recent transfers, and empty states.                                                                                                                                                                                                                                                                                                                                                                                 |
+| Patient import                         | Uploads PDF, PNG, JPG, DOC, and DOCX files up to 50 MB. Text is extracted with PDF Parse, Tesseract OCR, or Mammoth, then structured with an AI Gateway model. Users can review and correct multiple extracted patients before saving.                                                                                                                                                                                                                                        |
+| Patient directory                      | Database-backed patient list with search, filters, pagination, profile headers, and editable personal, contact, emergency-contact, and physical information.                                                                                                                                                                                                                                                                                                                  |
+| Clinical records                       | Database-backed list/detail views for diagnoses, allergies, immunizations, procedures, medications, encounters, lab tests, imaging, and documents. Each record's Activity shows every saved change with its old and new values. Document metadata supports create, update, and delete.                                                                                                                                                                                        |
+| Record authoring                       | Diagnoses, allergies, medications, immunizations, procedures, lab tests, and imaging can be added and edited from the patient page or inside an encounter. Edits save only the changed fields and record one history row per field. Lab tests and imaging accept PDF, PNG, or JPG reports up to 50 MB, stored locally and served only to the same hospital. Encounters can be created; vitals and encounter editing are placeholders, and drawer status actions only confirm. |
+| Transfers                              | The request builder reads organization-scoped patients and clinical records, validates record ownership, and atomically creates transfer, content, and progress rows. The target hospital is a name and email entered by staff. Transfer details show who requested it, the patient's answer, and whether the access code was sent. Resend, retry, cancel, and archive are not connected yet.                                                                                 |
+| Patient approval and delivery          | Patients receive a signed, expiring approval link. A transfer can be answered once: approval and rejection run in one transaction that only updates a waiting transfer, and each transfer has at most one access grant. Approval records the selected records, then sends the receiving hospital an OTP-protected access link.                                                                                                                                                |
+| Shared record portal                   | OTP verification creates a signed, expiring external session. Patient details and clinical tables are loaded from PostgreSQL and restricted to the patient and record IDs captured in the approved access grant.                                                                                                                                                                                                                                                              |
 
 ## Patient record model
 
@@ -169,30 +169,34 @@ Open [http://localhost:4300](http://localhost:4300).
 
 Create your hospital owner account through the registration flow, then complete email verification and hospital onboarding. Populate patient records through the application.
 
+In development, emails are not sent. Email verification and password-reset links, transfer approval links, and shared-record access codes are printed to the `bun run dev` terminal, so the whole transfer flow can be tested with placeholder addresses.
+
 ### Useful commands
 
-| Command                         | Purpose                                                                 |
-| ------------------------------- | ----------------------------------------------------------------------- |
-| `bun run dev`                   | Start the development server on port 4300                               |
-| `bun run build`                 | Create a production build                                               |
-| `bun run start`                 | Start the production server                                             |
-| `bun run lint`                  | Run Oxlint                                                              |
-| `bun run lint:fix`              | Apply Oxlint fixes                                                      |
-| `bun run format`                | Format supported files with Oxfmt                                       |
-| `bun run format:check`          | Check formatting with Oxfmt                                            |
-| `bun run db:generate`           | Generate Drizzle migrations from the schemas                            |
-| `bun run db:push`               | Push the current schema to PostgreSQL                                   |
-| `bun run devtools`              | Start the AI SDK development tools                                      |
+| Command                | Purpose                                             |
+| ---------------------- | --------------------------------------------------- |
+| `bun run dev`          | Start the development server on port 4300           |
+| `bun run build`        | Create a production build                           |
+| `bun run start`        | Start the production server                         |
+| `bun run lint`         | Run Oxlint                                          |
+| `bun run lint:fix`     | Apply Oxlint fixes                                  |
+| `bun run format`       | Format supported files with Oxfmt                   |
+| `bun run format:check` | Check formatting with Oxfmt                         |
+| `bun run db:generate`  | Generate Drizzle migrations from the schemas        |
+| `bun run db:push`      | Push the current schema to PostgreSQL               |
+| `bun run db:migrate`   | Apply the migrations in `src/db/drizzle/migrations` |
+| `bun run devtools`     | Start the AI SDK development tools                  |
 
 ## Ongoing work
 
 The highest-value remaining work, based on the current code paths, is:
 
-1. Connect create/update actions for diagnoses, allergies, immunizations, procedures, medications, encounters, lab tests, imaging, and vitals.
-2. Replace local and mocked attachment handling with private object storage, signed URLs, validation, and retention rules.
-3. Complete administrator invitations, invitation acceptance, and password-recovery flows.
-4. Add automated tests for organization isolation, patient import, transfer approval, OTP expiry/retry behavior, and shared-record permissions.
-5. Harden production configuration: stop ignoring TypeScript build errors, disable auth debug logging, add audit logging, validate all feature environment variables, and complete privacy/security review.
+1. Finish transfer recovery: resend the approval request, retry a failed delivery, cancel, and archive. Show record names on the patient's approval page, and let the receiving hospital open lab and imaging reports.
+2. Connect vitals and encounter editing, and the drawer status actions (complete, discontinue, archive).
+3. Replace local attachment storage with private object storage, signed URLs, and retention rules.
+4. Complete administrator invitations, invitation acceptance, and password-recovery flows.
+5. Broaden automated tests for organization isolation, patient import, OTP expiry/retry behavior, and shared-record permissions.
+6. Harden production configuration: add audit logging, validate all feature environment variables, and complete privacy/security review.
 
 ## Product direction
 
