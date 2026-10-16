@@ -61,35 +61,35 @@ function imagingModality(value: string): "CT" | "MRI" | "Ultrasound" | "X-ray" {
 function immunizationStatus(
 	value: string,
 ): "Active" | "Completed" | "Cancelled" | "Discontinued" {
-	if (value === "completed") return "Completed";
-	if (value === "cancelled") return "Cancelled";
-	if (value === "discontinued") return "Discontinued";
+	if (value.toLowerCase() === "completed") return "Completed";
+	if (value.toLowerCase() === "cancelled") return "Cancelled";
+	if (value.toLowerCase() === "discontinued") return "Discontinued";
 	return "Active";
 }
 
 function procedureStatus(value: string): "Pending" | "Completed" | "Cancelled" {
-	if (value === "completed") return "Completed";
-	if (value === "cancelled") return "Cancelled";
+	if (value.toLowerCase() === "completed") return "Completed";
+	if (value.toLowerCase() === "cancelled") return "Cancelled";
 	return "Pending";
 }
 
 function medicationStatus(
 	value: string,
 ): "Active" | "Completed" | "Discontinued" {
-	if (value === "completed") return "Completed";
-	if (value === "discontinued") return "Discontinued";
+	if (value.toLowerCase() === "completed") return "Completed";
+	if (value.toLowerCase() === "discontinued") return "Discontinued";
 	return "Active";
 }
 
 function labTestStatus(value: string): "Pending" | "Completed" | "Cancelled" {
-	if (value === "completed") return "Completed";
-	if (value === "cancelled") return "Cancelled";
+	if (value.toLowerCase() === "completed") return "Completed";
+	if (value.toLowerCase() === "cancelled") return "Cancelled";
 	return "Pending";
 }
 
 function imagingStatus(value: string): "Pending" | "Completed" | "Cancelled" {
-	if (value === "completed") return "Completed";
-	if (value === "cancelled") return "Cancelled";
+	if (value.toLowerCase() === "completed") return "Completed";
+	if (value.toLowerCase() === "cancelled") return "Cancelled";
 	return "Pending";
 }
 
