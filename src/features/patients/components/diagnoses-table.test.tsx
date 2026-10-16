@@ -2,11 +2,15 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { SWRConfig } from "swr";
 import type { DiagnosisDetailsType, DiagnosisType } from "@/features/patients/types";
 import { DiagnosesTable } from "./diagnoses-table";
 
 const auth = vi.hoisted(() => ({ role: "owner" }));
-const { createPatientDiagnosisMock } = vi.hoisted(() => ({ createPatientDiagnosisMock: vi.fn() }));
+const { createPatientDiagnosisMock, updatePatientDiagnosisMock } = vi.hoisted(() => ({
+	createPatientDiagnosisMock: vi.fn(),
+	updatePatientDiagnosisMock: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
@@ -19,6 +23,10 @@ vi.mock("@/lib/better-auth/auth.client", () => ({
 
 vi.mock("@/features/patients/server/create-patient-diagnosis-action", () => ({
 	createPatientDiagnosisAction: createPatientDiagnosisMock,
+}));
+
+vi.mock("@/features/patients/server/update-patient-diagnosis-action", () => ({
+	updatePatientDiagnosisAction: updatePatientDiagnosisMock,
 }));
 
 const diagnoses: DiagnosisType[] = [
@@ -61,6 +69,12 @@ const diagnosisDetails: Record<string, DiagnosisDetailsType> = {
 		createdBy: "Dr. Okafor",
 		updatedBy: "Dr. Bello",
 		clinicalNote: "Blood pressure remains elevated.",
+		editValues: {
+			severityStage: "Stage 2",
+			diagnosedAt: "2020-01-05",
+			diagnosedBy: "Dr. Okafor",
+			clinicalNote: "Blood pressure remains elevated.",
+		},
 		history: [],
 		relatedRecords: { medications: [], labTests: [], imaging: [], procedures: [] },
 	},
@@ -78,6 +92,12 @@ const diagnosisDetails: Record<string, DiagnosisDetailsType> = {
 		createdBy: "Nurse Chika",
 		updatedBy: "Dr. Bello",
 		clinicalNote: "Symptom free for twelve months.",
+		editValues: {
+			severityStage: "Mild",
+			diagnosedAt: "2019-02-10",
+			diagnosedBy: "Dr. Adeyemi",
+			clinicalNote: "Symptom free for twelve months.",
+		},
 		history: [],
 		relatedRecords: { medications: [], labTests: [], imaging: [], procedures: [] },
 	},
@@ -111,6 +131,7 @@ function buildProps(overrides: Partial<DiagnosesTableProps> = {}): DiagnosesTabl
 		onStatusFiltersChange: vi.fn(),
 		onFiltersClear: vi.fn(),
 		onDiagnosisCreated: vi.fn(),
+		onDiagnosisUpdated: vi.fn(),
 		...overrides,
 	};
 }
@@ -118,7 +139,11 @@ function buildProps(overrides: Partial<DiagnosesTableProps> = {}): DiagnosesTabl
 function renderDiagnosesTable(overrides: Partial<DiagnosesTableProps> = {}) {
 	const props = buildProps(overrides);
 
-	render(<DiagnosesTable {...props} />);
+	render(
+		<SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
+			<DiagnosesTable {...props} />
+		</SWRConfig>,
+	);
 
 	return props;
 }
@@ -152,16 +177,20 @@ async function tap(user: User, target: Element) {
 }
 
 describe("Diagnoses table", () => {
+	let savedDiagnosisDetails: Record<string, DiagnosisDetailsType>;
+
 	beforeEach(() => {
 		auth.role = "owner";
 		createPatientDiagnosisMock.mockReset();
+		updatePatientDiagnosisMock.mockReset();
+		savedDiagnosisDetails = { ...diagnosisDetails };
 		vi.stubGlobal(
 			"fetch",
 			vi.fn(async (input: RequestInfo | URL) => {
 				const id = decodeURIComponent(String(input).split("/").pop() ?? "");
 				return {
 					ok: true,
-					json: async () => ({ diagnosis: diagnosisDetails[id] ?? null }),
+					json: async () => ({ diagnosis: savedDiagnosisDetails[id] ?? null }),
 				} as Response;
 			}),
 		);
@@ -377,20 +406,79 @@ describe("Diagnoses table", () => {
 		expect(within(dialog).queryByRole("heading", { name: "Activity" })).not.toBeInTheDocument();
 	});
 
-	test("switches the details drawer to edit mode from its actions menu", async () => {
-		const user = userEvent.setup();
-		renderDiagnosesTable();
-
+	async function openAsthmaEditForm(user: User) {
 		await user.click(screen.getByRole("button", { name: "Open actions for Asthma" }));
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
 		const dialog = await screen.findByRole("dialog", { name: "View diagnosis details" });
 		await within(dialog).findByRole("heading", { name: "Asthma" });
-
 		await user.click(within(dialog).getByRole("button", { name: "Diagnosis actions" }));
 		await user.click(screen.getByRole("menuitem", { name: "Edit" }));
 
-		const editDialog = await screen.findByRole("dialog", { name: "Edit diagnosis details" });
-		expect(within(editDialog).getByRole("button", { name: "Save changes" })).toBeVisible();
+		return screen.findByRole("dialog", { name: "Edit diagnosis details" });
+	}
+
+	test("saves edits from the details drawer and shows the saved diagnosis", async () => {
+		updatePatientDiagnosisMock.mockImplementation(async () => {
+			savedDiagnosisDetails["DX-asthma"] = {
+				...diagnosisDetails["DX-asthma"],
+				name: "Childhood asthma",
+			};
+			return { status: "success" };
+		});
+		const user = userEvent.setup();
+		const { onDiagnosisUpdated } = renderDiagnosesTable();
+
+		const editDialog = await openAsthmaEditForm(user);
+		const nameInput = within(editDialog).getByLabelText(/Diagnosis name/);
+		expect(nameInput).toHaveValue("Asthma");
+		expect(within(editDialog).getByLabelText(/Diagnosed by/)).toHaveValue("Dr. Adeyemi");
+		expect(within(editDialog).getByLabelText(/Clinical notes/)).toHaveValue(
+			"Symptom free for twelve months.",
+		);
+		expect(within(editDialog).getByRole("button", { name: /Diagnosed at/ })).toHaveTextContent(
+			"February 10th, 2019",
+		);
+
+		await user.clear(nameInput);
+		await user.type(nameInput, "Childhood asthma");
+		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
+
+		expect(updatePatientDiagnosisMock).toHaveBeenCalledTimes(1);
+		const [diagnosisId, formData] = updatePatientDiagnosisMock.mock.calls[0] as [string, FormData];
+		expect(diagnosisId).toBe("DX-asthma");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				diagnosisName: "Childhood asthma",
+				severityStage: "Mild",
+				status: "Resolved",
+				diagnosedAt: "2019-02-10",
+				diagnosedBy: "Dr. Adeyemi",
+				clinicalNote: "Symptom free for twelve months.",
+			}),
+		);
+		const viewDialog = await screen.findByRole("dialog", { name: "View diagnosis details" });
+		expect(
+			await within(viewDialog).findByRole("heading", { name: "Childhood asthma" }),
+		).toBeVisible();
+		expect(onDiagnosisUpdated).toHaveBeenCalledTimes(1);
+	});
+
+	test("keeps the edit form open and shows why the changes were not saved", async () => {
+		updatePatientDiagnosisMock.mockResolvedValue({
+			status: "failed",
+			error: "Enter who made the diagnosis.",
+		});
+		const user = userEvent.setup();
+		const { onDiagnosisUpdated } = renderDiagnosesTable();
+
+		const editDialog = await openAsthmaEditForm(user);
+		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
+
+		expect(await within(editDialog).findByRole("alert")).toHaveTextContent(
+			"Enter who made the diagnosis.",
+		);
+		expect(within(editDialog).getByLabelText(/Diagnosis name/)).toHaveValue("Asthma");
+		expect(onDiagnosisUpdated).not.toHaveBeenCalled();
 	});
 
 	test("asks an owner to confirm before archiving from the details actions menu", async () => {

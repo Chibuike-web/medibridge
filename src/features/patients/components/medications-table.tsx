@@ -116,6 +116,7 @@ type MedicationsTableProps = {
 	onStatusFiltersChange: (statusFilters: MedicationStatusFilter[]) => void;
 	onFiltersClear: () => void;
 	onMedicationCreated: () => void;
+	onMedicationUpdated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -138,6 +139,7 @@ export function MedicationsTable({
 	onStatusFiltersChange,
 	onFiltersClear,
 	onMedicationCreated,
+	onMedicationUpdated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -494,6 +496,10 @@ export function MedicationsTable({
 				onOpenChange={setIsDetailsDrawerOpen}
 				medication={medicationDetailsQuery.data ?? null}
 				isLoading={medicationDetailsQuery.isLoading}
+				onMedicationUpdated={() => {
+					medicationDetailsQuery.mutate();
+					onMedicationUpdated();
+				}}
 			/>
 		</div>
 	);

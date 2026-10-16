@@ -60,17 +60,22 @@ import {
 	RiCheckLine,
 	RiCloseLine,
 	RiEdit2Line,
+	RiErrorWarningFill,
 	RiMore2Fill,
 	RiShare2Line,
 } from "@remixicon/react";
-import { format } from "date-fns";
-import { Fragment, useId, useRef, useState } from "react";
+import { format, parseISO } from "date-fns";
+import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { updatePatientMedicationAction } from "@/features/patients/server/update-patient-medication-action";
+import { medicationRoutes, medicationStatuses } from "@/features/patients/server/schemas";
 
 type MedicationDetailsDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	medication: MedicationDetailsType | null;
 	isLoading: boolean;
+	onMedicationUpdated: () => void;
 };
 
 const EMPTY_VALUE = "-";
@@ -86,19 +91,54 @@ export function MedicationDetailsDrawer({
 	onOpenChange,
 	medication,
 	isLoading,
+	onMedicationUpdated,
 }: MedicationDetailsDrawerProps) {
+	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [medicationDetailsMode, setMedicationDetailsMode] = useState<"view" | "edit">("view");
+	const [formError, setFormError] = useState("");
+	const [isPending, startTransition] = useTransition();
 	const [isDiscontinueDialogOpen, setIsDiscontinueDialogOpen] = useState(false);
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 
+	function handleMedicationDetailsModeChange(nextMode: "view" | "edit") {
+		setFormError("");
+		setMedicationDetailsMode(nextMode);
+	}
+
 	function handleMedicationDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
-			setMedicationDetailsMode("view");
+			handleMedicationDetailsModeChange("view");
 		}
 
 		onOpenChange(nextOpen);
+	}
+
+	function handleSave(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+
+		if (!medication) return;
+
+		setFormError("");
+		const formData = new FormData(event.currentTarget);
+
+		startTransition(async () => {
+			const result = await updatePatientMedicationAction(medication.medicationId, formData);
+
+			if (result.status === "unauthorized") {
+				router.refresh();
+				return;
+			}
+
+			if (result.status !== "success") {
+				setFormError(result.error);
+				return;
+			}
+
+			setMedicationDetailsMode("view");
+			onMedicationUpdated();
+		});
 	}
 
 	const isEditingMedicationDetails = medicationDetailsMode === "edit" && Boolean(medication);
@@ -123,7 +163,7 @@ export function MedicationDetailsDrawer({
 							>
 								<DropdownMenuItem
 									className="rounded-lg"
-									onSelect={() => setMedicationDetailsMode("edit")}
+									onSelect={() => handleMedicationDetailsModeChange("edit")}
 								>
 									<RiEdit2Line aria-hidden="true" />
 									Edit
@@ -178,7 +218,12 @@ export function MedicationDetailsDrawer({
 					{isLoading ? (
 						<MedicationDetailsFallback />
 					) : isEditingMedicationDetails && medication ? (
-						<MedicationDetailsEditForm medication={medication} />
+						<MedicationDetailsEditForm
+							medication={medication}
+							formError={formError}
+							onFormErrorDismiss={() => setFormError("")}
+							onSubmit={handleSave}
+						/>
 					) : medication ? (
 						<div className="flex flex-col gap-10">
 							<MedicationDetailsOverview medication={medication} />
@@ -197,16 +242,12 @@ export function MedicationDetailsDrawer({
 							<Button
 								type="button"
 								variant="outline"
-								onClick={() => setMedicationDetailsMode("view")}
+								onClick={() => handleMedicationDetailsModeChange("view")}
 							>
 								Cancel
 							</Button>
-							<Button
-								type="button"
-								form={medicationDetailsFormId}
-								onClick={() => setMedicationDetailsMode("view")}
-							>
-								Save changes
+							<Button type="submit" form={medicationDetailsFormId} disabled={isPending}>
+								{isPending ? "Saving…" : "Save changes"}
 							</Button>
 						</div>
 					</DrawerFooter>
@@ -317,10 +358,22 @@ function MedicationDetailsOverview({ medication }: { medication: MedicationDetai
 	);
 }
 
-function MedicationDetailsEditForm({ medication }: { medication: MedicationDetailsType }) {
+function MedicationDetailsEditForm({
+	medication,
+	formError,
+	onFormErrorDismiss,
+	onSubmit,
+}: {
+	medication: MedicationDetailsType;
+	formError: string;
+	onFormErrorDismiss: () => void;
+	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}) {
 	const generatedAttachmentRowId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
-	const [startedAt, setStartedAt] = useState<Date | undefined>();
+	const [startedAt, setStartedAt] = useState<Date | undefined>(() =>
+		medication.editValues.startedAt ? parseISO(medication.editValues.startedAt) : undefined,
+	);
 	const [medicationAttachmentRows, setMedicationAttachmentRows] = useState<AttachmentFormRow[]>([]);
 
 	function handleAddMedicationAttachmentRow() {
@@ -343,8 +396,29 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 	}
 
 	return (
-		<form id={medicationDetailsFormId} className="flex flex-col gap-12">
+		<form id={medicationDetailsFormId} onSubmit={onSubmit} className="flex flex-col gap-12">
 			<div className="flex flex-col gap-8">
+				{formError && (
+					<div
+						key={formError}
+						ref={(banner) => banner?.scrollIntoView({ behavior: "smooth", block: "center" })}
+						role="alert"
+						className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
+					>
+						<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+						<p className="min-w-0 flex-1 text-pretty">{formError}</p>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+							aria-label="Dismiss error"
+							onClick={onFormErrorDismiss}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</div>
+				)}
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Medication ID:</span>
@@ -368,6 +442,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 							name="medicationName"
 							defaultValue={medication.name}
 							className={medicationDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -381,8 +456,9 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 						<Input
 							id="edit-medication-indication"
 							name="indication"
-							defaultValue={medication.indication}
+							defaultValue={medication.editValues.indication}
 							className={medicationDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -393,7 +469,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 						>
 							Status<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
-						<Select defaultValue={medication.status.toLowerCase()}>
+						<Select name="status" defaultValue={medication.status} required>
 							<SelectTrigger
 								id="edit-medication-status"
 								className={`${medicationDetailsFieldControlClassName} w-full`}
@@ -402,9 +478,11 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="active">Active</SelectItem>
-									<SelectItem value="completed">Completed</SelectItem>
-									<SelectItem value="discontinued">Discontinued</SelectItem>
+									{medicationStatuses.map((status) => (
+										<SelectItem key={status} value={status}>
+											{status}
+										</SelectItem>
+									))}
 								</SelectGroup>
 							</SelectContent>
 						</Select>
@@ -417,8 +495,9 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 						<Input
 							id="edit-medication-dose"
 							name="dose"
-							defaultValue={medication.dose}
+							defaultValue={medication.editValues.dose}
 							className={medicationDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -426,7 +505,7 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 						<Label htmlFor="edit-medication-route" className={medicationDetailsFieldLabelClassName}>
 							Route<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
-						<Select defaultValue={medication.route.toLowerCase()}>
+						<Select name="route" defaultValue={medication.editValues.route || undefined} required>
 							<SelectTrigger
 								id="edit-medication-route"
 								className={`${medicationDetailsFieldControlClassName} w-full`}
@@ -435,9 +514,11 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="oral">Oral</SelectItem>
-									<SelectItem value="iv">IV</SelectItem>
-									<SelectItem value="inhalation">Inhalation</SelectItem>
+									{medicationRoutes.map((route) => (
+										<SelectItem key={route} value={route}>
+											{route}
+										</SelectItem>
+									))}
 								</SelectGroup>
 							</SelectContent>
 						</Select>
@@ -453,8 +534,10 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 						</Label>
 						<Input
 							id="edit-medication-prescribed-by"
-							defaultValue={medication.prescribedBy}
+							name="prescribedBy"
+							defaultValue={medication.editValues.prescribedBy}
 							className={medicationDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -467,8 +550,10 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 						</Label>
 						<Input
 							id="edit-medication-frequency"
-							defaultValue={medication.frequency}
+							name="frequency"
+							defaultValue={medication.editValues.frequency}
 							className={medicationDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -481,29 +566,46 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 						</Label>
 						<Input
 							id="edit-medication-duration"
-							defaultValue={medication.duration}
+							name="duration"
+							defaultValue={medication.editValues.duration}
 							className={medicationDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
 					<div className="flex flex-col gap-2">
-						<Label className={medicationDetailsFieldLabelClassName}>
+						<Label
+							htmlFor="edit-medication-started-at"
+							className={medicationDetailsFieldLabelClassName}
+						>
 							Started at<span className={medicationDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
+						<input
+							type="hidden"
+							name="startedAt"
+							value={startedAt ? format(startedAt, "yyyy-MM-dd") : ""}
+						/>
 						<Popover>
 							<PopoverTrigger asChild>
 								<Button
+									id="edit-medication-started-at"
 									type="button"
 									variant="outline"
-									data-empty={!startedAt && medication.startedAt === EMPTY_VALUE}
+									data-empty={!startedAt}
 									className={`${medicationDetailsFieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
 								>
-									{startedAt ? format(startedAt, "PPP") : medication.startedAt}
+									{startedAt ? format(startedAt, "PPP") : "Select start date"}
 									<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
 								</Button>
 							</PopoverTrigger>
 							<PopoverContent align="end" className="p-0">
-								<Calendar mode="single" selected={startedAt} onSelect={setStartedAt} autoFocus />
+								<Calendar
+									mode="single"
+									selected={startedAt}
+									onSelect={setStartedAt}
+									disabled={{ after: new Date() }}
+									autoFocus
+								/>
 							</PopoverContent>
 						</Popover>
 					</div>
@@ -518,7 +620,8 @@ function MedicationDetailsEditForm({ medication }: { medication: MedicationDetai
 						</Label>
 						<Textarea
 							id="edit-medication-clinical-note"
-							defaultValue={medication.clinicalNote}
+							name="clinicalNote"
+							defaultValue={medication.editValues.clinicalNote}
 							className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 						/>
 					</div>

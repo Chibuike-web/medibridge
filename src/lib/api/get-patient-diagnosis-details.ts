@@ -274,6 +274,12 @@ export async function getPatientDiagnosisDetailsForOrganization(
 		createdBy: empty(diagnosis.createdBy),
 		updatedBy: empty(diagnosis.updatedBy),
 		clinicalNote: empty(diagnosis.clinicalNote),
+		editValues: {
+			severityStage: diagnosis.severityStage ?? "",
+			diagnosedAt: diagnosis.diagnosedAt ?? "",
+			diagnosedBy: diagnosis.diagnosedBy ?? "",
+			clinicalNote: diagnosis.clinicalNote ?? "",
+		},
 		history: groupHistoryEvents(historyRows),
 		relatedRecords: {
 			medications: medications.map(mapRelatedRecord),

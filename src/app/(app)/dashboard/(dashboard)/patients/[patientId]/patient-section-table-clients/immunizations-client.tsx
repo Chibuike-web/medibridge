@@ -148,6 +148,7 @@ export function ImmunizationsClient({
 			onStatusFiltersChange={handleStatusFiltersChange}
 			onFiltersClear={handleFiltersClear}
 			onImmunizationCreated={() => refreshImmunizationsTable({ nextPage: tableData.page })}
+			onImmunizationUpdated={() => refreshImmunizationsTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

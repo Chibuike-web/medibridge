@@ -126,6 +126,7 @@ type DiagnosesTableProps = {
 	onLimitChange: (limit: number) => void;
 	onStatusFiltersChange: (statusFilters: DiagnosisStatusFilter[]) => void;
 	onDiagnosisCreated: () => void;
+	onDiagnosisUpdated: () => void;
 };
 
 export function DiagnosesTable({
@@ -154,6 +155,7 @@ export function DiagnosesTable({
 	onLimitChange,
 	onStatusFiltersChange,
 	onDiagnosisCreated,
+	onDiagnosisUpdated,
 }: DiagnosesTableProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
@@ -417,6 +419,10 @@ export function DiagnosesTable({
 				onOpenChange={setIsDetailsDrawerOpen}
 				diagnosis={diagnosisDetailsQuery.data ?? null}
 				isLoading={diagnosisDetailsQuery.isLoading}
+				onDiagnosisUpdated={() => {
+					diagnosisDetailsQuery.mutate();
+					onDiagnosisUpdated();
+				}}
 			/>
 		</div>
 	);

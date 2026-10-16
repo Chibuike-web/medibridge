@@ -151,6 +151,7 @@ export function MedicationsClient({
 			onStatusFiltersChange={handleStatusFiltersChange}
 			onFiltersClear={handleFiltersClear}
 			onMedicationCreated={() => refreshMedicationsTable({ nextPage: tableData.page })}
+			onMedicationUpdated={() => refreshMedicationsTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

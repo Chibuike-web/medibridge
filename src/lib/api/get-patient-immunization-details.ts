@@ -183,6 +183,14 @@ export async function getPatientImmunizationDetailsForOrganization(
 		createdBy: empty(immunization.createdBy),
 		updatedBy: empty(immunization.updatedBy),
 		clinicalNote: empty(immunization.clinicalNote),
+		editValues: {
+			seriesType: immunization.seriesType ?? "",
+			currentDose: immunization.currentDose ?? "",
+			totalDoses: immunization.totalDoses ?? "",
+			dateAdministered: immunization.dateAdministered?.toISOString().slice(0, 10) ?? "",
+			administeredBy: immunization.administeredBy ?? "",
+			clinicalNote: immunization.clinicalNote ?? "",
+		},
 		history: groupHistoryEvents(historyRows),
 	};
 }

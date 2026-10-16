@@ -45,6 +45,8 @@ import {
 	AttachmentFormFields,
 	type AttachmentFormRow,
 } from "@/features/patients/components/attachment-form-fields";
+import { diagnosisSeverityStages, diagnosisStatuses } from "@/features/patients/server/schemas";
+import { updatePatientDiagnosisAction } from "@/features/patients/server/update-patient-diagnosis-action";
 import type {
 	DiagnosisDetailsHistoryEvent,
 	DiagnosisDetailsRelatedRecord,
@@ -60,17 +62,20 @@ import {
 	RiCalendarLine,
 	RiCloseLine,
 	RiEdit2Line,
+	RiErrorWarningFill,
 	RiMore2Fill,
 	RiShare2Line,
 } from "@remixicon/react";
-import { Fragment, useId, useState } from "react";
-import { format } from "date-fns";
+import { Fragment, useId, useState, useTransition, type FormEvent } from "react";
+import { format, parseISO } from "date-fns";
+import { useRouter } from "next/navigation";
 
 type DiagnosisDetailsDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	diagnosis: DiagnosisDetailsType | null;
 	isLoading: boolean;
+	onDiagnosisUpdated: () => void;
 };
 
 const EMPTY_VALUE = "-";
@@ -86,18 +91,53 @@ export function DiagnosisDetailsDrawer({
 	onOpenChange,
 	diagnosis,
 	isLoading,
+	onDiagnosisUpdated,
 }: DiagnosisDetailsDrawerProps) {
+	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [diagnosisDetailsMode, setDiagnosisDetailsMode] = useState<"view" | "edit">("view");
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+	const [formError, setFormError] = useState("");
+	const [isPending, startTransition] = useTransition();
+
+	function handleDiagnosisDetailsModeChange(nextMode: "view" | "edit") {
+		setFormError("");
+		setDiagnosisDetailsMode(nextMode);
+	}
 
 	function handleDiagnosisDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
-			setDiagnosisDetailsMode("view");
+			handleDiagnosisDetailsModeChange("view");
 		}
 
 		onOpenChange(nextOpen);
+	}
+
+	function handleSave(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+
+		if (!diagnosis) return;
+
+		setFormError("");
+		const formData = new FormData(event.currentTarget);
+
+		startTransition(async () => {
+			const result = await updatePatientDiagnosisAction(diagnosis.diagnosisId, formData);
+
+			if (result.status === "unauthorized") {
+				router.refresh();
+				return;
+			}
+
+			if (result.status !== "success") {
+				setFormError(result.error);
+				return;
+			}
+
+			setDiagnosisDetailsMode("view");
+			onDiagnosisUpdated();
+		});
 	}
 
 	const isEditingDiagnosisDetails = diagnosisDetailsMode === "edit" && Boolean(diagnosis);
@@ -122,7 +162,7 @@ export function DiagnosisDetailsDrawer({
 							>
 								<DropdownMenuItem
 									className="rounded-lg"
-									onSelect={() => setDiagnosisDetailsMode("edit")}
+									onSelect={() => handleDiagnosisDetailsModeChange("edit")}
 								>
 									<RiEdit2Line aria-hidden="true" />
 									Edit
@@ -162,7 +202,12 @@ export function DiagnosisDetailsDrawer({
 					{isLoading ? (
 						<DiagnosisDetailsFallback />
 					) : isEditingDiagnosisDetails && diagnosis ? (
-						<DiagnosisDetailsEditForm diagnosis={diagnosis} />
+						<DiagnosisDetailsEditForm
+							diagnosis={diagnosis}
+							formError={formError}
+							onFormErrorDismiss={() => setFormError("")}
+							onSubmit={handleSave}
+						/>
 					) : diagnosis ? (
 						<div className="flex flex-col gap-12">
 							<DiagnosisDetailsOverview diagnosis={diagnosis} />
@@ -182,17 +227,12 @@ export function DiagnosisDetailsDrawer({
 							<Button
 								type="button"
 								variant="outline"
-
-								onClick={() => setDiagnosisDetailsMode("view")}
+								onClick={() => handleDiagnosisDetailsModeChange("view")}
 							>
 								Cancel
 							</Button>
-							<Button
-								type="button"
-								form={diagnosisDetailsFormId}
-								onClick={() => setDiagnosisDetailsMode("view")}
-							>
-								Save changes
+							<Button type="submit" form={diagnosisDetailsFormId} disabled={isPending}>
+								{isPending ? "Saving…" : "Save changes"}
 							</Button>
 						</div>
 					</DrawerFooter>
@@ -272,9 +312,21 @@ function DiagnosisDetailsOverview({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 	);
 }
 
-function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsType }) {
+function DiagnosisDetailsEditForm({
+	diagnosis,
+	formError,
+	onFormErrorDismiss,
+	onSubmit,
+}: {
+	diagnosis: DiagnosisDetailsType;
+	formError: string;
+	onFormErrorDismiss: () => void;
+	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}) {
 	const generatedAttachmentRowId = useId();
-	const [diagnosedAt, setDiagnosedAt] = useState<Date | undefined>();
+	const [diagnosedAt, setDiagnosedAt] = useState<Date | undefined>(() =>
+		diagnosis.editValues.diagnosedAt ? parseISO(diagnosis.editValues.diagnosedAt) : undefined,
+	);
 
 	const [diagnosisAttachmentRows, setDiagnosisAttachmentRows] = useState<AttachmentFormRow[]>(() =>
 		getDiagnosisAttachmentRows(diagnosis),
@@ -298,8 +350,29 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 	}
 
 	return (
-		<form id={diagnosisDetailsFormId} className="flex flex-col gap-12">
+		<form id={diagnosisDetailsFormId} onSubmit={onSubmit} className="flex flex-col gap-12">
 			<div className="flex flex-col gap-8">
+				{formError && (
+					<div
+						key={formError}
+						ref={(banner) => banner?.scrollIntoView({ behavior: "smooth", block: "center" })}
+						role="alert"
+						className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
+					>
+						<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+						<p className="min-w-0 flex-1 text-pretty">{formError}</p>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+							aria-label="Dismiss error"
+							onClick={onFormErrorDismiss}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</div>
+				)}
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Diagnosis ID:</span>
@@ -324,6 +397,7 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 							name="diagnosisName"
 							defaultValue={diagnosis.name}
 							className={diagnosisDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -333,20 +407,22 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 							className={diagnosisDetailsFieldLabelClassName}
 						>
 							Severity/Stage
-							<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
+							<span className={diagnosisDetailsRequiredLabelClassName}>(optional)</span>
 						</Label>
-						<Select defaultValue={getDiagnosisSelectValue(diagnosis.severityStage)}>
+						<Select
+							name="severityStage"
+							defaultValue={diagnosis.editValues.severityStage || undefined}
+						>
 							<SelectTrigger id="edit-diagnosis-severity" className="w-full">
 								<SelectValue placeholder="Select severity or stage" />
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="mild">Mild</SelectItem>
-									<SelectItem value="moderate">Moderate</SelectItem>
-									<SelectItem value="severe">Severe</SelectItem>
-									<SelectItem value="stage-1">Stage 1</SelectItem>
-									<SelectItem value="stage-2">Stage 2</SelectItem>
-									<SelectItem value="stage-3">Stage 3</SelectItem>
+									{diagnosisSeverityStages.map((severityStage) => (
+										<SelectItem key={severityStage} value={severityStage}>
+											{severityStage}
+										</SelectItem>
+									))}
 								</SelectGroup>
 							</SelectContent>
 						</Select>
@@ -356,32 +432,44 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 						<Label htmlFor="edit-diagnosis-status" className={diagnosisDetailsFieldLabelClassName}>
 							Status<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
-						<Select defaultValue={diagnosis.status.toLowerCase()}>
+						<Select name="status" defaultValue={diagnosis.status} required>
 							<SelectTrigger id="edit-diagnosis-status" className="w-full">
 								<SelectValue placeholder="Select status" />
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="active">Active</SelectItem>
-									<SelectItem value="resolved">Resolved</SelectItem>
+									{diagnosisStatuses.map((status) => (
+										<SelectItem key={status} value={status}>
+											{status}
+										</SelectItem>
+									))}
 								</SelectGroup>
 							</SelectContent>
 						</Select>
 					</div>
 
 					<div className="flex flex-col gap-2">
-						<Label className={diagnosisDetailsFieldLabelClassName}>
+						<Label
+							htmlFor="edit-diagnosis-diagnosed-at"
+							className={diagnosisDetailsFieldLabelClassName}
+						>
 							Diagnosed at
 							<span className={diagnosisDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
+						<input
+							type="hidden"
+							name="diagnosedAt"
+							value={diagnosedAt ? format(diagnosedAt, "yyyy-MM-dd") : ""}
+						/>
 						<Popover>
 							<PopoverTrigger asChild>
 								<Button
+									id="edit-diagnosis-diagnosed-at"
 									type="button"
 									variant="outline"
 									className={`${diagnosisDetailsFieldControlClassName} flex w-full justify-between font-normal hover:bg-white active:scale-100`}
 								>
-									{diagnosedAt ? format(diagnosedAt, "PPP") : diagnosis.diagnosedAt}
+									{diagnosedAt ? format(diagnosedAt, "PPP") : "Select diagnosis date"}
 
 									<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
 								</Button>
@@ -391,6 +479,7 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 									mode="single"
 									selected={diagnosedAt}
 									onSelect={setDiagnosedAt}
+									disabled={{ after: new Date() }}
 									autoFocus
 								/>
 							</PopoverContent>
@@ -408,8 +497,9 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 						<Input
 							id="edit-diagnosis-diagnosed-by"
 							name="diagnosedBy"
-							defaultValue={diagnosis.diagnosedBy}
+							defaultValue={diagnosis.editValues.diagnosedBy}
 							className={diagnosisDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -424,7 +514,7 @@ function DiagnosisDetailsEditForm({ diagnosis }: { diagnosis: DiagnosisDetailsTy
 						<Textarea
 							id="edit-diagnosis-clinical-note"
 							name="clinicalNote"
-							defaultValue={diagnosis.clinicalNote}
+							defaultValue={diagnosis.editValues.clinicalNote}
 							className="bg-white text-sm text-gray-700 placeholder:text-gray-400"
 						/>
 					</div>
@@ -485,10 +575,6 @@ function getDiagnosisAttachmentRows(diagnosis: DiagnosisDetailsType): Attachment
 	];
 }
 
-function getDiagnosisSelectValue(value: string) {
-	return value.toLowerCase().replaceAll("/", "-").replaceAll(" ", "-");
-}
-
 function DiagnosisDetailItem({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex flex-col gap-2 no-line-height">
@@ -528,6 +614,8 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
+	const changeCount =
+		historyEvent.items.filter((item) => item.label !== "Clinical note").length || 1;
 
 	return (
 		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
@@ -650,8 +738,6 @@ function DiagnosisRelatedRecordSection({
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
-	const changeCount =
-		historyEvent.items.filter((item) => item.label !== "Clinical note").length || 1;
 
 	return (
 		<section className="flex flex-col rounded-xl border border-gray-200 p-4">

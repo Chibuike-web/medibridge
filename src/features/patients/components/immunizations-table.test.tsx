@@ -8,8 +8,9 @@ import { ImmunizationsTable } from "./immunizations-table";
 
 const authState = vi.hoisted(() => ({ role: "owner" }));
 const { refreshMock } = vi.hoisted(() => ({ refreshMock: vi.fn() }));
-const { createPatientImmunizationMock } = vi.hoisted(() => ({
+const { createPatientImmunizationMock, updateImmunizationMock } = vi.hoisted(() => ({
 	createPatientImmunizationMock: vi.fn(),
+	updateImmunizationMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: refreshMock }) }));
@@ -23,6 +24,10 @@ vi.mock("@/lib/better-auth/auth.client", () => ({
 
 vi.mock("@/features/patients/server/create-patient-immunization-action", () => ({
 	createPatientImmunizationAction: createPatientImmunizationMock,
+}));
+
+vi.mock("@/features/patients/server/update-patient-immunization-action", () => ({
+	updatePatientImmunizationAction: updateImmunizationMock,
 }));
 
 const immunizations: ImmunizationType[] = [
@@ -60,6 +65,14 @@ const immunizationDetailsById: Record<string, ImmunizationDetailsType> = {
 		createdBy: "Dr. Bello",
 		updatedBy: "Dr. Bello",
 		clinicalNote: "No adverse reaction observed.",
+		editValues: {
+			seriesType: "Primary",
+			currentDose: "3",
+			totalDoses: "3",
+			dateAdministered: "2024-01-12",
+			administeredBy: "Nurse Ada Eze",
+			clinicalNote: "No adverse reaction observed.",
+		},
 		history: [],
 	},
 	"IMM-3001": {
@@ -77,6 +90,14 @@ const immunizationDetailsById: Record<string, ImmunizationDetailsType> = {
 		createdBy: "Dr. Okafor",
 		updatedBy: "Dr. Okafor",
 		clinicalNote: "",
+		editValues: {
+			seriesType: "Booster",
+			currentDose: "2",
+			totalDoses: "3",
+			dateAdministered: "2024-03-05",
+			administeredBy: "Nurse Kemi Ojo",
+			clinicalNote: "",
+		},
 		history: [],
 	},
 };
@@ -100,6 +121,7 @@ function renderImmunizationsTable(
 		onStatusFiltersChange: vi.fn(),
 		onFiltersClear: vi.fn(),
 		onImmunizationCreated: vi.fn(),
+		onImmunizationUpdated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -142,9 +164,13 @@ async function openFilterSubmenu(user: ReturnType<typeof userEvent.setup>, label
 }
 
 describe("Immunizations table", () => {
+	let savedImmunizationDetails: typeof immunizationDetailsById;
+
 	beforeEach(() => {
 		authState.role = "owner";
 		createPatientImmunizationMock.mockReset();
+		updateImmunizationMock.mockReset();
+		savedImmunizationDetails = { ...immunizationDetailsById };
 		vi.stubGlobal(
 			"fetch",
 			vi.fn(async (input: string) => {
@@ -152,7 +178,7 @@ describe("Immunizations table", () => {
 				return {
 					ok: true,
 					json: async () => ({
-						immunization: immunizationDetailsById[immunizationId] ?? null,
+						immunization: savedImmunizationDetails[immunizationId] ?? null,
 					}),
 				};
 			}),
@@ -527,5 +553,69 @@ describe("Immunizations table", () => {
 		);
 		expect(within(drawer).getByLabelText(/Vaccine name/)).toHaveValue("BCG");
 		expect(onImmunizationCreated).not.toHaveBeenCalled();
+	});
+
+	async function openImmunizationEditForm(user: ReturnType<typeof userEvent.setup>) {
+		await user.click(screen.getByRole("button", { name: "Open actions for Tetanus toxoid" }));
+		await user.click(screen.getByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "View immunization details" });
+		await within(dialog).findByRole("heading", { name: "Tetanus toxoid" });
+		await user.click(within(dialog).getByRole("button", { name: "Immunization actions" }));
+		await user.click(screen.getByRole("menuitem", { name: "Edit" }));
+
+		return screen.findByRole("dialog", { name: "Edit immunization details" });
+	}
+
+	test("saves edits from the details drawer and shows the saved immunization", async () => {
+		updateImmunizationMock.mockImplementation(async () => {
+			savedImmunizationDetails["IMM-3001"] = {
+				...savedImmunizationDetails["IMM-3001"],
+				administeredBy: "Nurse Bisi Ade",
+			};
+			return { status: "success" };
+		});
+		const user = userEvent.setup();
+		const { onImmunizationUpdated } = renderImmunizationsTable();
+
+		const editDialog = await openImmunizationEditForm(user);
+		const changedField = within(editDialog).getByLabelText(/Administered by/);
+		await user.clear(changedField);
+		await user.type(changedField, "Nurse Bisi Ade");
+		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
+
+		const [recordId, formData] = updateImmunizationMock.mock.calls[0] as [string, FormData];
+		expect(recordId).toBe("IMM-3001");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				vaccineName: "Tetanus toxoid",
+				seriesType: "Booster",
+				currentDose: "2",
+				totalDoses: "3",
+				status: "Active",
+				dateAdministered: "2024-03-05",
+				administeredBy: "Nurse Bisi Ade",
+				clinicalNote: "",
+			}),
+		);
+		const viewDialog = await screen.findByRole("dialog", { name: "View immunization details" });
+		expect(await within(viewDialog).findByText("Nurse Bisi Ade")).toBeVisible();
+		expect(onImmunizationUpdated).toHaveBeenCalledTimes(1);
+	});
+
+	test("keeps the immunization edit form open and shows why the changes were not saved", async () => {
+		updateImmunizationMock.mockResolvedValue({
+			status: "failed",
+			error: "The current dose can’t be more than the total doses.",
+		});
+		const user = userEvent.setup();
+		const { onImmunizationUpdated } = renderImmunizationsTable();
+
+		const editDialog = await openImmunizationEditForm(user);
+		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
+
+		expect(await within(editDialog).findByRole("alert")).toHaveTextContent(
+			"The current dose can’t be more than the total doses.",
+		);
+		expect(onImmunizationUpdated).not.toHaveBeenCalled();
 	});
 });

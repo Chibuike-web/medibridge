@@ -53,16 +53,21 @@ import {
 	RiArrowRightLine,
 	RiCloseLine,
 	RiEdit2Line,
+	RiErrorWarningFill,
 	RiMore2Fill,
 	RiShare2Line,
 } from "@remixicon/react";
-import { Fragment, useId, useRef, useState } from "react";
+import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { updatePatientAllergyAction } from "@/features/patients/server/update-patient-allergy-action";
+import { allergySeverities, allergyStatuses } from "@/features/patients/server/schemas";
 
 type AllergyDetailsDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	allergy: AllergyDetailsType | null;
 	isLoading: boolean;
+	onAllergyUpdated: () => void;
 };
 
 const EMPTY_VALUE = "-";
@@ -78,18 +83,53 @@ export function AllergyDetailsDrawer({
 	onOpenChange,
 	allergy,
 	isLoading,
+	onAllergyUpdated,
 }: AllergyDetailsDrawerProps) {
+	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [allergyDetailsMode, setAllergyDetailsMode] = useState<"view" | "edit">("view");
+	const [formError, setFormError] = useState("");
+	const [isPending, startTransition] = useTransition();
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+
+	function handleAllergyDetailsModeChange(nextMode: "view" | "edit") {
+		setFormError("");
+		setAllergyDetailsMode(nextMode);
+	}
 
 	function handleAllergyDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
-			setAllergyDetailsMode("view");
+			handleAllergyDetailsModeChange("view");
 		}
 
 		onOpenChange(nextOpen);
+	}
+
+	function handleSave(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+
+		if (!allergy) return;
+
+		setFormError("");
+		const formData = new FormData(event.currentTarget);
+
+		startTransition(async () => {
+			const result = await updatePatientAllergyAction(allergy.allergyId, formData);
+
+			if (result.status === "unauthorized") {
+				router.refresh();
+				return;
+			}
+
+			if (result.status !== "success") {
+				setFormError(result.error);
+				return;
+			}
+
+			setAllergyDetailsMode("view");
+			onAllergyUpdated();
+		});
 	}
 
 	const isEditingAllergyDetails = allergyDetailsMode === "edit" && Boolean(allergy);
@@ -114,7 +154,7 @@ export function AllergyDetailsDrawer({
 							>
 								<DropdownMenuItem
 									className="rounded-lg"
-									onSelect={() => setAllergyDetailsMode("edit")}
+									onSelect={() => handleAllergyDetailsModeChange("edit")}
 								>
 									<RiEdit2Line aria-hidden="true" />
 									Edit
@@ -154,7 +194,12 @@ export function AllergyDetailsDrawer({
 					{isLoading ? (
 						<AllergyDetailsFallback />
 					) : isEditingAllergyDetails && allergy ? (
-						<AllergyDetailsEditForm allergy={allergy} />
+						<AllergyDetailsEditForm
+							allergy={allergy}
+							formError={formError}
+							onFormErrorDismiss={() => setFormError("")}
+							onSubmit={handleSave}
+						/>
 					) : allergy ? (
 						<div className="flex flex-col gap-10">
 							<AllergyDetailsOverview allergy={allergy} />
@@ -173,17 +218,12 @@ export function AllergyDetailsDrawer({
 							<Button
 								type="button"
 								variant="outline"
-
-								onClick={() => setAllergyDetailsMode("view")}
+								onClick={() => handleAllergyDetailsModeChange("view")}
 							>
 								Cancel
 							</Button>
-							<Button
-								type="button"
-								form={allergyDetailsFormId}
-								onClick={() => setAllergyDetailsMode("view")}
-							>
-								Save changes
+							<Button type="submit" form={allergyDetailsFormId} disabled={isPending}>
+								{isPending ? "Saving…" : "Save changes"}
 							</Button>
 						</div>
 					</DrawerFooter>
@@ -259,7 +299,17 @@ function AllergyDetailsOverview({ allergy }: { allergy: AllergyDetailsType }) {
 	);
 }
 
-function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
+function AllergyDetailsEditForm({
+	allergy,
+	formError,
+	onFormErrorDismiss,
+	onSubmit,
+}: {
+	allergy: AllergyDetailsType;
+	formError: string;
+	onFormErrorDismiss: () => void;
+	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}) {
 	const generatedAttachmentRowId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
 	const [allergyAttachmentRows, setAllergyAttachmentRows] = useState<AttachmentFormRow[]>([]);
@@ -284,8 +334,29 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 	}
 
 	return (
-		<form id={allergyDetailsFormId} className="flex flex-col gap-12">
+		<form id={allergyDetailsFormId} onSubmit={onSubmit} className="flex flex-col gap-12">
 			<div className="flex flex-col gap-8">
+				{formError && (
+					<div
+						key={formError}
+						ref={(banner) => banner?.scrollIntoView({ behavior: "smooth", block: "center" })}
+						role="alert"
+						className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
+					>
+						<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+						<p className="min-w-0 flex-1 text-pretty">{formError}</p>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+							aria-label="Dismiss error"
+							onClick={onFormErrorDismiss}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</div>
+				)}
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Allergy ID:</span>
@@ -309,6 +380,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 							name="allergen"
 							defaultValue={allergy.allergen}
 							className={allergyDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -316,7 +388,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 						<Label htmlFor="edit-allergy-severity" className={allergyDetailsFieldLabelClassName}>
 							Severity<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
-						<Select defaultValue={allergy.severity.toLowerCase()}>
+						<Select name="severity" defaultValue={allergy.severity} required>
 							<SelectTrigger
 								id="edit-allergy-severity"
 								className={`${allergyDetailsFieldControlClassName} w-full`}
@@ -325,9 +397,11 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="mild">Mild</SelectItem>
-									<SelectItem value="moderate">Moderate</SelectItem>
-									<SelectItem value="severe">Severe</SelectItem>
+									{allergySeverities.map((severity) => (
+										<SelectItem key={severity} value={severity}>
+											{severity}
+										</SelectItem>
+									))}
 								</SelectGroup>
 							</SelectContent>
 						</Select>
@@ -337,7 +411,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 						<Label htmlFor="edit-allergy-status" className={allergyDetailsFieldLabelClassName}>
 							Status<span className={allergyDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
-						<Select defaultValue={allergy.status.toLowerCase()}>
+						<Select name="status" defaultValue={allergy.status} required>
 							<SelectTrigger
 								id="edit-allergy-status"
 								className={`${allergyDetailsFieldControlClassName} w-full`}
@@ -346,8 +420,11 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="active">Active</SelectItem>
-									<SelectItem value="inactive">Inactive</SelectItem>
+									{allergyStatuses.map((status) => (
+										<SelectItem key={status} value={status}>
+											{status}
+										</SelectItem>
+									))}
 								</SelectGroup>
 							</SelectContent>
 						</Select>
@@ -360,7 +437,8 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 						<Textarea
 							id="edit-allergy-reaction"
 							name="reaction"
-							defaultValue={allergy.reaction}
+							defaultValue={allergy.editValues.reaction}
+							required
 							className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 						/>
 					</div>
@@ -376,7 +454,7 @@ function AllergyDetailsEditForm({ allergy }: { allergy: AllergyDetailsType }) {
 						<Textarea
 							id="edit-allergy-clinical-note"
 							name="clinicalNote"
-							defaultValue={allergy.clinicalNote}
+							defaultValue={allergy.editValues.clinicalNote}
 							className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 						/>
 					</div>

@@ -6,7 +6,7 @@ import { patient, patientEncounter, patientImmunization } from "@/db/schemas";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { db } from "@/lib/better-auth/auth";
-import { createPatientImmunizationSchema } from "./schemas";
+import { patientImmunizationSchema } from "./schemas";
 
 type CreatePatientImmunizationResult =
 	| { status: "success"; immunizationId: string }
@@ -35,7 +35,7 @@ export async function createPatientImmunizationAction(
 		};
 	}
 
-	const parsedImmunization = createPatientImmunizationSchema.safeParse({
+	const parsedImmunization = patientImmunizationSchema.safeParse({
 		vaccineName: formData.get("vaccineName") ?? "",
 		seriesType: formData.get("seriesType") || undefined,
 		currentDose: formData.get("currentDose") ?? "",

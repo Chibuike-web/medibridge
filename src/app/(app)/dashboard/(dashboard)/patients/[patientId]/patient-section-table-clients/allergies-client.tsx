@@ -168,6 +168,7 @@ export function AllergiesClient({
 			onSeverityFiltersChange={handleSeverityFiltersChange}
 			onFiltersClear={handleFiltersClear}
 			onAllergyCreated={() => refreshAllergiesTable({ nextPage: tableData.page })}
+			onAllergyUpdated={() => refreshAllergiesTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

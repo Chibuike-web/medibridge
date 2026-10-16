@@ -55,17 +55,22 @@ import {
 	RiCheckLine,
 	RiCloseLine,
 	RiEdit2Line,
+	RiErrorWarningFill,
 	RiMore2Fill,
 	RiShare2Line,
 } from "@remixicon/react";
-import { format } from "date-fns";
-import { Fragment, useId, useState } from "react";
+import { format, parseISO } from "date-fns";
+import { Fragment, useId, useState, useTransition, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { updatePatientImmunizationAction } from "@/features/patients/server/update-patient-immunization-action";
+import { immunizationSeriesTypes, immunizationStatuses } from "@/features/patients/server/schemas";
 
 type ImmunizationDetailsDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	immunization: ImmunizationDetailsType | null;
 	isLoading: boolean;
+	onImmunizationUpdated: () => void;
 };
 
 const EMPTY_VALUE = "-";
@@ -81,19 +86,54 @@ export function ImmunizationDetailsDrawer({
 	onOpenChange,
 	immunization,
 	isLoading,
+	onImmunizationUpdated,
 }: ImmunizationDetailsDrawerProps) {
+	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [immunizationDetailsMode, setImmunizationDetailsMode] = useState<"view" | "edit">("view");
+	const [formError, setFormError] = useState("");
+	const [isPending, startTransition] = useTransition();
 	const [isDiscontinueDialogOpen, setIsDiscontinueDialogOpen] = useState(false);
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 
+	function handleImmunizationDetailsModeChange(nextMode: "view" | "edit") {
+		setFormError("");
+		setImmunizationDetailsMode(nextMode);
+	}
+
 	function handleImmunizationDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
-			setImmunizationDetailsMode("view");
+			handleImmunizationDetailsModeChange("view");
 		}
 
 		onOpenChange(nextOpen);
+	}
+
+	function handleSave(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+
+		if (!immunization) return;
+
+		setFormError("");
+		const formData = new FormData(event.currentTarget);
+
+		startTransition(async () => {
+			const result = await updatePatientImmunizationAction(immunization.immunizationId, formData);
+
+			if (result.status === "unauthorized") {
+				router.refresh();
+				return;
+			}
+
+			if (result.status !== "success") {
+				setFormError(result.error);
+				return;
+			}
+
+			setImmunizationDetailsMode("view");
+			onImmunizationUpdated();
+		});
 	}
 
 	const isEditingImmunizationDetails = immunizationDetailsMode === "edit" && Boolean(immunization);
@@ -120,7 +160,7 @@ export function ImmunizationDetailsDrawer({
 							>
 								<DropdownMenuItem
 									className="rounded-lg"
-									onSelect={() => setImmunizationDetailsMode("edit")}
+									onSelect={() => handleImmunizationDetailsModeChange("edit")}
 								>
 									<RiEdit2Line aria-hidden="true" />
 									Edit
@@ -175,7 +215,12 @@ export function ImmunizationDetailsDrawer({
 					{isLoading ? (
 						<ImmunizationDetailsFallback />
 					) : isEditingImmunizationDetails && immunization ? (
-						<ImmunizationDetailsEditForm immunization={immunization} />
+						<ImmunizationDetailsEditForm
+							immunization={immunization}
+							formError={formError}
+							onFormErrorDismiss={() => setFormError("")}
+							onSubmit={handleSave}
+						/>
 					) : immunization ? (
 						<div className="flex flex-col gap-10">
 							<ImmunizationDetailsOverview immunization={immunization} />
@@ -194,16 +239,12 @@ export function ImmunizationDetailsDrawer({
 							<Button
 								type="button"
 								variant="outline"
-								onClick={() => setImmunizationDetailsMode("view")}
+								onClick={() => handleImmunizationDetailsModeChange("view")}
 							>
 								Cancel
 							</Button>
-							<Button
-								type="button"
-								form={immunizationDetailsFormId}
-								onClick={() => setImmunizationDetailsMode("view")}
-							>
-								Save changes
+							<Button type="submit" form={immunizationDetailsFormId} disabled={isPending}>
+								{isPending ? "Saving…" : "Save changes"}
 							</Button>
 						</div>
 					</DrawerFooter>
@@ -313,14 +354,47 @@ function ImmunizationDetailsOverview({ immunization }: { immunization: Immunizat
 	);
 }
 
-function ImmunizationDetailsEditForm({ immunization }: { immunization: ImmunizationDetailsType }) {
+function ImmunizationDetailsEditForm({
+	immunization,
+	formError,
+	onFormErrorDismiss,
+	onSubmit,
+}: {
+	immunization: ImmunizationDetailsType;
+	formError: string;
+	onFormErrorDismiss: () => void;
+	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}) {
 	const [administeredAt, setAdministeredAt] = useState<Date | undefined>(() =>
-		parseImmunizationDisplayDate(immunization.dateAdministered),
+		immunization.editValues.dateAdministered
+			? parseISO(immunization.editValues.dateAdministered)
+			: undefined,
 	);
 
 	return (
-		<form id={immunizationDetailsFormId} className="flex flex-col gap-12">
+		<form id={immunizationDetailsFormId} onSubmit={onSubmit} className="flex flex-col gap-12">
 			<div className="flex flex-col gap-8">
+				{formError && (
+					<div
+						key={formError}
+						ref={(banner) => banner?.scrollIntoView({ behavior: "smooth", block: "center" })}
+						role="alert"
+						className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
+					>
+						<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+						<p className="min-w-0 flex-1 text-pretty">{formError}</p>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+							aria-label="Dismiss error"
+							onClick={onFormErrorDismiss}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</div>
+				)}
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Immunization ID:</span>
@@ -348,6 +422,7 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 							name="vaccineName"
 							defaultValue={immunization.vaccineName}
 							className={immunizationDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -359,7 +434,10 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 							Series Type
 							<span className={immunizationDetailsRequiredLabelClassName}>(optional)</span>
 						</Label>
-						<Select defaultValue={getImmunizationSelectValue(immunization.seriesType)}>
+						<Select
+							name="seriesType"
+							defaultValue={immunization.editValues.seriesType || undefined}
+						>
 							<SelectTrigger
 								id="edit-immunization-series-type"
 								className={`${immunizationDetailsFieldControlClassName} w-full`}
@@ -368,8 +446,11 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="primary">Primary</SelectItem>
-									<SelectItem value="booster">Booster</SelectItem>
+									{immunizationSeriesTypes.map((seriesType) => (
+										<SelectItem key={seriesType} value={seriesType}>
+											{seriesType}
+										</SelectItem>
+									))}
 								</SelectGroup>
 							</SelectContent>
 						</Select>
@@ -386,24 +467,30 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 						<Input
 							id="edit-immunization-current-dose"
 							name="currentDose"
-							defaultValue={immunization.currentDose}
+							type="number"
+							min={1}
+							defaultValue={immunization.editValues.currentDose}
 							className={immunizationDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
 					<div className="flex flex-col gap-2">
 						<Label
-							htmlFor="edit-immunization-total-dosage"
+							htmlFor="edit-immunization-total-doses"
 							className={immunizationDetailsFieldLabelClassName}
 						>
-							Total Dosage
+							Total doses
 							<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
 						<Input
-							id="edit-immunization-total-dosage"
-							name="totalDosage"
-							defaultValue={immunization.totalDoses}
+							id="edit-immunization-total-doses"
+							name="totalDoses"
+							type="number"
+							min={1}
+							defaultValue={immunization.editValues.totalDoses}
 							className={immunizationDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -414,7 +501,7 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 						>
 							Status<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
-						<Select defaultValue={getImmunizationSelectValue(immunization.status)}>
+						<Select name="status" defaultValue={immunization.status} required>
 							<SelectTrigger
 								id="edit-immunization-status"
 								className={`${immunizationDetailsFieldControlClassName} w-full`}
@@ -423,17 +510,21 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="active">Active</SelectItem>
-									<SelectItem value="completed">Completed</SelectItem>
-									<SelectItem value="cancelled">Cancelled</SelectItem>
-									<SelectItem value="discontinued">Discontinued</SelectItem>
+									{immunizationStatuses.map((status) => (
+										<SelectItem key={status} value={status}>
+											{status}
+										</SelectItem>
+									))}
 								</SelectGroup>
 							</SelectContent>
 						</Select>
 					</div>
 
 					<div className="flex flex-col gap-2">
-						<Label className={immunizationDetailsFieldLabelClassName}>
+						<Label
+							htmlFor="edit-immunization-date-administered"
+							className={immunizationDetailsFieldLabelClassName}
+						>
 							Date administered
 							<span className={immunizationDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
@@ -445,14 +536,13 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 						<Popover>
 							<PopoverTrigger asChild>
 								<Button
+									id="edit-immunization-date-administered"
 									type="button"
 									variant="outline"
-									data-empty={!administeredAt && !immunization.dateAdministered}
+									data-empty={!administeredAt}
 									className={`${immunizationDetailsFieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
 								>
-									{administeredAt
-										? format(administeredAt, "PPP")
-										: immunization.dateAdministered || "Select administration date"}
+									{administeredAt ? format(administeredAt, "PPP") : "Select administration date"}
 									<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
 								</Button>
 							</PopoverTrigger>
@@ -462,6 +552,7 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 									defaultMonth={administeredAt}
 									selected={administeredAt}
 									onSelect={setAdministeredAt}
+									disabled={{ after: new Date() }}
 									autoFocus
 								/>
 							</PopoverContent>
@@ -479,8 +570,9 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 						<Input
 							id="edit-immunization-administered-by"
 							name="administeredBy"
-							defaultValue={immunization.administeredBy}
+							defaultValue={immunization.editValues.administeredBy}
 							className={immunizationDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -495,7 +587,7 @@ function ImmunizationDetailsEditForm({ immunization }: { immunization: Immunizat
 						<Textarea
 							id="edit-immunization-clinical-note"
 							name="clinicalNote"
-							defaultValue={immunization.clinicalNote}
+							defaultValue={immunization.editValues.clinicalNote}
 							className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 						/>
 					</div>
@@ -648,19 +740,4 @@ function ImmunizationDetailsFallback() {
 			))}
 		</div>
 	);
-}
-
-function getImmunizationSelectValue(value: string) {
-	return value.toLowerCase().replaceAll(" ", "-");
-}
-
-function parseImmunizationDisplayDate(value: string) {
-	if (!value || value === EMPTY_VALUE) return undefined;
-
-	const normalizedValue = value.replace(/(\d+)(st|nd|rd|th)/i, "$1");
-	const date = new Date(normalizedValue);
-
-	if (Number.isNaN(date.getTime())) return undefined;
-
-	return date;
 }

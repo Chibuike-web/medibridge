@@ -62,6 +62,12 @@ export type DiagnosisDetailsType = {
 	createdBy: string;
 	updatedBy: string;
 	clinicalNote: string;
+	editValues: {
+		severityStage: string;
+		diagnosedAt: string;
+		diagnosedBy: string;
+		clinicalNote: string;
+	};
 	history: DiagnosisDetailsHistoryEvent[];
 	relatedRecords: {
 		medications: DiagnosisDetailsRelatedRecord[];
@@ -107,6 +113,10 @@ export type AllergyDetailsType = {
 	createdBy: string;
 	updatedBy: string;
 	clinicalNote: string;
+	editValues: {
+		reaction: string;
+		clinicalNote: string;
+	};
 	history: AllergyDetailsHistoryEvent[];
 };
 
@@ -152,6 +162,14 @@ export type ImmunizationDetailsType = {
 	createdBy: string;
 	updatedBy: string;
 	clinicalNote: string;
+	editValues: {
+		seriesType: string;
+		currentDose: string;
+		totalDoses: string;
+		dateAdministered: string;
+		administeredBy: string;
+		clinicalNote: string;
+	};
 	history: ImmunizationDetailsHistoryEvent[];
 };
 
@@ -208,6 +226,14 @@ export type ProcedureDetailsType = {
 		diagnosis: ProcedureDetailsRelatedRecord | null;
 		medication: ProcedureDetailsRelatedRecord | null;
 	};
+	editValues: {
+		indication: string;
+		procedureDate: string;
+		physician: string;
+		assistants: string;
+		facility: string;
+		clinicalNote: string;
+	};
 	history: ProcedureDetailsHistoryEvent[];
 };
 
@@ -252,6 +278,16 @@ export type MedicationDetailsType = {
 	updatedAt: string;
 	createdBy: string;
 	clinicalNote: string;
+	editValues: {
+		indication: string;
+		dose: string;
+		route: string;
+		prescribedBy: string;
+		frequency: string;
+		duration: string;
+		startedAt: string;
+		clinicalNote: string;
+	};
 	history: MedicationDetailsHistoryEvent[];
 };
 

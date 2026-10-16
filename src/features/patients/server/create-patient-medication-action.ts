@@ -6,7 +6,7 @@ import { patient, patientEncounter, patientMedication } from "@/db/schemas";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { db } from "@/lib/better-auth/auth";
-import { createPatientMedicationSchema } from "./schemas";
+import { patientMedicationSchema } from "./schemas";
 
 type CreatePatientMedicationResult =
 	| { status: "success"; medicationId: string }
@@ -35,7 +35,7 @@ export async function createPatientMedicationAction(
 		};
 	}
 
-	const parsedMedication = createPatientMedicationSchema.safeParse({
+	const parsedMedication = patientMedicationSchema.safeParse({
 		medicationName: formData.get("medicationName") ?? "",
 		indication: formData.get("indication") ?? "",
 		status: formData.get("status"),

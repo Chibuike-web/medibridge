@@ -172,6 +172,10 @@ export async function getPatientAllergyDetailsForOrganization(
 		createdBy: empty(allergy.createdBy),
 		updatedBy: empty(allergy.updatedBy),
 		clinicalNote: empty(allergy.clinicalNote),
+		editValues: {
+			reaction: allergy.reaction ?? "",
+			clinicalNote: allergy.clinicalNote ?? "",
+		},
 		history: groupHistoryEvents(historyRows),
 	};
 }

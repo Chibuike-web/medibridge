@@ -6,7 +6,7 @@ import { patient, patientDiagnosis, patientEncounter } from "@/db/schemas";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { db } from "@/lib/better-auth/auth";
-import { createPatientDiagnosisSchema } from "./schemas";
+import { patientDiagnosisSchema } from "./schemas";
 
 type CreatePatientDiagnosisResult =
 	| { status: "success"; diagnosisId: string }
@@ -35,7 +35,7 @@ export async function createPatientDiagnosisAction(
 		};
 	}
 
-	const parsedDiagnosis = createPatientDiagnosisSchema.safeParse({
+	const parsedDiagnosis = patientDiagnosisSchema.safeParse({
 		diagnosisName: formData.get("diagnosisName") ?? "",
 		severityStage: formData.get("severityStage") || undefined,
 		status: formData.get("status"),
@@ -93,6 +93,7 @@ export async function createPatientDiagnosisAction(
 	}
 
 	updateTag(`patient-diagnoses-${organizationId}-${patientId}`);
+	updateTag(`patient-profile-${organizationId}-${patientId}`);
 
 	return { status: "success", diagnosisId };
 }

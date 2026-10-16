@@ -116,6 +116,7 @@ type ProceduresTableProps = {
 	onStatusFiltersChange: (statusFilters: ProcedureStatusFilter[]) => void;
 	onFiltersClear: () => void;
 	onProcedureCreated: () => void;
+	onProcedureUpdated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -138,6 +139,7 @@ export function ProceduresTable({
 	onStatusFiltersChange,
 	onFiltersClear,
 	onProcedureCreated,
+	onProcedureUpdated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -515,6 +517,10 @@ export function ProceduresTable({
 				onOpenChange={setIsDetailsDrawerOpen}
 				procedure={procedureDetailsQuery.data ?? null}
 				isLoading={procedureDetailsQuery.isLoading}
+				onProcedureUpdated={() => {
+					procedureDetailsQuery.mutate();
+					onProcedureUpdated();
+				}}
 			/>
 		</div>
 	);

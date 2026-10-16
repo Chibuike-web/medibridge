@@ -183,6 +183,16 @@ export async function getPatientMedicationDetailsForOrganization(
 		updatedAt: formatDateOnly(medication.updatedAt),
 		createdBy: empty(medication.createdBy),
 		clinicalNote: empty(medication.clinicalNote),
+		editValues: {
+			indication: medication.indication ?? "",
+			dose: medication.dose ?? "",
+			route: medication.route ?? "",
+			prescribedBy: medication.prescribedBy ?? "",
+			frequency: medication.frequency ?? "",
+			duration: medication.duration ?? "",
+			startedAt: medication.startedAt ?? "",
+			clinicalNote: medication.clinicalNote ?? "",
+		},
 		history: groupHistoryEvents(historyRows),
 	};
 }

@@ -7,8 +7,9 @@ import type { ProcedureDetailsType, ProcedureType } from "@/features/patients/ty
 import { ProceduresTable } from "./procedures-table";
 
 const authState = vi.hoisted(() => ({ role: "owner" }));
-const { createPatientProcedureMock } = vi.hoisted(() => ({
+const { createPatientProcedureMock, updateProcedureMock } = vi.hoisted(() => ({
 	createPatientProcedureMock: vi.fn(),
+	updateProcedureMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
@@ -22,6 +23,10 @@ vi.mock("@/lib/better-auth/auth.client", () => ({
 
 vi.mock("@/features/patients/server/create-patient-procedure-action", () => ({
 	createPatientProcedureAction: createPatientProcedureMock,
+}));
+
+vi.mock("@/features/patients/server/update-patient-procedure-action", () => ({
+	updatePatientProcedureAction: updateProcedureMock,
 }));
 
 const procedures: ProcedureType[] = [
@@ -66,6 +71,14 @@ const procedureDetailsById: Record<string, ProcedureDetailsType> = {
 		createdBy: "Dr. Bello",
 		updatedBy: "Dr. Bello",
 		relatedRecords: { diagnosis: null, medication: null },
+		editValues: {
+			indication: "Acute appendicitis",
+			procedureDate: "2024-01-12",
+			physician: "Dr. Zainab Bello",
+			assistants: "Nurse Ade",
+			facility: "Main Theatre Block",
+			clinicalNote: "Uncomplicated laparoscopic removal.",
+		},
 		history: [
 			{
 				id: "updated",
@@ -96,6 +109,14 @@ const procedureDetailsById: Record<string, ProcedureDetailsType> = {
 		createdBy: "Dr. Okafor",
 		updatedBy: "Dr. Okafor",
 		relatedRecords: { diagnosis: null, medication: null },
+		editValues: {
+			indication: "Persistent right knee pain",
+			procedureDate: "2024-04-02",
+			physician: "Dr. Amaka Okafor",
+			assistants: "",
+			facility: "Orthopaedic Day Surgery",
+			clinicalNote: "",
+		},
 		history: [],
 	},
 };
@@ -119,6 +140,7 @@ function renderProceduresTable(
 		onStatusFiltersChange: vi.fn(),
 		onFiltersClear: vi.fn(),
 		onProcedureCreated: vi.fn(),
+		onProcedureUpdated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -161,16 +183,20 @@ async function openFilterSubmenu(user: ReturnType<typeof userEvent.setup>, label
 }
 
 describe("Procedures table", () => {
+	let savedProcedureDetails: typeof procedureDetailsById;
+
 	beforeEach(() => {
 		authState.role = "owner";
 		createPatientProcedureMock.mockReset();
+		updateProcedureMock.mockReset();
+		savedProcedureDetails = { ...procedureDetailsById };
 		vi.stubGlobal(
 			"fetch",
 			vi.fn(async (input: string) => {
 				const procedureId = decodeURIComponent(input.split("/").pop() ?? "");
 				return {
 					ok: true,
-					json: async () => ({ procedure: procedureDetailsById[procedureId] ?? null }),
+					json: async () => ({ procedure: savedProcedureDetails[procedureId] ?? null }),
 				};
 			}),
 		);
@@ -518,5 +544,72 @@ describe("Procedures table", () => {
 		);
 		expect(within(drawer).getByLabelText(/^Procedure/)).toHaveValue("Colonoscopy");
 		expect(onProcedureCreated).not.toHaveBeenCalled();
+	});
+
+	async function openProcedureEditForm(user: ReturnType<typeof userEvent.setup>) {
+		await user.click(screen.getByRole("button", { name: "Open actions for Knee arthroscopy" }));
+		await user.click(screen.getByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "View procedure details" });
+		await within(dialog).findByRole("heading", { name: "Knee arthroscopy" });
+		await user.click(within(dialog).getByRole("button", { name: "Procedure actions" }));
+		await user.click(screen.getByRole("menuitem", { name: "Edit" }));
+
+		return screen.findByRole("dialog", { name: "Edit procedure details" });
+	}
+
+	test("saves edits from the details drawer and shows the saved procedure", async () => {
+		updateProcedureMock.mockImplementation(async () => {
+			savedProcedureDetails["PROC-3001"] = {
+				...savedProcedureDetails["PROC-3001"],
+				plannedFacility: "Main Theatre Block",
+			};
+			return { status: "success" };
+		});
+		const user = userEvent.setup();
+		const { onProcedureUpdated } = renderProceduresTable();
+
+		const editDialog = await openProcedureEditForm(user);
+		const changedField = within(editDialog).getByLabelText(/Facility/);
+		await user.clear(changedField);
+		await user.type(changedField, "Main Theatre Block");
+		await user.click(within(editDialog).getByRole("button", { name: /Assistants/ }));
+		await user.click(await screen.findByRole("button", { name: "Add more" }));
+		await user.type(screen.getByRole("textbox", { name: "Assistant 1 name" }), "Nurse Ade");
+		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
+
+		const [recordId, formData] = updateProcedureMock.mock.calls[0] as [string, FormData];
+		expect(recordId).toBe("PROC-3001");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				procedureName: "Knee arthroscopy",
+				indication: "Persistent right knee pain",
+				status: "Pending",
+				procedureDate: "2024-04-02",
+				physician: "Dr. Amaka Okafor",
+				assistants: "Nurse Ade",
+				facility: "Main Theatre Block",
+				clinicalNote: "",
+			}),
+		);
+		const viewDialog = await screen.findByRole("dialog", { name: "View procedure details" });
+		expect(await within(viewDialog).findByText("Main Theatre Block")).toBeVisible();
+		expect(onProcedureUpdated).toHaveBeenCalledTimes(1);
+	});
+
+	test("keeps the procedure edit form open and shows why the changes were not saved", async () => {
+		updateProcedureMock.mockResolvedValue({
+			status: "failed",
+			error: "Add at least one assistant.",
+		});
+		const user = userEvent.setup();
+		const { onProcedureUpdated } = renderProceduresTable();
+
+		const editDialog = await openProcedureEditForm(user);
+		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
+
+		expect(await within(editDialog).findByRole("alert")).toHaveTextContent(
+			"Add at least one assistant.",
+		);
+		expect(onProcedureUpdated).not.toHaveBeenCalled();
 	});
 });

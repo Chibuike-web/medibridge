@@ -6,7 +6,7 @@ import { patient, patientAllergy, patientEncounter } from "@/db/schemas";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { db } from "@/lib/better-auth/auth";
-import { createPatientAllergySchema } from "./schemas";
+import { patientAllergySchema } from "./schemas";
 
 type CreatePatientAllergyResult =
 	| { status: "success"; allergyId: string }
@@ -35,7 +35,7 @@ export async function createPatientAllergyAction(
 		};
 	}
 
-	const parsedAllergy = createPatientAllergySchema.safeParse({
+	const parsedAllergy = patientAllergySchema.safeParse({
 		allergen: formData.get("allergen") ?? "",
 		severity: formData.get("severity"),
 		status: formData.get("status"),
@@ -91,6 +91,7 @@ export async function createPatientAllergyAction(
 	}
 
 	updateTag(`patient-allergies-${organizationId}-${patientId}`);
+	updateTag(`patient-profile-${organizationId}-${patientId}`);
 
 	return { status: "success", allergyId };
 }

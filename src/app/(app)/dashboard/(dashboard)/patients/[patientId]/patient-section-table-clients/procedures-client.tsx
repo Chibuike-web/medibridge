@@ -151,6 +151,7 @@ export function ProceduresClient({
 			onStatusFiltersChange={handleStatusFiltersChange}
 			onFiltersClear={handleFiltersClear}
 			onProcedureCreated={() => refreshProceduresTable({ nextPage: tableData.page })}
+			onProcedureUpdated={() => refreshProceduresTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

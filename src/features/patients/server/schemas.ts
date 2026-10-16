@@ -81,7 +81,7 @@ export const diagnosisSeverityStages = [
 
 export const diagnosisStatuses = ["Active", "Resolved"] as const;
 
-export const createPatientDiagnosisSchema = z.object({
+export const patientDiagnosisSchema = z.object({
 	diagnosisName: z.string().trim().min(1, "Enter the diagnosis name."),
 	severityStage: z.enum(diagnosisSeverityStages, "Select a severity or stage.").optional(),
 	status: z.enum(diagnosisStatuses, "Select a status."),
@@ -99,7 +99,7 @@ export const allergySeverities = ["Mild", "Moderate", "Severe"] as const;
 
 export const allergyStatuses = ["Active", "Inactive"] as const;
 
-export const createPatientAllergySchema = z.object({
+export const patientAllergySchema = z.object({
 	allergen: z.string().trim().min(1, "Enter the allergen."),
 	severity: z.enum(allergySeverities, "Select a severity."),
 	status: z.enum(allergyStatuses, "Select a status."),
@@ -111,7 +111,7 @@ export const medicationStatuses = ["Active", "Completed", "Discontinued"] as con
 
 export const medicationRoutes = ["Oral", "IV", "Inhalation"] as const;
 
-export const createPatientMedicationSchema = z.object({
+export const patientMedicationSchema = z.object({
 	medicationName: z.string().trim().min(1, "Enter the medication."),
 	indication: z.string().trim().min(1, "Enter the indication."),
 	status: z.enum(medicationStatuses, "Select a status."),
@@ -133,7 +133,7 @@ export const immunizationSeriesTypes = ["Primary", "Booster"] as const;
 
 export const immunizationStatuses = ["Active", "Completed", "Cancelled", "Discontinued"] as const;
 
-export const createPatientImmunizationSchema = z
+export const patientImmunizationSchema = z
 	.object({
 		vaccineName: z.string().trim().min(1, "Enter the vaccine name."),
 		seriesType: z.enum(immunizationSeriesTypes, "Select a series type.").optional(),
@@ -161,7 +161,7 @@ export const createPatientImmunizationSchema = z
 
 export const procedureStatuses = ["Pending", "Completed", "Cancelled"] as const;
 
-export const createPatientProcedureSchema = z
+export const patientProcedureSchema = z
 	.object({
 		procedureName: z.string().trim().min(1, "Enter the procedure."),
 		indication: z.string().trim().optional(),

@@ -4,9 +4,13 @@ import { format, subDays } from "date-fns";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { AllergyDetailsType, AllergyType } from "@/features/patients/types";
 import { AllergiesTable } from "./allergies-table";
+import { SWRConfig } from "swr";
 
 const auth = vi.hoisted(() => ({ role: "owner" }));
-const { createPatientAllergyMock } = vi.hoisted(() => ({ createPatientAllergyMock: vi.fn() }));
+const { createPatientAllergyMock, updateAllergyMock } = vi.hoisted(() => ({
+	createPatientAllergyMock: vi.fn(),
+	updateAllergyMock: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
@@ -18,6 +22,10 @@ vi.mock("@/lib/better-auth/auth.client", () => ({
 
 vi.mock("@/features/patients/server/create-patient-allergy-action", () => ({
 	createPatientAllergyAction: createPatientAllergyMock,
+}));
+
+vi.mock("@/features/patients/server/update-patient-allergy-action", () => ({
+	updatePatientAllergyAction: updateAllergyMock,
 }));
 
 const allergies: AllergyType[] = [
@@ -54,6 +62,10 @@ const allergyDetails: Record<string, AllergyDetailsType> = {
 		createdBy: "Dr. Okafor",
 		updatedBy: "Dr. Bello",
 		clinicalNote: "Carries an epinephrine auto-injector.",
+		editValues: {
+			reaction: "Anaphylaxis within minutes",
+			clinicalNote: "Carries an epinephrine auto-injector.",
+		},
 		history: [
 			{
 				id: "created",
@@ -76,6 +88,10 @@ const allergyDetails: Record<string, AllergyDetailsType> = {
 		createdBy: "Nurse Chika",
 		updatedBy: "Dr. Adeyemi",
 		clinicalNote: "Avoid latex gloves.",
+		editValues: {
+			reaction: "Contact rash on hands",
+			clinicalNote: "Avoid latex gloves.",
+		},
 		history: [
 			{
 				id: "created",
@@ -109,6 +125,7 @@ function buildProps(overrides: Partial<AllergiesTableProps> = {}): AllergiesTabl
 		onSeverityFiltersChange: vi.fn(),
 		onFiltersClear: vi.fn(),
 		onAllergyCreated: vi.fn(),
+		onAllergyUpdated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -119,7 +136,11 @@ function buildProps(overrides: Partial<AllergiesTableProps> = {}): AllergiesTabl
 function renderAllergiesTable(overrides: Partial<AllergiesTableProps> = {}) {
 	const props = buildProps(overrides);
 
-	render(<AllergiesTable {...props} />);
+	render(
+		<SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
+			<AllergiesTable {...props} />
+		</SWRConfig>,
+	);
 
 	return props;
 }
@@ -153,16 +174,20 @@ async function tap(user: User, target: Element) {
 }
 
 describe("Allergies table", () => {
+	let savedAllergyDetails: typeof allergyDetails;
+
 	beforeEach(() => {
 		auth.role = "owner";
 		createPatientAllergyMock.mockReset();
+		updateAllergyMock.mockReset();
+		savedAllergyDetails = { ...allergyDetails };
 		vi.stubGlobal(
 			"fetch",
 			vi.fn(async (input: RequestInfo | URL) => {
 				const id = decodeURIComponent(String(input).split("/").pop() ?? "");
 				return {
 					ok: true,
-					json: async () => ({ allergy: allergyDetails[id] ?? null }),
+					json: async () => ({ allergy: savedAllergyDetails[id] ?? null }),
 				} as Response;
 			}),
 		);
@@ -489,5 +514,63 @@ describe("Allergies table", () => {
 		);
 		expect(within(drawer).getByLabelText(/Allergen/)).toHaveValue("Latex");
 		expect(onAllergyCreated).not.toHaveBeenCalled();
+	});
+
+	async function openAllergyEditForm(user: ReturnType<typeof userEvent.setup>) {
+		await user.click(screen.getByRole("button", { name: "Open actions for Latex" }));
+		await user.click(screen.getByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "View allergies details" });
+		await within(dialog).findByRole("heading", { name: "Latex" });
+		await user.click(within(dialog).getByRole("button", { name: "Allergy actions" }));
+		await user.click(screen.getByRole("menuitem", { name: "Edit" }));
+
+		return screen.findByRole("dialog", { name: "Edit allergies details" });
+	}
+
+	test("saves edits from the details drawer and shows the saved allergy", async () => {
+		updateAllergyMock.mockImplementation(async () => {
+			savedAllergyDetails["AL-latex"] = {
+				...savedAllergyDetails["AL-latex"],
+				reaction: "Hives on both hands",
+			};
+			return { status: "success" };
+		});
+		const user = userEvent.setup();
+		const { onAllergyUpdated } = renderAllergiesTable();
+
+		const editDialog = await openAllergyEditForm(user);
+		const changedField = within(editDialog).getByLabelText(/Reaction/);
+		await user.clear(changedField);
+		await user.type(changedField, "Hives on both hands");
+		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
+
+		const [recordId, formData] = updateAllergyMock.mock.calls[0] as [string, FormData];
+		expect(recordId).toBe("AL-latex");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				allergen: "Latex",
+				severity: "Mild",
+				status: "Inactive",
+				reaction: "Hives on both hands",
+				clinicalNote: "Avoid latex gloves.",
+			}),
+		);
+		const viewDialog = await screen.findByRole("dialog", { name: "View allergies details" });
+		expect(await within(viewDialog).findByText("Hives on both hands")).toBeVisible();
+		expect(onAllergyUpdated).toHaveBeenCalledTimes(1);
+	});
+
+	test("keeps the allergy edit form open and shows why the changes were not saved", async () => {
+		updateAllergyMock.mockResolvedValue({ status: "failed", error: "Describe the reaction." });
+		const user = userEvent.setup();
+		const { onAllergyUpdated } = renderAllergiesTable();
+
+		const editDialog = await openAllergyEditForm(user);
+		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
+
+		expect(await within(editDialog).findByRole("alert")).toHaveTextContent(
+			"Describe the reaction.",
+		);
+		expect(onAllergyUpdated).not.toHaveBeenCalled();
 	});
 });

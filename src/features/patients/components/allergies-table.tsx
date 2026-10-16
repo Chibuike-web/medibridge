@@ -128,6 +128,7 @@ type AllergiesTableProps = {
 	onSeverityFiltersChange: (severityFilters: AllergySeverityFilter[]) => void;
 	onFiltersClear: () => void;
 	onAllergyCreated: () => void;
+	onAllergyUpdated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -152,6 +153,7 @@ export function AllergiesTable({
 	onSeverityFiltersChange,
 	onFiltersClear,
 	onAllergyCreated,
+	onAllergyUpdated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -356,6 +358,10 @@ export function AllergiesTable({
 				onOpenChange={setIsDetailsDrawerOpen}
 				allergy={allergyDetailsQuery.data ?? null}
 				isLoading={allergyDetailsQuery.isLoading}
+				onAllergyUpdated={() => {
+					allergyDetailsQuery.mutate();
+					onAllergyUpdated();
+				}}
 			/>
 		</div>
 	);

@@ -117,6 +117,7 @@ type ImmunizationsTableProps = {
 	onStatusFiltersChange: (statusFilters: ImmunizationStatusFilter[]) => void;
 	onFiltersClear: () => void;
 	onImmunizationCreated: () => void;
+	onImmunizationUpdated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -139,6 +140,7 @@ export function ImmunizationsTable({
 	onStatusFiltersChange,
 	onFiltersClear,
 	onImmunizationCreated,
+	onImmunizationUpdated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -519,6 +521,10 @@ export function ImmunizationsTable({
 				onOpenChange={setIsDetailsDrawerOpen}
 				immunization={immunizationDetailsQuery.data ?? null}
 				isLoading={immunizationDetailsQuery.isLoading}
+				onImmunizationUpdated={() => {
+					immunizationDetailsQuery.mutate();
+					onImmunizationUpdated();
+				}}
 			/>
 		</div>
 	);

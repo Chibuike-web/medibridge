@@ -6,7 +6,7 @@ import { patient, patientEncounter, patientProcedure } from "@/db/schemas";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { db } from "@/lib/better-auth/auth";
-import { createPatientProcedureSchema } from "./schemas";
+import { patientProcedureSchema } from "./schemas";
 
 type CreatePatientProcedureResult =
 	| { status: "success"; procedureId: string }
@@ -35,7 +35,7 @@ export async function createPatientProcedureAction(
 		};
 	}
 
-	const parsedProcedure = createPatientProcedureSchema.safeParse({
+	const parsedProcedure = patientProcedureSchema.safeParse({
 		procedureName: formData.get("procedureName") ?? "",
 		indication: formData.get("indication") ?? "",
 		status: formData.get("status"),

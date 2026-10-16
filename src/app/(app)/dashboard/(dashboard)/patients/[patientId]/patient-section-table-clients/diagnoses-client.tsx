@@ -196,6 +196,7 @@ export function DiagnosesClient({
 			onStatusFiltersChange={handleStatusFiltersChange}
 			onFiltersClear={handleFiltersClear}
 			onDiagnosisCreated={() => refreshDiagnosesTable({ nextPage: tableData.page })}
+			onDiagnosisUpdated={() => refreshDiagnosesTable({ nextPage: tableData.page })}
 		/>
 	);
 }

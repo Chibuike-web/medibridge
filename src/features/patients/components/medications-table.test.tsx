@@ -4,10 +4,12 @@ import { format, subDays } from "date-fns";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { MedicationDetailsType, MedicationType } from "@/features/patients/types";
 import { MedicationsTable } from "./medications-table";
+import { SWRConfig } from "swr";
 
 const auth = vi.hoisted(() => ({ role: "owner" }));
-const { createPatientMedicationMock } = vi.hoisted(() => ({
+const { createPatientMedicationMock, updateMedicationMock } = vi.hoisted(() => ({
 	createPatientMedicationMock: vi.fn(),
+	updateMedicationMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
@@ -21,6 +23,10 @@ vi.mock("@/lib/better-auth/auth.client", () => ({
 
 vi.mock("@/features/patients/server/create-patient-medication-action", () => ({
 	createPatientMedicationAction: createPatientMedicationMock,
+}));
+
+vi.mock("@/features/patients/server/update-patient-medication-action", () => ({
+	updatePatientMedicationAction: updateMedicationMock,
 }));
 
 const medications: MedicationType[] = [
@@ -63,6 +69,16 @@ const medicationDetails: Record<string, MedicationDetailsType> = {
 		updatedAt: "Apr 9, 2021",
 		createdBy: "Nurse Chika",
 		clinicalNote: "Review renal function every six months.",
+		editValues: {
+			indication: "Type 2 diabetes",
+			dose: "500 mg",
+			route: "Oral",
+			prescribedBy: "Dr. Okafor",
+			frequency: "Twice daily",
+			duration: "Ongoing",
+			startedAt: "2021-04-02",
+			clinicalNote: "Review renal function every six months.",
+		},
 		history: [
 			{
 				id: "updated",
@@ -89,13 +105,30 @@ const medicationDetails: Record<string, MedicationDetailsType> = {
 		updatedAt: "Feb 21, 2020",
 		createdBy: "Dr. Bello",
 		clinicalNote: "Course completed without side effects.",
+		editValues: {
+			indication: "Ear infection",
+			dose: "250 mg",
+			route: "IV",
+			prescribedBy: "Dr. Adeyemi",
+			frequency: "Three times daily",
+			duration: "7 days",
+			startedAt: "2020-02-14",
+			clinicalNote: "Course completed without side effects.",
+		},
 		history: [
 			{
 				id: "updated",
 				title: "Updated",
 				actor: "Dr. Adeyemi",
 				timestamp: "21 February 2020 at 09:00",
-				items: [{ label: "Dose", previousValue: "500 mg", value: "250 mg" }],
+				items: [
+					{ label: "Dose", previousValue: "500 mg", value: "250 mg" },
+					{
+						label: "Clinical note",
+						previousValue: "-",
+						value: "Patient reported nausea after the first dose.",
+					},
+				],
 			},
 		],
 	},
@@ -120,6 +153,7 @@ function buildProps(overrides: Partial<MedicationsTableProps> = {}): Medications
 		onStatusFiltersChange: vi.fn(),
 		onFiltersClear: vi.fn(),
 		onMedicationCreated: vi.fn(),
+		onMedicationUpdated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -130,7 +164,11 @@ function buildProps(overrides: Partial<MedicationsTableProps> = {}): Medications
 function renderMedicationsTable(overrides: Partial<MedicationsTableProps> = {}) {
 	const props = buildProps(overrides);
 
-	render(<MedicationsTable {...props} />);
+	render(
+		<SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
+			<MedicationsTable {...props} />
+		</SWRConfig>,
+	);
 
 	return props;
 }
@@ -164,16 +202,20 @@ async function tap(user: User, target: Element) {
 }
 
 describe("Medications table", () => {
+	let savedMedicationDetails: typeof medicationDetails;
+
 	beforeEach(() => {
 		auth.role = "owner";
 		createPatientMedicationMock.mockReset();
+		updateMedicationMock.mockReset();
+		savedMedicationDetails = { ...medicationDetails };
 		vi.stubGlobal(
 			"fetch",
 			vi.fn(async (input: RequestInfo | URL) => {
 				const id = decodeURIComponent(String(input).split("/").pop() ?? "");
 				return {
 					ok: true,
-					json: async () => ({ medication: medicationDetails[id] ?? null }),
+					json: async () => ({ medication: savedMedicationDetails[id] ?? null }),
 				} as Response;
 			}),
 		);
@@ -355,8 +397,14 @@ describe("Medications table", () => {
 		expect(activityToggle).toHaveAttribute("aria-expanded", "false");
 		await user.click(activityToggle);
 		const activity = within(dialog).getByRole("region", { name: /Updated by Dr. Adeyemi/ });
-		expect(within(activity).getByRole("term")).toHaveTextContent("Dose");
-		expect(within(activity).getByRole("definition")).toHaveTextContent("500 mg changed to 250 mg");
+		const [doseChange, clinicalNote] = within(activity).getAllByRole("definition");
+		expect(
+			within(activity)
+				.getAllByRole("term")
+				.map((term) => term.textContent),
+		).toEqual(["Dose", "Clinical note"]);
+		expect(doseChange).toHaveTextContent("500 mg changed to 250 mg");
+		expect(clinicalNote).toHaveTextContent(/^Patient reported nausea after the first dose\.$/);
 		expect(within(dialog).queryByText("Metformin")).not.toBeInTheDocument();
 	});
 
@@ -518,5 +566,71 @@ describe("Medications table", () => {
 		);
 		expect(within(drawer).getByLabelText(/^Medication/)).toHaveValue("Metformin");
 		expect(onMedicationCreated).not.toHaveBeenCalled();
+	});
+
+	async function openMedicationEditForm(user: ReturnType<typeof userEvent.setup>) {
+		await user.click(screen.getByRole("button", { name: "Open actions for Amoxicillin" }));
+		await user.click(screen.getByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "View medication details" });
+		await within(dialog).findByRole("heading", { name: "Amoxicillin" });
+		await user.click(within(dialog).getByRole("button", { name: "Medication actions" }));
+		await user.click(screen.getByRole("menuitem", { name: "Edit" }));
+
+		return screen.findByRole("dialog", { name: "Edit medication details" });
+	}
+
+	test("saves edits from the details drawer and shows the saved medication", async () => {
+		updateMedicationMock.mockImplementation(async () => {
+			savedMedicationDetails["MED-amox"] = {
+				...savedMedicationDetails["MED-amox"],
+				frequency: "Twice daily",
+			};
+			return { status: "success" };
+		});
+		const user = userEvent.setup();
+		const { onMedicationUpdated } = renderMedicationsTable();
+
+		const editDialog = await openMedicationEditForm(user);
+		const changedField = within(editDialog).getByLabelText(/Frequency/);
+		await user.clear(changedField);
+		await user.type(changedField, "Twice daily");
+		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
+
+		const [recordId, formData] = updateMedicationMock.mock.calls[0] as [string, FormData];
+		expect(recordId).toBe("MED-amox");
+		expect(Object.fromEntries(formData)).toEqual(
+			expect.objectContaining({
+				medicationName: "Amoxicillin",
+				indication: "Ear infection",
+				status: "Completed",
+				dose: "250 mg",
+				route: "IV",
+				prescribedBy: "Dr. Adeyemi",
+				frequency: "Twice daily",
+				duration: "7 days",
+				startedAt: "2020-02-14",
+				clinicalNote: "Course completed without side effects.",
+			}),
+		);
+		const viewDialog = await screen.findByRole("dialog", { name: "View medication details" });
+		expect(await within(viewDialog).findByText("Twice daily")).toBeVisible();
+		expect(onMedicationUpdated).toHaveBeenCalledTimes(1);
+	});
+
+	test("keeps the medication edit form open and shows why the changes were not saved", async () => {
+		updateMedicationMock.mockResolvedValue({
+			status: "failed",
+			error: "Enter how often it is taken.",
+		});
+		const user = userEvent.setup();
+		const { onMedicationUpdated } = renderMedicationsTable();
+
+		const editDialog = await openMedicationEditForm(user);
+		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
+
+		expect(await within(editDialog).findByRole("alert")).toHaveTextContent(
+			"Enter how often it is taken.",
+		);
+		expect(onMedicationUpdated).not.toHaveBeenCalled();
 	});
 });

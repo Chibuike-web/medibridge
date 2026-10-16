@@ -61,17 +61,22 @@ import {
 	RiCheckLine,
 	RiCloseLine,
 	RiEdit2Line,
+	RiErrorWarningFill,
 	RiMore2Fill,
 	RiShare2Line,
 } from "@remixicon/react";
-import { format } from "date-fns";
-import { Fragment, useId, useRef, useState } from "react";
+import { format, parseISO } from "date-fns";
+import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { updatePatientProcedureAction } from "@/features/patients/server/update-patient-procedure-action";
+import { procedureStatuses } from "@/features/patients/server/schemas";
 
 type ProcedureDetailsDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	procedure: ProcedureDetailsType | null;
 	isLoading: boolean;
+	onProcedureUpdated: () => void;
 };
 
 const EMPTY_VALUE = "-";
@@ -87,18 +92,53 @@ export function ProcedureDetailsDrawer({
 	onOpenChange,
 	procedure,
 	isLoading,
+	onProcedureUpdated,
 }: ProcedureDetailsDrawerProps) {
+	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [procedureDetailsMode, setProcedureDetailsMode] = useState<"view" | "edit">("view");
+	const [formError, setFormError] = useState("");
+	const [isPending, startTransition] = useTransition();
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+
+	function handleProcedureDetailsModeChange(nextMode: "view" | "edit") {
+		setFormError("");
+		setProcedureDetailsMode(nextMode);
+	}
 
 	function handleProcedureDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
-			setProcedureDetailsMode("view");
+			handleProcedureDetailsModeChange("view");
 		}
 
 		onOpenChange(nextOpen);
+	}
+
+	function handleSave(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+
+		if (!procedure) return;
+
+		setFormError("");
+		const formData = new FormData(event.currentTarget);
+
+		startTransition(async () => {
+			const result = await updatePatientProcedureAction(procedure.procedureId, formData);
+
+			if (result.status === "unauthorized") {
+				router.refresh();
+				return;
+			}
+
+			if (result.status !== "success") {
+				setFormError(result.error);
+				return;
+			}
+
+			setProcedureDetailsMode("view");
+			onProcedureUpdated();
+		});
 	}
 
 	const isEditingProcedureDetails = procedureDetailsMode === "edit" && Boolean(procedure);
@@ -123,7 +163,7 @@ export function ProcedureDetailsDrawer({
 							>
 								<DropdownMenuItem
 									className="rounded-lg"
-									onSelect={() => setProcedureDetailsMode("edit")}
+									onSelect={() => handleProcedureDetailsModeChange("edit")}
 								>
 									<RiEdit2Line aria-hidden="true" />
 									Edit
@@ -169,7 +209,12 @@ export function ProcedureDetailsDrawer({
 					{isLoading ? (
 						<ProcedureDetailsFallback />
 					) : isEditingProcedureDetails && procedure ? (
-						<ProcedureDetailsEditForm procedure={procedure} />
+						<ProcedureDetailsEditForm
+							procedure={procedure}
+							formError={formError}
+							onFormErrorDismiss={() => setFormError("")}
+							onSubmit={handleSave}
+						/>
 					) : procedure ? (
 						<div className="flex flex-col gap-10">
 							<ProcedureDetailsOverview procedure={procedure} />
@@ -189,16 +234,12 @@ export function ProcedureDetailsDrawer({
 							<Button
 								type="button"
 								variant="outline"
-								onClick={() => setProcedureDetailsMode("view")}
+								onClick={() => handleProcedureDetailsModeChange("view")}
 							>
 								Cancel
 							</Button>
-							<Button
-								type="button"
-								form={procedureDetailsFormId}
-								onClick={() => setProcedureDetailsMode("view")}
-							>
-								Save changes
+							<Button type="submit" form={procedureDetailsFormId} disabled={isPending}>
+								{isPending ? "Saving…" : "Save changes"}
 							</Button>
 						</div>
 					</DrawerFooter>
@@ -290,10 +331,59 @@ function ProcedureDetailsOverview({ procedure }: { procedure: ProcedureDetailsTy
 	);
 }
 
-function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsType }) {
+function ProcedureDetailsEditForm({
+	procedure,
+	formError,
+	onFormErrorDismiss,
+	onSubmit,
+}: {
+	procedure: ProcedureDetailsType;
+	formError: string;
+	onFormErrorDismiss: () => void;
+	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}) {
 	const generatedAttachmentRowId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
-	const [procedureDate, setProcedureDate] = useState<Date | undefined>();
+	const nextAssistantRowNumberRef = useRef(0);
+	const [procedureDate, setProcedureDate] = useState<Date | undefined>(() =>
+		procedure.editValues.procedureDate ? parseISO(procedure.editValues.procedureDate) : undefined,
+	);
+	const [assistantRows, setAssistantRows] = useState<{ id: string; name: string }[]>(() =>
+		procedure.editValues.assistants
+			.split(",")
+			.map((name) => name.trim())
+			.filter(Boolean)
+			.map((name, assistantIndex) => ({ id: `assistant-${assistantIndex}`, name })),
+	);
+	const enteredAssistants = assistantRows.filter((assistantRow) => assistantRow.name.trim());
+	const selectedAssistantSummary =
+		enteredAssistants.length > 1
+			? `${enteredAssistants[0].name.trim()} +${enteredAssistants.length - 1} more`
+			: enteredAssistants[0]?.name.trim();
+
+	function handleAddAssistantRow() {
+		nextAssistantRowNumberRef.current += 1;
+
+		setAssistantRows((prev) => [
+			...prev,
+			{
+				id: `${generatedAttachmentRowId}-assistant-${nextAssistantRowNumberRef.current}`,
+				name: "",
+			},
+		]);
+	}
+
+	function handleAssistantNameChange(assistantRowId: string, name: string) {
+		setAssistantRows((prev) =>
+			prev.map((assistantRow) =>
+				assistantRow.id === assistantRowId ? { ...assistantRow, name } : assistantRow,
+			),
+		);
+	}
+
+	function handleRemoveAssistantRow(assistantRowId: string) {
+		setAssistantRows((prev) => prev.filter((assistantRow) => assistantRow.id !== assistantRowId));
+	}
 	const [procedureAttachmentRows, setProcedureAttachmentRows] = useState<AttachmentFormRow[]>(() =>
 		getProcedureAttachmentRows(procedure),
 	);
@@ -318,8 +408,29 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 	}
 
 	return (
-		<form id={procedureDetailsFormId} className="flex flex-col gap-12">
+		<form id={procedureDetailsFormId} onSubmit={onSubmit} className="flex flex-col gap-12">
 			<div className="flex flex-col gap-8">
+				{formError && (
+					<div
+						key={formError}
+						ref={(banner) => banner?.scrollIntoView({ behavior: "smooth", block: "center" })}
+						role="alert"
+						className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
+					>
+						<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+						<p className="min-w-0 flex-1 text-pretty">{formError}</p>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+							aria-label="Dismiss error"
+							onClick={onFormErrorDismiss}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</div>
+				)}
 				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
 					<div className="flex items-center gap-2">
 						<span className="text-gray-400">Procedure ID:</span>
@@ -343,6 +454,7 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 							name="procedureName"
 							defaultValue={procedure.name}
 							className={procedureDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -351,12 +463,12 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 							htmlFor="edit-procedure-indication"
 							className={procedureDetailsFieldLabelClassName}
 						>
-							Indication<span className={procedureDetailsRequiredLabelClassName}>(required)</span>
+							Indication<span className={procedureDetailsRequiredLabelClassName}>(optional)</span>
 						</Label>
 						<Input
 							id="edit-procedure-indication"
 							name="indication"
-							defaultValue={procedure.indication}
+							defaultValue={procedure.editValues.indication}
 							className={procedureDetailsFieldControlClassName}
 						/>
 					</div>
@@ -365,7 +477,7 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 						<Label htmlFor="edit-procedure-status" className={procedureDetailsFieldLabelClassName}>
 							Status<span className={procedureDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
-						<Select defaultValue={procedure.status.toLowerCase()}>
+						<Select name="status" defaultValue={procedure.status} required>
 							<SelectTrigger
 								id="edit-procedure-status"
 								className={`${procedureDetailsFieldControlClassName} w-full`}
@@ -374,31 +486,35 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
-									<SelectItem value="pending">Pending</SelectItem>
-									<SelectItem value="completed">Completed</SelectItem>
-									<SelectItem value="cancelled">Cancelled</SelectItem>
+									{procedureStatuses.map((status) => (
+										<SelectItem key={status} value={status}>
+											{status}
+										</SelectItem>
+									))}
 								</SelectGroup>
 							</SelectContent>
 						</Select>
 					</div>
 
 					<div className="flex flex-col gap-2">
-						<Label className={procedureDetailsFieldLabelClassName}>
+						<Label htmlFor="edit-procedure-date" className={procedureDetailsFieldLabelClassName}>
 							Date<span className={procedureDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
+						<input
+							type="hidden"
+							name="procedureDate"
+							value={procedureDate ? format(procedureDate, "yyyy-MM-dd") : ""}
+						/>
 						<Popover>
 							<PopoverTrigger asChild>
 								<Button
+									id="edit-procedure-date"
 									type="button"
 									variant="outline"
-									data-empty={!procedureDate && procedure.procedureDate === EMPTY_VALUE}
+									data-empty={!procedureDate}
 									className={`${procedureDetailsFieldControlClassName} flex w-full justify-between font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
 								>
-									{procedureDate
-										? format(procedureDate, "PPP")
-										: procedure.procedureDate !== EMPTY_VALUE
-											? procedure.procedureDate
-											: procedure.plannedDate}
+									{procedureDate ? format(procedureDate, "PPP") : "Select procedure date"}
 									<RiCalendarLine className="size-4 text-gray-600" aria-hidden="true" />
 								</Button>
 							</PopoverTrigger>
@@ -423,12 +539,9 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 						<Input
 							id="edit-procedure-physician"
 							name="physician"
-							defaultValue={
-								procedure.performedBy !== EMPTY_VALUE
-									? procedure.performedBy
-									: procedure.plannedPhysician
-							}
+							defaultValue={procedure.editValues.physician}
 							className={procedureDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -439,25 +552,72 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 						>
 							Assistants<span className={procedureDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
-						<Select defaultValue={procedure.assistants[0] ?? procedure.plannedAssistants[0] ?? ""}>
-							<SelectTrigger
+						<input
+							type="hidden"
+							name="assistants"
+							value={enteredAssistants.map((assistantRow) => assistantRow.name.trim()).join(", ")}
+						/>
+						<Popover>
+							<PopoverTrigger
 								id="edit-procedure-assistants"
-								className={`${procedureDetailsFieldControlClassName} w-full`}
+								className={`${procedureDetailsFieldControlClassName} group flex w-full items-center justify-between gap-4 rounded-md border px-3 py-2 text-left outline-none focus-visible:border-gray-400 focus-visible:ring-3 focus-visible:ring-gray-100`}
 							>
-								<SelectValue placeholder="Enter assistants" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectGroup>
-									{[...new Set([...procedure.assistants, ...procedure.plannedAssistants])]
-										.filter(Boolean)
-										.map((assistant) => (
-											<SelectItem key={assistant} value={assistant}>
-												{assistant}
-											</SelectItem>
-										))}
-								</SelectGroup>
-							</SelectContent>
-						</Select>
+								<span
+									className={
+										selectedAssistantSummary
+											? "truncate text-sm text-gray-700"
+											: "truncate text-sm font-normal text-gray-400"
+									}
+								>
+									{selectedAssistantSummary ?? "Enter assistants"}
+								</span>
+								<RiArrowDownSLine
+									className="size-5 shrink-0 text-gray-500 transition-transform group-data-[state=open]:rotate-180"
+									aria-hidden="true"
+								/>
+							</PopoverTrigger>
+							<PopoverContent
+								align="end"
+								className="flex flex-col gap-2 rounded-[0.625rem] p-1.5 text-sm text-gray-600"
+							>
+								{assistantRows.map((assistantRow, assistantIndex) => (
+									<div
+										key={assistantRow.id}
+										className="flex h-9 items-center justify-between rounded-[0.375rem] border border-gray-200 pl-3 pr-1.5"
+									>
+										<input
+											type="text"
+											aria-label={`Assistant ${assistantIndex + 1} name`}
+											placeholder="Enter assistant name"
+											value={assistantRow.name}
+											onChange={(event) =>
+												handleAssistantNameChange(assistantRow.id, event.target.value)
+											}
+											className="min-w-0 flex-1 bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
+										/>
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon"
+											aria-label={`Remove assistant ${assistantIndex + 1}`}
+											onClick={() => handleRemoveAssistantRow(assistantRow.id)}
+											className="size-6 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+										>
+											<RiCloseLine className="size-4" aria-hidden="true" />
+										</Button>
+									</div>
+								))}
+								<Button
+									type="button"
+									onClick={handleAddAssistantRow}
+									variant="ghost"
+									className="flex w-full justify-between bg-gray-100 px-3 text-left text-gray-600 hover:bg-gray-200 border-0 font-normal hover:text-gray-600 focus-visible:border-0 active:scale-100"
+								>
+									<span>Add more</span>
+									<RiAddLine className="size-5" aria-hidden="true" />
+								</Button>
+							</PopoverContent>
+						</Popover>
 					</div>
 
 					<div className="flex flex-col gap-2">
@@ -470,10 +630,9 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 						<Input
 							id="edit-procedure-facility"
 							name="facility"
-							defaultValue={
-								procedure.facility !== EMPTY_VALUE ? procedure.facility : procedure.plannedFacility
-							}
+							defaultValue={procedure.editValues.facility}
 							className={procedureDetailsFieldControlClassName}
+							required
 						/>
 					</div>
 
@@ -488,7 +647,7 @@ function ProcedureDetailsEditForm({ procedure }: { procedure: ProcedureDetailsTy
 						<Textarea
 							id="edit-procedure-clinical-note"
 							name="clinicalNote"
-							defaultValue={procedure.clinicalNote}
+							defaultValue={procedure.editValues.clinicalNote}
 							className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 						/>
 					</div>

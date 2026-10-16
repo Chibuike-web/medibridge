@@ -252,6 +252,29 @@ export async function getPatientProcedureDetailsForOrganization(
 			diagnosis: mapRelatedRecord(diagnosisRows[0]),
 			medication: mapRelatedRecord(medicationRows[0]),
 		},
+		editValues: {
+			indication: procedure.indication ?? "",
+			procedureDate:
+				(procedure.status === "Pending"
+					? (procedure.plannedDate ?? procedure.procedureDate)
+					: (procedure.procedureDate ?? procedure.plannedDate)
+				)
+					?.toISOString()
+					.slice(0, 10) ?? "",
+			physician:
+				(procedure.status === "Pending"
+					? (procedure.plannedPhysician ?? procedure.performedBy)
+					: (procedure.performedBy ?? procedure.plannedPhysician)) ?? "",
+			assistants:
+				(procedure.status === "Pending"
+					? (procedure.plannedAssistants ?? procedure.assistants)
+					: (procedure.assistants ?? procedure.plannedAssistants)) ?? "",
+			facility:
+				(procedure.status === "Pending"
+					? (procedure.plannedFacility ?? procedure.facility)
+					: (procedure.facility ?? procedure.plannedFacility)) ?? "",
+			clinicalNote: procedure.clinicalNote ?? "",
+		},
 		history: groupHistoryEvents(historyRows),
 	};
 }
