@@ -22,7 +22,7 @@ export default defineConfig({
 				extends: true,
 				test: {
 					name: "unit",
-					exclude: [...configDefaults.exclude, databaseTests],
+					exclude: [...configDefaults.exclude, databaseTests, ".claude/**"],
 				},
 			},
 			{
