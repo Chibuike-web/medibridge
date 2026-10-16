@@ -591,6 +591,8 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 	const sectionId = useId();
 	const titleId = `${sectionId}-title`;
 	const panelId = `${sectionId}-panel`;
+	const changeCount =
+		historyEvent.items.filter((item) => item.label !== "Clinical note").length || 1;
 
 	return (
 		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
@@ -614,7 +616,7 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 						•
 					</span>{" "}
 					<span className="text-gray-400">
-						{historyEvent.items.length} {historyEvent.items.length === 1 ? "change" : "changes"}
+						{changeCount} {changeCount === 1 ? "change" : "changes"}
 					</span>
 				</p>
 				<RiArrowDownSLine
@@ -641,10 +643,16 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 								<Fragment key={`${historyEvent.id}-${item.label}`}>
 									<dt className="text-gray-400">{item.label}</dt>
 									<dd className="flex flex-wrap items-center gap-2 text-gray-700">
-										<span className="text-gray-400">{item.previousValue}</span>
-										<RiArrowRightLine className="size-4 shrink-0" aria-hidden="true" />
-										<span className="sr-only">{" changed to "}</span>
-										<span>{item.value}</span>
+										{item.label === "Clinical note" ? (
+											item.value
+										) : (
+											<>
+												<span className="text-gray-400">{item.previousValue}</span>
+												<RiArrowRightLine className="size-4 shrink-0" aria-hidden="true" />
+												<span className="sr-only">{" changed to "}</span>
+												<span>{item.value}</span>
+											</>
+										)}
 									</dd>
 								</Fragment>
 							))}
