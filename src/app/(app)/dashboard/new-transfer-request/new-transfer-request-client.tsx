@@ -19,7 +19,7 @@ import { DialogClose } from "@radix-ui/react-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSelectedTransferPatients } from "@/features/transfers/stores/use-selected-transfer-patients";
 import { useRouter } from "next/navigation";
-import { RiCheckLine, RiCloseLine, RiErrorWarningLine } from "@remixicon/react";
+import { RiCheckLine, RiCloseLine } from "@remixicon/react";
 import { AttachClinicalRecords } from "@/features/transfers/components/attach-clinical-records";
 import { EMPTY_PATIENT_TRANSFER_DATA, PatientTransferData } from "@/features/transfers/types";
 import { SelectPatient } from "@/features/transfers/components/select-patient";
@@ -115,7 +115,8 @@ export function NewTransferRequestClient({
 		}
 	}
 
-	const recordCounts = (attachedClinicalRecordsByPatientId[activePatient] ?? []).reduce(
+	const attachedRecordsForActivePatient = attachedClinicalRecordsByPatientId[activePatient] ?? [];
+	const recordCounts = attachedRecordsForActivePatient.reduce(
 		(acc, record) => {
 			const type = record.type;
 			if (!type) return acc;
@@ -238,40 +239,47 @@ export function NewTransferRequestClient({
 					<div>
 						<div className="flex flex-wrap gap-2">
 							{selectedTransferPatients.map((s) => (
-								<Button
+								<span
 									key={s.patientId}
-									type="button"
-									onClick={() => setActiveTransferPatientId(s.patientId)}
-									className={cn("flex py-1.5 pl-3 pr-1.5 rounded-full h-auto font-normal", {
-										"bg-gray-800 text-white hover:bg-gray-800": activePatient === s.patientId,
-										"bg-gray-200 text-gray-600 hover:bg-gray-200": activePatient !== s.patientId,
-									})}
+									className={cn(
+										"inline-flex items-center gap-2 rounded-full py-1.5 pr-1.5 pl-3 text-sm",
+										{
+											"bg-gray-800 text-white": activePatient === s.patientId,
+											"bg-gray-200 text-gray-600": activePatient !== s.patientId,
+										},
+									)}
 								>
-									{s.name.split(" ")[0]} - {truncateId(s.patientId)}
-									<span
-										role="button"
-										className={cn("size-5 flex items-center justify-center rounded-full", {
-											"bg-white text-gray-800": activePatient === s.patientId,
-											"bg-gray-800 text-white": activePatient !== s.patientId,
-										})}
-										onClick={(e) => {
-											e.stopPropagation();
-											handleRemovePatient(s);
-										}}
+									<button
+										type="button"
+										aria-pressed={activePatient === s.patientId}
+										onClick={() => setActiveTransferPatientId(s.patientId)}
+										className="rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
 									>
-										<RiCloseLine size={16} />
-									</span>
-								</Button>
+										{s.name.split(" ")[0]} - {truncateId(s.patientId)}
+									</button>
+									<Button
+										type="button"
+										size="icon"
+										aria-label={`Remove ${s.name}`}
+										onClick={() => handleRemovePatient(s)}
+										className={cn("size-5 rounded-full", {
+											"bg-white text-gray-800 hover:bg-white": activePatient === s.patientId,
+											"bg-gray-800 text-white hover:bg-gray-800": activePatient !== s.patientId,
+										})}
+									>
+										<RiCloseLine className="size-4" aria-hidden="true" />
+									</Button>
+								</span>
 							))}
 						</div>
 						<Fragment key={activePatient}>
 							<AttachClinicalRecords activePatient={activePatient} />
 
 							<div className="mt-3 flex flex-col gap-2.5 text-sm text-foreground/70">
-								{recordCountsArray.length > 0 && (
+								{attachedRecordsForActivePatient.length > 0 && (
 									<p className="font-semibold">
-										{recordCountsArray.length} record
-										{recordCountsArray.length > 1 ? "s" : null} selected
+										{attachedRecordsForActivePatient.length} record
+										{attachedRecordsForActivePatient.length > 1 ? "s" : null} selected
 									</p>
 								)}
 								<div className="flex flex-col gap-2">
@@ -288,14 +296,18 @@ export function NewTransferRequestClient({
 							</div>
 
 							<div className="mt-8">
-								<Label className="mb-2 block text-sm text-foreground/70">
+								<Label
+									htmlFor="target-hospital-name"
+									className="mb-2 block text-sm text-foreground/70"
+								>
 									Target Hospital Name{" "}
 									<span className="font-normal text-muted-foreground">(required)</span>
 								</Label>
 								<Input
+									id="target-hospital-name"
 									placeholder="e.g., Enugu State Teaching Hospital"
 									defaultValue={currentPatientTransferData.hospitalName ?? ""}
-									onBlur={(e) => {
+									onChange={(e) => {
 										const nextPatientTransferData = {
 											...patientTransferDataByPatientId,
 											[activePatient]: {
@@ -311,14 +323,18 @@ export function NewTransferRequestClient({
 							</div>
 							<div className="mt-8">
 								<div>
-									<Label className="mb-2 block text-sm text-foreground/70">
+									<Label
+										htmlFor="target-hospital-email"
+										className="mb-2 block text-sm text-foreground/70"
+									>
 										Target Hospital Email{" "}
 										<span className="font-normal text-muted-foreground">(required)</span>
 									</Label>
 									<Input
+										id="target-hospital-email"
 										placeholder="e.g., admin@enuguhospital.gov.ng"
 										defaultValue={currentPatientTransferData.hospitalEmail ?? ""}
-										onBlur={(e) => {
+										onChange={(e) => {
 											const nextPatientTransferData = {
 												...patientTransferDataByPatientId,
 												[activePatient]: {
@@ -332,19 +348,16 @@ export function NewTransferRequestClient({
 										}}
 									/>
 								</div>
-								<div className="mt-3 flex items-center gap-1.5 text-sm text-muted-foreground">
-									<RiErrorWarningLine className="size-4" />
-									<span>Must be official verified hospital</span>
-								</div>
 							</div>
 							<div className="mt-8">
-								<Label className="mb-2 block text-sm text-foreground/70">
+								<Label htmlFor="transfer-notes" className="mb-2 block text-sm text-foreground/70">
 									Notes <span className="font-normal text-muted-foreground">(optional)</span>
 								</Label>
 								<Textarea
+									id="transfer-notes"
 									placeholder="Add context or special instructions"
 									defaultValue={currentPatientTransferData.notes ?? ""}
-									onBlur={(e) => {
+									onChange={(e) => {
 										const nextPatientTransferData = {
 											...patientTransferDataByPatientId,
 											[activePatient]: {
