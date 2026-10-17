@@ -1,6 +1,15 @@
 "use client";
 
 import { CopyIdButton } from "@/components/copy-id-button";
+import {
+	AlertDialog,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
 	Drawer,
@@ -11,15 +20,28 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { VitalType } from "@/features/patients/types";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { cn } from "@/lib/utils/cn";
-import { RiArrowDownSLine, RiCloseLine, RiEditLine } from "@remixicon/react";
+import {
+	RiArchiveLine,
+	RiCloseLine,
+	RiEdit2Line,
+	RiMore2Fill,
+	RiShare2Line,
+} from "@remixicon/react";
 import { format } from "date-fns";
-import { useId, useState } from "react";
+import { useState } from "react";
 
 const EMPTY_VALUE = "-";
 const vitalDetailsFormId = "vital-details-form";
@@ -41,6 +63,7 @@ export function VitalDetailsDrawer({
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [vitalDetailsMode, setVitalDetailsMode] = useState<"view" | "edit">("view");
+	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 	const isEditingVitalDetails = vitalDetailsMode === "edit" && Boolean(vital);
 
 	function handleVitalDetailsOpenChange(nextOpen: boolean) {
@@ -55,9 +78,46 @@ export function VitalDetailsDrawer({
 		<Drawer open={open} onOpenChange={handleVitalDetailsOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
-					<DrawerTitle className="leading-[1.2] text-gray-800">
-						{isEditingVitalDetails ? "Edit vitals details" : "View vitals details"}
+					<DrawerTitle className="flex-1 leading-[1.2] text-gray-800">
+						{isEditingVitalDetails ? "Edit vitals details" : "Vitals details"}
 					</DrawerTitle>
+					{vital && !isEditingVitalDetails ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="icon" aria-label="Vitals actions">
+									<RiMore2Fill aria-hidden="true" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="end"
+								className="w-50 rounded-xl bg-white text-sm text-gray-700"
+							>
+								<DropdownMenuItem
+									className="rounded-lg"
+									onSelect={() => setVitalDetailsMode("edit")}
+								>
+									<RiEdit2Line aria-hidden="true" />
+									Edit
+								</DropdownMenuItem>
+								<DropdownMenuItem className="rounded-lg">
+									<RiShare2Line aria-hidden="true" />
+									Export
+								</DropdownMenuItem>
+								{canArchive ? (
+									<>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											className="rounded-lg"
+											onSelect={() => setIsArchiveDialogOpen(true)}
+										>
+											<RiArchiveLine aria-hidden="true" />
+											Archive
+										</DropdownMenuItem>
+									</>
+								) : null}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					) : null}
 					<DrawerClose asChild>
 						<Button variant="ghost" size="icon" aria-label="Close vitals details">
 							<RiCloseLine aria-hidden="true" />
@@ -74,13 +134,7 @@ export function VitalDetailsDrawer({
 					{isEditingVitalDetails && vital ? (
 						<VitalDetailsEditForm vital={vital} />
 					) : vital ? (
-						<div className="flex flex-col gap-10">
-							<VitalDetailsOverview
-								vital={vital}
-								onEditVitalDetails={() => setVitalDetailsMode("edit")}
-							/>
-							<VitalHistorySection vital={vital} />
-						</div>
+						<VitalDetailsOverview vital={vital} />
 					) : (
 						<div className="rounded-2xl border border-gray-200 p-5 text-gray-500">
 							Vital details could not be found.
@@ -88,8 +142,8 @@ export function VitalDetailsDrawer({
 					)}
 				</div>
 
-				<DrawerFooter className="border-t border-gray-200 text-sm">
-					{isEditingVitalDetails ? (
+				{isEditingVitalDetails ? (
+					<DrawerFooter className="border-t border-gray-200 text-sm">
 						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
 							<Button type="button" variant="outline" onClick={() => setVitalDetailsMode("view")}>
 								Cancel
@@ -102,70 +156,79 @@ export function VitalDetailsDrawer({
 								Save changes
 							</Button>
 						</div>
-					) : (
-						<div className="flex flex-col gap-2 lg:flex-row lg:self-end">
-							<DrawerClose asChild>
-								<Button type="button" variant="outline">
-									Cancel
-								</Button>
-							</DrawerClose>
-							{vital && canArchive ? <Button>Archive vitals</Button> : null}
-						</div>
-					)}
-				</DrawerFooter>
+					</DrawerFooter>
+				) : null}
 			</DrawerContent>
+			<AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Archive vitals</AlertDialogTitle>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							aria-label="Close archive vitals dialog"
+							onClick={() => setIsArchiveDialogOpen(false)}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</AlertDialogHeader>
+					<AlertDialogDescription>
+						These readings will be removed from the patient’s vitals chart and table. They are
+						retained and can be restored at any time.
+					</AlertDialogDescription>
+					<AlertDialogFooter className="sm:justify-end">
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<Button type="button" onClick={() => setIsArchiveDialogOpen(false)}>
+							Archive vitals
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Drawer>
 	);
 }
 
-function VitalDetailsOverview({
-	vital,
-	onEditVitalDetails,
-}: {
-	vital: VitalType;
-	onEditVitalDetails: () => void;
-}) {
+function VitalDetailsOverview({ vital }: { vital: VitalType }) {
 	return (
-		<section className="flex flex-col gap-10" aria-labelledby="vital-details-heading">
-			<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Vital ID:</span>
-					<CopyIdButton id={vital.vitalId} />
+		<div className="flex flex-col gap-8">
+			<div className="flex flex-col gap-4">
+				<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-nowrap">
+					<div className="flex items-center gap-2">
+						<span className="text-gray-400">Vital ID:</span>
+						<CopyIdButton id={vital.vitalId} />
+					</div>
+					{vital.encounterId ? (
+						<div className="flex items-center gap-2">
+							<span className="text-gray-400">Encounter ID:</span>
+							<CopyIdButton id={vital.encounterId} />
+						</div>
+					) : null}
 				</div>
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Encounter ID:</span>
-					<CopyIdButton id={vital.encounterId} />
-				</div>
+				<p className="flex flex-wrap items-center gap-2 font-medium">
+					<span className="text-gray-600">Created by {vital.createdBy}</span>
+					<span aria-hidden="true" className="size-1 rounded-full bg-gray-300" />
+					<span className="text-gray-400">
+						{format(vital.createdAt, "d MMMM yyyy 'at' h:mm a")}
+					</span>
+				</p>
 			</div>
 
 			<div className="flex flex-col gap-6">
-				<div className="flex flex-wrap items-center justify-between gap-4">
-					<h2 id="vital-details-heading" className="text-lg font-semibold text-gray-800">
-						{vital.encounterType}
-					</h2>
-					<Button
-						type="button"
-						onClick={onEditVitalDetails}
-						variant="ghost"
-						className="text-gray-400 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-gray-300 h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent focus-visible:border-0 has-[>svg:first-child]:pl-0"
-					>
-						<RiEditLine className="size-4" aria-hidden="true" />
-						Edit
-					</Button>
-				</div>
+				<h2 className="text-base font-semibold text-gray-800">{vital.encounterType ?? "Vitals"}</h2>
 
 				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 					{getVitalDetailItems(vital).map((item) => (
 						<VitalDetailItem key={item.label} label={item.label} value={item.value} />
 					))}
 					<VitalDetailItem
-						label="Note"
+						label="Clinical note"
 						value={vital.notes || EMPTY_VALUE}
 						className="sm:col-span-2"
 					/>
 				</div>
 			</div>
-		</section>
+		</div>
 	);
 }
 
@@ -177,10 +240,12 @@ function VitalDetailsEditForm({ vital }: { vital: VitalType }) {
 					<span className="text-gray-400">Vital ID:</span>
 					<CopyIdButton id={vital.vitalId} />
 				</div>
-				<div className="flex items-center gap-2">
-					<span className="text-gray-400">Encounter ID:</span>
-					<CopyIdButton id={vital.encounterId} />
-				</div>
+				{vital.encounterId ? (
+					<div className="flex items-center gap-2">
+						<span className="text-gray-400">Encounter ID:</span>
+						<CopyIdButton id={vital.encounterId} />
+					</div>
+				) : null}
 			</div>
 
 			<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
@@ -266,78 +331,6 @@ function VitalDetailsNumberField({
 	);
 }
 
-function VitalHistorySection({ vital }: { vital: VitalType }) {
-	return (
-		<section className="flex flex-col gap-[14px]">
-			<h2 className="text-sm font-semibold text-gray-800">Activity</h2>
-			<VitalHistoryCard vital={vital} />
-		</section>
-	);
-}
-
-function VitalHistoryCard({ vital }: { vital: VitalType }) {
-	const [isVitalHistoryExpanded, setIsVitalHistoryExpanded] = useState(false);
-	const sectionId = useId();
-	const titleId = `${sectionId}-title`;
-	const panelId = `${sectionId}-panel`;
-
-	return (
-		<section className="flex flex-col rounded-xl border border-gray-200 p-4">
-			<Button
-				type="button"
-				onClick={() => setIsVitalHistoryExpanded((prev) => !prev)}
-				aria-expanded={isVitalHistoryExpanded}
-				aria-controls={panelId}
-				variant="ghost"
-				className="flex w-full justify-between gap-4 text-left h-auto whitespace-normal rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0 active:scale-100 has-[>svg:last-child]:pr-0"
-			>
-				<p className="min-w-0 text-sm">
-					<span id={titleId} className="font-semibold text-gray-800">
-						Created by {vital.createdBy}
-					</span>{" "}
-					<span aria-hidden="true" className="text-gray-200">
-						•
-					</span>{" "}
-					<span className="text-gray-400">{format(vital.createdAt, "d MMMM yyyy 'at' HH:mm")}</span>
-				</p>
-				<RiArrowDownSLine
-					className={cn(
-						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-						isVitalHistoryExpanded ? "rotate-180" : "",
-					)}
-					aria-hidden="true"
-				/>
-			</Button>
-			<div
-				id={panelId}
-				className={cn(
-					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
-					isVitalHistoryExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
-				)}
-				aria-hidden={!isVitalHistoryExpanded}
-				inert={!isVitalHistoryExpanded}
-			>
-				<div className="min-h-0 overflow-hidden">
-					<div
-						role="region"
-						aria-labelledby={titleId}
-						className="mt-6 grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2"
-					>
-						{getVitalDetailItems(vital).map((item) => (
-							<VitalDetailItem key={item.label} label={item.label} value={item.value} />
-						))}
-						<VitalDetailItem
-							label="Note"
-							value={vital.notes || EMPTY_VALUE}
-							className="sm:col-span-2"
-						/>
-					</div>
-				</div>
-			</div>
-		</section>
-	);
-}
-
 function VitalDetailItem({
 	label,
 	value,
@@ -364,7 +357,6 @@ function getVitalDetailItems(vital: VitalType) {
 		{ label: "Oxygen saturation", value: `${vital.oxygenSaturation}%` },
 		{ label: "Weight", value: `${vital.weight} kg` },
 		{ label: "Body mass index", value: vital.bmi.toFixed(1) },
-		{ label: "Encounter type", value: vital.encounterType },
 		{ label: "Encounter date", value: format(vital.recordedAt, "d MMMM yyyy") },
 	];
 }

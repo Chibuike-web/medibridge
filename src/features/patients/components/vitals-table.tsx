@@ -107,6 +107,7 @@ const vitalEncounterTypeFilterOptions: {
 
 type VitalsTableProps = {
 	patientId: string;
+	encounterId?: string;
 	encounterOptions: VitalEncounterOption[];
 	vitals: VitalType[];
 	readings: VitalType[];
@@ -131,6 +132,7 @@ type VitalsTableProps = {
 
 export function VitalsTable({
 	patientId,
+	encounterId,
 	encounterOptions,
 	vitals,
 	readings,
@@ -357,6 +359,7 @@ export function VitalsTable({
 				open={isCreateDrawerOpen}
 				onOpenChange={setIsCreateDrawerOpen}
 				patientId={patientId}
+				encounterId={encounterId}
 				encounterOptions={encounterOptions}
 				onCreated={onVitalCreated}
 			/>

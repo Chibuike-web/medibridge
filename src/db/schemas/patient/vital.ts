@@ -9,9 +9,9 @@ export const patientVital = pgTable(
 		patientId: text("patient_id")
 			.notNull()
 			.references(() => patient.id, { onDelete: "cascade" }),
-		encounterId: text("encounter_id")
-			.notNull()
-			.references(() => patientEncounter.id, { onDelete: "restrict" }),
+		encounterId: text("encounter_id").references(() => patientEncounter.id, {
+			onDelete: "restrict",
+		}),
 		createdBy: text("created_by").notNull(),
 		recordedAt: timestamp("recorded_at").notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),

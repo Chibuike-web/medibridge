@@ -44,11 +44,7 @@ export async function createPatientVitalAction(
 
 	const createdBy = session.user.name || session.user.email || session.user.id;
 
-	const encounterId = String(formData.get("encounterId") ?? "").trim();
-
-	if (!encounterId) {
-		return { status: "failed", error: "Select the encounter for these vitals." };
-	}
+	const encounterId = String(formData.get("encounterId") ?? "").trim() || null;
 
 	const [systolic, diastolic] = String(formData.get("bloodPressure") ?? "")
 		.trim()
@@ -82,13 +78,17 @@ export async function createPatientVitalAction(
 
 	if (!patientRow) return { status: "failed", error: "Patient could not be found." };
 
-	const [encounter] = await db
-		.select({ encounterType: patientEncounter.encounterType })
-		.from(patientEncounter)
-		.where(and(eq(patientEncounter.id, encounterId), eq(patientEncounter.patientId, patientId)))
-		.limit(1);
+	const [encounter] = encounterId
+		? await db
+				.select({ encounterType: patientEncounter.encounterType })
+				.from(patientEncounter)
+				.where(
+					and(eq(patientEncounter.id, encounterId), eq(patientEncounter.patientId, patientId)),
+				)
+				.limit(1)
+		: [];
 
-	if (!encounter) {
+	if (encounterId && !encounter) {
 		return { status: "failed", error: "Select an encounter that belongs to this patient." };
 	}
 
@@ -108,5 +108,5 @@ export async function createPatientVitalAction(
 		.returning();
 	updateTag(getPatientVitalsCacheTag(organizationId, patientId));
 
-	return { status: "success", vital: toVitalType(inserted, encounter.encounterType) };
+	return { status: "success", vital: toVitalType(inserted, encounter?.encounterType ?? null) };
 }

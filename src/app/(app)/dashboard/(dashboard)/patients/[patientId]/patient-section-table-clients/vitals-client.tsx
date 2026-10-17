@@ -151,6 +151,7 @@ export function VitalsClient({
 	return (
 		<VitalsTable
 			patientId={patientId}
+			encounterId={encounterId}
 			encounterOptions={encounterOptions}
 			vitals={tableData.rows}
 			readings={chartReadings}

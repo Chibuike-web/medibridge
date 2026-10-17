@@ -1,8 +1,11 @@
 "use client";
 
 import { useId, useState, useTransition } from "react";
-import { RiCloseLine } from "@remixicon/react";
+import { format } from "date-fns";
+import { RiCalendarLine, RiCloseLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -44,22 +47,31 @@ export function CreateVitalsDrawer({
 	open,
 	onOpenChange,
 	patientId,
+	encounterId,
 	encounterOptions,
 	onCreated,
 }: {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	patientId: string;
+	encounterId?: string;
 	encounterOptions: VitalEncounterOption[];
 	onCreated: (vital: VitalType) => void;
 }) {
 	const formId = useId();
 	const [formError, setFormError] = useState("");
+	const [selectedRecordedDate, setSelectedRecordedDate] = useState<Date>();
 	const [isPending, startTransition] = useTransition();
-	const hasEncounterOptions = encounterOptions.length > 0;
 
 	function handleCreate(formData: FormData) {
 		setFormError("");
+		if (encounterId) formData.set("encounterId", encounterId);
+		if (selectedRecordedDate) {
+			const now = new Date();
+			const recordedAt = new Date(selectedRecordedDate);
+			recordedAt.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+			formData.set("recordedAt", recordedAt.toISOString());
+		}
 		startTransition(async () => {
 			const result = await createPatientVitalAction(patientId, formData);
 
@@ -74,7 +86,14 @@ export function CreateVitalsDrawer({
 	}
 
 	return (
-		<Drawer direction="right" open={open} onOpenChange={onOpenChange}>
+		<Drawer
+			direction="right"
+			open={open}
+			onOpenChange={(isOpen) => {
+				if (!isOpen) setSelectedRecordedDate(undefined);
+				onOpenChange(isOpen);
+			}}
+		>
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="leading-[1.2] text-gray-800">Add vitals</DrawerTitle>
@@ -92,32 +111,27 @@ export function CreateVitalsDrawer({
 					action={handleCreate}
 					className="grid min-h-0 flex-1 content-start gap-x-4 gap-y-6 overflow-y-auto px-4 py-5 text-sm sm:grid-cols-2"
 				>
-					<div className="flex flex-col gap-2 sm:col-span-2">
-						<Label htmlFor={`${formId}-encounter`} className={fieldLabelClassName}>
-							Encounter <span className={optionalLabelClassName}>(required)</span>
-						</Label>
-						<Select name="encounterId" required>
-							<SelectTrigger
-								id={`${formId}-encounter`}
-								className="w-full"
-								disabled={!hasEncounterOptions}
-							>
-								<SelectValue placeholder="Select encounter" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectGroup>
-									{encounterOptions.map((encounter) => (
-										<SelectItem key={encounter.encounterId} value={encounter.encounterId}>
-											{encounter.encounterType} on {encounter.encounterDateLabel}
-										</SelectItem>
-									))}
-								</SelectGroup>
-							</SelectContent>
-						</Select>
-						{hasEncounterOptions ? null : (
-							<p className="text-gray-500">Create an encounter before recording vitals.</p>
-						)}
-					</div>
+					{encounterId || encounterOptions.length === 0 ? null : (
+						<div className="flex flex-col gap-2 sm:col-span-2">
+							<Label htmlFor={`${formId}-encounter`} className={fieldLabelClassName}>
+								Encounter <span className={optionalLabelClassName}>(optional)</span>
+							</Label>
+							<Select name="encounterId">
+								<SelectTrigger id={`${formId}-encounter`} className="w-full">
+									<SelectValue placeholder="Select encounter" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										{encounterOptions.map((encounter) => (
+											<SelectItem key={encounter.encounterId} value={encounter.encounterId}>
+												{encounter.encounterType} on {encounter.encounterDateLabel}
+											</SelectItem>
+										))}
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+						</div>
+					)}
 					<div className="flex flex-col gap-2">
 						<Label htmlFor={`${formId}-bp`} className={fieldLabelClassName}>
 							Blood pressure (mmHg) <span className={optionalLabelClassName}>(required)</span>
@@ -136,12 +150,31 @@ export function CreateVitalsDrawer({
 						<Label htmlFor={`${formId}-recordedAt`} className={fieldLabelClassName}>
 							Encounter date <span className={optionalLabelClassName}>(optional)</span>
 						</Label>
-						<Input
-							id={`${formId}-recordedAt`}
-							name="recordedAt"
-							type="datetime-local"
-							className={fieldControlClassName}
-						/>
+						<Popover>
+							<PopoverTrigger asChild>
+								<Button
+									id={`${formId}-recordedAt`}
+									type="button"
+									variant="outline"
+									data-empty={!selectedRecordedDate}
+									className={`${fieldControlClassName} flex w-full justify-between gap-3 font-normal data-[empty=true]:text-gray-400 hover:bg-white active:scale-100`}
+								>
+									<span className="min-w-0 truncate">
+										{selectedRecordedDate ? format(selectedRecordedDate, "PPP") : "Select date"}
+									</span>
+									<RiCalendarLine className="size-4 shrink-0 text-gray-600" aria-hidden="true" />
+								</Button>
+							</PopoverTrigger>
+							<PopoverContent align="end" className="p-0">
+								<Calendar
+									mode="single"
+									selected={selectedRecordedDate}
+									onSelect={setSelectedRecordedDate}
+									disabled={{ after: new Date() }}
+									autoFocus
+								/>
+							</PopoverContent>
+						</Popover>
 					</div>
 					{numericVitalFields.map(([name, label, placeholder]) => (
 						<div key={name} className="flex flex-col gap-2">
@@ -180,7 +213,7 @@ export function CreateVitalsDrawer({
 							Cancel
 						</Button>
 					</DrawerClose>
-					<Button type="submit" form={formId} disabled={isPending || !hasEncounterOptions}>
+					<Button type="submit" form={formId} disabled={isPending}>
 						Add vitals
 					</Button>
 				</DrawerFooter>

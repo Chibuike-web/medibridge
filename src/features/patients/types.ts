@@ -434,8 +434,8 @@ export type PatientSectionProps = {
 
 export type VitalType = {
 	vitalId: string;
-	encounterId: string;
-	encounterType: EncounterType["encounterType"];
+	encounterId: string | null;
+	encounterType: EncounterType["encounterType"] | null;
 	createdBy: string;
 	recordedAt: number;
 	createdAt: number;

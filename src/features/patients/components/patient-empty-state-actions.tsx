@@ -46,10 +46,12 @@ export function CreateDiagnosisEmptyStateAction({
 
 export function CreateVitalsEmptyStateAction({
 	patientId,
+	encounterId,
 	encounterOptions,
 	variant,
 }: {
 	patientId: string;
+	encounterId?: string;
 	encounterOptions: VitalEncounterOption[];
 	variant?: ButtonVariant;
 }) {
@@ -65,6 +67,7 @@ export function CreateVitalsEmptyStateAction({
 				open={isCreateVitalsDrawerOpen}
 				onOpenChange={setIsCreateVitalsDrawerOpen}
 				patientId={patientId}
+				encounterId={encounterId}
 				encounterOptions={encounterOptions}
 				onCreated={() => router.refresh()}
 			/>

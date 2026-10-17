@@ -1,14 +1,9 @@
-import { Button } from "@/components/ui/button";
 import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
-import { CopyIdButton } from "@/components/copy-id-button";
-import {
-	DetailItem,
-	DetailsSection,
-} from "@/features/patients/components/patient-details-section/detail-fields";
+import { EncounterOverview } from "@/features/patients/components/encounter-overview";
 import { EncounterCreatedBanner } from "@/features/patients/components/encounter-created-banner";
 import {
 	CreateAllergyEmptyStateAction,
@@ -119,7 +114,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			encounterDateLabel: encounter.encounterDateLabel,
 		},
 	];
-	const visitDateLabel = new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(
+	const encounterDayLabel = new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(
 		encounter.encounterDate,
 	);
 
@@ -129,12 +124,13 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 				aria-label="Breadcrumb"
 				className="flex h-14 shrink-0 items-center gap-2 overflow-x-auto border-b border-gray-200 px-4 text-sm"
 			>
-				<Button variant="ghost" asChild>
-					<Link href="/dashboard/patients">
-						<RiArrowLeftLine data-icon="inline-start" aria-hidden="true" />
-						<span>Patients</span>
-					</Link>
-				</Button>
+				<Link
+					href="/dashboard/patients"
+					className="flex shrink-0 items-center gap-1 font-medium text-gray-800"
+				>
+					<RiArrowLeftLine className="size-4" aria-hidden="true" />
+					Patients
+				</Link>
 				<RiArrowRightSLine className="size-5 shrink-0 text-gray-400" aria-hidden />
 				<Link href={backHref} className="shrink-0 text-gray-600">
 					{`${patient.firstName} ${patient.lastName}`}
@@ -148,27 +144,9 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			</nav>
 
 			<main className="min-h-0 flex-1 overflow-y-auto px-6 py-8">
-				<div className="mx-auto max-w-7xl">
+				<div className="mx-auto max-w-[75rem]">
 					{created === "true" && <EncounterCreatedBanner />}
-					<DetailsSection title="Encounter details">
-						<DetailItem label="Visit type" value={encounter.encounterType} />
-						<DetailItem label="Department" value={encounter.department} />
-						<DetailItem label="Attending physician" value={encounter.physician} />
-						<DetailItem label="Visit date" value={visitDateLabel} />
-						<div className="flex flex-col items-start gap-2">
-							<span className="text-sm text-gray-400">Encounter ID</span>
-							<CopyIdButton id={encounter.encounterId} />
-						</div>
-						<div className="flex flex-col items-start gap-2">
-							<span className="text-sm text-gray-400">Patient ID</span>
-							<CopyIdButton id={encounter.patientId} />
-						</div>
-						<DetailItem label="Reason for visit" value={encounter.reason} />
-						<DetailItem
-							label="Created"
-							value={`${encounter.createdBy} · ${encounter.createdAtLabel}`}
-						/>
-					</DetailsSection>
+					<EncounterOverview encounter={encounter} encounterDayLabel={encounterDayLabel} />
 
 					<div className="mt-8 space-y-6 [&>section>div]:px-0 [&>section>div]:py-0">
 						<EncounterSection
@@ -177,6 +155,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 							addAction={
 								<CreateVitalsEmptyStateAction
 									patientId={patientId}
+									encounterId={encounterId}
 									encounterOptions={encounterOptions}
 									variant="outline"
 								/>

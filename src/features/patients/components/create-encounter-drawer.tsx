@@ -134,11 +134,11 @@ export function CreateEncounterDrawer({
 					)}
 					<div className="flex flex-col gap-2">
 						<Label htmlFor={`${formId}-type`} className={fieldLabelClassName}>
-							Visit type <span className={optionalLabelClassName}>(required)</span>
+							Encounter type <span className={optionalLabelClassName}>(required)</span>
 						</Label>
 						<Select name="encounterType" required>
 							<SelectTrigger id={`${formId}-type`} className="w-full">
-								<SelectValue placeholder="Select visit type" />
+								<SelectValue placeholder="Select encounter type" />
 							</SelectTrigger>
 							<SelectContent>
 								<SelectGroup>
@@ -172,7 +172,7 @@ export function CreateEncounterDrawer({
 					</div>
 					<div className="flex flex-col gap-2">
 						<Label htmlFor={`${formId}-physician`} className={fieldLabelClassName}>
-							Attending physician <span className={optionalLabelClassName}>(required)</span>
+							Physician <span className={optionalLabelClassName}>(required)</span>
 						</Label>
 						<Input
 							id={`${formId}-physician`}
@@ -185,7 +185,7 @@ export function CreateEncounterDrawer({
 					</div>
 					<div className="flex flex-col gap-2">
 						<Label htmlFor={`${formId}-date`} className={fieldLabelClassName}>
-							Visit date <span className={optionalLabelClassName}>(required)</span>
+							Encounter date <span className={optionalLabelClassName}>(required)</span>
 						</Label>
 						<Popover>
 							<PopoverTrigger asChild>
@@ -213,7 +213,7 @@ export function CreateEncounterDrawer({
 					</div>
 					<div className="flex flex-col gap-2 sm:col-span-2">
 						<Label htmlFor={`${formId}-reason`} className={fieldLabelClassName}>
-							Reason for visit <span className={optionalLabelClassName}>(optional)</span>
+							Reason for encounter <span className={optionalLabelClassName}>(optional)</span>
 						</Label>
 						<Textarea
 							id={`${formId}-reason`}

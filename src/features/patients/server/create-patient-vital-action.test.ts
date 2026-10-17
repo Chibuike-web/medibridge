@@ -81,6 +81,37 @@ describe("adding patient vitals", () => {
 		]);
 	});
 
+	test("saves vitals from another hospital without linking them to an encounter", async () => {
+		const formData = validVitals();
+		formData.delete("encounterId");
+
+		const result = await createPatientVitalAction("patient-1", formData);
+
+		expect(result).toMatchObject({
+			status: "success",
+			vital: { encounterId: null, encounterType: null, systolic: 120 },
+		});
+		expect(savedVitals).toEqual([
+			expect.objectContaining({ patientId: "patient-1", encounterId: null }),
+		]);
+	});
+
+	test("refuses an encounter that doesn't belong to the patient", async () => {
+		selectMock.mockImplementation((fields: Record<string, unknown>) => ({
+			from: () => ({
+				where: () => ({
+					limit: async () => (fields.encounterType ? [] : [{ id: "patient-1" }]),
+				}),
+			}),
+		}));
+
+		expect(await createPatientVitalAction("patient-1", validVitals())).toEqual({
+			status: "failed",
+			error: "Select an encounter that belongs to this patient.",
+		});
+		expect(savedVitals).toEqual([]);
+	});
+
 	test.each([
 		{ scenario: "signed out", session: null, error: "You need to be signed in to add vitals." },
 		{

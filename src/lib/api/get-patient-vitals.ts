@@ -34,12 +34,12 @@ function normalizeEncounterType(encounterType: string): VitalType["encounterType
 
 export function toVitalType(
 	row: typeof patientVital.$inferSelect,
-	encounterType: string,
+	encounterType: string | null,
 ): VitalType {
 	return {
 		vitalId: row.id,
 		encounterId: row.encounterId,
-		encounterType: normalizeEncounterType(encounterType),
+		encounterType: encounterType ? normalizeEncounterType(encounterType) : null,
 		createdBy: row.createdBy,
 		recordedAt: row.recordedAt.getTime(),
 		createdAt: row.createdAt.getTime(),
@@ -117,13 +117,12 @@ export async function getPatientVitalsForOrganization(
 			.select({ value: count() })
 			.from(patientVital)
 			.innerJoin(patient, eq(patientVital.patientId, patient.id))
-			.innerJoin(patientEncounter, eq(patientVital.encounterId, patientEncounter.id))
 			.where(vitalFilter),
 		db
 			.select({ vital: patientVital, encounterType: patientEncounter.encounterType })
 			.from(patientVital)
 			.innerJoin(patient, eq(patientVital.patientId, patient.id))
-			.innerJoin(patientEncounter, eq(patientVital.encounterId, patientEncounter.id))
+			.leftJoin(patientEncounter, eq(patientVital.encounterId, patientEncounter.id))
 			.where(vitalFilter)
 			.orderBy(desc(patientVital.recordedAt), desc(patientVital.id))
 			.limit(limit)
@@ -159,7 +158,7 @@ export async function getPatientVitalReadingsForOrganization(
 		.select({ vital: patientVital, encounterType: patientEncounter.encounterType })
 		.from(patientVital)
 		.innerJoin(patient, eq(patientVital.patientId, patient.id))
-		.innerJoin(patientEncounter, eq(patientVital.encounterId, patientEncounter.id))
+		.leftJoin(patientEncounter, eq(patientVital.encounterId, patientEncounter.id))
 		.where(
 			and(
 				eq(patientVital.patientId, patientId),

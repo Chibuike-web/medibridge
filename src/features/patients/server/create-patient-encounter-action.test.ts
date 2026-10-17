@@ -70,21 +70,21 @@ describe("creating a patient encounter", () => {
 		]);
 	});
 
-	test("saves no reason when the reason for visit is left blank", async () => {
+	test("saves no reason when the reason for encounter is left blank", async () => {
 		await createPatientEncounterAction("patient-1", encounterForm({ reason: "  " }));
 
 		expect(savedEncounters).toEqual([expect.objectContaining({ reason: null })]);
 	});
 
 	test.each([
-		{ field: "encounterType", value: "Home Visit", error: "Select a visit type." },
+		{ field: "encounterType", value: "Home Visit", error: "Select an encounter type." },
 		{ field: "department", value: "Dermatology", error: "Select a department." },
-		{ field: "physician", value: "   ", error: "Enter the attending physician." },
-		{ field: "encounterDate", value: "", error: "Enter the date of the visit." },
+		{ field: "physician", value: "   ", error: "Enter the physician." },
+		{ field: "encounterDate", value: "", error: "Enter the encounter date." },
 		{
 			field: "encounterDate",
 			value: "2026-10-15T09:00:00.000Z",
-			error: "The visit can’t be in the future.",
+			error: "The encounter date can’t be in the future.",
 		},
 	])("rejects $field set to '$value' without saving", async ({ field, value, error }) => {
 		expect(

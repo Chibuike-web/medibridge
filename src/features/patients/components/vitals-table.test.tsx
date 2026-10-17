@@ -156,20 +156,18 @@ describe("Vitals table", () => {
 		expect(screen.getByRole("menuitem", { name: "Archive" })).toBeVisible();
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
 
-		const dialog = await screen.findByRole("dialog", { name: "View vitals details" });
-		const overview = within(dialog).getByRole("region", { name: "Routine Checkup" });
-		expect(within(overview).getByRole("heading", { name: "Routine Checkup" })).toBeVisible();
-		expect(within(dialog).getByRole("button", { name: "Edit" })).toBeVisible();
-		expect(within(dialog).getByRole("heading", { name: "Activity" })).toBeVisible();
-		expect(within(dialog).getByRole("button", { name: "Archive vitals" })).toBeVisible();
-		expect(within(overview).getByText("118/79 mmHg")).toBeVisible();
-		expect(within(overview).getByText("Follow-up reading.")).toBeVisible();
-		const activityButton = within(dialog).getByRole("button", { name: /Created by Dr. Okafor/ });
-		expect(activityButton).toHaveAttribute("aria-expanded", "false");
-		await user.click(activityButton);
-		const activity = within(dialog).getByRole("region", { name: /Created by Dr. Okafor/ });
-		expect(within(activity).getByText("Encounter type")).toBeVisible();
-		expect(within(activity).getByText("Routine Checkup")).toBeVisible();
+		const dialog = await screen.findByRole("dialog", { name: "Vitals details" });
+		expect(within(dialog).getByRole("heading", { name: "Routine Checkup" })).toBeVisible();
+		expect(within(dialog).getByText("118/79 mmHg")).toBeVisible();
+		expect(within(dialog).getByText("Follow-up reading.")).toBeVisible();
+		expect(within(dialog).getByText("Created by Dr. Okafor")).toBeVisible();
+		expect(within(dialog).queryByRole("heading", { name: "Activity" })).not.toBeInTheDocument();
+		await user.click(within(dialog).getByRole("button", { name: "Vitals actions" }));
+		expect(screen.getByRole("menuitem", { name: "Edit" })).toBeVisible();
+		expect(screen.getByRole("menuitem", { name: "Export" })).toBeVisible();
+		await user.click(screen.getByRole("menuitem", { name: "Archive" }));
+		expect(await screen.findByRole("alertdialog", { name: "Archive vitals" })).toBeVisible();
+		await user.keyboard("{Escape}");
 		expect(within(dialog).getByRole("button", { name: "Copy ENC-newer" })).toBeVisible();
 	});
 
