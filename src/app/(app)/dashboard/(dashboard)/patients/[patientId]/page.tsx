@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Suspense, type ReactNode } from "react";
 import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
 import { notFound, redirect } from "next/navigation";
@@ -86,11 +85,13 @@ async function PatientPageContent({ searchParams, params }: PatientPageProps) {
 					aria-label="Breadcrumb"
 					className="flex h-14 items-center gap-2 border-b border-gray-200 px-4 text-sm"
 				>
-					<Button variant="ghost" asChild>
-						<Link href="/dashboard/patients">
-							<RiArrowLeftLine data-icon="inline-start" aria-hidden="true" /> <span>Patients</span>
-						</Link>
-					</Button>
+					<Link
+						href="/dashboard/patients"
+						className="flex shrink-0 items-center gap-1 font-medium text-gray-800"
+					>
+						<RiArrowLeftLine className="size-4" aria-hidden="true" />
+						Patients
+					</Link>
 					<RiArrowRightSLine aria-hidden="true" className="size-5" />
 					<Suspense fallback={<BreadCrumbSkeleton />}>
 						<BreadCrumb searchParams={searchParams} params={params} />
@@ -142,7 +143,7 @@ async function Header({ params }: PatientPageParamsProps) {
 			<div className="flex flex-col gap-3">
 				<div className="flex items-center gap-2.5">
 					<h1 className="text-lg font-semibold text-balance">{patientName}</h1>
-					<StatusBadge status="Active" className="text-sm" />
+					<StatusBadge status="Active" />
 					<CopyIdButton id={patient.patientId} />
 				</div>
 				<div className="flex items-center gap-4">
@@ -497,11 +498,13 @@ function PatientPageSkeleton() {
 					aria-label="Breadcrumb"
 					className="flex h-14 items-center gap-2 border-b border-gray-200 px-4 text-sm"
 				>
-					<Button variant="ghost" asChild>
-						<Link href="/dashboard/patients">
-							<RiArrowLeftLine data-icon="inline-start" aria-hidden="true" /> <span>Patients</span>
-						</Link>
-					</Button>
+					<Link
+						href="/dashboard/patients"
+						className="flex shrink-0 items-center gap-1 font-medium text-gray-800"
+					>
+						<RiArrowLeftLine className="size-4" aria-hidden="true" />
+						Patients
+					</Link>
 					<RiArrowRightSLine aria-hidden="true" className="size-5" />
 					<BreadCrumbSkeleton />
 				</nav>

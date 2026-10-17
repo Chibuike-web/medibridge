@@ -385,7 +385,7 @@ describe("Medications table", () => {
 		expect(screen.getByRole("menuitem", { name: "Archive" })).toBeVisible();
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
 
-		const dialog = await screen.findByRole("dialog", { name: "View medication details" });
+		const dialog = await screen.findByRole("dialog", { name: "Medication details" });
 		expect(await within(dialog).findByRole("heading", { name: "Amoxicillin" })).toBeVisible();
 		expect(within(dialog).getByText("Three times daily")).toBeVisible();
 		expect(within(dialog).getByText("7 days")).toBeVisible();
@@ -417,7 +417,7 @@ describe("Medications table", () => {
 		rowFor("Metformin").focus();
 		await user.keyboard("{Enter}");
 
-		const dialog = await screen.findByRole("dialog", { name: "View medication details" });
+		const dialog = await screen.findByRole("dialog", { name: "Medication details" });
 		expect(await within(dialog).findByRole("heading", { name: "Metformin" })).toBeVisible();
 		expect(within(dialog).getByText("Twice daily")).toBeVisible();
 		expect(within(dialog).getByText("Ongoing")).toBeVisible();
@@ -444,7 +444,7 @@ describe("Medications table", () => {
 
 		await user.click(screen.getByRole("button", { name: "Open actions for Metformin" }));
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
-		const dialog = await screen.findByRole("dialog", { name: "View medication details" });
+		const dialog = await screen.findByRole("dialog", { name: "Medication details" });
 		await within(dialog).findByRole("heading", { name: "Metformin" });
 
 		await user.click(within(dialog).getByRole("button", { name: "Medication actions" }));
@@ -573,7 +573,7 @@ describe("Medications table", () => {
 	async function openMedicationEditForm(user: ReturnType<typeof userEvent.setup>) {
 		await user.click(screen.getByRole("button", { name: "Open actions for Amoxicillin" }));
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
-		const dialog = await screen.findByRole("dialog", { name: "View medication details" });
+		const dialog = await screen.findByRole("dialog", { name: "Medication details" });
 		await within(dialog).findByRole("heading", { name: "Amoxicillin" });
 		await user.click(within(dialog).getByRole("button", { name: "Medication actions" }));
 		await user.click(screen.getByRole("menuitem", { name: "Edit" }));
@@ -614,7 +614,7 @@ describe("Medications table", () => {
 				clinicalNote: "Course completed without side effects.",
 			}),
 		);
-		const viewDialog = await screen.findByRole("dialog", { name: "View medication details" });
+		const viewDialog = await screen.findByRole("dialog", { name: "Medication details" });
 		expect(await within(viewDialog).findByText("Twice daily")).toBeVisible();
 		expect(onMedicationUpdated).toHaveBeenCalledTimes(1);
 	});

@@ -22,7 +22,7 @@ export default function GlobalError({
 						<p className="mx-auto mt-4 max-w-md text-sm text-gray-600 text-pretty">
 							MediBridge couldn’t load. Try again, and if the problem continues, contact support.
 						</p>
-						<Button className="mt-8" onClick={() => retry()}>
+						<Button className="mt-12" onClick={() => retry()}>
 							Try again
 						</Button>
 						{error.digest && (

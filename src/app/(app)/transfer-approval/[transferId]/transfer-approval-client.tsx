@@ -168,7 +168,6 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 							<Button
 								type="button"
 								variant="outline"
-								className="h-auto px-6 py-3"
 								disabled={isPending}
 								onClick={() => {
 									setIsRejectionReasonFormOpen(false);
@@ -182,7 +181,6 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 						<Button
 							type="button"
 							variant={isRejectionReasonFormOpen ? "destructive" : "outline"}
-							className="h-auto px-6 py-3"
 							disabled={isPending}
 							onClick={() => {
 								if (!isRejectionReasonFormOpen) {
@@ -199,7 +197,6 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 						</Button>
 						<Button
 							type="button"
-							className="h-auto px-6 py-3"
 							disabled={isPending || isRejectionReasonFormOpen}
 							onClick={handleApprove}
 						>

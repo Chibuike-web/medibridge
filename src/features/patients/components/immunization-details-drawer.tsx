@@ -145,7 +145,7 @@ export function ImmunizationDetailsDrawer({
 					<DrawerTitle className="flex-1 leading-[1.2] text-gray-800">
 						{isEditingImmunizationDetails
 							? "Edit immunization details"
-							: "View immunization details"}
+							: "Immunization details"}
 					</DrawerTitle>
 					{immunization && !isEditingImmunizationDetails ? (
 						<DropdownMenu>
@@ -338,7 +338,7 @@ function ImmunizationDetailsOverview({ immunization }: { immunization: Immunizat
 
 			<div className="flex flex-col gap-6">
 				<div className="flex items-center gap-3">
-					<h2 className="text-lg font-semibold text-gray-800">{immunization.vaccineName}</h2>
+					<h2 className="text-base font-semibold text-gray-800">{immunization.vaccineName}</h2>
 					<StatusBadge status={immunization.status} />
 				</div>
 

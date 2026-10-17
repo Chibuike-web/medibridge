@@ -395,7 +395,7 @@ describe("Imaging table", () => {
 		await user.click(screen.getByRole("button", { name: "Open actions for Chest X-ray" }));
 		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
 
-		const dialog = await screen.findByRole("dialog", { name: "View imaging details" });
+		const dialog = await screen.findByRole("dialog", { name: "Imaging details" });
 		expect(within(dialog).getByRole("heading", { name: "Chest X-ray" })).toBeVisible();
 		expect(within(dialog).getByText("No acute cardiopulmonary findings.")).toBeVisible();
 		expect(within(dialog).getByText("Chest")).toBeVisible();
@@ -412,7 +412,7 @@ describe("Imaging table", () => {
 		usaRow.focus();
 		await user.keyboard("{Enter}");
 
-		const dialog = await screen.findByRole("dialog", { name: "View imaging details" });
+		const dialog = await screen.findByRole("dialog", { name: "Imaging details" });
 		expect(within(dialog).getByRole("heading", { name: "Abdominal Ultrasound" })).toBeVisible();
 	});
 
@@ -422,7 +422,7 @@ describe("Imaging table", () => {
 
 		await user.click(screen.getByRole("button", { name: "Open actions for Abdominal Ultrasound" }));
 		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
-		const drawer = await screen.findByRole("dialog", { name: "View imaging details" });
+		const drawer = await screen.findByRole("dialog", { name: "Imaging details" });
 		await user.click(within(drawer).getByRole("button", { name: "Imaging actions" }));
 
 		expect(await screen.findByRole("menuitem", { name: "Mark as completed" })).toBeVisible();
@@ -512,7 +512,7 @@ describe("Imaging table", () => {
 		await user.click(screen.getAllByRole("checkbox")[2]);
 		await user.click(screen.getByRole("button", { name: "View details" }));
 
-		const dialog = await screen.findByRole("dialog", { name: "View imaging details" });
+		const dialog = await screen.findByRole("dialog", { name: "Imaging details" });
 		expect(within(dialog).getByRole("heading", { name: "Abdominal Ultrasound" })).toBeVisible();
 	});
 
@@ -585,7 +585,7 @@ describe("Imaging table", () => {
 
 		await user.click(screen.getByRole("button", { name: "Open actions for Chest X-ray" }));
 		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
-		const dialog = await screen.findByRole("dialog", { name: "View imaging details" });
+		const dialog = await screen.findByRole("dialog", { name: "Imaging details" });
 
 		expect(within(dialog).getByText("chest-xray.png")).toBeVisible();
 		expect(within(dialog).getByRole("link", { name: "Open" })).toHaveAttribute(
@@ -605,7 +605,7 @@ describe("Imaging table", () => {
 
 		await user.click(screen.getByRole("button", { name: "Open actions for Chest X-ray" }));
 		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
-		const dialog = await screen.findByRole("dialog", { name: "View imaging details" });
+		const dialog = await screen.findByRole("dialog", { name: "Imaging details" });
 		await user.click(within(dialog).getByRole("button", { name: "Imaging actions" }));
 		await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
 		const editDialog = await screen.findByRole("dialog", { name: "Edit imaging details" });
@@ -638,7 +638,7 @@ describe("Imaging table", () => {
 			"chest-xray-lateral.png",
 		]);
 		expect(formData.getAll("removedFileIds")).toEqual([]);
-		expect(await screen.findByRole("dialog", { name: "View imaging details" })).toBeVisible();
+		expect(await screen.findByRole("dialog", { name: "Imaging details" })).toBeVisible();
 		expect(onImagingUpdated).toHaveBeenCalledTimes(1);
 	});
 });

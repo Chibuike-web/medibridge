@@ -375,7 +375,7 @@ describe("Lab tests table", () => {
 		await user.click(screen.getByRole("button", { name: "Open actions for Hemoglobin A1c" }));
 		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
 
-		const dialog = await screen.findByRole("dialog", { name: "View details" });
+		const dialog = await screen.findByRole("dialog", { name: "Lab test details" });
 		expect(within(dialog).getByRole("heading", { name: "Hemoglobin A1c" })).toBeVisible();
 		expect(within(dialog).getByText("6.1 %")).toBeVisible();
 		expect(within(dialog).getByText("Whole blood")).toBeVisible();
@@ -391,7 +391,7 @@ describe("Lab tests table", () => {
 		bmpRow.focus();
 		await user.keyboard("{Enter}");
 
-		const dialog = await screen.findByRole("dialog", { name: "View details" });
+		const dialog = await screen.findByRole("dialog", { name: "Lab test details" });
 		expect(within(dialog).getByRole("heading", { name: "Basic Metabolic Panel" })).toBeVisible();
 	});
 
@@ -402,7 +402,7 @@ describe("Lab tests table", () => {
 		const [, bmpRow] = bodyRows();
 		bmpRow.focus();
 		await user.keyboard("{Enter}");
-		const drawer = await screen.findByRole("dialog", { name: "View details" });
+		const drawer = await screen.findByRole("dialog", { name: "Lab test details" });
 		await user.click(within(drawer).getByRole("button", { name: "Lab test actions" }));
 
 		expect(await screen.findByRole("menuitem", { name: "Edit" })).toBeVisible();
@@ -495,7 +495,7 @@ describe("Lab tests table", () => {
 		await user.click(screen.getAllByRole("checkbox")[2]);
 		await user.click(screen.getByRole("button", { name: "View details" }));
 
-		const dialog = await screen.findByRole("dialog", { name: "View details" });
+		const dialog = await screen.findByRole("dialog", { name: "Lab test details" });
 		expect(within(dialog).getByRole("heading", { name: "Basic Metabolic Panel" })).toBeVisible();
 	});
 
@@ -570,7 +570,7 @@ describe("Lab tests table", () => {
 
 		await user.click(screen.getByRole("button", { name: "Open actions for Hemoglobin A1c" }));
 		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
-		const dialog = await screen.findByRole("dialog", { name: "View details" });
+		const dialog = await screen.findByRole("dialog", { name: "Lab test details" });
 
 		expect(within(dialog).getByText("a1c-report.pdf")).toBeVisible();
 		expect(within(dialog).getByRole("link", { name: "Open" })).toHaveAttribute(
@@ -590,7 +590,7 @@ describe("Lab tests table", () => {
 
 		await user.click(screen.getByRole("button", { name: "Open actions for Hemoglobin A1c" }));
 		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
-		const dialog = await screen.findByRole("dialog", { name: "View details" });
+		const dialog = await screen.findByRole("dialog", { name: "Lab test details" });
 		await user.click(within(dialog).getByRole("button", { name: "Lab test actions" }));
 		await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
 		const editDialog = await screen.findByRole("dialog", { name: "Edit lab test details" });
@@ -622,7 +622,7 @@ describe("Lab tests table", () => {
 			}),
 		);
 		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual(["a1c-repeat.pdf"]);
-		expect(await screen.findByRole("dialog", { name: "View details" })).toBeVisible();
+		expect(await screen.findByRole("dialog", { name: "Lab test details" })).toBeVisible();
 		expect(onLabTestUpdated).toHaveBeenCalledTimes(1);
 	});
 });

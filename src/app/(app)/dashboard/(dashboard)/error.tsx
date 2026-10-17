@@ -17,7 +17,7 @@ export default function DashboardError({
 			<p className="mt-4 text-sm text-gray-600 text-pretty">
 				We couldn’t load this section. Try again, and if the problem continues, contact support.
 			</p>
-			<Button className="mt-8" onClick={() => retry()}>
+			<Button className="mt-12" onClick={() => retry()}>
 				Try again
 			</Button>
 			{error.digest && (

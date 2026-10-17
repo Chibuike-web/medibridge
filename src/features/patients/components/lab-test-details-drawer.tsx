@@ -156,7 +156,7 @@ export function LabTestDetailsDrawer({
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="flex-1 leading-[1.2] text-gray-800">
-						{isEditingLabTestDetails ? "Edit lab test details" : "View details"}
+						{isEditingLabTestDetails ? "Edit lab test details" : "Lab test details"}
 					</DrawerTitle>
 					{labTest && !isEditingLabTestDetails ? (
 						<DropdownMenu>
@@ -302,7 +302,7 @@ function LabTestDetailsOverview({ labTest }: { labTest: LabTestType }) {
 
 			<div className="flex flex-col gap-6">
 				<div className="flex items-center gap-3">
-					<h2 className="text-lg font-semibold text-gray-800">{labTest.test}</h2>
+					<h2 className="text-base font-semibold text-gray-800">{labTest.test}</h2>
 					<StatusBadge status={labTest.status} />
 				</div>
 

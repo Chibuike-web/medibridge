@@ -399,7 +399,7 @@ describe("Diagnoses table", () => {
 		expect(screen.getByRole("menuitem", { name: "Archive" })).toBeVisible();
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
 
-		const dialog = await screen.findByRole("dialog", { name: "View diagnosis details" });
+		const dialog = await screen.findByRole("dialog", { name: "Diagnosis details" });
 		expect(await within(dialog).findByRole("heading", { name: "Asthma" })).toBeVisible();
 		expect(within(dialog).getByText("Mild")).toBeVisible();
 		expect(within(dialog).getByText("Dr. Adeyemi")).toBeVisible();
@@ -411,7 +411,7 @@ describe("Diagnoses table", () => {
 	async function openAsthmaEditForm(user: User) {
 		await user.click(screen.getByRole("button", { name: "Open actions for Asthma" }));
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
-		const dialog = await screen.findByRole("dialog", { name: "View diagnosis details" });
+		const dialog = await screen.findByRole("dialog", { name: "Diagnosis details" });
 		await within(dialog).findByRole("heading", { name: "Asthma" });
 		await user.click(within(dialog).getByRole("button", { name: "Diagnosis actions" }));
 		await user.click(screen.getByRole("menuitem", { name: "Edit" }));
@@ -458,7 +458,7 @@ describe("Diagnoses table", () => {
 				clinicalNote: "Symptom free for twelve months.",
 			}),
 		);
-		const viewDialog = await screen.findByRole("dialog", { name: "View diagnosis details" });
+		const viewDialog = await screen.findByRole("dialog", { name: "Diagnosis details" });
 		expect(
 			await within(viewDialog).findByRole("heading", { name: "Childhood asthma" }),
 		).toBeVisible();
@@ -489,7 +489,7 @@ describe("Diagnoses table", () => {
 
 		await user.click(screen.getByRole("button", { name: "Open actions for Asthma" }));
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
-		const dialog = await screen.findByRole("dialog", { name: "View diagnosis details" });
+		const dialog = await screen.findByRole("dialog", { name: "Diagnosis details" });
 		await within(dialog).findByRole("heading", { name: "Asthma" });
 
 		await user.click(within(dialog).getByRole("button", { name: "Diagnosis actions" }));
@@ -502,7 +502,7 @@ describe("Diagnoses table", () => {
 
 		await user.click(within(confirmation).getByRole("button", { name: "Cancel" }));
 		expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
-		expect(screen.getByRole("dialog", { name: "View diagnosis details" })).toBeVisible();
+		expect(screen.getByRole("dialog", { name: "Diagnosis details" })).toBeVisible();
 	});
 
 	test("hides Archive from a member in the details actions menu", async () => {
@@ -512,7 +512,7 @@ describe("Diagnoses table", () => {
 
 		await user.click(screen.getByRole("button", { name: "Open actions for Asthma" }));
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
-		const dialog = await screen.findByRole("dialog", { name: "View diagnosis details" });
+		const dialog = await screen.findByRole("dialog", { name: "Diagnosis details" });
 		await within(dialog).findByRole("heading", { name: "Asthma" });
 
 		await user.click(within(dialog).getByRole("button", { name: "Diagnosis actions" }));
@@ -529,7 +529,7 @@ describe("Diagnoses table", () => {
 		rowFor("Hypertension").focus();
 		await user.keyboard("{Enter}");
 
-		const dialog = await screen.findByRole("dialog", { name: "View diagnosis details" });
+		const dialog = await screen.findByRole("dialog", { name: "Diagnosis details" });
 		expect(await within(dialog).findByRole("heading", { name: "Hypertension" })).toBeVisible();
 		expect(within(dialog).getByText("Blood pressure remains elevated.")).toBeVisible();
 	});

@@ -13,7 +13,7 @@ export default function NotFound() {
 				<p className="mx-auto mt-4 max-w-md text-sm text-gray-600 text-pretty">
 					The page you are looking for does not exist or may have been moved.
 				</p>
-				<Button asChild className="mt-8">
+				<Button asChild className="mt-12">
 					<Link href="/">Return home</Link>
 				</Button>
 			</section>

@@ -380,7 +380,7 @@ describe("Immunizations table", () => {
 		expect(await screen.findByRole("menuitem", { name: "Export" })).toBeVisible();
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
 
-		const dialog = await screen.findByRole("dialog", { name: "View immunization details" });
+		const dialog = await screen.findByRole("dialog", { name: "Immunization details" });
 		expect(await within(dialog).findByRole("heading", { name: "Hepatitis B" })).toBeVisible();
 		expect(within(dialog).getByText("Primary series")).toBeVisible();
 		expect(within(dialog).getByText("Nurse Ada Eze")).toBeVisible();
@@ -396,7 +396,7 @@ describe("Immunizations table", () => {
 		firstRow.focus();
 		await user.keyboard("{Enter}");
 
-		const dialog = await screen.findByRole("dialog", { name: "View immunization details" });
+		const dialog = await screen.findByRole("dialog", { name: "Immunization details" });
 		expect(await within(dialog).findByRole("heading", { name: "Tetanus toxoid" })).toBeVisible();
 		expect(within(dialog).getByText("Booster")).toBeVisible();
 		expect(within(dialog).getByText("Nurse Kemi Ojo")).toBeVisible();
@@ -423,7 +423,7 @@ describe("Immunizations table", () => {
 
 		await user.click(screen.getByRole("button", { name: "Open actions for Tetanus toxoid" }));
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
-		const dialog = await screen.findByRole("dialog", { name: "View immunization details" });
+		const dialog = await screen.findByRole("dialog", { name: "Immunization details" });
 		await within(dialog).findByRole("heading", { name: "Tetanus toxoid" });
 
 		await user.click(within(dialog).getByRole("button", { name: "Immunization actions" }));
@@ -439,7 +439,7 @@ describe("Immunizations table", () => {
 
 		await user.click(within(confirmation).getByRole("button", { name: "Cancel" }));
 		expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
-		expect(screen.getByRole("dialog", { name: "View immunization details" })).toBeVisible();
+		expect(screen.getByRole("dialog", { name: "Immunization details" })).toBeVisible();
 	});
 
 	test("offers Archive to an admin in the row actions and the bulk bar", async () => {
@@ -488,7 +488,7 @@ describe("Immunizations table", () => {
 		await user.click(within(secondRow).getByRole("checkbox"));
 		await user.click(screen.getByRole("button", { name: "View details" }));
 
-		const dialog = await screen.findByRole("dialog", { name: "View immunization details" });
+		const dialog = await screen.findByRole("dialog", { name: "Immunization details" });
 		expect(await within(dialog).findByRole("heading", { name: "Hepatitis B" })).toBeVisible();
 	});
 
@@ -560,7 +560,7 @@ describe("Immunizations table", () => {
 	async function openImmunizationEditForm(user: ReturnType<typeof userEvent.setup>) {
 		await user.click(screen.getByRole("button", { name: "Open actions for Tetanus toxoid" }));
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
-		const dialog = await screen.findByRole("dialog", { name: "View immunization details" });
+		const dialog = await screen.findByRole("dialog", { name: "Immunization details" });
 		await within(dialog).findByRole("heading", { name: "Tetanus toxoid" });
 		await user.click(within(dialog).getByRole("button", { name: "Immunization actions" }));
 		await user.click(screen.getByRole("menuitem", { name: "Edit" }));
@@ -599,7 +599,7 @@ describe("Immunizations table", () => {
 				clinicalNote: "",
 			}),
 		);
-		const viewDialog = await screen.findByRole("dialog", { name: "View immunization details" });
+		const viewDialog = await screen.findByRole("dialog", { name: "Immunization details" });
 		expect(await within(viewDialog).findByText("Nurse Bisi Ade")).toBeVisible();
 		expect(onImmunizationUpdated).toHaveBeenCalledTimes(1);
 	});

@@ -403,7 +403,7 @@ describe("Allergies table", () => {
 		expect(screen.getByRole("menuitem", { name: "Archive" })).toBeVisible();
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
 
-		const dialog = await screen.findByRole("dialog", { name: "View allergies details" });
+		const dialog = await screen.findByRole("dialog", { name: "Allergy details" });
 		expect(await within(dialog).findByRole("heading", { name: "Latex" })).toBeVisible();
 		expect(within(dialog).getByText("Contact rash on hands")).toBeVisible();
 		expect(within(dialog).getByRole("heading", { name: "Activity" })).toBeVisible();
@@ -422,7 +422,7 @@ describe("Allergies table", () => {
 		rowFor("Peanuts").focus();
 		await user.keyboard("{Enter}");
 
-		const dialog = await screen.findByRole("dialog", { name: "View allergies details" });
+		const dialog = await screen.findByRole("dialog", { name: "Allergy details" });
 		expect(await within(dialog).findByRole("heading", { name: "Peanuts" })).toBeVisible();
 		expect(within(dialog).getByText("Carries an epinephrine auto-injector.")).toBeVisible();
 	});
@@ -521,7 +521,7 @@ describe("Allergies table", () => {
 	async function openAllergyEditForm(user: ReturnType<typeof userEvent.setup>) {
 		await user.click(screen.getByRole("button", { name: "Open actions for Latex" }));
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
-		const dialog = await screen.findByRole("dialog", { name: "View allergies details" });
+		const dialog = await screen.findByRole("dialog", { name: "Allergy details" });
 		await within(dialog).findByRole("heading", { name: "Latex" });
 		await user.click(within(dialog).getByRole("button", { name: "Allergy actions" }));
 		await user.click(screen.getByRole("menuitem", { name: "Edit" }));
@@ -557,7 +557,7 @@ describe("Allergies table", () => {
 				clinicalNote: "Avoid latex gloves.",
 			}),
 		);
-		const viewDialog = await screen.findByRole("dialog", { name: "View allergies details" });
+		const viewDialog = await screen.findByRole("dialog", { name: "Allergy details" });
 		expect(await within(viewDialog).findByText("Hives on both hands")).toBeVisible();
 		expect(onAllergyUpdated).toHaveBeenCalledTimes(1);
 	});

@@ -84,8 +84,8 @@ function groupHistoryEvents(
 		const id = `${row.updatedBy}-${row.createdAt.getTime()}`;
 		const item = {
 			label: row.fieldName.charAt(0).toUpperCase() + row.fieldName.slice(1).replaceAll("_", " "),
-			previousValue: row.oldValue || "-",
-			value: row.newValue || "-",
+			previousValue: row.oldValue?.trim() || "None",
+			value: row.newValue?.trim() || "None",
 		};
 		const event = events.find((historyEvent) => historyEvent.id === id);
 

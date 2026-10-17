@@ -88,8 +88,8 @@ function groupHistoryEvents(
 		const id = `${row.updatedBy}-${row.createdAt.getTime()}`;
 		const item = {
 			label: formatSentenceCaseValue(row.fieldName),
-			previousValue: empty(row.oldValue),
-			value: empty(row.newValue),
+			previousValue: row.oldValue?.trim() || "None",
+			value: row.newValue?.trim() || "None",
 		};
 		const event = events.find((historyEvent) => historyEvent.id === id);
 

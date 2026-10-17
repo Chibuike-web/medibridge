@@ -34,7 +34,7 @@ function Unverified() {
 						Verify your email before continuing. Check your inbox for the verification link. If it
 						is missing or expired, contact support.
 					</p>
-					<Button asChild className="mt-6">
+					<Button asChild className="mt-12">
 						<Link href="/sign-in">Sign in</Link>
 					</Button>
 				</div>
@@ -199,7 +199,7 @@ function NoSession() {
 						Sign in to continue. If you haven’t verified your email yet, use the link in your inbox.
 					</p>
 
-					<Button asChild className="mt-6">
+					<Button asChild className="mt-12">
 						<Link href="/sign-in">Sign in</Link>
 					</Button>
 				</div>
@@ -219,7 +219,7 @@ const Valid = () => {
 					<p className="text-gray-600 text-sm font-normal text-pretty mt-4">
 						Your email has been successfully verified. You can now continue.
 					</p>
-					<Button asChild className="mt-6">
+					<Button asChild className="mt-12">
 						<Link href="/hospital-details">Continue</Link>
 					</Button>
 				</div>

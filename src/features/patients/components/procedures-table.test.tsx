@@ -365,7 +365,7 @@ describe("Procedures table", () => {
 		expect(await screen.findByRole("menuitem", { name: "Export" })).toBeVisible();
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
 
-		const dialog = await screen.findByRole("dialog", { name: "View procedure details" });
+		const dialog = await screen.findByRole("dialog", { name: "Procedure details" });
 		expect(await within(dialog).findByRole("heading", { name: "Appendectomy" })).toBeVisible();
 		expect(within(dialog).getAllByText("Acute appendicitis")[0]).toBeVisible();
 		expect(within(dialog).getByText("Dr. Zainab Bello")).toBeVisible();
@@ -391,7 +391,7 @@ describe("Procedures table", () => {
 		firstRow.focus();
 		await user.keyboard("{Enter}");
 
-		const dialog = await screen.findByRole("dialog", { name: "View procedure details" });
+		const dialog = await screen.findByRole("dialog", { name: "Procedure details" });
 		expect(await within(dialog).findByRole("heading", { name: "Knee arthroscopy" })).toBeVisible();
 		expect(within(dialog).getByText("Planned date")).toBeVisible();
 		expect(within(dialog).getByText("Apr 2, 2024")).toBeVisible();
@@ -404,7 +404,7 @@ describe("Procedures table", () => {
 		await user.click(screen.getByRole("button", { name: "Open actions for Knee arthroscopy" }));
 		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
 
-		const dialog = await screen.findByRole("dialog", { name: "View procedure details" });
+		const dialog = await screen.findByRole("dialog", { name: "Procedure details" });
 		expect(await within(dialog).findByRole("heading", { name: "Knee arthroscopy" })).toBeVisible();
 		await user.click(within(dialog).getByRole("button", { name: "Procedure actions" }));
 		expect(await screen.findByRole("menuitem", { name: "Edit" })).toBeVisible();
@@ -477,7 +477,7 @@ describe("Procedures table", () => {
 		await user.click(within(secondRow).getByRole("checkbox"));
 		await user.click(screen.getByRole("button", { name: "View details" }));
 
-		const dialog = await screen.findByRole("dialog", { name: "View procedure details" });
+		const dialog = await screen.findByRole("dialog", { name: "Procedure details" });
 		expect(await within(dialog).findByRole("heading", { name: "Appendectomy" })).toBeVisible();
 	});
 
@@ -551,7 +551,7 @@ describe("Procedures table", () => {
 	async function openProcedureEditForm(user: ReturnType<typeof userEvent.setup>) {
 		await user.click(screen.getByRole("button", { name: "Open actions for Knee arthroscopy" }));
 		await user.click(screen.getByRole("menuitem", { name: "View details" }));
-		const dialog = await screen.findByRole("dialog", { name: "View procedure details" });
+		const dialog = await screen.findByRole("dialog", { name: "Procedure details" });
 		await within(dialog).findByRole("heading", { name: "Knee arthroscopy" });
 		await user.click(within(dialog).getByRole("button", { name: "Procedure actions" }));
 		await user.click(screen.getByRole("menuitem", { name: "Edit" }));
@@ -593,7 +593,7 @@ describe("Procedures table", () => {
 				clinicalNote: "",
 			}),
 		);
-		const viewDialog = await screen.findByRole("dialog", { name: "View procedure details" });
+		const viewDialog = await screen.findByRole("dialog", { name: "Procedure details" });
 		expect(await within(viewDialog).findByText("Main Theatre Block")).toBeVisible();
 		expect(onProcedureUpdated).toHaveBeenCalledTimes(1);
 	});
