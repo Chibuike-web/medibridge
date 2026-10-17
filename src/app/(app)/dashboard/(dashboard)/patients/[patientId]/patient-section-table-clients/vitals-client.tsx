@@ -1,17 +1,12 @@
 "use client";
 
 import { VitalsTable } from "@/features/patients/components/vitals-table";
-import { getPatientVitalsTableAction } from "@/features/patients/server/get-patient-vitals-table-action";
 import type { VitalEncounterOption, VitalType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useRef, useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 
-type VitalsTableState = {
-	rows: VitalType[];
-	page: number;
-	limit: number;
-	totalPages: number;
-};
+import type { Route } from "next";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function VitalsClient({
 	patientId,
@@ -22,6 +17,11 @@ export function VitalsClient({
 	page,
 	limit,
 	totalPages,
+	searchQuery = "",
+	recordedFrom = "",
+	recordedTo = "",
+	createdFrom = "",
+	createdTo = "",
 }: {
 	patientId: string;
 	encounterId?: string;
@@ -31,75 +31,85 @@ export function VitalsClient({
 	page: number;
 	limit: number;
 	totalPages: number;
+	searchQuery?: string;
+	recordedFrom?: string;
+	recordedTo?: string;
+	createdFrom?: string;
+	createdTo?: string;
 }) {
-	const [tableData, setTableData] = useState<VitalsTableState>({
-		rows: vitals,
-		page,
-		limit,
-		totalPages,
-	});
-	const [chartReadings, setChartReadings] = useState(readings);
-	const [optimisticPage, setOptimisticPage] = useOptimistic(tableData.page);
-	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
-	const [query, setQuery] = useState("");
-	const [recordedFrom, setRecordedFrom] = useState("");
-	const [recordedTo, setRecordedTo] = useState("");
-	const [createdFrom, setCreatedFrom] = useState("");
-	const [createdTo, setCreatedTo] = useState("");
+	const router = useRouter();
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
+	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [query, setQuery] = useState(searchQuery);
+	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState(searchQuery);
+	const [optimisticRecordedFrom, setOptimisticRecordedFrom] = useOptimistic(recordedFrom);
+	const [optimisticRecordedTo, setOptimisticRecordedTo] = useOptimistic(recordedTo);
+	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
+	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
 	const [isPending, startTransition] = useTransition();
-	const latestVitalsRequestIdRef = useRef(0);
 
-	function refreshVitalsTable({
-		nextPage = 1,
-		nextLimit = tableData.limit,
-		nextQuery = query,
-		nextRecordedFrom = recordedFrom,
-		nextRecordedTo = recordedTo,
-		nextCreatedFrom = createdFrom,
-		nextCreatedTo = createdTo,
-	}: {
-		nextPage?: number;
-		nextLimit?: number;
-		nextQuery?: string;
-		nextRecordedFrom?: string;
-		nextRecordedTo?: string;
-		nextCreatedFrom?: string;
-		nextCreatedTo?: string;
-	} = {}) {
-		const requestId = latestVitalsRequestIdRef.current + 1;
-		latestVitalsRequestIdRef.current = requestId;
+	// Restore URL changes while preserving typing ahead of our pending search.
+	if (previousSearchQuery !== searchQuery) {
+		setPreviousSearchQuery(searchQuery);
+		if (searchQuery !== navigatedQuery) setQuery(searchQuery);
+	}
 
-		startTransition(async () => {
+	function navigateTable(
+		{
+			nextPage = 1,
+			nextLimit = optimisticLimit,
+			nextQuery = query,
+			nextRecordedFrom = optimisticRecordedFrom,
+			nextRecordedTo = optimisticRecordedTo,
+			nextCreatedFrom = optimisticCreatedFrom,
+			nextCreatedTo = optimisticCreatedTo,
+		}: {
+			nextPage?: number;
+			nextLimit?: number;
+			nextQuery?: string;
+			nextRecordedFrom?: string;
+			nextRecordedTo?: string;
+			nextCreatedFrom?: string;
+			nextCreatedTo?: string;
+		},
+		replace = false,
+	) {
+		const params = new URLSearchParams(searchParams.toString());
+		const values = {
+			vitalsPage: String(nextPage),
+			vitalsLimit: String(nextLimit),
+			vitalsQuery: nextQuery,
+			vitalsRecordedFrom: nextRecordedFrom,
+			vitalsRecordedTo: nextRecordedTo,
+			vitalsCreatedFrom: nextCreatedFrom,
+			vitalsCreatedTo: nextCreatedTo,
+		};
+		Object.entries(values).forEach(([name, value]) => {
+			if (value.trim() === "") params.delete(name);
+			else params.set(name, value);
+		});
+
+		startTransition(() => {
+			setNavigatedQuery(nextQuery);
 			setOptimisticPage(nextPage);
 			setOptimisticLimit(nextLimit);
-
-			const result = await getPatientVitalsTableAction({
-				patientId,
-				page: nextPage,
-				limit: nextLimit,
-				query: nextQuery,
-				recordedFrom: nextRecordedFrom,
-				recordedTo: nextRecordedTo,
-				createdFrom: nextCreatedFrom,
-				createdTo: nextCreatedTo,
-				encounterId,
-			});
-
-			if (latestVitalsRequestIdRef.current !== requestId) return;
-
-			setTableData({
-				rows: result.vitals,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
+			setOptimisticRecordedFrom(nextRecordedFrom);
+			setOptimisticRecordedTo(nextRecordedTo);
+			setOptimisticCreatedFrom(nextCreatedFrom);
+			setOptimisticCreatedTo(nextCreatedTo);
+			const href = `${pathname}?${params}` as Route;
+			if (replace) router.replace(href, { scroll: false });
+			else router.push(href, { scroll: false });
 		});
 	}
 
-	const debouncedSearch = useDebouncedCallback(
-		(nextQuery: string) => refreshVitalsTable({ nextQuery }),
-		300,
-	);
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		if (nextQuery !== query || nextQuery === searchQuery) return;
+		navigateTable({ nextQuery }, true);
+	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
 		setQuery(nextQuery);
@@ -107,35 +117,27 @@ export function VitalsClient({
 	}
 
 	function handlePreviousPage() {
-		refreshVitalsTable({ nextPage: Math.max(tableData.page - 1, 1) });
+		navigateTable({ nextPage: Math.max(optimisticPage - 1, 1) });
 	}
 
 	function handleNextPage() {
-		refreshVitalsTable({ nextPage: Math.min(tableData.page + 1, tableData.totalPages) });
+		navigateTable({ nextPage: Math.min(optimisticPage + 1, totalPages) });
 	}
 
 	function handleLimitChange(nextLimit: number) {
-		refreshVitalsTable({ nextLimit });
+		navigateTable({ nextLimit });
 	}
 
 	function handleRecordedAtRangeApply(nextRecordedFrom: string, nextRecordedTo: string) {
-		setRecordedFrom(nextRecordedFrom);
-		setRecordedTo(nextRecordedTo);
-		refreshVitalsTable({ nextRecordedFrom, nextRecordedTo });
+		navigateTable({ nextRecordedFrom, nextRecordedTo });
 	}
 
 	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
-		setCreatedFrom(nextCreatedFrom);
-		setCreatedTo(nextCreatedTo);
-		refreshVitalsTable({ nextCreatedFrom, nextCreatedTo });
+		navigateTable({ nextCreatedFrom, nextCreatedTo });
 	}
 
 	function handleFiltersClear() {
-		setRecordedFrom("");
-		setRecordedTo("");
-		setCreatedFrom("");
-		setCreatedTo("");
-		refreshVitalsTable({
+		navigateTable({
 			nextRecordedFrom: "",
 			nextRecordedTo: "",
 			nextCreatedFrom: "",
@@ -143,26 +145,21 @@ export function VitalsClient({
 		});
 	}
 
-	function handleVitalCreated(vital: VitalType) {
-		setChartReadings((previousReadings) => [vital, ...previousReadings]);
-		refreshVitalsTable({ nextPage: tableData.page });
-	}
-
 	return (
 		<VitalsTable
 			patientId={patientId}
 			encounterId={encounterId}
 			encounterOptions={encounterOptions}
-			vitals={tableData.rows}
-			readings={chartReadings}
+			vitals={vitals}
+			readings={readings}
 			page={optimisticPage}
 			limit={optimisticLimit}
-			totalPages={tableData.totalPages}
+			totalPages={totalPages}
 			query={query}
-			recordedFrom={recordedFrom}
-			recordedTo={recordedTo}
-			createdFrom={createdFrom}
-			createdTo={createdTo}
+			recordedFrom={optimisticRecordedFrom}
+			recordedTo={optimisticRecordedTo}
+			createdFrom={optimisticCreatedFrom}
+			createdTo={optimisticCreatedTo}
 			isPending={isPending}
 			onQueryChange={handleQueryChange}
 			onRecordedAtRangeApply={handleRecordedAtRangeApply}
@@ -171,7 +168,6 @@ export function VitalsClient({
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}
-			onVitalCreated={handleVitalCreated}
 		/>
 	);
 }

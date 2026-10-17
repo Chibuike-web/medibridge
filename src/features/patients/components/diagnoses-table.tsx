@@ -126,8 +126,6 @@ type DiagnosesTableProps = {
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
 	onStatusFiltersChange: (statusFilters: DiagnosisStatusFilter[]) => void;
-	onDiagnosisCreated: () => void;
-	onDiagnosisUpdated: () => void;
 };
 
 export function DiagnosesTable({
@@ -155,8 +153,6 @@ export function DiagnosesTable({
 	onNextPage,
 	onLimitChange,
 	onStatusFiltersChange,
-	onDiagnosisCreated,
-	onDiagnosisUpdated,
 }: DiagnosesTableProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
@@ -410,7 +406,6 @@ export function DiagnosesTable({
 				onOpenChange={setIsCreateDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onDiagnosisCreated={onDiagnosisCreated}
 			/>
 			<SetDateRangeDialog
 				dateRangeFilter={customDateRangeFilter}
@@ -423,7 +418,6 @@ export function DiagnosesTable({
 				isLoading={diagnosisDetailsQuery.isLoading}
 				onDiagnosisUpdated={() => {
 					diagnosisDetailsQuery.mutate();
-					onDiagnosisUpdated();
 				}}
 			/>
 		</div>
@@ -477,7 +471,11 @@ function DiagnosesTableContent({
 	return (
 		<>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
-				<Table className="min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<Table
+					aria-busy={isPending}
+					data-pending={isPending || undefined}
+					className="min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left transition-opacity data-[pending=true]:opacity-50"
+				>
 					<TableHeader className="text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>

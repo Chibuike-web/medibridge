@@ -1,17 +1,12 @@
 "use client";
 
 import { ProceduresTable } from "@/features/patients/components/procedures-table";
-import { getPatientProceduresTableAction } from "@/features/patients/server/get-patient-procedures-table-action";
 import type { ProcedureStatusFilter, ProcedureType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useRef, useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 
-type SectionTableState<T> = {
-	rows: T[];
-	page: number;
-	limit: number;
-	totalPages: number;
-};
+import type { Route } from "next";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function ProceduresClient({
 	patientId,
@@ -20,6 +15,10 @@ export function ProceduresClient({
 	page,
 	limit,
 	totalPages,
+	searchQuery = "",
+	createdFrom = "",
+	createdTo = "",
+	statusFilters = [],
 }: {
 	patientId: string;
 	encounterId?: string;
@@ -27,70 +26,78 @@ export function ProceduresClient({
 	page: number;
 	limit: number;
 	totalPages: number;
+	searchQuery?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilters?: ProcedureStatusFilter[];
 }) {
-	const [tableData, setTableData] = useState<SectionTableState<ProcedureType>>({
-		rows: procedures,
-		page,
-		limit,
-		totalPages,
-	});
-	const [optimisticPage, setOptimisticPage] = useOptimistic(tableData.page);
-	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
-	const [query, setQuery] = useState("");
-	const [createdFrom, setCreatedFrom] = useState("");
-	const [createdTo, setCreatedTo] = useState("");
-	const [statusFilters, setStatusFilters] = useState<ProcedureStatusFilter[]>([]);
+	const router = useRouter();
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
+	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [query, setQuery] = useState(searchQuery);
+	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState(searchQuery);
+	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
+	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
+	const [optimisticStatusFilters, setOptimisticStatusFilters] = useOptimistic(statusFilters);
 	const [isPending, startTransition] = useTransition();
-	const latestSectionTableRequestIdRef = useRef(0);
 
-	function refreshProceduresTable({
-		nextPage = 1,
-		nextLimit = tableData.limit,
-		nextQuery = query,
-		nextCreatedFrom = createdFrom,
-		nextCreatedTo = createdTo,
-		nextStatusFilters = statusFilters,
-	}: {
-		nextPage?: number;
-		nextLimit?: number;
-		nextQuery?: string;
-		nextCreatedFrom?: string;
-		nextCreatedTo?: string;
-		nextStatusFilters?: ProcedureStatusFilter[];
-	}) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+	// Restore URL changes while preserving typing ahead of our pending search.
+	if (previousSearchQuery !== searchQuery) {
+		setPreviousSearchQuery(searchQuery);
+		if (searchQuery !== navigatedQuery) setQuery(searchQuery);
+	}
 
-		startTransition(async () => {
+	function navigateTable(
+		{
+			nextPage = 1,
+			nextLimit = optimisticLimit,
+			nextQuery = query,
+			nextCreatedFrom = optimisticCreatedFrom,
+			nextCreatedTo = optimisticCreatedTo,
+			nextStatusFilters = optimisticStatusFilters,
+		}: {
+			nextPage?: number;
+			nextLimit?: number;
+			nextQuery?: string;
+			nextCreatedFrom?: string;
+			nextCreatedTo?: string;
+			nextStatusFilters?: ProcedureStatusFilter[];
+		},
+		replace = false,
+	) {
+		const params = new URLSearchParams(searchParams.toString());
+		const values = {
+			proceduresPage: String(nextPage),
+			proceduresLimit: String(nextLimit),
+			proceduresQuery: nextQuery,
+			proceduresCreatedFrom: nextCreatedFrom,
+			proceduresCreatedTo: nextCreatedTo,
+			proceduresStatus: nextStatusFilters.join(","),
+		};
+		Object.entries(values).forEach(([name, value]) => {
+			if (value.trim() === "") params.delete(name);
+			else params.set(name, value);
+		});
+
+		startTransition(() => {
+			setNavigatedQuery(nextQuery);
 			setOptimisticPage(nextPage);
 			setOptimisticLimit(nextLimit);
-
-			const result = await getPatientProceduresTableAction({
-				patientId,
-				encounterId,
-				page: nextPage,
-				limit: nextLimit,
-				query: nextQuery,
-				createdFrom: nextCreatedFrom,
-				createdTo: nextCreatedTo,
-				statusFilters: nextStatusFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.procedures,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
+			setOptimisticCreatedFrom(nextCreatedFrom);
+			setOptimisticCreatedTo(nextCreatedTo);
+			setOptimisticStatusFilters(nextStatusFilters);
+			const href = `${pathname}?${params}` as Route;
+			if (replace) router.replace(href, { scroll: false });
+			else router.push(href, { scroll: false });
 		});
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		refreshProceduresTable({ nextQuery });
+		if (nextQuery !== query || nextQuery === searchQuery) return;
+		navigateTable({ nextQuery }, true);
 	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
@@ -99,59 +106,49 @@ export function ProceduresClient({
 	}
 
 	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
-		setCreatedFrom(nextCreatedFrom);
-		setCreatedTo(nextCreatedTo);
-
-		refreshProceduresTable({ nextCreatedFrom, nextCreatedTo });
+		navigateTable({ nextCreatedFrom, nextCreatedTo });
 	}
 
 	function handleStatusFiltersChange(nextStatusFilters: ProcedureStatusFilter[]) {
-		setStatusFilters(nextStatusFilters);
-		refreshProceduresTable({ nextStatusFilters });
+		navigateTable({ nextStatusFilters });
 	}
 
 	function handleFiltersClear() {
-		setCreatedFrom("");
-		setCreatedTo("");
-		setStatusFilters([]);
-
-		refreshProceduresTable({ nextCreatedFrom: "", nextCreatedTo: "", nextStatusFilters: [] });
+		navigateTable({ nextCreatedFrom: "", nextCreatedTo: "", nextStatusFilters: [] });
 	}
 
 	function handlePreviousPage() {
-		const nextPage = Math.max(tableData.page - 1, 1);
+		const nextPage = Math.max(optimisticPage - 1, 1);
 
-		refreshProceduresTable({ nextPage });
+		navigateTable({ nextPage });
 	}
 
 	function handleNextPage() {
-		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
-		refreshProceduresTable({ nextPage });
+		const nextPage = Math.min(optimisticPage + 1, totalPages);
+		navigateTable({ nextPage });
 	}
 
 	function handleLimitChange(nextLimit: number) {
-		refreshProceduresTable({ nextLimit });
+		navigateTable({ nextLimit });
 	}
 
 	return (
 		<ProceduresTable
 			patientId={patientId}
 			encounterId={encounterId}
-			procedures={tableData.rows}
+			procedures={procedures}
 			page={optimisticPage}
 			limit={optimisticLimit}
-			totalPages={tableData.totalPages}
+			totalPages={totalPages}
 			query={query}
-			createdFrom={createdFrom}
-			createdTo={createdTo}
-			statusFilters={statusFilters}
+			createdFrom={optimisticCreatedFrom}
+			createdTo={optimisticCreatedTo}
+			statusFilters={optimisticStatusFilters}
 			isPending={isPending}
 			onQueryChange={handleQueryChange}
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
 			onStatusFiltersChange={handleStatusFiltersChange}
 			onFiltersClear={handleFiltersClear}
-			onProcedureCreated={() => refreshProceduresTable({ nextPage: tableData.page })}
-			onProcedureUpdated={() => refreshProceduresTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

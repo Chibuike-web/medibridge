@@ -38,12 +38,23 @@ import {
 	VitalsClient,
 } from "../../patient-section-table-clients";
 
+import type {
+	AllergySeverityFilter,
+	AllergyStatusFilter,
+	DiagnosisStatusFilter,
+	ImagingModalityFilter,
+	ImagingStatusFilter,
+	ImmunizationStatusFilter,
+	LabTestFlagFilter,
+	LabTestStatusFilter,
+	MedicationStatusFilter,
+	ProcedureStatusFilter,
+} from "@/features/patients/types";
+import { getNumberParam, getStringParam } from "@/lib/utils/search-params";
+
 export const metadata = {
 	title: "Encounter Details",
 };
-
-const INITIAL_PAGE = 1;
-const INITIAL_LIMIT = 14;
 
 type EncounterDetailsPageProps = Pick<
 	PageProps<"/dashboard/patients/[patientId]/encounters/[encounterId]">,
@@ -74,7 +85,137 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 	}
 
 	const { patientId, encounterId } = await params;
-	const { created } = await searchParams;
+	const tableParams = await searchParams;
+	const { created } = tableParams;
+
+	const proceduresParams = {
+		page: getNumberParam(tableParams.proceduresPage, 1, { min: 1 }),
+		limit: getNumberParam(tableParams.proceduresLimit, 14, { min: 1, max: 100 }),
+		searchQuery: getStringParam(tableParams.proceduresQuery),
+		createdFrom: getStringParam(tableParams.proceduresCreatedFrom),
+		createdTo: getStringParam(tableParams.proceduresCreatedTo),
+		statusFilters: getStringParam(tableParams.proceduresStatus)
+			.split(",")
+			.filter((value): value is ProcedureStatusFilter =>
+				["pending", "completed", "cancelled"].includes(value),
+			),
+	};
+
+	const imagingParams = {
+		page: getNumberParam(tableParams.imagingPage, 1, { min: 1 }),
+		limit: getNumberParam(tableParams.imagingLimit, 14, { min: 1, max: 100 }),
+		searchQuery: getStringParam(tableParams.imagingQuery),
+		orderedFrom: getStringParam(tableParams.imagingOrderedFrom),
+		orderedTo: getStringParam(tableParams.imagingOrderedTo),
+		createdFrom: getStringParam(tableParams.imagingCreatedFrom),
+		createdTo: getStringParam(tableParams.imagingCreatedTo),
+		statusFilters: getStringParam(tableParams.imagingStatus)
+			.split(",")
+			.filter((value): value is ImagingStatusFilter =>
+				["pending", "completed", "cancelled"].includes(value),
+			),
+		modalityFilters: getStringParam(tableParams.imagingModality)
+			.split(",")
+			.filter((value): value is ImagingModalityFilter =>
+				["ct", "mri", "ultrasound", "x-ray"].includes(value),
+			),
+	};
+
+	const allergiesParams = {
+		page: getNumberParam(tableParams.allergiesPage, 1, { min: 1 }),
+		limit: getNumberParam(tableParams.allergiesLimit, 14, { min: 1, max: 100 }),
+		searchQuery: getStringParam(tableParams.allergiesQuery),
+		createdFrom: getStringParam(tableParams.allergiesCreatedFrom),
+		createdTo: getStringParam(tableParams.allergiesCreatedTo),
+		statusFilters: getStringParam(tableParams.allergiesStatus)
+			.split(",")
+			.filter((value): value is AllergyStatusFilter => ["active", "inactive"].includes(value)),
+		severityFilters: getStringParam(tableParams.allergiesSeverity)
+			.split(",")
+			.filter((value): value is AllergySeverityFilter =>
+				["mild", "moderate", "severe"].includes(value),
+			),
+	};
+
+	const vitalsParams = {
+		page: getNumberParam(tableParams.vitalsPage, 1, { min: 1 }),
+		limit: getNumberParam(tableParams.vitalsLimit, 14, { min: 1, max: 100 }),
+		searchQuery: getStringParam(tableParams.vitalsQuery),
+		recordedFrom: getStringParam(tableParams.vitalsRecordedFrom),
+		recordedTo: getStringParam(tableParams.vitalsRecordedTo),
+		createdFrom: getStringParam(tableParams.vitalsCreatedFrom),
+		createdTo: getStringParam(tableParams.vitalsCreatedTo),
+	};
+
+	const labTestsParams = {
+		page: getNumberParam(tableParams.labTestsPage, 1, { min: 1 }),
+		limit: getNumberParam(tableParams.labTestsLimit, 14, { min: 1, max: 100 }),
+		searchQuery: getStringParam(tableParams.labTestsQuery),
+		createdFrom: getStringParam(tableParams.labTestsCreatedFrom),
+		createdTo: getStringParam(tableParams.labTestsCreatedTo),
+		statusFilters: getStringParam(tableParams.labTestsStatus)
+			.split(",")
+			.filter((value): value is LabTestStatusFilter =>
+				["pending", "completed", "cancelled"].includes(value),
+			),
+		flagFilters: getStringParam(tableParams.labTestsFlag)
+			.split(",")
+			.filter((value): value is LabTestFlagFilter =>
+				[
+					"within-range",
+					"abnormal",
+					"high",
+					"low",
+					"critical",
+					"pending",
+					"borderline",
+					"invalid",
+					"cancelled",
+					"inconclusive",
+				].includes(value),
+			),
+	};
+
+	const immunizationsParams = {
+		page: getNumberParam(tableParams.immunizationsPage, 1, { min: 1 }),
+		limit: getNumberParam(tableParams.immunizationsLimit, 14, { min: 1, max: 100 }),
+		searchQuery: getStringParam(tableParams.immunizationsQuery),
+		createdFrom: getStringParam(tableParams.immunizationsCreatedFrom),
+		createdTo: getStringParam(tableParams.immunizationsCreatedTo),
+		statusFilters: getStringParam(tableParams.immunizationsStatus)
+			.split(",")
+			.filter((value): value is ImmunizationStatusFilter =>
+				["active", "completed", "cancelled", "discontinued"].includes(value),
+			),
+	};
+
+	const medicationsParams = {
+		page: getNumberParam(tableParams.medicationsPage, 1, { min: 1 }),
+		limit: getNumberParam(tableParams.medicationsLimit, 14, { min: 1, max: 100 }),
+		searchQuery: getStringParam(tableParams.medicationsQuery),
+		createdFrom: getStringParam(tableParams.medicationsCreatedFrom),
+		createdTo: getStringParam(tableParams.medicationsCreatedTo),
+		statusFilters: getStringParam(tableParams.medicationsStatus)
+			.split(",")
+			.filter((value): value is MedicationStatusFilter =>
+				["active", "completed", "discontinued"].includes(value),
+			),
+	};
+
+	const diagnosesParams = {
+		page: getNumberParam(tableParams.diagnosesPage, 1, { min: 1 }),
+		limit: getNumberParam(tableParams.diagnosesLimit, 14, { min: 1, max: 100 }),
+		searchQuery: getStringParam(tableParams.diagnosesQuery),
+		createdFrom: getStringParam(tableParams.diagnosesCreatedFrom),
+		createdTo: getStringParam(tableParams.diagnosesCreatedTo),
+		diagnosedFrom: getStringParam(tableParams.diagnosesDiagnosedFrom),
+		diagnosedTo: getStringParam(tableParams.diagnosesDiagnosedTo),
+		lastReviewedFrom: getStringParam(tableParams.diagnosesLastReviewedFrom),
+		lastReviewedTo: getStringParam(tableParams.diagnosesLastReviewedTo),
+		statusFilters: getStringParam(tableParams.diagnosesStatus)
+			.split(",")
+			.filter((value): value is DiagnosisStatusFilter => ["active", "resolved"].includes(value)),
+	};
 
 	const [
 		patient,
@@ -91,14 +232,97 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 	] = await Promise.all([
 		getPatientById(patientId),
 		getPatientEncounter(patientId, encounterId),
-		getPatientMedications(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], encounterId),
-		getPatientAllergies(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], [], encounterId),
-		getPatientDiagnoses(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], encounterId),
-		getPatientImmunizations(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], encounterId),
-		getPatientProcedures(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], encounterId),
-		getPatientLabTests(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], [], encounterId),
-		getPatientImaging(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, [], [], encounterId),
-		getPatientVitals(patientId, INITIAL_PAGE, INITIAL_LIMIT, "", {}, encounterId),
+		getPatientMedications(
+			patientId,
+			medicationsParams.page,
+			medicationsParams.limit,
+			medicationsParams.searchQuery,
+			{ createdFrom: medicationsParams.createdFrom, createdTo: medicationsParams.createdTo },
+			medicationsParams.statusFilters,
+			encounterId,
+		),
+		getPatientAllergies(
+			patientId,
+			allergiesParams.page,
+			allergiesParams.limit,
+			allergiesParams.searchQuery,
+			{ createdFrom: allergiesParams.createdFrom, createdTo: allergiesParams.createdTo },
+			allergiesParams.statusFilters,
+			allergiesParams.severityFilters,
+			encounterId,
+		),
+		getPatientDiagnoses(
+			patientId,
+			diagnosesParams.page,
+			diagnosesParams.limit,
+			diagnosesParams.searchQuery,
+			{
+				createdFrom: diagnosesParams.createdFrom,
+				createdTo: diagnosesParams.createdTo,
+				diagnosedFrom: diagnosesParams.diagnosedFrom,
+				diagnosedTo: diagnosesParams.diagnosedTo,
+				lastReviewedFrom: diagnosesParams.lastReviewedFrom,
+				lastReviewedTo: diagnosesParams.lastReviewedTo,
+			},
+			diagnosesParams.statusFilters,
+			encounterId,
+		),
+		getPatientImmunizations(
+			patientId,
+			immunizationsParams.page,
+			immunizationsParams.limit,
+			immunizationsParams.searchQuery,
+			{ createdFrom: immunizationsParams.createdFrom, createdTo: immunizationsParams.createdTo },
+			immunizationsParams.statusFilters,
+			encounterId,
+		),
+		getPatientProcedures(
+			patientId,
+			proceduresParams.page,
+			proceduresParams.limit,
+			proceduresParams.searchQuery,
+			{ createdFrom: proceduresParams.createdFrom, createdTo: proceduresParams.createdTo },
+			proceduresParams.statusFilters,
+			encounterId,
+		),
+		getPatientLabTests(
+			patientId,
+			labTestsParams.page,
+			labTestsParams.limit,
+			labTestsParams.searchQuery,
+			{ createdFrom: labTestsParams.createdFrom, createdTo: labTestsParams.createdTo },
+			labTestsParams.statusFilters,
+			labTestsParams.flagFilters,
+			encounterId,
+		),
+		getPatientImaging(
+			patientId,
+			imagingParams.page,
+			imagingParams.limit,
+			imagingParams.searchQuery,
+			{
+				orderedFrom: imagingParams.orderedFrom,
+				orderedTo: imagingParams.orderedTo,
+				createdFrom: imagingParams.createdFrom,
+				createdTo: imagingParams.createdTo,
+			},
+			imagingParams.statusFilters,
+			imagingParams.modalityFilters,
+			encounterId,
+		),
+		getPatientVitals(
+			patientId,
+			vitalsParams.page,
+			vitalsParams.limit,
+			vitalsParams.searchQuery,
+			{
+				recordedFrom: vitalsParams.recordedFrom,
+				recordedTo: vitalsParams.recordedTo,
+				createdFrom: vitalsParams.createdFrom,
+				createdTo: vitalsParams.createdTo,
+			},
+			encounterId,
+		),
 		getPatientVitalReadings(patientId, encounterId),
 	]);
 
@@ -151,7 +375,17 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 					<div className="mt-8 space-y-6 [&>section>div]:px-0 [&>section>div]:py-0">
 						<EncounterSection
 							title="Vitals"
-							isEmpty={vitalsResult.totalVitals === 0}
+							isEmpty={
+								vitalsResult.totalVitals === 0 &&
+								!(
+									vitalsParams.page !== 1 ||
+									Boolean(vitalsParams.searchQuery) ||
+									Boolean(vitalsParams.recordedFrom) ||
+									Boolean(vitalsParams.recordedTo) ||
+									Boolean(vitalsParams.createdFrom) ||
+									Boolean(vitalsParams.createdTo)
+								)
+							}
 							addAction={
 								<CreateVitalsEmptyStateAction
 									patientId={patientId}
@@ -167,15 +401,29 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								encounterOptions={encounterOptions}
 								vitals={vitalsResult.vitals}
 								readings={vitalReadings}
-								page={INITIAL_PAGE}
-								limit={INITIAL_LIMIT}
-								totalPages={getTotalPages(vitalsResult.totalVitals)}
+								page={vitalsParams.page}
+								limit={vitalsParams.limit}
+								totalPages={Math.max(1, Math.ceil(vitalsResult.totalVitals / vitalsParams.limit))}
+								searchQuery={vitalsParams.searchQuery}
+								recordedFrom={vitalsParams.recordedFrom}
+								recordedTo={vitalsParams.recordedTo}
+								createdFrom={vitalsParams.createdFrom}
+								createdTo={vitalsParams.createdTo}
 							/>
 						</EncounterSection>
 
 						<EncounterSection
 							title="Medications"
-							isEmpty={medicationsResult.totalMedications === 0}
+							isEmpty={
+								medicationsResult.totalMedications === 0 &&
+								!(
+									medicationsParams.page !== 1 ||
+									Boolean(medicationsParams.searchQuery) ||
+									Boolean(medicationsParams.createdFrom) ||
+									Boolean(medicationsParams.createdTo) ||
+									medicationsParams.statusFilters.length > 0
+								)
+							}
 							addAction={
 								<CreateMedicationEmptyStateAction
 									patientId={patientId}
@@ -188,15 +436,32 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								patientId={patientId}
 								encounterId={encounterId}
 								medications={medicationsResult.medications}
-								page={INITIAL_PAGE}
-								limit={INITIAL_LIMIT}
-								totalPages={getTotalPages(medicationsResult.totalMedications)}
+								page={medicationsParams.page}
+								limit={medicationsParams.limit}
+								totalPages={Math.max(
+									1,
+									Math.ceil(medicationsResult.totalMedications / medicationsParams.limit),
+								)}
+								searchQuery={medicationsParams.searchQuery}
+								createdFrom={medicationsParams.createdFrom}
+								createdTo={medicationsParams.createdTo}
+								statusFilters={medicationsParams.statusFilters}
 							/>
 						</EncounterSection>
 
 						<EncounterSection
 							title="Allergies"
-							isEmpty={allergiesResult.totalAllergies === 0}
+							isEmpty={
+								allergiesResult.totalAllergies === 0 &&
+								!(
+									allergiesParams.page !== 1 ||
+									Boolean(allergiesParams.searchQuery) ||
+									Boolean(allergiesParams.createdFrom) ||
+									Boolean(allergiesParams.createdTo) ||
+									allergiesParams.statusFilters.length > 0 ||
+									allergiesParams.severityFilters.length > 0
+								)
+							}
 							addAction={
 								<CreateAllergyEmptyStateAction
 									patientId={patientId}
@@ -209,15 +474,36 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								patientId={patientId}
 								encounterId={encounterId}
 								allergies={allergiesResult.allergies}
-								page={INITIAL_PAGE}
-								limit={INITIAL_LIMIT}
-								totalPages={getTotalPages(allergiesResult.totalAllergies)}
+								page={allergiesParams.page}
+								limit={allergiesParams.limit}
+								totalPages={Math.max(
+									1,
+									Math.ceil(allergiesResult.totalAllergies / allergiesParams.limit),
+								)}
+								searchQuery={allergiesParams.searchQuery}
+								createdFrom={allergiesParams.createdFrom}
+								createdTo={allergiesParams.createdTo}
+								statusFilters={allergiesParams.statusFilters}
+								severityFilters={allergiesParams.severityFilters}
 							/>
 						</EncounterSection>
 
 						<EncounterSection
 							title="Diagnoses"
-							isEmpty={diagnosesResult.totalDiagnoses === 0}
+							isEmpty={
+								diagnosesResult.totalDiagnoses === 0 &&
+								!(
+									diagnosesParams.page !== 1 ||
+									Boolean(diagnosesParams.searchQuery) ||
+									Boolean(diagnosesParams.createdFrom) ||
+									Boolean(diagnosesParams.createdTo) ||
+									Boolean(diagnosesParams.diagnosedFrom) ||
+									Boolean(diagnosesParams.diagnosedTo) ||
+									Boolean(diagnosesParams.lastReviewedFrom) ||
+									Boolean(diagnosesParams.lastReviewedTo) ||
+									diagnosesParams.statusFilters.length > 0
+								)
+							}
 							addAction={
 								<CreateDiagnosisEmptyStateAction
 									patientId={patientId}
@@ -230,15 +516,35 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								patientId={patientId}
 								encounterId={encounterId}
 								diagnoses={diagnosesResult.diagnoses}
-								page={INITIAL_PAGE}
-								limit={INITIAL_LIMIT}
-								totalPages={getTotalPages(diagnosesResult.totalDiagnoses)}
+								page={diagnosesParams.page}
+								limit={diagnosesParams.limit}
+								totalPages={Math.max(
+									1,
+									Math.ceil(diagnosesResult.totalDiagnoses / diagnosesParams.limit),
+								)}
+								searchQuery={diagnosesParams.searchQuery}
+								createdFrom={diagnosesParams.createdFrom}
+								createdTo={diagnosesParams.createdTo}
+								diagnosedFrom={diagnosesParams.diagnosedFrom}
+								diagnosedTo={diagnosesParams.diagnosedTo}
+								lastReviewedFrom={diagnosesParams.lastReviewedFrom}
+								lastReviewedTo={diagnosesParams.lastReviewedTo}
+								statusFilters={diagnosesParams.statusFilters}
 							/>
 						</EncounterSection>
 
 						<EncounterSection
 							title="Immunizations"
-							isEmpty={immunizationsResult.totalImmunizations === 0}
+							isEmpty={
+								immunizationsResult.totalImmunizations === 0 &&
+								!(
+									immunizationsParams.page !== 1 ||
+									Boolean(immunizationsParams.searchQuery) ||
+									Boolean(immunizationsParams.createdFrom) ||
+									Boolean(immunizationsParams.createdTo) ||
+									immunizationsParams.statusFilters.length > 0
+								)
+							}
 							addAction={
 								<CreateImmunizationEmptyStateAction
 									patientId={patientId}
@@ -251,15 +557,31 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								patientId={patientId}
 								encounterId={encounterId}
 								immunizations={immunizationsResult.immunizations}
-								page={INITIAL_PAGE}
-								limit={INITIAL_LIMIT}
-								totalPages={getTotalPages(immunizationsResult.totalImmunizations)}
+								page={immunizationsParams.page}
+								limit={immunizationsParams.limit}
+								totalPages={Math.max(
+									1,
+									Math.ceil(immunizationsResult.totalImmunizations / immunizationsParams.limit),
+								)}
+								searchQuery={immunizationsParams.searchQuery}
+								createdFrom={immunizationsParams.createdFrom}
+								createdTo={immunizationsParams.createdTo}
+								statusFilters={immunizationsParams.statusFilters}
 							/>
 						</EncounterSection>
 
 						<EncounterSection
 							title="Procedures"
-							isEmpty={proceduresResult.totalProcedures === 0}
+							isEmpty={
+								proceduresResult.totalProcedures === 0 &&
+								!(
+									proceduresParams.page !== 1 ||
+									Boolean(proceduresParams.searchQuery) ||
+									Boolean(proceduresParams.createdFrom) ||
+									Boolean(proceduresParams.createdTo) ||
+									proceduresParams.statusFilters.length > 0
+								)
+							}
 							addAction={
 								<CreateProcedureEmptyStateAction
 									patientId={patientId}
@@ -272,15 +594,32 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								patientId={patientId}
 								encounterId={encounterId}
 								procedures={proceduresResult.procedures}
-								page={INITIAL_PAGE}
-								limit={INITIAL_LIMIT}
-								totalPages={getTotalPages(proceduresResult.totalProcedures)}
+								page={proceduresParams.page}
+								limit={proceduresParams.limit}
+								totalPages={Math.max(
+									1,
+									Math.ceil(proceduresResult.totalProcedures / proceduresParams.limit),
+								)}
+								searchQuery={proceduresParams.searchQuery}
+								createdFrom={proceduresParams.createdFrom}
+								createdTo={proceduresParams.createdTo}
+								statusFilters={proceduresParams.statusFilters}
 							/>
 						</EncounterSection>
 
 						<EncounterSection
 							title="Lab tests"
-							isEmpty={labTestsResult.totalLabTests === 0}
+							isEmpty={
+								labTestsResult.totalLabTests === 0 &&
+								!(
+									labTestsParams.page !== 1 ||
+									Boolean(labTestsParams.searchQuery) ||
+									Boolean(labTestsParams.createdFrom) ||
+									Boolean(labTestsParams.createdTo) ||
+									labTestsParams.statusFilters.length > 0 ||
+									labTestsParams.flagFilters.length > 0
+								)
+							}
 							addAction={
 								<CreateLabTestEmptyStateAction
 									patientId={patientId}
@@ -293,15 +632,35 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								patientId={patientId}
 								encounterId={encounterId}
 								labTests={labTestsResult.labTests}
-								page={INITIAL_PAGE}
-								limit={INITIAL_LIMIT}
-								totalPages={getTotalPages(labTestsResult.totalLabTests)}
+								page={labTestsParams.page}
+								limit={labTestsParams.limit}
+								totalPages={Math.max(
+									1,
+									Math.ceil(labTestsResult.totalLabTests / labTestsParams.limit),
+								)}
+								searchQuery={labTestsParams.searchQuery}
+								createdFrom={labTestsParams.createdFrom}
+								createdTo={labTestsParams.createdTo}
+								statusFilters={labTestsParams.statusFilters}
+								flagFilters={labTestsParams.flagFilters}
 							/>
 						</EncounterSection>
 
 						<EncounterSection
 							title="Imaging"
-							isEmpty={imagingResult.totalImagingStudies === 0}
+							isEmpty={
+								imagingResult.totalImagingStudies === 0 &&
+								!(
+									imagingParams.page !== 1 ||
+									Boolean(imagingParams.searchQuery) ||
+									Boolean(imagingParams.orderedFrom) ||
+									Boolean(imagingParams.orderedTo) ||
+									Boolean(imagingParams.createdFrom) ||
+									Boolean(imagingParams.createdTo) ||
+									imagingParams.statusFilters.length > 0 ||
+									imagingParams.modalityFilters.length > 0
+								)
+							}
 							addAction={
 								<CreateImagingEmptyStateAction
 									patientId={patientId}
@@ -314,9 +673,19 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								patientId={patientId}
 								encounterId={encounterId}
 								imagingStudies={imagingResult.imagingStudies}
-								page={INITIAL_PAGE}
-								limit={INITIAL_LIMIT}
-								totalPages={getTotalPages(imagingResult.totalImagingStudies)}
+								page={imagingParams.page}
+								limit={imagingParams.limit}
+								totalPages={Math.max(
+									1,
+									Math.ceil(imagingResult.totalImagingStudies / imagingParams.limit),
+								)}
+								searchQuery={imagingParams.searchQuery}
+								orderedFrom={imagingParams.orderedFrom}
+								orderedTo={imagingParams.orderedTo}
+								createdFrom={imagingParams.createdFrom}
+								createdTo={imagingParams.createdTo}
+								statusFilters={imagingParams.statusFilters}
+								modalityFilters={imagingParams.modalityFilters}
 							/>
 						</EncounterSection>
 					</div>
@@ -350,10 +719,6 @@ function EncounterSection({
 			{addAction}
 		</section>
 	);
-}
-
-function getTotalPages(totalRows: number) {
-	return Math.ceil(totalRows / INITIAL_LIMIT) || 1;
 }
 
 function EncounterDetailsPageSkeleton() {

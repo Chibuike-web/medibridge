@@ -127,7 +127,6 @@ type VitalsTableProps = {
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
-	onVitalCreated: (vital: VitalType) => void;
 };
 
 export function VitalsTable({
@@ -152,7 +151,6 @@ export function VitalsTable({
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
-	onVitalCreated,
 }: VitalsTableProps) {
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
@@ -361,7 +359,6 @@ export function VitalsTable({
 				patientId={patientId}
 				encounterId={encounterId}
 				encounterOptions={encounterOptions}
-				onCreated={onVitalCreated}
 			/>
 			<VitalDetailsDrawer
 				open={isDetailsDrawerOpen}
@@ -421,7 +418,11 @@ function VitalsTableContent({
 	return (
 		<>
 			<div className="mx-auto w-full max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
-				<Table className="min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<Table
+					aria-busy={isPending}
+					data-pending={isPending || undefined}
+					className="min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left transition-opacity data-[pending=true]:opacity-50"
+				>
 					<TableHeader className="text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>

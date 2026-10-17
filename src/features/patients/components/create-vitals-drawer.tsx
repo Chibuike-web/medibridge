@@ -27,7 +27,7 @@ import {
 	DrawerTitle,
 } from "@/components/ui/drawer";
 import { createPatientVitalAction } from "@/features/patients/server/create-patient-vital-action";
-import type { VitalEncounterOption, VitalType } from "@/features/patients/types";
+import type { VitalEncounterOption } from "@/features/patients/types";
 
 const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const optionalLabelClassName = "font-normal text-gray-400";
@@ -49,14 +49,12 @@ export function CreateVitalsDrawer({
 	patientId,
 	encounterId,
 	encounterOptions,
-	onCreated,
 }: {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	patientId: string;
 	encounterId?: string;
 	encounterOptions: VitalEncounterOption[];
-	onCreated: (vital: VitalType) => void;
 }) {
 	const formId = useId();
 	const [formError, setFormError] = useState("");
@@ -81,7 +79,6 @@ export function CreateVitalsDrawer({
 			}
 
 			onOpenChange(false);
-			onCreated(result.vital);
 		});
 	}
 

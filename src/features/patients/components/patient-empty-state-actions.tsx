@@ -12,7 +12,6 @@ import { CreateMedicationDrawer } from "@/features/patients/components/create-me
 import { CreateProcedureDrawer } from "@/features/patients/components/create-procedure-drawer";
 import { CreateVitalsDrawer } from "@/features/patients/components/create-vitals-drawer";
 import type { VitalEncounterOption } from "@/features/patients/types";
-import { useRouter } from "next/navigation";
 
 type ButtonVariant = ComponentProps<typeof Button>["variant"];
 
@@ -25,7 +24,6 @@ export function CreateDiagnosisEmptyStateAction({
 	encounterId?: string;
 	variant?: ButtonVariant;
 }) {
-	const router = useRouter();
 	const [isCreateDiagnosisDrawerOpen, setIsCreateDiagnosisDrawerOpen] = useState(false);
 
 	return (
@@ -38,7 +36,6 @@ export function CreateDiagnosisEmptyStateAction({
 				onOpenChange={setIsCreateDiagnosisDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onDiagnosisCreated={() => router.refresh()}
 			/>
 		</>
 	);
@@ -55,7 +52,6 @@ export function CreateVitalsEmptyStateAction({
 	encounterOptions: VitalEncounterOption[];
 	variant?: ButtonVariant;
 }) {
-	const router = useRouter();
 	const [isCreateVitalsDrawerOpen, setIsCreateVitalsDrawerOpen] = useState(false);
 
 	return (
@@ -69,7 +65,6 @@ export function CreateVitalsEmptyStateAction({
 				patientId={patientId}
 				encounterId={encounterId}
 				encounterOptions={encounterOptions}
-				onCreated={() => router.refresh()}
 			/>
 		</>
 	);
@@ -84,7 +79,6 @@ export function CreateAllergyEmptyStateAction({
 	encounterId?: string;
 	variant?: ButtonVariant;
 }) {
-	const router = useRouter();
 	const [isCreateAllergyDrawerOpen, setIsCreateAllergyDrawerOpen] = useState(false);
 
 	return (
@@ -97,7 +91,6 @@ export function CreateAllergyEmptyStateAction({
 				onOpenChange={setIsCreateAllergyDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onAllergyCreated={() => router.refresh()}
 			/>
 		</>
 	);
@@ -112,7 +105,6 @@ export function CreateImmunizationEmptyStateAction({
 	encounterId?: string;
 	variant?: ButtonVariant;
 }) {
-	const router = useRouter();
 	const [isCreateImmunizationDrawerOpen, setIsCreateImmunizationDrawerOpen] = useState(false);
 
 	return (
@@ -129,7 +121,6 @@ export function CreateImmunizationEmptyStateAction({
 				onOpenChange={setIsCreateImmunizationDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onImmunizationCreated={() => router.refresh()}
 			/>
 		</>
 	);
@@ -144,7 +135,6 @@ export function CreateProcedureEmptyStateAction({
 	encounterId?: string;
 	variant?: ButtonVariant;
 }) {
-	const router = useRouter();
 	const [isCreateProcedureDrawerOpen, setIsCreateProcedureDrawerOpen] = useState(false);
 
 	return (
@@ -157,7 +147,6 @@ export function CreateProcedureEmptyStateAction({
 				onOpenChange={setIsCreateProcedureDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onProcedureCreated={() => router.refresh()}
 			/>
 		</>
 	);
@@ -172,7 +161,6 @@ export function CreateMedicationEmptyStateAction({
 	encounterId?: string;
 	variant?: ButtonVariant;
 }) {
-	const router = useRouter();
 	const [isCreateMedicationDrawerOpen, setIsCreateMedicationDrawerOpen] = useState(false);
 
 	return (
@@ -185,7 +173,6 @@ export function CreateMedicationEmptyStateAction({
 				onOpenChange={setIsCreateMedicationDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onMedicationCreated={() => router.refresh()}
 			/>
 		</>
 	);
@@ -217,7 +204,6 @@ export function CreateLabTestEmptyStateAction({
 	encounterId?: string;
 	variant?: ButtonVariant;
 }) {
-	const router = useRouter();
 	const [isCreateLabTestDrawerOpen, setIsCreateLabTestDrawerOpen] = useState(false);
 
 	return (
@@ -230,7 +216,6 @@ export function CreateLabTestEmptyStateAction({
 				onOpenChange={setIsCreateLabTestDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onLabTestCreated={() => router.refresh()}
 			/>
 		</>
 	);
@@ -245,7 +230,6 @@ export function CreateImagingEmptyStateAction({
 	encounterId?: string;
 	variant?: ButtonVariant;
 }) {
-	const router = useRouter();
 	const [isCreateImagingDrawerOpen, setIsCreateImagingDrawerOpen] = useState(false);
 
 	return (
@@ -258,7 +242,6 @@ export function CreateImagingEmptyStateAction({
 				onOpenChange={setIsCreateImagingDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onImagingCreated={() => router.refresh()}
 			/>
 		</>
 	);

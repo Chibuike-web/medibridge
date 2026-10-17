@@ -78,7 +78,6 @@ type ImagingDetailsDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	imaging: ImagingType | null;
-	onImagingUpdated: () => void;
 };
 
 const imagingDetailsFormId = "imaging-details-form";
@@ -89,12 +88,7 @@ const imagingDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const imagingDetailsFieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
-export function ImagingDetailsDrawer({
-	open,
-	onOpenChange,
-	imaging,
-	onImagingUpdated,
-}: ImagingDetailsDrawerProps) {
+export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDetailsDrawerProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
@@ -144,7 +138,6 @@ export function ImagingDetailsDrawer({
 			}
 
 			setImagingDetailsMode("view");
-			onImagingUpdated();
 		});
 	}
 

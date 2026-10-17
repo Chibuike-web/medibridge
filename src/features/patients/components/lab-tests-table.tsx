@@ -131,8 +131,6 @@ type LabTestsTableProps = {
 	onStatusFiltersChange: (statusFilters: LabTestStatusFilter[]) => void;
 	onFlagFiltersChange: (flagFilters: LabTestFlagFilter[]) => void;
 	onFiltersClear: () => void;
-	onLabTestCreated: () => void;
-	onLabTestUpdated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -156,8 +154,6 @@ export function LabTestsTable({
 	onStatusFiltersChange,
 	onFlagFiltersChange,
 	onFiltersClear,
-	onLabTestCreated,
-	onLabTestUpdated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -340,7 +336,11 @@ export function LabTestsTable({
 				onFiltersClear={onFiltersClear}
 			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
-				<Table className="min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<Table
+					aria-busy={isPending}
+					data-pending={isPending || undefined}
+					className="min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left transition-opacity data-[pending=true]:opacity-50"
+				>
 					<TableHeader className="text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
@@ -515,13 +515,11 @@ export function LabTestsTable({
 				onOpenChange={setIsCreateDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onLabTestCreated={onLabTestCreated}
 			/>
 			<LabTestDetailsDrawer
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}
 				labTest={labTests.find((labTest) => labTest.labId === selectedTest?.labId) ?? selectedTest}
-				onLabTestUpdated={onLabTestUpdated}
 			/>
 		</div>
 	);
