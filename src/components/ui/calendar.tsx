@@ -38,7 +38,7 @@ function Calendar({
 		<DayPicker
 			showOutsideDays={showOutsideDays}
 			className={cn(
-				"group/calendar bg-background px-4 py-3 text-sm [--cell-size:2.5rem] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
+				"group/calendar bg-background px-4 py-3 text-sm [--cell-size:2.5rem] [[data-slot=popover-content]_&]:bg-transparent",
 				String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
 				String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
 				className,
@@ -75,16 +75,8 @@ function Calendar({
 					"flex h-8 w-full items-center justify-center text-sm",
 					defaultClassNames.dropdowns,
 				),
-				dropdown_root: cn(
-					"relative rounded-md border border-input shadow-xs has-focus:border-ring has-focus:ring-3 has-focus:ring-ring/50",
-					defaultClassNames.dropdown_root,
-				),
-				dropdown: cn("absolute inset-0 bg-popover opacity-0", defaultClassNames.dropdown),
 				caption_label: cn(
-					"font-medium select-none",
-					captionLayout === "label"
-						? "text-sm text-gray-800"
-						: "flex h-8 items-center gap-1 rounded-md pr-1 pl-2 text-sm [&>svg]:size-3.5 [&>svg]:text-muted-foreground",
+					"text-sm font-medium text-gray-800 select-none",
 					defaultClassNames.caption_label,
 				),
 				month_grid: cn("w-full border-collapse", defaultClassNames.month_grid),
@@ -117,7 +109,7 @@ function Calendar({
 			}}
 			components={{
 				Root: ({ className, rootRef, ...props }) => {
-					return <div data-slot="calendar" ref={rootRef} className={cn(className)} {...props} />;
+					return <div data-slot="calendar" ref={rootRef} className={className} {...props} />;
 				},
 				Chevron: ({ className, orientation, ...props }) => {
 					if (orientation === "left") {
@@ -187,7 +179,7 @@ function CalendarDayButton({
 			data-range-end={modifiers.range_end}
 			data-range-middle={modifiers.range_middle}
 			className={cn(
-				"flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 rounded-lg text-sm leading-none font-normal text-gray-800 hover:bg-gray-100 hover:text-gray-800 group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-3 group-data-[focused=true]/day:ring-ring/50 data-[range-end=true]:rounded-lg data-[range-end=true]:bg-gray-900 data-[range-end=true]:text-white data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-gray-100 data-[range-middle=true]:text-gray-800 data-[range-start=true]:rounded-lg data-[range-start=true]:bg-gray-900 data-[range-start=true]:text-white data-[selected-single=true]:bg-gray-900 data-[selected-single=true]:text-white data-[selected-single=true]:hover:bg-gray-900 data-[selected-single=true]:hover:text-white dark:hover:text-accent-foreground [&>span]:text-xs [&>span]:opacity-70",
+				"flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 rounded-lg text-sm leading-none font-normal text-gray-800 hover:bg-gray-100 hover:text-gray-800 group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-3 group-data-[focused=true]/day:ring-ring/50 data-[range-end=true]:bg-gray-900 data-[range-end=true]:text-white data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-gray-100 data-[range-middle=true]:text-gray-800 data-[range-start=true]:bg-gray-900 data-[range-start=true]:text-white data-[selected-single=true]:bg-gray-900 data-[selected-single=true]:text-white data-[selected-single=true]:hover:bg-gray-900 data-[selected-single=true]:hover:text-white dark:hover:text-accent-foreground [&>span]:text-xs [&>span]:opacity-70",
 				defaultClassNames.day,
 				className,
 			)}
