@@ -103,16 +103,18 @@ describe("transfer approval page", () => {
 		expect(screen.queryByText("Asthma")).not.toBeInTheDocument();
 	});
 
-	test("approving switches the page to the result and hides the shared records", async () => {
+	test("approving switches the page to the result, moves focus to it and hides the shared records", async () => {
 		approvePatientTransferActionMock.mockResolvedValue({ status: "success" });
 		render(<TransferApprovalClient transfer={waitingTransfer} approvalToken="approval-token" />);
 		expect(screen.getByText("Asthma")).toBeVisible();
 
 		await userEvent.click(screen.getByRole("button", { name: /approve/i }));
 
-		expect(
-			await screen.findByRole("heading", { name: "You approved this transfer request" }),
-		).toBeVisible();
+		const resultHeading = await screen.findByRole("heading", {
+			name: "You approved this transfer request",
+		});
+		expect(resultHeading).toBeVisible();
+		expect(resultHeading).toHaveFocus();
 		expect(screen.queryByText("Asthma")).not.toBeInTheDocument();
 		expect(approvePatientTransferActionMock).toHaveBeenCalledWith("TRF-1", "approval-token");
 	});

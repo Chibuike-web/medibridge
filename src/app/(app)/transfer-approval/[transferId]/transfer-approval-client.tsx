@@ -346,7 +346,11 @@ export function TransferApprovalResult({
 		<main className="bg-white px-6 py-10">
 			<section className="mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-3xl items-center justify-center text-center">
 				<div>
-					<h1 className="text-lg font-semibold text-gray-800 text-balance">
+					<h1
+						ref={(heading) => heading?.focus()}
+						tabIndex={-1}
+						className="text-lg font-semibold text-gray-800 text-balance outline-none"
+					>
 						{patientApprovalStatus === "approved"
 							? "You approved this transfer request"
 							: "You rejected this transfer request"}
