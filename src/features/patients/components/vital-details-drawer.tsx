@@ -357,6 +357,6 @@ function getVitalDetailItems(vital: VitalType) {
 		{ label: "Oxygen saturation", value: `${vital.oxygenSaturation}%` },
 		{ label: "Weight", value: `${vital.weight} kg` },
 		{ label: "Body mass index", value: vital.bmi.toFixed(1) },
-		{ label: "Encounter date", value: format(vital.recordedAt, "d MMMM yyyy") },
+		{ label: "Date recorded", value: format(vital.recordedAt, "d MMMM yyyy") },
 	];
 }

@@ -67,7 +67,7 @@ export async function createPatientVitalAction(
 	const recordedAt = recordedAtInput ? new Date(recordedAtInput) : new Date();
 
 	if (Number.isNaN(recordedAt.getTime())) {
-		return { status: "failed", error: "Enter a valid encounter date." };
+		return { status: "failed", error: "Enter a valid date for these vitals." };
 	}
 
 	const [patientRow] = await db

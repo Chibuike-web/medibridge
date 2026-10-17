@@ -148,7 +148,7 @@ export function CreateVitalsDrawer({
 					</div>
 					<div className="flex flex-col gap-2">
 						<Label htmlFor={`${formId}-recordedAt`} className={fieldLabelClassName}>
-							Encounter date <span className={optionalLabelClassName}>(optional)</span>
+							Date recorded <span className={optionalLabelClassName}>(optional)</span>
 						</Label>
 						<Popover>
 							<PopoverTrigger asChild>

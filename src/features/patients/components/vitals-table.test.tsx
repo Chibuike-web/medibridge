@@ -101,7 +101,7 @@ describe("Vitals table", () => {
 
 		expect(displayedIds()).toEqual(["V-newer", "V-older"]);
 		expect(screen.getByRole("cell", { name: "120/80" })).toBeVisible();
-		expect(screen.getByRole("columnheader", { name: "Encounter date" })).toBeVisible();
+		expect(screen.getByRole("columnheader", { name: "Date recorded" })).toBeVisible();
 
 		const heartRateHeader = screen.getByRole("columnheader", { name: "HR (bpm)" });
 		heartRateHeader.focus();
@@ -130,9 +130,9 @@ describe("Vitals table", () => {
 			recordedTo: "2020-01-31",
 		});
 
-		const pill = screen.getByText("Encounter: Jan 1, 2020 - Jan 31, 2020");
+		const pill = screen.getByText("Recorded: Jan 1, 2020 - Jan 31, 2020");
 		expect(pill).toBeVisible();
-		await user.click(screen.getByRole("button", { name: /Remove Encounter/ }));
+		await user.click(screen.getByRole("button", { name: /Remove Recorded/ }));
 		expect(onRecordedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 

@@ -81,7 +81,7 @@ import { authClient } from "@/lib/better-auth/auth.client";
 import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 
-type VitalFilterSubmenu = "encounter-date" | "encounter-type" | "created-at";
+type VitalFilterSubmenu = "date-recorded" | "encounter-type" | "created-at";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
@@ -221,14 +221,14 @@ export function VitalsTable({
 						className="relative w-[13.75rem] overflow-visible rounded-xl bg-white text-sm text-gray-700"
 					>
 						<DropdownMenuItem
-							data-active={activeFilterSubmenu === "encounter-date"}
-							onFocus={() => setActiveFilterSubmenu("encounter-date")}
-							onPointerEnter={() => setActiveFilterSubmenu("encounter-date")}
+							data-active={activeFilterSubmenu === "date-recorded"}
+							onFocus={() => setActiveFilterSubmenu("date-recorded")}
+							onPointerEnter={() => setActiveFilterSubmenu("date-recorded")}
 							onSelect={(event) => event.preventDefault()}
 							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
 						>
 							<RiCalendarLine className="size-4" />
-							<span className="flex-1">Encounter date</span>
+							<span className="flex-1">Date recorded</span>
 							<RiArrowRightSLine className="size-4" aria-hidden="true" />
 						</DropdownMenuItem>
 
@@ -269,7 +269,7 @@ export function VitalsTable({
 								activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
 							)}
 						>
-							<div hidden={activeFilterSubmenu !== "encounter-date"} className="p-1">
+							<div hidden={activeFilterSubmenu !== "date-recorded"} className="p-1">
 								<DateRangeMenuItems
 									from={recordedFrom}
 									to={recordedTo}
@@ -697,7 +697,7 @@ function VitalActiveFilterPills({
 			<div className="flex flex-1 flex-wrap gap-2">
 				{hasRecordedAtFilter ? (
 					<VitalFilterPill
-						label={`Encounter: ${formatDateRangeFilterLabel(recordedFrom, recordedTo)}`}
+						label={`Recorded: ${formatDateRangeFilterLabel(recordedFrom, recordedTo)}`}
 						onRemove={() => onRecordedAtRangeApply("", "")}
 					/>
 				) : null}
@@ -791,7 +791,7 @@ function getVitalsColumns({
 		},
 		{
 			accessorKey: "recordedAt",
-			header: "Encounter date",
+			header: "Date recorded",
 			enableSorting: true,
 			cell: ({ row }) => format(row.original.recordedAt, "d MMM yyyy, h:mm a"),
 		},
