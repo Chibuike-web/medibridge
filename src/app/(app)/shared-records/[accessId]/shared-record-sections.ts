@@ -31,9 +31,7 @@ export function getSharedSection(
 export type SharedPatient = {
 	name: string;
 	sex: string;
-	email: string;
-	phoneNumber: string;
-	address: string;
+	age: string;
 };
 
 export type SharedPatientDetailSection = {

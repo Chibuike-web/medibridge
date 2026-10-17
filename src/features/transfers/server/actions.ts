@@ -18,6 +18,7 @@ import {
 	patientTransferContent,
 	patientTransferProgress,
 } from "@/db/schemas";
+import { patientDetailSections } from "../data";
 import { createTransferRequestsSchema, type CreateTransferRequestsInput } from "../schemas";
 import type { ClinicalRecordType, TransferStatusFilter } from "../types";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
@@ -180,7 +181,12 @@ export async function createTransferRequestsAction(input: CreateTransferRequests
 		}
 
 		for (const record of uniqueSelectedRecords(transfer.records)) {
-			if (!recordOwnership.has(selectedRecordKey(record.type, record.id, transfer.patientId))) {
+			const isOwnedRecord =
+				record.type === "patient-details"
+					? patientDetailSections.some((section) => section.id === record.id)
+					: recordOwnership.has(selectedRecordKey(record.type, record.id, transfer.patientId));
+
+			if (!isOwnedRecord) {
 				return {
 					status: "failed" as const,
 					error: "One or more selected clinical records do not belong to the selected patient.",

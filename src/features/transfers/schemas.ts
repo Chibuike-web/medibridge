@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const clinicalRecordTypeSchema = z.enum([
+	"patient-details",
 	"diagnoses",
 	"allergies",
 	"immunizations",

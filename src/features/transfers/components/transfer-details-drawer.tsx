@@ -75,7 +75,7 @@ export function TransferDetailsDrawer({
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="border-b border-gray-200 text-left flex-row gap-4 items-center">
 					<DrawerTitle className="text-gray-800 leading-[1.2] flex-1">
-						View transfer details
+						Transfer details
 					</DrawerTitle>
 					{transfer ? (
 						<DropdownMenu>
@@ -210,7 +210,7 @@ export function TransferDetailsDrawer({
 											) : null
 										}
 									/>
-									{transfer?.notes ? <DetailItem label="Notes" value={transfer.notes} /> : null}
+									{transfer?.notes ? <DetailItem label="Reason" value={transfer.notes} /> : null}
 								</div>
 								{transfer && transfer.transferContent.length > 0 ? (
 									<TransferContentSections transferContent={transfer.transferContent} />

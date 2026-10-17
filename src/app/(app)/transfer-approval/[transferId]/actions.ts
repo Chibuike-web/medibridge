@@ -24,6 +24,7 @@ type TransferApprovalActionResult =
 	| { status: "failed"; error: string };
 
 const transferContentTypeToAccessSection = {
+	"patient-details": "patient-details",
 	diagnoses: "diagnoses",
 	allergies: "allergies",
 	immunizations: "immunizations",

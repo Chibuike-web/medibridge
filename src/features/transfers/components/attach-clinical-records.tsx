@@ -226,11 +226,11 @@ export function AttachClinicalRecords({
 
 					<div
 						className={cn(
-							"flex h-12 w-full shrink-0 items-center gap-3 rounded-md px-5 text-left text-sm text-gray-600",
+							"flex h-10 w-full shrink-0 items-center gap-3 rounded-md px-5 text-left text-sm text-gray-600",
 							recordsForActiveTab.length === 0 && "opacity-50",
 						)}
 					>
-						<Label className="h-full w-full">
+						<Label className="h-full w-full font-normal">
 							<Checkbox
 								checked={
 									areAllVisibleRecordsSelected || (areSomeVisibleRecordsSelected && "indeterminate")
@@ -246,7 +246,7 @@ export function AttachClinicalRecords({
 						</Label>
 					</div>
 
-					<div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+					<div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
 						<div className="flex min-h-full flex-col gap-1">
 							{isUpdatingClinicalRecordOptions &&
 								recordsForActiveTab.length === 0 &&

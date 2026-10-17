@@ -177,6 +177,7 @@ export async function getSharedRecord(accessId: string) {
 	const medicationIds = selectedIds("medications");
 	const labTestIds = selectedIds("lab-tests");
 	const imagingIds = selectedIds("imaging");
+	const patientDetailIds = selectedIds("patient-details");
 
 	const [
 		diagnoses,
@@ -267,7 +268,7 @@ export async function getSharedRecord(accessId: string) {
 	]);
 
 	const availableSections = [
-		"patient-details" as const,
+		...(patientDetailIds.length > 0 ? (["patient-details"] as const) : []),
 		...(diagnoses.length > 0 ? (["diagnoses"] as const) : []),
 		...(allergies.length > 0 ? (["allergies"] as const) : []),
 		...(immunizations.length > 0 ? (["immunization"] as const) : []),
@@ -287,12 +288,11 @@ export async function getSharedRecord(accessId: string) {
 				.filter(Boolean)
 				.join(" "),
 			sex: capitalize(String(display(access.sex))),
-			email: String(display(access.emailAddress)),
-			phoneNumber: String(display(access.phoneNumber)),
-			address: String(display(access.residentialAddress)),
+			age: String(display(access.age)),
 		},
 		patientDetailsSections: [
 			{
+				id: "personal-information",
 				title: "Personal Information",
 				items: [
 					{ label: "First Name", value: display(access.firstName) },
@@ -308,6 +308,7 @@ export async function getSharedRecord(accessId: string) {
 				],
 			},
 			{
+				id: "contact-information",
 				title: "Contact Information",
 				items: [
 					{ label: "Phone Number", value: display(access.phoneNumber) },
@@ -324,6 +325,7 @@ export async function getSharedRecord(accessId: string) {
 				],
 			},
 			{
+				id: "emergency-contact",
 				title: "Emergency Contact",
 				items: [
 					{ label: "First Name", value: display(access.emergencyFirstName) },
@@ -340,6 +342,7 @@ export async function getSharedRecord(accessId: string) {
 				],
 			},
 			{
+				id: "physical-information",
 				title: "Physical Information",
 				items: [
 					{ label: "Height", value: display(access.height) },
@@ -348,7 +351,7 @@ export async function getSharedRecord(accessId: string) {
 					{ label: "Genotype", value: display(access.genotype) },
 				],
 			},
-		],
+		].filter((section) => patientDetailIds.includes(section.id)),
 		records: {
 			diagnoses: diagnoses.map((record) => ({
 				name: record.diagnosisName,

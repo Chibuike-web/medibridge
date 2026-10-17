@@ -4,6 +4,7 @@ import { patient } from "../patient";
 import { patientTransfer } from "../transfer";
 
 export type PatientRecordAccessSection =
+	| "patient-details"
 	| "diagnoses"
 	| "allergies"
 	| "immunizations"

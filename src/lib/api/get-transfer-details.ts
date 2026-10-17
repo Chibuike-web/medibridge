@@ -15,6 +15,7 @@ import {
 	patientTransferContent,
 	user,
 } from "@/db/schemas";
+import { patientDetailSections } from "@/features/transfers/data";
 import type {
 	TransferContent,
 	TransferDetailsType,
@@ -253,6 +254,14 @@ async function getTransferContentMetadata(
 	addRecordMetadata(metadataByRecordId, medications);
 	addRecordMetadata(metadataByRecordId, labs);
 	addRecordMetadata(metadataByRecordId, imaging);
+	addRecordMetadata(
+		metadataByRecordId,
+		patientDetailSections
+			.filter((section) =>
+				getRecordIdsForContentType(transferContent, ["patient-details"]).includes(section.id),
+			)
+			.map((section) => ({ recordId: section.id, recordName: section.label, status: null })),
+	);
 
 	return metadataByRecordId;
 }

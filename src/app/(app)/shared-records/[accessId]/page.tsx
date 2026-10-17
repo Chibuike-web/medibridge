@@ -106,9 +106,7 @@ function PatientHeader({ patient }: { patient: SharedPatient }) {
 					<h1 className="text-lg font-semibold text-gray-900 text-balance">{patient.name}</h1>
 					<div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
 						<HeaderMeta label="Sex" value={patient.sex} />
-						<HeaderMeta label="Email" value={patient.email} />
-						<HeaderMeta label="Phone Number" value={patient.phoneNumber} />
-						<HeaderMeta label="Address" value={patient.address} />
+						<HeaderMeta label="Age" value={patient.age} />
 					</div>
 				</div>
 			</div>

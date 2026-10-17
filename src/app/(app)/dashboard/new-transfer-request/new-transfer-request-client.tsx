@@ -387,7 +387,7 @@ export function NewTransferRequestClient({
 							</div>
 							<div className="mt-8">
 								<Label htmlFor="transfer-notes" className="mb-2 block text-sm text-foreground/70">
-									Notes <span className="font-normal text-muted-foreground">(optional)</span>
+									Reason <span className="font-normal text-muted-foreground">(optional)</span>
 								</Label>
 								<Textarea
 									id="transfer-notes"

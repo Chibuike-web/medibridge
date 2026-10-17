@@ -4,6 +4,7 @@ export type ClinicalRecord = {
 };
 
 export type ClinicalRecordType =
+	| "patient-details"
 	| "diagnoses"
 	| "allergies"
 	| "immunizations"

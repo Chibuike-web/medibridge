@@ -1,4 +1,4 @@
-import { clinicalRecords } from "@/features/transfers/data";
+import { clinicalRecords, patientDetailSections } from "@/features/transfers/data";
 import type { ClinicalRecordType } from "@/features/transfers/types";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
@@ -95,6 +95,19 @@ async function getClinicalRecordOptions({
 	query: string;
 }): Promise<{ records: ClinicalRecordOption[]; totalRecords: number }> {
 	const recordType = type as ClinicalRecordType;
+
+	if (type === "patient-details") {
+		const sections = patientDetailSections.filter((section) =>
+			section.label.toLowerCase().includes(query.trim().toLowerCase()),
+		);
+
+		return {
+			totalRecords: sections.length,
+			records: sections
+				.slice((page - 1) * limit, page * limit)
+				.map((section) => ({ id: section.id, name: section.label, type: recordType })),
+		};
+	}
 
 	if (type === "diagnoses") {
 		const { diagnoses, totalDiagnoses } = await getPatientDiagnoses(patientId, page, limit, query);

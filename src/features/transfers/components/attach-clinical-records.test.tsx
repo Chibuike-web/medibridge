@@ -43,11 +43,17 @@ describe("clinical record category tabs", () => {
 			expect(tabs.getByRole("tab", { name: record.label })).toBeVisible();
 		}
 		expect(tabs.getAllByRole("tab")).toHaveLength(clinicalRecords.length);
-		expect(tabs.getByRole("tab", { name: "Diagnoses" })).toHaveAttribute("aria-selected", "true");
+		expect(tabs.getByRole("tab", { name: "Patient Details" })).toHaveAttribute(
+			"aria-selected",
+			"true",
+		);
 
 		await user.click(tabs.getByRole("tab", { name: "Allergies" }));
 		expect(tabs.getByRole("tab", { name: "Allergies" })).toHaveAttribute("aria-selected", "true");
-		expect(tabs.getByRole("tab", { name: "Diagnoses" })).toHaveAttribute("aria-selected", "false");
+		expect(tabs.getByRole("tab", { name: "Patient Details" })).toHaveAttribute(
+			"aria-selected",
+			"false",
+		);
 		expect(screen.getByRole("button", { name: "Select allergies records" })).toBeVisible();
 	});
 
