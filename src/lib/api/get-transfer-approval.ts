@@ -272,7 +272,7 @@ export async function getTransferApproval(
 			status: record.status,
 			fields: [
 				{ label: "Dose", value: display(record.currentDose) },
-				{ label: "Date given", value: displayDate(record.dateAdministered) },
+				{ label: "Date administered", value: displayDate(record.dateAdministered) },
 			],
 		})),
 		procedures: procedures.map((record) => ({
