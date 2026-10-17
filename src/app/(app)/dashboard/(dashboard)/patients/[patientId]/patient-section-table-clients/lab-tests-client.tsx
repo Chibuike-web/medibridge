@@ -1,21 +1,16 @@
 "use client";
 
 import { LabTestsTable } from "@/features/patients/components/lab-tests-table";
-import { getPatientLabTestsTableAction } from "@/features/patients/server/get-patient-lab-tests-table-action";
 import type {
 	LabTestFlagFilter,
 	LabTestStatusFilter,
 	LabTestType,
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useRef, useState, useTransition } from "react";
-
-type SectionTableState<T> = {
-	rows: T[];
-	page: number;
-	limit: number;
-	totalPages: number;
-};
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import type { PatientLabTestsTableResult } from "@/app/api/patient-lab-tests/[patientId]/route";
 
 export function LabTestsClient({
 	patientId,
@@ -32,73 +27,73 @@ export function LabTestsClient({
 	limit: number;
 	totalPages: number;
 }) {
-	const [tableData, setTableData] = useState<SectionTableState<LabTestType>>({
-		rows: labTests,
-		page,
-		limit,
-		totalPages,
-	});
-	const [optimisticPage, setOptimisticPage] = useOptimistic(tableData.page);
-	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
+	const router = useRouter();
+	const [currentPage, setCurrentPage] = useState(page);
+	const [currentLimit, setCurrentLimit] = useState(limit);
+	const [searchQuery, setSearchQuery] = useState("");
 	const [query, setQuery] = useState("");
 	const [createdFrom, setCreatedFrom] = useState("");
 	const [createdTo, setCreatedTo] = useState("");
 	const [statusFilters, setStatusFilters] = useState<LabTestStatusFilter[]>([]);
 	const [flagFilters, setFlagFilters] = useState<LabTestFlagFilter[]>([]);
-	const [isPending, startTransition] = useTransition();
-	const latestSectionTableRequestIdRef = useRef(0);
-
-	function refreshLabTestsTable({
-		nextPage = 1,
-		nextLimit = tableData.limit,
-		nextQuery = query,
-		nextCreatedFrom = createdFrom,
-		nextCreatedTo = createdTo,
-		nextStatusFilters = statusFilters,
-		nextFlagFilters = flagFilters,
-	}: {
-		nextPage?: number;
-		nextLimit?: number;
-		nextQuery?: string;
-		nextCreatedFrom?: string;
-		nextCreatedTo?: string;
-		nextStatusFilters?: LabTestStatusFilter[];
-		nextFlagFilters?: LabTestFlagFilter[];
-	}) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			setOptimisticLimit(nextLimit);
-
-			const result = await getPatientLabTestsTableAction({
-				patientId,
-				encounterId,
-				page: nextPage,
-				limit: nextLimit,
-				query: nextQuery,
-				createdFrom: nextCreatedFrom,
-				createdTo: nextCreatedTo,
-				statusFilters: nextStatusFilters,
-				flagFilters: nextFlagFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
+	const requestParams = new URLSearchParams({
+		page: String(currentPage),
+		limit: String(currentLimit),
+		query: searchQuery,
+		encounterId: encounterId ?? "",
+		createdFrom: createdFrom,
+		createdTo: createdTo,
+		statusFilters: statusFilters.join(","),
+		flagFilters: flagFilters.join(","),
+	});
+	const initialParams = new URLSearchParams({
+		page: String(page),
+		limit: String(limit),
+		query: "",
+		encounterId: encounterId ?? "",
+		createdFrom: "",
+		createdTo: "",
+		statusFilters: "",
+		flagFilters: "",
+	});
+	const key = `/api/patient-lab-tests/${encodeURIComponent(patientId)}?${requestParams}`;
+	const initialKey = `/api/patient-lab-tests/${encodeURIComponent(patientId)}?${initialParams}`;
+	const {
+		data: tableResult,
+		error: tableError,
+		isLoading,
+		isValidating,
+		mutate: mutateLabTests,
+	} = useSWR(
+		key,
+		async (url: string) => {
+			const response = await fetch(url);
+			const result = (await response.json()) as PatientLabTestsTableResult;
+			if (!response.ok || result.status === "failed") {
+				throw Object.assign(
+					new Error(
+						result.status === "failed" ? result.error : "Unable to load patient lab-tests.",
+					),
+					{ status: response.status },
+				);
 			}
-
-			setTableData({
-				rows: result.labTests,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
-	}
-
+			return result;
+		},
+		{
+			keepPreviousData: true,
+			fallbackData:
+				key === initialKey ? { status: "success", labTests, page, limit, totalPages } : undefined,
+			onError: (error: Error & { status?: number }) => {
+				if (error.status === 401 || error.status === 403) router.refresh();
+			},
+			shouldRetryOnError: (error: Error & { status?: number }) =>
+				error.status !== 401 && error.status !== 403,
+		},
+	);
+	const isPending = isLoading || isValidating;
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		refreshLabTestsTable({ nextQuery });
+		setSearchQuery(nextQuery);
+		setCurrentPage(1);
 	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
@@ -107,33 +102,37 @@ export function LabTestsClient({
 	}
 
 	function handlePreviousPage() {
-		const nextPage = Math.max(tableData.page - 1, 1);
-		refreshLabTestsTable({ nextPage });
+		const nextPage = Math.max(currentPage - 1, 1);
+		setCurrentPage(nextPage);
 	}
 
 	function handleNextPage() {
-		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
-		refreshLabTestsTable({ nextPage });
+		const nextPage = Math.min(currentPage + 1, tableResult?.totalPages ?? 1);
+		setCurrentPage(nextPage);
 	}
 
 	function handleLimitChange(nextLimit: number) {
-		refreshLabTestsTable({ nextLimit });
+		setCurrentLimit(nextLimit);
+		setCurrentPage(1);
 	}
 
 	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
 		setCreatedFrom(nextCreatedFrom);
 		setCreatedTo(nextCreatedTo);
-		refreshLabTestsTable({ nextCreatedFrom, nextCreatedTo });
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	function handleStatusFiltersChange(nextStatusFilters: LabTestStatusFilter[]) {
 		setStatusFilters(nextStatusFilters);
-		refreshLabTestsTable({ nextStatusFilters });
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	function handleFlagFiltersChange(nextFlagFilters: LabTestFlagFilter[]) {
 		setFlagFilters(nextFlagFilters);
-		refreshLabTestsTable({ nextFlagFilters });
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	function handleFiltersClear() {
@@ -141,38 +140,41 @@ export function LabTestsClient({
 		setCreatedTo("");
 		setStatusFilters([]);
 		setFlagFilters([]);
-		refreshLabTestsTable({
-			nextCreatedFrom: "",
-			nextCreatedTo: "",
-			nextStatusFilters: [],
-			nextFlagFilters: [],
-		});
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	return (
-		<LabTestsTable
-			patientId={patientId}
-			encounterId={encounterId}
-			labTests={tableData.rows}
-			page={optimisticPage}
-			limit={optimisticLimit}
-			totalPages={tableData.totalPages}
-			query={query}
-			createdFrom={createdFrom}
-			createdTo={createdTo}
-			statusFilters={statusFilters}
-			flagFilters={flagFilters}
-			isPending={isPending}
-			onQueryChange={handleQueryChange}
-			onCreatedAtRangeApply={handleCreatedAtRangeApply}
-			onStatusFiltersChange={handleStatusFiltersChange}
-			onFlagFiltersChange={handleFlagFiltersChange}
-			onFiltersClear={handleFiltersClear}
-			onLabTestCreated={() => refreshLabTestsTable({ nextPage: tableData.page })}
-			onLabTestUpdated={() => refreshLabTestsTable({ nextPage: tableData.page })}
-			onPreviousPage={handlePreviousPage}
-			onNextPage={handleNextPage}
-			onLimitChange={handleLimitChange}
-		/>
+		<>
+			{tableError ? <p role="alert">{tableError.message}</p> : null}
+			<LabTestsTable
+				patientId={patientId}
+				encounterId={encounterId}
+				labTests={tableResult?.labTests ?? []}
+				page={currentPage}
+				limit={currentLimit}
+				totalPages={tableResult?.totalPages ?? 1}
+				query={query}
+				createdFrom={createdFrom}
+				createdTo={createdTo}
+				statusFilters={statusFilters}
+				flagFilters={flagFilters}
+				isPending={isPending}
+				onQueryChange={handleQueryChange}
+				onCreatedAtRangeApply={handleCreatedAtRangeApply}
+				onStatusFiltersChange={handleStatusFiltersChange}
+				onFlagFiltersChange={handleFlagFiltersChange}
+				onFiltersClear={handleFiltersClear}
+				onLabTestCreated={() => {
+					void mutateLabTests();
+				}}
+				onLabTestUpdated={() => {
+					void mutateLabTests();
+				}}
+				onPreviousPage={handlePreviousPage}
+				onNextPage={handleNextPage}
+				onLimitChange={handleLimitChange}
+			/>
+		</>
 	);
 }

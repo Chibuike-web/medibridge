@@ -1,17 +1,12 @@
 "use client";
 
 import { DiagnosesTable } from "@/features/patients/components/diagnoses-table";
-import { getPatientDiagnosesTableAction } from "@/features/patients/server/get-patient-diagnoses-table-action";
 import type { DiagnosisStatusFilter, DiagnosisType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useRef, useState, useTransition } from "react";
-
-type SectionTableState<T> = {
-	rows: T[];
-	page: number;
-	limit: number;
-	totalPages: number;
-};
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import type { PatientDiagnosesTableResult } from "@/app/api/patient-diagnoses/[patientId]/route";
 
 export function DiagnosesClient({
 	patientId,
@@ -28,14 +23,10 @@ export function DiagnosesClient({
 	limit: number;
 	totalPages: number;
 }) {
-	const [tableData, setTableData] = useState<SectionTableState<DiagnosisType>>({
-		rows: diagnoses,
-		page,
-		limit,
-		totalPages,
-	});
-	const [optimisticPage, setOptimisticPage] = useOptimistic(tableData.page);
-	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
+	const router = useRouter();
+	const [currentPage, setCurrentPage] = useState(page);
+	const [currentLimit, setCurrentLimit] = useState(limit);
+	const [searchQuery, setSearchQuery] = useState("");
 	const [query, setQuery] = useState("");
 	const [createdFrom, setCreatedFrom] = useState("");
 	const [createdTo, setCreatedTo] = useState("");
@@ -44,68 +35,70 @@ export function DiagnosesClient({
 	const [lastReviewedFrom, setLastReviewedFrom] = useState("");
 	const [lastReviewedTo, setLastReviewedTo] = useState("");
 	const [statusFilters, setStatusFilters] = useState<DiagnosisStatusFilter[]>([]);
-	const [isPending, startTransition] = useTransition();
-	const latestSectionTableRequestIdRef = useRef(0);
-
-	function refreshDiagnosesTable({
-		nextPage = 1,
-		nextLimit = tableData.limit,
-		nextQuery = query,
-		nextCreatedFrom = createdFrom,
-		nextCreatedTo = createdTo,
-		nextDiagnosedFrom = diagnosedFrom,
-		nextDiagnosedTo = diagnosedTo,
-		nextLastReviewedFrom = lastReviewedFrom,
-		nextLastReviewedTo = lastReviewedTo,
-		nextStatusFilters = statusFilters,
-	}: {
-		nextPage?: number;
-		nextLimit?: number;
-		nextQuery?: string;
-		nextCreatedFrom?: string;
-		nextCreatedTo?: string;
-		nextDiagnosedFrom?: string;
-		nextDiagnosedTo?: string;
-		nextLastReviewedFrom?: string;
-		nextLastReviewedTo?: string;
-		nextStatusFilters?: DiagnosisStatusFilter[];
-	}) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			setOptimisticLimit(nextLimit);
-			const result = await getPatientDiagnosesTableAction({
-				patientId,
-				encounterId,
-				page: nextPage,
-				limit: nextLimit,
-				query: nextQuery,
-				createdFrom: nextCreatedFrom,
-				createdTo: nextCreatedTo,
-				diagnosedFrom: nextDiagnosedFrom,
-				diagnosedTo: nextDiagnosedTo,
-				lastReviewedFrom: nextLastReviewedFrom,
-				lastReviewedTo: nextLastReviewedTo,
-				statusFilters: nextStatusFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
+	const requestParams = new URLSearchParams({
+		page: String(currentPage),
+		limit: String(currentLimit),
+		query: searchQuery,
+		encounterId: encounterId ?? "",
+		createdFrom: createdFrom,
+		createdTo: createdTo,
+		diagnosedFrom: diagnosedFrom,
+		diagnosedTo: diagnosedTo,
+		lastReviewedFrom: lastReviewedFrom,
+		lastReviewedTo: lastReviewedTo,
+		statusFilters: statusFilters.join(","),
+	});
+	const initialParams = new URLSearchParams({
+		page: String(page),
+		limit: String(limit),
+		query: "",
+		encounterId: encounterId ?? "",
+		createdFrom: "",
+		createdTo: "",
+		diagnosedFrom: "",
+		diagnosedTo: "",
+		lastReviewedFrom: "",
+		lastReviewedTo: "",
+		statusFilters: "",
+	});
+	const key = `/api/patient-diagnoses/${encodeURIComponent(patientId)}?${requestParams}`;
+	const initialKey = `/api/patient-diagnoses/${encodeURIComponent(patientId)}?${initialParams}`;
+	const {
+		data: tableResult,
+		error: tableError,
+		isLoading,
+		isValidating,
+		mutate: mutateDiagnoses,
+	} = useSWR(
+		key,
+		async (url: string) => {
+			const response = await fetch(url);
+			const result = (await response.json()) as PatientDiagnosesTableResult;
+			if (!response.ok || result.status === "failed") {
+				throw Object.assign(
+					new Error(
+						result.status === "failed" ? result.error : "Unable to load patient diagnoses.",
+					),
+					{ status: response.status },
+				);
 			}
-
-			setTableData({
-				rows: result.diagnoses,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
-	}
-
+			return result;
+		},
+		{
+			keepPreviousData: true,
+			fallbackData:
+				key === initialKey ? { status: "success", diagnoses, page, limit, totalPages } : undefined,
+			onError: (error: Error & { status?: number }) => {
+				if (error.status === 401 || error.status === 403) router.refresh();
+			},
+			shouldRetryOnError: (error: Error & { status?: number }) =>
+				error.status !== 401 && error.status !== 403,
+		},
+	);
+	const isPending = isLoading || isValidating;
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		refreshDiagnosesTable({ nextQuery });
+		setSearchQuery(nextQuery);
+		setCurrentPage(1);
 	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
@@ -114,40 +107,45 @@ export function DiagnosesClient({
 	}
 
 	function handlePreviousPage() {
-		const nextPage = Math.max(tableData.page - 1, 1);
-		refreshDiagnosesTable({ nextPage });
+		const nextPage = Math.max(currentPage - 1, 1);
+		setCurrentPage(nextPage);
 	}
 
 	function handleNextPage() {
-		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
-		refreshDiagnosesTable({ nextPage });
+		const nextPage = Math.min(currentPage + 1, tableResult?.totalPages ?? 1);
+		setCurrentPage(nextPage);
 	}
 
 	function handleLimitChange(nextLimit: number) {
-		refreshDiagnosesTable({ nextLimit });
+		setCurrentLimit(nextLimit);
+		setCurrentPage(1);
 	}
 
 	function handleStatusFiltersChange(nextStatusFilters: DiagnosisStatusFilter[]) {
 		setStatusFilters(nextStatusFilters);
-		refreshDiagnosesTable({ nextStatusFilters });
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
 		setCreatedFrom(nextCreatedFrom);
 		setCreatedTo(nextCreatedTo);
-		refreshDiagnosesTable({ nextCreatedFrom, nextCreatedTo });
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	function handleDiagnosedAtRangeApply(nextDiagnosedFrom: string, nextDiagnosedTo: string) {
 		setDiagnosedFrom(nextDiagnosedFrom);
 		setDiagnosedTo(nextDiagnosedTo);
-		refreshDiagnosesTable({ nextDiagnosedFrom, nextDiagnosedTo });
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	function handleLastReviewedRangeApply(nextLastReviewedFrom: string, nextLastReviewedTo: string) {
 		setLastReviewedFrom(nextLastReviewedFrom);
 		setLastReviewedTo(nextLastReviewedTo);
-		refreshDiagnosesTable({ nextLastReviewedFrom, nextLastReviewedTo });
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	function handleFiltersClear() {
@@ -158,45 +156,45 @@ export function DiagnosesClient({
 		setLastReviewedFrom("");
 		setLastReviewedTo("");
 		setStatusFilters([]);
-		refreshDiagnosesTable({
-			nextCreatedFrom: "",
-			nextCreatedTo: "",
-			nextDiagnosedFrom: "",
-			nextDiagnosedTo: "",
-			nextLastReviewedFrom: "",
-			nextLastReviewedTo: "",
-			nextStatusFilters: [],
-		});
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	return (
-		<DiagnosesTable
-			patientId={patientId}
-			encounterId={encounterId}
-			diagnoses={tableData.rows}
-			page={optimisticPage}
-			limit={optimisticLimit}
-			totalPages={tableData.totalPages}
-			query={query}
-			createdFrom={createdFrom}
-			createdTo={createdTo}
-			diagnosedFrom={diagnosedFrom}
-			diagnosedTo={diagnosedTo}
-			isPending={isPending}
-			lastReviewedFrom={lastReviewedFrom}
-			lastReviewedTo={lastReviewedTo}
-			statusFilters={statusFilters}
-			onCreatedAtRangeApply={handleCreatedAtRangeApply}
-			onDiagnosedAtRangeApply={handleDiagnosedAtRangeApply}
-			onLastReviewedRangeApply={handleLastReviewedRangeApply}
-			onQueryChange={handleQueryChange}
-			onPreviousPage={handlePreviousPage}
-			onNextPage={handleNextPage}
-			onLimitChange={handleLimitChange}
-			onStatusFiltersChange={handleStatusFiltersChange}
-			onFiltersClear={handleFiltersClear}
-			onDiagnosisCreated={() => refreshDiagnosesTable({ nextPage: tableData.page })}
-			onDiagnosisUpdated={() => refreshDiagnosesTable({ nextPage: tableData.page })}
-		/>
+		<>
+			{tableError ? <p role="alert">{tableError.message}</p> : null}
+			<DiagnosesTable
+				patientId={patientId}
+				encounterId={encounterId}
+				diagnoses={tableResult?.diagnoses ?? []}
+				page={currentPage}
+				limit={currentLimit}
+				totalPages={tableResult?.totalPages ?? 1}
+				query={query}
+				createdFrom={createdFrom}
+				createdTo={createdTo}
+				diagnosedFrom={diagnosedFrom}
+				diagnosedTo={diagnosedTo}
+				isPending={isPending}
+				lastReviewedFrom={lastReviewedFrom}
+				lastReviewedTo={lastReviewedTo}
+				statusFilters={statusFilters}
+				onCreatedAtRangeApply={handleCreatedAtRangeApply}
+				onDiagnosedAtRangeApply={handleDiagnosedAtRangeApply}
+				onLastReviewedRangeApply={handleLastReviewedRangeApply}
+				onQueryChange={handleQueryChange}
+				onPreviousPage={handlePreviousPage}
+				onNextPage={handleNextPage}
+				onLimitChange={handleLimitChange}
+				onStatusFiltersChange={handleStatusFiltersChange}
+				onFiltersClear={handleFiltersClear}
+				onDiagnosisCreated={() => {
+					void mutateDiagnoses();
+				}}
+				onDiagnosisUpdated={() => {
+					void mutateDiagnoses();
+				}}
+			/>
+		</>
 	);
 }

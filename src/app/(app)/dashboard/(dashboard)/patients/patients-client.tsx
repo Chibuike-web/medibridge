@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FilterButton } from "@/features/patients/components/filter-button";
 import { PatientsTable } from "@/features/patients/components/patients-table";
-import { getPatientsTableAction } from "@/features/patients/server/get-patients-table-action";
 import type {
 	PatientAgeGroupFilter,
 	PatientGenderFilter,
@@ -12,13 +11,15 @@ import type {
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
-import { parseDateBoundaryParam } from "@/lib/utils/search-params";
+import { getNumberParam } from "@/lib/utils/search-params";
 import { format } from "date-fns";
 import { RiCloseLine, RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useLayoutEffect, useOptimistic, useRef, useState, useTransition } from "react";
+import { useState } from "react";
+import useSWR from "swr";
+import type { PatientsTableResult } from "@/app/api/patients/route";
 
 type PatientsClientProps = {
 	patients: PatientListItemType[];
@@ -46,420 +47,177 @@ const patientGenderFilterLabels: Record<Exclude<PatientGenderFilter, "">, string
 };
 
 export function PatientsClient({
-	ageGroupFilter,
+	ageGroupFilter: initialAgeGroupFilter,
 	patients,
-	page,
-	limit,
+	page: initialPage,
+	limit: initialLimit,
 	totalPages,
-	searchQuery,
-	createdFrom,
-	createdTo,
-	genderFilter,
+	searchQuery: initialSearchQuery,
+	createdFrom: initialCreatedFrom,
+	createdTo: initialCreatedTo,
+	genderFilter: initialGenderFilter,
 }: PatientsClientProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
-	const [patientSearchQuery, setPatientSearchQuery] = useState(searchQuery);
-	const [tableData, setTableData] = useState({
-		patients,
-		page,
-		limit,
-		totalPages,
+	const currentPage = getNumberParam(searchParams.get("page"), 1, { min: 1 });
+	const currentLimit = getNumberParam(searchParams.get("limit"), 14, { min: 1, max: 100 });
+	const currentQuery = searchParams.get("query") ?? "";
+	const createdFrom = searchParams.get("createdFrom") ?? "";
+	const createdTo = searchParams.get("createdTo") ?? "";
+	const gender = searchParams.get("gender");
+	const genderFilter = gender === "male" || gender === "female" ? gender : "";
+	const ageGroup = searchParams.get("ageGroup") ?? "";
+	const ageGroupFilter: PatientAgeGroupFilter = [
+		"children",
+		"teenagers",
+		"young-adults",
+		"adults",
+		"seniors",
+	].includes(ageGroup)
+		? (ageGroup as PatientAgeGroupFilter)
+		: "";
+	const [patientSearch, setPatientSearch] = useState({
+		query: currentQuery,
+		urlQuery: currentQuery,
 	});
-	const [optimisticPage, setOptimisticPage] = useOptimistic(tableData.page);
-	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
-	const [optimisticCreatedAtRange, setOptimisticCreatedAtRange] = useOptimistic({
-		createdFrom,
-		createdTo,
+	if (patientSearch.urlQuery !== currentQuery) {
+		setPatientSearch({ query: currentQuery, urlQuery: currentQuery });
+	}
+	const requestParams = new URLSearchParams({
+		page: String(currentPage),
+		limit: String(currentLimit),
+		query: currentQuery,
+		createdFrom: createdFrom,
+		createdTo: createdTo,
+		gender: genderFilter,
+		ageGroup: ageGroupFilter,
 	});
-	const [optimisticAgeGroupFilter, setOptimisticAgeGroupFilter] = useOptimistic(ageGroupFilter);
-	const [optimisticGenderFilter, setOptimisticGenderFilter] = useOptimistic(genderFilter);
-	const [isPending, startTransition] = useTransition();
-	const latestPatientsTableRequestIdRef = useRef(0);
-
-	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		latestPatientsTableRequestIdRef.current += 1;
-		const patientsTableRequestId = latestPatientsTableRequestIdRef.current;
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-
-			const result = await getPatientsTableAction({
-				page: 1,
-				limit: tableData.limit,
-				query: nextQuery,
-				createdAtFilter: {
-					from: parseDateBoundaryParam(optimisticCreatedAtRange.createdFrom, "start"),
-					to: parseDateBoundaryParam(optimisticCreatedAtRange.createdTo, "end"),
-				},
-				patientFilterOptions: {
-					gender: optimisticGenderFilter || undefined,
-					ageRange: getPatientAgeRange(optimisticAgeGroupFilter),
-				},
-			});
-
-			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
-				return;
+	const initialParams = new URLSearchParams({
+		page: String(initialPage),
+		limit: String(initialLimit),
+		query: initialSearchQuery,
+		createdFrom: initialCreatedFrom,
+		createdTo: initialCreatedTo,
+		gender: initialGenderFilter,
+		ageGroup: initialAgeGroupFilter,
+	});
+	const key = `/api/patients?${requestParams}`;
+	const initialKey = `/api/patients?${initialParams}`;
+	const {
+		data: tableResult,
+		error: tableError,
+		isLoading,
+		isValidating,
+	} = useSWR(
+		key,
+		async (url: string) => {
+			const response = await fetch(url);
+			const result = (await response.json()) as PatientsTableResult;
+			if (!response.ok || result.status === "failed") {
+				throw Object.assign(
+					new Error(result.status === "failed" ? result.error : "Unable to load patients."),
+					{ status: response.status },
+				);
 			}
-
-			setTableData({
-				patients: result.patients,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-
-			router.push(
-				(pathname +
-					"?" +
-					createQueryString({
-						page: "1",
-						limit: String(tableData.limit),
-						query: nextQuery,
-					})) as Route,
-			);
-		});
+			return result;
+		},
+		{
+			keepPreviousData: true,
+			fallbackData:
+				key === initialKey
+					? { status: "success", patients, page: initialPage, limit: initialLimit, totalPages }
+					: undefined,
+			onError: (error: Error & { status?: number }) => {
+				if (error.status === 401 || error.status === 403) router.refresh();
+			},
+			shouldRetryOnError: (error: Error & { status?: number }) =>
+				error.status !== 401 && error.status !== 403,
+		},
+	);
+	const isPending = isLoading || isValidating;
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		if (nextQuery !== patientSearch.query) return;
+		window.history.replaceState(
+			null,
+			"",
+			pathname + "?" + createQueryString({ page: "1", query: nextQuery }),
+		);
 	}, 300);
 
 	function createQueryString(params: Record<string, string>) {
-		const newParams = new URLSearchParams(searchParams.toString());
+		const newParams = new URLSearchParams(window.location.search);
 		Object.entries(params).forEach(([name, value]) => {
-			if (value.trim() === "") {
-				newParams.delete(name);
-			} else {
-				newParams.set(name, value);
-			}
+			if (value.trim() === "") newParams.delete(name);
+			else newParams.set(name, value);
 		});
-
 		return newParams.toString();
 	}
 
-	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
-		latestPatientsTableRequestIdRef.current += 1;
-		const patientsTableRequestId = latestPatientsTableRequestIdRef.current;
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticCreatedAtRange({
-				createdFrom: nextCreatedFrom,
-				createdTo: nextCreatedTo,
-			});
-
-			const result = await getPatientsTableAction({
-				page: 1,
-				limit: tableData.limit,
-				query: patientSearchQuery,
-				createdAtFilter: {
-					from: parseDateBoundaryParam(nextCreatedFrom, "start"),
-					to: parseDateBoundaryParam(nextCreatedTo, "end"),
-				},
-				patientFilterOptions: {
-					gender: optimisticGenderFilter || undefined,
-					ageRange: getPatientAgeRange(optimisticAgeGroupFilter),
-				},
-			});
-
-			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				patients: result.patients,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-
-			router.push(
-				(pathname +
-					"?" +
-					createQueryString({
-						page: "1",
-						limit: String(tableData.limit),
-						createdFrom: nextCreatedFrom,
-						createdTo: nextCreatedTo,
-					})) as Route,
-			);
-		});
-	}
-
-	function handleGenderFilterChange(nextGenderFilter: PatientGenderFilter) {
-		latestPatientsTableRequestIdRef.current += 1;
-		const patientsTableRequestId = latestPatientsTableRequestIdRef.current;
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticGenderFilter(nextGenderFilter);
-
-			const result = await getPatientsTableAction({
-				page: 1,
-				limit: tableData.limit,
-				query: patientSearchQuery,
-				createdAtFilter: {
-					from: parseDateBoundaryParam(optimisticCreatedAtRange.createdFrom, "start"),
-					to: parseDateBoundaryParam(optimisticCreatedAtRange.createdTo, "end"),
-				},
-				patientFilterOptions: {
-					gender: nextGenderFilter || undefined,
-					ageRange: getPatientAgeRange(optimisticAgeGroupFilter),
-				},
-			});
-
-			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				patients: result.patients,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-
-			router.push(
-				(pathname +
-					"?" +
-					createQueryString({
-						page: "1",
-						limit: String(tableData.limit),
-						gender: nextGenderFilter,
-					})) as Route,
-			);
-		});
-	}
-
-	function handleAgeGroupFilterChange(nextAgeGroupFilter: PatientAgeGroupFilter) {
-		latestPatientsTableRequestIdRef.current += 1;
-		const patientsTableRequestId = latestPatientsTableRequestIdRef.current;
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticAgeGroupFilter(nextAgeGroupFilter);
-
-			const result = await getPatientsTableAction({
-				page: 1,
-				limit: tableData.limit,
-				query: patientSearchQuery,
-				createdAtFilter: {
-					from: parseDateBoundaryParam(optimisticCreatedAtRange.createdFrom, "start"),
-					to: parseDateBoundaryParam(optimisticCreatedAtRange.createdTo, "end"),
-				},
-				patientFilterOptions: {
-					gender: optimisticGenderFilter || undefined,
-					ageRange: getPatientAgeRange(nextAgeGroupFilter),
-				},
-			});
-
-			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				patients: result.patients,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-
-			router.push(
-				(pathname +
-					"?" +
-					createQueryString({
-						page: "1",
-						limit: String(tableData.limit),
-						ageGroup: nextAgeGroupFilter,
-					})) as Route,
-			);
-		});
-	}
-
-	function handleFiltersClear() {
-		latestPatientsTableRequestIdRef.current += 1;
-		const patientsTableRequestId = latestPatientsTableRequestIdRef.current;
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticCreatedAtRange({
-				createdFrom: "",
-				createdTo: "",
-			});
-			setOptimisticGenderFilter("");
-			setOptimisticAgeGroupFilter("");
-
-			const result = await getPatientsTableAction({
-				page: 1,
-				limit: tableData.limit,
-				query: patientSearchQuery,
-			});
-
-			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				patients: result.patients,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-
-			router.push(
-				(pathname +
-					"?" +
-					createQueryString({
-						page: "1",
-						limit: String(tableData.limit),
-						createdFrom: "",
-						createdTo: "",
-						gender: "",
-						ageGroup: "",
-					})) as Route,
-			);
-		});
-	}
-
 	function handleQueryChange(nextQuery: string) {
-		setPatientSearchQuery(nextQuery);
+		setPatientSearch({ query: nextQuery, urlQuery: currentQuery });
 		debouncedSearch(nextQuery);
 	}
-
+	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
+		window.history.replaceState(
+			null,
+			"",
+			pathname +
+				"?" +
+				createQueryString({ page: "1", createdFrom: nextCreatedFrom, createdTo: nextCreatedTo }),
+		);
+	}
+	function handleGenderFilterChange(nextGenderFilter: PatientGenderFilter) {
+		window.history.replaceState(
+			null,
+			"",
+			pathname + "?" + createQueryString({ page: "1", gender: nextGenderFilter }),
+		);
+	}
+	function handleAgeGroupFilterChange(nextAgeGroupFilter: PatientAgeGroupFilter) {
+		window.history.replaceState(
+			null,
+			"",
+			pathname + "?" + createQueryString({ page: "1", ageGroup: nextAgeGroupFilter }),
+		);
+	}
+	function handleFiltersClear() {
+		window.history.replaceState(
+			null,
+			"",
+			pathname +
+				"?" +
+				createQueryString({ page: "1", createdFrom: "", createdTo: "", gender: "", ageGroup: "" }),
+		);
+	}
 	function handlePreviousPage() {
-		latestPatientsTableRequestIdRef.current += 1;
-		const patientsTableRequestId = latestPatientsTableRequestIdRef.current;
-		const previousPage = tableData.page - 1;
-
-		startTransition(async () => {
-			setOptimisticPage(previousPage);
-
-			const result = await getPatientsTableAction({
-				page: previousPage,
-				limit: tableData.limit,
-				query: patientSearchQuery,
-				createdAtFilter: {
-					from: parseDateBoundaryParam(optimisticCreatedAtRange.createdFrom, "start"),
-					to: parseDateBoundaryParam(optimisticCreatedAtRange.createdTo, "end"),
-				},
-				patientFilterOptions: {
-					gender: optimisticGenderFilter || undefined,
-					ageRange: getPatientAgeRange(optimisticAgeGroupFilter),
-				},
-			});
-
-			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				patients: result.patients,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-
-			router.push(
-				(pathname +
-					"?" +
-					createQueryString({
-						page: String(result.page),
-						limit: String(result.limit),
-					})) as Route,
-			);
-		});
+		window.history.pushState(
+			null,
+			"",
+			pathname + "?" + createQueryString({ page: String(Math.max(currentPage - 1, 1)) }),
+		);
 	}
-
 	function handleNextPage() {
-		latestPatientsTableRequestIdRef.current += 1;
-		const patientsTableRequestId = latestPatientsTableRequestIdRef.current;
-		const nextPage = tableData.page + 1;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-
-			const result = await getPatientsTableAction({
-				page: nextPage,
-				limit: tableData.limit,
-				query: patientSearchQuery,
-				createdAtFilter: {
-					from: parseDateBoundaryParam(optimisticCreatedAtRange.createdFrom, "start"),
-					to: parseDateBoundaryParam(optimisticCreatedAtRange.createdTo, "end"),
-				},
-				patientFilterOptions: {
-					gender: optimisticGenderFilter || undefined,
-					ageRange: getPatientAgeRange(optimisticAgeGroupFilter),
-				},
-			});
-
-			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				patients: result.patients,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-
-			router.push(
-				(pathname +
-					"?" +
-					createQueryString({
-						page: String(result.page),
-						limit: String(result.limit),
-					})) as Route,
-			);
-		});
+		window.history.pushState(
+			null,
+			"",
+			pathname +
+				"?" +
+				createQueryString({
+					page: String(Math.min(currentPage + 1, tableResult?.totalPages ?? 1)),
+				}),
+		);
 	}
-
 	function handleLimitChange(value: string) {
-		latestPatientsTableRequestIdRef.current += 1;
-		const patientsTableRequestId = latestPatientsTableRequestIdRef.current;
-		const nextLimit = Number(value);
-
-		startTransition(async () => {
-			setOptimisticPage(1);
-			setOptimisticLimit(nextLimit);
-
-			const result = await getPatientsTableAction({
-				page: 1,
-				limit: nextLimit,
-				query: patientSearchQuery,
-				createdAtFilter: {
-					from: parseDateBoundaryParam(optimisticCreatedAtRange.createdFrom, "start"),
-					to: parseDateBoundaryParam(optimisticCreatedAtRange.createdTo, "end"),
-				},
-				patientFilterOptions: {
-					gender: optimisticGenderFilter || undefined,
-					ageRange: getPatientAgeRange(optimisticAgeGroupFilter),
-				},
-			});
-
-			if (latestPatientsTableRequestIdRef.current !== patientsTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				patients: result.patients,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-
-			router.push(
-				(pathname +
-					"?" +
-					createQueryString({ page: String(result.page), limit: String(result.limit) })) as Route,
-			);
-		});
+		window.history.replaceState(
+			null,
+			"",
+			pathname + "?" + createQueryString({ page: "1", limit: value }),
+		);
 	}
-
 	const returnTo = getCurrentRoute(pathname, searchParams);
 	const addNewPatientHref =
 		`/dashboard/add-new-patient?returnTo=${encodeURIComponent(returnTo)}` as Route;
-
-	useLayoutEffect(() => {
-		setTableData({ patients, page, limit, totalPages });
-	}, [patients, page, limit, totalPages]);
 
 	return (
 		<div className="h-full overflow-y-auto">
@@ -475,16 +233,16 @@ export function PatientsClient({
 								type="search"
 								className="pl-8"
 								placeholder="Search by patient name or ID"
-								value={patientSearchQuery}
+								value={patientSearch.query}
 								onChange={(event) => handleQueryChange(event.target.value)}
 							/>
 						</div>
 
 						<FilterButton
-							ageGroupFilter={optimisticAgeGroupFilter}
-							createdFrom={optimisticCreatedAtRange.createdFrom}
-							createdTo={optimisticCreatedAtRange.createdTo}
-							genderFilter={optimisticGenderFilter}
+							ageGroupFilter={ageGroupFilter}
+							createdFrom={createdFrom}
+							createdTo={createdTo}
+							genderFilter={genderFilter}
 							isPending={isPending}
 							onAgeGroupFilterChange={handleAgeGroupFilterChange}
 							onCreatedAtRangeApply={handleCreatedAtRangeApply}
@@ -503,20 +261,21 @@ export function PatientsClient({
 					</div>
 				</header>
 				<PatientActiveFilterPills
-					ageGroupFilter={optimisticAgeGroupFilter}
-					createdFrom={optimisticCreatedAtRange.createdFrom}
-					createdTo={optimisticCreatedAtRange.createdTo}
-					genderFilter={optimisticGenderFilter}
+					ageGroupFilter={ageGroupFilter}
+					createdFrom={createdFrom}
+					createdTo={createdTo}
+					genderFilter={genderFilter}
 					onAgeGroupFilterChange={handleAgeGroupFilterChange}
 					onCreatedAtRangeApply={handleCreatedAtRangeApply}
 					onGenderFilterChange={handleGenderFilterChange}
 					onFiltersClear={handleFiltersClear}
 				/>
+				{tableError ? <p role="alert">{tableError.message}</p> : null}
 				<PatientsTable
-					patients={tableData.patients}
-					page={optimisticPage}
-					limit={optimisticLimit}
-					totalPages={tableData.totalPages}
+					patients={tableResult?.patients ?? []}
+					page={currentPage}
+					limit={currentLimit}
+					totalPages={tableResult?.totalPages ?? 1}
 					isPending={isPending}
 					onPreviousPage={handlePreviousPage}
 					onNextPage={handleNextPage}
@@ -621,28 +380,6 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 	}
 
 	return "Any date";
-}
-
-function getPatientAgeRange(ageGroup: PatientAgeGroupFilter) {
-	switch (ageGroup) {
-		case "children":
-			return { min: 0, max: 12 };
-
-		case "teenagers":
-			return { min: 13, max: 17 };
-
-		case "young-adults":
-			return { min: 18, max: 35 };
-
-		case "adults":
-			return { min: 36, max: 59 };
-
-		case "seniors":
-			return { min: 60 };
-
-		default:
-			return undefined;
-	}
 }
 
 function getCurrentRoute(pathname: string, searchParams: URLSearchParams) {
