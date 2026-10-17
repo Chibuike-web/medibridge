@@ -12,7 +12,9 @@ const { createPatientDiagnosisMock, updatePatientDiagnosisMock } = vi.hoisted(()
 	updatePatientDiagnosisMock: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+const { refreshMock } = vi.hoisted(() => ({ refreshMock: vi.fn() }));
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: refreshMock }) }));
 
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
@@ -132,8 +134,6 @@ function buildProps(overrides: Partial<DiagnosesTableProps> = {}): DiagnosesTabl
 		onLimitChange: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
 		onFiltersClear: vi.fn(),
-		onDiagnosisCreated: vi.fn(),
-		onDiagnosisUpdated: vi.fn(),
 		...overrides,
 	};
 }
@@ -428,7 +428,7 @@ describe("Diagnoses table", () => {
 			return { status: "success" };
 		});
 		const user = userEvent.setup();
-		const { onDiagnosisUpdated } = renderDiagnosesTable();
+		renderDiagnosesTable();
 
 		const editDialog = await openAsthmaEditForm(user);
 		const nameInput = within(editDialog).getByLabelText(/Diagnosis name/);
@@ -462,7 +462,7 @@ describe("Diagnoses table", () => {
 		expect(
 			await within(viewDialog).findByRole("heading", { name: "Childhood asthma" }),
 		).toBeVisible();
-		expect(onDiagnosisUpdated).toHaveBeenCalledTimes(1);
+		expect(refreshMock).not.toHaveBeenCalled();
 	});
 
 	test("keeps the edit form open and shows why the changes were not saved", async () => {
@@ -471,7 +471,7 @@ describe("Diagnoses table", () => {
 			error: "Enter who made the diagnosis.",
 		});
 		const user = userEvent.setup();
-		const { onDiagnosisUpdated } = renderDiagnosesTable();
+		renderDiagnosesTable();
 
 		const editDialog = await openAsthmaEditForm(user);
 		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
@@ -480,7 +480,7 @@ describe("Diagnoses table", () => {
 			"Enter who made the diagnosis.",
 		);
 		expect(within(editDialog).getByLabelText(/Diagnosis name/)).toHaveValue("Asthma");
-		expect(onDiagnosisUpdated).not.toHaveBeenCalled();
+		expect(refreshMock).not.toHaveBeenCalled();
 	});
 
 	test("asks an owner to confirm before archiving from the details actions menu", async () => {
@@ -568,10 +568,10 @@ describe("Diagnoses table", () => {
 		expect(within(bulkBar).queryByRole("button", { name: /Archive/ })).not.toBeInTheDocument();
 	});
 
-	test("adds a diagnosis to the encounter it was opened from and refreshes the table", async () => {
+	test("adds a diagnosis to the encounter it was opened from without a follow-up table request", async () => {
 		createPatientDiagnosisMock.mockResolvedValue({ status: "success", diagnosisId: "DX-new" });
 		const user = userEvent.setup();
-		const { onDiagnosisCreated } = renderDiagnosesTable({ encounterId: "ENC-1" });
+		renderDiagnosesTable({ encounterId: "ENC-1" });
 		const today = new Date();
 
 		await user.click(screen.getByRole("button", { name: "Add diagnosis" }));
@@ -598,7 +598,7 @@ describe("Diagnoses table", () => {
 				encounterId: "ENC-1",
 			}),
 		);
-		expect(onDiagnosisCreated).toHaveBeenCalled();
+		expect(refreshMock).not.toHaveBeenCalled();
 		expect(screen.queryByRole("dialog", { name: "Add diagnosis" })).not.toBeInTheDocument();
 	});
 
@@ -608,7 +608,7 @@ describe("Diagnoses table", () => {
 			error: "Select the diagnosis date.",
 		});
 		const user = userEvent.setup();
-		const { onDiagnosisCreated } = renderDiagnosesTable();
+		renderDiagnosesTable();
 
 		await user.click(screen.getByRole("button", { name: "Add diagnosis" }));
 		const drawer = await screen.findByRole("dialog", { name: "Add diagnosis" });
@@ -621,6 +621,6 @@ describe("Diagnoses table", () => {
 			"Select the diagnosis date.",
 		);
 		expect(within(drawer).getByLabelText(/Diagnosis name/)).toHaveValue("Asthma");
-		expect(onDiagnosisCreated).not.toHaveBeenCalled();
+		expect(refreshMock).not.toHaveBeenCalled();
 	});
 });

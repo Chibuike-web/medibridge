@@ -116,8 +116,6 @@ type ProceduresTableProps = {
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: ProcedureStatusFilter[]) => void;
 	onFiltersClear: () => void;
-	onProcedureCreated: () => void;
-	onProcedureUpdated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -139,8 +137,6 @@ export function ProceduresTable({
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
 	onFiltersClear,
-	onProcedureCreated,
-	onProcedureUpdated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -338,7 +334,11 @@ export function ProceduresTable({
 				onFiltersClear={onFiltersClear}
 			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
-				<Table className="min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<Table
+					aria-busy={isPending}
+					data-pending={isPending || undefined}
+					className="min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left transition-opacity data-[pending=true]:opacity-50"
+				>
 					<TableHeader className="text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
@@ -512,7 +512,6 @@ export function ProceduresTable({
 				onOpenChange={setIsCreateDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onProcedureCreated={onProcedureCreated}
 			/>
 			<ProcedureDetailsDrawer
 				open={isDetailsDrawerOpen}
@@ -521,7 +520,6 @@ export function ProceduresTable({
 				isLoading={procedureDetailsQuery.isLoading}
 				onProcedureUpdated={() => {
 					procedureDetailsQuery.mutate();
-					onProcedureUpdated();
 				}}
 			/>
 		</div>

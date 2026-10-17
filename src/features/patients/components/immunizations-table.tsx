@@ -117,8 +117,6 @@ type ImmunizationsTableProps = {
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: ImmunizationStatusFilter[]) => void;
 	onFiltersClear: () => void;
-	onImmunizationCreated: () => void;
-	onImmunizationUpdated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -140,8 +138,6 @@ export function ImmunizationsTable({
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
 	onFiltersClear,
-	onImmunizationCreated,
-	onImmunizationUpdated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -344,7 +340,11 @@ export function ImmunizationsTable({
 				onFiltersClear={onFiltersClear}
 			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
-				<Table className="min-w-[64rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<Table
+					aria-busy={isPending}
+					data-pending={isPending || undefined}
+					className="min-w-[64rem] border-separate border-spacing-0 bg-gray-50 text-left transition-opacity data-[pending=true]:opacity-50"
+				>
 					<TableHeader className="text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
@@ -518,7 +518,6 @@ export function ImmunizationsTable({
 				onOpenChange={setIsCreateDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onImmunizationCreated={onImmunizationCreated}
 			/>
 			<ImmunizationDetailsDrawer
 				open={isDetailsDrawerOpen}
@@ -527,7 +526,6 @@ export function ImmunizationsTable({
 				isLoading={immunizationDetailsQuery.isLoading}
 				onImmunizationUpdated={() => {
 					immunizationDetailsQuery.mutate();
-					onImmunizationUpdated();
 				}}
 			/>
 		</div>

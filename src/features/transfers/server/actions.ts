@@ -20,9 +20,8 @@ import {
 } from "@/db/schemas";
 import { patientDetailSections } from "../data";
 import { createTransferRequestsSchema, type CreateTransferRequestsInput } from "../schemas";
-import type { ClinicalRecordType, TransferStatusFilter } from "../types";
+import type { ClinicalRecordType } from "../types";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
-import { getTransfers } from "@/lib/api/get-transfers";
 import { createTransferApprovalToken } from "@/lib/api/transfer-approval-token";
 import { db } from "@/lib/better-auth/auth";
 import { ENV } from "@/lib/utils/env";
@@ -320,41 +319,5 @@ export async function createTransferRequestsAction(input: CreateTransferRequests
 			failedApprovalEmails > 0
 				? `${createdTransfers.length} transfer request${createdTransfers.length === 1 ? " was" : "s were"} created, but ${failedApprovalEmails} patient approval email${failedApprovalEmails === 1 ? "" : "s"} could not be sent.`
 				: `${createdTransfers.length} transfer request${createdTransfers.length === 1 ? " was" : "s were"} sent for patient approval.`,
-	};
-}
-
-export async function getTransfersTableAction({
-	page,
-	limit,
-	query = "",
-	requestedAtFilter = {},
-	statusFilters = [],
-}: {
-	page: number | string;
-	limit: number | string;
-	query?: string;
-	requestedAtFilter?: {
-		from?: Date;
-		to?: Date;
-	};
-	statusFilters?: TransferStatusFilter[];
-}) {
-	await verifySession();
-
-	const currentPage = typeof page === "string" ? parseInt(page, 10) : page;
-	const currentLimit = typeof limit === "string" ? parseInt(limit, 10) : limit;
-	const { transfers, totalTransfers } = await getTransfers(
-		currentPage,
-		currentLimit,
-		query,
-		requestedAtFilter,
-		statusFilters,
-	);
-
-	return {
-		transfers,
-		page: currentPage,
-		limit: currentLimit,
-		totalPages: Math.ceil(totalTransfers / currentLimit) || 1,
 	};
 }

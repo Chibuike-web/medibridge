@@ -1,21 +1,16 @@
 "use client";
 
 import { ImagingTable } from "@/features/patients/components/imaging-table";
-import { getPatientImagingTableAction } from "@/features/patients/server/get-patient-imaging-table-action";
 import type {
 	ImagingModalityFilter,
 	ImagingStatusFilter,
 	ImagingType,
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useRef, useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 
-type SectionTableState<T> = {
-	rows: T[];
-	page: number;
-	limit: number;
-	totalPages: number;
-};
+import type { Route } from "next";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function ImagingClient({
 	patientId,
@@ -24,6 +19,13 @@ export function ImagingClient({
 	page,
 	limit,
 	totalPages,
+	searchQuery = "",
+	orderedFrom = "",
+	orderedTo = "",
+	createdFrom = "",
+	createdTo = "",
+	statusFilters = [],
+	modalityFilters = [],
 }: {
 	patientId: string;
 	encounterId?: string;
@@ -31,82 +33,96 @@ export function ImagingClient({
 	page: number;
 	limit: number;
 	totalPages: number;
+	searchQuery?: string;
+	orderedFrom?: string;
+	orderedTo?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilters?: ImagingStatusFilter[];
+	modalityFilters?: ImagingModalityFilter[];
 }) {
-	const [tableData, setTableData] = useState<SectionTableState<ImagingType>>({
-		rows: imagingStudies,
-		page,
-		limit,
-		totalPages,
-	});
-	const [optimisticPage, setOptimisticPage] = useOptimistic(tableData.page);
-	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
-	const [query, setQuery] = useState("");
-	const [orderedFrom, setOrderedFrom] = useState("");
-	const [orderedTo, setOrderedTo] = useState("");
-	const [createdFrom, setCreatedFrom] = useState("");
-	const [createdTo, setCreatedTo] = useState("");
-	const [statusFilters, setStatusFilters] = useState<ImagingStatusFilter[]>([]);
-	const [modalityFilters, setModalityFilters] = useState<ImagingModalityFilter[]>([]);
+	const router = useRouter();
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
+	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [query, setQuery] = useState(searchQuery);
+	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState(searchQuery);
+	const [optimisticOrderedFrom, setOptimisticOrderedFrom] = useOptimistic(orderedFrom);
+	const [optimisticOrderedTo, setOptimisticOrderedTo] = useOptimistic(orderedTo);
+	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
+	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
+	const [optimisticStatusFilters, setOptimisticStatusFilters] = useOptimistic(statusFilters);
+	const [optimisticModalityFilters, setOptimisticModalityFilters] = useOptimistic(modalityFilters);
 	const [isPending, startTransition] = useTransition();
-	const latestSectionTableRequestIdRef = useRef(0);
 
-	function refreshImagingTable({
-		nextPage = 1,
-		nextLimit = tableData.limit,
-		nextQuery = query,
-		nextOrderedFrom = orderedFrom,
-		nextOrderedTo = orderedTo,
-		nextCreatedFrom = createdFrom,
-		nextCreatedTo = createdTo,
-		nextStatusFilters = statusFilters,
-		nextModalityFilters = modalityFilters,
-	}: {
-		nextPage?: number;
-		nextLimit?: number;
-		nextQuery?: string;
-		nextOrderedFrom?: string;
-		nextOrderedTo?: string;
-		nextCreatedFrom?: string;
-		nextCreatedTo?: string;
-		nextStatusFilters?: ImagingStatusFilter[];
-		nextModalityFilters?: ImagingModalityFilter[];
-	}) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+	// Restore URL changes while preserving typing ahead of our pending search.
+	if (previousSearchQuery !== searchQuery) {
+		setPreviousSearchQuery(searchQuery);
+		if (searchQuery !== navigatedQuery) setQuery(searchQuery);
+	}
 
-		startTransition(async () => {
+	function navigateTable(
+		{
+			nextPage = 1,
+			nextLimit = optimisticLimit,
+			nextQuery = query,
+			nextOrderedFrom = optimisticOrderedFrom,
+			nextOrderedTo = optimisticOrderedTo,
+			nextCreatedFrom = optimisticCreatedFrom,
+			nextCreatedTo = optimisticCreatedTo,
+			nextStatusFilters = optimisticStatusFilters,
+			nextModalityFilters = optimisticModalityFilters,
+		}: {
+			nextPage?: number;
+			nextLimit?: number;
+			nextQuery?: string;
+			nextOrderedFrom?: string;
+			nextOrderedTo?: string;
+			nextCreatedFrom?: string;
+			nextCreatedTo?: string;
+			nextStatusFilters?: ImagingStatusFilter[];
+			nextModalityFilters?: ImagingModalityFilter[];
+		},
+		replace = false,
+	) {
+		const params = new URLSearchParams(searchParams.toString());
+		const values = {
+			imagingPage: String(nextPage),
+			imagingLimit: String(nextLimit),
+			imagingQuery: nextQuery,
+			imagingOrderedFrom: nextOrderedFrom,
+			imagingOrderedTo: nextOrderedTo,
+			imagingCreatedFrom: nextCreatedFrom,
+			imagingCreatedTo: nextCreatedTo,
+			imagingStatus: nextStatusFilters.join(","),
+			imagingModality: nextModalityFilters.join(","),
+		};
+		Object.entries(values).forEach(([name, value]) => {
+			if (value.trim() === "") params.delete(name);
+			else params.set(name, value);
+		});
+
+		startTransition(() => {
+			setNavigatedQuery(nextQuery);
 			setOptimisticPage(nextPage);
 			setOptimisticLimit(nextLimit);
-
-			const result = await getPatientImagingTableAction({
-				patientId,
-				encounterId,
-				page: nextPage,
-				limit: nextLimit,
-				query: nextQuery,
-				orderedFrom: nextOrderedFrom,
-				orderedTo: nextOrderedTo,
-				createdFrom: nextCreatedFrom,
-				createdTo: nextCreatedTo,
-				statusFilters: nextStatusFilters,
-				modalityFilters: nextModalityFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
-			}
-
-			setTableData({
-				rows: result.imagingStudies,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
+			setOptimisticOrderedFrom(nextOrderedFrom);
+			setOptimisticOrderedTo(nextOrderedTo);
+			setOptimisticCreatedFrom(nextCreatedFrom);
+			setOptimisticCreatedTo(nextCreatedTo);
+			setOptimisticStatusFilters(nextStatusFilters);
+			setOptimisticModalityFilters(nextModalityFilters);
+			const href = `${pathname}?${params}` as Route;
+			if (replace) router.replace(href, { scroll: false });
+			else router.push(href, { scroll: false });
 		});
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		refreshImagingTable({ nextQuery });
+		if (nextQuery !== query || nextQuery === searchQuery) return;
+		navigateTable({ nextQuery }, true);
 	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
@@ -115,49 +131,37 @@ export function ImagingClient({
 	}
 
 	function handlePreviousPage() {
-		const nextPage = Math.max(tableData.page - 1, 1);
-		refreshImagingTable({ nextPage });
+		const nextPage = Math.max(optimisticPage - 1, 1);
+		navigateTable({ nextPage });
 	}
 
 	function handleNextPage() {
-		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
-		refreshImagingTable({ nextPage });
+		const nextPage = Math.min(optimisticPage + 1, totalPages);
+		navigateTable({ nextPage });
 	}
 
 	function handleLimitChange(nextLimit: number) {
-		refreshImagingTable({ nextLimit });
+		navigateTable({ nextLimit });
 	}
 
 	function handleOrderedAtRangeApply(nextOrderedFrom: string, nextOrderedTo: string) {
-		setOrderedFrom(nextOrderedFrom);
-		setOrderedTo(nextOrderedTo);
-		refreshImagingTable({ nextOrderedFrom, nextOrderedTo });
+		navigateTable({ nextOrderedFrom, nextOrderedTo });
 	}
 
 	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
-		setCreatedFrom(nextCreatedFrom);
-		setCreatedTo(nextCreatedTo);
-		refreshImagingTable({ nextCreatedFrom, nextCreatedTo });
+		navigateTable({ nextCreatedFrom, nextCreatedTo });
 	}
 
 	function handleStatusFiltersChange(nextStatusFilters: ImagingStatusFilter[]) {
-		setStatusFilters(nextStatusFilters);
-		refreshImagingTable({ nextStatusFilters });
+		navigateTable({ nextStatusFilters });
 	}
 
 	function handleModalityFiltersChange(nextModalityFilters: ImagingModalityFilter[]) {
-		setModalityFilters(nextModalityFilters);
-		refreshImagingTable({ nextModalityFilters });
+		navigateTable({ nextModalityFilters });
 	}
 
 	function handleFiltersClear() {
-		setOrderedFrom("");
-		setOrderedTo("");
-		setCreatedFrom("");
-		setCreatedTo("");
-		setStatusFilters([]);
-		setModalityFilters([]);
-		refreshImagingTable({
+		navigateTable({
 			nextOrderedFrom: "",
 			nextOrderedTo: "",
 			nextCreatedFrom: "",
@@ -171,17 +175,17 @@ export function ImagingClient({
 		<ImagingTable
 			patientId={patientId}
 			encounterId={encounterId}
-			imagingStudies={tableData.rows}
+			imagingStudies={imagingStudies}
 			page={optimisticPage}
 			limit={optimisticLimit}
-			totalPages={tableData.totalPages}
+			totalPages={totalPages}
 			query={query}
-			orderedFrom={orderedFrom}
-			orderedTo={orderedTo}
-			createdFrom={createdFrom}
-			createdTo={createdTo}
-			statusFilters={statusFilters}
-			modalityFilters={modalityFilters}
+			orderedFrom={optimisticOrderedFrom}
+			orderedTo={optimisticOrderedTo}
+			createdFrom={optimisticCreatedFrom}
+			createdTo={optimisticCreatedTo}
+			statusFilters={optimisticStatusFilters}
+			modalityFilters={optimisticModalityFilters}
 			isPending={isPending}
 			onQueryChange={handleQueryChange}
 			onOrderedAtRangeApply={handleOrderedAtRangeApply}
@@ -189,8 +193,6 @@ export function ImagingClient({
 			onStatusFiltersChange={handleStatusFiltersChange}
 			onModalityFiltersChange={handleModalityFiltersChange}
 			onFiltersClear={handleFiltersClear}
-			onImagingCreated={() => refreshImagingTable({ nextPage: tableData.page })}
-			onImagingUpdated={() => refreshImagingTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}

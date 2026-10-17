@@ -40,7 +40,6 @@ type CreateMedicationDrawerProps = {
 	onOpenChange: (open: boolean) => void;
 	patientId: string;
 	encounterId?: string;
-	onMedicationCreated: () => void;
 };
 
 const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
@@ -53,7 +52,6 @@ export function CreateMedicationDrawer({
 	onOpenChange,
 	patientId,
 	encounterId,
-	onMedicationCreated,
 }: CreateMedicationDrawerProps) {
 	const router = useRouter();
 	const generatedFormId = useId();
@@ -93,7 +91,6 @@ export function CreateMedicationDrawer({
 			}
 
 			handleOpenChange(false);
-			onMedicationCreated();
 		});
 	}
 
