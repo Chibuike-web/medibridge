@@ -27,33 +27,31 @@ async function TransferApprovalContent({ params, searchParams }: TransferApprova
 	const approvalToken = await verifyTransferApprovalToken(token, transferId);
 	const transfer = approvalToken ? await getTransferApproval(transferId) : null;
 
+	if (transfer) {
+		return <TransferApprovalClient transfer={transfer} approvalToken={token} />;
+	}
+
 	return (
 		<main className="bg-white px-6 py-10">
-			{transfer ? (
-				<div className="mx-auto w-full max-w-3xl">
-					<TransferApprovalClient transfer={transfer} approvalToken={token} />
+			<section className="mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-3xl items-center justify-center text-center">
+				<div>
+					<h1 className="text-lg font-semibold text-gray-800 text-balance">
+						Invalid transfer link
+					</h1>
+					<p className="mt-4 text-sm text-gray-600">
+						This patient transfer approval link is invalid. Contact the requesting hospital for a
+						new link.
+					</p>
 				</div>
-			) : (
-				<section className="mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-3xl items-center justify-center text-center">
-					<div>
-						<h1 className="text-lg font-semibold text-gray-800 text-balance">
-							Invalid transfer link
-						</h1>
-						<p className="mt-4 text-sm text-gray-600">
-							This patient transfer approval link is invalid. Contact the requesting hospital for a
-							new link.
-						</p>
-					</div>
-				</section>
-			)}
+			</section>
 		</main>
 	);
 }
 
 function TransferApprovalPageSkeleton() {
 	return (
-		<main className="bg-white px-6 py-10">
-			<div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+		<main className="mt-12 px-6">
+			<div className="mx-auto flex max-w-[75rem] flex-col gap-6">
 				<div className="h-8 w-64 rounded bg-gray-100" />
 				<div className="h-48 rounded-lg border border-gray-200 bg-gray-50" />
 				<div className="grid gap-3">

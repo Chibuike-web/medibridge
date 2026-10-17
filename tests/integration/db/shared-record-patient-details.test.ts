@@ -19,6 +19,7 @@ describe.skipIf(!testDatabaseUrl)("Patient details in a shared record", () => {
 	let authModule: typeof import("@/lib/better-auth/auth");
 	let actions: typeof import("@/app/(app)/transfer-approval/[transferId]/actions");
 	let getSharedRecord: typeof import("@/lib/api/get-shared-record").getSharedRecord;
+	let getTransferApproval: typeof import("@/lib/api/get-transfer-approval").getTransferApproval;
 	let createTransferApprovalToken: typeof import("@/lib/api/transfer-approval-token").createTransferApprovalToken;
 	const transferId = "TRF-details";
 	const patientId = "patient-details";
@@ -29,6 +30,7 @@ describe.skipIf(!testDatabaseUrl)("Patient details in a shared record", () => {
 		authModule = await import("@/lib/better-auth/auth");
 		actions = await import("@/app/(app)/transfer-approval/[transferId]/actions");
 		getSharedRecord = (await import("@/lib/api/get-shared-record")).getSharedRecord;
+		getTransferApproval = (await import("@/lib/api/get-transfer-approval")).getTransferApproval;
 		createTransferApprovalToken = (await import("@/lib/api/transfer-approval-token"))
 			.createTransferApprovalToken;
 	}, 60_000);
@@ -103,9 +105,11 @@ describe.skipIf(!testDatabaseUrl)("Patient details in a shared record", () => {
 	});
 
 	async function approveAndOpen(records: { contentType: string; recordId: string }[]) {
-		await authModule.db.insert(schema.patientTransferContent).values(
-			records.map((record, index) => ({ id: `TCO-details-${index}`, transferId, ...record })),
-		);
+		await authModule.db
+			.insert(schema.patientTransferContent)
+			.values(
+				records.map((record, index) => ({ id: `TCO-details-${index}`, transferId, ...record })),
+			);
 		const approvalToken = await createTransferApprovalToken({
 			transferId,
 			patientId,
@@ -147,5 +151,50 @@ describe.skipIf(!testDatabaseUrl)("Patient details in a shared record", () => {
 		expect(sharedRecord?.patientDetailsSections).toEqual([]);
 		expect(sharedRecord?.patient).toEqual({ name: "Ada Obi", sex: "Female", age: "34" });
 		expect(JSON.stringify(sharedRecord)).not.toContain("ada@example.org");
+	});
+	test("shows the patient, before approving, exactly which details and records will be shared", async () => {
+		await authModule.db.insert(schema.patientTransferContent).values([
+			{
+				id: "TCO-preview-1",
+				transferId,
+				contentType: "patient-details",
+				recordId: "physical-information",
+			},
+			{ id: "TCO-preview-2", transferId, contentType: "diagnoses", recordId: "DIA-details" },
+		]);
+
+		const approval = await getTransferApproval(transferId);
+
+		expect(approval?.requestedByName).toBe("Staff");
+		expect(approval?.sharedDetailSections.map((section) => section.title)).toEqual([
+			"Physical Information",
+		]);
+		expect(approval?.sharedRecordGroups).toEqual([
+			{
+				label: "Diagnoses",
+				records: [expect.objectContaining({ name: "Asthma", status: "Active" })],
+			},
+		]);
+		expect(JSON.stringify(approval)).not.toContain("ada@example.org");
+	});
+
+	test("lets the patient reject without giving a reason", async () => {
+		const approvalToken = await createTransferApprovalToken({
+			transferId,
+			patientId,
+			expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+		});
+
+		expect(
+			await actions.rejectPatientTransferAction({ transferId, approvalToken, reason: "  " }),
+		).toMatchObject({ status: "success" });
+		const [transfer] = await authModule.db
+			.select({
+				patientApprovalStatus: schema.patientTransfer.patientApprovalStatus,
+				patientRejectionReason: schema.patientTransfer.patientRejectionReason,
+			})
+			.from(schema.patientTransfer)
+			.where(eq(schema.patientTransfer.id, transferId));
+		expect(transfer).toEqual({ patientApprovalStatus: "rejected", patientRejectionReason: null });
 	});
 });

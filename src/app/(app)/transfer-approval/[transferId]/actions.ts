@@ -349,13 +349,6 @@ export async function rejectPatientTransferAction({
 		};
 	}
 
-	if (!rejectionReason) {
-		return {
-			status: "failed",
-			error: "Please enter a reason for rejecting this transfer.",
-		};
-	}
-
 	if (transfer.patientApprovalStatus === "approved") {
 		return {
 			status: "failed",
@@ -379,7 +372,7 @@ export async function rejectPatientTransferAction({
 				.set({
 					status: "rejected",
 					patientApprovalStatus: "rejected",
-					patientRejectionReason: rejectionReason,
+					patientRejectionReason: rejectionReason || null,
 					rejectedAt: now,
 					updatedAt: now,
 				})
@@ -397,7 +390,9 @@ export async function rejectPatientTransferAction({
 				.update(patientTransferProgress)
 				.set({
 					status: "rejected",
-					description: `Patient rejected the transfer request: ${rejectionReason}`,
+					description: rejectionReason
+						? `Patient rejected the transfer request: ${rejectionReason}`
+						: "Patient rejected the transfer request.",
 				})
 				.where(
 					and(
