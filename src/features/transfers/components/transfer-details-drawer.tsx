@@ -170,7 +170,7 @@ export function TransferDetailsDrawer({
 					) : (
 						<>
 							<div className="flex flex-col gap-6">
-								<div className="flex items-center gap-x-6 gap-y-2 flex-wrap text-nowrap">
+								<div className="flex items-center gap-x-4 gap-y-2 flex-wrap text-nowrap">
 									<div className="flex items-center gap-2 shrink-0">
 										<span className="text-gray-400">Transfer Status:</span>
 										{transfer ? (
@@ -199,7 +199,17 @@ export function TransferDetailsDrawer({
 								<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
 									<DetailItem label="Patient Name" value={transfer?.patientName} />
 									<DetailItem label="Target Hospital" value={transfer?.targetHospitalName} />
-									<DetailItem label="Target Hospital Email" value={transfer?.targetHospitalEmail} />
+									<DetailItem
+										label="Target Hospital Email"
+										value={
+											transfer ? (
+												<>
+													{transfer.targetHospitalEmail.split("@")[0]}@<wbr />
+													<span className="inline-block">{transfer.targetHospitalEmail.split("@")[1]}</span>
+												</>
+											) : null
+										}
+									/>
 									{transfer?.notes ? <DetailItem label="Notes" value={transfer.notes} /> : null}
 								</div>
 								{transfer && transfer.transferContent.length > 0 ? (
@@ -386,11 +396,13 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 	);
 }
 
-function DetailItem({ label, value }: { label: string; value?: string | null }) {
+function DetailItem({ label, value }: { label: string; value?: React.ReactNode }) {
 	return (
-		<div className="flex flex-col gap-2 shrink-0 no-line-height">
+		<div className="flex min-w-0 flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
-			<span className="text-gray-600 font-medium">{value || EMPTY_VALUE}</span>
+			<span className="text-gray-600 font-medium text-pretty [overflow-wrap:anywhere]">
+				{value || EMPTY_VALUE}
+			</span>
 		</div>
 	);
 }
