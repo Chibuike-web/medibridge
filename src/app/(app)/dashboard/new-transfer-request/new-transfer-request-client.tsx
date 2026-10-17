@@ -496,21 +496,19 @@ export function NewTransferRequestClient({
 												{transferSubmissionError}
 											</p>
 										) : null}
-										<DialogFooter className="text-sm">
-											<div className="flex gap-2 ml-auto">
-												<DialogClose asChild>
-													<Button variant="outline" type="button">
-														Cancel
-													</Button>
-												</DialogClose>
-												<Button
-													type="button"
-													disabled={isSubmittingTransferRequests || !isTransferConfirmationChecked}
-													onClick={handleSubmitTransferRequests}
-												>
-													{isSubmittingTransferRequests ? "Sending..." : "Send for Approval"}
+										<DialogFooter className="sm:justify-end">
+											<DialogClose asChild>
+												<Button variant="outline" type="button">
+													Cancel
 												</Button>
-											</div>
+											</DialogClose>
+											<Button
+												type="button"
+												disabled={isSubmittingTransferRequests || !isTransferConfirmationChecked}
+												onClick={handleSubmitTransferRequests}
+											>
+												{isSubmittingTransferRequests ? "Sending..." : "Send for Approval"}
+											</Button>
 										</DialogFooter>
 									</DialogContent>
 								</Dialog>

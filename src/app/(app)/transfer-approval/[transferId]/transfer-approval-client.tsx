@@ -1,11 +1,6 @@
 "use client";
 
-import {
-	RiArrowDownSLine,
-	RiCheckboxCircleFill,
-	RiCloseLine,
-	RiErrorWarningFill,
-} from "@remixicon/react";
+import { RiArrowDownSLine, RiCloseLine, RiErrorWarningFill } from "@remixicon/react";
 import { format } from "date-fns";
 import { Fragment, useId, useState, useTransition, type ReactNode } from "react";
 import { approvePatientTransferAction, rejectPatientTransferAction } from "./actions";
@@ -36,17 +31,11 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 	const rejectionReasonId = useId();
 	const [rejectionReason, setRejectionReason] = useState("");
 	const [submissionError, setSubmissionError] = useState("");
-	const [currentPatientApprovalStatus, setCurrentPatientApprovalStatus] = useState(
-		transfer.patientApprovalStatus,
-	);
-	const [answeredRejectionReason, setAnsweredRejectionReason] = useState(
-		transfer.patientRejectionReason,
-	);
+	const [answeredApprovalStatus, setAnsweredApprovalStatus] = useState<
+		"approved" | "rejected" | null
+	>(null);
 	const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
 	const [isPending, startTransition] = useTransition();
-	const hasPatientApprovedTransfer = currentPatientApprovalStatus === "approved";
-	const hasPatientRejectedTransfer = currentPatientApprovalStatus === "rejected";
-	const canPatientStillAnswer = !hasPatientApprovedTransfer && !hasPatientRejectedTransfer;
 
 	function handleApprove() {
 		setSubmissionError("");
@@ -58,7 +47,7 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 				return;
 			}
 
-			setCurrentPatientApprovalStatus("approved");
+			setAnsweredApprovalStatus("approved");
 		});
 	}
 
@@ -78,16 +67,25 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 				return;
 			}
 
-			setAnsweredRejectionReason(rejectionReason.trim() || null);
-			setCurrentPatientApprovalStatus("rejected");
+			setAnsweredApprovalStatus("rejected");
 		});
+	}
+
+	if (answeredApprovalStatus) {
+		return (
+			<TransferApprovalResult
+				patientApprovalStatus={answeredApprovalStatus}
+				sourceHospitalName={transfer.sourceHospitalName}
+				targetHospitalName={transfer.targetHospitalName}
+				accessEndsAt={transfer.accessEndsAt}
+				patientRejectionReason={rejectionReason.trim() || null}
+			/>
+		);
 	}
 
 	return (
 		<>
-			<main
-				className={cn("mt-12 px-6 text-sm", canPatientStillAnswer ? "mb-40 sm:mb-28" : "mb-12")}
-			>
+			<main className="mt-12 mb-40 px-6 text-sm sm:mb-28">
 				<div className="mx-auto flex max-w-[75rem] flex-col">
 					<h1 className="text-lg text-gray-500 text-balance">
 						<span className="font-semibold text-gray-800">{transfer.sourceHospitalName}</span> wants
@@ -119,20 +117,14 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 						/>
 					</dl>
 
-					{hasPatientApprovedTransfer || hasPatientRejectedTransfer || submissionError ? (
-						<StatusMessage
-							key={currentPatientApprovalStatus ?? submissionError}
-							tone={hasPatientApprovedTransfer ? "success" : "danger"}
-							message={
-								hasPatientApprovedTransfer
-									? "You approved this transfer request."
-									: hasPatientRejectedTransfer
-										? answeredRejectionReason
-											? `You rejected this transfer request. Reason: ${answeredRejectionReason}`
-											: "You rejected this transfer request."
-										: submissionError
-							}
-						/>
+					{submissionError ? (
+						<div
+							role="alert"
+							className="mt-6 flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left font-medium text-red-700"
+						>
+							<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+							<p className="min-w-0 flex-1 text-pretty">{submissionError}</p>
+						</div>
 					) : null}
 
 					<h2 className="mt-10 text-lg font-semibold text-gray-800">What will be shared</h2>
@@ -153,42 +145,35 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 				</div>
 			</main>
 
-			{canPatientStillAnswer ? (
-				<footer className="fixed inset-x-0 bottom-0 z-50 border-t border-gray-100 bg-white px-6 py-4">
-					<div className="mx-auto flex w-full max-w-[75rem] flex-col gap-3 sm:flex-row">
-						<Button
-							type="button"
-							variant="destructive"
-							className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive sm:flex-1"
-							disabled={isPending}
-							onClick={() => setIsRejectDialogOpen(true)}
-						>
-							<span className="sm:hidden">Reject</span>
-							<span className="hidden sm:inline">Reject transfer</span>
-						</Button>
-						<Button
-							type="button"
-							className="sm:flex-1"
-							disabled={isPending}
-							onClick={handleApprove}
-						>
-							{isPending && !isRejectDialogOpen ? (
-								"Approving…"
-							) : (
-								<>
-									<span className="sm:hidden">Approve</span>
-									<span className="hidden sm:inline">Approve transfer</span>
-								</>
-							)}
-						</Button>
-					</div>
-				</footer>
-			) : null}
+			<footer className="fixed inset-x-0 bottom-0 z-50 border-t border-gray-100 bg-white px-6 py-4">
+				<div className="mx-auto flex w-full max-w-[75rem] flex-col gap-3 sm:flex-row">
+					<Button
+						type="button"
+						variant="destructive"
+						className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive sm:flex-1"
+						disabled={isPending}
+						onClick={() => setIsRejectDialogOpen(true)}
+					>
+						<span className="sm:hidden">Reject</span>
+						<span className="hidden sm:inline">Reject transfer</span>
+					</Button>
+					<Button type="button" className="sm:flex-1" disabled={isPending} onClick={handleApprove}>
+						{isPending && !isRejectDialogOpen ? (
+							"Approving…"
+						) : (
+							<>
+								<span className="sm:hidden">Approve</span>
+								<span className="hidden sm:inline">Approve transfer</span>
+							</>
+						)}
+					</Button>
+				</div>
+			</footer>
 
 			<Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
 				<DialogContent>
-					<DialogHeader className="py-4">
-						<DialogTitle>Are you sure you want to reject this transfer request</DialogTitle>
+					<DialogHeader>
+						<DialogTitle>Reject transfer request?</DialogTitle>
 						<DialogDescription className="sr-only">
 							The requesting hospital will be told you rejected the transfer.
 						</DialogDescription>
@@ -209,20 +194,13 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 							className="min-h-28 bg-white text-sm text-gray-700 placeholder:text-gray-400"
 						/>
 					</div>
-					<DialogFooter className="text-sm">
-						<div className="ml-auto flex gap-2">
-							<DialogClose asChild>
-								<Button variant="outline">Cancel</Button>
-							</DialogClose>
-							<Button
-								type="button"
-								variant="destructive"
-								disabled={isPending}
-								onClick={handleReject}
-							>
-								{isPending ? "Rejecting…" : "Reject request"}
-							</Button>
-						</div>
+					<DialogFooter className="sm:justify-end">
+						<DialogClose asChild>
+							<Button variant="outline">Cancel</Button>
+						</DialogClose>
+						<Button type="button" variant="destructive" disabled={isPending} onClick={handleReject}>
+							{isPending ? "Rejecting…" : "Reject request"}
+						</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
@@ -255,24 +233,25 @@ function SharedSection({
 
 	return (
 		<section className="overflow-hidden rounded-xl bg-gray-50 ring-1 ring-gray-200">
-			<div className="flex h-10 items-center justify-between gap-4 px-4">
-				<h3 className="text-base font-semibold text-gray-700">
-					{title}
-					{count === undefined ? null : <span className="sm:hidden"> ({count})</span>}
-				</h3>
-				{action}
+			<h3 className="sm:hidden">
 				<Button
 					type="button"
 					variant="ghost"
-					size="icon"
-					className="text-gray-500 sm:hidden"
+					className="h-10 w-full justify-between gap-4 rounded-none border-0 px-4 text-base has-[>svg:first-child]:pl-4 has-[>svg:last-child]:pr-4 font-semibold text-gray-700 hover:bg-transparent hover:text-gray-700 focus-visible:border-0 active:scale-100"
 					aria-expanded={isExpanded}
 					aria-controls={panelId}
-					aria-label={`${isExpanded ? "Collapse" : "Expand"} ${title}`}
 					onClick={() => setIsExpanded((prev) => !prev)}
 				>
-					<RiArrowDownSLine className={cn(isExpanded && "rotate-180")} aria-hidden="true" />
+					{count === undefined ? title : `${title} (${count})`}
+					<RiArrowDownSLine
+						className={cn("text-gray-500", isExpanded && "rotate-180")}
+						aria-hidden="true"
+					/>
 				</Button>
+			</h3>
+			<div className="hidden h-10 items-center justify-between gap-4 px-4 sm:flex">
+				<h3 className="text-base font-semibold text-gray-700">{title}</h3>
+				{action}
 			</div>
 			<div
 				id={panelId}
@@ -353,21 +332,37 @@ function SharedRecordGroup({
 	);
 }
 
-function StatusMessage({ tone, message }: { tone: "success" | "danger"; message: string }) {
+export function TransferApprovalResult({
+	patientApprovalStatus,
+	sourceHospitalName,
+	targetHospitalName,
+	accessEndsAt,
+	patientRejectionReason,
+}: Pick<
+	TransferApprovalRecord,
+	"sourceHospitalName" | "targetHospitalName" | "accessEndsAt" | "patientRejectionReason"
+> & { patientApprovalStatus: "approved" | "rejected" }) {
 	return (
-		<div
-			role={tone === "success" ? "status" : "alert"}
-			className={cn(
-				"mt-6 flex items-start gap-2 rounded-xl px-3 py-3 text-left text-sm font-medium",
-				tone === "success" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700",
-			)}
-		>
-			{tone === "success" ? (
-				<RiCheckboxCircleFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-			) : (
-				<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-			)}
-			<p className="min-w-0 flex-1 text-pretty">{message}</p>
-		</div>
+		<main className="bg-white px-6 py-10">
+			<section className="mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-3xl items-center justify-center text-center">
+				<div>
+					<h1 className="text-lg font-semibold text-gray-800 text-balance">
+						{patientApprovalStatus === "approved"
+							? "You approved this transfer request"
+							: "You rejected this transfer request"}
+					</h1>
+					<p className="mt-4 text-sm text-gray-600 text-pretty">
+						{patientApprovalStatus === "approved"
+							? `${targetHospitalName} can view the records you approved until ${format(accessEndsAt, "d MMM yyyy")}.`
+							: `${sourceHospitalName} has been told, and your records were not shared.`}
+					</p>
+					{patientApprovalStatus === "rejected" && patientRejectionReason ? (
+						<p className="mt-2 text-sm text-gray-600 text-pretty">
+							Reason: {patientRejectionReason}
+						</p>
+					) : null}
+				</div>
+			</section>
+		</main>
 	);
 }

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { TransferApprovalClient } from "./transfer-approval-client";
+import { TransferApprovalClient, TransferApprovalResult } from "./transfer-approval-client";
 import { getTransferApproval } from "@/lib/api/get-transfer-approval";
 import { verifyTransferApprovalToken } from "@/lib/api/transfer-approval-token";
 import { getStringParam } from "@/lib/utils/search-params";
@@ -26,6 +26,21 @@ async function TransferApprovalContent({ params, searchParams }: TransferApprova
 	const token = getStringParam(tokenParam);
 	const approvalToken = await verifyTransferApprovalToken(token, transferId);
 	const transfer = approvalToken ? await getTransferApproval(transferId) : null;
+
+	if (
+		transfer?.patientApprovalStatus === "approved" ||
+		transfer?.patientApprovalStatus === "rejected"
+	) {
+		return (
+			<TransferApprovalResult
+				patientApprovalStatus={transfer.patientApprovalStatus}
+				sourceHospitalName={transfer.sourceHospitalName}
+				targetHospitalName={transfer.targetHospitalName}
+				accessEndsAt={transfer.accessEndsAt}
+				patientRejectionReason={transfer.patientRejectionReason}
+			/>
+		);
+	}
 
 	if (transfer) {
 		return <TransferApprovalClient transfer={transfer} approvalToken={token} />;
