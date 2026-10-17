@@ -1,21 +1,16 @@
 "use client";
 
 import { ImagingTable } from "@/features/patients/components/imaging-table";
-import { getPatientImagingTableAction } from "@/features/patients/server/get-patient-imaging-table-action";
 import type {
 	ImagingModalityFilter,
 	ImagingStatusFilter,
 	ImagingType,
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useRef, useState, useTransition } from "react";
-
-type SectionTableState<T> = {
-	rows: T[];
-	page: number;
-	limit: number;
-	totalPages: number;
-};
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import type { PatientImagingTableResult } from "@/app/api/patient-imaging/[patientId]/route";
 
 export function ImagingClient({
 	patientId,
@@ -32,14 +27,10 @@ export function ImagingClient({
 	limit: number;
 	totalPages: number;
 }) {
-	const [tableData, setTableData] = useState<SectionTableState<ImagingType>>({
-		rows: imagingStudies,
-		page,
-		limit,
-		totalPages,
-	});
-	const [optimisticPage, setOptimisticPage] = useOptimistic(tableData.page);
-	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
+	const router = useRouter();
+	const [currentPage, setCurrentPage] = useState(page);
+	const [currentLimit, setCurrentLimit] = useState(limit);
+	const [searchQuery, setSearchQuery] = useState("");
 	const [query, setQuery] = useState("");
 	const [orderedFrom, setOrderedFrom] = useState("");
 	const [orderedTo, setOrderedTo] = useState("");
@@ -47,66 +38,68 @@ export function ImagingClient({
 	const [createdTo, setCreatedTo] = useState("");
 	const [statusFilters, setStatusFilters] = useState<ImagingStatusFilter[]>([]);
 	const [modalityFilters, setModalityFilters] = useState<ImagingModalityFilter[]>([]);
-	const [isPending, startTransition] = useTransition();
-	const latestSectionTableRequestIdRef = useRef(0);
-
-	function refreshImagingTable({
-		nextPage = 1,
-		nextLimit = tableData.limit,
-		nextQuery = query,
-		nextOrderedFrom = orderedFrom,
-		nextOrderedTo = orderedTo,
-		nextCreatedFrom = createdFrom,
-		nextCreatedTo = createdTo,
-		nextStatusFilters = statusFilters,
-		nextModalityFilters = modalityFilters,
-	}: {
-		nextPage?: number;
-		nextLimit?: number;
-		nextQuery?: string;
-		nextOrderedFrom?: string;
-		nextOrderedTo?: string;
-		nextCreatedFrom?: string;
-		nextCreatedTo?: string;
-		nextStatusFilters?: ImagingStatusFilter[];
-		nextModalityFilters?: ImagingModalityFilter[];
-	}) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
-
-		startTransition(async () => {
-			setOptimisticPage(nextPage);
-			setOptimisticLimit(nextLimit);
-
-			const result = await getPatientImagingTableAction({
-				patientId,
-				encounterId,
-				page: nextPage,
-				limit: nextLimit,
-				query: nextQuery,
-				orderedFrom: nextOrderedFrom,
-				orderedTo: nextOrderedTo,
-				createdFrom: nextCreatedFrom,
-				createdTo: nextCreatedTo,
-				statusFilters: nextStatusFilters,
-				modalityFilters: nextModalityFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
-				return;
+	const requestParams = new URLSearchParams({
+		page: String(currentPage),
+		limit: String(currentLimit),
+		query: searchQuery,
+		encounterId: encounterId ?? "",
+		orderedFrom: orderedFrom,
+		orderedTo: orderedTo,
+		createdFrom: createdFrom,
+		createdTo: createdTo,
+		statusFilters: statusFilters.join(","),
+		modalityFilters: modalityFilters.join(","),
+	});
+	const initialParams = new URLSearchParams({
+		page: String(page),
+		limit: String(limit),
+		query: "",
+		encounterId: encounterId ?? "",
+		orderedFrom: "",
+		orderedTo: "",
+		createdFrom: "",
+		createdTo: "",
+		statusFilters: "",
+		modalityFilters: "",
+	});
+	const key = `/api/patient-imaging/${encodeURIComponent(patientId)}?${requestParams}`;
+	const initialKey = `/api/patient-imaging/${encodeURIComponent(patientId)}?${initialParams}`;
+	const {
+		data: tableResult,
+		error: tableError,
+		isLoading,
+		isValidating,
+		mutate: mutateImaging,
+	} = useSWR(
+		key,
+		async (url: string) => {
+			const response = await fetch(url);
+			const result = (await response.json()) as PatientImagingTableResult;
+			if (!response.ok || result.status === "failed") {
+				throw Object.assign(
+					new Error(result.status === "failed" ? result.error : "Unable to load patient imaging."),
+					{ status: response.status },
+				);
 			}
-
-			setTableData({
-				rows: result.imagingStudies,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
-		});
-	}
-
+			return result;
+		},
+		{
+			keepPreviousData: true,
+			fallbackData:
+				key === initialKey
+					? { status: "success", imagingStudies, page, limit, totalPages }
+					: undefined,
+			onError: (error: Error & { status?: number }) => {
+				if (error.status === 401 || error.status === 403) router.refresh();
+			},
+			shouldRetryOnError: (error: Error & { status?: number }) =>
+				error.status !== 401 && error.status !== 403,
+		},
+	);
+	const isPending = isLoading || isValidating;
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		refreshImagingTable({ nextQuery });
+		setSearchQuery(nextQuery);
+		setCurrentPage(1);
 	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
@@ -115,39 +108,44 @@ export function ImagingClient({
 	}
 
 	function handlePreviousPage() {
-		const nextPage = Math.max(tableData.page - 1, 1);
-		refreshImagingTable({ nextPage });
+		const nextPage = Math.max(currentPage - 1, 1);
+		setCurrentPage(nextPage);
 	}
 
 	function handleNextPage() {
-		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
-		refreshImagingTable({ nextPage });
+		const nextPage = Math.min(currentPage + 1, tableResult?.totalPages ?? 1);
+		setCurrentPage(nextPage);
 	}
 
 	function handleLimitChange(nextLimit: number) {
-		refreshImagingTable({ nextLimit });
+		setCurrentLimit(nextLimit);
+		setCurrentPage(1);
 	}
 
 	function handleOrderedAtRangeApply(nextOrderedFrom: string, nextOrderedTo: string) {
 		setOrderedFrom(nextOrderedFrom);
 		setOrderedTo(nextOrderedTo);
-		refreshImagingTable({ nextOrderedFrom, nextOrderedTo });
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
 		setCreatedFrom(nextCreatedFrom);
 		setCreatedTo(nextCreatedTo);
-		refreshImagingTable({ nextCreatedFrom, nextCreatedTo });
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	function handleStatusFiltersChange(nextStatusFilters: ImagingStatusFilter[]) {
 		setStatusFilters(nextStatusFilters);
-		refreshImagingTable({ nextStatusFilters });
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	function handleModalityFiltersChange(nextModalityFilters: ImagingModalityFilter[]) {
 		setModalityFilters(nextModalityFilters);
-		refreshImagingTable({ nextModalityFilters });
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	function handleFiltersClear() {
@@ -157,43 +155,44 @@ export function ImagingClient({
 		setCreatedTo("");
 		setStatusFilters([]);
 		setModalityFilters([]);
-		refreshImagingTable({
-			nextOrderedFrom: "",
-			nextOrderedTo: "",
-			nextCreatedFrom: "",
-			nextCreatedTo: "",
-			nextStatusFilters: [],
-			nextModalityFilters: [],
-		});
+		setSearchQuery(query);
+		setCurrentPage(1);
 	}
 
 	return (
-		<ImagingTable
-			patientId={patientId}
-			encounterId={encounterId}
-			imagingStudies={tableData.rows}
-			page={optimisticPage}
-			limit={optimisticLimit}
-			totalPages={tableData.totalPages}
-			query={query}
-			orderedFrom={orderedFrom}
-			orderedTo={orderedTo}
-			createdFrom={createdFrom}
-			createdTo={createdTo}
-			statusFilters={statusFilters}
-			modalityFilters={modalityFilters}
-			isPending={isPending}
-			onQueryChange={handleQueryChange}
-			onOrderedAtRangeApply={handleOrderedAtRangeApply}
-			onCreatedAtRangeApply={handleCreatedAtRangeApply}
-			onStatusFiltersChange={handleStatusFiltersChange}
-			onModalityFiltersChange={handleModalityFiltersChange}
-			onFiltersClear={handleFiltersClear}
-			onImagingCreated={() => refreshImagingTable({ nextPage: tableData.page })}
-			onImagingUpdated={() => refreshImagingTable({ nextPage: tableData.page })}
-			onPreviousPage={handlePreviousPage}
-			onNextPage={handleNextPage}
-			onLimitChange={handleLimitChange}
-		/>
+		<>
+			{tableError ? <p role="alert">{tableError.message}</p> : null}
+			<ImagingTable
+				patientId={patientId}
+				encounterId={encounterId}
+				imagingStudies={tableResult?.imagingStudies ?? []}
+				page={currentPage}
+				limit={currentLimit}
+				totalPages={tableResult?.totalPages ?? 1}
+				query={query}
+				orderedFrom={orderedFrom}
+				orderedTo={orderedTo}
+				createdFrom={createdFrom}
+				createdTo={createdTo}
+				statusFilters={statusFilters}
+				modalityFilters={modalityFilters}
+				isPending={isPending}
+				onQueryChange={handleQueryChange}
+				onOrderedAtRangeApply={handleOrderedAtRangeApply}
+				onCreatedAtRangeApply={handleCreatedAtRangeApply}
+				onStatusFiltersChange={handleStatusFiltersChange}
+				onModalityFiltersChange={handleModalityFiltersChange}
+				onFiltersClear={handleFiltersClear}
+				onImagingCreated={() => {
+					void mutateImaging();
+				}}
+				onImagingUpdated={() => {
+					void mutateImaging();
+				}}
+				onPreviousPage={handlePreviousPage}
+				onNextPage={handleNextPage}
+				onLimitChange={handleLimitChange}
+			/>
+		</>
 	);
 }
