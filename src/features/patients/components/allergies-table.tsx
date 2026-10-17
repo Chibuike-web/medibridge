@@ -173,9 +173,10 @@ export function AllergiesTable({
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const allergyDetailsQuery = useSWR(
-		selectedId ? (["patient-allergy-details", selectedId] as const) : null,
+		isDetailsDrawerOpen && selectedId ? (["patient-allergy-details", selectedId] as const) : null,
 		([, selectedId]) => fetchPatientAllergyDetails(selectedId),
 		{
+			dedupingInterval: 0,
 			onError: (error: AllergyDetailsRequestError) => {
 				if (error.status === 401 || error.status === 403) {
 					router.refresh();

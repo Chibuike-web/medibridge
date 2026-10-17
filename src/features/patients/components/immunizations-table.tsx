@@ -159,9 +159,12 @@ export function ImmunizationsTable({
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const immunizationDetailsQuery = useSWR(
-		selectedId ? (["patient-immunization-details", selectedId] as const) : null,
+		isDetailsDrawerOpen && selectedId
+			? (["patient-immunization-details", selectedId] as const)
+			: null,
 		([, selectedId]) => fetchPatientImmunizationDetails(selectedId),
 		{
+			dedupingInterval: 0,
 			onError: (error: ImmunizationDetailsRequestError) => {
 				if (error.status === 401 || error.status === 403) {
 					router.refresh();

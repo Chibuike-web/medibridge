@@ -158,9 +158,12 @@ export function MedicationsTable({
 	);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const medicationDetailsQuery = useSWR(
-		selectedId ? (["patient-medication-details", selectedId] as const) : null,
+		isDetailsDrawerOpen && selectedId
+			? (["patient-medication-details", selectedId] as const)
+			: null,
 		([, selectedId]) => fetchPatientMedicationDetails(selectedId),
 		{
+			dedupingInterval: 0,
 			onError: (error: MedicationDetailsRequestError) => {
 				if (error.status === 401 || error.status === 403) {
 					router.refresh();

@@ -58,8 +58,9 @@ vi.mock("@/lib/better-auth/auth", async () => {
 				await write({
 					update: () => ({
 						set: (values: Record<string, unknown>) => ({
-							where: async () => {
+							where: () => {
 								database.updates.push(values);
+								return { returning: async () => [{ id: "saved-record" }] };
 							},
 						}),
 					}),

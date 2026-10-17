@@ -1,7 +1,7 @@
 "use server";
 
 import { format, parseISO } from "date-fns";
-import { and, eq } from "drizzle-orm";
+import { and, eq, gte, lt } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { patient, patientDiagnosis, patientDiagnosisHistory } from "@/db/schemas";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
@@ -71,12 +71,13 @@ export async function updatePatientDiagnosisAction(
 
 	const { patientId, updatedAt: lastSavedAt, ...previousDiagnosis } = currentDiagnosis;
 
+	const staleRecordResult = {
+		status: "failed" as const,
+		error:
+			"This diagnosis was changed after you opened it. Close it and open it again to see the latest version.",
+	};
 	if (lastSavedAt.toISOString() !== formData.get("updatedAt")) {
-		return {
-			status: "failed",
-			error:
-				"This diagnosis was changed after you opened it. Close it and open it again to see the latest version.",
-		};
+		return staleRecordResult;
 	}
 	const { severityStage, clinicalNote, ...diagnosis } = parsedDiagnosis.data;
 	const nextDiagnosis = {
@@ -93,16 +94,26 @@ export async function updatePatientDiagnosisAction(
 	}
 
 	const updatedBy = session.user.name || session.user.email;
-	const updatedAt = new Date();
+	const updatedAt = new Date(Math.max(Date.now(), lastSavedAt.getTime() + 1));
 	const historyValue = (field: keyof typeof nextDiagnosis, value: string | null) =>
 		value && field === "diagnosedAt" ? format(parseISO(value), "do MMMM yyyy") : value;
 
+	const staleRecordError = new Error("Record changed before saving.");
 	try {
 		await db.transaction(async (tx) => {
-			await tx
+			const [updatedRecord] = await tx
 				.update(patientDiagnosis)
 				.set({ ...nextDiagnosis, updatedBy, updatedAt })
-				.where(eq(patientDiagnosis.id, diagnosisId));
+				.where(
+					and(
+						eq(patientDiagnosis.id, diagnosisId),
+						// The form's timestamp has millisecond precision; database defaults can include microseconds.
+						gte(patientDiagnosis.updatedAt, lastSavedAt),
+						lt(patientDiagnosis.updatedAt, new Date(lastSavedAt.getTime() + 1)),
+					),
+				)
+				.returning({ id: patientDiagnosis.id });
+			if (!updatedRecord) throw staleRecordError;
 			await tx.insert(patientDiagnosisHistory).values(
 				changedFields.map((field) => ({
 					id: crypto.randomUUID(),
@@ -116,6 +127,7 @@ export async function updatePatientDiagnosisAction(
 			);
 		});
 	} catch (error) {
+		if (error === staleRecordError) return staleRecordResult;
 		console.error("Updating patient diagnosis failed:", error);
 		return { status: "failed", error: "We couldn’t save these changes. Please try again." };
 	}

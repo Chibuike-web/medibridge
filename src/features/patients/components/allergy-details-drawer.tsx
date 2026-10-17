@@ -195,6 +195,7 @@ export function AllergyDetailsDrawer({
 						<AllergyDetailsFallback />
 					) : isEditingAllergyDetails && allergy ? (
 						<AllergyDetailsEditForm
+							key={allergy.allergyId}
 							allergy={allergy}
 							formError={formError}
 							onFormErrorDismiss={() => setFormError("")}
@@ -310,6 +311,7 @@ function AllergyDetailsEditForm({
 	onFormErrorDismiss: () => void;
 	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+	const [originalUpdatedAt] = useState(() => allergy.editValues.updatedAt);
 	const generatedAttachmentRowId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
 	const [allergyAttachmentRows, setAllergyAttachmentRows] = useState<AttachmentFormRow[]>([]);
@@ -335,7 +337,7 @@ function AllergyDetailsEditForm({
 
 	return (
 		<form id={allergyDetailsFormId} onSubmit={onSubmit} className="flex flex-col gap-12">
-			<input type="hidden" name="updatedAt" value={allergy.editValues.updatedAt} />
+			<input type="hidden" name="updatedAt" value={originalUpdatedAt} />
 			<div className="flex flex-col gap-8">
 				{formError && (
 					<div

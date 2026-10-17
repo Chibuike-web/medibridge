@@ -216,6 +216,7 @@ export function ImmunizationDetailsDrawer({
 						<ImmunizationDetailsFallback />
 					) : isEditingImmunizationDetails && immunization ? (
 						<ImmunizationDetailsEditForm
+							key={immunization.immunizationId}
 							immunization={immunization}
 							formError={formError}
 							onFormErrorDismiss={() => setFormError("")}
@@ -365,6 +366,7 @@ function ImmunizationDetailsEditForm({
 	onFormErrorDismiss: () => void;
 	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+	const [originalUpdatedAt] = useState(() => immunization.editValues.updatedAt);
 	const [administeredAt, setAdministeredAt] = useState<Date | undefined>(() =>
 		immunization.editValues.dateAdministered
 			? parseISO(immunization.editValues.dateAdministered)
@@ -373,7 +375,7 @@ function ImmunizationDetailsEditForm({
 
 	return (
 		<form id={immunizationDetailsFormId} onSubmit={onSubmit} className="flex flex-col gap-12">
-			<input type="hidden" name="updatedAt" value={immunization.editValues.updatedAt} />
+			<input type="hidden" name="updatedAt" value={originalUpdatedAt} />
 			<div className="flex flex-col gap-8">
 				{formError && (
 					<div

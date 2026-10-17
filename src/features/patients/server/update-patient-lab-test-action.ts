@@ -3,7 +3,7 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { format, parseISO } from "date-fns";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, gte, lt, inArray } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { patient, patientLabTest, patientLabTestFile, patientLabTestHistory } from "@/db/schemas";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
@@ -108,12 +108,13 @@ export async function updatePatientLabTestAction(
 
 	const { patientId, updatedAt: lastSavedAt, orderedAt, ...savedLabTest } = currentLabTest;
 
+	const staleRecordResult = {
+		status: "failed" as const,
+		error:
+			"This lab test was changed after you opened it. Close it and open it again to see the latest version.",
+	};
 	if (lastSavedAt.toISOString() !== formData.get("updatedAt")) {
-		return {
-			status: "failed",
-			error:
-				"This lab test was changed after you opened it. Close it and open it again to see the latest version.",
-		};
+		return staleRecordResult;
 	}
 	const previousLabTest = {
 		...savedLabTest,
@@ -139,11 +140,12 @@ export async function updatePatientLabTestAction(
 	}
 
 	const updatedBy = session.user.name || session.user.email;
-	const updatedAt = new Date();
+	const updatedAt = new Date(Math.max(Date.now(), lastSavedAt.getTime() + 1));
 	const historyValue = (field: keyof typeof nextLabTest, value: string | null) =>
 		value && field === "orderedAt" ? format(parseISO(value), "do MMMM yyyy") : value;
 	const fileDirectory = path.resolve("patient-uploads", organizationId, "record-files", labTestId);
 
+	const staleRecordError = new Error("Record changed before saving.");
 	try {
 		if (addedFiles.length > 0) {
 			await mkdir(fileDirectory, { recursive: true });
@@ -158,10 +160,19 @@ export async function updatePatientLabTestAction(
 		}
 
 		await db.transaction(async (tx) => {
-			await tx
+			const [updatedRecord] = await tx
 				.update(patientLabTest)
 				.set({ ...nextLabTest, orderedAt: new Date(nextLabTest.orderedAt), updatedBy, updatedAt })
-				.where(eq(patientLabTest.id, labTestId));
+				.where(
+					and(
+						eq(patientLabTest.id, labTestId),
+						// The form's timestamp has millisecond precision; database defaults can include microseconds.
+						gte(patientLabTest.updatedAt, lastSavedAt),
+						lt(patientLabTest.updatedAt, new Date(lastSavedAt.getTime() + 1)),
+					),
+				)
+				.returning({ id: patientLabTest.id });
+			if (!updatedRecord) throw staleRecordError;
 
 			if (removedFiles.length > 0) {
 				await tx.delete(patientLabTestFile).where(
@@ -218,7 +229,7 @@ export async function updatePatientLabTestAction(
 			]);
 		});
 	} catch (error) {
-		console.error("Updating patient lab test failed:", error);
+		if (error !== staleRecordError) console.error("Updating patient lab test failed:", error);
 		await Promise.all(
 			addedFiles.map(({ id, extension }) =>
 				rm(path.join(fileDirectory, `${id}${extension}`), { force: true }),
@@ -226,6 +237,7 @@ export async function updatePatientLabTestAction(
 		).catch((cleanupError) =>
 			console.error("Removing unsaved lab test files failed:", cleanupError),
 		);
+		if (error === staleRecordError) return staleRecordResult;
 		return { status: "failed", error: "We couldn’t save these changes. Please try again." };
 	}
 

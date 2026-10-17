@@ -216,6 +216,7 @@ export function LabTestDetailsDrawer({
 				<div className="min-h-0 overflow-y-auto px-4 py-5 text-sm">
 					{isEditingLabTestDetails && labTest ? (
 						<LabTestDetailsEditForm
+							key={labTest.labId}
 							labTest={labTest}
 							formError={formError}
 							onFormErrorDismiss={() => setFormError("")}
@@ -522,6 +523,7 @@ function LabTestDetailsEditForm({
 	onFormErrorDismiss: () => void;
 	onSave: (formData: FormData) => void;
 }) {
+	const [originalUpdatedAt] = useState(() => labTest.updatedAtValue);
 	const generatedAttachmentRowId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
 	const [orderedAt, setOrderedAt] = useState<Date | undefined>(() =>
@@ -603,7 +605,7 @@ function LabTestDetailsEditForm({
 
 	return (
 		<form id={labTestDetailsFormId} onSubmit={handleSubmit} className="flex flex-col gap-12">
-			<input type="hidden" name="updatedAt" value={labTest.updatedAtValue} />
+			<input type="hidden" name="updatedAt" value={originalUpdatedAt} />
 			<div className="flex flex-col gap-8">
 				{formError && (
 					<div

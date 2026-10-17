@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, gte, lt } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { patient, patientAllergy, patientAllergyHistory } from "@/db/schemas";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
@@ -68,12 +68,13 @@ export async function updatePatientAllergyAction(
 
 	const { patientId, updatedAt: lastSavedAt, ...previousAllergy } = currentAllergy;
 
+	const staleRecordResult = {
+		status: "failed" as const,
+		error:
+			"This allergy was changed after you opened it. Close it and open it again to see the latest version.",
+	};
 	if (lastSavedAt.toISOString() !== formData.get("updatedAt")) {
-		return {
-			status: "failed",
-			error:
-				"This allergy was changed after you opened it. Close it and open it again to see the latest version.",
-		};
+		return staleRecordResult;
 	}
 	const { clinicalNote, ...allergy } = parsedAllergy.data;
 	const nextAllergy = { ...allergy, clinicalNote: clinicalNote || null };
@@ -86,14 +87,24 @@ export async function updatePatientAllergyAction(
 	}
 
 	const updatedBy = session.user.name || session.user.email;
-	const updatedAt = new Date();
+	const updatedAt = new Date(Math.max(Date.now(), lastSavedAt.getTime() + 1));
 
+	const staleRecordError = new Error("Record changed before saving.");
 	try {
 		await db.transaction(async (tx) => {
-			await tx
+			const [updatedRecord] = await tx
 				.update(patientAllergy)
 				.set({ ...nextAllergy, updatedBy, updatedAt })
-				.where(eq(patientAllergy.id, allergyId));
+				.where(
+					and(
+						eq(patientAllergy.id, allergyId),
+						// The form's timestamp has millisecond precision; database defaults can include microseconds.
+						gte(patientAllergy.updatedAt, lastSavedAt),
+						lt(patientAllergy.updatedAt, new Date(lastSavedAt.getTime() + 1)),
+					),
+				)
+				.returning({ id: patientAllergy.id });
+			if (!updatedRecord) throw staleRecordError;
 			await tx.insert(patientAllergyHistory).values(
 				changedFields.map((field) => ({
 					id: crypto.randomUUID(),
@@ -107,6 +118,7 @@ export async function updatePatientAllergyAction(
 			);
 		});
 	} catch (error) {
+		if (error === staleRecordError) return staleRecordResult;
 		console.error("Updating patient allergy failed:", error);
 		return { status: "failed", error: "We couldn’t save these changes. Please try again." };
 	}

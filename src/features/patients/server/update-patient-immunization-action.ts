@@ -1,7 +1,7 @@
 "use server";
 
 import { format, parseISO } from "date-fns";
-import { and, eq } from "drizzle-orm";
+import { and, eq, gte, lt } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { patient, patientImmunization, patientImmunizationHistory } from "@/db/schemas";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
@@ -82,12 +82,13 @@ export async function updatePatientImmunizationAction(
 		...savedImmunization
 	} = currentImmunization;
 
+	const staleRecordResult = {
+		status: "failed" as const,
+		error:
+			"This immunization was changed after you opened it. Close it and open it again to see the latest version.",
+	};
 	if (lastSavedAt.toISOString() !== formData.get("updatedAt")) {
-		return {
-			status: "failed",
-			error:
-				"This immunization was changed after you opened it. Close it and open it again to see the latest version.",
-		};
+		return staleRecordResult;
 	}
 	const previousImmunization = {
 		...savedImmunization,
@@ -111,13 +112,14 @@ export async function updatePatientImmunizationAction(
 	}
 
 	const updatedBy = session.user.name || session.user.email;
-	const updatedAt = new Date();
+	const updatedAt = new Date(Math.max(Date.now(), lastSavedAt.getTime() + 1));
 	const historyValue = (field: keyof typeof nextImmunization, value: string | null) =>
 		value && field === "dateAdministered" ? format(parseISO(value), "do MMMM yyyy") : value;
 
+	const staleRecordError = new Error("Record changed before saving.");
 	try {
 		await db.transaction(async (tx) => {
-			await tx
+			const [updatedRecord] = await tx
 				.update(patientImmunization)
 				.set({
 					...nextImmunization,
@@ -125,7 +127,16 @@ export async function updatePatientImmunizationAction(
 					updatedBy,
 					updatedAt,
 				})
-				.where(eq(patientImmunization.id, immunizationId));
+				.where(
+					and(
+						eq(patientImmunization.id, immunizationId),
+						// The form's timestamp has millisecond precision; database defaults can include microseconds.
+						gte(patientImmunization.updatedAt, lastSavedAt),
+						lt(patientImmunization.updatedAt, new Date(lastSavedAt.getTime() + 1)),
+					),
+				)
+				.returning({ id: patientImmunization.id });
+			if (!updatedRecord) throw staleRecordError;
 			await tx.insert(patientImmunizationHistory).values(
 				changedFields.map((field) => ({
 					id: crypto.randomUUID(),
@@ -139,6 +150,7 @@ export async function updatePatientImmunizationAction(
 			);
 		});
 	} catch (error) {
+		if (error === staleRecordError) return staleRecordResult;
 		console.error("Updating patient immunization failed:", error);
 		return { status: "failed", error: "We couldn’t save these changes. Please try again." };
 	}

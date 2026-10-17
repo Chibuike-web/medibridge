@@ -174,9 +174,10 @@ export function DiagnosesTable({
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const diagnosisDetailsQuery = useSWR(
-		selectedId ? (["patient-diagnosis-details", selectedId] as const) : null,
+		isDetailsDrawerOpen && selectedId ? (["patient-diagnosis-details", selectedId] as const) : null,
 		([, selectedId]) => fetchPatientDiagnosisDetails(selectedId),
 		{
+			dedupingInterval: 0,
 			onError: (error: DiagnosisDetailsRequestError) => {
 				if (error.status === 401 || error.status === 403) {
 					router.refresh();

@@ -158,9 +158,10 @@ export function ProceduresTable({
 	);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const procedureDetailsQuery = useSWR(
-		selectedId ? (["patient-procedure-details", selectedId] as const) : null,
+		isDetailsDrawerOpen && selectedId ? (["patient-procedure-details", selectedId] as const) : null,
 		([, selectedId]) => fetchPatientProcedureDetails(selectedId),
 		{
+			dedupingInterval: 0,
 			onError: (error: ProcedureDetailsRequestError) => {
 				if (error.status === 401 || error.status === 403) {
 					router.refresh();

@@ -219,6 +219,7 @@ export function MedicationDetailsDrawer({
 						<MedicationDetailsFallback />
 					) : isEditingMedicationDetails && medication ? (
 						<MedicationDetailsEditForm
+							key={medication.medicationId}
 							medication={medication}
 							formError={formError}
 							onFormErrorDismiss={() => setFormError("")}
@@ -369,6 +370,7 @@ function MedicationDetailsEditForm({
 	onFormErrorDismiss: () => void;
 	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+	const [originalUpdatedAt] = useState(() => medication.editValues.updatedAt);
 	const generatedAttachmentRowId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
 	const [startedAt, setStartedAt] = useState<Date | undefined>(() =>
@@ -397,7 +399,7 @@ function MedicationDetailsEditForm({
 
 	return (
 		<form id={medicationDetailsFormId} onSubmit={onSubmit} className="flex flex-col gap-12">
-			<input type="hidden" name="updatedAt" value={medication.editValues.updatedAt} />
+			<input type="hidden" name="updatedAt" value={originalUpdatedAt} />
 			<div className="flex flex-col gap-8">
 				{formError && (
 					<div

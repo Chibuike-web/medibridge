@@ -210,6 +210,7 @@ export function ProcedureDetailsDrawer({
 						<ProcedureDetailsFallback />
 					) : isEditingProcedureDetails && procedure ? (
 						<ProcedureDetailsEditForm
+							key={procedure.procedureId}
 							procedure={procedure}
 							formError={formError}
 							onFormErrorDismiss={() => setFormError("")}
@@ -342,6 +343,7 @@ function ProcedureDetailsEditForm({
 	onFormErrorDismiss: () => void;
 	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+	const [originalUpdatedAt] = useState(() => procedure.editValues.updatedAt);
 	const generatedAttachmentRowId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
 	const nextAssistantRowNumberRef = useRef(0);
@@ -409,7 +411,7 @@ function ProcedureDetailsEditForm({
 
 	return (
 		<form id={procedureDetailsFormId} onSubmit={onSubmit} className="flex flex-col gap-12">
-			<input type="hidden" name="updatedAt" value={procedure.editValues.updatedAt} />
+			<input type="hidden" name="updatedAt" value={originalUpdatedAt} />
 			<div className="flex flex-col gap-8">
 				{formError && (
 					<div

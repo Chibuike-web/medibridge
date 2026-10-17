@@ -224,6 +224,7 @@ export function ImagingDetailsDrawer({
 				<div className="min-h-0 overflow-y-auto px-4 py-5 text-sm">
 					{isEditingImagingDetails && imaging ? (
 						<ImagingDetailsEditForm
+							key={imaging.imagingId}
 							imaging={imaging}
 							formError={formError}
 							onFormErrorDismiss={() => setFormError("")}
@@ -556,6 +557,7 @@ function ImagingDetailsEditForm({
 	onFormErrorDismiss: () => void;
 	onSave: (formData: FormData) => void;
 }) {
+	const [originalUpdatedAt] = useState(() => imaging.updatedAtValue);
 	const generatedAttachmentRowId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
 	const [orderedAt, setOrderedAt] = useState<Date | undefined>(() =>
@@ -635,7 +637,7 @@ function ImagingDetailsEditForm({
 
 	return (
 		<form id={imagingDetailsFormId} onSubmit={handleSubmit} className="flex flex-col gap-12">
-			<input type="hidden" name="updatedAt" value={imaging.updatedAtValue} />
+			<input type="hidden" name="updatedAt" value={originalUpdatedAt} />
 			<div className="flex flex-col gap-8">
 				{formError && (
 					<div

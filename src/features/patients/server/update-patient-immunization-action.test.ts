@@ -29,7 +29,11 @@ vi.mock("@/lib/better-auth/auth", () => ({
 		}),
 		transaction: async (
 			write: (tx: {
-				update: () => { set: (values: Record<string, unknown>) => { where: () => void } };
+				update: () => {
+					set: (values: Record<string, unknown>) => {
+						where: () => { returning: () => Promise<{ id: string }[]> };
+					};
+				};
 				insert: () => { values: (rows: Record<string, unknown>[]) => void };
 			}) => Promise<void>,
 		) => {
@@ -40,6 +44,7 @@ vi.mock("@/lib/better-auth/auth", () => ({
 					set: (values) => ({
 						where: () => {
 							database.updates.push(values);
+							return { returning: async () => [{ id: "saved-record" }] };
 						},
 					}),
 				}),

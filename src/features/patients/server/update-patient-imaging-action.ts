@@ -3,7 +3,7 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { format, parseISO } from "date-fns";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, gte, lt, inArray } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { patient, patientImaging, patientImagingFile, patientImagingHistory } from "@/db/schemas";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
@@ -100,12 +100,13 @@ export async function updatePatientImagingAction(
 
 	const { patientId, updatedAt: lastSavedAt, orderedAt, ...savedImaging } = currentImaging;
 
+	const staleRecordResult = {
+		status: "failed" as const,
+		error:
+			"This imaging study was changed after you opened it. Close it and open it again to see the latest version.",
+	};
 	if (lastSavedAt.toISOString() !== formData.get("updatedAt")) {
-		return {
-			status: "failed",
-			error:
-				"This imaging study was changed after you opened it. Close it and open it again to see the latest version.",
-		};
+		return staleRecordResult;
 	}
 	const previousImaging = {
 		...savedImaging,
@@ -127,11 +128,12 @@ export async function updatePatientImagingAction(
 	}
 
 	const updatedBy = session.user.name || session.user.email;
-	const updatedAt = new Date();
+	const updatedAt = new Date(Math.max(Date.now(), lastSavedAt.getTime() + 1));
 	const historyValue = (field: keyof typeof nextImaging, value: string | null) =>
 		value && field === "orderedAt" ? format(parseISO(value), "do MMMM yyyy") : value;
 	const fileDirectory = path.resolve("patient-uploads", organizationId, "record-files", imagingId);
 
+	const staleRecordError = new Error("Record changed before saving.");
 	try {
 		if (addedFiles.length > 0) {
 			await mkdir(fileDirectory, { recursive: true });
@@ -146,10 +148,19 @@ export async function updatePatientImagingAction(
 		}
 
 		await db.transaction(async (tx) => {
-			await tx
+			const [updatedRecord] = await tx
 				.update(patientImaging)
 				.set({ ...nextImaging, orderedAt: new Date(nextImaging.orderedAt), updatedBy, updatedAt })
-				.where(eq(patientImaging.id, imagingId));
+				.where(
+					and(
+						eq(patientImaging.id, imagingId),
+						// The form's timestamp has millisecond precision; database defaults can include microseconds.
+						gte(patientImaging.updatedAt, lastSavedAt),
+						lt(patientImaging.updatedAt, new Date(lastSavedAt.getTime() + 1)),
+					),
+				)
+				.returning({ id: patientImaging.id });
+			if (!updatedRecord) throw staleRecordError;
 
 			if (removedFiles.length > 0) {
 				await tx.delete(patientImagingFile).where(
@@ -206,7 +217,7 @@ export async function updatePatientImagingAction(
 			]);
 		});
 	} catch (error) {
-		console.error("Updating patient imaging failed:", error);
+		if (error !== staleRecordError) console.error("Updating patient imaging failed:", error);
 		await Promise.all(
 			addedFiles.map(({ id, extension }) =>
 				rm(path.join(fileDirectory, `${id}${extension}`), { force: true }),
@@ -214,6 +225,7 @@ export async function updatePatientImagingAction(
 		).catch((cleanupError) =>
 			console.error("Removing unsaved imaging files failed:", cleanupError),
 		);
+		if (error === staleRecordError) return staleRecordResult;
 		return { status: "failed", error: "We couldn’t save these changes. Please try again." };
 	}
 

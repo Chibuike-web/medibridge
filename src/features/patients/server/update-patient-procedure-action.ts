@@ -1,7 +1,7 @@
 "use server";
 
 import { format, parseISO } from "date-fns";
-import { and, eq } from "drizzle-orm";
+import { and, eq, gte, lt } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { patient, patientProcedure, patientProcedureHistory } from "@/db/schemas";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
@@ -77,12 +77,13 @@ export async function updatePatientProcedureAction(
 		return { status: "failed", error: "Procedure could not be found." };
 	}
 
+	const staleRecordResult = {
+		status: "failed" as const,
+		error:
+			"This procedure was changed after you opened it. Close it and open it again to see the latest version.",
+	};
 	if (currentProcedure.updatedAt.toISOString() !== formData.get("updatedAt")) {
-		return {
-			status: "failed",
-			error:
-				"This procedure was changed after you opened it. Close it and open it again to see the latest version.",
-		};
+		return staleRecordResult;
 	}
 
 	const isPlanned = currentProcedure.status === "Pending";
@@ -123,14 +124,15 @@ export async function updatePatientProcedureAction(
 	}
 
 	const updatedBy = session.user.name || session.user.email;
-	const updatedAt = new Date();
+	const updatedAt = new Date(Math.max(Date.now(), currentProcedure.updatedAt.getTime() + 1));
 	const date = new Date(nextProcedure.procedureDate);
 	const historyValue = (field: keyof typeof nextProcedure, value: string | null) =>
 		value && field === "procedureDate" ? format(parseISO(value), "do MMMM yyyy") : value;
 
+	const staleRecordError = new Error("Record changed before saving.");
 	try {
 		await db.transaction(async (tx) => {
-			await tx
+			const [updatedRecord] = await tx
 				.update(patientProcedure)
 				.set({
 					procedureName: nextProcedure.procedureName,
@@ -153,7 +155,16 @@ export async function updatePatientProcedureAction(
 					updatedBy,
 					updatedAt,
 				})
-				.where(eq(patientProcedure.id, procedureId));
+				.where(
+					and(
+						eq(patientProcedure.id, procedureId),
+						// The form's timestamp has millisecond precision; database defaults can include microseconds.
+						gte(patientProcedure.updatedAt, currentProcedure.updatedAt),
+						lt(patientProcedure.updatedAt, new Date(currentProcedure.updatedAt.getTime() + 1)),
+					),
+				)
+				.returning({ id: patientProcedure.id });
+			if (!updatedRecord) throw staleRecordError;
 			await tx.insert(patientProcedureHistory).values(
 				changedFields.map((field) => ({
 					id: crypto.randomUUID(),
@@ -167,6 +178,7 @@ export async function updatePatientProcedureAction(
 			);
 		});
 	} catch (error) {
+		if (error === staleRecordError) return staleRecordResult;
 		console.error("Updating patient procedure failed:", error);
 		return { status: "failed", error: "We couldn’t save these changes. Please try again." };
 	}
