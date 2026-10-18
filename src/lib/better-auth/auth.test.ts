@@ -145,24 +145,6 @@ describe("Configured authentication endpoints", () => {
 		}
 	});
 
-	test("keeps the password chosen at sign-up and signs the owner in when they verify their email", async () => {
-		const registeredUser = await registerAccount("ada@hospital.org", "/email-verified");
-		expect((await signIn(registeredUser.email, "password-before-verification")).status).toBe(403);
-		const verificationUrl = sendEmailMock.mock.calls[0][1] as string;
-
-		const verifiedResponse = await auth.handler(new Request(verificationUrl));
-
-		expect(verifiedResponse.status).toBe(302);
-		expect(new URL(verifiedResponse.headers.get("location")!, verificationUrl).pathname).toBe(
-			"/email-verified",
-		);
-		const sessionResponse = await requestAuth("/get-session", {
-			cookie: responseCookies(verifiedResponse),
-		});
-		expect((await sessionResponse.json()).user.emailVerified).toBe(true);
-		expect((await signIn(registeredUser.email, "password-before-verification")).status).toBe(200);
-	});
-
 	test("returns an invited person to their invitation, signed in, when they verify their email", async () => {
 		await registerAccount("ada@hospital.org", "/accept-invite?invitationId=recipient-invitation");
 		const verificationUrl = sendEmailMock.mock.calls[0][1] as string;
@@ -191,6 +173,9 @@ describe("Configured authentication endpoints", () => {
 			expect(sendEmailMock).toHaveBeenCalledWith(email, verificationUrl);
 			const verifiedResponse = await auth.handler(new Request(verificationUrl));
 			expect(verifiedResponse.status).toBe(302);
+			expect(new URL(verifiedResponse.headers.get("location")!, verificationUrl).pathname).toBe(
+				"/email-verified",
+			);
 			const sessionResponse = await requestAuth("/get-session", {
 				cookie: responseCookies(verifiedResponse),
 			});

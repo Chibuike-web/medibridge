@@ -76,16 +76,17 @@ describe("date range filter", () => {
 		{ range: "within last month", startMonthOffset: -1, endMonthOffset: -1 },
 		{ range: "within this month", startMonthOffset: 0, endMonthOffset: 0 },
 		{ range: "from last month into this month", startMonthOffset: -1, endMonthOffset: 0 },
-	])("applies a range $range", async ({ startMonthOffset, endMonthOffset }) => {
+	])("applies a range $range and closes", async ({ startMonthOffset, endMonthOffset }) => {
 		const user = userEvent.setup();
 		const today = new Date();
 		const start = new Date(today.getFullYear(), today.getMonth() + startMonthOffset, 1);
 		const end = new Date(today.getFullYear(), today.getMonth() + endMonthOffset, 1);
 		const onDateRangeApply = vi.fn();
+		const onClose = vi.fn();
 		render(
 			<SetDateRangeDialog
 				dateRangeFilter={{ from: "", to: "", onDateRangeApply }}
-				onClose={vi.fn()}
+				onClose={onClose}
 			/>,
 		);
 		const dialog = screen.getByRole("dialog", { name: "Set date range" });
@@ -93,6 +94,8 @@ describe("date range filter", () => {
 			format(subMonths(today, 1), "MMMM yyyy"),
 			format(today, "MMMM yyyy"),
 		]);
+		const apply = within(dialog).getByRole("button", { name: "Apply date range" });
+		expect(apply).toBeDisabled();
 
 		await user.click(
 			within(dialog).getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
@@ -102,12 +105,13 @@ describe("date range filter", () => {
 				name: new RegExp(format(addDays(end, 1), "MMMM do, yyyy")),
 			}),
 		);
-		await user.click(within(dialog).getByRole("button", { name: "Apply date range" }));
+		await user.click(apply);
 
 		expect(onDateRangeApply).toHaveBeenCalledWith(
 			format(start, "yyyy-MM-dd"),
 			format(addDays(end, 1), "yyyy-MM-dd"),
 		);
+		expect(onClose).toHaveBeenCalled();
 	});
 
 	test("clears the current range with Reset and keeps the dialog open", async () => {
@@ -131,37 +135,5 @@ describe("date range filter", () => {
 		expect(within(dialog).queryByText("31st January, 2020")).not.toBeInTheDocument();
 		expect(screen.getByRole("dialog", { name: "Set date range" })).toBeVisible();
 		expect(onClose).not.toHaveBeenCalled();
-	});
-
-	test("applies the chosen start and end dates and closes", async () => {
-		const user = userEvent.setup();
-		const today = new Date();
-		const start = new Date(today.getFullYear(), today.getMonth() - 1, 15);
-		const end = new Date(today.getFullYear(), today.getMonth(), 15);
-		const onDateRangeApply = vi.fn();
-		const onClose = vi.fn();
-		render(
-			<SetDateRangeDialog
-				dateRangeFilter={{ from: "", to: "", onDateRangeApply }}
-				onClose={onClose}
-			/>,
-		);
-		const dialog = screen.getByRole("dialog", { name: "Set date range" });
-		const apply = within(dialog).getByRole("button", { name: "Apply date range" });
-		expect(apply).toBeDisabled();
-
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
-		);
-		await user.click(
-			within(dialog).getByRole("button", { name: new RegExp(format(end, "MMMM do, yyyy")) }),
-		);
-		await user.click(apply);
-
-		expect(onDateRangeApply).toHaveBeenCalledWith(
-			format(start, "yyyy-MM-dd"),
-			format(end, "yyyy-MM-dd"),
-		);
-		expect(onClose).toHaveBeenCalled();
 	});
 });

@@ -39,22 +39,6 @@ describe("AdminInviteClient", () => {
 		expect(inviteAdminActionMock).not.toHaveBeenCalled();
 	});
 
-	test("invites an administrator whose email is on any domain", async () => {
-		const user = userEvent.setup();
-		inviteAdminActionMock.mockResolvedValue({ status: "success" });
-		render(<AdminInviteClient />);
-
-		await user.type(screen.getByRole("textbox", { name: "Name" }), "Sarah Thompson");
-		await user.type(screen.getByRole("textbox", { name: "Email Address" }), "sarah@gmail.com");
-		await user.click(screen.getByRole("button", { name: "Send Invite" }));
-
-		expect(inviteAdminActionMock).toHaveBeenCalledWith({
-			name: "Sarah Thompson",
-			email: "sarah@gmail.com",
-		});
-		expect(await screen.findByRole("dialog", { name: "Admin Invitation Sent" })).toBeVisible();
-	});
-
 	test("does not submit an administrator email that is not a valid address", async () => {
 		const user = userEvent.setup();
 		render(<AdminInviteClient />);
@@ -70,21 +54,18 @@ describe("AdminInviteClient", () => {
 		expect(inviteAdminActionMock).not.toHaveBeenCalled();
 	});
 
-	test("submits normalized administrator details and confirms the invitation", async () => {
+	test("normalizes an administrator's non-hospital email and confirms the invitation", async () => {
 		const user = userEvent.setup();
 		inviteAdminActionMock.mockResolvedValue({ status: "success" });
 		render(<AdminInviteClient />);
 
 		await user.type(screen.getByRole("textbox", { name: "Name" }), " Sarah Thompson ");
-		await user.type(
-			screen.getByRole("textbox", { name: "Email Address" }),
-			"SARAH@STMARYHOSPITAL.ORG",
-		);
+		await user.type(screen.getByRole("textbox", { name: "Email Address" }), "SARAH@GMAIL.COM");
 		await user.click(screen.getByRole("button", { name: "Send Invite" }));
 
 		expect(inviteAdminActionMock).toHaveBeenCalledWith({
 			name: "Sarah Thompson",
-			email: "sarah@stmaryhospital.org",
+			email: "sarah@gmail.com",
 		});
 		expect(await screen.findByRole("dialog", { name: "Admin Invitation Sent" })).toBeVisible();
 	});

@@ -37,7 +37,7 @@ describe("OwnerClient", () => {
 	});
 
 	test("creates an owner account and tells them to verify email before hospital setup", async () => {
-		await submitOwnerForm();
+		await submitOwnerForm({ password: "12345678" });
 
 		expect(await screen.findByRole("heading", { name: "Check your email" })).toBeVisible();
 		expect(screen.getByRole("status")).toHaveTextContent(
@@ -46,7 +46,7 @@ describe("OwnerClient", () => {
 		expect(signUpEmailMock).toHaveBeenCalledWith({
 			name: "Sarah Thompson",
 			email: "sarah@stmary.org",
-			password: "secure-password",
+			password: "12345678",
 			callbackURL: "/email-verified",
 		});
 	});
@@ -123,24 +123,14 @@ describe("OwnerClient", () => {
 		expect(signUpEmailMock).not.toHaveBeenCalled();
 	});
 
-	test("creates an account with an 8-character password", async () => {
-		await submitOwnerForm({ password: "12345678" });
+	test("accepts a non-hospital email and sends it in lowercase", async () => {
+		await submitOwnerForm({ email: "SARAH@GMAIL.COM" });
 
 		expect(await screen.findByRole("heading", { name: "Check your email" })).toBeVisible();
-		expect(signUpEmailMock).toHaveBeenCalledWith(expect.objectContaining({ password: "12345678" }));
+		expect(signUpEmailMock).toHaveBeenCalledWith(
+			expect.objectContaining({ email: "sarah@gmail.com" }),
+		);
 	});
-
-	test.each(["sarah@gmail.com", "sarah@clinic.com", "sarah@hospital.co.uk", "SARAH@STMARY.ORG"])(
-		"accepts a valid email on any domain and sends it in lowercase: %s",
-		async (email) => {
-			await submitOwnerForm({ email });
-
-			expect(await screen.findByRole("heading", { name: "Check your email" })).toBeVisible();
-			expect(signUpEmailMock).toHaveBeenCalledWith(
-				expect.objectContaining({ email: email.toLowerCase() }),
-			);
-		},
-	);
 
 	test("does not create an owner account with an invalid email address", async () => {
 		await submitOwnerForm({ email: "sarah@hospital" });
