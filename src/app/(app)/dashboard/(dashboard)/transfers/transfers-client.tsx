@@ -55,7 +55,6 @@ export function TransfersClient({
 		requestedTo,
 	});
 	const [optimisticStatusFilters, setOptimisticStatusFilters] = useOptimistic(statusFilters);
-
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
 	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
 	const [optimisticQuery, setOptimisticQuery] = useOptimistic(searchQuery);
@@ -97,14 +96,15 @@ export function TransfersClient({
 			status: optimisticStatusFilters.join(","),
 			...params,
 		}).forEach(([name, value]) => {
-			const trimmedValue = value.trim();
-
-			if (trimmedValue === "") {
+			if (
+				value.trim() === "" ||
+				(name === "page" && value === "1") ||
+				(name === "limit" && value === "14")
+			) {
 				newParams.delete(name);
-				return;
+			} else {
+				newParams.set(name, value);
 			}
-
-			newParams.set(name, trimmedValue);
 		});
 		return newParams.toString();
 	}

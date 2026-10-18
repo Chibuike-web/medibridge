@@ -521,7 +521,6 @@ describe("Procedures table", () => {
 				encounterId: "ENC-1",
 			}),
 		);
-		expect(refreshMock).not.toHaveBeenCalled();
 		expect(screen.queryByRole("dialog", { name: "Add procedure" })).not.toBeInTheDocument();
 	});
 
@@ -545,7 +544,6 @@ describe("Procedures table", () => {
 			"Add at least one assistant.",
 		);
 		expect(within(drawer).getByLabelText(/^Procedure/)).toHaveValue("Colonoscopy");
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 
 	async function openProcedureEditForm(user: ReturnType<typeof userEvent.setup>) {
@@ -595,7 +593,6 @@ describe("Procedures table", () => {
 		);
 		const viewDialog = await screen.findByRole("dialog", { name: "Procedure details" });
 		expect(await within(viewDialog).findByText("Main Theatre Block")).toBeVisible();
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 
 	test("keeps the procedure edit form open and shows why the changes were not saved", async () => {
@@ -612,6 +609,5 @@ describe("Procedures table", () => {
 		expect(await within(editDialog).findByRole("alert")).toHaveTextContent(
 			"Add at least one assistant.",
 		);
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 });

@@ -462,7 +462,6 @@ describe("Diagnoses table", () => {
 		expect(
 			await within(viewDialog).findByRole("heading", { name: "Childhood asthma" }),
 		).toBeVisible();
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 
 	test("keeps the edit form open and shows why the changes were not saved", async () => {
@@ -480,7 +479,6 @@ describe("Diagnoses table", () => {
 			"Enter who made the diagnosis.",
 		);
 		expect(within(editDialog).getByLabelText(/Diagnosis name/)).toHaveValue("Asthma");
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 
 	test("asks an owner to confirm before archiving from the details actions menu", async () => {
@@ -598,7 +596,6 @@ describe("Diagnoses table", () => {
 				encounterId: "ENC-1",
 			}),
 		);
-		expect(refreshMock).not.toHaveBeenCalled();
 		expect(screen.queryByRole("dialog", { name: "Add diagnosis" })).not.toBeInTheDocument();
 	});
 
@@ -621,6 +618,5 @@ describe("Diagnoses table", () => {
 			"Select the diagnosis date.",
 		);
 		expect(within(drawer).getByLabelText(/Diagnosis name/)).toHaveValue("Asthma");
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 });

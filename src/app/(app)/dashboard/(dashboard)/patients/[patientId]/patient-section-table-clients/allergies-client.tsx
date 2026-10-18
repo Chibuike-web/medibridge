@@ -84,8 +84,8 @@ export function AllergiesClient({
 	) {
 		const params = new URLSearchParams(searchParams.toString());
 		const values = {
-			allergiesPage: String(nextPage),
-			allergiesLimit: String(nextLimit),
+			allergiesPage: nextPage === 1 ? "" : String(nextPage),
+			allergiesLimit: nextLimit === 14 ? "" : String(nextLimit),
 			allergiesQuery: nextQuery,
 			allergiesCreatedFrom: nextCreatedFrom,
 			allergiesCreatedTo: nextCreatedTo,

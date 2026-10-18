@@ -75,8 +75,8 @@ export function ImmunizationsClient({
 	) {
 		const params = new URLSearchParams(searchParams.toString());
 		const values = {
-			immunizationsPage: String(nextPage),
-			immunizationsLimit: String(nextLimit),
+			immunizationsPage: nextPage === 1 ? "" : String(nextPage),
+			immunizationsLimit: nextLimit === 14 ? "" : String(nextLimit),
 			immunizationsQuery: nextQuery,
 			immunizationsCreatedFrom: nextCreatedFrom,
 			immunizationsCreatedTo: nextCreatedTo,

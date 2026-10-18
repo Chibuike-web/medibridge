@@ -94,8 +94,8 @@ export function ImagingClient({
 	) {
 		const params = new URLSearchParams(searchParams.toString());
 		const values = {
-			imagingPage: String(nextPage),
-			imagingLimit: String(nextLimit),
+			imagingPage: nextPage === 1 ? "" : String(nextPage),
+			imagingLimit: nextLimit === 14 ? "" : String(nextLimit),
 			imagingQuery: nextQuery,
 			imagingOrderedFrom: nextOrderedFrom,
 			imagingOrderedTo: nextOrderedTo,

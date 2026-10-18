@@ -193,7 +193,7 @@ describe.each(listCases)(
 			await act(() => vi.advanceTimersByTime(300));
 			const [href, options] = navigation.replace.mock.calls[0];
 			const params = new URL(href, "http://localhost").searchParams;
-			expect(params.get("page")).toBe("1");
+			expect(params.get("page")).toBeNull();
 			expect(params.get("query")).toBe("Nneka");
 			expect(params.get(filterName)).toBe(filterValue);
 			expect(options).toEqual({ scroll: false });
@@ -210,6 +210,23 @@ describe.each(listCases)(
 				vi.advanceTimersByTime(300);
 			});
 			expect(navigation.replace).toHaveBeenCalledTimes(1);
+		});
+
+		test("keeps a space typed between words after the search runs", async () => {
+			vi.useFakeTimers();
+			const { rerender } = render(renderList());
+			const input = screen.getByRole("searchbox");
+			fireEvent.change(input, { target: { value: "Ada " } });
+			await act(() => vi.advanceTimersByTime(300));
+			const urlQuery = new URL(
+				navigation.replace.mock.calls[0][0],
+				"http://localhost",
+			).searchParams.get("query");
+			expect(urlQuery).toBe("Ada ");
+			rerender(renderList("Ada Okafor", urlQuery ?? ""));
+			expect(input).toHaveValue("Ada ");
+			fireEvent.change(input, { target: { value: "Ada Okafor" } });
+			expect(input).toHaveValue("Ada Okafor");
 		});
 	},
 );

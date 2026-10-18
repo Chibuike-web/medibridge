@@ -131,6 +131,19 @@ async function renderPage(page: ReactNode) {
 	}
 }
 
+async function renderRedirects(page: ReactNode) {
+	const redirects: string[] = [];
+	const stream = await renderToReadableStream(page, {
+		onError: (error) => {
+			if (error instanceof Error && error.message.startsWith("REDIRECT:")) {
+				redirects.push(error.message.slice("REDIRECT:".length));
+			}
+		},
+	});
+	await stream.allReady;
+	return redirects;
+}
+
 beforeEach(() => {
 	getAllergies.mockResolvedValue({ allergies: [allergy], totalAllergies: 56 });
 	getMedications.mockResolvedValue({ medications: [medication], totalMedications: 56 });
@@ -210,6 +223,39 @@ test("opens an encounter with independent allergy and medication parameters scop
 		["completed"],
 		"ENC-1",
 	);
+});
+
+test("sends a patient section past its last page to the last page and keeps its search", async () => {
+	const redirects = await renderRedirects(
+		<PatientPage
+			params={Promise.resolve({ patientId: "patient-1" })}
+			searchParams={Promise.resolve({
+				section: "allergies",
+				allergiesPage: "9",
+				allergiesLimit: "28",
+				allergiesQuery: "pen",
+			})}
+		/>,
+	);
+	expect(redirects).toEqual([
+		"/dashboard/patients/patient-1?section=allergies&allergiesPage=2&allergiesLimit=28&allergiesQuery=pen",
+	]);
+});
+
+test("moves every encounter table past its last page in one redirect", async () => {
+	const redirects = await renderRedirects(
+		<EncounterDetailsPage
+			params={Promise.resolve({ patientId: "patient-1", encounterId: "ENC-1" })}
+			searchParams={Promise.resolve({
+				allergiesPage: "9",
+				medicationsPage: "7",
+				medicationsQuery: "asp",
+			})}
+		/>,
+	);
+	expect(redirects).toEqual([
+		"/dashboard/patients/patient-1/encounters/ENC-1?allergiesPage=4&medicationsPage=4&medicationsQuery=asp",
+	]);
 });
 
 test.each(["patient", "encounter"])(

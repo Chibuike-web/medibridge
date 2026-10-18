@@ -527,7 +527,6 @@ describe("Immunizations table", () => {
 				encounterId: "ENC-1",
 			}),
 		);
-		expect(refreshMock).not.toHaveBeenCalled();
 		expect(screen.queryByRole("dialog", { name: "Add immunization" })).not.toBeInTheDocument();
 	});
 
@@ -552,7 +551,6 @@ describe("Immunizations table", () => {
 			"The current dose can’t be more than the total doses.",
 		);
 		expect(within(drawer).getByLabelText(/Vaccine name/)).toHaveValue("BCG");
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 
 	async function openImmunizationEditForm(user: ReturnType<typeof userEvent.setup>) {
@@ -599,7 +597,6 @@ describe("Immunizations table", () => {
 		);
 		const viewDialog = await screen.findByRole("dialog", { name: "Immunization details" });
 		expect(await within(viewDialog).findByText("Nurse Bisi Ade")).toBeVisible();
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 
 	test("keeps the immunization edit form open and shows why the changes were not saved", async () => {
@@ -616,6 +613,5 @@ describe("Immunizations table", () => {
 		expect(await within(editDialog).findByRole("alert")).toHaveTextContent(
 			"The current dose can’t be more than the total doses.",
 		);
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 });

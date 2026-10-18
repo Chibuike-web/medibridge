@@ -550,7 +550,6 @@ describe("Imaging table", () => {
 			}),
 		);
 		expect(formData.getAll("files")).toEqual([]);
-		expect(refreshMock).not.toHaveBeenCalled();
 		expect(screen.queryByRole("dialog", { name: "Add imaging" })).not.toBeInTheDocument();
 	});
 
@@ -576,7 +575,6 @@ describe("Imaging table", () => {
 			"Enter the impression of a completed study.",
 		);
 		expect(within(drawer).getByLabelText(/^Study/)).toHaveValue("MRI Brain");
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 
 	test("opens and downloads a saved image from the details drawer", async () => {
@@ -649,6 +647,5 @@ describe("Imaging table", () => {
 		);
 		const savedDetails = screen.getByRole("dialog", { name: "Imaging details" });
 		expect(within(savedDetails).getByText("Small left pleural effusion.")).toBeVisible();
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 });

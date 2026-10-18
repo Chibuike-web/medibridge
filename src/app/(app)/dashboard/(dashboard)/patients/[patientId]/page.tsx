@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
 import { notFound, redirect } from "next/navigation";
+import type { Route } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { StatusBadge } from "@/components/status-badge";
@@ -266,7 +267,7 @@ async function VitalsSection({
 }) {
 	const tableParams = await searchParams;
 	const page = getNumberParam(tableParams.vitalsPage, 1, { min: 1 });
-	const limit = getNumberParam(tableParams.vitalsLimit, 14, { min: 1, max: 100 });
+	const limit = getNumberParam(tableParams.vitalsLimit, 14);
 	const searchQuery = getStringParam(tableParams.vitalsQuery);
 	const recordedFrom = getStringParam(tableParams.vitalsRecordedFrom);
 	const recordedTo = getStringParam(tableParams.vitalsRecordedTo);
@@ -282,6 +283,19 @@ async function VitalsSection({
 		getPatientVitalReadings(patientId),
 		getPatientEncounters(patientId, 1, 100),
 	]);
+
+	const totalPages = Math.ceil(totalVitals / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("vitalsPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
+
 	const encounterOptions = encounters.map(({ encounterId, encounterType, encounterDateLabel }) => ({
 		encounterId,
 		encounterType,
@@ -321,7 +335,7 @@ async function VitalsSection({
 			createdTo={createdTo}
 			page={page}
 			limit={limit}
-			totalPages={Math.ceil(totalVitals / limit) || 1}
+			totalPages={totalPages}
 		/>
 	);
 }
@@ -335,7 +349,7 @@ async function DiagnosesSection({
 }) {
 	const tableParams = await searchParams;
 	const page = getNumberParam(tableParams.diagnosesPage, 1, { min: 1 });
-	const limit = getNumberParam(tableParams.diagnosesLimit, 14, { min: 1, max: 100 });
+	const limit = getNumberParam(tableParams.diagnosesLimit, 14);
 	const searchQuery = getStringParam(tableParams.diagnosesQuery);
 	const createdFrom = getStringParam(tableParams.diagnosesCreatedFrom);
 	const createdTo = getStringParam(tableParams.diagnosesCreatedTo);
@@ -354,6 +368,18 @@ async function DiagnosesSection({
 		{ createdFrom, createdTo, diagnosedFrom, diagnosedTo, lastReviewedFrom, lastReviewedTo },
 		statusFilters,
 	);
+
+	const totalPages = Math.ceil(totalDiagnoses / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("diagnosesPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
 
 	if (
 		diagnoses.length === 0 &&
@@ -390,7 +416,7 @@ async function DiagnosesSection({
 			statusFilters={statusFilters}
 			page={page}
 			limit={limit}
-			totalPages={Math.ceil(totalDiagnoses / limit) || 1}
+			totalPages={totalPages}
 		/>
 	);
 }
@@ -404,7 +430,7 @@ async function AllergiesSection({
 }) {
 	const tableParams = await searchParams;
 	const page = getNumberParam(tableParams.allergiesPage, 1, { min: 1 });
-	const limit = getNumberParam(tableParams.allergiesLimit, 14, { min: 1, max: 100 });
+	const limit = getNumberParam(tableParams.allergiesLimit, 14);
 	const searchQuery = getStringParam(tableParams.allergiesQuery);
 	const createdFrom = getStringParam(tableParams.allergiesCreatedFrom);
 	const createdTo = getStringParam(tableParams.allergiesCreatedTo);
@@ -425,6 +451,18 @@ async function AllergiesSection({
 		statusFilters,
 		severityFilters,
 	);
+
+	const totalPages = Math.ceil(totalAllergies / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("allergiesPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
 
 	if (
 		allergies.length === 0 &&
@@ -455,7 +493,7 @@ async function AllergiesSection({
 			severityFilters={severityFilters}
 			page={page}
 			limit={limit}
-			totalPages={Math.ceil(totalAllergies / limit) || 1}
+			totalPages={totalPages}
 		/>
 	);
 }
@@ -469,7 +507,7 @@ async function ImmunizationSection({
 }) {
 	const tableParams = await searchParams;
 	const page = getNumberParam(tableParams.immunizationsPage, 1, { min: 1 });
-	const limit = getNumberParam(tableParams.immunizationsLimit, 14, { min: 1, max: 100 });
+	const limit = getNumberParam(tableParams.immunizationsLimit, 14);
 	const searchQuery = getStringParam(tableParams.immunizationsQuery);
 	const createdFrom = getStringParam(tableParams.immunizationsCreatedFrom);
 	const createdTo = getStringParam(tableParams.immunizationsCreatedTo);
@@ -486,6 +524,18 @@ async function ImmunizationSection({
 		{ createdFrom, createdTo },
 		statusFilters,
 	);
+
+	const totalPages = Math.ceil(totalImmunizations / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("immunizationsPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
 
 	if (
 		immunizations.length === 0 &&
@@ -514,7 +564,7 @@ async function ImmunizationSection({
 			statusFilters={statusFilters}
 			page={page}
 			limit={limit}
-			totalPages={Math.ceil(totalImmunizations / limit) || 1}
+			totalPages={totalPages}
 		/>
 	);
 }
@@ -528,7 +578,7 @@ async function ProceduresSection({
 }) {
 	const tableParams = await searchParams;
 	const page = getNumberParam(tableParams.proceduresPage, 1, { min: 1 });
-	const limit = getNumberParam(tableParams.proceduresLimit, 14, { min: 1, max: 100 });
+	const limit = getNumberParam(tableParams.proceduresLimit, 14);
 	const searchQuery = getStringParam(tableParams.proceduresQuery);
 	const createdFrom = getStringParam(tableParams.proceduresCreatedFrom);
 	const createdTo = getStringParam(tableParams.proceduresCreatedTo);
@@ -545,6 +595,18 @@ async function ProceduresSection({
 		{ createdFrom, createdTo },
 		statusFilters,
 	);
+
+	const totalPages = Math.ceil(totalProcedures / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("proceduresPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
 
 	if (
 		procedures.length === 0 &&
@@ -573,7 +635,7 @@ async function ProceduresSection({
 			statusFilters={statusFilters}
 			page={page}
 			limit={limit}
-			totalPages={Math.ceil(totalProcedures / limit) || 1}
+			totalPages={totalPages}
 		/>
 	);
 }
@@ -587,7 +649,7 @@ async function MedicationsSection({
 }) {
 	const tableParams = await searchParams;
 	const page = getNumberParam(tableParams.medicationsPage, 1, { min: 1 });
-	const limit = getNumberParam(tableParams.medicationsLimit, 14, { min: 1, max: 100 });
+	const limit = getNumberParam(tableParams.medicationsLimit, 14);
 	const searchQuery = getStringParam(tableParams.medicationsQuery);
 	const createdFrom = getStringParam(tableParams.medicationsCreatedFrom);
 	const createdTo = getStringParam(tableParams.medicationsCreatedTo);
@@ -604,6 +666,18 @@ async function MedicationsSection({
 		{ createdFrom, createdTo },
 		statusFilters,
 	);
+
+	const totalPages = Math.ceil(totalMedications / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("medicationsPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
 
 	if (
 		medications.length === 0 &&
@@ -632,7 +706,7 @@ async function MedicationsSection({
 			statusFilters={statusFilters}
 			page={page}
 			limit={limit}
-			totalPages={Math.ceil(totalMedications / limit) || 1}
+			totalPages={totalPages}
 		/>
 	);
 }
@@ -646,7 +720,7 @@ async function EncountersSection({
 }) {
 	const tableParams = await searchParams;
 	const page = getNumberParam(tableParams.encountersPage, 1, { min: 1 });
-	const limit = getNumberParam(tableParams.encountersLimit, 14, { min: 1, max: 100 });
+	const limit = getNumberParam(tableParams.encountersLimit, 14);
 	const searchQuery = getStringParam(tableParams.encountersQuery);
 	const encounterFrom = getStringParam(tableParams.encountersEncounterFrom);
 	const encounterTo = getStringParam(tableParams.encountersEncounterTo);
@@ -678,6 +752,18 @@ async function EncountersSection({
 		encounterTypeFilters,
 		departmentFilters,
 	);
+
+	const totalPages = Math.ceil(totalEncounters / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("encountersPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
 
 	if (
 		encounters.length === 0 &&
@@ -712,7 +798,7 @@ async function EncountersSection({
 			departmentFilters={departmentFilters}
 			page={page}
 			limit={limit}
-			totalPages={Math.ceil(totalEncounters / limit) || 1}
+			totalPages={totalPages}
 		/>
 	);
 }
@@ -726,7 +812,7 @@ async function LabTestsSection({
 }) {
 	const tableParams = await searchParams;
 	const page = getNumberParam(tableParams.labTestsPage, 1, { min: 1 });
-	const limit = getNumberParam(tableParams.labTestsLimit, 14, { min: 1, max: 100 });
+	const limit = getNumberParam(tableParams.labTestsLimit, 14);
 	const searchQuery = getStringParam(tableParams.labTestsQuery);
 	const createdFrom = getStringParam(tableParams.labTestsCreatedFrom);
 	const createdTo = getStringParam(tableParams.labTestsCreatedTo);
@@ -761,6 +847,18 @@ async function LabTestsSection({
 		flagFilters,
 	);
 
+	const totalPages = Math.ceil(totalLabTests / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("labTestsPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
+
 	if (
 		labTests.length === 0 &&
 		!(
@@ -790,7 +888,7 @@ async function LabTestsSection({
 			flagFilters={flagFilters}
 			page={page}
 			limit={limit}
-			totalPages={Math.ceil(totalLabTests / limit) || 1}
+			totalPages={totalPages}
 		/>
 	);
 }
@@ -804,7 +902,7 @@ async function ImagingSection({
 }) {
 	const tableParams = await searchParams;
 	const page = getNumberParam(tableParams.imagingPage, 1, { min: 1 });
-	const limit = getNumberParam(tableParams.imagingLimit, 14, { min: 1, max: 100 });
+	const limit = getNumberParam(tableParams.imagingLimit, 14);
 	const searchQuery = getStringParam(tableParams.imagingQuery);
 	const orderedFrom = getStringParam(tableParams.imagingOrderedFrom);
 	const orderedTo = getStringParam(tableParams.imagingOrderedTo);
@@ -829,6 +927,18 @@ async function ImagingSection({
 		statusFilters,
 		modalityFilters,
 	);
+
+	const totalPages = Math.ceil(totalImagingStudies / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("imagingPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
 
 	if (
 		imagingStudies.length === 0 &&
@@ -863,7 +973,7 @@ async function ImagingSection({
 			modalityFilters={modalityFilters}
 			page={page}
 			limit={limit}
-			totalPages={Math.ceil(totalImagingStudies / limit) || 1}
+			totalPages={totalPages}
 		/>
 	);
 }

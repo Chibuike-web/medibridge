@@ -391,14 +391,14 @@ afterEach(() => {
 describe.each(tableCases)("URL-driven $name table", ({ prefix, rowText, renderTable }) => {
 	test("keeps the server's rows visible and pushes a namespaced page URL without changing other tables", async () => {
 		const user = userEvent.setup();
-		const { rerender } = render(renderTable({ page: 2, limit: 14, searchQuery: "" }));
+		const { rerender } = render(renderTable({ page: 2, limit: 28, searchQuery: "" }));
 		expect(within(screen.getByRole("table")).getByText(rowText)).toBeVisible();
 		await user.click(screen.getByRole("button", { name: "Next" }));
 		const [href, options] = navigation.push.mock.calls[0];
 		const url = new URL(href, "http://localhost");
 		expect(url.pathname).toBe(navigation.pathname);
 		expect(url.searchParams.get(`${prefix}Page`)).toBe("3");
-		expect(url.searchParams.get(`${prefix}Limit`)).toBe("14");
+		expect(url.searchParams.get(`${prefix}Limit`)).toBe("28");
 		expect(url.searchParams.get("created")).toBe("true");
 		if (prefix !== "medications") {
 			expect(url.searchParams.get("medicationsPage")).toBe("3");
@@ -407,12 +407,13 @@ describe.each(tableCases)("URL-driven $name table", ({ prefix, rowText, renderTa
 		expect(options).toEqual({ scroll: false });
 		expect(navigation.replace).not.toHaveBeenCalled();
 		expect(within(screen.getByRole("table")).getByText(rowText)).toBeVisible();
-		rerender(renderTable({ page: 3, limit: 14, searchQuery: "" }));
+		rerender(renderTable({ page: 3, limit: 28, searchQuery: "" }));
 		expect(screen.getByText("Page 3 of 4")).toBeVisible();
 	});
 
 	test("debounces search and restores the input when revisiting URL history", async () => {
 		vi.useFakeTimers();
+		navigation.params += `&${prefix}Page=2`;
 		const { rerender } = render(renderTable({ page: 2, limit: 14, searchQuery: "" }));
 		const input = screen.getByRole("searchbox");
 		fireEvent.change(input, { target: { value: "new search" } });
@@ -424,7 +425,7 @@ describe.each(tableCases)("URL-driven $name table", ({ prefix, rowText, renderTa
 		const [href, options] = navigation.replace.mock.calls[0];
 		const params = new URL(href, "http://localhost").searchParams;
 		expect(params.get(`${prefix}Query`)).toBe("new search");
-		expect(params.get(`${prefix}Page`)).toBe("1");
+		expect(params.get(`${prefix}Page`)).toBeNull();
 		expect(options).toEqual({ scroll: false });
 		expect(navigation.push).not.toHaveBeenCalled();
 		expect(within(screen.getByRole("table")).getByText(rowText)).toBeVisible();
@@ -541,6 +542,29 @@ test("shows the filter pill and pending page immediately while navigation waits 
 		finishNavigation();
 		await route;
 	});
+});
+
+test("settles the filter pill and page on the URL's values once the server responds", async () => {
+	navigation.params += "&allergiesPage=2";
+	const user = userEvent.setup();
+	const props = { patientId: "patient-1", allergies: [allergiesRow], limit: 14, totalPages: 4 };
+	const { rerender } = render(<AllergiesClient {...props} page={2} />);
+	expect(screen.queryByText("Status: Active")).not.toBeInTheDocument();
+	expect(screen.getByText("Page 2 of 4")).toBeVisible();
+	await user.click(screen.getByRole("button", { name: "Filter" }));
+	await user.click(screen.getByRole("menuitem", { name: "Status" }));
+	await user.pointer({
+		keys: "[TouchA]",
+		target: screen.getByRole("checkbox", { name: "Active" }),
+	});
+	await user.keyboard("{Escape}{Escape}");
+	const params = new URL(navigation.push.mock.calls[0][0], "http://localhost").searchParams;
+	expect(params.get("allergiesStatus")).toBe("active");
+	expect(params.get("allergiesPage")).toBeNull();
+	rerender(<AllergiesClient {...props} page={1} statusFilters={["active"]} />);
+	expect(screen.getByText("Status: Active")).toBeVisible();
+	expect(screen.getByText("Page 1 of 4")).toBeVisible();
+	expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "false");
 });
 
 test("changing the second encounter table preserves the first table's pending page", async () => {

@@ -94,7 +94,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 
 	const proceduresParams = {
 		page: getNumberParam(tableParams.proceduresPage, 1, { min: 1 }),
-		limit: getNumberParam(tableParams.proceduresLimit, 14, { min: 1, max: 100 }),
+		limit: getNumberParam(tableParams.proceduresLimit, 14),
 		searchQuery: getStringParam(tableParams.proceduresQuery),
 		createdFrom: getStringParam(tableParams.proceduresCreatedFrom),
 		createdTo: getStringParam(tableParams.proceduresCreatedTo),
@@ -107,7 +107,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 
 	const imagingParams = {
 		page: getNumberParam(tableParams.imagingPage, 1, { min: 1 }),
-		limit: getNumberParam(tableParams.imagingLimit, 14, { min: 1, max: 100 }),
+		limit: getNumberParam(tableParams.imagingLimit, 14),
 		searchQuery: getStringParam(tableParams.imagingQuery),
 		orderedFrom: getStringParam(tableParams.imagingOrderedFrom),
 		orderedTo: getStringParam(tableParams.imagingOrderedTo),
@@ -127,7 +127,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 
 	const allergiesParams = {
 		page: getNumberParam(tableParams.allergiesPage, 1, { min: 1 }),
-		limit: getNumberParam(tableParams.allergiesLimit, 14, { min: 1, max: 100 }),
+		limit: getNumberParam(tableParams.allergiesLimit, 14),
 		searchQuery: getStringParam(tableParams.allergiesQuery),
 		createdFrom: getStringParam(tableParams.allergiesCreatedFrom),
 		createdTo: getStringParam(tableParams.allergiesCreatedTo),
@@ -143,7 +143,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 
 	const vitalsParams = {
 		page: getNumberParam(tableParams.vitalsPage, 1, { min: 1 }),
-		limit: getNumberParam(tableParams.vitalsLimit, 14, { min: 1, max: 100 }),
+		limit: getNumberParam(tableParams.vitalsLimit, 14),
 		searchQuery: getStringParam(tableParams.vitalsQuery),
 		recordedFrom: getStringParam(tableParams.vitalsRecordedFrom),
 		recordedTo: getStringParam(tableParams.vitalsRecordedTo),
@@ -153,7 +153,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 
 	const labTestsParams = {
 		page: getNumberParam(tableParams.labTestsPage, 1, { min: 1 }),
-		limit: getNumberParam(tableParams.labTestsLimit, 14, { min: 1, max: 100 }),
+		limit: getNumberParam(tableParams.labTestsLimit, 14),
 		searchQuery: getStringParam(tableParams.labTestsQuery),
 		createdFrom: getStringParam(tableParams.labTestsCreatedFrom),
 		createdTo: getStringParam(tableParams.labTestsCreatedTo),
@@ -182,7 +182,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 
 	const immunizationsParams = {
 		page: getNumberParam(tableParams.immunizationsPage, 1, { min: 1 }),
-		limit: getNumberParam(tableParams.immunizationsLimit, 14, { min: 1, max: 100 }),
+		limit: getNumberParam(tableParams.immunizationsLimit, 14),
 		searchQuery: getStringParam(tableParams.immunizationsQuery),
 		createdFrom: getStringParam(tableParams.immunizationsCreatedFrom),
 		createdTo: getStringParam(tableParams.immunizationsCreatedTo),
@@ -195,7 +195,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 
 	const medicationsParams = {
 		page: getNumberParam(tableParams.medicationsPage, 1, { min: 1 }),
-		limit: getNumberParam(tableParams.medicationsLimit, 14, { min: 1, max: 100 }),
+		limit: getNumberParam(tableParams.medicationsLimit, 14),
 		searchQuery: getStringParam(tableParams.medicationsQuery),
 		createdFrom: getStringParam(tableParams.medicationsCreatedFrom),
 		createdTo: getStringParam(tableParams.medicationsCreatedTo),
@@ -208,7 +208,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 
 	const diagnosesParams = {
 		page: getNumberParam(tableParams.diagnosesPage, 1, { min: 1 }),
-		limit: getNumberParam(tableParams.diagnosesLimit, 14, { min: 1, max: 100 }),
+		limit: getNumberParam(tableParams.diagnosesLimit, 14),
 		searchQuery: getStringParam(tableParams.diagnosesQuery),
 		createdFrom: getStringParam(tableParams.diagnosesCreatedFrom),
 		createdTo: getStringParam(tableParams.diagnosesCreatedTo),
@@ -334,6 +334,72 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 		notFound();
 	}
 
+	const vitalsTotalPages = Math.max(1, Math.ceil(vitalsResult.totalVitals / vitalsParams.limit));
+	const medicationsTotalPages = Math.max(
+		1,
+		Math.ceil(medicationsResult.totalMedications / medicationsParams.limit),
+	);
+	const allergiesTotalPages = Math.max(
+		1,
+		Math.ceil(allergiesResult.totalAllergies / allergiesParams.limit),
+	);
+	const diagnosesTotalPages = Math.max(
+		1,
+		Math.ceil(diagnosesResult.totalDiagnoses / diagnosesParams.limit),
+	);
+	const immunizationsTotalPages = Math.max(
+		1,
+		Math.ceil(immunizationsResult.totalImmunizations / immunizationsParams.limit),
+	);
+	const proceduresTotalPages = Math.max(
+		1,
+		Math.ceil(proceduresResult.totalProcedures / proceduresParams.limit),
+	);
+	const labTestsTotalPages = Math.max(
+		1,
+		Math.ceil(labTestsResult.totalLabTests / labTestsParams.limit),
+	);
+	const imagingTotalPages = Math.max(
+		1,
+		Math.ceil(imagingResult.totalImagingStudies / imagingParams.limit),
+	);
+
+	const lastPageParams = new URLSearchParams(
+		Object.entries(tableParams).flatMap(([name, value]) =>
+			typeof value === "string" ? [[name, value]] : [],
+		),
+	);
+	const currentQueryString = lastPageParams.toString();
+	if (vitalsParams.page > vitalsTotalPages) {
+		lastPageParams.set("vitalsPage", String(vitalsTotalPages));
+	}
+	if (medicationsParams.page > medicationsTotalPages) {
+		lastPageParams.set("medicationsPage", String(medicationsTotalPages));
+	}
+	if (allergiesParams.page > allergiesTotalPages) {
+		lastPageParams.set("allergiesPage", String(allergiesTotalPages));
+	}
+	if (diagnosesParams.page > diagnosesTotalPages) {
+		lastPageParams.set("diagnosesPage", String(diagnosesTotalPages));
+	}
+	if (immunizationsParams.page > immunizationsTotalPages) {
+		lastPageParams.set("immunizationsPage", String(immunizationsTotalPages));
+	}
+	if (proceduresParams.page > proceduresTotalPages) {
+		lastPageParams.set("proceduresPage", String(proceduresTotalPages));
+	}
+	if (labTestsParams.page > labTestsTotalPages) {
+		lastPageParams.set("labTestsPage", String(labTestsTotalPages));
+	}
+	if (imagingParams.page > imagingTotalPages) {
+		lastPageParams.set("imagingPage", String(imagingTotalPages));
+	}
+	if (lastPageParams.toString() !== currentQueryString) {
+		redirect(
+			`/dashboard/patients/${patientId}/encounters/${encounterId}?${lastPageParams}` as Route,
+		);
+	}
+
 	const backHref = `/dashboard/patients/${patientId}?section=encounters` as Route;
 	const encounterOptions = [
 		{
@@ -407,7 +473,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								readings={vitalReadings}
 								page={vitalsParams.page}
 								limit={vitalsParams.limit}
-								totalPages={Math.max(1, Math.ceil(vitalsResult.totalVitals / vitalsParams.limit))}
+								totalPages={vitalsTotalPages}
 								searchQuery={vitalsParams.searchQuery}
 								recordedFrom={vitalsParams.recordedFrom}
 								recordedTo={vitalsParams.recordedTo}
@@ -442,10 +508,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								medications={medicationsResult.medications}
 								page={medicationsParams.page}
 								limit={medicationsParams.limit}
-								totalPages={Math.max(
-									1,
-									Math.ceil(medicationsResult.totalMedications / medicationsParams.limit),
-								)}
+								totalPages={medicationsTotalPages}
 								searchQuery={medicationsParams.searchQuery}
 								createdFrom={medicationsParams.createdFrom}
 								createdTo={medicationsParams.createdTo}
@@ -480,10 +543,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								allergies={allergiesResult.allergies}
 								page={allergiesParams.page}
 								limit={allergiesParams.limit}
-								totalPages={Math.max(
-									1,
-									Math.ceil(allergiesResult.totalAllergies / allergiesParams.limit),
-								)}
+								totalPages={allergiesTotalPages}
 								searchQuery={allergiesParams.searchQuery}
 								createdFrom={allergiesParams.createdFrom}
 								createdTo={allergiesParams.createdTo}
@@ -522,10 +582,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								diagnoses={diagnosesResult.diagnoses}
 								page={diagnosesParams.page}
 								limit={diagnosesParams.limit}
-								totalPages={Math.max(
-									1,
-									Math.ceil(diagnosesResult.totalDiagnoses / diagnosesParams.limit),
-								)}
+								totalPages={diagnosesTotalPages}
 								searchQuery={diagnosesParams.searchQuery}
 								createdFrom={diagnosesParams.createdFrom}
 								createdTo={diagnosesParams.createdTo}
@@ -563,10 +620,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								immunizations={immunizationsResult.immunizations}
 								page={immunizationsParams.page}
 								limit={immunizationsParams.limit}
-								totalPages={Math.max(
-									1,
-									Math.ceil(immunizationsResult.totalImmunizations / immunizationsParams.limit),
-								)}
+								totalPages={immunizationsTotalPages}
 								searchQuery={immunizationsParams.searchQuery}
 								createdFrom={immunizationsParams.createdFrom}
 								createdTo={immunizationsParams.createdTo}
@@ -600,10 +654,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								procedures={proceduresResult.procedures}
 								page={proceduresParams.page}
 								limit={proceduresParams.limit}
-								totalPages={Math.max(
-									1,
-									Math.ceil(proceduresResult.totalProcedures / proceduresParams.limit),
-								)}
+								totalPages={proceduresTotalPages}
 								searchQuery={proceduresParams.searchQuery}
 								createdFrom={proceduresParams.createdFrom}
 								createdTo={proceduresParams.createdTo}
@@ -638,10 +689,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								labTests={labTestsResult.labTests}
 								page={labTestsParams.page}
 								limit={labTestsParams.limit}
-								totalPages={Math.max(
-									1,
-									Math.ceil(labTestsResult.totalLabTests / labTestsParams.limit),
-								)}
+								totalPages={labTestsTotalPages}
 								searchQuery={labTestsParams.searchQuery}
 								createdFrom={labTestsParams.createdFrom}
 								createdTo={labTestsParams.createdTo}
@@ -679,10 +727,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								imagingStudies={imagingResult.imagingStudies}
 								page={imagingParams.page}
 								limit={imagingParams.limit}
-								totalPages={Math.max(
-									1,
-									Math.ceil(imagingResult.totalImagingStudies / imagingParams.limit),
-								)}
+								totalPages={imagingTotalPages}
 								searchQuery={imagingParams.searchQuery}
 								orderedFrom={imagingParams.orderedFrom}
 								orderedTo={imagingParams.orderedTo}

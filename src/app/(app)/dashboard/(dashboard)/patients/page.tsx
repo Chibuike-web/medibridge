@@ -1,6 +1,7 @@
 import { verifySession } from "@/lib/api/verify-session";
 import { getOrganizationContext } from "@/lib/api/get-organization-id";
 import { redirect } from "next/navigation";
+import type { Route } from "next";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { getPatients } from "@/lib/api/get-patients";
@@ -39,9 +40,10 @@ async function PatientsPageContent({ searchParams }: PatientsPageProps) {
 		redirect("/verify");
 	}
 
-	const { page, limit, query, createdFrom, createdTo, gender, ageGroup } = await searchParams;
+	const currentSearchParams = await searchParams;
+	const { page, limit, query, createdFrom, createdTo, gender, ageGroup } = currentSearchParams;
 	const currentPage = getNumberParam(page, 1, { min: 1 });
-	const currentLimit = getNumberParam(limit, 14, { min: 1, max: 100 });
+	const currentLimit = getNumberParam(limit, 14);
 	const currentQuery = getStringParam(query);
 	const currentCreatedFrom = getStringParam(createdFrom);
 	const currentCreatedTo = getStringParam(createdTo);
@@ -60,6 +62,16 @@ async function PatientsPageContent({ searchParams }: PatientsPageProps) {
 		{ gender: currentGenderFilter || undefined, ageRange: ageRangeFilter },
 	);
 	const totalPages = Math.ceil(totalPatients / currentLimit) || 1;
+
+	if (currentPage > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(currentSearchParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("page", String(totalPages));
+		redirect(`/dashboard/patients?${lastPageParams}` as Route);
+	}
 
 	return hasPatients ? (
 		<PatientsClient

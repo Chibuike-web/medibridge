@@ -91,8 +91,8 @@ export function EncountersClient({
 	) {
 		const params = new URLSearchParams(searchParams.toString());
 		const values = {
-			encountersPage: String(nextPage),
-			encountersLimit: String(nextLimit),
+			encountersPage: nextPage === 1 ? "" : String(nextPage),
+			encountersLimit: nextLimit === 14 ? "" : String(nextLimit),
 			encountersQuery: nextQuery,
 			encountersEncounterFrom: nextEncounterFrom,
 			encountersEncounterTo: nextEncounterTo,

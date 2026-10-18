@@ -96,8 +96,8 @@ export function DiagnosesClient({
 	) {
 		const params = new URLSearchParams(searchParams.toString());
 		const values = {
-			diagnosesPage: String(nextPage),
-			diagnosesLimit: String(nextLimit),
+			diagnosesPage: nextPage === 1 ? "" : String(nextPage),
+			diagnosesLimit: nextLimit === 14 ? "" : String(nextLimit),
 			diagnosesQuery: nextQuery,
 			diagnosesCreatedFrom: nextCreatedFrom,
 			diagnosesCreatedTo: nextCreatedTo,

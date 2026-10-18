@@ -84,8 +84,8 @@ export function VitalsClient({
 	) {
 		const params = new URLSearchParams(searchParams.toString());
 		const values = {
-			vitalsPage: String(nextPage),
-			vitalsLimit: String(nextLimit),
+			vitalsPage: nextPage === 1 ? "" : String(nextPage),
+			vitalsLimit: nextLimit === 14 ? "" : String(nextLimit),
 			vitalsQuery: nextQuery,
 			vitalsRecordedFrom: nextRecordedFrom,
 			vitalsRecordedTo: nextRecordedTo,

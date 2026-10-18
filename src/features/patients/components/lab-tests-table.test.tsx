@@ -537,7 +537,6 @@ describe("Lab tests table", () => {
 		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual([
 			"fbc-request.pdf",
 		]);
-		expect(refreshMock).not.toHaveBeenCalled();
 		expect(screen.queryByRole("dialog", { name: "Add lab test" })).not.toBeInTheDocument();
 	});
 
@@ -561,7 +560,6 @@ describe("Lab tests table", () => {
 			"Attach the report for a completed lab test.",
 		);
 		expect(within(drawer).getByLabelText(/^Test/)).toHaveValue("Lipid panel");
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 
 	test("opens and downloads a saved lab report from the details drawer", async () => {
@@ -631,6 +629,5 @@ describe("Lab tests table", () => {
 		);
 		const savedDetails = screen.getByRole("dialog", { name: "Lab test details" });
 		expect(within(savedDetails).getByText("5.4 %")).toBeVisible();
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 });

@@ -84,8 +84,8 @@ export function LabTestsClient({
 	) {
 		const params = new URLSearchParams(searchParams.toString());
 		const values = {
-			labTestsPage: String(nextPage),
-			labTestsLimit: String(nextLimit),
+			labTestsPage: nextPage === 1 ? "" : String(nextPage),
+			labTestsLimit: nextLimit === 14 ? "" : String(nextLimit),
 			labTestsQuery: nextQuery,
 			labTestsCreatedFrom: nextCreatedFrom,
 			labTestsCreatedTo: nextCreatedTo,

@@ -75,8 +75,8 @@ export function ProceduresClient({
 	) {
 		const params = new URLSearchParams(searchParams.toString());
 		const values = {
-			proceduresPage: String(nextPage),
-			proceduresLimit: String(nextLimit),
+			proceduresPage: nextPage === 1 ? "" : String(nextPage),
+			proceduresLimit: nextLimit === 14 ? "" : String(nextLimit),
 			proceduresQuery: nextQuery,
 			proceduresCreatedFrom: nextCreatedFrom,
 			proceduresCreatedTo: nextCreatedTo,

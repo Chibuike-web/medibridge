@@ -75,8 +75,8 @@ export function MedicationsClient({
 	) {
 		const params = new URLSearchParams(searchParams.toString());
 		const values = {
-			medicationsPage: String(nextPage),
-			medicationsLimit: String(nextLimit),
+			medicationsPage: nextPage === 1 ? "" : String(nextPage),
+			medicationsLimit: nextLimit === 14 ? "" : String(nextLimit),
 			medicationsQuery: nextQuery,
 			medicationsCreatedFrom: nextCreatedFrom,
 			medicationsCreatedTo: nextCreatedTo,

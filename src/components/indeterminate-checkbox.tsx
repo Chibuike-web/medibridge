@@ -11,6 +11,6 @@ export function IndeterminateCheckbox({
 	...rest
 }: IndeterminateCheckboxProps) {
 	return (
-		<Checkbox checked={indeterminate ? "indeterminate" : checked} {...rest} />
+		<Checkbox checked={indeterminate && checked !== true ? "indeterminate" : checked} {...rest} />
 	);
 }

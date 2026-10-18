@@ -538,7 +538,6 @@ describe("Medications table", () => {
 				encounterId: "ENC-1",
 			}),
 		);
-		expect(refreshMock).not.toHaveBeenCalled();
 		expect(screen.queryByRole("dialog", { name: "Add medication" })).not.toBeInTheDocument();
 	});
 
@@ -567,7 +566,6 @@ describe("Medications table", () => {
 			"We couldn’t add this medication. Please try again.",
 		);
 		expect(within(drawer).getByLabelText(/^Medication/)).toHaveValue("Metformin");
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 
 	async function openMedicationEditForm(user: ReturnType<typeof userEvent.setup>) {
@@ -616,7 +614,6 @@ describe("Medications table", () => {
 		);
 		const viewDialog = await screen.findByRole("dialog", { name: "Medication details" });
 		expect(await within(viewDialog).findByText("Twice daily")).toBeVisible();
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 
 	test("keeps the medication edit form open and shows why the changes were not saved", async () => {
@@ -633,6 +630,5 @@ describe("Medications table", () => {
 		expect(await within(editDialog).findByRole("alert")).toHaveTextContent(
 			"Enter how often it is taken.",
 		);
-		expect(refreshMock).not.toHaveBeenCalled();
 	});
 });

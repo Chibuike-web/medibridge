@@ -110,7 +110,11 @@ export function PatientsClient({
 			ageGroup: optimisticAgeGroupFilter,
 			...params,
 		}).forEach(([name, value]) => {
-			if (value.trim() === "") {
+			if (
+				value.trim() === "" ||
+				(name === "page" && value === "1") ||
+				(name === "limit" && value === "14")
+			) {
 				newParams.delete(name);
 			} else {
 				newParams.set(name, value);
