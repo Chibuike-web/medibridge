@@ -7,10 +7,12 @@ import type {
 	AllergyType,
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useState, useTransition } from "react";
+import { useContext, useOptimistic, useState, useTransition } from "react";
 
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { EncounterTableNavigationContext } from "./encounter-table-navigation";
 
 export function AllergiesClient({
 	patientId,
@@ -38,13 +40,15 @@ export function AllergiesClient({
 	severityFilters?: AllergySeverityFilter[];
 }) {
 	const router = useRouter();
+	const navigateEncounterTable = useContext(EncounterTableNavigationContext);
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [navigatedQuery, setNavigatedQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
+	const [optimisticQuery, setOptimisticQuery] = useOptimistic(searchQuery);
 	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
 	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
 	const [optimisticStatusFilters, setOptimisticStatusFilters] = useOptimistic(statusFilters);
@@ -54,6 +58,7 @@ export function AllergiesClient({
 	// Restore URL changes while preserving typing ahead of our pending search.
 	if (previousSearchQuery !== searchQuery) {
 		setPreviousSearchQuery(searchQuery);
+		setNavigatedQuery(null);
 		if (searchQuery !== navigatedQuery) setQuery(searchQuery);
 	}
 
@@ -94,12 +99,17 @@ export function AllergiesClient({
 
 		startTransition(() => {
 			setNavigatedQuery(nextQuery);
+			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
 			setOptimisticLimit(nextLimit);
 			setOptimisticCreatedFrom(nextCreatedFrom);
 			setOptimisticCreatedTo(nextCreatedTo);
 			setOptimisticStatusFilters(nextStatusFilters);
 			setOptimisticSeverityFilters(nextSeverityFilters);
+			if (navigateEncounterTable) {
+				navigateEncounterTable(values, replace);
+				return;
+			}
 			const href = `${pathname}?${params}` as Route;
 			if (replace) router.replace(href, { scroll: false });
 			else router.push(href, { scroll: false });
@@ -107,7 +117,7 @@ export function AllergiesClient({
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		if (nextQuery !== query || nextQuery === searchQuery) return;
+		if (nextQuery !== query || nextQuery === optimisticQuery) return;
 		navigateTable({ nextQuery }, true);
 	}, 300);
 

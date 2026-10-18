@@ -46,7 +46,8 @@ export function EncountersClient({
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [navigatedQuery, setNavigatedQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
+	const [optimisticQuery, setOptimisticQuery] = useOptimistic(searchQuery);
 	const [optimisticEncounterFrom, setOptimisticEncounterFrom] = useOptimistic(encounterFrom);
 	const [optimisticEncounterTo, setOptimisticEncounterTo] = useOptimistic(encounterTo);
 	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
@@ -60,6 +61,7 @@ export function EncountersClient({
 	// Restore URL changes while preserving typing ahead of our pending search.
 	if (previousSearchQuery !== searchQuery) {
 		setPreviousSearchQuery(searchQuery);
+		setNavigatedQuery(null);
 		if (searchQuery !== navigatedQuery) setQuery(searchQuery);
 	}
 
@@ -106,6 +108,7 @@ export function EncountersClient({
 
 		startTransition(() => {
 			setNavigatedQuery(nextQuery);
+			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
 			setOptimisticLimit(nextLimit);
 			setOptimisticEncounterFrom(nextEncounterFrom);
@@ -121,7 +124,7 @@ export function EncountersClient({
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		if (nextQuery !== query || nextQuery === searchQuery) return;
+		if (nextQuery !== query || nextQuery === optimisticQuery) return;
 		navigateTable({ nextQuery }, true);
 	}, 300);
 

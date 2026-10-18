@@ -57,17 +57,20 @@ export function TransfersClient({
 	const [optimisticStatusFilters, setOptimisticStatusFilters] = useOptimistic(statusFilters);
 
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [navigatedQuery, setNavigatedQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
+	const [optimisticQuery, setOptimisticQuery] = useOptimistic(searchQuery);
 	if (previousSearchQuery !== searchQuery) {
 		setPreviousSearchQuery(searchQuery);
+		setNavigatedQuery(null);
 		if (searchQuery !== navigatedQuery) setTransferSearchQuery(searchQuery);
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		if (nextQuery !== transferSearchQuery || nextQuery === searchQuery) return;
+		if (nextQuery !== transferSearchQuery || nextQuery === optimisticQuery) return;
 
 		startTransition(() => {
 			setNavigatedQuery(nextQuery);
+			setOptimisticQuery(nextQuery);
 			setOptimisticPage(1);
 
 			router.replace(
@@ -114,6 +117,7 @@ export function TransfersClient({
 	function handleRequestedAtRangeApply(nextRequestedFrom: string, nextRequestedTo: string) {
 		startTransition(() => {
 			setNavigatedQuery(transferSearchQuery);
+			setOptimisticQuery(transferSearchQuery);
 			setOptimisticPage(1);
 			setOptimisticRequestedAtRange({
 				requestedFrom: nextRequestedFrom,
@@ -137,6 +141,7 @@ export function TransfersClient({
 	function handleStatusFiltersChange(nextStatusFilters: TransferStatusFilter[]) {
 		startTransition(() => {
 			setNavigatedQuery(transferSearchQuery);
+			setOptimisticQuery(transferSearchQuery);
 			setOptimisticPage(1);
 			setOptimisticStatusFilters(nextStatusFilters);
 
@@ -156,6 +161,7 @@ export function TransfersClient({
 	function handleFiltersClear() {
 		startTransition(() => {
 			setNavigatedQuery(transferSearchQuery);
+			setOptimisticQuery(transferSearchQuery);
 			setOptimisticPage(1);
 			setOptimisticRequestedAtRange({
 				requestedFrom: "",
@@ -183,6 +189,7 @@ export function TransfersClient({
 
 		startTransition(() => {
 			setNavigatedQuery(transferSearchQuery);
+			setOptimisticQuery(transferSearchQuery);
 			setOptimisticPage(previousPage);
 
 			router.push(
@@ -202,6 +209,7 @@ export function TransfersClient({
 
 		startTransition(() => {
 			setNavigatedQuery(transferSearchQuery);
+			setOptimisticQuery(transferSearchQuery);
 			setOptimisticPage(nextPage);
 
 			router.push(
@@ -221,6 +229,7 @@ export function TransfersClient({
 
 		startTransition(() => {
 			setNavigatedQuery(transferSearchQuery);
+			setOptimisticQuery(transferSearchQuery);
 			setOptimisticPage(1);
 			setOptimisticLimit(nextLimit);
 

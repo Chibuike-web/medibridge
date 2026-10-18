@@ -5,7 +5,9 @@ import { useCallback, useEffect, useRef } from "react";
 export function useDebouncedCallback<T extends (...args: any[]) => void>(callback: T, delay = 500) {
 	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const callbackRef = useRef(callback);
-	callbackRef.current = callback;
+	useEffect(() => {
+		callbackRef.current = callback;
+	}, [callback]);
 
 	useEffect(() => {
 		return () => {

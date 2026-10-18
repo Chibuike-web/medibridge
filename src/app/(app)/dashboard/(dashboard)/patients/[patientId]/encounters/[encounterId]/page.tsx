@@ -38,6 +38,8 @@ import {
 	VitalsClient,
 } from "../../patient-section-table-clients";
 
+import { EncounterTableNavigation } from "../../patient-section-table-clients/encounter-table-navigation";
+
 import type {
 	AllergySeverityFilter,
 	AllergyStatusFilter,
@@ -64,7 +66,9 @@ type EncounterDetailsPageProps = Pick<
 export default function EncounterDetailsPage({ params, searchParams }: EncounterDetailsPageProps) {
 	return (
 		<Suspense fallback={<EncounterDetailsPageSkeleton />}>
-			<EncounterDetailsContent params={params} searchParams={searchParams} />
+			<EncounterTableNavigation>
+				<EncounterDetailsContent params={params} searchParams={searchParams} />
+			</EncounterTableNavigation>
 		</Suspense>
 	);
 }

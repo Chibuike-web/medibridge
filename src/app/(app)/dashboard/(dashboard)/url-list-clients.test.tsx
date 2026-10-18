@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Suspense, use, useState, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { PatientsClient } from "./patients/patients-client";
 import { TransfersClient } from "./transfers/transfers-client";
@@ -138,6 +139,50 @@ describe.each(listCases)(
 			expect(within(screen.getByRole("table")).getByText("Ada Okafor")).toBeVisible();
 		});
 
+		test("restores the original query when a pending search is cleared", async () => {
+			vi.useFakeTimers();
+			let finishNavigation!: () => void;
+			const route = new Promise<void>((resolve) => {
+				finishNavigation = resolve;
+			});
+			function PendingRoute() {
+				use(route);
+				return null;
+			}
+			function RouterHarness({ children }: { children: ReactNode }) {
+				const [isNavigating, setIsNavigating] = useState(false);
+				navigation.replace.mockImplementation(() => setIsNavigating(true));
+				return (
+					<>
+						{children}
+						{isNavigating && <PendingRoute />}
+					</>
+				);
+			}
+			render(
+				<Suspense fallback="Loading route">
+					<RouterHarness>{renderList()}</RouterHarness>
+				</Suspense>,
+			);
+			const input = screen.getByRole("searchbox");
+			fireEvent.change(input, { target: { value: "Nneka" } });
+			await act(async () => {
+				vi.advanceTimersByTime(300);
+			});
+			expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "true");
+			fireEvent.change(input, { target: { value: "Ada" } });
+			await act(async () => {
+				vi.advanceTimersByTime(300);
+			});
+			expect(input).toHaveValue("Ada");
+			const href = navigation.replace.mock.calls.at(-1)![0];
+			await act(async () => {
+				finishNavigation();
+				await route;
+			});
+			expect(new URL(href, "http://localhost").searchParams.get("query")).toBe("Ada");
+		});
+
 		test("replaces the URL after a search pause and restores the input on a URL change", async () => {
 			vi.useFakeTimers();
 			const { rerender } = render(renderList());
@@ -153,8 +198,18 @@ describe.each(listCases)(
 			expect(params.get(filterName)).toBe(filterValue);
 			expect(options).toEqual({ scroll: false });
 			expect(navigation.push).not.toHaveBeenCalled();
+			rerender(renderList("Nneka Obi", "Nneka"));
+			rerender(renderList("Ada Okafor", "Ada"));
+			expect(input).toHaveValue("Ada");
+			rerender(renderList("Nneka Obi", "Nneka"));
+			expect(input).toHaveValue("Nneka");
+			fireEvent.change(input, { target: { value: "unfinished draft" } });
 			rerender(renderList("Ada Okafor", "Restored"));
 			expect(input).toHaveValue("Restored");
+			await act(async () => {
+				vi.advanceTimersByTime(300);
+			});
+			expect(navigation.replace).toHaveBeenCalledTimes(1);
 		});
 	},
 );

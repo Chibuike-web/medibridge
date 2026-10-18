@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Suspense, use, useState, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -13,6 +13,7 @@ import {
 	ProceduresClient,
 	VitalsClient,
 } from "./index";
+import { EncounterTableNavigation } from "./encounter-table-navigation";
 import type {
 	AllergyType,
 	DiagnosisType,
@@ -410,14 +411,16 @@ describe.each(tableCases)("URL-driven $name table", ({ prefix, rowText, renderTa
 		expect(screen.getByText("Page 3 of 4")).toBeVisible();
 	});
 
-	test("updates the input immediately and replaces the URL only after typing pauses", async () => {
+	test("debounces search and restores the input when revisiting URL history", async () => {
 		vi.useFakeTimers();
-		render(renderTable({ page: 2, limit: 14, searchQuery: "" }));
+		const { rerender } = render(renderTable({ page: 2, limit: 14, searchQuery: "" }));
 		const input = screen.getByRole("searchbox");
 		fireEvent.change(input, { target: { value: "new search" } });
 		expect(input).toHaveValue("new search");
 		expect(navigation.replace).not.toHaveBeenCalled();
-		await act(() => vi.advanceTimersByTime(300));
+		await act(async () => {
+			vi.advanceTimersByTime(300);
+		});
 		const [href, options] = navigation.replace.mock.calls[0];
 		const params = new URL(href, "http://localhost").searchParams;
 		expect(params.get(`${prefix}Query`)).toBe("new search");
@@ -425,18 +428,18 @@ describe.each(tableCases)("URL-driven $name table", ({ prefix, rowText, renderTa
 		expect(options).toEqual({ scroll: false });
 		expect(navigation.push).not.toHaveBeenCalled();
 		expect(within(screen.getByRole("table")).getByText(rowText)).toBeVisible();
-	});
-
-	test("restores the search input from new URL props and cancels the abandoned draft", async () => {
-		vi.useFakeTimers();
-		const { rerender } = render(renderTable({ page: 2, limit: 14, searchQuery: "opened" }));
-		const input = screen.getByRole("searchbox");
-		expect(input).toHaveValue("opened");
-		fireEvent.change(input, { target: { value: "opened unfinished" } });
+		rerender(renderTable({ page: 1, limit: 14, searchQuery: "new search" }));
+		rerender(renderTable({ page: 2, limit: 14, searchQuery: "" }));
+		expect(input).toHaveValue("");
+		rerender(renderTable({ page: 1, limit: 14, searchQuery: "new search" }));
+		expect(input).toHaveValue("new search");
+		fireEvent.change(input, { target: { value: "unfinished draft" } });
 		rerender(renderTable({ page: 1, limit: 14, searchQuery: "restored" }));
 		expect(input).toHaveValue("restored");
-		await act(() => vi.advanceTimersByTime(300));
-		expect(navigation.replace).not.toHaveBeenCalled();
+		await act(async () => {
+			vi.advanceTimersByTime(300);
+		});
+		expect(navigation.replace).toHaveBeenCalledTimes(1);
 	});
 });
 
@@ -452,7 +455,9 @@ test("preserves newer input when the previous search response arrives", async ()
 	const { rerender } = render(<AllergiesClient {...props} searchQuery="" />);
 	const input = screen.getByRole("searchbox");
 	fireEvent.change(input, { target: { value: "pen" } });
-	await act(() => vi.advanceTimersByTime(300));
+	await act(async () => {
+		vi.advanceTimersByTime(300);
+	});
 	expect(
 		new URL(navigation.replace.mock.calls[0][0], "http://localhost").searchParams.get(
 			"allergiesQuery",
@@ -461,7 +466,9 @@ test("preserves newer input when the previous search response arrives", async ()
 	fireEvent.change(input, { target: { value: "penicillin" } });
 	rerender(<AllergiesClient {...props} searchQuery="pen" />);
 	expect(input).toHaveValue("penicillin");
-	await act(() => vi.advanceTimersByTime(300));
+	await act(async () => {
+		vi.advanceTimersByTime(300);
+	});
 	expect(
 		new URL(navigation.replace.mock.calls[1][0], "http://localhost").searchParams.get(
 			"allergiesQuery",
@@ -534,4 +541,151 @@ test("shows the filter pill and pending page immediately while navigation waits 
 		finishNavigation();
 		await route;
 	});
+});
+
+test("changing the second encounter table preserves the first table's pending page", async () => {
+	let finishNavigation!: () => void;
+	const route = new Promise<void>((resolve) => {
+		finishNavigation = resolve;
+	});
+	function PendingRoute() {
+		use(route);
+		return null;
+	}
+	function RouterHarness({ children }: { children: ReactNode }) {
+		const [isNavigating, setIsNavigating] = useState(false);
+		navigation.push.mockImplementation(() => setIsNavigating(true));
+		return (
+			<>
+				{children}
+				{isNavigating && <PendingRoute />}
+			</>
+		);
+	}
+	const user = userEvent.setup();
+	render(
+		<Suspense fallback="Loading route">
+			<RouterHarness>
+				<EncounterTableNavigation>
+					<section aria-label="Allergies">
+						<AllergiesClient
+							patientId="patient-1"
+							encounterId="ENC-1"
+							allergies={[allergiesRow]}
+							page={1}
+							limit={14}
+							totalPages={4}
+						/>
+					</section>
+					<section aria-label="Medications">
+						<MedicationsClient
+							patientId="patient-1"
+							encounterId="ENC-1"
+							medications={[medicationsRow]}
+							page={3}
+							limit={14}
+							totalPages={4}
+							searchQuery="aspirin"
+						/>
+					</section>
+				</EncounterTableNavigation>
+			</RouterHarness>
+		</Suspense>,
+	);
+	await act(async () => {
+		await user.click(
+			within(screen.getByRole("region", { name: "Allergies" })).getByRole("button", {
+				name: "Next",
+			}),
+		);
+	});
+	expect(
+		within(screen.getByRole("region", { name: "Allergies" })).getByText("Page 2 of 4"),
+	).toBeVisible();
+	await act(async () => {
+		await user.click(
+			within(screen.getByRole("region", { name: "Medications" })).getByRole("button", {
+				name: "Next",
+			}),
+		);
+	});
+	const lastHref = navigation.push.mock.calls.at(-1)![0];
+	await act(async () => {
+		finishNavigation();
+		await route;
+	});
+	const finalParams = new URL(lastHref, "http://localhost").searchParams;
+	expect(finalParams.get("medicationsPage")).toBe("4");
+	expect(finalParams.get("allergiesPage")).toBe("2");
+	// The response kept the original props, as when a navigation is abandoned.
+	await waitFor(() =>
+		expect(
+			within(screen.getByRole("region", { name: "Medications" })).getByRole("button", {
+				name: "Next",
+			}),
+		).toBeEnabled(),
+	);
+	await act(async () => {
+		await user.click(
+			within(screen.getByRole("region", { name: "Medications" })).getByRole("button", {
+				name: "Next",
+			}),
+		);
+	});
+	const retryParams = new URL(navigation.push.mock.calls.at(-1)![0], "http://localhost")
+		.searchParams;
+	expect(retryParams.get("medicationsPage")).toBe("4");
+	expect(retryParams.get("allergiesPage")).toBeNull();
+});
+
+test("clearing search during a pending request updates the latest destination", async () => {
+	vi.useFakeTimers();
+	let finishNavigation!: () => void;
+	const route = new Promise<void>((resolve) => {
+		finishNavigation = resolve;
+	});
+	function PendingRoute() {
+		use(route);
+		return null;
+	}
+	function RouterHarness({ children }: { children: ReactNode }) {
+		const [isNavigating, setIsNavigating] = useState(false);
+		navigation.replace.mockImplementation(() => setIsNavigating(true));
+		return (
+			<>
+				{children}
+				{isNavigating && <PendingRoute />}
+			</>
+		);
+	}
+	render(
+		<Suspense fallback="Loading route">
+			<RouterHarness>
+				<AllergiesClient
+					patientId="patient-1"
+					allergies={[allergiesRow]}
+					page={1}
+					limit={14}
+					totalPages={4}
+				/>
+			</RouterHarness>
+		</Suspense>,
+	);
+	const input = screen.getByRole("searchbox");
+	fireEvent.change(input, { target: { value: "pen" } });
+	await act(async () => {
+		vi.advanceTimersByTime(300);
+	});
+	expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "true");
+	fireEvent.change(input, { target: { value: "" } });
+	await act(async () => {
+		vi.advanceTimersByTime(300);
+	});
+	expect(input).toHaveValue("");
+	const lastHref = navigation.replace.mock.calls.at(-1)![0];
+	await act(async () => {
+		finishNavigation();
+		await route;
+	});
+	expect(new URL(lastHref, "http://localhost").searchParams.get("allergiesQuery")).toBeNull();
 });

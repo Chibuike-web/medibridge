@@ -3,10 +3,12 @@
 import { VitalsTable } from "@/features/patients/components/vitals-table";
 import type { VitalEncounterOption, VitalType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useState, useTransition } from "react";
+import { useContext, useOptimistic, useState, useTransition } from "react";
 
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { EncounterTableNavigationContext } from "./encounter-table-navigation";
 
 export function VitalsClient({
 	patientId,
@@ -38,13 +40,15 @@ export function VitalsClient({
 	createdTo?: string;
 }) {
 	const router = useRouter();
+	const navigateEncounterTable = useContext(EncounterTableNavigationContext);
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [navigatedQuery, setNavigatedQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
+	const [optimisticQuery, setOptimisticQuery] = useOptimistic(searchQuery);
 	const [optimisticRecordedFrom, setOptimisticRecordedFrom] = useOptimistic(recordedFrom);
 	const [optimisticRecordedTo, setOptimisticRecordedTo] = useOptimistic(recordedTo);
 	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
@@ -54,6 +58,7 @@ export function VitalsClient({
 	// Restore URL changes while preserving typing ahead of our pending search.
 	if (previousSearchQuery !== searchQuery) {
 		setPreviousSearchQuery(searchQuery);
+		setNavigatedQuery(null);
 		if (searchQuery !== navigatedQuery) setQuery(searchQuery);
 	}
 
@@ -94,12 +99,17 @@ export function VitalsClient({
 
 		startTransition(() => {
 			setNavigatedQuery(nextQuery);
+			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
 			setOptimisticLimit(nextLimit);
 			setOptimisticRecordedFrom(nextRecordedFrom);
 			setOptimisticRecordedTo(nextRecordedTo);
 			setOptimisticCreatedFrom(nextCreatedFrom);
 			setOptimisticCreatedTo(nextCreatedTo);
+			if (navigateEncounterTable) {
+				navigateEncounterTable(values, replace);
+				return;
+			}
 			const href = `${pathname}?${params}` as Route;
 			if (replace) router.replace(href, { scroll: false });
 			else router.push(href, { scroll: false });
@@ -107,7 +117,7 @@ export function VitalsClient({
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		if (nextQuery !== query || nextQuery === searchQuery) return;
+		if (nextQuery !== query || nextQuery === optimisticQuery) return;
 		navigateTable({ nextQuery }, true);
 	}, 300);
 

@@ -3,10 +3,12 @@
 import { DiagnosesTable } from "@/features/patients/components/diagnoses-table";
 import type { DiagnosisStatusFilter, DiagnosisType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useState, useTransition } from "react";
+import { useContext, useOptimistic, useState, useTransition } from "react";
 
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { EncounterTableNavigationContext } from "./encounter-table-navigation";
 
 export function DiagnosesClient({
 	patientId,
@@ -40,13 +42,15 @@ export function DiagnosesClient({
 	statusFilters?: DiagnosisStatusFilter[];
 }) {
 	const router = useRouter();
+	const navigateEncounterTable = useContext(EncounterTableNavigationContext);
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [navigatedQuery, setNavigatedQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
+	const [optimisticQuery, setOptimisticQuery] = useOptimistic(searchQuery);
 	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
 	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
 	const [optimisticDiagnosedFrom, setOptimisticDiagnosedFrom] = useOptimistic(diagnosedFrom);
@@ -60,6 +64,7 @@ export function DiagnosesClient({
 	// Restore URL changes while preserving typing ahead of our pending search.
 	if (previousSearchQuery !== searchQuery) {
 		setPreviousSearchQuery(searchQuery);
+		setNavigatedQuery(null);
 		if (searchQuery !== navigatedQuery) setQuery(searchQuery);
 	}
 
@@ -109,6 +114,7 @@ export function DiagnosesClient({
 
 		startTransition(() => {
 			setNavigatedQuery(nextQuery);
+			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
 			setOptimisticLimit(nextLimit);
 			setOptimisticCreatedFrom(nextCreatedFrom);
@@ -118,6 +124,10 @@ export function DiagnosesClient({
 			setOptimisticLastReviewedFrom(nextLastReviewedFrom);
 			setOptimisticLastReviewedTo(nextLastReviewedTo);
 			setOptimisticStatusFilters(nextStatusFilters);
+			if (navigateEncounterTable) {
+				navigateEncounterTable(values, replace);
+				return;
+			}
 			const href = `${pathname}?${params}` as Route;
 			if (replace) router.replace(href, { scroll: false });
 			else router.push(href, { scroll: false });
@@ -125,7 +135,7 @@ export function DiagnosesClient({
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		if (nextQuery !== query || nextQuery === searchQuery) return;
+		if (nextQuery !== query || nextQuery === optimisticQuery) return;
 		navigateTable({ nextQuery }, true);
 	}, 300);
 

@@ -69,17 +69,20 @@ export function PatientsClient({
 	const [isPending, startTransition] = useTransition();
 
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [navigatedQuery, setNavigatedQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
+	const [optimisticQuery, setOptimisticQuery] = useOptimistic(searchQuery);
 	if (previousSearchQuery !== searchQuery) {
 		setPreviousSearchQuery(searchQuery);
+		setNavigatedQuery(null);
 		if (searchQuery !== navigatedQuery) setPatientSearchQuery(searchQuery);
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		if (nextQuery !== patientSearchQuery || nextQuery === searchQuery) return;
+		if (nextQuery !== patientSearchQuery || nextQuery === optimisticQuery) return;
 
 		startTransition(() => {
 			setNavigatedQuery(nextQuery);
+			setOptimisticQuery(nextQuery);
 			setOptimisticPage(1);
 
 			router.replace(
@@ -120,6 +123,7 @@ export function PatientsClient({
 	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
 		startTransition(() => {
 			setNavigatedQuery(patientSearchQuery);
+			setOptimisticQuery(patientSearchQuery);
 			setOptimisticPage(1);
 			setOptimisticCreatedAtRange({
 				createdFrom: nextCreatedFrom,
@@ -143,6 +147,7 @@ export function PatientsClient({
 	function handleGenderFilterChange(nextGenderFilter: PatientGenderFilter) {
 		startTransition(() => {
 			setNavigatedQuery(patientSearchQuery);
+			setOptimisticQuery(patientSearchQuery);
 			setOptimisticPage(1);
 			setOptimisticGenderFilter(nextGenderFilter);
 
@@ -162,6 +167,7 @@ export function PatientsClient({
 	function handleAgeGroupFilterChange(nextAgeGroupFilter: PatientAgeGroupFilter) {
 		startTransition(() => {
 			setNavigatedQuery(patientSearchQuery);
+			setOptimisticQuery(patientSearchQuery);
 			setOptimisticPage(1);
 			setOptimisticAgeGroupFilter(nextAgeGroupFilter);
 
@@ -181,6 +187,7 @@ export function PatientsClient({
 	function handleFiltersClear() {
 		startTransition(() => {
 			setNavigatedQuery(patientSearchQuery);
+			setOptimisticQuery(patientSearchQuery);
 			setOptimisticPage(1);
 			setOptimisticCreatedAtRange({
 				createdFrom: "",
@@ -215,6 +222,7 @@ export function PatientsClient({
 
 		startTransition(() => {
 			setNavigatedQuery(patientSearchQuery);
+			setOptimisticQuery(patientSearchQuery);
 			setOptimisticPage(previousPage);
 
 			router.push(
@@ -234,6 +242,7 @@ export function PatientsClient({
 
 		startTransition(() => {
 			setNavigatedQuery(patientSearchQuery);
+			setOptimisticQuery(patientSearchQuery);
 			setOptimisticPage(nextPage);
 
 			router.push(
@@ -253,6 +262,7 @@ export function PatientsClient({
 
 		startTransition(() => {
 			setNavigatedQuery(patientSearchQuery);
+			setOptimisticQuery(patientSearchQuery);
 			setOptimisticPage(1);
 			setOptimisticLimit(nextLimit);
 

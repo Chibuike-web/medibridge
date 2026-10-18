@@ -7,10 +7,12 @@ import type {
 	ImagingType,
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useState, useTransition } from "react";
+import { useContext, useOptimistic, useState, useTransition } from "react";
 
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { EncounterTableNavigationContext } from "./encounter-table-navigation";
 
 export function ImagingClient({
 	patientId,
@@ -42,13 +44,15 @@ export function ImagingClient({
 	modalityFilters?: ImagingModalityFilter[];
 }) {
 	const router = useRouter();
+	const navigateEncounterTable = useContext(EncounterTableNavigationContext);
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
-	const [navigatedQuery, setNavigatedQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
+	const [optimisticQuery, setOptimisticQuery] = useOptimistic(searchQuery);
 	const [optimisticOrderedFrom, setOptimisticOrderedFrom] = useOptimistic(orderedFrom);
 	const [optimisticOrderedTo, setOptimisticOrderedTo] = useOptimistic(orderedTo);
 	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
@@ -60,6 +64,7 @@ export function ImagingClient({
 	// Restore URL changes while preserving typing ahead of our pending search.
 	if (previousSearchQuery !== searchQuery) {
 		setPreviousSearchQuery(searchQuery);
+		setNavigatedQuery(null);
 		if (searchQuery !== navigatedQuery) setQuery(searchQuery);
 	}
 
@@ -106,6 +111,7 @@ export function ImagingClient({
 
 		startTransition(() => {
 			setNavigatedQuery(nextQuery);
+			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
 			setOptimisticLimit(nextLimit);
 			setOptimisticOrderedFrom(nextOrderedFrom);
@@ -114,6 +120,10 @@ export function ImagingClient({
 			setOptimisticCreatedTo(nextCreatedTo);
 			setOptimisticStatusFilters(nextStatusFilters);
 			setOptimisticModalityFilters(nextModalityFilters);
+			if (navigateEncounterTable) {
+				navigateEncounterTable(values, replace);
+				return;
+			}
 			const href = `${pathname}?${params}` as Route;
 			if (replace) router.replace(href, { scroll: false });
 			else router.push(href, { scroll: false });
@@ -121,7 +131,7 @@ export function ImagingClient({
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		if (nextQuery !== query || nextQuery === searchQuery) return;
+		if (nextQuery !== query || nextQuery === optimisticQuery) return;
 		navigateTable({ nextQuery }, true);
 	}, 300);
 
