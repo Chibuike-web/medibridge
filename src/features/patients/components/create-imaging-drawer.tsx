@@ -42,7 +42,6 @@ type CreateImagingDrawerProps = {
 	onOpenChange: (open: boolean) => void;
 	patientId: string;
 	encounterId?: string;
-	onImagingCreated: () => void;
 };
 
 const imagingFieldLabelClassName =
@@ -56,7 +55,6 @@ export function CreateImagingDrawer({
 	onOpenChange,
 	patientId,
 	encounterId,
-	onImagingCreated,
 }: CreateImagingDrawerProps) {
 	const router = useRouter();
 	const generatedFormId = useId();
@@ -106,7 +104,6 @@ export function CreateImagingDrawer({
 			}
 
 			handleOpenChange(false);
-			onImagingCreated();
 		});
 	}
 

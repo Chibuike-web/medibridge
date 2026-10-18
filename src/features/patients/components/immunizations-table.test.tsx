@@ -122,8 +122,6 @@ function renderImmunizationsTable(
 		onCreatedAtRangeApply: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
 		onFiltersClear: vi.fn(),
-		onImmunizationCreated: vi.fn(),
-		onImmunizationUpdated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -492,13 +490,13 @@ describe("Immunizations table", () => {
 		expect(await within(dialog).findByRole("heading", { name: "Hepatitis B" })).toBeVisible();
 	});
 
-	test("adds an immunization to the encounter it was opened from and refreshes the table", async () => {
+	test("adds an immunization to the encounter it was opened from without a follow-up table request", async () => {
 		createPatientImmunizationMock.mockResolvedValue({
 			status: "success",
 			immunizationId: "IMM-new",
 		});
 		const user = userEvent.setup();
-		const { onImmunizationCreated } = renderImmunizationsTable({ encounterId: "ENC-1" });
+		renderImmunizationsTable({ encounterId: "ENC-1" });
 		const today = new Date();
 
 		await user.click(screen.getByRole("button", { name: "Add immunization" }));
@@ -529,7 +527,6 @@ describe("Immunizations table", () => {
 				encounterId: "ENC-1",
 			}),
 		);
-		expect(onImmunizationCreated).toHaveBeenCalled();
 		expect(screen.queryByRole("dialog", { name: "Add immunization" })).not.toBeInTheDocument();
 	});
 
@@ -539,7 +536,7 @@ describe("Immunizations table", () => {
 			error: "The current dose can’t be more than the total doses.",
 		});
 		const user = userEvent.setup();
-		const { onImmunizationCreated } = renderImmunizationsTable();
+		renderImmunizationsTable();
 
 		await user.click(screen.getByRole("button", { name: "Add immunization" }));
 		const drawer = await screen.findByRole("dialog", { name: "Add immunization" });
@@ -554,7 +551,6 @@ describe("Immunizations table", () => {
 			"The current dose can’t be more than the total doses.",
 		);
 		expect(within(drawer).getByLabelText(/Vaccine name/)).toHaveValue("BCG");
-		expect(onImmunizationCreated).not.toHaveBeenCalled();
 	});
 
 	async function openImmunizationEditForm(user: ReturnType<typeof userEvent.setup>) {
@@ -577,7 +573,7 @@ describe("Immunizations table", () => {
 			return { status: "success" };
 		});
 		const user = userEvent.setup();
-		const { onImmunizationUpdated } = renderImmunizationsTable();
+		renderImmunizationsTable();
 
 		const editDialog = await openImmunizationEditForm(user);
 		const changedField = within(editDialog).getByLabelText(/Administered by/);
@@ -601,7 +597,6 @@ describe("Immunizations table", () => {
 		);
 		const viewDialog = await screen.findByRole("dialog", { name: "Immunization details" });
 		expect(await within(viewDialog).findByText("Nurse Bisi Ade")).toBeVisible();
-		expect(onImmunizationUpdated).toHaveBeenCalledTimes(1);
 	});
 
 	test("keeps the immunization edit form open and shows why the changes were not saved", async () => {
@@ -610,7 +605,7 @@ describe("Immunizations table", () => {
 			error: "The current dose can’t be more than the total doses.",
 		});
 		const user = userEvent.setup();
-		const { onImmunizationUpdated } = renderImmunizationsTable();
+		renderImmunizationsTable();
 
 		const editDialog = await openImmunizationEditForm(user);
 		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
@@ -618,6 +613,5 @@ describe("Immunizations table", () => {
 		expect(await within(editDialog).findByRole("alert")).toHaveTextContent(
 			"The current dose can’t be more than the total doses.",
 		);
-		expect(onImmunizationUpdated).not.toHaveBeenCalled();
 	});
 });

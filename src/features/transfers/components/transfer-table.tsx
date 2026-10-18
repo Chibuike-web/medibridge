@@ -210,7 +210,10 @@ function TransferTableContent({
 	return (
 		<>
 			<div className="overflow-x-auto rounded-xl border border-gray-200 text-sm">
-				<Table className="min-w-[62.5rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<Table
+					aria-busy={isPending}
+					className="min-w-[62.5rem] border-separate border-spacing-0 bg-gray-50 text-left"
+				>
 					<TableHeader className="text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
@@ -276,7 +279,10 @@ function TransferTableContent({
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody className="rounded-t-xl outline outline-gray-200">
+					<TableBody
+						data-pending={isPending || undefined}
+						className="rounded-t-xl outline outline-gray-200 transition-opacity data-[pending=true]:opacity-80 data-[pending=true]:delay-150"
+					>
 						{table.getRowModel().rows.length > 0 ? (
 							table.getRowModel().rows.map((row, rowPosition) => (
 								<TableRow

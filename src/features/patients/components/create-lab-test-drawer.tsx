@@ -42,7 +42,6 @@ type CreateLabTestDrawerProps = {
 	onOpenChange: (open: boolean) => void;
 	patientId: string;
 	encounterId?: string;
-	onLabTestCreated: () => void;
 };
 
 const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
@@ -55,7 +54,6 @@ export function CreateLabTestDrawer({
 	onOpenChange,
 	patientId,
 	encounterId,
-	onLabTestCreated,
 }: CreateLabTestDrawerProps) {
 	const router = useRouter();
 	const generatedFormId = useId();
@@ -105,7 +103,6 @@ export function CreateLabTestDrawer({
 			}
 
 			handleOpenChange(false);
-			onLabTestCreated();
 		});
 	}
 

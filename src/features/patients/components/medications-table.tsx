@@ -116,8 +116,6 @@ type MedicationsTableProps = {
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onStatusFiltersChange: (statusFilters: MedicationStatusFilter[]) => void;
 	onFiltersClear: () => void;
-	onMedicationCreated: () => void;
-	onMedicationUpdated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -139,8 +137,6 @@ export function MedicationsTable({
 	onCreatedAtRangeApply,
 	onStatusFiltersChange,
 	onFiltersClear,
-	onMedicationCreated,
-	onMedicationUpdated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -312,7 +308,10 @@ export function MedicationsTable({
 				onFiltersClear={onFiltersClear}
 			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
-				<Table className="min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<Table
+					aria-busy={isPending}
+					className="min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left"
+				>
 					<TableHeader className="text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
@@ -384,7 +383,10 @@ export function MedicationsTable({
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
+					<TableBody
+						data-pending={isPending || undefined}
+						className="overflow-hidden rounded-t-xl outline outline-gray-200 transition-opacity data-[pending=true]:opacity-80 data-[pending=true]:delay-150"
+					>
 						{table.getRowModel().rows.length > 0 ? (
 							table.getRowModel().rows.map((row, rowPosition) => (
 								<TableRow
@@ -493,7 +495,6 @@ export function MedicationsTable({
 				onOpenChange={setIsCreateDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onMedicationCreated={onMedicationCreated}
 			/>
 			<MedicationDetailsDrawer
 				open={isDetailsDrawerOpen}
@@ -502,7 +503,6 @@ export function MedicationsTable({
 				isLoading={medicationDetailsQuery.isLoading}
 				onMedicationUpdated={() => {
 					medicationDetailsQuery.mutate();
-					onMedicationUpdated();
 				}}
 			/>
 		</div>

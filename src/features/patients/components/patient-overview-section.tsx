@@ -13,11 +13,6 @@ import { cn } from "@/lib/utils/cn";
 import { notFound } from "next/navigation";
 import { DetailItem, DetailsSection } from "./patient-details-section/detail-fields";
 
-type OverviewItem = {
-	label: string;
-	value: string | number;
-};
-
 type RecentDiagnosis = {
 	name: string;
 	diagnosedAt: string;

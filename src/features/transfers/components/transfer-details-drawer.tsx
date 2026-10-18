@@ -292,7 +292,7 @@ function TransferContentSections({
 		<div className="flex flex-col gap-4">
 			<div className="flex flex-col gap-1.5">
 				<h2 className="text-left text-sm font-semibold text-gray-800">Transfer Contents </h2>
-				<div className="text-gray-400 flex items-center gap-2">
+				<div className="flex flex-wrap items-center gap-2 text-gray-400">
 					{transferContentGroups.map(({ contentType, transferContent }) => (
 						<div className="flex items-center" key={contentType}>
 							<span>{contentType}</span>
@@ -372,11 +372,18 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 				inert={!isTransferContentGroupExpanded}
 			>
 				<div className="min-h-0 overflow-hidden">
-					<div role="region" aria-labelledby={titleId} className="mt-4 flex flex-col gap-3">
+					<div
+						role="region"
+						aria-labelledby={titleId}
+						className={cn(
+							"mt-4 gap-3",
+							contentGroup.contentType === "Patient Details" ? "grid sm:grid-cols-2" : "flex flex-col",
+						)}
+					>
 						{contentGroup.transferContent.map((content) => (
 							<div
 								key={`${content.contentType}-${content.recordId}`}
-								className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+								className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3"
 							>
 								<div className="flex min-w-0 flex-wrap items-center gap-2">
 									<span className="min-w-0 truncate font-medium text-gray-600">
@@ -386,7 +393,9 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 										<StatusBadge status={content.status} className="shrink-0" />
 									) : null}
 								</div>
-								<CopyIdButton id={content.recordId} />
+								{content.contentType !== "Patient Details" ? (
+									<CopyIdButton id={content.recordId} />
+								) : null}
 							</div>
 						))}
 					</div>

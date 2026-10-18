@@ -46,7 +46,6 @@ type CreateProcedureDrawerProps = {
 	onOpenChange: (open: boolean) => void;
 	patientId: string;
 	encounterId?: string;
-	onProcedureCreated: () => void;
 };
 
 type AssistantFormRow = {
@@ -64,7 +63,6 @@ export function CreateProcedureDrawer({
 	onOpenChange,
 	patientId,
 	encounterId,
-	onProcedureCreated,
 }: CreateProcedureDrawerProps) {
 	const router = useRouter();
 	const generatedFormId = useId();
@@ -155,7 +153,6 @@ export function CreateProcedureDrawer({
 			}
 
 			handleOpenChange(false);
-			onProcedureCreated();
 		});
 	}
 

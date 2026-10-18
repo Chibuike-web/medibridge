@@ -128,8 +128,6 @@ type AllergiesTableProps = {
 	onStatusFiltersChange: (statusFilters: AllergyStatusFilter[]) => void;
 	onSeverityFiltersChange: (severityFilters: AllergySeverityFilter[]) => void;
 	onFiltersClear: () => void;
-	onAllergyCreated: () => void;
-	onAllergyUpdated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -153,8 +151,6 @@ export function AllergiesTable({
 	onStatusFiltersChange,
 	onSeverityFiltersChange,
 	onFiltersClear,
-	onAllergyCreated,
-	onAllergyUpdated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -353,7 +349,6 @@ export function AllergiesTable({
 				onOpenChange={setIsCreateDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onAllergyCreated={onAllergyCreated}
 			/>
 			<AllergyDetailsDrawer
 				open={isDetailsDrawerOpen}
@@ -362,7 +357,6 @@ export function AllergiesTable({
 				isLoading={allergyDetailsQuery.isLoading}
 				onAllergyUpdated={() => {
 					allergyDetailsQuery.mutate();
-					onAllergyUpdated();
 				}}
 			/>
 		</div>
@@ -417,7 +411,10 @@ function AllergiesTableContent({
 	return (
 		<>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
-				<Table className="min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<Table
+					aria-busy={isPending}
+					className="min-w-[72rem] border-separate border-spacing-0 bg-gray-50 text-left"
+				>
 					<TableHeader className="text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
@@ -483,7 +480,10 @@ function AllergiesTableContent({
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
+					<TableBody
+						data-pending={isPending || undefined}
+						className="overflow-hidden rounded-t-xl outline outline-gray-200 transition-opacity data-[pending=true]:opacity-80 data-[pending=true]:delay-150"
+					>
 						{table.getRowModel().rows.length > 0 ? (
 							table.getRowModel().rows.map((row, rowPosition) => (
 								<TableRow

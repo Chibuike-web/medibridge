@@ -36,7 +36,6 @@ type CreateAllergyDrawerProps = {
 	onOpenChange: (open: boolean) => void;
 	patientId: string;
 	encounterId?: string;
-	onAllergyCreated: () => void;
 };
 
 const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
@@ -49,7 +48,6 @@ export function CreateAllergyDrawer({
 	onOpenChange,
 	patientId,
 	encounterId,
-	onAllergyCreated,
 }: CreateAllergyDrawerProps) {
 	const router = useRouter();
 	const generatedFormId = useId();
@@ -86,7 +84,6 @@ export function CreateAllergyDrawer({
 			}
 
 			handleOpenChange(false);
-			onAllergyCreated();
 		});
 	}
 

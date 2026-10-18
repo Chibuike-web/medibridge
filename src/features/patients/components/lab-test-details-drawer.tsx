@@ -81,7 +81,6 @@ type LabTestDetailsDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	labTest: LabTestType | null;
-	onLabTestUpdated: () => void;
 };
 
 const labTestDetailsFormId = "lab-test-details-form";
@@ -91,12 +90,7 @@ const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
-export function LabTestDetailsDrawer({
-	open,
-	onOpenChange,
-	labTest,
-	onLabTestUpdated,
-}: LabTestDetailsDrawerProps) {
+export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDetailsDrawerProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
@@ -145,7 +139,6 @@ export function LabTestDetailsDrawer({
 			}
 
 			setLabTestDetailsMode("view");
-			onLabTestUpdated();
 		});
 	}
 

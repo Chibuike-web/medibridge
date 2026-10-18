@@ -128,8 +128,6 @@ type ImagingTableProps = {
 	onStatusFiltersChange: (statusFilters: ImagingStatusFilter[]) => void;
 	onModalityFiltersChange: (modalityFilters: ImagingModalityFilter[]) => void;
 	onFiltersClear: () => void;
-	onImagingCreated: () => void;
-	onImagingUpdated: () => void;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
@@ -156,8 +154,6 @@ export function ImagingTable({
 	onStatusFiltersChange,
 	onModalityFiltersChange,
 	onFiltersClear,
-	onImagingCreated,
-	onImagingUpdated,
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
@@ -368,7 +364,10 @@ export function ImagingTable({
 				onFiltersClear={onFiltersClear}
 			/>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
-				<Table className="min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<Table
+					aria-busy={isPending}
+					className="min-w-[76rem] border-separate border-spacing-0 bg-gray-50 text-left"
+				>
 					<TableHeader className="text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
@@ -434,7 +433,10 @@ export function ImagingTable({
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
+					<TableBody
+						data-pending={isPending || undefined}
+						className="overflow-hidden rounded-t-xl outline outline-gray-200 transition-opacity data-[pending=true]:opacity-80 data-[pending=true]:delay-150"
+					>
 						{table.getRowModel().rows.length > 0 ? (
 							table.getRowModel().rows.map((row, rowPosition) => (
 								<TableRow
@@ -536,7 +538,6 @@ export function ImagingTable({
 				onOpenChange={setIsCreateDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onImagingCreated={onImagingCreated}
 			/>
 			<ImagingDetailsDrawer
 				open={isDetailsDrawerOpen}
@@ -545,7 +546,6 @@ export function ImagingTable({
 					imagingStudies.find((imaging) => imaging.imagingId === selectedStudy?.imagingId) ??
 					selectedStudy
 				}
-				onImagingUpdated={onImagingUpdated}
 			/>
 		</div>
 	);

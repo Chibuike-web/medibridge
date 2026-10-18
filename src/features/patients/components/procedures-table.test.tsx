@@ -12,7 +12,9 @@ const { createPatientProcedureMock, updateProcedureMock } = vi.hoisted(() => ({
 	updateProcedureMock: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+const { refreshMock } = vi.hoisted(() => ({ refreshMock: vi.fn() }));
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: refreshMock }) }));
 
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
@@ -141,8 +143,6 @@ function renderProceduresTable(
 		onCreatedAtRangeApply: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
 		onFiltersClear: vi.fn(),
-		onProcedureCreated: vi.fn(),
-		onProcedureUpdated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -481,10 +481,10 @@ describe("Procedures table", () => {
 		expect(await within(dialog).findByRole("heading", { name: "Appendectomy" })).toBeVisible();
 	});
 
-	test("adds a procedure to the encounter it was opened from and refreshes the table", async () => {
+	test("adds a procedure to the encounter it was opened from without a follow-up table request", async () => {
 		createPatientProcedureMock.mockResolvedValue({ status: "success", procedureId: "PRO-new" });
 		const user = userEvent.setup();
-		const { onProcedureCreated } = renderProceduresTable({ encounterId: "ENC-1" });
+		renderProceduresTable({ encounterId: "ENC-1" });
 		const today = new Date();
 
 		await user.click(screen.getByRole("button", { name: "Add procedure" }));
@@ -521,7 +521,6 @@ describe("Procedures table", () => {
 				encounterId: "ENC-1",
 			}),
 		);
-		expect(onProcedureCreated).toHaveBeenCalled();
 		expect(screen.queryByRole("dialog", { name: "Add procedure" })).not.toBeInTheDocument();
 	});
 
@@ -531,7 +530,7 @@ describe("Procedures table", () => {
 			error: "Add at least one assistant.",
 		});
 		const user = userEvent.setup();
-		const { onProcedureCreated } = renderProceduresTable();
+		renderProceduresTable();
 
 		await user.click(screen.getByRole("button", { name: "Add procedure" }));
 		const drawer = await screen.findByRole("dialog", { name: "Add procedure" });
@@ -545,7 +544,6 @@ describe("Procedures table", () => {
 			"Add at least one assistant.",
 		);
 		expect(within(drawer).getByLabelText(/^Procedure/)).toHaveValue("Colonoscopy");
-		expect(onProcedureCreated).not.toHaveBeenCalled();
 	});
 
 	async function openProcedureEditForm(user: ReturnType<typeof userEvent.setup>) {
@@ -568,7 +566,7 @@ describe("Procedures table", () => {
 			return { status: "success" };
 		});
 		const user = userEvent.setup();
-		const { onProcedureUpdated } = renderProceduresTable();
+		renderProceduresTable();
 
 		const editDialog = await openProcedureEditForm(user);
 		const changedField = within(editDialog).getByLabelText(/Facility/);
@@ -595,7 +593,6 @@ describe("Procedures table", () => {
 		);
 		const viewDialog = await screen.findByRole("dialog", { name: "Procedure details" });
 		expect(await within(viewDialog).findByText("Main Theatre Block")).toBeVisible();
-		expect(onProcedureUpdated).toHaveBeenCalledTimes(1);
 	});
 
 	test("keeps the procedure edit form open and shows why the changes were not saved", async () => {
@@ -604,7 +601,7 @@ describe("Procedures table", () => {
 			error: "Add at least one assistant.",
 		});
 		const user = userEvent.setup();
-		const { onProcedureUpdated } = renderProceduresTable();
+		renderProceduresTable();
 
 		const editDialog = await openProcedureEditForm(user);
 		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
@@ -612,6 +609,5 @@ describe("Procedures table", () => {
 		expect(await within(editDialog).findByRole("alert")).toHaveTextContent(
 			"Add at least one assistant.",
 		);
-		expect(onProcedureUpdated).not.toHaveBeenCalled();
 	});
 });

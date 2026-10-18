@@ -12,7 +12,9 @@ const { createPatientMedicationMock, updateMedicationMock } = vi.hoisted(() => (
 	updateMedicationMock: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+const { refreshMock } = vi.hoisted(() => ({ refreshMock: vi.fn() }));
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: refreshMock }) }));
 
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
@@ -154,8 +156,6 @@ function buildProps(overrides: Partial<MedicationsTableProps> = {}): Medications
 		onCreatedAtRangeApply: vi.fn(),
 		onStatusFiltersChange: vi.fn(),
 		onFiltersClear: vi.fn(),
-		onMedicationCreated: vi.fn(),
-		onMedicationUpdated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
@@ -497,10 +497,10 @@ describe("Medications table", () => {
 		expect(within(bulkBar).queryByRole("button", { name: /Archive/ })).not.toBeInTheDocument();
 	});
 
-	test("adds a medication to the encounter it was opened from and refreshes the table", async () => {
+	test("adds a medication to the encounter it was opened from without a follow-up table request", async () => {
 		createPatientMedicationMock.mockResolvedValue({ status: "success", medicationId: "MED-new" });
 		const user = userEvent.setup();
-		const { onMedicationCreated } = renderMedicationsTable({ encounterId: "ENC-1" });
+		renderMedicationsTable({ encounterId: "ENC-1" });
 		const today = new Date();
 
 		await user.click(screen.getByRole("button", { name: "Add medication" }));
@@ -538,7 +538,6 @@ describe("Medications table", () => {
 				encounterId: "ENC-1",
 			}),
 		);
-		expect(onMedicationCreated).toHaveBeenCalled();
 		expect(screen.queryByRole("dialog", { name: "Add medication" })).not.toBeInTheDocument();
 	});
 
@@ -548,7 +547,7 @@ describe("Medications table", () => {
 			error: "We couldn’t add this medication. Please try again.",
 		});
 		const user = userEvent.setup();
-		const { onMedicationCreated } = renderMedicationsTable();
+		renderMedicationsTable();
 
 		await user.click(screen.getByRole("button", { name: "Add medication" }));
 		const drawer = await screen.findByRole("dialog", { name: "Add medication" });
@@ -567,7 +566,6 @@ describe("Medications table", () => {
 			"We couldn’t add this medication. Please try again.",
 		);
 		expect(within(drawer).getByLabelText(/^Medication/)).toHaveValue("Metformin");
-		expect(onMedicationCreated).not.toHaveBeenCalled();
 	});
 
 	async function openMedicationEditForm(user: ReturnType<typeof userEvent.setup>) {
@@ -590,7 +588,7 @@ describe("Medications table", () => {
 			return { status: "success" };
 		});
 		const user = userEvent.setup();
-		const { onMedicationUpdated } = renderMedicationsTable();
+		renderMedicationsTable();
 
 		const editDialog = await openMedicationEditForm(user);
 		const changedField = within(editDialog).getByLabelText(/Frequency/);
@@ -616,7 +614,6 @@ describe("Medications table", () => {
 		);
 		const viewDialog = await screen.findByRole("dialog", { name: "Medication details" });
 		expect(await within(viewDialog).findByText("Twice daily")).toBeVisible();
-		expect(onMedicationUpdated).toHaveBeenCalledTimes(1);
 	});
 
 	test("keeps the medication edit form open and shows why the changes were not saved", async () => {
@@ -625,7 +622,7 @@ describe("Medications table", () => {
 			error: "Enter how often it is taken.",
 		});
 		const user = userEvent.setup();
-		const { onMedicationUpdated } = renderMedicationsTable();
+		renderMedicationsTable();
 
 		const editDialog = await openMedicationEditForm(user);
 		await user.click(within(editDialog).getByRole("button", { name: "Save changes" }));
@@ -633,6 +630,5 @@ describe("Medications table", () => {
 		expect(await within(editDialog).findByRole("alert")).toHaveTextContent(
 			"Enter how often it is taken.",
 		);
-		expect(onMedicationUpdated).not.toHaveBeenCalled();
 	});
 });

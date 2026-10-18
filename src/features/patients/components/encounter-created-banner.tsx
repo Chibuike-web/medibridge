@@ -1,13 +1,14 @@
 "use client";
 
 import type { Route } from "next";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { RiCheckboxCircleFill, RiCloseLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
 
 export function EncounterCreatedBanner() {
 	const router = useRouter();
 	const pathname = usePathname();
+	const searchParams = useSearchParams();
 
 	return (
 		<div
@@ -22,7 +23,11 @@ export function EncounterCreatedBanner() {
 				size="icon"
 				className="ml-auto -my-1 size-6 rounded-full text-green-700 hover:bg-green-100 hover:text-green-700"
 				aria-label="Dismiss message"
-				onClick={() => router.replace(pathname as Route, { scroll: false })}
+				onClick={() => {
+					const params = new URLSearchParams(searchParams.toString());
+					params.delete("created");
+					router.replace(`${pathname}?${params}` as Route, { scroll: false });
+				}}
 			>
 				<RiCloseLine aria-hidden="true" />
 			</Button>

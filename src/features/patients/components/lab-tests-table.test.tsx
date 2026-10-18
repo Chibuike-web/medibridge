@@ -11,7 +11,9 @@ const { createLabTestMock, updateLabTestMock } = vi.hoisted(() => ({
 	updateLabTestMock: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+const { refreshMock } = vi.hoisted(() => ({ refreshMock: vi.fn() }));
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: refreshMock }) }));
 
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
@@ -110,17 +112,15 @@ function renderLabTestsTable(overrides: Partial<React.ComponentProps<typeof LabT
 		onStatusFiltersChange: vi.fn(),
 		onFlagFiltersChange: vi.fn(),
 		onFiltersClear: vi.fn(),
-		onLabTestCreated: vi.fn(),
-		onLabTestUpdated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
 		...overrides,
 	};
 
-	render(<LabTestsTable {...props} />);
+	const { rerender } = render(<LabTestsTable {...props} />);
 
-	return props;
+	return { ...props, rerender };
 }
 
 function bodyRows() {
@@ -499,10 +499,10 @@ describe("Lab tests table", () => {
 		expect(within(dialog).getByRole("heading", { name: "Basic Metabolic Panel" })).toBeVisible();
 	});
 
-	test("adds a pending lab test with its report to the encounter and refreshes the table", async () => {
+	test("adds a pending lab test with its report to the encounter without a follow-up table request", async () => {
 		createLabTestMock.mockResolvedValue({ status: "success", labTestId: "LAB-new" });
 		const user = userEvent.setup();
-		const { onLabTestCreated } = renderLabTestsTable({ encounterId: "ENC-1" });
+		renderLabTestsTable({ encounterId: "ENC-1" });
 		const today = new Date();
 
 		await user.click(screen.getByRole("button", { name: "Add lab test" }));
@@ -537,7 +537,6 @@ describe("Lab tests table", () => {
 		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual([
 			"fbc-request.pdf",
 		]);
-		expect(onLabTestCreated).toHaveBeenCalledTimes(1);
 		expect(screen.queryByRole("dialog", { name: "Add lab test" })).not.toBeInTheDocument();
 	});
 
@@ -547,7 +546,7 @@ describe("Lab tests table", () => {
 			error: "Attach the report for a completed lab test.",
 		});
 		const user = userEvent.setup();
-		const { onLabTestCreated } = renderLabTestsTable();
+		renderLabTestsTable();
 
 		await user.click(screen.getByRole("button", { name: "Add lab test" }));
 		const drawer = await screen.findByRole("dialog", { name: "Add lab test" });
@@ -561,7 +560,6 @@ describe("Lab tests table", () => {
 			"Attach the report for a completed lab test.",
 		);
 		expect(within(drawer).getByLabelText(/^Test/)).toHaveValue("Lipid panel");
-		expect(onLabTestCreated).not.toHaveBeenCalled();
 	});
 
 	test("opens and downloads a saved lab report from the details drawer", async () => {
@@ -586,7 +584,7 @@ describe("Lab tests table", () => {
 	test("saves edits with a replaced report and returns to the details view", async () => {
 		updateLabTestMock.mockResolvedValue({ status: "success" });
 		const user = userEvent.setup();
-		const { onLabTestUpdated } = renderLabTestsTable();
+		const { rerender, ...props } = renderLabTestsTable();
 
 		await user.click(screen.getByRole("button", { name: "Open actions for Hemoglobin A1c" }));
 		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
@@ -623,6 +621,13 @@ describe("Lab tests table", () => {
 		);
 		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual(["a1c-repeat.pdf"]);
 		expect(await screen.findByRole("dialog", { name: "Lab test details" })).toBeVisible();
-		expect(onLabTestUpdated).toHaveBeenCalledTimes(1);
+		rerender(
+			<LabTestsTable
+				{...props}
+				labTests={labTests.map((row, index) => (index === 0 ? { ...row, result: "5.4 %" } : row))}
+			/>,
+		);
+		const savedDetails = screen.getByRole("dialog", { name: "Lab test details" });
+		expect(within(savedDetails).getByText("5.4 %")).toBeVisible();
 	});
 });

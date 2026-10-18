@@ -1,6 +1,7 @@
 import { verifySession } from "@/lib/api/verify-session";
 import { getOrganizationContext } from "@/lib/api/get-organization-id";
 import { redirect } from "next/navigation";
+import type { Route } from "next";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -57,9 +58,10 @@ async function TransfersContent({ searchParams }: TransfersPageProps) {
 		redirect("/verify");
 	}
 
-	const { page, limit, query, requestedFrom, requestedTo, status } = await searchParams;
+	const currentSearchParams = await searchParams;
+	const { page, limit, query, requestedFrom, requestedTo, status } = currentSearchParams;
 	const currentPage = getNumberParam(page, 1, { min: 1 });
-	const currentLimit = getNumberParam(limit, 14, { min: 1, max: 100 });
+	const currentLimit = getNumberParam(limit, 14);
 	const currentQuery = getStringParam(query);
 	const currentRequestedFrom = getStringParam(requestedFrom);
 	const currentRequestedTo = getStringParam(requestedTo);
@@ -76,6 +78,16 @@ async function TransfersContent({ searchParams }: TransfersPageProps) {
 		currentStatusFilters,
 	);
 	const totalPages = Math.max(1, Math.ceil(totalTransfers / currentLimit));
+
+	if (currentPage > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(currentSearchParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("page", String(totalPages));
+		redirect(`/dashboard/transfers?${lastPageParams}` as Route);
+	}
 
 	return hasTransfers ? (
 		<TransfersClient

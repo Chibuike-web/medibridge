@@ -33,7 +33,7 @@ export function SectionTabs({ activeSection }: { activeSection: PatientSection }
 		startTransition(() => {
 			setOptimisticSection(section);
 			params.set("section", section);
-			router.push(`?${params.toString()}`);
+			router.push(`?section=${section}`);
 		});
 	}
 

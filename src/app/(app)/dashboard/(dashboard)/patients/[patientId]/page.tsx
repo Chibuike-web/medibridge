@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 import { RiArrowLeftLine, RiArrowRightSLine } from "@remixicon/react";
 import { notFound, redirect } from "next/navigation";
+import type { Route } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { StatusBadge } from "@/components/status-badge";
@@ -32,7 +33,21 @@ import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
 import { getPatientVitalReadings, getPatientVitals } from "@/lib/api/get-patient-vitals";
 import { verifySession } from "@/lib/api/verify-session";
 import { getOrganizationContext } from "@/lib/api/get-organization-id";
-import { getStringParam } from "@/lib/utils/search-params";
+import type {
+	AllergySeverityFilter,
+	AllergyStatusFilter,
+	DiagnosisStatusFilter,
+	EncounterDepartmentFilter,
+	EncounterTypeFilter,
+	ImagingModalityFilter,
+	ImagingStatusFilter,
+	ImmunizationStatusFilter,
+	LabTestFlagFilter,
+	LabTestStatusFilter,
+	MedicationStatusFilter,
+	ProcedureStatusFilter,
+} from "@/features/patients/types";
+import { getNumberParam, getStringParam } from "@/lib/utils/search-params";
 import {
 	AllergiesClient,
 	DiagnosesClient,
@@ -189,12 +204,16 @@ async function Main({ searchParams, params }: PatientPageProps) {
 }
 
 async function SectionContent({ searchParams, params }: PatientPageProps) {
-	const [{ section }, { patientId }] = await Promise.all([searchParams, params]);
+	const [tableParams, { patientId }] = await Promise.all([searchParams, params]);
 
-	return renderSectionContent(getStringParam(section), patientId);
+	return renderSectionContent(getStringParam(tableParams.section), patientId, searchParams);
 }
 
-async function renderSectionContent(section: string, patientId: string) {
+async function renderSectionContent(
+	section: string,
+	patientId: string,
+	searchParams: PatientPageProps["searchParams"],
+) {
 	if (section === "patient-overview") {
 		return <PatientOverviewSection patientId={patientId} />;
 	}
@@ -203,55 +222,97 @@ async function renderSectionContent(section: string, patientId: string) {
 	}
 
 	if (section === "vitals") {
-		return <VitalsSection patientId={patientId} />;
+		return <VitalsSection patientId={patientId} searchParams={searchParams} />;
 	}
 
 	if (section === "diagnoses") {
-		return <DiagnosesSection patientId={patientId} />;
+		return <DiagnosesSection patientId={patientId} searchParams={searchParams} />;
 	}
 
 	if (section === "allergies") {
-		return <AllergiesSection patientId={patientId} />;
+		return <AllergiesSection patientId={patientId} searchParams={searchParams} />;
 	}
 
 	if (section === "immunization") {
-		return <ImmunizationSection patientId={patientId} />;
+		return <ImmunizationSection patientId={patientId} searchParams={searchParams} />;
 	}
 
 	if (section === "procedures") {
-		return <ProceduresSection patientId={patientId} />;
+		return <ProceduresSection patientId={patientId} searchParams={searchParams} />;
 	}
 
 	if (section === "medications") {
-		return <MedicationsSection patientId={patientId} />;
+		return <MedicationsSection patientId={patientId} searchParams={searchParams} />;
 	}
 
 	if (section === "encounters") {
-		return <EncountersSection patientId={patientId} />;
+		return <EncountersSection patientId={patientId} searchParams={searchParams} />;
 	}
 
 	if (section === "lab-tests") {
-		return <LabTestsSection patientId={patientId} />;
+		return <LabTestsSection patientId={patientId} searchParams={searchParams} />;
 	}
 
 	if (section === "imaging") {
-		return <ImagingSection patientId={patientId} />;
+		return <ImagingSection patientId={patientId} searchParams={searchParams} />;
 	}
 }
 
-async function VitalsSection({ patientId }: { patientId: string }) {
+async function VitalsSection({
+	patientId,
+	searchParams,
+}: {
+	patientId: string;
+	searchParams: PatientPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.vitalsPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.vitalsLimit, 14);
+	const searchQuery = getStringParam(tableParams.vitalsQuery);
+	const recordedFrom = getStringParam(tableParams.vitalsRecordedFrom);
+	const recordedTo = getStringParam(tableParams.vitalsRecordedTo);
+	const createdFrom = getStringParam(tableParams.vitalsCreatedFrom);
+	const createdTo = getStringParam(tableParams.vitalsCreatedTo);
 	const [{ vitals, totalVitals }, readings, { encounters }] = await Promise.all([
-		getPatientVitals(patientId),
+		getPatientVitals(patientId, page, limit, searchQuery, {
+			recordedFrom,
+			recordedTo,
+			createdFrom,
+			createdTo,
+		}),
 		getPatientVitalReadings(patientId),
 		getPatientEncounters(patientId, 1, 100),
 	]);
+
+	const totalPages = Math.ceil(totalVitals / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("vitalsPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
+
 	const encounterOptions = encounters.map(({ encounterId, encounterType, encounterDateLabel }) => ({
 		encounterId,
 		encounterType,
 		encounterDateLabel,
 	}));
 
-	if (readings.length === 0) {
+	if (
+		readings.length === 0 &&
+		!(
+			page !== 1 ||
+			Boolean(searchQuery) ||
+			Boolean(recordedFrom) ||
+			Boolean(recordedTo) ||
+			Boolean(createdFrom) ||
+			Boolean(createdTo)
+		)
+	) {
 		return renderEmptyState({
 			title: "No vitals yet",
 			description: "No vitals have been recorded for this patient.",
@@ -267,17 +328,73 @@ async function VitalsSection({ patientId }: { patientId: string }) {
 			encounterOptions={encounterOptions}
 			vitals={vitals}
 			readings={readings}
-			page={1}
-			limit={14}
-			totalPages={Math.ceil(totalVitals / 14) || 1}
+			searchQuery={searchQuery}
+			recordedFrom={recordedFrom}
+			recordedTo={recordedTo}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
 		/>
 	);
 }
 
-async function DiagnosesSection({ patientId }: { patientId: string }) {
-	const { diagnoses, totalDiagnoses } = await getPatientDiagnoses(patientId);
+async function DiagnosesSection({
+	patientId,
+	searchParams,
+}: {
+	patientId: string;
+	searchParams: PatientPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.diagnosesPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.diagnosesLimit, 14);
+	const searchQuery = getStringParam(tableParams.diagnosesQuery);
+	const createdFrom = getStringParam(tableParams.diagnosesCreatedFrom);
+	const createdTo = getStringParam(tableParams.diagnosesCreatedTo);
+	const diagnosedFrom = getStringParam(tableParams.diagnosesDiagnosedFrom);
+	const diagnosedTo = getStringParam(tableParams.diagnosesDiagnosedTo);
+	const lastReviewedFrom = getStringParam(tableParams.diagnosesLastReviewedFrom);
+	const lastReviewedTo = getStringParam(tableParams.diagnosesLastReviewedTo);
+	const statusFilters = getStringParam(tableParams.diagnosesStatus)
+		.split(",")
+		.filter((value): value is DiagnosisStatusFilter => ["active", "resolved"].includes(value));
+	const { diagnoses, totalDiagnoses } = await getPatientDiagnoses(
+		patientId,
+		page,
+		limit,
+		searchQuery,
+		{ createdFrom, createdTo, diagnosedFrom, diagnosedTo, lastReviewedFrom, lastReviewedTo },
+		statusFilters,
+	);
 
-	if (diagnoses.length === 0) {
+	const totalPages = Math.ceil(totalDiagnoses / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("diagnosesPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
+
+	if (
+		diagnoses.length === 0 &&
+		!(
+			page !== 1 ||
+			Boolean(searchQuery) ||
+			Boolean(createdFrom) ||
+			Boolean(createdTo) ||
+			Boolean(diagnosedFrom) ||
+			Boolean(diagnosedTo) ||
+			Boolean(lastReviewedFrom) ||
+			Boolean(lastReviewedTo) ||
+			statusFilters.length > 0
+		)
+	) {
 		return renderEmptyState({
 			title: "No diagnoses yet",
 			description: "No diagnoses have been recorded for this patient.",
@@ -289,17 +406,75 @@ async function DiagnosesSection({ patientId }: { patientId: string }) {
 		<DiagnosesClient
 			patientId={patientId}
 			diagnoses={diagnoses}
-			page={1}
-			limit={14}
-			totalPages={Math.ceil(totalDiagnoses / 14) || 1}
+			searchQuery={searchQuery}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+			diagnosedFrom={diagnosedFrom}
+			diagnosedTo={diagnosedTo}
+			lastReviewedFrom={lastReviewedFrom}
+			lastReviewedTo={lastReviewedTo}
+			statusFilters={statusFilters}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
 		/>
 	);
 }
 
-async function AllergiesSection({ patientId }: { patientId: string }) {
-	const { allergies, totalAllergies } = await getPatientAllergies(patientId);
+async function AllergiesSection({
+	patientId,
+	searchParams,
+}: {
+	patientId: string;
+	searchParams: PatientPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.allergiesPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.allergiesLimit, 14);
+	const searchQuery = getStringParam(tableParams.allergiesQuery);
+	const createdFrom = getStringParam(tableParams.allergiesCreatedFrom);
+	const createdTo = getStringParam(tableParams.allergiesCreatedTo);
+	const statusFilters = getStringParam(tableParams.allergiesStatus)
+		.split(",")
+		.filter((value): value is AllergyStatusFilter => ["active", "inactive"].includes(value));
+	const severityFilters = getStringParam(tableParams.allergiesSeverity)
+		.split(",")
+		.filter((value): value is AllergySeverityFilter =>
+			["mild", "moderate", "severe"].includes(value),
+		);
+	const { allergies, totalAllergies } = await getPatientAllergies(
+		patientId,
+		page,
+		limit,
+		searchQuery,
+		{ createdFrom, createdTo },
+		statusFilters,
+		severityFilters,
+	);
 
-	if (allergies.length === 0) {
+	const totalPages = Math.ceil(totalAllergies / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("allergiesPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
+
+	if (
+		allergies.length === 0 &&
+		!(
+			page !== 1 ||
+			Boolean(searchQuery) ||
+			Boolean(createdFrom) ||
+			Boolean(createdTo) ||
+			statusFilters.length > 0 ||
+			severityFilters.length > 0
+		)
+	) {
 		return renderEmptyState({
 			title: "No allergies yet",
 			description: "No allergies have been recorded for this patient.",
@@ -311,17 +486,67 @@ async function AllergiesSection({ patientId }: { patientId: string }) {
 		<AllergiesClient
 			patientId={patientId}
 			allergies={allergies}
-			page={1}
-			limit={14}
-			totalPages={Math.ceil(totalAllergies / 14) || 1}
+			searchQuery={searchQuery}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+			statusFilters={statusFilters}
+			severityFilters={severityFilters}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
 		/>
 	);
 }
 
-async function ImmunizationSection({ patientId }: { patientId: string }) {
-	const { immunizations, totalImmunizations } = await getPatientImmunizations(patientId);
+async function ImmunizationSection({
+	patientId,
+	searchParams,
+}: {
+	patientId: string;
+	searchParams: PatientPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.immunizationsPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.immunizationsLimit, 14);
+	const searchQuery = getStringParam(tableParams.immunizationsQuery);
+	const createdFrom = getStringParam(tableParams.immunizationsCreatedFrom);
+	const createdTo = getStringParam(tableParams.immunizationsCreatedTo);
+	const statusFilters = getStringParam(tableParams.immunizationsStatus)
+		.split(",")
+		.filter((value): value is ImmunizationStatusFilter =>
+			["active", "completed", "cancelled", "discontinued"].includes(value),
+		);
+	const { immunizations, totalImmunizations } = await getPatientImmunizations(
+		patientId,
+		page,
+		limit,
+		searchQuery,
+		{ createdFrom, createdTo },
+		statusFilters,
+	);
 
-	if (immunizations.length === 0) {
+	const totalPages = Math.ceil(totalImmunizations / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("immunizationsPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
+
+	if (
+		immunizations.length === 0 &&
+		!(
+			page !== 1 ||
+			Boolean(searchQuery) ||
+			Boolean(createdFrom) ||
+			Boolean(createdTo) ||
+			statusFilters.length > 0
+		)
+	) {
 		return renderEmptyState({
 			title: "No immunizations yet",
 			description: "No immunizations have been recorded for this patient.",
@@ -333,17 +558,66 @@ async function ImmunizationSection({ patientId }: { patientId: string }) {
 		<ImmunizationsClient
 			patientId={patientId}
 			immunizations={immunizations}
-			page={1}
-			limit={14}
-			totalPages={Math.ceil(totalImmunizations / 14) || 1}
+			searchQuery={searchQuery}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+			statusFilters={statusFilters}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
 		/>
 	);
 }
 
-async function ProceduresSection({ patientId }: { patientId: string }) {
-	const { procedures, totalProcedures } = await getPatientProcedures(patientId);
+async function ProceduresSection({
+	patientId,
+	searchParams,
+}: {
+	patientId: string;
+	searchParams: PatientPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.proceduresPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.proceduresLimit, 14);
+	const searchQuery = getStringParam(tableParams.proceduresQuery);
+	const createdFrom = getStringParam(tableParams.proceduresCreatedFrom);
+	const createdTo = getStringParam(tableParams.proceduresCreatedTo);
+	const statusFilters = getStringParam(tableParams.proceduresStatus)
+		.split(",")
+		.filter((value): value is ProcedureStatusFilter =>
+			["pending", "completed", "cancelled"].includes(value),
+		);
+	const { procedures, totalProcedures } = await getPatientProcedures(
+		patientId,
+		page,
+		limit,
+		searchQuery,
+		{ createdFrom, createdTo },
+		statusFilters,
+	);
 
-	if (procedures.length === 0) {
+	const totalPages = Math.ceil(totalProcedures / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("proceduresPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
+
+	if (
+		procedures.length === 0 &&
+		!(
+			page !== 1 ||
+			Boolean(searchQuery) ||
+			Boolean(createdFrom) ||
+			Boolean(createdTo) ||
+			statusFilters.length > 0
+		)
+	) {
 		return renderEmptyState({
 			title: "No procedures yet",
 			description: "No procedures have been recorded for this patient.",
@@ -355,17 +629,66 @@ async function ProceduresSection({ patientId }: { patientId: string }) {
 		<ProceduresClient
 			patientId={patientId}
 			procedures={procedures}
-			page={1}
-			limit={14}
-			totalPages={Math.ceil(totalProcedures / 14) || 1}
+			searchQuery={searchQuery}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+			statusFilters={statusFilters}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
 		/>
 	);
 }
 
-async function MedicationsSection({ patientId }: { patientId: string }) {
-	const { medications, totalMedications } = await getPatientMedications(patientId);
+async function MedicationsSection({
+	patientId,
+	searchParams,
+}: {
+	patientId: string;
+	searchParams: PatientPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.medicationsPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.medicationsLimit, 14);
+	const searchQuery = getStringParam(tableParams.medicationsQuery);
+	const createdFrom = getStringParam(tableParams.medicationsCreatedFrom);
+	const createdTo = getStringParam(tableParams.medicationsCreatedTo);
+	const statusFilters = getStringParam(tableParams.medicationsStatus)
+		.split(",")
+		.filter((value): value is MedicationStatusFilter =>
+			["active", "completed", "discontinued"].includes(value),
+		);
+	const { medications, totalMedications } = await getPatientMedications(
+		patientId,
+		page,
+		limit,
+		searchQuery,
+		{ createdFrom, createdTo },
+		statusFilters,
+	);
 
-	if (medications.length === 0) {
+	const totalPages = Math.ceil(totalMedications / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("medicationsPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
+
+	if (
+		medications.length === 0 &&
+		!(
+			page !== 1 ||
+			Boolean(searchQuery) ||
+			Boolean(createdFrom) ||
+			Boolean(createdTo) ||
+			statusFilters.length > 0
+		)
+	) {
 		return renderEmptyState({
 			title: "No medications yet",
 			description: "No medications have been recorded for this patient.",
@@ -377,17 +700,84 @@ async function MedicationsSection({ patientId }: { patientId: string }) {
 		<MedicationsClient
 			patientId={patientId}
 			medications={medications}
-			page={1}
-			limit={14}
-			totalPages={Math.ceil(totalMedications / 14) || 1}
+			searchQuery={searchQuery}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+			statusFilters={statusFilters}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
 		/>
 	);
 }
 
-async function EncountersSection({ patientId }: { patientId: string }) {
-	const { encounters, totalEncounters } = await getPatientEncounters(patientId);
+async function EncountersSection({
+	patientId,
+	searchParams,
+}: {
+	patientId: string;
+	searchParams: PatientPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.encountersPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.encountersLimit, 14);
+	const searchQuery = getStringParam(tableParams.encountersQuery);
+	const encounterFrom = getStringParam(tableParams.encountersEncounterFrom);
+	const encounterTo = getStringParam(tableParams.encountersEncounterTo);
+	const createdFrom = getStringParam(tableParams.encountersCreatedFrom);
+	const createdTo = getStringParam(tableParams.encountersCreatedTo);
+	const encounterTypeFilters = getStringParam(tableParams.encountersType)
+		.split(",")
+		.filter((value): value is EncounterTypeFilter =>
+			["emergency-visit", "routine-checkup", "follow-up-visit", "outpatient-visit"].includes(value),
+		);
+	const departmentFilters = getStringParam(tableParams.encountersDepartment)
+		.split(",")
+		.filter((value): value is EncounterDepartmentFilter =>
+			[
+				"emergency-medicine",
+				"general-medicine",
+				"cardiology",
+				"endocrinology",
+				"family-medicine",
+				"nephrology",
+			].includes(value),
+		);
+	const { encounters, totalEncounters } = await getPatientEncounters(
+		patientId,
+		page,
+		limit,
+		searchQuery,
+		{ encounterFrom, encounterTo, createdFrom, createdTo },
+		encounterTypeFilters,
+		departmentFilters,
+	);
 
-	if (encounters.length === 0) {
+	const totalPages = Math.ceil(totalEncounters / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("encountersPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
+
+	if (
+		encounters.length === 0 &&
+		!(
+			page !== 1 ||
+			Boolean(searchQuery) ||
+			Boolean(encounterFrom) ||
+			Boolean(encounterTo) ||
+			Boolean(createdFrom) ||
+			Boolean(createdTo) ||
+			encounterTypeFilters.length > 0 ||
+			departmentFilters.length > 0
+		)
+	) {
 		return renderEmptyState({
 			title: "No encounters yet",
 			description: "Create one to record vitals, diagnoses, and medications.",
@@ -399,17 +789,87 @@ async function EncountersSection({ patientId }: { patientId: string }) {
 		<EncountersClient
 			patientId={patientId}
 			encounters={encounters}
-			page={1}
-			limit={14}
-			totalPages={Math.ceil(totalEncounters / 14) || 1}
+			searchQuery={searchQuery}
+			encounterFrom={encounterFrom}
+			encounterTo={encounterTo}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+			encounterTypeFilters={encounterTypeFilters}
+			departmentFilters={departmentFilters}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
 		/>
 	);
 }
 
-async function LabTestsSection({ patientId }: { patientId: string }) {
-	const { labTests, totalLabTests } = await getPatientLabTests(patientId);
+async function LabTestsSection({
+	patientId,
+	searchParams,
+}: {
+	patientId: string;
+	searchParams: PatientPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.labTestsPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.labTestsLimit, 14);
+	const searchQuery = getStringParam(tableParams.labTestsQuery);
+	const createdFrom = getStringParam(tableParams.labTestsCreatedFrom);
+	const createdTo = getStringParam(tableParams.labTestsCreatedTo);
+	const statusFilters = getStringParam(tableParams.labTestsStatus)
+		.split(",")
+		.filter((value): value is LabTestStatusFilter =>
+			["pending", "completed", "cancelled"].includes(value),
+		);
+	const flagFilters = getStringParam(tableParams.labTestsFlag)
+		.split(",")
+		.filter((value): value is LabTestFlagFilter =>
+			[
+				"within-range",
+				"abnormal",
+				"high",
+				"low",
+				"critical",
+				"pending",
+				"borderline",
+				"invalid",
+				"cancelled",
+				"inconclusive",
+			].includes(value),
+		);
+	const { labTests, totalLabTests } = await getPatientLabTests(
+		patientId,
+		page,
+		limit,
+		searchQuery,
+		{ createdFrom, createdTo },
+		statusFilters,
+		flagFilters,
+	);
 
-	if (labTests.length === 0) {
+	const totalPages = Math.ceil(totalLabTests / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("labTestsPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
+
+	if (
+		labTests.length === 0 &&
+		!(
+			page !== 1 ||
+			Boolean(searchQuery) ||
+			Boolean(createdFrom) ||
+			Boolean(createdTo) ||
+			statusFilters.length > 0 ||
+			flagFilters.length > 0
+		)
+	) {
 		return renderEmptyState({
 			title: "No lab tests yet",
 			description: "No lab tests have been recorded for this patient.",
@@ -421,17 +881,78 @@ async function LabTestsSection({ patientId }: { patientId: string }) {
 		<LabTestsClient
 			patientId={patientId}
 			labTests={labTests}
-			page={1}
-			limit={14}
-			totalPages={Math.ceil(totalLabTests / 14) || 1}
+			searchQuery={searchQuery}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+			statusFilters={statusFilters}
+			flagFilters={flagFilters}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
 		/>
 	);
 }
 
-async function ImagingSection({ patientId }: { patientId: string }) {
-	const { imagingStudies, totalImagingStudies } = await getPatientImaging(patientId);
+async function ImagingSection({
+	patientId,
+	searchParams,
+}: {
+	patientId: string;
+	searchParams: PatientPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.imagingPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.imagingLimit, 14);
+	const searchQuery = getStringParam(tableParams.imagingQuery);
+	const orderedFrom = getStringParam(tableParams.imagingOrderedFrom);
+	const orderedTo = getStringParam(tableParams.imagingOrderedTo);
+	const createdFrom = getStringParam(tableParams.imagingCreatedFrom);
+	const createdTo = getStringParam(tableParams.imagingCreatedTo);
+	const statusFilters = getStringParam(tableParams.imagingStatus)
+		.split(",")
+		.filter((value): value is ImagingStatusFilter =>
+			["pending", "completed", "cancelled"].includes(value),
+		);
+	const modalityFilters = getStringParam(tableParams.imagingModality)
+		.split(",")
+		.filter((value): value is ImagingModalityFilter =>
+			["ct", "mri", "ultrasound", "x-ray"].includes(value),
+		);
+	const { imagingStudies, totalImagingStudies } = await getPatientImaging(
+		patientId,
+		page,
+		limit,
+		searchQuery,
+		{ orderedFrom, orderedTo, createdFrom, createdTo },
+		statusFilters,
+		modalityFilters,
+	);
 
-	if (imagingStudies.length === 0) {
+	const totalPages = Math.ceil(totalImagingStudies / limit) || 1;
+
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("imagingPage", String(totalPages));
+		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
+	}
+
+	if (
+		imagingStudies.length === 0 &&
+		!(
+			page !== 1 ||
+			Boolean(searchQuery) ||
+			Boolean(orderedFrom) ||
+			Boolean(orderedTo) ||
+			Boolean(createdFrom) ||
+			Boolean(createdTo) ||
+			statusFilters.length > 0 ||
+			modalityFilters.length > 0
+		)
+	) {
 		return renderEmptyState({
 			title: "No imaging yet",
 			description: "No imaging studies have been recorded for this patient.",
@@ -443,9 +964,16 @@ async function ImagingSection({ patientId }: { patientId: string }) {
 		<ImagingClient
 			patientId={patientId}
 			imagingStudies={imagingStudies}
-			page={1}
-			limit={14}
-			totalPages={Math.ceil(totalImagingStudies / 14) || 1}
+			searchQuery={searchQuery}
+			orderedFrom={orderedFrom}
+			orderedTo={orderedTo}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+			statusFilters={statusFilters}
+			modalityFilters={modalityFilters}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
 		/>
 	);
 }

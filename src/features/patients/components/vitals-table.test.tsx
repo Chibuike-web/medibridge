@@ -79,7 +79,6 @@ function renderVitalsTable(overrides: Partial<React.ComponentProps<typeof Vitals
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
-		onVitalCreated: vi.fn(),
 		...overrides,
 	};
 

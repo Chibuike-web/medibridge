@@ -11,7 +11,9 @@ const { createImagingMock, updateImagingMock } = vi.hoisted(() => ({
 	updateImagingMock: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+const { refreshMock } = vi.hoisted(() => ({ refreshMock: vi.fn() }));
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: refreshMock }) }));
 
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
@@ -105,17 +107,15 @@ function renderImagingTable(overrides: Partial<React.ComponentProps<typeof Imagi
 		onStatusFiltersChange: vi.fn(),
 		onModalityFiltersChange: vi.fn(),
 		onFiltersClear: vi.fn(),
-		onImagingCreated: vi.fn(),
-		onImagingUpdated: vi.fn(),
 		onPreviousPage: vi.fn(),
 		onNextPage: vi.fn(),
 		onLimitChange: vi.fn(),
 		...overrides,
 	};
 
-	render(<ImagingTable {...props} />);
+	const { rerender } = render(<ImagingTable {...props} />);
 
-	return props;
+	return { ...props, rerender };
 }
 
 function bodyRows() {
@@ -516,10 +516,10 @@ describe("Imaging table", () => {
 		expect(within(dialog).getByRole("heading", { name: "Abdominal Ultrasound" })).toBeVisible();
 	});
 
-	test("adds a pending imaging study to the encounter and refreshes the table", async () => {
+	test("adds a pending imaging study to the encounter without a follow-up table request", async () => {
 		createImagingMock.mockResolvedValue({ status: "success", imagingId: "IMG-new" });
 		const user = userEvent.setup();
-		const { onImagingCreated } = renderImagingTable({ encounterId: "ENC-1" });
+		renderImagingTable({ encounterId: "ENC-1" });
 		const today = new Date();
 
 		await user.click(screen.getByRole("button", { name: "Add imaging" }));
@@ -550,7 +550,6 @@ describe("Imaging table", () => {
 			}),
 		);
 		expect(formData.getAll("files")).toEqual([]);
-		expect(onImagingCreated).toHaveBeenCalledTimes(1);
 		expect(screen.queryByRole("dialog", { name: "Add imaging" })).not.toBeInTheDocument();
 	});
 
@@ -560,7 +559,7 @@ describe("Imaging table", () => {
 			error: "Enter the impression of a completed study.",
 		});
 		const user = userEvent.setup();
-		const { onImagingCreated } = renderImagingTable();
+		renderImagingTable();
 
 		await user.click(screen.getByRole("button", { name: "Add imaging" }));
 		const drawer = await screen.findByRole("dialog", { name: "Add imaging" });
@@ -576,7 +575,6 @@ describe("Imaging table", () => {
 			"Enter the impression of a completed study.",
 		);
 		expect(within(drawer).getByLabelText(/^Study/)).toHaveValue("MRI Brain");
-		expect(onImagingCreated).not.toHaveBeenCalled();
 	});
 
 	test("opens and downloads a saved image from the details drawer", async () => {
@@ -601,7 +599,7 @@ describe("Imaging table", () => {
 	test("saves edits with an added image and returns to the details view", async () => {
 		updateImagingMock.mockResolvedValue({ status: "success" });
 		const user = userEvent.setup();
-		const { onImagingUpdated } = renderImagingTable();
+		const { rerender, ...props } = renderImagingTable();
 
 		await user.click(screen.getByRole("button", { name: "Open actions for Chest X-ray" }));
 		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
@@ -639,6 +637,15 @@ describe("Imaging table", () => {
 		]);
 		expect(formData.getAll("removedFileIds")).toEqual([]);
 		expect(await screen.findByRole("dialog", { name: "Imaging details" })).toBeVisible();
-		expect(onImagingUpdated).toHaveBeenCalledTimes(1);
+		rerender(
+			<ImagingTable
+				{...props}
+				imagingStudies={imagingStudies.map((row, index) =>
+					index === 0 ? { ...row, impression: "Small left pleural effusion." } : row,
+				)}
+			/>,
+		);
+		const savedDetails = screen.getByRole("dialog", { name: "Imaging details" });
+		expect(within(savedDetails).getByText("Small left pleural effusion.")).toBeVisible();
 	});
 });

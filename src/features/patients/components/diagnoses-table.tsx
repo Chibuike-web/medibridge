@@ -126,8 +126,6 @@ type DiagnosesTableProps = {
 	onNextPage: () => void;
 	onLimitChange: (limit: number) => void;
 	onStatusFiltersChange: (statusFilters: DiagnosisStatusFilter[]) => void;
-	onDiagnosisCreated: () => void;
-	onDiagnosisUpdated: () => void;
 };
 
 export function DiagnosesTable({
@@ -155,8 +153,6 @@ export function DiagnosesTable({
 	onNextPage,
 	onLimitChange,
 	onStatusFiltersChange,
-	onDiagnosisCreated,
-	onDiagnosisUpdated,
 }: DiagnosesTableProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
@@ -410,7 +406,6 @@ export function DiagnosesTable({
 				onOpenChange={setIsCreateDrawerOpen}
 				patientId={patientId}
 				encounterId={encounterId}
-				onDiagnosisCreated={onDiagnosisCreated}
 			/>
 			<SetDateRangeDialog
 				dateRangeFilter={customDateRangeFilter}
@@ -423,7 +418,6 @@ export function DiagnosesTable({
 				isLoading={diagnosisDetailsQuery.isLoading}
 				onDiagnosisUpdated={() => {
 					diagnosisDetailsQuery.mutate();
-					onDiagnosisUpdated();
 				}}
 			/>
 		</div>
@@ -477,7 +471,10 @@ function DiagnosesTableContent({
 	return (
 		<>
 			<div className="mx-auto max-w-7xl overflow-x-auto rounded-xl border border-gray-200 text-sm">
-				<Table className="min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left">
+				<Table
+					aria-busy={isPending}
+					className="min-w-[78rem] border-separate border-spacing-0 bg-gray-50 text-left"
+				>
 					<TableHeader className="text-sm font-semibold text-gray-600">
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
@@ -543,7 +540,10 @@ function DiagnosesTableContent({
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
+					<TableBody
+						data-pending={isPending || undefined}
+						className="overflow-hidden rounded-t-xl outline outline-gray-200 transition-opacity data-[pending=true]:opacity-80 data-[pending=true]:delay-150"
+					>
 						{table.getRowModel().rows.length > 0 ? (
 							table.getRowModel().rows.map((row, rowPosition) => (
 								<TableRow

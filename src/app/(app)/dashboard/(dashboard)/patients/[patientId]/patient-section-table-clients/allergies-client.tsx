@@ -1,21 +1,18 @@
 "use client";
 
 import { AllergiesTable } from "@/features/patients/components/allergies-table";
-import { getPatientAllergiesTableAction } from "@/features/patients/server/get-patient-allergies-table-action";
 import type {
 	AllergySeverityFilter,
 	AllergyStatusFilter,
 	AllergyType,
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useOptimistic, useRef, useState, useTransition } from "react";
+import { useContext, useOptimistic, useState, useTransition } from "react";
 
-type SectionTableState<T> = {
-	rows: T[];
-	page: number;
-	limit: number;
-	totalPages: number;
-};
+import type { Route } from "next";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { EncounterTableNavigationContext } from "./encounter-table-navigation";
 
 export function AllergiesClient({
 	patientId,
@@ -24,6 +21,11 @@ export function AllergiesClient({
 	page,
 	limit,
 	totalPages,
+	searchQuery = "",
+	createdFrom = "",
+	createdTo = "",
+	statusFilters = [],
+	severityFilters = [],
 }: {
 	patientId: string;
 	encounterId?: string;
@@ -31,74 +33,92 @@ export function AllergiesClient({
 	page: number;
 	limit: number;
 	totalPages: number;
+	searchQuery?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilters?: AllergyStatusFilter[];
+	severityFilters?: AllergySeverityFilter[];
 }) {
-	const [tableData, setTableData] = useState<SectionTableState<AllergyType>>({
-		rows: allergies,
-		page,
-		limit,
-		totalPages,
-	});
-	const [optimisticPage, setOptimisticPage] = useOptimistic(tableData.page);
-	const [optimisticLimit, setOptimisticLimit] = useOptimistic(tableData.limit);
-	const [query, setQuery] = useState("");
-	const [createdFrom, setCreatedFrom] = useState("");
-	const [createdTo, setCreatedTo] = useState("");
-	const [statusFilters, setStatusFilters] = useState<AllergyStatusFilter[]>([]);
-	const [severityFilters, setSeverityFilters] = useState<AllergySeverityFilter[]>([]);
+	const router = useRouter();
+	const navigateEncounterTable = useContext(EncounterTableNavigationContext);
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
+	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [query, setQuery] = useState(searchQuery);
+	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
+	const [optimisticQuery, setOptimisticQuery] = useOptimistic(searchQuery);
+	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
+	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
+	const [optimisticStatusFilters, setOptimisticStatusFilters] = useOptimistic(statusFilters);
+	const [optimisticSeverityFilters, setOptimisticSeverityFilters] = useOptimistic(severityFilters);
 	const [isPending, startTransition] = useTransition();
-	const latestSectionTableRequestIdRef = useRef(0);
 
-	function refreshAllergiesTable({
-		nextPage = 1,
-		nextLimit = tableData.limit,
-		nextQuery = query,
-		nextCreatedFrom = createdFrom,
-		nextCreatedTo = createdTo,
-		nextStatusFilters = statusFilters,
-		nextSeverityFilters = severityFilters,
-	}: {
-		nextPage?: number;
-		nextLimit?: number;
-		nextQuery?: string;
-		nextCreatedFrom?: string;
-		nextCreatedTo?: string;
-		nextStatusFilters?: AllergyStatusFilter[];
-		nextSeverityFilters?: AllergySeverityFilter[];
-	}) {
-		const sectionTableRequestId = latestSectionTableRequestIdRef.current + 1;
-		latestSectionTableRequestIdRef.current = sectionTableRequestId;
+	// Restore URL changes while preserving typing ahead of our pending search.
+	if (previousSearchQuery !== searchQuery) {
+		setPreviousSearchQuery(searchQuery);
+		setNavigatedQuery(null);
+		if (searchQuery !== navigatedQuery) setQuery(searchQuery);
+	}
 
-		startTransition(async () => {
+	function navigateTable(
+		{
+			nextPage = 1,
+			nextLimit = optimisticLimit,
+			nextQuery = query,
+			nextCreatedFrom = optimisticCreatedFrom,
+			nextCreatedTo = optimisticCreatedTo,
+			nextStatusFilters = optimisticStatusFilters,
+			nextSeverityFilters = optimisticSeverityFilters,
+		}: {
+			nextPage?: number;
+			nextLimit?: number;
+			nextQuery?: string;
+			nextCreatedFrom?: string;
+			nextCreatedTo?: string;
+			nextStatusFilters?: AllergyStatusFilter[];
+			nextSeverityFilters?: AllergySeverityFilter[];
+		},
+		replace = false,
+	) {
+		const params = new URLSearchParams(searchParams.toString());
+		const values = {
+			allergiesPage: nextPage === 1 ? "" : String(nextPage),
+			allergiesLimit: nextLimit === 14 ? "" : String(nextLimit),
+			allergiesQuery: nextQuery,
+			allergiesCreatedFrom: nextCreatedFrom,
+			allergiesCreatedTo: nextCreatedTo,
+			allergiesStatus: nextStatusFilters.join(","),
+			allergiesSeverity: nextSeverityFilters.join(","),
+		};
+		Object.entries(values).forEach(([name, value]) => {
+			if (value.trim() === "") params.delete(name);
+			else params.set(name, value);
+		});
+
+		startTransition(() => {
+			setNavigatedQuery(nextQuery);
+			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
 			setOptimisticLimit(nextLimit);
-
-			const result = await getPatientAllergiesTableAction({
-				patientId,
-				encounterId,
-				page: nextPage,
-				limit: nextLimit,
-				query: nextQuery,
-				createdFrom: nextCreatedFrom,
-				createdTo: nextCreatedTo,
-				statusFilters: nextStatusFilters,
-				severityFilters: nextSeverityFilters,
-			});
-
-			if (latestSectionTableRequestIdRef.current !== sectionTableRequestId) {
+			setOptimisticCreatedFrom(nextCreatedFrom);
+			setOptimisticCreatedTo(nextCreatedTo);
+			setOptimisticStatusFilters(nextStatusFilters);
+			setOptimisticSeverityFilters(nextSeverityFilters);
+			if (navigateEncounterTable) {
+				navigateEncounterTable(values, replace);
 				return;
 			}
-
-			setTableData({
-				rows: result.allergies,
-				page: result.page,
-				limit: result.limit,
-				totalPages: result.totalPages,
-			});
+			const href = `${pathname}?${params}` as Route;
+			if (replace) router.replace(href, { scroll: false });
+			else router.push(href, { scroll: false });
 		});
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
-		refreshAllergiesTable({ nextQuery });
+		if (nextQuery !== query || nextQuery === optimisticQuery) return;
+		navigateTable({ nextQuery }, true);
 	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
@@ -107,40 +127,32 @@ export function AllergiesClient({
 	}
 
 	function handlePreviousPage() {
-		const nextPage = Math.max(tableData.page - 1, 1);
-		refreshAllergiesTable({ nextPage });
+		const nextPage = Math.max(optimisticPage - 1, 1);
+		navigateTable({ nextPage });
 	}
 
 	function handleNextPage() {
-		const nextPage = Math.min(tableData.page + 1, tableData.totalPages);
-		refreshAllergiesTable({ nextPage });
+		const nextPage = Math.min(optimisticPage + 1, totalPages);
+		navigateTable({ nextPage });
 	}
 
 	function handleLimitChange(nextLimit: number) {
-		refreshAllergiesTable({ nextLimit });
+		navigateTable({ nextLimit });
 	}
 
 	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
-		setCreatedFrom(nextCreatedFrom);
-		setCreatedTo(nextCreatedTo);
-		refreshAllergiesTable({ nextCreatedFrom, nextCreatedTo });
+		navigateTable({ nextCreatedFrom, nextCreatedTo });
 	}
 
 	function handleStatusFiltersChange(nextStatusFilters: AllergyStatusFilter[]) {
-		setStatusFilters(nextStatusFilters);
-		refreshAllergiesTable({ nextStatusFilters });
+		navigateTable({ nextStatusFilters });
 	}
 	function handleSeverityFiltersChange(nextSeverityFilters: AllergySeverityFilter[]) {
-		setSeverityFilters(nextSeverityFilters);
-		refreshAllergiesTable({ nextSeverityFilters });
+		navigateTable({ nextSeverityFilters });
 	}
 
 	function handleFiltersClear() {
-		setCreatedFrom("");
-		setCreatedTo("");
-		setStatusFilters([]);
-		setSeverityFilters([]);
-		refreshAllergiesTable({
+		navigateTable({
 			nextCreatedFrom: "",
 			nextCreatedTo: "",
 			nextStatusFilters: [],
@@ -152,23 +164,21 @@ export function AllergiesClient({
 		<AllergiesTable
 			patientId={patientId}
 			encounterId={encounterId}
-			allergies={tableData.rows}
+			allergies={allergies}
 			page={optimisticPage}
 			limit={optimisticLimit}
-			totalPages={tableData.totalPages}
+			totalPages={totalPages}
 			query={query}
-			createdFrom={createdFrom}
-			createdTo={createdTo}
-			statusFilters={statusFilters}
-			severityFilters={severityFilters}
+			createdFrom={optimisticCreatedFrom}
+			createdTo={optimisticCreatedTo}
+			statusFilters={optimisticStatusFilters}
+			severityFilters={optimisticSeverityFilters}
 			isPending={isPending}
 			onQueryChange={handleQueryChange}
 			onCreatedAtRangeApply={handleCreatedAtRangeApply}
 			onStatusFiltersChange={handleStatusFiltersChange}
 			onSeverityFiltersChange={handleSeverityFiltersChange}
 			onFiltersClear={handleFiltersClear}
-			onAllergyCreated={() => refreshAllergiesTable({ nextPage: tableData.page })}
-			onAllergyUpdated={() => refreshAllergiesTable({ nextPage: tableData.page })}
 			onPreviousPage={handlePreviousPage}
 			onNextPage={handleNextPage}
 			onLimitChange={handleLimitChange}
