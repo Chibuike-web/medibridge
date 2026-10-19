@@ -100,7 +100,24 @@ describe("transfer approval page", () => {
 			screen.getByRole("heading", { name: "You rejected this transfer request" }),
 		).toBeInTheDocument();
 		expect(screen.getByText("Reason: I already moved hospitals")).toBeInTheDocument();
+		expect(
+			screen.getByText("Your records were not shared with Receiving Hospital."),
+		).toBeInTheDocument();
 		expect(screen.queryByText("Asthma")).not.toBeInTheDocument();
+	});
+
+	test("opening a request the hospital cancelled says it was withdrawn and offers no answer", async () => {
+		getTransferApprovalMock.mockResolvedValue({ ...waitingTransfer, status: "cancelled" });
+		await renderTransferApprovalPage();
+
+		expect(
+			screen.getByRole("heading", { name: "This transfer request was withdrawn" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByText("Source Hospital withdrew this request, so your records were not shared."),
+		).toBeInTheDocument();
+		expect(screen.queryByText("Asthma")).not.toBeInTheDocument();
+		expect(screen.queryByRole("button", { name: /approve/i })).not.toBeInTheDocument();
 	});
 
 	test("approving switches the page to the result, moves focus to it and hides the shared records", async () => {

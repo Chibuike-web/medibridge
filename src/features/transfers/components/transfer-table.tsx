@@ -156,6 +156,7 @@ export function TransferTable({
 				isLoading={transferDetailsQuery.isLoading}
 				canArchive={canArchive}
 				returnTo={returnTo}
+				onTransferUpdated={() => transferDetailsQuery.mutate()}
 			/>
 		</>
 	);

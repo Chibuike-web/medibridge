@@ -144,6 +144,10 @@ export async function approvePatientTransferAction(
 		};
 	}
 
+	if (transfer.status === "cancelled") {
+		return { status: "failed", error: "The hospital withdrew this transfer request." };
+	}
+
 	if (transfer.patientApprovalStatus === "rejected" || transfer.status === "rejected") {
 		return {
 			status: "failed",
@@ -202,6 +206,7 @@ export async function approvePatientTransferAction(
 				.where(
 					and(
 						eq(patientTransfer.id, transfer.transferId),
+						eq(patientTransfer.status, "pending"),
 						eq(patientTransfer.patientApprovalStatus, "waiting"),
 					),
 				)
@@ -248,6 +253,10 @@ export async function approvePatientTransferAction(
 
 		if (!isApproved) {
 			const answeredTransfer = await getTransferForAction(transferId);
+
+			if (answeredTransfer?.status === "cancelled") {
+				return { status: "failed", error: "The hospital withdrew this transfer request." };
+			}
 
 			return answeredTransfer?.patientApprovalStatus === "approved"
 				? { status: "success", message: "This transfer is already approved." }
@@ -356,6 +365,10 @@ export async function rejectPatientTransferAction({
 		};
 	}
 
+	if (transfer.status === "cancelled") {
+		return { status: "failed", error: "The hospital withdrew this transfer request." };
+	}
+
 	if (transfer.patientApprovalStatus === "rejected" || transfer.status === "rejected") {
 		return {
 			status: "success",
@@ -379,6 +392,7 @@ export async function rejectPatientTransferAction({
 				.where(
 					and(
 						eq(patientTransfer.id, transfer.transferId),
+						eq(patientTransfer.status, "pending"),
 						eq(patientTransfer.patientApprovalStatus, "waiting"),
 					),
 				)
@@ -406,6 +420,10 @@ export async function rejectPatientTransferAction({
 
 		if (!isRejected) {
 			const answeredTransfer = await getTransferForAction(transferId);
+
+			if (answeredTransfer?.status === "cancelled") {
+				return { status: "failed", error: "The hospital withdrew this transfer request." };
+			}
 
 			return answeredTransfer?.patientApprovalStatus === "approved"
 				? {

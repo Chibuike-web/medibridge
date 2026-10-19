@@ -75,7 +75,6 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 		return (
 			<TransferApprovalResult
 				patientApprovalStatus={answeredApprovalStatus}
-				sourceHospitalName={transfer.sourceHospitalName}
 				targetHospitalName={transfer.targetHospitalName}
 				accessEndsAt={transfer.accessEndsAt}
 				patientRejectionReason={rejectionReason.trim() || null}
@@ -334,13 +333,12 @@ function SharedRecordGroup({
 
 export function TransferApprovalResult({
 	patientApprovalStatus,
-	sourceHospitalName,
 	targetHospitalName,
 	accessEndsAt,
 	patientRejectionReason,
 }: Pick<
 	TransferApprovalRecord,
-	"sourceHospitalName" | "targetHospitalName" | "accessEndsAt" | "patientRejectionReason"
+	"targetHospitalName" | "accessEndsAt" | "patientRejectionReason"
 > & { patientApprovalStatus: "approved" | "rejected" }) {
 	return (
 		<main className="bg-white px-6 py-10">
@@ -358,7 +356,7 @@ export function TransferApprovalResult({
 					<p className="mt-4 text-sm text-gray-600 text-pretty">
 						{patientApprovalStatus === "approved"
 							? `${targetHospitalName} can view the records you approved until ${format(accessEndsAt, "d MMM yyyy")}.`
-							: `${sourceHospitalName} has been told, and your records were not shared.`}
+							: `Your records were not shared with ${targetHospitalName}.`}
 					</p>
 					{patientApprovalStatus === "rejected" && patientRejectionReason ? (
 						<p className="mt-2 text-sm text-gray-600 text-pretty">

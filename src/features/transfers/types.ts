@@ -71,5 +71,6 @@ export type TransferDetailsType = TransferType & {
 	rejectedAt: string | null;
 	sentAt: string | null;
 	failedAt: string | null;
+	cancelledAt: string | null;
 	transferContent: TransferContent[];
 };

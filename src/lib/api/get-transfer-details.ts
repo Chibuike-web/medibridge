@@ -107,10 +107,7 @@ async function getTransferContentMetadata(
 		"diagnosis",
 		"diagnoses",
 	]);
-	const allergyRecordIds = getRecordIdsForContentType(transferContent, [
-		"allergy",
-		"allergies",
-	]);
+	const allergyRecordIds = getRecordIdsForContentType(transferContent, ["allergy", "allergies"]);
 	const immunizationRecordIds = getRecordIdsForContentType(transferContent, [
 		"immunization",
 		"immunizations",
@@ -131,121 +128,114 @@ async function getTransferContentMetadata(
 	]);
 	const imagingRecordIds = getRecordIdsForContentType(transferContent, ["imaging"]);
 
-	const [
-		diagnoses,
-		allergies,
-		immunizations,
-		procedures,
-		medications,
-		labs,
-		imaging,
-	] = await Promise.all([
-		diagnosisRecordIds.length > 0
-			? db
-					.select({
-						recordId: patientDiagnosis.id,
-						recordName: patientDiagnosis.diagnosisName,
-						status: patientDiagnosis.status,
-					})
-					.from(patientDiagnosis)
-					.where(
-						and(
-							eq(patientDiagnosis.patientId, patientId),
-							inArray(patientDiagnosis.id, diagnosisRecordIds),
-						),
-					)
-			: [],
-		allergyRecordIds.length > 0
-			? db
-					.select({
-						recordId: patientAllergy.id,
-						recordName: patientAllergy.allergen,
-						status: patientAllergy.status,
-					})
-					.from(patientAllergy)
-					.where(
-						and(
-							eq(patientAllergy.patientId, patientId),
-							inArray(patientAllergy.id, allergyRecordIds),
-						),
-					)
-			: [],
-		immunizationRecordIds.length > 0
-			? db
-					.select({
-						recordId: patientImmunization.id,
-						recordName: patientImmunization.vaccineName,
-						status: patientImmunization.status,
-					})
-					.from(patientImmunization)
-					.where(
-						and(
-							eq(patientImmunization.patientId, patientId),
-							inArray(patientImmunization.id, immunizationRecordIds),
-						),
-					)
-			: [],
-		procedureRecordIds.length > 0
-			? db
-					.select({
-						recordId: patientProcedure.id,
-						recordName: patientProcedure.procedureName,
-						status: patientProcedure.status,
-					})
-					.from(patientProcedure)
-					.where(
-						and(
-							eq(patientProcedure.patientId, patientId),
-							inArray(patientProcedure.id, procedureRecordIds),
-						),
-					)
-			: [],
-		medicationRecordIds.length > 0
-			? db
-					.select({
-						recordId: patientMedication.id,
-						recordName: patientMedication.medicationName,
-						status: patientMedication.status,
-					})
-					.from(patientMedication)
-					.where(
-						and(
-							eq(patientMedication.patientId, patientId),
-							inArray(patientMedication.id, medicationRecordIds),
-						),
-					)
-			: [],
-		labRecordIds.length > 0
-			? db
-					.select({
-						recordId: patientLabTest.id,
-						recordName: patientLabTest.testName,
-						status: patientLabTest.status,
-					})
-					.from(patientLabTest)
-					.where(
-						and(
-							eq(patientLabTest.patientId, patientId),
-							inArray(patientLabTest.id, labRecordIds),
-						),
-					)
-			: [],
-		imagingRecordIds.length > 0
-			? db
-					.select({
-						recordId: patientImaging.id,
-						recordName: patientImaging.study,
-						status: patientImaging.status,
-					})
-					.from(patientImaging)
-					.where(
-						and(
-							eq(patientImaging.patientId, patientId),
-							inArray(patientImaging.id, imagingRecordIds),
-						),
-					)
-			: [],
-	]);
+	const [diagnoses, allergies, immunizations, procedures, medications, labs, imaging] =
+		await Promise.all([
+			diagnosisRecordIds.length > 0
+				? db
+						.select({
+							recordId: patientDiagnosis.id,
+							recordName: patientDiagnosis.diagnosisName,
+							status: patientDiagnosis.status,
+						})
+						.from(patientDiagnosis)
+						.where(
+							and(
+								eq(patientDiagnosis.patientId, patientId),
+								inArray(patientDiagnosis.id, diagnosisRecordIds),
+							),
+						)
+				: [],
+			allergyRecordIds.length > 0
+				? db
+						.select({
+							recordId: patientAllergy.id,
+							recordName: patientAllergy.allergen,
+							status: patientAllergy.status,
+						})
+						.from(patientAllergy)
+						.where(
+							and(
+								eq(patientAllergy.patientId, patientId),
+								inArray(patientAllergy.id, allergyRecordIds),
+							),
+						)
+				: [],
+			immunizationRecordIds.length > 0
+				? db
+						.select({
+							recordId: patientImmunization.id,
+							recordName: patientImmunization.vaccineName,
+							status: patientImmunization.status,
+						})
+						.from(patientImmunization)
+						.where(
+							and(
+								eq(patientImmunization.patientId, patientId),
+								inArray(patientImmunization.id, immunizationRecordIds),
+							),
+						)
+				: [],
+			procedureRecordIds.length > 0
+				? db
+						.select({
+							recordId: patientProcedure.id,
+							recordName: patientProcedure.procedureName,
+							status: patientProcedure.status,
+						})
+						.from(patientProcedure)
+						.where(
+							and(
+								eq(patientProcedure.patientId, patientId),
+								inArray(patientProcedure.id, procedureRecordIds),
+							),
+						)
+				: [],
+			medicationRecordIds.length > 0
+				? db
+						.select({
+							recordId: patientMedication.id,
+							recordName: patientMedication.medicationName,
+							status: patientMedication.status,
+						})
+						.from(patientMedication)
+						.where(
+							and(
+								eq(patientMedication.patientId, patientId),
+								inArray(patientMedication.id, medicationRecordIds),
+							),
+						)
+				: [],
+			labRecordIds.length > 0
+				? db
+						.select({
+							recordId: patientLabTest.id,
+							recordName: patientLabTest.testName,
+							status: patientLabTest.status,
+						})
+						.from(patientLabTest)
+						.where(
+							and(
+								eq(patientLabTest.patientId, patientId),
+								inArray(patientLabTest.id, labRecordIds),
+							),
+						)
+				: [],
+			imagingRecordIds.length > 0
+				? db
+						.select({
+							recordId: patientImaging.id,
+							recordName: patientImaging.study,
+							status: patientImaging.status,
+						})
+						.from(patientImaging)
+						.where(
+							and(
+								eq(patientImaging.patientId, patientId),
+								inArray(patientImaging.id, imagingRecordIds),
+							),
+						)
+				: [],
+		]);
 
 	addRecordMetadata(metadataByRecordId, diagnoses);
 	addRecordMetadata(metadataByRecordId, allergies);
@@ -266,15 +256,15 @@ async function getTransferContentMetadata(
 	return metadataByRecordId;
 }
 
-export const getTransferDetails = cache(async (
-	transferId: string,
-): Promise<TransferDetailsType | null> => {
-	const organizationId = await getOrganizationId();
+export const getTransferDetails = cache(
+	async (transferId: string): Promise<TransferDetailsType | null> => {
+		const organizationId = await getOrganizationId();
 
-	if (!organizationId) return null;
+		if (!organizationId) return null;
 
-	return getTransferDetailsForOrganization(transferId, organizationId);
-});
+		return getTransferDetailsForOrganization(transferId, organizationId);
+	},
+);
 
 export async function getTransferDetailsForOrganization(
 	transferId: string,
@@ -299,6 +289,7 @@ export async function getTransferDetailsForOrganization(
 			rejectedAt: patientTransfer.rejectedAt,
 			sentAt: patientTransfer.sentAt,
 			failedAt: patientTransfer.failedAt,
+			cancelledAt: patientTransfer.cancelledAt,
 			targetHospitalName: patientTransfer.targetHospitalName,
 			targetHospitalEmail: patientTransfer.targetHospitalEmail,
 			firstName: patientPersonalInformation.firstName,
@@ -307,10 +298,7 @@ export async function getTransferDetailsForOrganization(
 		})
 		.from(patientTransfer)
 		.innerJoin(patient, eq(patientTransfer.patientId, patient.id))
-		.innerJoin(
-			patientPersonalInformation,
-			eq(patient.id, patientPersonalInformation.patientId),
-		)
+		.innerJoin(patientPersonalInformation, eq(patient.id, patientPersonalInformation.patientId))
 		.leftJoin(user, eq(patientTransfer.requestedBy, user.id))
 		.where(
 			and(
@@ -330,9 +318,7 @@ export async function getTransferDetailsForOrganization(
 		.where(eq(patientTransferContent.transferId, transfer.transferId));
 	const shareableTransferContent = transferContent.filter(
 		(content) =>
-			!["encounter", "encounters"].includes(
-				getNormalizedContentType(content.contentType),
-			),
+			!["encounter", "encounters"].includes(getNormalizedContentType(content.contentType)),
 	);
 	const transferContentMetadata = await getTransferContentMetadata(
 		shareableTransferContent,
@@ -357,6 +343,7 @@ export async function getTransferDetailsForOrganization(
 		rejectedAt: transfer.rejectedAt?.toISOString() ?? null,
 		sentAt: transfer.sentAt?.toISOString() ?? null,
 		failedAt: transfer.failedAt?.toISOString() ?? null,
+		cancelledAt: transfer.cancelledAt?.toISOString() ?? null,
 		targetHospitalName: transfer.targetHospitalName,
 		targetHospitalEmail: transfer.targetHospitalEmail,
 		transferContent: shareableTransferContent.map((content) => {

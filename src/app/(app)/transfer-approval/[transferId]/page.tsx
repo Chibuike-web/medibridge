@@ -27,6 +27,23 @@ async function TransferApprovalContent({ params, searchParams }: TransferApprova
 	const approvalToken = await verifyTransferApprovalToken(token, transferId);
 	const transfer = approvalToken ? await getTransferApproval(transferId) : null;
 
+	if (transfer?.status === "cancelled") {
+		return (
+			<main className="bg-white px-6 py-10">
+				<section className="mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-3xl items-center justify-center text-center">
+					<div>
+						<h1 className="text-lg font-semibold text-gray-800 text-balance">
+							This transfer request was withdrawn
+						</h1>
+						<p className="mt-4 text-sm text-gray-600 text-pretty">
+							{transfer.sourceHospitalName} withdrew this request, so your records were not shared.
+						</p>
+					</div>
+				</section>
+			</main>
+		);
+	}
+
 	if (
 		transfer?.patientApprovalStatus === "approved" ||
 		transfer?.patientApprovalStatus === "rejected"
@@ -34,7 +51,6 @@ async function TransferApprovalContent({ params, searchParams }: TransferApprova
 		return (
 			<TransferApprovalResult
 				patientApprovalStatus={transfer.patientApprovalStatus}
-				sourceHospitalName={transfer.sourceHospitalName}
 				targetHospitalName={transfer.targetHospitalName}
 				accessEndsAt={transfer.accessEndsAt}
 				patientRejectionReason={transfer.patientRejectionReason}

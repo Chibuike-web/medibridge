@@ -37,15 +37,20 @@ import {
 	RiCloseLine,
 	RiCornerDownLeftFill,
 	RiEdit2Line,
+	RiErrorWarningFill,
 	RiMore2Fill,
 	RiSendPlaneLine,
 	RiShare2Line,
 } from "@remixicon/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { cn } from "@/lib/utils/cn";
-import { useId, useState } from "react";
+import { useId, useState, useTransition } from "react";
 import type { TransferDetailsType } from "@/features/transfers/types";
+import { cancelTransferAction } from "@/features/transfers/server/cancel-transfer-action";
+import { resendTransferRequestAction } from "@/features/transfers/server/resend-transfer-request-action";
+import { retryTransferDeliveryAction } from "@/features/transfers/server/retry-transfer-delivery-action";
 import { formatDate } from "@/lib/utils/format-date";
 
 type TransferDetailsDrawerProps = {
@@ -55,6 +60,13 @@ type TransferDetailsDrawerProps = {
 	isLoading: boolean;
 	canArchive: boolean;
 	returnTo: string;
+	onTransferUpdated: () => void;
+};
+
+type TransferActionFeedback = {
+	transferId: string;
+	type: "error" | "success";
+	message: string;
 };
 
 const EMPTY_VALUE = "-";
@@ -66,17 +78,113 @@ export function TransferDetailsDrawer({
 	isLoading,
 	canArchive,
 	returnTo,
+	onTransferUpdated,
 }: TransferDetailsDrawerProps) {
+	const router = useRouter();
 	const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+	const [transferActionFeedback, setTransferActionFeedback] =
+		useState<TransferActionFeedback | null>(null);
+	const [isPending, startTransition] = useTransition();
+
+	function handleResendRequest(transferId: string) {
+		setTransferActionFeedback(null);
+		startTransition(async () => {
+			try {
+				const result = await resendTransferRequestAction(transferId);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				setTransferActionFeedback(
+					result.status === "success"
+						? { transferId, type: "success", message: result.message }
+						: { transferId, type: "error", message: result.error },
+				);
+				onTransferUpdated();
+			} catch (error) {
+				console.error("Resending the transfer request failed:", error);
+				setTransferActionFeedback({
+					transferId,
+					type: "error",
+					message: "We couldn’t send the approval link. Please try again.",
+				});
+			}
+		});
+	}
+
+	function handleRetryTransfer(transferId: string) {
+		setTransferActionFeedback(null);
+		startTransition(async () => {
+			try {
+				const result = await retryTransferDeliveryAction(transferId);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				setTransferActionFeedback(
+					result.status === "success"
+						? { transferId, type: "success", message: result.message }
+						: { transferId, type: "error", message: result.error },
+				);
+				onTransferUpdated();
+			} catch (error) {
+				console.error("Retrying the transfer delivery failed:", error);
+				setTransferActionFeedback({
+					transferId,
+					type: "error",
+					message: "We couldn’t retry this transfer. Please try again.",
+				});
+			}
+		});
+	}
+
+	function handleCancelTransfer(transferId: string) {
+		setTransferActionFeedback(null);
+		startTransition(async () => {
+			try {
+				const result = await cancelTransferAction(transferId);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				setIsCancelDialogOpen(false);
+				setTransferActionFeedback(
+					result.status === "success"
+						? { transferId, type: "success", message: result.message }
+						: { transferId, type: "error", message: result.error },
+				);
+				onTransferUpdated();
+			} catch (error) {
+				console.error("Cancelling the transfer failed:", error);
+				setIsCancelDialogOpen(false);
+				setTransferActionFeedback({
+					transferId,
+					type: "error",
+					message: "We couldn’t cancel this transfer. Please try again.",
+				});
+			}
+		});
+	}
 
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
+		<Drawer
+			open={open}
+			onOpenChange={(isOpen) => {
+				if (!isOpen) setTransferActionFeedback(null);
+				onOpenChange(isOpen);
+			}}
+			direction="right"
+		>
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="border-b border-gray-200 text-left flex-row gap-4 items-center">
-					<DrawerTitle className="text-gray-800 leading-[1.2] flex-1">
-						Transfer details
-					</DrawerTitle>
+					<DrawerTitle className="text-gray-800 leading-[1.2] flex-1">Transfer details</DrawerTitle>
 					{transfer ? (
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
@@ -94,7 +202,11 @@ export function TransferDetailsDrawer({
 								</DropdownMenuItem>
 								{transfer.status === "pending" ? (
 									<>
-										<DropdownMenuItem className="rounded-lg">
+										<DropdownMenuItem
+											className="rounded-lg"
+											disabled={isPending}
+											onSelect={() => handleResendRequest(transfer.id)}
+										>
 											<RiSendPlaneLine aria-hidden="true" />
 											Resend request
 										</DropdownMenuItem>
@@ -108,7 +220,11 @@ export function TransferDetailsDrawer({
 									</>
 								) : null}
 								{transfer.status === "failed" ? (
-									<DropdownMenuItem className="rounded-lg">
+									<DropdownMenuItem
+										className="rounded-lg"
+										disabled={isPending}
+										onSelect={() => handleRetryTransfer(transfer.id)}
+									>
 										<RiCornerDownLeftFill aria-hidden="true" />
 										Retry transfer
 									</DropdownMenuItem>
@@ -165,6 +281,40 @@ export function TransferDetailsDrawer({
 				</DrawerHeader>
 
 				<div className="px-4 py-5 overflow-y-auto text-sm">
+					{transferActionFeedback && transferActionFeedback.transferId === transfer?.id ? (
+						<div
+							key={transferActionFeedback.message}
+							role={transferActionFeedback.type === "error" ? "alert" : "status"}
+							className={cn(
+								"mb-6 flex items-start gap-2 rounded-xl px-3 py-3 text-left text-sm font-medium",
+								transferActionFeedback.type === "error"
+									? "bg-red-50 text-red-700"
+									: "bg-green-50 text-green-700",
+							)}
+						>
+							{transferActionFeedback.type === "error" ? (
+								<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+							) : (
+								<RiCheckboxCircleFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+							)}
+							<p className="min-w-0 flex-1 text-pretty">{transferActionFeedback.message}</p>
+							<Button
+								type="button"
+								variant="ghost"
+								size="icon"
+								className={cn(
+									"ml-auto -my-1 size-6 rounded-full",
+									transferActionFeedback.type === "error"
+										? "text-red-700 hover:bg-red-100 hover:text-red-700"
+										: "text-green-700 hover:bg-green-100 hover:text-green-700",
+								)}
+								aria-label="Dismiss message"
+								onClick={() => setTransferActionFeedback(null)}
+							>
+								<RiCloseLine aria-hidden="true" />
+							</Button>
+						</div>
+					) : null}
 					{isLoading ? (
 						<TransferDetailsFallback />
 					) : (
@@ -205,7 +355,9 @@ export function TransferDetailsDrawer({
 											transfer ? (
 												<>
 													{transfer.targetHospitalEmail.split("@")[0]}@<wbr />
-													<span className="inline-block">{transfer.targetHospitalEmail.split("@")[1]}</span>
+													<span className="inline-block">
+														{transfer.targetHospitalEmail.split("@")[1]}
+													</span>
 												</>
 											) : null
 										}
@@ -244,9 +396,12 @@ export function TransferDetailsDrawer({
 						<Button
 							type="button"
 							className="bg-rose-500 text-white hover:bg-rose-600"
-							onClick={() => setIsCancelDialogOpen(false)}
+							disabled={isPending || !transfer}
+							onClick={() => {
+								if (transfer) handleCancelTransfer(transfer.id);
+							}}
 						>
-							Cancel transfer
+							{isPending ? "Cancelling…" : "Cancel transfer"}
 						</Button>
 					</AlertDialogFooter>
 				</AlertDialogContent>
@@ -377,7 +532,9 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 						aria-labelledby={titleId}
 						className={cn(
 							"mt-4 gap-3",
-							contentGroup.contentType === "Patient Details" ? "grid sm:grid-cols-2" : "flex flex-col",
+							contentGroup.contentType === "Patient Details"
+								? "grid sm:grid-cols-2"
+								: "flex flex-col",
 						)}
 					>
 						{contentGroup.transferContent.map((content) => (
@@ -419,6 +576,7 @@ function DetailItem({ label, value }: { label: string; value?: React.ReactNode }
 function TransferProgress({ transfer }: { transfer: TransferDetailsType }) {
 	const isApproved = transfer.patientApprovalStatus === "approved";
 	const isRejected = transfer.patientApprovalStatus === "rejected";
+	const isCancelled = transfer.status === "cancelled";
 	const isSent = transfer.deliveryStatus === "sent";
 	const isFailed = transfer.deliveryStatus === "failed";
 	const steps = [
@@ -430,13 +588,21 @@ function TransferProgress({ transfer }: { transfer: TransferDetailsType }) {
 		},
 		{
 			title: "Patient approval",
-			state: isApproved ? "done" : isRejected ? "failed" : "current",
-			date: isApproved ? transfer.approvedAt : isRejected ? transfer.rejectedAt : null,
+			state: isApproved ? "done" : isRejected || isCancelled ? "failed" : "current",
+			date: isApproved
+				? transfer.approvedAt
+				: isRejected
+					? transfer.rejectedAt
+					: isCancelled
+						? transfer.cancelledAt
+						: null,
 			description: isApproved
 				? "Approved by the patient"
 				: isRejected
 					? `Rejected by the patient: ${transfer.patientRejectionReason}`
-					: "Waiting for patient response",
+					: isCancelled
+						? "Cancelled before the patient responded"
+						: "Waiting for patient response",
 		},
 		{
 			title: "Sent",
@@ -446,7 +612,7 @@ function TransferProgress({ transfer }: { transfer: TransferDetailsType }) {
 				? `Access code sent to ${transfer.targetHospitalEmail}`
 				: isFailed
 					? "The access email could not be sent"
-					: isRejected
+					: isRejected || isCancelled
 						? "Not sent"
 						: "Not started",
 		},
