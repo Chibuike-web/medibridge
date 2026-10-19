@@ -122,7 +122,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 			</InputOTP>
 
 			{verifyAccessCodeError ? (
-				<p className="mt-4 text-sm text-red-600">{verifyAccessCodeError}</p>
+				<p className="mt-1.5 text-sm text-red-600">{verifyAccessCodeError}</p>
 			) : null}
 
 			<Button

@@ -555,7 +555,7 @@ export function ReviewExtractedInfoClient({
 																		)}
 																	</Label>
 																	{field.type === "date" ? (
-																		<>
+																		<div className="flex flex-col gap-1.5">
 																			<Popover>
 																				<PopoverTrigger asChild>
 																					<Button
@@ -608,7 +608,7 @@ export function ReviewExtractedInfoClient({
 																					{birthDateError}
 																				</p>
 																			)}
-																		</>
+																		</div>
 																	) : field.options ? (
 																		<Select
 																			value={

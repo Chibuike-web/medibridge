@@ -232,7 +232,7 @@ export function OwnerClient() {
 						aria-invalid={!!errors.name}
 					/>
 					{errors.name && (
-						<p id="name-error" className="font-medium text-red-500 mt-2 text-sm">
+						<p id="name-error" className="font-medium text-red-500 mt-1.5 text-sm">
 							{errors.name.message}
 						</p>
 					)}
@@ -250,11 +250,11 @@ export function OwnerClient() {
 						aria-invalid={!!errors.email}
 					/>
 					{errors.email ? (
-						<p id="email-error" className="font-medium text-red-500 mt-2 text-sm">
+						<p id="email-error" className="font-medium text-red-500 mt-1.5 text-sm">
 							{errors.email.message}
 						</p>
 					) : (
-						<p id="email-info" className="flex gap-1 items-center mt-2">
+						<p id="email-info" className="flex gap-1 items-center mt-1.5">
 							<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
 							<span className="text-sm text-gray-400">
 								Use an email address you can access. We’ll send a verification link.
@@ -294,7 +294,7 @@ export function OwnerClient() {
 					</Button>
 				</div>
 				{errors.password ? (
-					<p id="password-error" className="font-medium text-red-500 mt-2 text-sm">
+					<p id="password-error" className="font-medium text-red-500 mt-1.5 text-sm">
 						{errors.password.message}
 					</p>
 				) : (

@@ -77,7 +77,7 @@ export function AdminInviteClient() {
 						aria-describedby={errors.name ? "name-error" : undefined}
 					/>
 					{errors.name && (
-						<p id="name-error" className="font-medium text-red-500 mt-2 text-sm">
+						<p id="name-error" className="font-medium text-red-500 mt-1.5 text-sm">
 							{errors.name.message}
 						</p>
 					)}
@@ -96,12 +96,12 @@ export function AdminInviteClient() {
 						aria-describedby={errors.email ? "email-error" : "email-info"}
 					/>
 					{errors.email && (
-						<p id="email-error" className="font-medium text-red-500 mt-2 text-sm">
+						<p id="email-error" className="font-medium text-red-500 mt-1.5 text-sm">
 							{errors.email.message}
 						</p>
 					)}
 					{!errors.email && (
-						<p id="email-info" className="flex gap-1 items-center mt-2">
+						<p id="email-info" className="flex gap-1 items-center mt-1.5">
 							<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
 							<span className="text-sm text-gray-400">
 								We&apos;ll email them a link to join your hospital

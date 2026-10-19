@@ -115,7 +115,7 @@ function CreateInvitedAdminForm({
 						aria-invalid={!!errors.name}
 					/>
 					{errors.name && (
-						<p id="name-error" className="mt-2 text-sm font-medium text-red-500">
+						<p id="name-error" className="mt-1.5 text-sm font-medium text-red-500">
 							{errors.name.message}
 						</p>
 					)}
@@ -142,7 +142,7 @@ function CreateInvitedAdminForm({
 						/>
 					</div>
 					{errors.password && (
-						<p id="password-error" className="mt-2 text-sm font-medium text-red-500">
+						<p id="password-error" className="mt-1.5 text-sm font-medium text-red-500">
 							{errors.password.message}
 						</p>
 					)}

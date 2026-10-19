@@ -229,12 +229,12 @@ export function SignInClient() {
 						aria-describedby={errors.email ? "email-error" : "email-info"}
 					/>
 					{errors.email && (
-						<p id="email-error" className="font-medium text-red-500 mt-2 text-sm">
+						<p id="email-error" className="font-medium text-red-500 mt-1.5 text-sm">
 							{errors.email.message}
 						</p>
 					)}
 					{!errors.email && (
-						<p id="email-info" className="flex gap-1 items-center mt-2">
+						<p id="email-info" className="flex gap-1 items-center mt-1.5">
 							<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
 							<span className="text-sm text-gray-400">
 								Use the email you signed up or were invited with
@@ -273,7 +273,7 @@ export function SignInClient() {
 						</Button>
 					</div>
 					{errors.password && (
-						<p id="admin-password-error" className="font-medium text-red-500 mt-1 text-sm">
+						<p id="admin-password-error" className="font-medium text-red-500 mt-1.5 text-sm">
 							{errors.password.message}
 						</p>
 					)}

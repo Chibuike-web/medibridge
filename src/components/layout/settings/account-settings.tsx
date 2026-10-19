@@ -258,27 +258,29 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 						Forgot password
 					</Link>
 				</div>
-				<Input
-					id="current-password"
-					name="currentPassword"
-					type="password"
-					placeholder="Enter current password"
-					autoComplete="current-password"
-					required
-					disabled={isPending}
-					value={currentPassword}
-					aria-invalid={isCurrentPasswordError}
-					aria-describedby={isCurrentPasswordError ? "current-password-error" : undefined}
-					onChange={(event) => {
-						setCurrentPassword(event.target.value);
-						setChangePasswordError("");
-					}}
-				/>
-				{isCurrentPasswordError && (
-					<p id="current-password-error" role="alert" className="text-sm text-red-600">
-						{changePasswordError}
-					</p>
-				)}
+				<div className="flex flex-col gap-1.5">
+					<Input
+						id="current-password"
+						name="currentPassword"
+						type="password"
+						placeholder="Enter current password"
+						autoComplete="current-password"
+						required
+						disabled={isPending}
+						value={currentPassword}
+						aria-invalid={isCurrentPasswordError}
+						aria-describedby={isCurrentPasswordError ? "current-password-error" : undefined}
+						onChange={(event) => {
+							setCurrentPassword(event.target.value);
+							setChangePasswordError("");
+						}}
+					/>
+					{isCurrentPasswordError && (
+						<p id="current-password-error" role="alert" className="text-sm text-red-600">
+							{changePasswordError}
+						</p>
+					)}
+				</div>
 			</section>
 			<section aria-labelledby="new-password-heading" className="flex flex-col gap-4">
 				<div className="flex flex-col gap-3">
@@ -331,48 +333,50 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 					<Label htmlFor="confirm-new-password" className="text-sm font-medium text-gray-600">
 						Confirm new password <span className="font-normal text-gray-400">(required)</span>
 					</Label>
-					<div className="relative">
-						<Input
-							id="confirm-new-password"
-							name="confirmNewPassword"
-							type={isConfirmPasswordVisible ? "text" : "password"}
-							placeholder="Enter new password"
-							autoComplete="new-password"
-							required
-							disabled={isPending}
-							value={confirmedPassword}
-							aria-invalid={isPasswordMismatch}
-							aria-describedby={isPasswordMismatch ? "confirm-password-error" : undefined}
-							onChange={(event) => {
-								setConfirmedPassword(event.target.value);
-								setChangePasswordError("");
-							}}
-						/>
-						<Button
-							variant="ghost"
-							size="icon"
-							type="button"
-							className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-600 size-auto border-0 hover:bg-transparent hover:text-gray-600 focus-visible:border-0"
-							aria-label={
-								isConfirmPasswordVisible
-									? "Hide confirmation password"
-									: "Show confirmation password"
-							}
-							aria-pressed={isConfirmPasswordVisible}
-							onClick={() => setIsConfirmPasswordVisible((prev) => !prev)}
-						>
-							{isConfirmPasswordVisible ? (
-								<RiEyeOffLine className="size-4" aria-hidden="true" />
-							) : (
-								<RiEyeLine className="size-4" aria-hidden="true" />
-							)}
-						</Button>
+					<div className="flex flex-col gap-1.5">
+						<div className="relative">
+							<Input
+								id="confirm-new-password"
+								name="confirmNewPassword"
+								type={isConfirmPasswordVisible ? "text" : "password"}
+								placeholder="Enter new password"
+								autoComplete="new-password"
+								required
+								disabled={isPending}
+								value={confirmedPassword}
+								aria-invalid={isPasswordMismatch}
+								aria-describedby={isPasswordMismatch ? "confirm-password-error" : undefined}
+								onChange={(event) => {
+									setConfirmedPassword(event.target.value);
+									setChangePasswordError("");
+								}}
+							/>
+							<Button
+								variant="ghost"
+								size="icon"
+								type="button"
+								className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-600 size-auto border-0 hover:bg-transparent hover:text-gray-600 focus-visible:border-0"
+								aria-label={
+									isConfirmPasswordVisible
+										? "Hide confirmation password"
+										: "Show confirmation password"
+								}
+								aria-pressed={isConfirmPasswordVisible}
+								onClick={() => setIsConfirmPasswordVisible((prev) => !prev)}
+							>
+								{isConfirmPasswordVisible ? (
+									<RiEyeOffLine className="size-4" aria-hidden="true" />
+								) : (
+									<RiEyeLine className="size-4" aria-hidden="true" />
+								)}
+							</Button>
+						</div>
+						{isPasswordMismatch && (
+							<p id="confirm-password-error" role="alert" className="text-sm text-red-600">
+								{changePasswordError}
+							</p>
+						)}
 					</div>
-					{isPasswordMismatch && (
-						<p id="confirm-password-error" role="alert" className="text-sm text-red-600">
-							{changePasswordError}
-						</p>
-					)}
 				</div>
 			</section>
 			{changePasswordError && !isCurrentPasswordError && !isPasswordMismatch && (
