@@ -11,13 +11,8 @@ export async function sendAccessCodeEmail({
 	code: string;
 	accessUrl?: string;
 }) {
-	if (process.env.NODE_ENV === "development") {
-		console.info("Shared record access code (development only):", code, accessUrl ?? "");
-		return { data: null, error: null };
-	}
-
 	return resend.emails.send({
-		from: "MediBridge <onboarding@resend.dev>",
+		from: "MediBridge <noreply@medibridge.chibu.dev>",
 		to: email,
 		subject: "Your shared patient record access code",
 		html: `

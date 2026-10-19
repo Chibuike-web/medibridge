@@ -24,13 +24,8 @@ export async function sendTransferApprovalEmail({
 	targetHospitalName: string;
 	approvalUrl: string;
 }) {
-	if (process.env.NODE_ENV === "development") {
-		console.info("Transfer approval link (development only):", approvalUrl);
-		return { data: null, error: null };
-	}
-
 	return resend.emails.send({
-		from: "MediBridge <onboarding@resend.dev>",
+		from: "MediBridge <noreply@medibridge.chibu.dev>",
 		to: email,
 		subject: "Review your MediBridge record transfer",
 		html: `
