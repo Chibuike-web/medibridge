@@ -1,11 +1,10 @@
 "use client";
 
 import { DiagnosesTable } from "@/features/patients/components/diagnoses-table";
+import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import type { DiagnosisStatusFilter, DiagnosisType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useState, useTransition } from "react";
-
-import { useEncounterTableNavigation } from "./encounter-table-navigation";
 
 export function DiagnosesClient({
 	patientId,
@@ -38,7 +37,7 @@ export function DiagnosesClient({
 	lastReviewedTo?: string;
 	statusFilters?: DiagnosisStatusFilter[];
 }) {
-	const navigateEncounterTable = useEncounterTableNavigation();
+	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
@@ -113,7 +112,7 @@ export function DiagnosesClient({
 			setOptimisticLastReviewedFrom(nextLastReviewedFrom);
 			setOptimisticLastReviewedTo(nextLastReviewedTo);
 			setOptimisticStatusFilters(nextStatusFilters);
-			navigateEncounterTable(values, { replace });
+			navigateTableUrl(values, { replace });
 		});
 	}
 

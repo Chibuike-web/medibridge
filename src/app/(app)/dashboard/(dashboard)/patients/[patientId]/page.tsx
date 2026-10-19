@@ -10,6 +10,7 @@ import { SectionTabs, type PatientSection } from "@/features/patients/components
 import { PatientOverviewSection } from "@/features/patients/components/patient-overview-section";
 import { PatientDetailsSection } from "@/features/patients/components/patient-details-section/patient-details-section";
 import { PatientAvatarMenu } from "@/features/patients/components/patient-avatar-menu";
+import { TableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import {
 	CreateAllergyEmptyStateAction,
 	CreateDiagnosisEmptyStateAction,
@@ -60,8 +61,6 @@ import {
 	VitalsClient,
 } from "./patient-section-table-clients";
 
-import { EncounterTableNavigation } from "./patient-section-table-clients/encounter-table-navigation";
-
 export const metadata = {
 	title: "Patient",
 };
@@ -75,9 +74,9 @@ type PatientPageParamsProps = Pick<PageProps<"/dashboard/patients/[patientId]">,
 export default function PatientPage({ searchParams, params }: PatientPageProps) {
 	return (
 		<Suspense fallback={<PatientPageSkeleton />}>
-			<EncounterTableNavigation>
+			<TableUrlNavigation>
 				<PatientPageContent searchParams={searchParams} params={params} />
-			</EncounterTableNavigation>
+			</TableUrlNavigation>
 		</Suspense>
 	);
 }

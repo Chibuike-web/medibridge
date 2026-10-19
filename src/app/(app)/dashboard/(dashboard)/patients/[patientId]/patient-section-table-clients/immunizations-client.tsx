@@ -1,11 +1,10 @@
 "use client";
 
 import { ImmunizationsTable } from "@/features/patients/components/immunizations-table";
+import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import type { ImmunizationStatusFilter, ImmunizationType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useState, useTransition } from "react";
-
-import { useEncounterTableNavigation } from "./encounter-table-navigation";
 
 export function ImmunizationsClient({
 	patientId,
@@ -30,7 +29,7 @@ export function ImmunizationsClient({
 	createdTo?: string;
 	statusFilters?: ImmunizationStatusFilter[];
 }) {
-	const navigateEncounterTable = useEncounterTableNavigation();
+	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
@@ -84,7 +83,7 @@ export function ImmunizationsClient({
 			setOptimisticCreatedFrom(nextCreatedFrom);
 			setOptimisticCreatedTo(nextCreatedTo);
 			setOptimisticStatusFilters(nextStatusFilters);
-			navigateEncounterTable(values, { replace });
+			navigateTableUrl(values, { replace });
 		});
 	}
 

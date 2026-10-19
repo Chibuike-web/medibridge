@@ -4,19 +4,19 @@ import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createContext, use, useEffect, useRef, useTransition, type ReactNode } from "react";
 
-const EncounterTableNavigationContext = createContext<
+const TableUrlNavigationContext = createContext<
 	((values: Record<string, string>, options: { replace?: boolean }) => void) | null
 >(null);
 
-export function useEncounterTableNavigation() {
-	const navigateEncounterTable = use(EncounterTableNavigationContext);
-	if (!navigateEncounterTable) {
-		throw new Error("useEncounterTableNavigation must be used within EncounterTableNavigation");
+export function useTableUrlNavigation() {
+	const navigateTableUrl = use(TableUrlNavigationContext);
+	if (!navigateTableUrl) {
+		throw new Error("useTableUrlNavigation must be used within TableUrlNavigation");
 	}
-	return navigateEncounterTable;
+	return navigateTableUrl;
 }
 
-export function EncounterTableNavigation({ children }: { children: ReactNode }) {
+export function TableUrlNavigation({ children }: { children: ReactNode }) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
@@ -27,7 +27,7 @@ export function EncounterTableNavigation({ children }: { children: ReactNode }) 
 		if (!isPending) pendingSearchParams.current = null;
 	}, [isPending, searchParams]);
 
-	function navigateEncounterTable(
+	function navigateTableUrl(
 		values: Record<string, string>,
 		{ replace = false }: { replace?: boolean },
 	) {
@@ -46,9 +46,5 @@ export function EncounterTableNavigation({ children }: { children: ReactNode }) 
 		});
 	}
 
-	return (
-		<EncounterTableNavigationContext value={navigateEncounterTable}>
-			{children}
-		</EncounterTableNavigationContext>
-	);
+	return <TableUrlNavigationContext value={navigateTableUrl}>{children}</TableUrlNavigationContext>;
 }

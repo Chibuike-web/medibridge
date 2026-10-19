@@ -13,7 +13,7 @@ import {
 	ProceduresClient,
 	VitalsClient,
 } from "./index";
-import { EncounterTableNavigation } from "./encounter-table-navigation";
+import { TableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import type {
 	AllergyType,
 	DiagnosisType,
@@ -399,14 +399,14 @@ test("reports a missing navigation provider when a shared table is mounted", () 
 				totalPages={4}
 			/>,
 		),
-	).toThrow("useEncounterTableNavigation must be used within EncounterTableNavigation");
+	).toThrow("useTableUrlNavigation must be used within TableUrlNavigation");
 });
 
 describe.each(tableCases)("URL-driven $name table", ({ prefix, rowText, renderTable }) => {
 	test("keeps the server's rows visible and pushes a namespaced page URL without changing other tables", async () => {
 		const user = userEvent.setup();
 		const { rerender } = render(renderTable({ page: 2, limit: 28, searchQuery: "" }), {
-			wrapper: EncounterTableNavigation,
+			wrapper: TableUrlNavigation,
 		});
 		expect(within(screen.getByRole("table")).getByText(rowText)).toBeVisible();
 		await user.click(screen.getByRole("button", { name: "Next" }));
@@ -431,7 +431,7 @@ describe.each(tableCases)("URL-driven $name table", ({ prefix, rowText, renderTa
 		vi.useFakeTimers();
 		navigation.params += `&${prefix}Page=2`;
 		const { rerender } = render(renderTable({ page: 2, limit: 14, searchQuery: "" }), {
-			wrapper: EncounterTableNavigation,
+			wrapper: TableUrlNavigation,
 		});
 		const input = screen.getByRole("searchbox");
 		fireEvent.change(input, { target: { value: "new search" } });
@@ -472,7 +472,7 @@ test("preserves newer input when the previous search response arrives", async ()
 		allergies: [allergiesRow],
 	};
 	const { rerender } = render(<AllergiesClient {...props} searchQuery="" />, {
-		wrapper: EncounterTableNavigation,
+		wrapper: TableUrlNavigation,
 	});
 	const input = screen.getByRole("searchbox");
 	fireEvent.change(input, { target: { value: "pen" } });
@@ -500,7 +500,7 @@ test("preserves newer input when the previous search response arrives", async ()
 test("replaces displayed rows as soon as fresh server props arrive", () => {
 	const props = { patientId: "patient-1", page: 1, limit: 14, totalPages: 1 };
 	const { rerender } = render(<AllergiesClient {...props} allergies={[allergiesRow]} />, {
-		wrapper: EncounterTableNavigation,
+		wrapper: TableUrlNavigation,
 	});
 	expect(within(screen.getByRole("table")).getByText("Peanuts")).toBeVisible();
 	rerender(
@@ -535,7 +535,7 @@ test("shows the filter pill and pending page immediately while navigation waits 
 	render(
 		<Suspense fallback="Loading route">
 			<RouterHarness>
-				<EncounterTableNavigation>
+				<TableUrlNavigation>
 					<AllergiesClient
 						patientId="patient-1"
 						encounterId="ENC-1"
@@ -544,7 +544,7 @@ test("shows the filter pill and pending page immediately while navigation waits 
 						limit={14}
 						totalPages={4}
 					/>
-				</EncounterTableNavigation>
+				</TableUrlNavigation>
 			</RouterHarness>
 		</Suspense>,
 	);
@@ -573,7 +573,7 @@ test("settles the filter pill and page on the URL's values once the server respo
 	const user = userEvent.setup();
 	const props = { patientId: "patient-1", allergies: [allergiesRow], limit: 14, totalPages: 4 };
 	const { rerender } = render(<AllergiesClient {...props} page={2} />, {
-		wrapper: EncounterTableNavigation,
+		wrapper: TableUrlNavigation,
 	});
 	expect(screen.queryByText("Status: Active")).not.toBeInTheDocument();
 	expect(screen.getByText("Page 2 of 4")).toBeVisible();
@@ -616,7 +616,7 @@ test("changing the second encounter table preserves the first table's pending pa
 	render(
 		<Suspense fallback="Loading route">
 			<RouterHarness>
-				<EncounterTableNavigation>
+				<TableUrlNavigation>
 					<section aria-label="Allergies">
 						<AllergiesClient
 							patientId="patient-1"
@@ -638,7 +638,7 @@ test("changing the second encounter table preserves the first table's pending pa
 							searchQuery="aspirin"
 						/>
 					</section>
-				</EncounterTableNavigation>
+				</TableUrlNavigation>
 			</RouterHarness>
 		</Suspense>,
 	);
@@ -711,7 +711,7 @@ test("clearing search during a pending request updates the latest destination", 
 	render(
 		<Suspense fallback="Loading route">
 			<RouterHarness>
-				<EncounterTableNavigation>
+				<TableUrlNavigation>
 					<AllergiesClient
 						patientId="patient-1"
 						allergies={[allergiesRow]}
@@ -719,7 +719,7 @@ test("clearing search during a pending request updates the latest destination", 
 						limit={14}
 						totalPages={4}
 					/>
-				</EncounterTableNavigation>
+				</TableUrlNavigation>
 			</RouterHarness>
 		</Suspense>,
 	);

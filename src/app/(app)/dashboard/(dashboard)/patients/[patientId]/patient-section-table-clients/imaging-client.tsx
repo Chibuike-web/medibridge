@@ -1,6 +1,7 @@
 "use client";
 
 import { ImagingTable } from "@/features/patients/components/imaging-table";
+import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import type {
 	ImagingModalityFilter,
 	ImagingStatusFilter,
@@ -8,8 +9,6 @@ import type {
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useState, useTransition } from "react";
-
-import { useEncounterTableNavigation } from "./encounter-table-navigation";
 
 export function ImagingClient({
 	patientId,
@@ -40,7 +39,7 @@ export function ImagingClient({
 	statusFilters?: ImagingStatusFilter[];
 	modalityFilters?: ImagingModalityFilter[];
 }) {
-	const navigateEncounterTable = useEncounterTableNavigation();
+	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
@@ -109,7 +108,7 @@ export function ImagingClient({
 			setOptimisticCreatedTo(nextCreatedTo);
 			setOptimisticStatusFilters(nextStatusFilters);
 			setOptimisticModalityFilters(nextModalityFilters);
-			navigateEncounterTable(values, { replace });
+			navigateTableUrl(values, { replace });
 		});
 	}
 

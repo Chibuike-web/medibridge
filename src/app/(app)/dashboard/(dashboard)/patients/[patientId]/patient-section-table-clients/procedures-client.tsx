@@ -1,11 +1,10 @@
 "use client";
 
 import { ProceduresTable } from "@/features/patients/components/procedures-table";
+import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import type { ProcedureStatusFilter, ProcedureType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useState, useTransition } from "react";
-
-import { useEncounterTableNavigation } from "./encounter-table-navigation";
 
 export function ProceduresClient({
 	patientId,
@@ -30,7 +29,7 @@ export function ProceduresClient({
 	createdTo?: string;
 	statusFilters?: ProcedureStatusFilter[];
 }) {
-	const navigateEncounterTable = useEncounterTableNavigation();
+	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
@@ -84,7 +83,7 @@ export function ProceduresClient({
 			setOptimisticCreatedFrom(nextCreatedFrom);
 			setOptimisticCreatedTo(nextCreatedTo);
 			setOptimisticStatusFilters(nextStatusFilters);
-			navigateEncounterTable(values, { replace });
+			navigateTableUrl(values, { replace });
 		});
 	}
 

@@ -1,11 +1,10 @@
 "use client";
 
 import { VitalsTable } from "@/features/patients/components/vitals-table";
+import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import type { VitalEncounterOption, VitalType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useState, useTransition } from "react";
-
-import { useEncounterTableNavigation } from "./encounter-table-navigation";
 
 export function VitalsClient({
 	patientId,
@@ -36,7 +35,7 @@ export function VitalsClient({
 	createdFrom?: string;
 	createdTo?: string;
 }) {
-	const navigateEncounterTable = useEncounterTableNavigation();
+	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
@@ -95,7 +94,7 @@ export function VitalsClient({
 			setOptimisticRecordedTo(nextRecordedTo);
 			setOptimisticCreatedFrom(nextCreatedFrom);
 			setOptimisticCreatedTo(nextCreatedTo);
-			navigateEncounterTable(values, { replace });
+			navigateTableUrl(values, { replace });
 		});
 	}
 

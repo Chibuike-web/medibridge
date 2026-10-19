@@ -1,6 +1,7 @@
 "use client";
 
 import { AllergiesTable } from "@/features/patients/components/allergies-table";
+import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import type {
 	AllergySeverityFilter,
 	AllergyStatusFilter,
@@ -8,8 +9,6 @@ import type {
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useState, useTransition } from "react";
-
-import { useEncounterTableNavigation } from "./encounter-table-navigation";
 
 export function AllergiesClient({
 	patientId,
@@ -36,7 +35,7 @@ export function AllergiesClient({
 	statusFilters?: AllergyStatusFilter[];
 	severityFilters?: AllergySeverityFilter[];
 }) {
-	const navigateEncounterTable = useEncounterTableNavigation();
+	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
@@ -95,7 +94,7 @@ export function AllergiesClient({
 			setOptimisticCreatedTo(nextCreatedTo);
 			setOptimisticStatusFilters(nextStatusFilters);
 			setOptimisticSeverityFilters(nextSeverityFilters);
-			navigateEncounterTable(values, { replace });
+			navigateTableUrl(values, { replace });
 		});
 	}
 
