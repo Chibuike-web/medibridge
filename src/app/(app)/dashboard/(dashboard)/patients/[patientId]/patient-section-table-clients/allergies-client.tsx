@@ -7,12 +7,9 @@ import type {
 	AllergyType,
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useContext, useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 
-import type { Route } from "next";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
-import { EncounterTableNavigationContext } from "./encounter-table-navigation";
+import { useEncounterTableNavigation } from "./encounter-table-navigation";
 
 export function AllergiesClient({
 	patientId,
@@ -39,10 +36,7 @@ export function AllergiesClient({
 	statusFilters?: AllergyStatusFilter[];
 	severityFilters?: AllergySeverityFilter[];
 }) {
-	const router = useRouter();
-	const navigateEncounterTable = useContext(EncounterTableNavigationContext);
-	const pathname = usePathname();
-	const searchParams = useSearchParams();
+	const navigateEncounterTable = useEncounterTableNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
@@ -80,9 +74,8 @@ export function AllergiesClient({
 			nextStatusFilters?: AllergyStatusFilter[];
 			nextSeverityFilters?: AllergySeverityFilter[];
 		},
-		replace = false,
+		{ replace = false }: { replace?: boolean } = {},
 	) {
-		const params = new URLSearchParams(searchParams.toString());
 		const values = {
 			allergiesPage: nextPage === 1 ? "" : String(nextPage),
 			allergiesLimit: nextLimit === 14 ? "" : String(nextLimit),
@@ -92,10 +85,6 @@ export function AllergiesClient({
 			allergiesStatus: nextStatusFilters.join(","),
 			allergiesSeverity: nextSeverityFilters.join(","),
 		};
-		Object.entries(values).forEach(([name, value]) => {
-			if (value.trim() === "") params.delete(name);
-			else params.set(name, value);
-		});
 
 		startTransition(() => {
 			setNavigatedQuery(nextQuery);
@@ -106,19 +95,13 @@ export function AllergiesClient({
 			setOptimisticCreatedTo(nextCreatedTo);
 			setOptimisticStatusFilters(nextStatusFilters);
 			setOptimisticSeverityFilters(nextSeverityFilters);
-			if (navigateEncounterTable) {
-				navigateEncounterTable(values, replace);
-				return;
-			}
-			const href = `${pathname}?${params}` as Route;
-			if (replace) router.replace(href, { scroll: false });
-			else router.push(href, { scroll: false });
+			navigateEncounterTable(values, { replace });
 		});
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
 		if (nextQuery !== query || nextQuery === optimisticQuery) return;
-		navigateTable({ nextQuery }, true);
+		navigateTable({ nextQuery }, { replace: true });
 	}, 300);
 
 	function handleQueryChange(nextQuery: string) {

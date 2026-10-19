@@ -388,10 +388,26 @@ afterEach(() => {
 	vi.useRealTimers();
 });
 
+test("reports a missing navigation provider when a shared table is mounted", () => {
+	expect(() =>
+		render(
+			<AllergiesClient
+				patientId="patient-1"
+				allergies={[allergiesRow]}
+				page={1}
+				limit={14}
+				totalPages={4}
+			/>,
+		),
+	).toThrow("useEncounterTableNavigation must be used within EncounterTableNavigation");
+});
+
 describe.each(tableCases)("URL-driven $name table", ({ prefix, rowText, renderTable }) => {
 	test("keeps the server's rows visible and pushes a namespaced page URL without changing other tables", async () => {
 		const user = userEvent.setup();
-		const { rerender } = render(renderTable({ page: 2, limit: 28, searchQuery: "" }));
+		const { rerender } = render(renderTable({ page: 2, limit: 28, searchQuery: "" }), {
+			wrapper: EncounterTableNavigation,
+		});
 		expect(within(screen.getByRole("table")).getByText(rowText)).toBeVisible();
 		await user.click(screen.getByRole("button", { name: "Next" }));
 		const [href, options] = navigation.push.mock.calls[0];
@@ -414,7 +430,9 @@ describe.each(tableCases)("URL-driven $name table", ({ prefix, rowText, renderTa
 	test("debounces search and restores the input when revisiting URL history", async () => {
 		vi.useFakeTimers();
 		navigation.params += `&${prefix}Page=2`;
-		const { rerender } = render(renderTable({ page: 2, limit: 14, searchQuery: "" }));
+		const { rerender } = render(renderTable({ page: 2, limit: 14, searchQuery: "" }), {
+			wrapper: EncounterTableNavigation,
+		});
 		const input = screen.getByRole("searchbox");
 		fireEvent.change(input, { target: { value: "new search" } });
 		expect(input).toHaveValue("new search");
@@ -453,7 +471,9 @@ test("preserves newer input when the previous search response arrives", async ()
 		totalPages: 1,
 		allergies: [allergiesRow],
 	};
-	const { rerender } = render(<AllergiesClient {...props} searchQuery="" />);
+	const { rerender } = render(<AllergiesClient {...props} searchQuery="" />, {
+		wrapper: EncounterTableNavigation,
+	});
 	const input = screen.getByRole("searchbox");
 	fireEvent.change(input, { target: { value: "pen" } });
 	await act(async () => {
@@ -479,7 +499,9 @@ test("preserves newer input when the previous search response arrives", async ()
 
 test("replaces displayed rows as soon as fresh server props arrive", () => {
 	const props = { patientId: "patient-1", page: 1, limit: 14, totalPages: 1 };
-	const { rerender } = render(<AllergiesClient {...props} allergies={[allergiesRow]} />);
+	const { rerender } = render(<AllergiesClient {...props} allergies={[allergiesRow]} />, {
+		wrapper: EncounterTableNavigation,
+	});
 	expect(within(screen.getByRole("table")).getByText("Peanuts")).toBeVisible();
 	rerender(
 		<AllergiesClient {...props} allergies={[{ ...allergiesRow, allergen: "Penicillin" }]} />,
@@ -513,14 +535,16 @@ test("shows the filter pill and pending page immediately while navigation waits 
 	render(
 		<Suspense fallback="Loading route">
 			<RouterHarness>
-				<AllergiesClient
-					patientId="patient-1"
-					encounterId="ENC-1"
-					allergies={[allergiesRow]}
-					page={2}
-					limit={14}
-					totalPages={4}
-				/>
+				<EncounterTableNavigation>
+					<AllergiesClient
+						patientId="patient-1"
+						encounterId="ENC-1"
+						allergies={[allergiesRow]}
+						page={2}
+						limit={14}
+						totalPages={4}
+					/>
+				</EncounterTableNavigation>
 			</RouterHarness>
 		</Suspense>,
 	);
@@ -548,7 +572,9 @@ test("settles the filter pill and page on the URL's values once the server respo
 	navigation.params += "&allergiesPage=2";
 	const user = userEvent.setup();
 	const props = { patientId: "patient-1", allergies: [allergiesRow], limit: 14, totalPages: 4 };
-	const { rerender } = render(<AllergiesClient {...props} page={2} />);
+	const { rerender } = render(<AllergiesClient {...props} page={2} />, {
+		wrapper: EncounterTableNavigation,
+	});
 	expect(screen.queryByText("Status: Active")).not.toBeInTheDocument();
 	expect(screen.getByText("Page 2 of 4")).toBeVisible();
 	await user.click(screen.getByRole("button", { name: "Filter" }));
@@ -685,13 +711,15 @@ test("clearing search during a pending request updates the latest destination", 
 	render(
 		<Suspense fallback="Loading route">
 			<RouterHarness>
-				<AllergiesClient
-					patientId="patient-1"
-					allergies={[allergiesRow]}
-					page={1}
-					limit={14}
-					totalPages={4}
-				/>
+				<EncounterTableNavigation>
+					<AllergiesClient
+						patientId="patient-1"
+						allergies={[allergiesRow]}
+						page={1}
+						limit={14}
+						totalPages={4}
+					/>
+				</EncounterTableNavigation>
 			</RouterHarness>
 		</Suspense>,
 	);

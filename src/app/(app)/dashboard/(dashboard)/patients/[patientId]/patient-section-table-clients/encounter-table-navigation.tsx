@@ -2,11 +2,19 @@
 
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { createContext, useEffect, useRef, useTransition, type ReactNode } from "react";
+import { createContext, use, useEffect, useRef, useTransition, type ReactNode } from "react";
 
-export const EncounterTableNavigationContext = createContext<
-	((values: Record<string, string>, replace: boolean) => void) | null
+const EncounterTableNavigationContext = createContext<
+	((values: Record<string, string>, options: { replace?: boolean }) => void) | null
 >(null);
+
+export function useEncounterTableNavigation() {
+	const navigateEncounterTable = use(EncounterTableNavigationContext);
+	if (!navigateEncounterTable) {
+		throw new Error("useEncounterTableNavigation must be used within EncounterTableNavigation");
+	}
+	return navigateEncounterTable;
+}
 
 export function EncounterTableNavigation({ children }: { children: ReactNode }) {
 	const router = useRouter();
@@ -19,7 +27,10 @@ export function EncounterTableNavigation({ children }: { children: ReactNode }) 
 		if (!isPending) pendingSearchParams.current = null;
 	}, [isPending, searchParams]);
 
-	function navigateEncounterTable(values: Record<string, string>, replace: boolean) {
+	function navigateEncounterTable(
+		values: Record<string, string>,
+		{ replace = false }: { replace?: boolean },
+	) {
 		// Merge overlapping table changes before the server commits the next URL.
 		const params = new URLSearchParams(pendingSearchParams.current ?? searchParams.toString());
 		Object.entries(values).forEach(([name, value]) => {

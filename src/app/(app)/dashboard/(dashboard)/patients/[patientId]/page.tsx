@@ -60,6 +60,8 @@ import {
 	VitalsClient,
 } from "./patient-section-table-clients";
 
+import { EncounterTableNavigation } from "./patient-section-table-clients/encounter-table-navigation";
+
 export const metadata = {
 	title: "Patient",
 };
@@ -73,7 +75,9 @@ type PatientPageParamsProps = Pick<PageProps<"/dashboard/patients/[patientId]">,
 export default function PatientPage({ searchParams, params }: PatientPageProps) {
 	return (
 		<Suspense fallback={<PatientPageSkeleton />}>
-			<PatientPageContent searchParams={searchParams} params={params} />
+			<EncounterTableNavigation>
+				<PatientPageContent searchParams={searchParams} params={params} />
+			</EncounterTableNavigation>
 		</Suspense>
 	);
 }

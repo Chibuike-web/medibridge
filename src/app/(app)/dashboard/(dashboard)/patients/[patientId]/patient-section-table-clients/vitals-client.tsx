@@ -3,12 +3,9 @@
 import { VitalsTable } from "@/features/patients/components/vitals-table";
 import type { VitalEncounterOption, VitalType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useContext, useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 
-import type { Route } from "next";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
-import { EncounterTableNavigationContext } from "./encounter-table-navigation";
+import { useEncounterTableNavigation } from "./encounter-table-navigation";
 
 export function VitalsClient({
 	patientId,
@@ -39,10 +36,7 @@ export function VitalsClient({
 	createdFrom?: string;
 	createdTo?: string;
 }) {
-	const router = useRouter();
-	const navigateEncounterTable = useContext(EncounterTableNavigationContext);
-	const pathname = usePathname();
-	const searchParams = useSearchParams();
+	const navigateEncounterTable = useEncounterTableNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
@@ -80,9 +74,8 @@ export function VitalsClient({
 			nextCreatedFrom?: string;
 			nextCreatedTo?: string;
 		},
-		replace = false,
+		{ replace = false }: { replace?: boolean } = {},
 	) {
-		const params = new URLSearchParams(searchParams.toString());
 		const values = {
 			vitalsPage: nextPage === 1 ? "" : String(nextPage),
 			vitalsLimit: nextLimit === 14 ? "" : String(nextLimit),
@@ -92,10 +85,6 @@ export function VitalsClient({
 			vitalsCreatedFrom: nextCreatedFrom,
 			vitalsCreatedTo: nextCreatedTo,
 		};
-		Object.entries(values).forEach(([name, value]) => {
-			if (value.trim() === "") params.delete(name);
-			else params.set(name, value);
-		});
 
 		startTransition(() => {
 			setNavigatedQuery(nextQuery);
@@ -106,19 +95,13 @@ export function VitalsClient({
 			setOptimisticRecordedTo(nextRecordedTo);
 			setOptimisticCreatedFrom(nextCreatedFrom);
 			setOptimisticCreatedTo(nextCreatedTo);
-			if (navigateEncounterTable) {
-				navigateEncounterTable(values, replace);
-				return;
-			}
-			const href = `${pathname}?${params}` as Route;
-			if (replace) router.replace(href, { scroll: false });
-			else router.push(href, { scroll: false });
+			navigateEncounterTable(values, { replace });
 		});
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
 		if (nextQuery !== query || nextQuery === optimisticQuery) return;
-		navigateTable({ nextQuery }, true);
+		navigateTable({ nextQuery }, { replace: true });
 	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
