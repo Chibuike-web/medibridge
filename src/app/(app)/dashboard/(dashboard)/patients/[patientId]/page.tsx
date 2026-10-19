@@ -49,17 +49,15 @@ import type {
 	ProcedureStatusFilter,
 } from "@/features/patients/types";
 import { getNumberParam, getStringParam } from "@/lib/utils/search-params";
-import {
-	AllergiesClient,
-	DiagnosesClient,
-	EncountersClient,
-	ImagingClient,
-	ImmunizationsClient,
-	LabTestsClient,
-	MedicationsClient,
-	ProceduresClient,
-	VitalsClient,
-} from "./patient-section-table-clients";
+import { AllergiesClient } from "./patient-section-table-clients/allergies-client";
+import { DiagnosesClient } from "./patient-section-table-clients/diagnoses-client";
+import { EncountersClient } from "./patient-section-table-clients/encounters-client";
+import { ImagingClient } from "./patient-section-table-clients/imaging-client";
+import { ImmunizationsClient } from "./patient-section-table-clients/immunizations-client";
+import { LabTestsClient } from "./patient-section-table-clients/lab-tests-client";
+import { MedicationsClient } from "./patient-section-table-clients/medications-client";
+import { ProceduresClient } from "./patient-section-table-clients/procedures-client";
+import { VitalsClient } from "./patient-section-table-clients/vitals-client";
 
 export const metadata = {
 	title: "Patient",

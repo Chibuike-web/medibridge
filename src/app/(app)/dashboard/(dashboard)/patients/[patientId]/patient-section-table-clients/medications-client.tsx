@@ -6,6 +6,28 @@ import type { MedicationStatusFilter, MedicationType } from "@/features/patients
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useState, useTransition } from "react";
 
+type MedicationsClientProps = {
+	patientId: string;
+	encounterId?: string;
+	medications: MedicationType[];
+	page: number;
+	limit: number;
+	totalPages: number;
+	searchQuery?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilters?: MedicationStatusFilter[];
+};
+
+type MedicationsTableChange = {
+	nextPage?: number;
+	nextLimit?: number;
+	nextQuery?: string;
+	nextCreatedFrom?: string;
+	nextCreatedTo?: string;
+	nextStatusFilters?: MedicationStatusFilter[];
+};
+
 export function MedicationsClient({
 	patientId,
 	encounterId,
@@ -17,18 +39,7 @@ export function MedicationsClient({
 	createdFrom = "",
 	createdTo = "",
 	statusFilters = [],
-}: {
-	patientId: string;
-	encounterId?: string;
-	medications: MedicationType[];
-	page: number;
-	limit: number;
-	totalPages: number;
-	searchQuery?: string;
-	createdFrom?: string;
-	createdTo?: string;
-	statusFilters?: MedicationStatusFilter[];
-}) {
+}: MedicationsClientProps) {
 	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
@@ -56,14 +67,7 @@ export function MedicationsClient({
 			nextCreatedFrom = optimisticCreatedFrom,
 			nextCreatedTo = optimisticCreatedTo,
 			nextStatusFilters = optimisticStatusFilters,
-		}: {
-			nextPage?: number;
-			nextLimit?: number;
-			nextQuery?: string;
-			nextCreatedFrom?: string;
-			nextCreatedTo?: string;
-			nextStatusFilters?: MedicationStatusFilter[];
-		},
+		}: MedicationsTableChange,
 		{ replace = false }: { replace?: boolean } = {},
 	) {
 		const values = {

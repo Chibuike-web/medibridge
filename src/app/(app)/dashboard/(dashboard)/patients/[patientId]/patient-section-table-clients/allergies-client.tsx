@@ -10,6 +10,30 @@ import type {
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useState, useTransition } from "react";
 
+type AllergiesClientProps = {
+	patientId: string;
+	encounterId?: string;
+	allergies: AllergyType[];
+	page: number;
+	limit: number;
+	totalPages: number;
+	searchQuery?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilters?: AllergyStatusFilter[];
+	severityFilters?: AllergySeverityFilter[];
+};
+
+type AllergiesTableChange = {
+	nextPage?: number;
+	nextLimit?: number;
+	nextQuery?: string;
+	nextCreatedFrom?: string;
+	nextCreatedTo?: string;
+	nextStatusFilters?: AllergyStatusFilter[];
+	nextSeverityFilters?: AllergySeverityFilter[];
+};
+
 export function AllergiesClient({
 	patientId,
 	encounterId,
@@ -22,19 +46,7 @@ export function AllergiesClient({
 	createdTo = "",
 	statusFilters = [],
 	severityFilters = [],
-}: {
-	patientId: string;
-	encounterId?: string;
-	allergies: AllergyType[];
-	page: number;
-	limit: number;
-	totalPages: number;
-	searchQuery?: string;
-	createdFrom?: string;
-	createdTo?: string;
-	statusFilters?: AllergyStatusFilter[];
-	severityFilters?: AllergySeverityFilter[];
-}) {
+}: AllergiesClientProps) {
 	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
@@ -64,15 +76,7 @@ export function AllergiesClient({
 			nextCreatedTo = optimisticCreatedTo,
 			nextStatusFilters = optimisticStatusFilters,
 			nextSeverityFilters = optimisticSeverityFilters,
-		}: {
-			nextPage?: number;
-			nextLimit?: number;
-			nextQuery?: string;
-			nextCreatedFrom?: string;
-			nextCreatedTo?: string;
-			nextStatusFilters?: AllergyStatusFilter[];
-			nextSeverityFilters?: AllergySeverityFilter[];
-		},
+		}: AllergiesTableChange,
 		{ replace = false }: { replace?: boolean } = {},
 	) {
 		const values = {

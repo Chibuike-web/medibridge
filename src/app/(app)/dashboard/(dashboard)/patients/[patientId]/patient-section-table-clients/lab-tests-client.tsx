@@ -10,6 +10,30 @@ import type {
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useState, useTransition } from "react";
 
+type LabTestsClientProps = {
+	patientId: string;
+	encounterId?: string;
+	labTests: LabTestType[];
+	page: number;
+	limit: number;
+	totalPages: number;
+	searchQuery?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilters?: LabTestStatusFilter[];
+	flagFilters?: LabTestFlagFilter[];
+};
+
+type LabTestsTableChange = {
+	nextPage?: number;
+	nextLimit?: number;
+	nextQuery?: string;
+	nextCreatedFrom?: string;
+	nextCreatedTo?: string;
+	nextStatusFilters?: LabTestStatusFilter[];
+	nextFlagFilters?: LabTestFlagFilter[];
+};
+
 export function LabTestsClient({
 	patientId,
 	encounterId,
@@ -22,19 +46,7 @@ export function LabTestsClient({
 	createdTo = "",
 	statusFilters = [],
 	flagFilters = [],
-}: {
-	patientId: string;
-	encounterId?: string;
-	labTests: LabTestType[];
-	page: number;
-	limit: number;
-	totalPages: number;
-	searchQuery?: string;
-	createdFrom?: string;
-	createdTo?: string;
-	statusFilters?: LabTestStatusFilter[];
-	flagFilters?: LabTestFlagFilter[];
-}) {
+}: LabTestsClientProps) {
 	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
@@ -64,15 +76,7 @@ export function LabTestsClient({
 			nextCreatedTo = optimisticCreatedTo,
 			nextStatusFilters = optimisticStatusFilters,
 			nextFlagFilters = optimisticFlagFilters,
-		}: {
-			nextPage?: number;
-			nextLimit?: number;
-			nextQuery?: string;
-			nextCreatedFrom?: string;
-			nextCreatedTo?: string;
-			nextStatusFilters?: LabTestStatusFilter[];
-			nextFlagFilters?: LabTestFlagFilter[];
-		},
+		}: LabTestsTableChange,
 		{ replace = false }: { replace?: boolean } = {},
 	) {
 		const values = {

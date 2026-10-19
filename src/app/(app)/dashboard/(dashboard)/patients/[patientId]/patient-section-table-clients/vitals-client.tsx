@@ -6,6 +6,32 @@ import type { VitalEncounterOption, VitalType } from "@/features/patients/types"
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useState, useTransition } from "react";
 
+type VitalsClientProps = {
+	patientId: string;
+	encounterId?: string;
+	encounterOptions: VitalEncounterOption[];
+	vitals: VitalType[];
+	readings: VitalType[];
+	page: number;
+	limit: number;
+	totalPages: number;
+	searchQuery?: string;
+	recordedFrom?: string;
+	recordedTo?: string;
+	createdFrom?: string;
+	createdTo?: string;
+};
+
+type VitalsTableChange = {
+	nextPage?: number;
+	nextLimit?: number;
+	nextQuery?: string;
+	nextRecordedFrom?: string;
+	nextRecordedTo?: string;
+	nextCreatedFrom?: string;
+	nextCreatedTo?: string;
+};
+
 export function VitalsClient({
 	patientId,
 	encounterId,
@@ -20,21 +46,7 @@ export function VitalsClient({
 	recordedTo = "",
 	createdFrom = "",
 	createdTo = "",
-}: {
-	patientId: string;
-	encounterId?: string;
-	encounterOptions: VitalEncounterOption[];
-	vitals: VitalType[];
-	readings: VitalType[];
-	page: number;
-	limit: number;
-	totalPages: number;
-	searchQuery?: string;
-	recordedFrom?: string;
-	recordedTo?: string;
-	createdFrom?: string;
-	createdTo?: string;
-}) {
+}: VitalsClientProps) {
 	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
@@ -64,15 +76,7 @@ export function VitalsClient({
 			nextRecordedTo = optimisticRecordedTo,
 			nextCreatedFrom = optimisticCreatedFrom,
 			nextCreatedTo = optimisticCreatedTo,
-		}: {
-			nextPage?: number;
-			nextLimit?: number;
-			nextQuery?: string;
-			nextRecordedFrom?: string;
-			nextRecordedTo?: string;
-			nextCreatedFrom?: string;
-			nextCreatedTo?: string;
-		},
+		}: VitalsTableChange,
 		{ replace = false }: { replace?: boolean } = {},
 	) {
 		const values = {

@@ -6,6 +6,28 @@ import type { ImmunizationStatusFilter, ImmunizationType } from "@/features/pati
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useState, useTransition } from "react";
 
+type ImmunizationsClientProps = {
+	patientId: string;
+	encounterId?: string;
+	immunizations: ImmunizationType[];
+	page: number;
+	limit: number;
+	totalPages: number;
+	searchQuery?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilters?: ImmunizationStatusFilter[];
+};
+
+type ImmunizationsTableChange = {
+	nextPage?: number;
+	nextLimit?: number;
+	nextQuery?: string;
+	nextCreatedFrom?: string;
+	nextCreatedTo?: string;
+	nextStatusFilters?: ImmunizationStatusFilter[];
+};
+
 export function ImmunizationsClient({
 	patientId,
 	encounterId,
@@ -17,18 +39,7 @@ export function ImmunizationsClient({
 	createdFrom = "",
 	createdTo = "",
 	statusFilters = [],
-}: {
-	patientId: string;
-	encounterId?: string;
-	immunizations: ImmunizationType[];
-	page: number;
-	limit: number;
-	totalPages: number;
-	searchQuery?: string;
-	createdFrom?: string;
-	createdTo?: string;
-	statusFilters?: ImmunizationStatusFilter[];
-}) {
+}: ImmunizationsClientProps) {
 	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
@@ -56,14 +67,7 @@ export function ImmunizationsClient({
 			nextCreatedFrom = optimisticCreatedFrom,
 			nextCreatedTo = optimisticCreatedTo,
 			nextStatusFilters = optimisticStatusFilters,
-		}: {
-			nextPage?: number;
-			nextLimit?: number;
-			nextQuery?: string;
-			nextCreatedFrom?: string;
-			nextCreatedTo?: string;
-			nextStatusFilters?: ImmunizationStatusFilter[];
-		},
+		}: ImmunizationsTableChange,
 		{ replace = false }: { replace?: boolean } = {},
 	) {
 		const values = {

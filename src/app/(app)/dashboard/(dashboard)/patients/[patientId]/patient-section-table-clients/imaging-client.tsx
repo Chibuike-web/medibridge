@@ -10,6 +10,34 @@ import type {
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useState, useTransition } from "react";
 
+type ImagingClientProps = {
+	patientId: string;
+	encounterId?: string;
+	imagingStudies: ImagingType[];
+	page: number;
+	limit: number;
+	totalPages: number;
+	searchQuery?: string;
+	orderedFrom?: string;
+	orderedTo?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	statusFilters?: ImagingStatusFilter[];
+	modalityFilters?: ImagingModalityFilter[];
+};
+
+type ImagingTableChange = {
+	nextPage?: number;
+	nextLimit?: number;
+	nextQuery?: string;
+	nextOrderedFrom?: string;
+	nextOrderedTo?: string;
+	nextCreatedFrom?: string;
+	nextCreatedTo?: string;
+	nextStatusFilters?: ImagingStatusFilter[];
+	nextModalityFilters?: ImagingModalityFilter[];
+};
+
 export function ImagingClient({
 	patientId,
 	encounterId,
@@ -24,21 +52,7 @@ export function ImagingClient({
 	createdTo = "",
 	statusFilters = [],
 	modalityFilters = [],
-}: {
-	patientId: string;
-	encounterId?: string;
-	imagingStudies: ImagingType[];
-	page: number;
-	limit: number;
-	totalPages: number;
-	searchQuery?: string;
-	orderedFrom?: string;
-	orderedTo?: string;
-	createdFrom?: string;
-	createdTo?: string;
-	statusFilters?: ImagingStatusFilter[];
-	modalityFilters?: ImagingModalityFilter[];
-}) {
+}: ImagingClientProps) {
 	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
@@ -72,17 +86,7 @@ export function ImagingClient({
 			nextCreatedTo = optimisticCreatedTo,
 			nextStatusFilters = optimisticStatusFilters,
 			nextModalityFilters = optimisticModalityFilters,
-		}: {
-			nextPage?: number;
-			nextLimit?: number;
-			nextQuery?: string;
-			nextOrderedFrom?: string;
-			nextOrderedTo?: string;
-			nextCreatedFrom?: string;
-			nextCreatedTo?: string;
-			nextStatusFilters?: ImagingStatusFilter[];
-			nextModalityFilters?: ImagingModalityFilter[];
-		},
+		}: ImagingTableChange,
 		{ replace = false }: { replace?: boolean } = {},
 	) {
 		const values = {

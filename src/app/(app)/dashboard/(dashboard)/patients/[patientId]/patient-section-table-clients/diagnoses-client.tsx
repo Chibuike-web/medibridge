@@ -6,6 +6,36 @@ import type { DiagnosisStatusFilter, DiagnosisType } from "@/features/patients/t
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { useOptimistic, useState, useTransition } from "react";
 
+type DiagnosesClientProps = {
+	patientId: string;
+	encounterId?: string;
+	diagnoses: DiagnosisType[];
+	page: number;
+	limit: number;
+	totalPages: number;
+	searchQuery?: string;
+	createdFrom?: string;
+	createdTo?: string;
+	diagnosedFrom?: string;
+	diagnosedTo?: string;
+	lastReviewedFrom?: string;
+	lastReviewedTo?: string;
+	statusFilters?: DiagnosisStatusFilter[];
+};
+
+type DiagnosesTableChange = {
+	nextPage?: number;
+	nextLimit?: number;
+	nextQuery?: string;
+	nextCreatedFrom?: string;
+	nextCreatedTo?: string;
+	nextDiagnosedFrom?: string;
+	nextDiagnosedTo?: string;
+	nextLastReviewedFrom?: string;
+	nextLastReviewedTo?: string;
+	nextStatusFilters?: DiagnosisStatusFilter[];
+};
+
 export function DiagnosesClient({
 	patientId,
 	encounterId,
@@ -21,22 +51,7 @@ export function DiagnosesClient({
 	lastReviewedFrom = "",
 	lastReviewedTo = "",
 	statusFilters = [],
-}: {
-	patientId: string;
-	encounterId?: string;
-	diagnoses: DiagnosisType[];
-	page: number;
-	limit: number;
-	totalPages: number;
-	searchQuery?: string;
-	createdFrom?: string;
-	createdTo?: string;
-	diagnosedFrom?: string;
-	diagnosedTo?: string;
-	lastReviewedFrom?: string;
-	lastReviewedTo?: string;
-	statusFilters?: DiagnosisStatusFilter[];
-}) {
+}: DiagnosesClientProps) {
 	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
@@ -73,18 +88,7 @@ export function DiagnosesClient({
 			nextLastReviewedFrom = optimisticLastReviewedFrom,
 			nextLastReviewedTo = optimisticLastReviewedTo,
 			nextStatusFilters = optimisticStatusFilters,
-		}: {
-			nextPage?: number;
-			nextLimit?: number;
-			nextQuery?: string;
-			nextCreatedFrom?: string;
-			nextCreatedTo?: string;
-			nextDiagnosedFrom?: string;
-			nextDiagnosedTo?: string;
-			nextLastReviewedFrom?: string;
-			nextLastReviewedTo?: string;
-			nextStatusFilters?: DiagnosisStatusFilter[];
-		},
+		}: DiagnosesTableChange,
 		{ replace = false }: { replace?: boolean } = {},
 	) {
 		const values = {

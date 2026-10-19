@@ -2,17 +2,15 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import userEvent from "@testing-library/user-event";
 import { Suspense, use, useState, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import {
-	AllergiesClient,
-	DiagnosesClient,
-	EncountersClient,
-	ImagingClient,
-	ImmunizationsClient,
-	LabTestsClient,
-	MedicationsClient,
-	ProceduresClient,
-	VitalsClient,
-} from "./index";
+import { AllergiesClient } from "./allergies-client";
+import { DiagnosesClient } from "./diagnoses-client";
+import { EncountersClient } from "./encounters-client";
+import { ImagingClient } from "./imaging-client";
+import { ImmunizationsClient } from "./immunizations-client";
+import { LabTestsClient } from "./lab-tests-client";
+import { MedicationsClient } from "./medications-client";
+import { ProceduresClient } from "./procedures-client";
+import { VitalsClient } from "./vitals-client";
 import { TableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import type {
 	AllergyType,
