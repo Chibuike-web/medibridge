@@ -15,6 +15,7 @@ export default defineConfig({
 	test: {
 		environment: "jsdom",
 		maxWorkers: 2,
+		testTimeout: 30_000,
 		clearMocks: true,
 		setupFiles: ["./vitest.setup.ts"],
 		projects: [

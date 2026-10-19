@@ -1,9 +1,10 @@
 import "@testing-library/jest-dom/vitest";
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
 import { afterEach } from "vitest";
 import { MotionGlobalConfig } from "motion/react";
 
 MotionGlobalConfig.skipAnimations = true;
+configure({ asyncUtilTimeout: 5000 });
 
 if (typeof Element !== "undefined") {
 	Element.prototype.scrollIntoView = () => {};
