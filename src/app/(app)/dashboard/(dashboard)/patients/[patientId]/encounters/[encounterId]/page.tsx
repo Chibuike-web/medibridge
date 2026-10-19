@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { EncounterOverview } from "@/features/patients/components/encounter-overview";
+import { TableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import { EncounterCreatedBanner } from "@/features/patients/components/encounter-created-banner";
 import {
 	CreateAllergyEmptyStateAction,
@@ -38,8 +39,6 @@ import {
 	VitalsClient,
 } from "../../patient-section-table-clients";
 
-import { EncounterTableNavigation } from "../../patient-section-table-clients/encounter-table-navigation";
-
 import type {
 	AllergySeverityFilter,
 	AllergyStatusFilter,
@@ -66,9 +65,9 @@ type EncounterDetailsPageProps = Pick<
 export default function EncounterDetailsPage({ params, searchParams }: EncounterDetailsPageProps) {
 	return (
 		<Suspense fallback={<EncounterDetailsPageSkeleton />}>
-			<EncounterTableNavigation>
+			<TableUrlNavigation>
 				<EncounterDetailsContent params={params} searchParams={searchParams} />
-			</EncounterTableNavigation>
+			</TableUrlNavigation>
 		</Suspense>
 	);
 }

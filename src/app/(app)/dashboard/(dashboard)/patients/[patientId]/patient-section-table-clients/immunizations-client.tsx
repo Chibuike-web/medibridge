@@ -1,14 +1,10 @@
 "use client";
 
 import { ImmunizationsTable } from "@/features/patients/components/immunizations-table";
+import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import type { ImmunizationStatusFilter, ImmunizationType } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { useContext, useOptimistic, useState, useTransition } from "react";
-
-import type { Route } from "next";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
-import { EncounterTableNavigationContext } from "./encounter-table-navigation";
+import { useOptimistic, useState, useTransition } from "react";
 
 export function ImmunizationsClient({
 	patientId,
@@ -33,10 +29,7 @@ export function ImmunizationsClient({
 	createdTo?: string;
 	statusFilters?: ImmunizationStatusFilter[];
 }) {
-	const router = useRouter();
-	const navigateEncounterTable = useContext(EncounterTableNavigationContext);
-	const pathname = usePathname();
-	const searchParams = useSearchParams();
+	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
 	const [query, setQuery] = useState(searchQuery);
@@ -71,9 +64,8 @@ export function ImmunizationsClient({
 			nextCreatedTo?: string;
 			nextStatusFilters?: ImmunizationStatusFilter[];
 		},
-		replace = false,
+		{ replace = false }: { replace?: boolean } = {},
 	) {
-		const params = new URLSearchParams(searchParams.toString());
 		const values = {
 			immunizationsPage: nextPage === 1 ? "" : String(nextPage),
 			immunizationsLimit: nextLimit === 14 ? "" : String(nextLimit),
@@ -82,10 +74,6 @@ export function ImmunizationsClient({
 			immunizationsCreatedTo: nextCreatedTo,
 			immunizationsStatus: nextStatusFilters.join(","),
 		};
-		Object.entries(values).forEach(([name, value]) => {
-			if (value.trim() === "") params.delete(name);
-			else params.set(name, value);
-		});
 
 		startTransition(() => {
 			setNavigatedQuery(nextQuery);
@@ -95,19 +83,13 @@ export function ImmunizationsClient({
 			setOptimisticCreatedFrom(nextCreatedFrom);
 			setOptimisticCreatedTo(nextCreatedTo);
 			setOptimisticStatusFilters(nextStatusFilters);
-			if (navigateEncounterTable) {
-				navigateEncounterTable(values, replace);
-				return;
-			}
-			const href = `${pathname}?${params}` as Route;
-			if (replace) router.replace(href, { scroll: false });
-			else router.push(href, { scroll: false });
+			navigateTableUrl(values, { replace });
 		});
 	}
 
 	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
 		if (nextQuery !== query || nextQuery === optimisticQuery) return;
-		navigateTable({ nextQuery }, true);
+		navigateTable({ nextQuery }, { replace: true });
 	}, 300);
 
 	function handleQueryChange(nextQuery: string) {
