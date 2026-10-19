@@ -34,6 +34,7 @@ import { DialogClose, DialogDescription, DialogHeader, DialogTitle } from "../ui
 import type { Route } from "next";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { AddPatientDialog } from "@/features/patients/components/add-patient-dialog";
 
 const MIN_WIDTH = 56;
 const MAX_WIDTH = 272;
@@ -48,6 +49,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 	const [isResizing, setIsResizing] = useState(false);
 	const [isHovered, setIsHovered] = useState(false);
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
+	const [isAddPatientDialogOpen, setIsAddPatientDialogOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedSearchTab, setSelectedSearchTab] = useState<SearchTab>("All");
 	const [searchTabsClipPath, setSearchTabsClipPath] = useState<string | null>(null);
@@ -349,21 +351,40 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 										<CommandGroup key={section.label} heading={section.label}>
 											{sectionItems.map((entry) => {
 												const Icon = isNavigation ? RiArrowRightLine : RiAddLine;
+												const entryContent = (
+													<>
+														<Icon className="shrink-0 text-gray-600 size-4" aria-hidden="true" />
+
+														<div className="min-w-0">
+															<p className="font-medium text-gray-700">{entry.title}</p>
+
+															<p className="text-sm text-gray-400">{entry.description}</p>
+														</div>
+													</>
+												);
+
+												if (!entry.href) {
+													return (
+														<CommandItem
+															key={entry.id}
+															value={`${entry.title} ${entry.description}`}
+															onSelect={() => {
+																setIsSearchOpen(false);
+																setSearchQuery("");
+																setSelectedSearchTab("All");
+																setIsAddPatientDialogOpen(true);
+															}}
+														>
+															{entryContent}
+														</CommandItem>
+													);
+												}
 
 												return (
 													<DialogClose asChild key={entry.id}>
 														<CommandItem asChild value={`${entry.title} ${entry.description}`}>
 															<Link href={entry.href} prefetch={true}>
-																<Icon
-																	className="shrink-0 text-gray-600 size-4"
-																	aria-hidden="true"
-																/>
-
-																<div className="min-w-0">
-																	<p className="font-medium text-gray-700">{entry.title}</p>
-
-																	<p className="text-sm text-gray-400">{entry.description}</p>
-																</div>
+																{entryContent}
 															</Link>
 														</CommandItem>
 													</DialogClose>
@@ -402,6 +423,11 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								</div>
 							</div>
 						</CommandDialog>
+						<AddPatientDialog
+							returnTo={pathname}
+							open={isAddPatientDialogOpen}
+							onOpenChange={setIsAddPatientDialogOpen}
+						/>
 					</li>
 					{menus.map(({ id, href, label, icon: Icon, activeIcon: ActiveIcon }) => {
 						const isActive = pathname.startsWith(href);
@@ -497,7 +523,7 @@ type SearchSection = {
 		id: string;
 		title: string;
 		description: string;
-		href: Route;
+		href?: Route;
 	}[];
 };
 
@@ -550,7 +576,6 @@ export const searchSections: SearchSection[] = [
 				id: "add-patient",
 				title: "Add patient",
 				description: "Create a new patient record",
-				href: "/dashboard/add-new-patient",
 			},
 
 			{

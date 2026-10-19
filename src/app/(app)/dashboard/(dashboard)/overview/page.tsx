@@ -2,7 +2,7 @@ import { verifySession } from "@/lib/api/verify-session";
 import { getOrganizationContext } from "@/lib/api/get-organization-id";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { AddPatientDialog } from "@/features/patients/components/add-patient-dialog";
 import { RecentPatientsTable } from "@/features/patients/components/recent-patients-table";
 import { RecentTransfersTable } from "@/features/transfers/components/recent-transfers-table";
 import { Suspense } from "react";
@@ -62,14 +62,9 @@ async function OverviewContent() {
 								You haven't added any patient records yet. Create a new patient profile to get
 								started.
 							</p>
-							<Button asChild>
-								<Link
-									href="/dashboard/add-new-patient?returnTo=%2Fdashboard%2Foverview"
-									prefetch={true}
-								>
-									Add patient
-								</Link>
-							</Button>
+							<AddPatientDialog returnTo="/dashboard/overview">
+								<Button>Add patient</Button>
+							</AddPatientDialog>
 						</div>
 					</div>
 				</div>

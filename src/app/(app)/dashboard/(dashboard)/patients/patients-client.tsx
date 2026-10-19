@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AddPatientDialog } from "@/features/patients/components/add-patient-dialog";
 import { FilterButton } from "@/features/patients/components/filter-button";
 import { PatientsTable } from "@/features/patients/components/patients-table";
 import type {
@@ -14,7 +15,6 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
 import { RiCloseLine, RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useOptimistic, useState, useTransition } from "react";
 
@@ -279,10 +279,6 @@ export function PatientsClient({
 		});
 	}
 
-	const returnTo = getCurrentRoute(pathname, searchParams);
-	const addNewPatientHref =
-		`/dashboard/add-new-patient?returnTo=${encodeURIComponent(returnTo)}` as Route;
-
 	return (
 		<div className="h-full overflow-y-auto">
 			<section className="mx-auto flex w-full max-w-7xl flex-col px-6 py-6 lg:px-10">
@@ -317,11 +313,9 @@ export function PatientsClient({
 							Export
 						</Button>
 
-						<Button asChild>
-							<Link href={addNewPatientHref} prefetch={true}>
-								Add patient
-							</Link>
-						</Button>
+						<AddPatientDialog returnTo={getCurrentRoute(pathname, searchParams)}>
+							<Button>Add patient</Button>
+						</AddPatientDialog>
 					</div>
 				</header>
 				<PatientActiveFilterPills

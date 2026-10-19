@@ -7,7 +7,12 @@ export const updatePatientPersonalInformationSchema = z.object({
 	lastName: z.string().trim().min(1, "Last name is required."),
 	age: z.preprocess(
 		(value) => (value === "" || value === null ? undefined : value),
-		z.coerce.number().int().min(0).max(150).optional(),
+		z.coerce
+			.number()
+			.int("Enter an age from 0 to 150.")
+			.min(0, "Enter an age from 0 to 150.")
+			.max(150, "Enter an age from 0 to 150.")
+			.optional(),
 	),
 	dateOfBirth: z.string().trim().optional(),
 	sex: z.string().trim().optional(),

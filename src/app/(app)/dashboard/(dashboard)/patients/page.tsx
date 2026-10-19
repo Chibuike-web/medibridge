@@ -3,7 +3,7 @@ import { getOrganizationContext } from "@/lib/api/get-organization-id";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { AddPatientDialog } from "@/features/patients/components/add-patient-dialog";
 import { getPatients } from "@/lib/api/get-patients";
 import Image from "next/image";
 import { PatientsClient } from "./patients-client";
@@ -105,15 +105,9 @@ async function PatientsPageContent({ searchParams }: PatientsPageProps) {
 					<p className="mb-6 text-center text-sm">
 						Patient records will appear here once patients have been added to the system.
 					</p>
-					<Button asChild>
-						<Link
-							href="/dashboard/add-new-patient?returnTo=%2Fdashboard%2Fpatients"
-							prefetch={true}
-						>
-							{" "}
-							Add patient
-						</Link>
-					</Button>
+					<AddPatientDialog returnTo="/dashboard/patients">
+						<Button>Add patient</Button>
+					</AddPatientDialog>
 				</div>
 			</div>
 		</div>

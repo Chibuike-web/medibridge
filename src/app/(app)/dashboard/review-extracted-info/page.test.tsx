@@ -122,13 +122,13 @@ describe("review saved patient extractions", () => {
 
 	test("returns to uploads when the review URL has no extraction ID", async () => {
 		await renderReviewPage({});
-		expect(redirectMock).toHaveBeenCalledWith("/dashboard/add-new-patient");
+		expect(redirectMock).toHaveBeenCalledWith("/dashboard/add-new-patient/bulk");
 		expect(getExtractionMock).not.toHaveBeenCalled();
 	});
 
 	test("returns to uploads when the review URL has more than one extraction ID", async () => {
 		await renderReviewPage({ extractionId: ["saved", "other"] });
-		expect(redirectMock).toHaveBeenCalledWith("/dashboard/add-new-patient");
+		expect(redirectMock).toHaveBeenCalledWith("/dashboard/add-new-patient/bulk");
 		expect(getExtractionMock).not.toHaveBeenCalled();
 	});
 

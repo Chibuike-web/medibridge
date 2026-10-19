@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { AddNewPatientClient } from "@/app/(app)/dashboard/add-new-patient/add-new-patient-client";
+import { AddNewPatientClient } from "./add-new-patient-client";
 import Link from "next/link";
 import { RiArrowLeftLine } from "@remixicon/react";
 import { Suspense } from "react";
@@ -13,7 +13,7 @@ export const metadata = {
 	title: "Add New Patient",
 };
 
-type AddNewPatientPageProps = Pick<PageProps<"/dashboard/add-new-patient">, "searchParams">;
+type AddNewPatientPageProps = Pick<PageProps<"/dashboard/add-new-patient/bulk">, "searchParams">;
 
 export default function AddNewPatient({ searchParams }: AddNewPatientPageProps) {
 	return (

@@ -40,7 +40,7 @@ async function ReviewExtractedInfoContent({ searchParams }: ReviewExtractedInfoP
 
 	const { extractionId } = await searchParams;
 	if (typeof extractionId !== "string") {
-		redirect("/dashboard/add-new-patient");
+		redirect("/dashboard/add-new-patient/bulk");
 	}
 
 	const extraction = await getPatientExtractionById(extractionId);

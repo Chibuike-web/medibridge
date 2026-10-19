@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
 	typedRoutes: true,
 	logging: { fetches: { fullUrl: true } },
 	serverExternalPackages: ["tesseract.js", "pdf-parse", "mammoth"],
+	redirects: async () => [
+		{
+			source: "/dashboard/add-new-patient",
+			destination: "/dashboard/add-new-patient/bulk",
+			permanent: true,
+		},
+	],
 	experimental: {
 		serverActions: { bodySizeLimit: "100mb" },
 		proxyClientMaxBodySize: "100mb",

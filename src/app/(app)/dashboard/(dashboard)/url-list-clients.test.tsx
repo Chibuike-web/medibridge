@@ -65,7 +65,12 @@ const listCases = [
 	{
 		name: "patients",
 		initialParams: "page=2&limit=14&query=Ada&gender=female&createdFrom=2026-10-01",
-		addLink: "Add patient",
+		getCreateHref: async (user: ReturnType<typeof userEvent.setup>) => {
+			await user.click(screen.getByRole("button", { name: "Add patient" }));
+			await user.click(screen.getByRole("radio", { name: /Enter manually/ }));
+			await user.click(screen.getByRole("button", { name: "Continue" }));
+			return navigation.push.mock.calls[0][0] as string;
+		},
 		filterName: "gender",
 		filterValue: "female",
 		renderList: (name = "Ada Okafor", query = "Ada") => (
@@ -75,7 +80,8 @@ const listCases = [
 	{
 		name: "transfers",
 		initialParams: "page=2&limit=14&query=Ada&status=pending&requestedFrom=2026-10-01",
-		addLink: "New transfer request",
+		getCreateHref: async () =>
+			screen.getByRole("link", { name: "New transfer request" }).getAttribute("href")!,
 		filterName: "status",
 		filterValue: "pending",
 		renderList: (name = "Ada Okafor", query = "Ada") => (
@@ -106,23 +112,24 @@ afterEach(() => {
 
 describe.each(listCases)(
 	"URL-driven $name list",
-	({ name, initialParams, addLink, filterName, filterValue, renderList }) => {
+	({ name, initialParams, getCreateHref, filterName, filterValue, renderList }) => {
 		beforeEach(() => {
 			navigation.pathname = `/dashboard/${name}`;
 			navigation.params = initialParams;
 		});
 
-		test("renders fresh server rows and preserves all URL parameters in the create return link", () => {
+		test("renders fresh server rows and preserves all URL parameters in the create return link", async () => {
+			const user = userEvent.setup();
 			const { rerender } = render(renderList());
 			expect(within(screen.getByRole("table")).getByText("Ada Okafor")).toBeVisible();
-			const href = screen.getByRole("link", { name: addLink }).getAttribute("href")!;
-			const returnTo = new URL(href, "http://localhost").searchParams.get("returnTo");
-			expect(returnTo).toBe(`${navigation.pathname}?${initialParams}`);
 			rerender(renderList("Nneka Obi"));
 			expect(within(screen.getByRole("table")).getByText("Nneka Obi")).toBeVisible();
 			expect(within(screen.getByRole("table")).queryByText("Ada Okafor")).not.toBeInTheDocument();
 			expect(navigation.push).not.toHaveBeenCalled();
 			expect(navigation.replace).not.toHaveBeenCalled();
+			const href = await getCreateHref(user);
+			const returnTo = new URL(href, "http://localhost").searchParams.get("returnTo");
+			expect(returnTo).toBe(`${navigation.pathname}?${initialParams}`);
 		});
 
 		test("pushes the next page while retaining the active query and filters", async () => {

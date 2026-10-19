@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import Overview from "./overview/page";
 import PatientsPage from "./patients/page";
 import TransfersPage from "./transfers/page";
-import AddNewPatient from "../add-new-patient/page";
+import BulkPatientPage from "../add-new-patient/bulk/page";
+import ManualPatientPage from "../add-new-patient/manual/page";
 
 const {
 	verifySessionMock,
@@ -59,6 +60,13 @@ describe.each([
 		readRecords: getTransfersMock,
 		addPatientReturnTo: null,
 	},
+	{
+		name: "manual add patient",
+		page: () => <ManualPatientPage searchParams={Promise.resolve({})} />,
+		heading: "Add Patient",
+		readRecords: vi.fn(),
+		addPatientReturnTo: null,
+	},
 ])("$name page access", ({ page, heading, readRecords, addPatientReturnTo }) => {
 	beforeEach(() => {
 		verifySessionMock.mockResolvedValue({ user: { id: "user-1", emailVerified: true } });
@@ -85,26 +93,27 @@ describe.each([
 	});
 
 	if (addPatientReturnTo) {
-		test("returns to the originating page after opening Add Patient", async () => {
+		test("opens the Add patient choice and both add routes return to the originating page", async () => {
 			await renderPage();
 			expect(screen.getByRole("heading", { name: heading })).toBeVisible();
-			const destination = new URL(
-				screen.getByRole("link", { name: "Add patient" }).getAttribute("href")!,
-				"http://localhost",
+			expect(screen.getByRole("button", { name: "Add patient" })).toHaveAttribute(
+				"aria-haspopup",
+				"dialog",
 			);
-			expect(destination.pathname).toBe("/dashboard/add-new-patient");
-			expect(destination.searchParams.get("returnTo")).toBe(addPatientReturnTo);
-			cleanup();
-			await renderPage(
-				<AddNewPatient
-					searchParams={Promise.resolve({ returnTo: destination.searchParams.get("returnTo")! })}
-				/>,
-			);
-			expect(screen.getByRole("heading", { name: "Upload Patient’s Record" })).toBeVisible();
-			expect(screen.getByRole("link", { name: "Back" })).toHaveAttribute(
-				"href",
-				addPatientReturnTo,
-			);
+			for (const { AddPatientPage, addPatientHeading } of [
+				{ AddPatientPage: BulkPatientPage, addPatientHeading: "Upload Patient’s Record" },
+				{ AddPatientPage: ManualPatientPage, addPatientHeading: "Add Patient" },
+			]) {
+				cleanup();
+				await renderPage(
+					<AddPatientPage searchParams={Promise.resolve({ returnTo: addPatientReturnTo })} />,
+				);
+				expect(screen.getByRole("heading", { name: addPatientHeading })).toBeVisible();
+				expect(screen.getByRole("link", { name: "Back" })).toHaveAttribute(
+					"href",
+					addPatientReturnTo,
+				);
+			}
 		});
 	}
 
