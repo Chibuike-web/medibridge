@@ -115,7 +115,7 @@ export function HospitalDetailsClient() {
 					</p>
 				)}
 			</div>
-			<p className="text-gray-600 mb-3.5">
+			<p className="mb-2 text-sm font-medium">
 				Upload hospital accreditation or official license document
 			</p>
 

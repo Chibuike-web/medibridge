@@ -1,7 +1,4 @@
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { ForgotPasswordClient } from "./forgot-password-client";
-import { RiArrowLeftLine } from "@remixicon/react";
 
 export const metadata = {
 	title: "Forgot Password",
@@ -9,28 +6,18 @@ export const metadata = {
 
 export default function ForgotPassword() {
 	return (
-		<main className="flex h-dvh flex-col overflow-hidden">
-			<nav className="w-full shrink-0 flex items-center bg-white border-b border-gray-300 p-4">
-				<Button variant="ghost" size="icon" asChild>
-					<Link href="/sign-in">
-						<RiArrowLeftLine aria-hidden="true" /> <span className="sr-only">Back</span>
-					</Link>
-				</Button>
-			</nav>
-
-			<div className="min-h-0 flex-1 overflow-y-auto">
-				<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
-					<div className="w-full">
-						<div>
-							<h1 className="text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
-								Forgot Your Password?
-							</h1>
-							<p className="text-gray-600 text-sm font-normal text-center text-pretty mt-4">
-								We’ll send a link to reset your password.
-							</p>
-						</div>
-						<ForgotPasswordClient />
+		<main className="h-dvh overflow-y-auto">
+			<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
+				<div className="w-full">
+					<div>
+						<h1 className="text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
+							Forgot Your Password?
+						</h1>
+						<p className="text-gray-600 text-sm font-normal text-center text-pretty mt-4">
+							We’ll send a link to reset your password.
+						</p>
 					</div>
+					<ForgotPasswordClient />
 				</div>
 			</div>
 		</main>
