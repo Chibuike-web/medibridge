@@ -1,12 +1,30 @@
 import { Suspense } from "react";
 import { RiInformationFill } from "@remixicon/react";
-import { SharedRecordsClient } from "./shared-records-client";
-import { getSharedSection, type SharedPatient } from "./shared-record-sections";
+import { sharedSections, type SharedPatient } from "./shared-record-sections";
+import { SharedAllergiesTable } from "./shared-record-tables/allergies-table";
+import { SharedDiagnosesTable } from "./shared-record-tables/diagnoses-table";
+import { SharedImagingTable } from "./shared-record-tables/imaging-table";
+import { SharedImmunizationsTable } from "./shared-record-tables/immunizations-table";
+import { SharedLabTestsTable } from "./shared-record-tables/lab-tests-table";
+import { SharedMedicationsTable } from "./shared-record-tables/medications-table";
+import { SharedProceduresTable } from "./shared-record-tables/procedures-table";
 import { SharedTabs } from "./shared-tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+	DetailItem,
+	DetailsSection,
+} from "@/features/patients/components/patient-details-section/detail-fields";
 import { hasVerifiedExternalAccessSession } from "@/lib/api/external-access-session";
 import { getInitials } from "@/lib/utils/get-initials";
 import { notFound, redirect } from "next/navigation";
+import { getSharedAllergies } from "@/lib/api/get-shared-allergies";
+import { getSharedDiagnoses } from "@/lib/api/get-shared-diagnoses";
+import { getSharedImaging } from "@/lib/api/get-shared-imaging";
+import { getSharedImmunizations } from "@/lib/api/get-shared-immunizations";
+import { getSharedLabTests } from "@/lib/api/get-shared-lab-tests";
+import { getSharedMedications } from "@/lib/api/get-shared-medications";
+import { getSharedPatientDetails } from "@/lib/api/get-shared-patient-details";
+import { getSharedProcedures } from "@/lib/api/get-shared-procedures";
 import { getSharedRecord } from "@/lib/api/get-shared-record";
 import { formatDate } from "@/lib/utils/format-date";
 import { getStringParam } from "@/lib/utils/search-params";
@@ -42,7 +60,11 @@ async function SharedRecordsContent({ params, searchParams }: SharedRecordsPageP
 	const sharedRecord = await getSharedRecord(accessId);
 	if (!sharedRecord) notFound();
 
-	const activeSection = getSharedSection(section, sharedRecord.availableSections);
+	const selectedSections = sharedRecord.selectedRecordIds.map((record) => record.section);
+	const availableSections = sharedSections
+		.map((sharedSection) => sharedSection.id)
+		.filter((id) => selectedSections.includes(id));
+	const activeSection = availableSections.find((id) => id === section) ?? availableSections[0];
 
 	return (
 		<>
@@ -52,19 +74,81 @@ async function SharedRecordsContent({ params, searchParams }: SharedRecordsPageP
 			/>
 			<PatientHeader patient={sharedRecord.patient} />
 			<nav className="border-b border-gray-200" aria-label="Shared record sections">
-				<SharedTabs
-					activeSection={activeSection}
-					availableSections={sharedRecord.availableSections}
-				/>
+				<SharedTabs activeSection={activeSection} availableSections={availableSections} />
 			</nav>
-			<SharedRecordsClient
-				accessId={accessId}
-				patientDetailsSections={sharedRecord.patientDetailsSections}
-				records={sharedRecord.records}
-				activeSection={activeSection}
-			/>
+			<main className="mx-auto w-full max-w-7xl px-6 py-9">
+				{activeSection === "patient-details" ? <SharedPatientDetails accessId={accessId} /> : null}
+				{activeSection === "diagnoses" ? <SharedDiagnoses accessId={accessId} /> : null}
+				{activeSection === "allergies" ? <SharedAllergies accessId={accessId} /> : null}
+				{activeSection === "immunizations" ? <SharedImmunizations accessId={accessId} /> : null}
+				{activeSection === "procedures" ? <SharedProcedures accessId={accessId} /> : null}
+				{activeSection === "medications" ? <SharedMedications accessId={accessId} /> : null}
+				{activeSection === "lab-tests" ? <SharedLabTests accessId={accessId} /> : null}
+				{activeSection === "imaging" ? <SharedImaging accessId={accessId} /> : null}
+			</main>
 		</>
 	);
+}
+
+async function SharedPatientDetails({ accessId }: { accessId: string }) {
+	const sections = await getSharedPatientDetails(accessId);
+
+	return (
+		<div>
+			<h2 className="mb-6 text-lg font-semibold text-gray-900">Patient Details</h2>
+			<div className="flex flex-col gap-8">
+				{sections.map((section) => (
+					<DetailsSection key={section.title} title={section.title}>
+						{section.items.map((item) => (
+							<DetailItem key={item.label} label={item.label} value={item.value} />
+						))}
+					</DetailsSection>
+				))}
+			</div>
+		</div>
+	);
+}
+
+async function SharedDiagnoses({ accessId }: { accessId: string }) {
+	const diagnoses = await getSharedDiagnoses(accessId);
+
+	return <SharedDiagnosesTable accessId={accessId} rows={diagnoses} />;
+}
+
+async function SharedAllergies({ accessId }: { accessId: string }) {
+	const allergies = await getSharedAllergies(accessId);
+
+	return <SharedAllergiesTable accessId={accessId} rows={allergies} />;
+}
+
+async function SharedImmunizations({ accessId }: { accessId: string }) {
+	const immunizations = await getSharedImmunizations(accessId);
+
+	return <SharedImmunizationsTable accessId={accessId} rows={immunizations} />;
+}
+
+async function SharedProcedures({ accessId }: { accessId: string }) {
+	const procedures = await getSharedProcedures(accessId);
+
+	return <SharedProceduresTable accessId={accessId} rows={procedures} />;
+}
+
+async function SharedMedications({ accessId }: { accessId: string }) {
+	const medications = await getSharedMedications(accessId);
+
+	return <SharedMedicationsTable accessId={accessId} rows={medications} />;
+}
+
+async function SharedLabTests({ accessId }: { accessId: string }) {
+	const labTests = await getSharedLabTests(accessId);
+
+	return <SharedLabTestsTable accessId={accessId} rows={labTests} />;
+}
+
+async function SharedImaging({ accessId }: { accessId: string }) {
+	const imaging = await getSharedImaging(accessId);
+
+	return <SharedImagingTable accessId={accessId} rows={imaging} />;
 }
 
 function SharedAccessBanner({
