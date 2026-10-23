@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getSharedSection } from "@/app/(app)/shared-records/[accessId]/shared-record-sections";
 import { and, eq, inArray } from "drizzle-orm";
 import {
 	organization,
@@ -58,9 +59,7 @@ function imagingModality(value: string): "CT" | "MRI" | "Ultrasound" | "X-ray" {
 	return "X-ray";
 }
 
-function immunizationStatus(
-	value: string,
-): "Active" | "Completed" | "Cancelled" | "Discontinued" {
+function immunizationStatus(value: string): "Active" | "Completed" | "Cancelled" | "Discontinued" {
 	if (value.toLowerCase() === "completed") return "Completed";
 	if (value.toLowerCase() === "cancelled") return "Cancelled";
 	if (value.toLowerCase() === "discontinued") return "Discontinued";
@@ -73,9 +72,7 @@ function procedureStatus(value: string): "Pending" | "Completed" | "Cancelled" {
 	return "Pending";
 }
 
-function medicationStatus(
-	value: string,
-): "Active" | "Completed" | "Discontinued" {
+function medicationStatus(value: string): "Active" | "Completed" | "Discontinued" {
 	if (value.toLowerCase() === "completed") return "Completed";
 	if (value.toLowerCase() === "discontinued") return "Discontinued";
 	return "Active";
@@ -93,7 +90,7 @@ function imagingStatus(value: string): "Pending" | "Completed" | "Cancelled" {
 	return "Pending";
 }
 
-export async function getSharedRecord(accessId: string) {
+export async function getSharedRecord(accessId: string, section?: string) {
 	const [access] = await db
 		.select({
 			accessId: patientRecordAccess.id,
@@ -128,26 +125,11 @@ export async function getSharedRecord(accessId: string) {
 		})
 		.from(patientRecordAccess)
 		.innerJoin(patient, eq(patientRecordAccess.patientId, patient.id))
-		.innerJoin(
-			patientPersonalInformation,
-			eq(patient.id, patientPersonalInformation.patientId),
-		)
-		.innerJoin(
-			organization,
-			eq(patientRecordAccess.createdByOrganizationId, organization.id),
-		)
-		.leftJoin(
-			patientContactInformation,
-			eq(patient.id, patientContactInformation.patientId),
-		)
-		.leftJoin(
-			patientEmergencyContact,
-			eq(patient.id, patientEmergencyContact.patientId),
-		)
-		.leftJoin(
-			patientPhysicalInformation,
-			eq(patient.id, patientPhysicalInformation.patientId),
-		)
+		.innerJoin(patientPersonalInformation, eq(patient.id, patientPersonalInformation.patientId))
+		.innerJoin(organization, eq(patientRecordAccess.createdByOrganizationId, organization.id))
+		.leftJoin(patientContactInformation, eq(patient.id, patientContactInformation.patientId))
+		.leftJoin(patientEmergencyContact, eq(patient.id, patientEmergencyContact.patientId))
+		.leftJoin(patientPhysicalInformation, eq(patient.id, patientPhysicalInformation.patientId))
 		.where(eq(patientRecordAccess.id, accessId));
 
 	if (
@@ -178,115 +160,107 @@ export async function getSharedRecord(accessId: string) {
 	const labTestIds = selectedIds("lab-tests");
 	const imagingIds = selectedIds("imaging");
 	const patientDetailIds = selectedIds("patient-details");
-
-	const [
-		diagnoses,
-		allergies,
-		immunizations,
-		procedures,
-		medications,
-		labTests,
-		imaging,
-	] = await Promise.all([
-		diagnosisIds.length === 0
-			? []
-			: db
-					.select()
-					.from(patientDiagnosis)
-					.where(
-						and(
-							eq(patientDiagnosis.patientId, access.patientId),
-							inArray(patientDiagnosis.id, diagnosisIds),
-						),
-					),
-		allergyIds.length === 0
-			? []
-			: db
-					.select()
-					.from(patientAllergy)
-					.where(
-						and(
-							eq(patientAllergy.patientId, access.patientId),
-							inArray(patientAllergy.id, allergyIds),
-						),
-					),
-		immunizationIds.length === 0
-			? []
-			: db
-					.select()
-					.from(patientImmunization)
-					.where(
-						and(
-							eq(patientImmunization.patientId, access.patientId),
-							inArray(patientImmunization.id, immunizationIds),
-						),
-					),
-		procedureIds.length === 0
-			? []
-			: db
-					.select()
-					.from(patientProcedure)
-					.where(
-						and(
-							eq(patientProcedure.patientId, access.patientId),
-							inArray(patientProcedure.id, procedureIds),
-						),
-					),
-		medicationIds.length === 0
-			? []
-			: db
-					.select()
-					.from(patientMedication)
-					.where(
-						and(
-							eq(patientMedication.patientId, access.patientId),
-							inArray(patientMedication.id, medicationIds),
-						),
-					),
-		labTestIds.length === 0
-			? []
-			: db
-					.select()
-					.from(patientLabTest)
-					.where(
-						and(
-							eq(patientLabTest.patientId, access.patientId),
-							inArray(patientLabTest.id, labTestIds),
-						),
-					),
-		imagingIds.length === 0
-			? []
-			: db
-					.select()
-					.from(patientImaging)
-					.where(
-						and(
-							eq(patientImaging.patientId, access.patientId),
-							inArray(patientImaging.id, imagingIds),
-						),
-					),
-	]);
-
 	const availableSections = [
 		...(patientDetailIds.length > 0 ? (["patient-details"] as const) : []),
-		...(diagnoses.length > 0 ? (["diagnoses"] as const) : []),
-		...(allergies.length > 0 ? (["allergies"] as const) : []),
-		...(immunizations.length > 0 ? (["immunization"] as const) : []),
-		...(procedures.length > 0 ? (["procedures"] as const) : []),
-		...(medications.length > 0 ? (["medications"] as const) : []),
-		...(labTests.length > 0 ? (["lab-tests"] as const) : []),
-		...(imaging.length > 0 ? (["imaging"] as const) : []),
+		...(diagnosisIds.length > 0 ? (["diagnoses"] as const) : []),
+		...(allergyIds.length > 0 ? (["allergies"] as const) : []),
+		...(immunizationIds.length > 0 ? (["immunization"] as const) : []),
+		...(procedureIds.length > 0 ? (["procedures"] as const) : []),
+		...(medicationIds.length > 0 ? (["medications"] as const) : []),
+		...(labTestIds.length > 0 ? (["lab-tests"] as const) : []),
+		...(imagingIds.length > 0 ? (["imaging"] as const) : []),
 	];
+	const activeSection = getSharedSection(section, availableSections);
+
+	const [diagnoses, allergies, immunizations, procedures, medications, labTests, imaging] =
+		await Promise.all([
+			activeSection !== "diagnoses" || diagnosisIds.length === 0
+				? []
+				: db
+						.select()
+						.from(patientDiagnosis)
+						.where(
+							and(
+								eq(patientDiagnosis.patientId, access.patientId),
+								inArray(patientDiagnosis.id, diagnosisIds),
+							),
+						),
+			activeSection !== "allergies" || allergyIds.length === 0
+				? []
+				: db
+						.select()
+						.from(patientAllergy)
+						.where(
+							and(
+								eq(patientAllergy.patientId, access.patientId),
+								inArray(patientAllergy.id, allergyIds),
+							),
+						),
+			activeSection !== "immunization" || immunizationIds.length === 0
+				? []
+				: db
+						.select()
+						.from(patientImmunization)
+						.where(
+							and(
+								eq(patientImmunization.patientId, access.patientId),
+								inArray(patientImmunization.id, immunizationIds),
+							),
+						),
+			activeSection !== "procedures" || procedureIds.length === 0
+				? []
+				: db
+						.select()
+						.from(patientProcedure)
+						.where(
+							and(
+								eq(patientProcedure.patientId, access.patientId),
+								inArray(patientProcedure.id, procedureIds),
+							),
+						),
+			activeSection !== "medications" || medicationIds.length === 0
+				? []
+				: db
+						.select()
+						.from(patientMedication)
+						.where(
+							and(
+								eq(patientMedication.patientId, access.patientId),
+								inArray(patientMedication.id, medicationIds),
+							),
+						),
+			activeSection !== "lab-tests" || labTestIds.length === 0
+				? []
+				: db
+						.select()
+						.from(patientLabTest)
+						.where(
+							and(
+								eq(patientLabTest.patientId, access.patientId),
+								inArray(patientLabTest.id, labTestIds),
+							),
+						),
+			activeSection !== "imaging" || imagingIds.length === 0
+				? []
+				: db
+						.select()
+						.from(patientImaging)
+						.where(
+							and(
+								eq(patientImaging.patientId, access.patientId),
+								inArray(patientImaging.id, imagingIds),
+							),
+						),
+		]);
 
 	return {
 		accessId: access.accessId,
 		sourceOrganizationName: access.sourceOrganizationName,
 		expiresAt: access.expiresAt.toISOString(),
 		availableSections,
+		activeSection,
 		patient: {
-			name: [access.firstName, access.middleName, access.lastName]
-				.filter(Boolean)
-				.join(" "),
+			name: [access.firstName, access.middleName, access.lastName].filter(Boolean).join(" "),
 			sex: capitalize(String(display(access.sex))),
 			age: String(display(access.age)),
 		},
@@ -351,7 +325,9 @@ export async function getSharedRecord(accessId: string) {
 					{ label: "Genotype", value: display(access.genotype) },
 				],
 			},
-		].filter((section) => patientDetailIds.includes(section.id)),
+		].filter(
+			(section) => activeSection === "patient-details" && patientDetailIds.includes(section.id),
+		),
 		records: {
 			diagnoses: diagnoses.map((record) => ({
 				name: record.diagnosisName,
@@ -428,6 +404,4 @@ export async function getSharedRecord(accessId: string) {
 	};
 }
 
-export type SharedRecordData = NonNullable<
-	Awaited<ReturnType<typeof getSharedRecord>>
->;
+export type SharedRecordData = NonNullable<Awaited<ReturnType<typeof getSharedRecord>>>;

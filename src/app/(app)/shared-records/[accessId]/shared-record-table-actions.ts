@@ -28,7 +28,7 @@ export async function getSharedDiagnosesTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId);
+	const sharedRecord = await getSharedRecord(accessId, "diagnoses");
 	if (!sharedRecord) return [];
 	const normalizedQuery = query.trim().toLowerCase();
 	const diagnosedFromDate = parseDateParam(diagnosedFrom);
@@ -77,7 +77,7 @@ export async function getSharedAllergiesTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId);
+	const sharedRecord = await getSharedRecord(accessId, "allergies");
 	if (!sharedRecord) return [];
 	const normalizedQuery = query.trim().toLowerCase();
 	const createdFromDate = parseDateParam(createdFrom);
@@ -87,19 +87,13 @@ export async function getSharedAllergiesTableAction({
 		const createdAt = new Date(row.createdAtValue);
 		const matchesSearch =
 			!normalizedQuery ||
-			[
-				row.allergen,
-				row.allergyId,
-				row.reaction,
-				row.createdAt,
-				row.severity,
-				row.status,
-			].some((value) => value.toLowerCase().includes(normalizedQuery));
+			[row.allergen, row.allergyId, row.reaction, row.createdAt, row.severity, row.status].some(
+				(value) => value.toLowerCase().includes(normalizedQuery),
+			);
 		return (
 			matchesSearch &&
 			(statusFilters.length === 0 || statusFilters.includes(row.status)) &&
-			(severityFilters.length === 0 ||
-				severityFilters.includes(row.severity)) &&
+			(severityFilters.length === 0 || severityFilters.includes(row.severity)) &&
 			(!createdFromDate || createdAt >= startOfDay(createdFromDate)) &&
 			(!createdToDate || createdAt <= endOfDay(createdToDate))
 		);
@@ -121,7 +115,7 @@ export async function getSharedImmunizationsTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId);
+	const sharedRecord = await getSharedRecord(accessId, "immunization");
 	if (!sharedRecord) return [];
 	const normalizedQuery = query.trim().toLowerCase();
 	const createdFromDate = parseDateParam(createdFrom);
@@ -157,7 +151,7 @@ export async function getSharedProceduresTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId);
+	const sharedRecord = await getSharedRecord(accessId, "procedures");
 	if (!sharedRecord) return [];
 	const normalizedQuery = query.trim().toLowerCase();
 	const createdFromDate = parseDateParam(createdFrom);
@@ -198,7 +192,7 @@ export async function getSharedMedicationsTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId);
+	const sharedRecord = await getSharedRecord(accessId, "medications");
 	if (!sharedRecord) return [];
 	const normalizedQuery = query.trim().toLowerCase();
 	const createdFromDate = parseDateParam(createdFrom);
@@ -242,7 +236,7 @@ export async function getSharedLabTestsTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId);
+	const sharedRecord = await getSharedRecord(accessId, "lab-tests");
 	if (!sharedRecord) return [];
 	const normalizedQuery = query.trim().toLowerCase();
 	const createdFromDate = parseDateParam(createdFrom);
@@ -291,7 +285,7 @@ export async function getSharedImagingTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId);
+	const sharedRecord = await getSharedRecord(accessId, "imaging");
 	if (!sharedRecord) return [];
 	const normalizedQuery = query.trim().toLowerCase();
 	const orderedFromDate = parseDateParam(orderedFrom);
@@ -315,8 +309,7 @@ export async function getSharedImagingTableAction({
 		return (
 			matchesSearch &&
 			(statusFilters.length === 0 || statusFilters.includes(row.status)) &&
-			(modalityFilters.length === 0 ||
-				modalityFilters.includes(row.modality)) &&
+			(modalityFilters.length === 0 || modalityFilters.includes(row.modality)) &&
 			(!orderedFromDate || orderedAt >= startOfDay(orderedFromDate)) &&
 			(!orderedToDate || orderedAt <= endOfDay(orderedToDate)) &&
 			(!createdFromDate || createdAt >= startOfDay(createdFromDate)) &&

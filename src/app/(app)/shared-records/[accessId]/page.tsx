@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { RiInformationFill } from "@remixicon/react";
 import { SharedRecordsClient } from "./shared-records-client";
-import { getSharedSection, type SharedPatient } from "./shared-record-sections";
+import type { SharedPatient } from "./shared-record-sections";
 import { SharedTabs } from "./shared-tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { hasVerifiedExternalAccessSession } from "@/lib/api/external-access-session";
@@ -39,10 +39,10 @@ async function SharedRecordsContent({ params, searchParams }: SharedRecordsPageP
 		redirect(`/verify-access/${accessId}`);
 	}
 
-	const sharedRecord = await getSharedRecord(accessId);
+	const sharedRecord = await getSharedRecord(accessId, section);
 	if (!sharedRecord) notFound();
 
-	const activeSection = getSharedSection(section, sharedRecord.availableSections);
+	const { activeSection } = sharedRecord;
 
 	return (
 		<>

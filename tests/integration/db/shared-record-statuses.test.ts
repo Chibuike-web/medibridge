@@ -91,18 +91,20 @@ describe.skipIf(!testDatabaseUrl)("Shared record statuses", () => {
 	});
 
 	test("shows the receiving hospital the statuses the records were saved with", async () => {
-		const sharedRecord = await getSharedRecord(accessId);
+		const sharedRecord = await getSharedRecord(accessId, "medications");
 
 		expect(sharedRecord?.records.medications).toEqual([
 			expect.objectContaining({ medication: "Amoxicillin", status: "Discontinued" }),
 		]);
-		expect(sharedRecord?.records.labTests).toEqual([
+		const sharedLabTests = await getSharedRecord(accessId, "lab-tests");
+
+		expect(sharedLabTests?.records.labTests).toEqual([
 			expect.objectContaining({ status: "Completed" }),
 		]);
 	});
 
 	test("shows the receiving hospital how much, how often and how long each medication is taken", async () => {
-		const sharedRecord = await getSharedRecord(accessId);
+		const sharedRecord = await getSharedRecord(accessId, "medications");
 
 		expect(sharedRecord?.records.medications).toEqual([
 			expect.objectContaining({
