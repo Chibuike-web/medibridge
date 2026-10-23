@@ -4,7 +4,7 @@ export const sharedSections: { id: PatientRecordAccessSection; label: string }[]
 	{ id: "patient-details", label: "Patient Details" },
 	{ id: "diagnoses", label: "Diagnoses" },
 	{ id: "allergies", label: "Allergies" },
-	{ id: "immunizations", label: "Immunization" },
+	{ id: "immunizations", label: "Immunizations" },
 	{ id: "procedures", label: "Procedures" },
 	{ id: "medications", label: "Medications" },
 	{ id: "lab-tests", label: "Lab Tests" },
