@@ -2,7 +2,13 @@
 
 import { endOfDay, startOfDay } from "date-fns";
 import { hasVerifiedExternalAccessSession } from "@/lib/api/external-access-session";
-import { getSharedRecord } from "@/lib/api/get-shared-record";
+import { getSharedAllergies } from "@/lib/api/get-shared-allergies";
+import { getSharedDiagnoses } from "@/lib/api/get-shared-diagnoses";
+import { getSharedImaging } from "@/lib/api/get-shared-imaging";
+import { getSharedImmunizations } from "@/lib/api/get-shared-immunizations";
+import { getSharedLabTests } from "@/lib/api/get-shared-lab-tests";
+import { getSharedMedications } from "@/lib/api/get-shared-medications";
+import { getSharedProcedures } from "@/lib/api/get-shared-procedures";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 
 export async function getSharedDiagnosesTableAction({
@@ -28,8 +34,7 @@ export async function getSharedDiagnosesTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId, "diagnoses");
-	if (!sharedRecord) return [];
+	const diagnoses = await getSharedDiagnoses(accessId);
 	const normalizedQuery = query.trim().toLowerCase();
 	const diagnosedFromDate = parseDateParam(diagnosedFrom);
 	const diagnosedToDate = parseDateParam(diagnosedTo);
@@ -38,7 +43,7 @@ export async function getSharedDiagnosesTableAction({
 	const createdFromDate = parseDateParam(createdFrom);
 	const createdToDate = parseDateParam(createdTo);
 
-	return sharedRecord.records.diagnoses.filter((row) => {
+	return diagnoses.filter((row) => {
 		const diagnosedAt = new Date(row.diagnosedAtValue);
 		const reviewedAt = new Date(row.lastReviewedValue);
 		const createdAt = new Date(row.createdAtValue);
@@ -77,13 +82,12 @@ export async function getSharedAllergiesTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId, "allergies");
-	if (!sharedRecord) return [];
+	const allergies = await getSharedAllergies(accessId);
 	const normalizedQuery = query.trim().toLowerCase();
 	const createdFromDate = parseDateParam(createdFrom);
 	const createdToDate = parseDateParam(createdTo);
 
-	return sharedRecord.records.allergies.filter((row) => {
+	return allergies.filter((row) => {
 		const createdAt = new Date(row.createdAtValue);
 		const matchesSearch =
 			!normalizedQuery ||
@@ -115,12 +119,11 @@ export async function getSharedImmunizationsTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId, "immunization");
-	if (!sharedRecord) return [];
+	const immunizations = await getSharedImmunizations(accessId);
 	const normalizedQuery = query.trim().toLowerCase();
 	const createdFromDate = parseDateParam(createdFrom);
 	const createdToDate = parseDateParam(createdTo);
-	return sharedRecord.records.immunizations.filter((row) => {
+	return immunizations.filter((row) => {
 		const createdAt = new Date(row.createdAtValue);
 		const matchesSearch =
 			!normalizedQuery ||
@@ -151,12 +154,11 @@ export async function getSharedProceduresTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId, "procedures");
-	if (!sharedRecord) return [];
+	const procedures = await getSharedProcedures(accessId);
 	const normalizedQuery = query.trim().toLowerCase();
 	const createdFromDate = parseDateParam(createdFrom);
 	const createdToDate = parseDateParam(createdTo);
-	return sharedRecord.records.procedures.filter((row) => {
+	return procedures.filter((row) => {
 		const createdAt = new Date(row.createdAtValue);
 		const matchesSearch =
 			!normalizedQuery ||
@@ -192,12 +194,11 @@ export async function getSharedMedicationsTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId, "medications");
-	if (!sharedRecord) return [];
+	const medications = await getSharedMedications(accessId);
 	const normalizedQuery = query.trim().toLowerCase();
 	const createdFromDate = parseDateParam(createdFrom);
 	const createdToDate = parseDateParam(createdTo);
-	return sharedRecord.records.medications.filter((row) => {
+	return medications.filter((row) => {
 		const createdAt = new Date(row.createdAtValue);
 		const matchesSearch =
 			!normalizedQuery ||
@@ -236,12 +237,11 @@ export async function getSharedLabTestsTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId, "lab-tests");
-	if (!sharedRecord) return [];
+	const labTests = await getSharedLabTests(accessId);
 	const normalizedQuery = query.trim().toLowerCase();
 	const createdFromDate = parseDateParam(createdFrom);
 	const createdToDate = parseDateParam(createdTo);
-	return sharedRecord.records.labTests.filter((row) => {
+	return labTests.filter((row) => {
 		const createdAt = new Date(row.createdAtValue);
 		const matchesSearch =
 			!normalizedQuery ||
@@ -285,14 +285,13 @@ export async function getSharedImagingTableAction({
 }) {
 	if (!(await hasVerifiedExternalAccessSession(accessId)))
 		throw new Error("Unauthorized shared-record access.");
-	const sharedRecord = await getSharedRecord(accessId, "imaging");
-	if (!sharedRecord) return [];
+	const imaging = await getSharedImaging(accessId);
 	const normalizedQuery = query.trim().toLowerCase();
 	const orderedFromDate = parseDateParam(orderedFrom);
 	const orderedToDate = parseDateParam(orderedTo);
 	const createdFromDate = parseDateParam(createdFrom);
 	const createdToDate = parseDateParam(createdTo);
-	return sharedRecord.records.imaging.filter((row) => {
+	return imaging.filter((row) => {
 		const orderedAt = new Date(row.orderedAtValue);
 		const createdAt = new Date(row.createdAtValue);
 		const matchesSearch =

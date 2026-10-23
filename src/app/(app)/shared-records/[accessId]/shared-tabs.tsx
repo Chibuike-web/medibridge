@@ -2,14 +2,15 @@
 
 import { startTransition, useOptimistic } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import type { PatientRecordAccessSection } from "@/db/schemas";
 import { cn } from "@/lib/utils/cn";
-import { sharedSections, type SharedSection } from "./shared-record-sections";
+import { sharedSections } from "./shared-record-sections";
 import { useReducedMotion, motion } from "motion/react";
 import { Tabs } from "radix-ui";
 
 type SharedTabsClientProps = {
-	activeSection: SharedSection;
-	availableSections: readonly SharedSection[];
+	activeSection: PatientRecordAccessSection;
+	availableSections: PatientRecordAccessSection[];
 };
 
 export function SharedTabs({ activeSection, availableSections }: SharedTabsClientProps) {
@@ -21,7 +22,7 @@ export function SharedTabs({ activeSection, availableSections }: SharedTabsClien
 		useOptimistic(activeSection);
 
 	function handleClick(value: string) {
-		const section = value as SharedSection;
+		const section = value as PatientRecordAccessSection;
 		const params = new URLSearchParams(searchParams.toString());
 		startTransition(() => {
 			setOptimisticSelectedSharedRecordSection(section);

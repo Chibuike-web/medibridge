@@ -19,6 +19,7 @@ describe.skipIf(!testDatabaseUrl)("Patient details in a shared record", () => {
 	let authModule: typeof import("@/lib/better-auth/auth");
 	let actions: typeof import("@/app/(app)/transfer-approval/[transferId]/actions");
 	let getSharedRecord: typeof import("@/lib/api/get-shared-record").getSharedRecord;
+	let getSharedPatientDetails: typeof import("@/lib/api/get-shared-patient-details").getSharedPatientDetails;
 	let getTransferApproval: typeof import("@/lib/api/get-transfer-approval").getTransferApproval;
 	let createTransferApprovalToken: typeof import("@/lib/api/transfer-approval-token").createTransferApprovalToken;
 	const transferId = "TRF-details";
@@ -30,6 +31,8 @@ describe.skipIf(!testDatabaseUrl)("Patient details in a shared record", () => {
 		authModule = await import("@/lib/better-auth/auth");
 		actions = await import("@/app/(app)/transfer-approval/[transferId]/actions");
 		getSharedRecord = (await import("@/lib/api/get-shared-record")).getSharedRecord;
+		getSharedPatientDetails = (await import("@/lib/api/get-shared-patient-details"))
+			.getSharedPatientDetails;
 		getTransferApproval = (await import("@/lib/api/get-transfer-approval")).getTransferApproval;
 		createTransferApprovalToken = (await import("@/lib/api/transfer-approval-token"))
 			.createTransferApprovalToken;
@@ -124,33 +127,36 @@ describe.skipIf(!testDatabaseUrl)("Patient details in a shared record", () => {
 			.where(eq(schema.patientRecordAccess.patientTransferId, transferId))
 			.returning({ id: schema.patientRecordAccess.id });
 
-		return getSharedRecord(access.id);
+		return access.id;
 	}
 
 	test("shows the receiving hospital only the patient details sections that were selected", async () => {
-		const sharedRecord = await approveAndOpen([
+		const accessId = await approveAndOpen([
 			{ contentType: "patient-details", recordId: "personal-information" },
 			{ contentType: "patient-details", recordId: "physical-information" },
 			{ contentType: "diagnoses", recordId: "DIA-details" },
 		]);
+		const patientDetails = await getSharedPatientDetails(accessId);
 
-		expect(sharedRecord?.availableSections).toEqual(["patient-details", "diagnoses"]);
-		expect(sharedRecord?.patientDetailsSections.map((section) => section.title)).toEqual([
+		expect(patientDetails.map((section) => section.title)).toEqual([
 			"Personal Information",
 			"Physical Information",
 		]);
-		expect(sharedRecord?.patient).toEqual({ name: "Ada Obi", sex: "Female", age: "34" });
+		expect((await getSharedRecord(accessId))?.patient).toEqual({
+			name: "Ada Obi",
+			sex: "Female",
+			age: "34",
+		});
 	});
 
 	test("still names the patient when no patient details sections were shared", async () => {
-		const sharedRecord = await approveAndOpen([
-			{ contentType: "diagnoses", recordId: "DIA-details" },
-		]);
+		const accessId = await approveAndOpen([{ contentType: "diagnoses", recordId: "DIA-details" }]);
+		const sharedRecord = await getSharedRecord(accessId);
+		const patientDetails = await getSharedPatientDetails(accessId);
 
-		expect(sharedRecord?.availableSections).toEqual(["diagnoses"]);
-		expect(sharedRecord?.patientDetailsSections).toEqual([]);
+		expect(patientDetails).toEqual([]);
 		expect(sharedRecord?.patient).toEqual({ name: "Ada Obi", sex: "Female", age: "34" });
-		expect(JSON.stringify(sharedRecord)).not.toContain("ada@example.org");
+		expect(JSON.stringify([sharedRecord, patientDetails])).not.toContain("ada@example.org");
 	});
 	test("shows the patient, before approving, exactly which details and records will be shared", async () => {
 		await authModule.db.insert(schema.patientTransferContent).values([

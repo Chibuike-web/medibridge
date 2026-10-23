@@ -1,18 +1,10 @@
-export type SharedSection =
-	| "patient-details"
-	| "diagnoses"
-	| "allergies"
-	| "immunization"
-	| "procedures"
-	| "medications"
-	| "lab-tests"
-	| "imaging";
+import type { PatientRecordAccessSection } from "@/db/schemas";
 
-export const sharedSections: { id: SharedSection; label: string }[] = [
+export const sharedSections: { id: PatientRecordAccessSection; label: string }[] = [
 	{ id: "patient-details", label: "Patient Details" },
 	{ id: "diagnoses", label: "Diagnoses" },
 	{ id: "allergies", label: "Allergies" },
-	{ id: "immunization", label: "Immunization" },
+	{ id: "immunizations", label: "Immunization" },
 	{ id: "procedures", label: "Procedures" },
 	{ id: "medications", label: "Medications" },
 	{ id: "lab-tests", label: "Lab Tests" },
@@ -23,12 +15,4 @@ export type SharedPatient = {
 	name: string;
 	sex: string;
 	age: string;
-};
-
-export type SharedPatientDetailSection = {
-	title: string;
-	items: {
-		label: string;
-		value: string | number | null | undefined;
-	}[];
 };
