@@ -1,6 +1,5 @@
 import "server-only";
 
-import { getSharedSection } from "@/app/(app)/shared-records/[accessId]/shared-record-sections";
 import { and, eq, inArray } from "drizzle-orm";
 import {
 	organization,
@@ -170,88 +169,93 @@ export async function getSharedRecord(accessId: string, section?: string) {
 		...(labTestIds.length > 0 ? (["lab-tests"] as const) : []),
 		...(imagingIds.length > 0 ? (["imaging"] as const) : []),
 	];
-	const activeSection = getSharedSection(section, availableSections);
+	const activeSection =
+		availableSections.find((id) => id === section) ?? availableSections[0] ?? "patient-details";
 
-	const [diagnoses, allergies, immunizations, procedures, medications, labTests, imaging] =
-		await Promise.all([
-			activeSection !== "diagnoses" || diagnosisIds.length === 0
-				? []
-				: db
-						.select()
-						.from(patientDiagnosis)
-						.where(
-							and(
-								eq(patientDiagnosis.patientId, access.patientId),
-								inArray(patientDiagnosis.id, diagnosisIds),
-							),
+	const diagnoses =
+		activeSection === "diagnoses"
+			? await db
+					.select()
+					.from(patientDiagnosis)
+					.where(
+						and(
+							eq(patientDiagnosis.patientId, access.patientId),
+							inArray(patientDiagnosis.id, diagnosisIds),
 						),
-			activeSection !== "allergies" || allergyIds.length === 0
-				? []
-				: db
-						.select()
-						.from(patientAllergy)
-						.where(
-							and(
-								eq(patientAllergy.patientId, access.patientId),
-								inArray(patientAllergy.id, allergyIds),
-							),
+					)
+			: [];
+	const allergies =
+		activeSection === "allergies"
+			? await db
+					.select()
+					.from(patientAllergy)
+					.where(
+						and(
+							eq(patientAllergy.patientId, access.patientId),
+							inArray(patientAllergy.id, allergyIds),
 						),
-			activeSection !== "immunization" || immunizationIds.length === 0
-				? []
-				: db
-						.select()
-						.from(patientImmunization)
-						.where(
-							and(
-								eq(patientImmunization.patientId, access.patientId),
-								inArray(patientImmunization.id, immunizationIds),
-							),
+					)
+			: [];
+	const immunizations =
+		activeSection === "immunization"
+			? await db
+					.select()
+					.from(patientImmunization)
+					.where(
+						and(
+							eq(patientImmunization.patientId, access.patientId),
+							inArray(patientImmunization.id, immunizationIds),
 						),
-			activeSection !== "procedures" || procedureIds.length === 0
-				? []
-				: db
-						.select()
-						.from(patientProcedure)
-						.where(
-							and(
-								eq(patientProcedure.patientId, access.patientId),
-								inArray(patientProcedure.id, procedureIds),
-							),
+					)
+			: [];
+	const procedures =
+		activeSection === "procedures"
+			? await db
+					.select()
+					.from(patientProcedure)
+					.where(
+						and(
+							eq(patientProcedure.patientId, access.patientId),
+							inArray(patientProcedure.id, procedureIds),
 						),
-			activeSection !== "medications" || medicationIds.length === 0
-				? []
-				: db
-						.select()
-						.from(patientMedication)
-						.where(
-							and(
-								eq(patientMedication.patientId, access.patientId),
-								inArray(patientMedication.id, medicationIds),
-							),
+					)
+			: [];
+	const medications =
+		activeSection === "medications"
+			? await db
+					.select()
+					.from(patientMedication)
+					.where(
+						and(
+							eq(patientMedication.patientId, access.patientId),
+							inArray(patientMedication.id, medicationIds),
 						),
-			activeSection !== "lab-tests" || labTestIds.length === 0
-				? []
-				: db
-						.select()
-						.from(patientLabTest)
-						.where(
-							and(
-								eq(patientLabTest.patientId, access.patientId),
-								inArray(patientLabTest.id, labTestIds),
-							),
+					)
+			: [];
+	const labTests =
+		activeSection === "lab-tests"
+			? await db
+					.select()
+					.from(patientLabTest)
+					.where(
+						and(
+							eq(patientLabTest.patientId, access.patientId),
+							inArray(patientLabTest.id, labTestIds),
 						),
-			activeSection !== "imaging" || imagingIds.length === 0
-				? []
-				: db
-						.select()
-						.from(patientImaging)
-						.where(
-							and(
-								eq(patientImaging.patientId, access.patientId),
-								inArray(patientImaging.id, imagingIds),
-							),
+					)
+			: [];
+	const imaging =
+		activeSection === "imaging"
+			? await db
+					.select()
+					.from(patientImaging)
+					.where(
+						and(
+							eq(patientImaging.patientId, access.patientId),
+							inArray(patientImaging.id, imagingIds),
 						),
-		]);
+					)
+			: [];
 
 	return {
 		accessId: access.accessId,

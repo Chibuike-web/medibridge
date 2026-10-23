@@ -138,7 +138,6 @@ test.each(sections)(
 		]);
 		expect(result?.patient).toEqual({ name: "Ada Obi", sex: "Female", age: "34" });
 		expect(result?.patientDetailsSections).toEqual([]);
-		// Avoiding reads of unopened sections is the performance contract.
 		expect(database.queriedTables).toEqual(new Set([patientRecordAccess, table]));
 	},
 );

@@ -42,8 +42,6 @@ async function SharedRecordsContent({ params, searchParams }: SharedRecordsPageP
 	const sharedRecord = await getSharedRecord(accessId, section);
 	if (!sharedRecord) notFound();
 
-	const { activeSection } = sharedRecord;
-
 	return (
 		<>
 			<SharedAccessBanner
@@ -53,7 +51,7 @@ async function SharedRecordsContent({ params, searchParams }: SharedRecordsPageP
 			<PatientHeader patient={sharedRecord.patient} />
 			<nav className="border-b border-gray-200" aria-label="Shared record sections">
 				<SharedTabs
-					activeSection={activeSection}
+					activeSection={sharedRecord.activeSection}
 					availableSections={sharedRecord.availableSections}
 				/>
 			</nav>
@@ -61,7 +59,7 @@ async function SharedRecordsContent({ params, searchParams }: SharedRecordsPageP
 				accessId={accessId}
 				patientDetailsSections={sharedRecord.patientDetailsSections}
 				records={sharedRecord.records}
-				activeSection={activeSection}
+				activeSection={sharedRecord.activeSection}
 			/>
 		</>
 	);

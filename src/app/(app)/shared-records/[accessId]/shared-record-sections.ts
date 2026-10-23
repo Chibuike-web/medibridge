@@ -19,15 +19,6 @@ export const sharedSections: { id: SharedSection; label: string }[] = [
 	{ id: "imaging", label: "Imaging" },
 ];
 
-export function getSharedSection(
-	value: string | undefined,
-	availableSections: readonly SharedSection[] = sharedSections.map((section) => section.id),
-): SharedSection {
-	return availableSections.includes(value as SharedSection)
-		? (value as SharedSection)
-		: (availableSections[0] ?? "patient-details");
-}
-
 export type SharedPatient = {
 	name: string;
 	sex: string;
