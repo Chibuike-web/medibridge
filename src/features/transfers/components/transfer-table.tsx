@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
 	AlertDialog,
@@ -137,68 +137,74 @@ export function TransferTable({
 	const [transferIdToCancel, setTransferIdToCancel] = useState<string | null>(null);
 	const [isTransferActionPending, startTransferActionTransition] = useTransition();
 
-	function handleViewTransferDetails(transferId: string) {
+	const handleViewTransferDetails = useCallback((transferId: string) => {
 		setSelectedTransferId(transferId);
 		setTransferActionFeedback(null);
-	}
+	}, []);
 
-	function handleResendRequest(transferId: string) {
-		setSelectedTransferId(transferId);
-		setTransferActionFeedback(null);
-		startTransferActionTransition(async () => {
-			try {
-				const result = await resendTransferRequestAction(transferId);
+	const handleResendRequest = useCallback(
+		(transferId: string) => {
+			setSelectedTransferId(transferId);
+			setTransferActionFeedback(null);
+			startTransferActionTransition(async () => {
+				try {
+					const result = await resendTransferRequestAction(transferId);
 
-				if (result.status === "unauthorized") {
-					router.refresh();
-					return;
+					if (result.status === "unauthorized") {
+						router.refresh();
+						return;
+					}
+
+					setTransferActionFeedback(
+						result.status === "success"
+							? { transferId, type: "success", message: result.message }
+							: { transferId, type: "error", message: result.error },
+					);
+					if (result.status !== "success") mutate(["transfer-details", transferId]);
+				} catch (error) {
+					console.error("Resending the transfer request failed:", error);
+					setTransferActionFeedback({
+						transferId,
+						type: "error",
+						message: "We couldn’t send the approval link. Please try again.",
+					});
 				}
+			});
+		},
+		[mutate, router],
+	);
 
-				setTransferActionFeedback(
-					result.status === "success"
-						? { transferId, type: "success", message: result.message }
-						: { transferId, type: "error", message: result.error },
-				);
-				if (result.status !== "success") mutate(["transfer-details", transferId]);
-			} catch (error) {
-				console.error("Resending the transfer request failed:", error);
-				setTransferActionFeedback({
-					transferId,
-					type: "error",
-					message: "We couldn’t send the approval link. Please try again.",
-				});
-			}
-		});
-	}
+	const handleRetryTransfer = useCallback(
+		(transferId: string) => {
+			setSelectedTransferId(transferId);
+			setTransferActionFeedback(null);
+			startTransferActionTransition(async () => {
+				try {
+					const result = await retryTransferDeliveryAction(transferId);
 
-	function handleRetryTransfer(transferId: string) {
-		setSelectedTransferId(transferId);
-		setTransferActionFeedback(null);
-		startTransferActionTransition(async () => {
-			try {
-				const result = await retryTransferDeliveryAction(transferId);
+					if (result.status === "unauthorized") {
+						router.refresh();
+						return;
+					}
 
-				if (result.status === "unauthorized") {
-					router.refresh();
-					return;
+					setTransferActionFeedback(
+						result.status === "success"
+							? { transferId, type: "success", message: result.message }
+							: { transferId, type: "error", message: result.error },
+					);
+					mutate(["transfer-details", transferId]);
+				} catch (error) {
+					console.error("Retrying the transfer delivery failed:", error);
+					setTransferActionFeedback({
+						transferId,
+						type: "error",
+						message: "We couldn’t retry this transfer. Please try again.",
+					});
 				}
-
-				setTransferActionFeedback(
-					result.status === "success"
-						? { transferId, type: "success", message: result.message }
-						: { transferId, type: "error", message: result.error },
-				);
-				mutate(["transfer-details", transferId]);
-			} catch (error) {
-				console.error("Retrying the transfer delivery failed:", error);
-				setTransferActionFeedback({
-					transferId,
-					type: "error",
-					message: "We couldn’t retry this transfer. Please try again.",
-				});
-			}
-		});
-	}
+			});
+		},
+		[mutate, router],
+	);
 
 	function handleCancelTransfer(transferId: string) {
 		setTransferActionFeedback(null);
@@ -232,16 +238,28 @@ export function TransferTable({
 		});
 	}
 
-	const columns = getTransferColumns({
-		onViewTransferDetails: handleViewTransferDetails,
-		onResendRequest: handleResendRequest,
-		onRetryTransfer: handleRetryTransfer,
-		onCancelTransfer: (transferId) => setTransferIdToCancel(transferId),
-		isTransferActionPending,
-		router,
-		returnTo,
-		canArchive,
-	});
+	const columns = useMemo(
+		() =>
+			getTransferColumns({
+				onViewTransferDetails: handleViewTransferDetails,
+				onResendRequest: handleResendRequest,
+				onRetryTransfer: handleRetryTransfer,
+				onCancelTransfer: (transferId) => setTransferIdToCancel(transferId),
+				isTransferActionPending,
+				router,
+				returnTo,
+				canArchive,
+			}),
+		[
+			canArchive,
+			handleResendRequest,
+			handleRetryTransfer,
+			handleViewTransferDetails,
+			isTransferActionPending,
+			returnTo,
+			router,
+		],
+	);
 
 	return (
 		<>

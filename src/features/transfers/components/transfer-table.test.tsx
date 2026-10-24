@@ -5,14 +5,15 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { TransferDetailsType } from "../types";
 import { TransferTable } from "./transfer-table";
 
-const { resendMock, retryMock, cancelMock } = vi.hoisted(() => ({
+const { resendMock, retryMock, cancelMock, router } = vi.hoisted(() => ({
 	resendMock: vi.fn(),
 	retryMock: vi.fn(),
 	cancelMock: vi.fn(),
+	router: { refresh: vi.fn(), push: vi.fn() },
 }));
 
 vi.mock("next/navigation", () => ({
-	useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
+	useRouter: () => router,
 	usePathname: () => "/dashboard/transfers",
 	useSearchParams: () => new URLSearchParams(),
 }));
@@ -321,6 +322,33 @@ describe("Transfer recovery feedback", () => {
 			"aria-disabled",
 		);
 		expect(resendMock).toHaveBeenCalledTimes(1);
+	});
+
+	test("an open row menu stays open while the page around the table updates", async () => {
+		const table = (onPreviousPage: () => void) => (
+			<SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
+				<TransferTable
+					data={[waitingTransfer, failedTransfer]}
+					page={1}
+					limit={14}
+					totalPages={1}
+					isPending={false}
+					onPreviousPage={onPreviousPage}
+					onNextPage={() => {}}
+					onLimitChange={() => {}}
+				/>
+			</SWRConfig>
+		);
+		const { rerender } = render(table(() => {}));
+		const user = userEvent.setup();
+		await user.click(
+			within(rowFor("Chuka Joy Eze")).getByRole("button", { name: "Open transfer actions" }),
+		);
+		expect(await screen.findByRole("menuitem", { name: "Resend request" })).toBeVisible();
+
+		rerender(table(() => {}));
+
+		expect(screen.getByRole("menuitem", { name: "Resend request" })).toBeVisible();
 	});
 
 	test("a result that arrives after the drawer closes doesn't reappear when the transfer is reopened", async () => {
