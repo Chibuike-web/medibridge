@@ -1,5 +1,7 @@
 import "server-only";
 import path from "node:path";
+import { tmpdir } from "node:os";
+import { patientUploads } from "@/lib/storage/client";
 import { gateway, generateText, Output, wrapLanguageModel } from "ai";
 import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { createWorker } from "tesseract.js";
@@ -23,24 +25,29 @@ const model =
 		: gateway("openai/gpt-5.2");
 
 export async function extractPatientDocumentsService(
-	uploadDir: string,
+	uploadPrefix: string,
 	filenames: string[],
 ): Promise<PatientExtractionDocument[]> {
-	const worker = await createWorker("eng");
+	const worker = await createWorker("eng", 1, { cachePath: tmpdir() });
 	const documents: { id: string; filename: string; content: string }[] = [];
 
 	try {
 		for (const filename of filenames) {
-			const filePath = path.join(uploadDir, filename);
-			const fileExtension = path.extname(filePath).toLowerCase();
+			const { data, error } = await patientUploads.download(`${uploadPrefix}/${filename}`);
+			if (error) {
+				console.error("Reading patient document failed:", error);
+				continue;
+			}
+			const buffer = Buffer.from(await data.arrayBuffer());
+			const fileExtension = path.extname(filename).toLowerCase();
 			let extractionResult: ExtractTextResult;
 
 			if ([".png", ".jpg", ".jpeg", ".webp"].includes(fileExtension)) {
-				extractionResult = await extractImageText(filePath, worker);
+				extractionResult = await extractImageText(buffer, worker);
 			} else if (fileExtension === ".docx") {
-				extractionResult = await extractDocxText(filePath);
+				extractionResult = await extractDocxText(buffer);
 			} else if (fileExtension === ".pdf") {
-				extractionResult = await extractPdfText(filePath, worker);
+				extractionResult = await extractPdfText(buffer, worker);
 			} else {
 				extractionResult = { status: "failed", error: "Unsupported file type." };
 			}

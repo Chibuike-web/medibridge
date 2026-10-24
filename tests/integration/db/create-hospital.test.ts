@@ -40,9 +40,19 @@ vi.mock("next/headers", () => ({
 	cookies: async () => ({ get: () => undefined, set: () => {} }),
 }));
 
-vi.mock("node:fs/promises", async (importOriginal) => ({
-	...(await importOriginal<typeof import("node:fs/promises")>()),
-	readdir: async () => ["accreditation.pdf"],
+vi.mock("@/lib/storage/client", () => ({
+	hospitalUploads: {
+		list: async () => ({
+			data: [
+				{
+					id: "accreditation-file",
+					name: "accreditation.pdf",
+					metadata: { size: 10, mimetype: "application/pdf" },
+				},
+			],
+			error: null,
+		}),
+	},
 }));
 
 type AuthModule = typeof import("@/lib/better-auth/auth");

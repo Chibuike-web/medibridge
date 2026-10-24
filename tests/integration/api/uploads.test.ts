@@ -1,21 +1,14 @@
 // @vitest-environment node
 
-import path from "node:path";
-import os from "node:os";
-import { afterAll, afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
 afterAll(() => consoleLogSpy.mockRestore());
 
 const {
-	existsSyncMock,
+	signedUploadMock,
 	readFileMock,
-	mkdirMock,
-	readdirMock,
-	renameMock,
-	rmMock,
-	writeFileMock,
 	getSessionDataMock,
 	getOrganizationIdMock,
 	selectMock,
@@ -35,13 +28,8 @@ const {
 	mammothExtractRawTextMock,
 	revalidateTagMock,
 } = vi.hoisted(() => ({
-	existsSyncMock: vi.fn(),
+	signedUploadMock: vi.fn(),
 	readFileMock: vi.fn(),
-	mkdirMock: vi.fn(),
-	readdirMock: vi.fn(),
-	renameMock: vi.fn(),
-	rmMock: vi.fn(),
-	writeFileMock: vi.fn(),
 	getSessionDataMock: vi.fn(),
 	getOrganizationIdMock: vi.fn(),
 	selectMock: vi.fn(),
@@ -62,16 +50,12 @@ const {
 	revalidateTagMock: vi.fn(),
 }));
 
-vi.mock("node:fs", () => ({
-	existsSync: existsSyncMock,
-}));
-vi.mock("node:fs/promises", () => ({
-	readFile: readFileMock,
-	mkdir: mkdirMock,
-	readdir: readdirMock,
-	rename: renameMock,
-	rm: rmMock,
-	writeFile: writeFileMock,
+vi.mock("@/lib/storage/client", () => ({
+	patientUploads: {
+		createSignedUploadUrl: signedUploadMock,
+		download: async (key: string) => ({ data: new Blob([await readFileMock(key)]), error: null }),
+	},
+	hospitalUploads: { createSignedUploadUrl: signedUploadMock },
 }));
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
@@ -118,26 +102,18 @@ import { POST as extractFile } from "@/app/api/extract-file/route";
 import { POST as uploadFile } from "@/app/api/file-upload/route";
 import { POST as uploadVerificationFile } from "@/app/api/verification-file-upload/route";
 
-const fileSystem = await vi.importActual<typeof import("node:fs/promises")>("node:fs/promises");
-let testUploadDir: string;
-
-// Run upload filesystem operations in a real, isolated directory.
-function storedPath(filePath: string) {
-	const relativePath = path.relative(process.cwd(), filePath);
-	if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
-		throw new Error("Upload path is outside the workspace");
-	}
-	return path.join(testUploadDir, relativePath);
+function metadataRequest(url: string, body: unknown) {
+	return new Request(url, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(body),
+	});
 }
-
-function fileRequest(url: string) {
-	const formData = new FormData();
-	formData.append("file", new File(["file contents"], "record.pdf", { type: "application/pdf" }));
-	formData.append("clientId", "client-record");
-
-	return new Request(url, { method: "POST", body: formData });
+function fileRequest(name = "record.pdf", size = 13) {
+	return metadataRequest("http://localhost/api/file-upload", {
+		files: [{ clientId: "client-record", name, type: "application/pdf", size }],
+	});
 }
-
 function readyDocument(documentId: string) {
 	const { documentId: _, ...patient } = createExtractedPatient(documentId);
 	return { documentId, status: "ready", patient };
@@ -187,19 +163,14 @@ describe("Uploads and extraction API", () => {
 		saveExtractionMock.mockImplementation(async (row: Record<string, unknown>) => {
 			savedExtractions.push(structuredClone(row));
 		});
-		testUploadDir = await fileSystem.mkdtemp(path.join(os.tmpdir(), "medibridge-uploads-"));
-		mkdirMock.mockImplementation((filePath, options) =>
-			fileSystem.mkdir(storedPath(filePath), options),
-		);
-		readdirMock.mockImplementation((filePath) => fileSystem.readdir(storedPath(filePath)));
-		renameMock.mockImplementation((from, to) =>
-			fileSystem.rename(storedPath(from), storedPath(to)),
-		);
-		rmMock.mockImplementation((filePath, options) => fileSystem.rm(storedPath(filePath), options));
-		writeFileMock.mockImplementation((filePath, buffer) =>
-			fileSystem.writeFile(storedPath(filePath), buffer),
-		);
-		existsSyncMock.mockReturnValue(true);
+		signedUploadMock.mockImplementation(async (key: string) => ({
+			data: { signedUrl: `https://storage.test/${key}?token=upload-only` },
+			error: null,
+		}));
+		selectMock.mockReturnValue({
+			from: () => ({ where: () => ({ limit: existingHospitalQueryMock }) }),
+		});
+		existingHospitalQueryMock.mockResolvedValue([]);
 		readFileMock.mockResolvedValue(Buffer.from("PDF file contents"));
 		createWorkerMock.mockResolvedValue({ terminate: terminateMock, recognize: vi.fn() });
 		getSessionDataMock.mockResolvedValue({ user: { id: "owner-1", emailVerified: true } });
@@ -207,416 +178,145 @@ describe("Uploads and extraction API", () => {
 		storedExtraction.isDeleted = false;
 	});
 
-	afterEach(async () => {
-		await fileSystem.rm(testUploadDir, { recursive: true, force: true });
-	});
-
-	describe("POST /api/file-upload", () => {
-		test("returns 400 when no file is included", async () => {
-			const response = await uploadFile(
-				new Request("http://localhost/api/file-upload", { method: "POST", body: new FormData() }),
-			);
-
-			expect(response.status).toBe(400);
-			expect(await response.json()).toEqual({ status: "failed", error: "No file" });
-		});
-
-		test("saves uploaded files and returns their metadata", async () => {
-			const response = await uploadFile(fileRequest("http://localhost/api/file-upload"));
+	describe("direct upload authorizations", () => {
+		test("returns an upload-only URL and server-generated name without receiving bytes", async () => {
+			const response = await uploadFile(fileRequest());
 			const body = await response.json();
-
 			expect(response.status).toBe(200);
 			expect(body.status).toBe("success");
-			expect(body.message).toBe("Files successfully uploaded");
-			expect(body.files).toHaveLength(1);
 			expect(body.files[0]).toMatchObject({
-				status: "upload-complete",
 				name: "record.pdf",
 				type: "application/pdf",
 				size: 13,
+				clientId: "client-record",
 			});
 			expect(body.files[0].storedName).toBe(`${body.files[0].id}.pdf`);
-			expect(body.files[0].storedName).toMatch(/^[0-9a-f-]{36}\.pdf$/);
 			expect(body.files[0].url).toBe(
 				`patient-uploads/hospital-1/owner-1/${body.files[0].storedName}`,
 			);
-			expect(await fileSystem.readFile(storedPath(path.resolve(body.files[0].url)), "utf8")).toBe(
-				"file contents",
+			expect(body.files[0].signedUrl).toContain("token=upload-only");
+			expect(body.files[0].status).toBeUndefined();
+			expect(signedUploadMock).toHaveBeenCalledWith(
+				`hospital-1/owner-1/${body.files[0].storedName}`,
+				{ upsert: false },
 			);
 		});
-
-		test("saves a JPEG upload and preserves its extension in the stored name", async () => {
-			const formData = new FormData();
-			formData.append("file", new File(["scan contents"], "scan.jpeg", { type: "image/jpeg" }));
-			formData.append("clientId", "client-scan");
-			const response = await uploadFile({ formData: async () => formData } as Request);
+		test.each([
+			"record.jpeg",
+			"intake.docx",
+			"../../private.pdf",
+			"..\\private.pdf",
+			"🩺 report.pdf",
+		])("keeps the display name %s while generating a safe object key", async (name) => {
+			const response = await uploadFile(fileRequest(name));
 			const body = await response.json();
-
 			expect(response.status).toBe(200);
-			expect(body.status).toBe("success");
-			expect(body.files).toHaveLength(1);
-			expect(body.files[0]).toMatchObject({ name: "scan.jpeg", type: "image/jpeg", size: 13 });
-			expect(body.files[0].storedName).toBe(`${body.files[0].id}.jpeg`);
-			expect(await fileSystem.readFile(storedPath(path.resolve(body.files[0].url)), "utf8")).toBe(
-				"scan contents",
-			);
+			expect(body.files[0].name).toBe(name);
+			expect(body.files[0].storedName).toMatch(/^[a-f0-9-]{36}\.(pdf|jpeg|docx)$/);
 		});
-
-		test.each([false, undefined])(
-			"denies patient uploads when email verification is %s",
-			async (emailVerified) => {
-				getSessionDataMock.mockResolvedValue({ user: { id: "owner-1", emailVerified } });
-				const response = await uploadFile(fileRequest("http://localhost/api/file-upload"));
-				expect(response.status).toBe(403);
-				expect(await response.json()).toEqual({
-					status: "failed",
-					error: "Verify your email before uploading patient records.",
-				});
-				expect(await fileSystem.readdir(testUploadDir)).toEqual([]);
+		test("accepts 50 MB metadata and keeps equal display names in distinct immutable objects", async () => {
+			const first = await uploadFile(fileRequest("record.pdf", 50 * 1024 * 1024));
+			const second = await uploadFile(fileRequest());
+			expect(first.status).toBe(200);
+			expect(second.status).toBe(200);
+			expect((await first.json()).files[0].url).not.toBe((await second.json()).files[0].url);
+		});
+		test.each([0, 50 * 1024 * 1024 + 1])(
+			"rejects invalid size %s without granting upload access",
+			async (size) => {
+				expect((await uploadFile(fileRequest("record.pdf", size))).status).toBe(400);
+				expect(signedUploadMock).not.toHaveBeenCalled();
 			},
 		);
-
-		test("denies patient uploads without a session or an approved hospital", async () => {
-			getSessionDataMock.mockResolvedValue(null);
-			expect((await uploadFile(fileRequest("http://localhost/api/file-upload"))).status).toBe(401);
-			getSessionDataMock.mockResolvedValue({ user: { id: "owner-1", emailVerified: true } });
-			getOrganizationIdMock.mockResolvedValue(null);
-			expect((await uploadFile(fileRequest("http://localhost/api/file-upload"))).status).toBe(403);
-			expect(writeFileMock).not.toHaveBeenCalled();
-		});
-
-		test("rejects an empty file before saving any files in the batch", async () => {
-			const formData = new FormData();
-			formData.append("file", new File(["valid contents"], "valid.pdf"));
-			formData.append("file", new File([], "empty.pdf"));
+		test("rejects an unsupported file in a batch before granting any uploads", async () => {
 			const response = await uploadFile(
-				new Request("http://localhost/api/file-upload", {
-					method: "POST",
-					body: formData,
+				metadataRequest("http://localhost/api/file-upload", {
+					files: [
+						{ clientId: "1", name: "valid.pdf", type: "application/pdf", size: 10 },
+						{ clientId: "2", name: "bad.html", type: "text/html", size: 10 },
+					],
 				}),
 			);
 			expect(response.status).toBe(400);
-			expect(await response.json()).toEqual({ status: "failed", error: "No file" });
-			expect(await fileSystem.readdir(testUploadDir)).toEqual([]);
+			expect(signedUploadMock).not.toHaveBeenCalled();
 		});
-
-		test("returns a fixed error when the session lookup fails", async () => {
-			getSessionDataMock.mockRejectedValueOnce(new Error("private provider details"));
-			const response = await uploadFile(fileRequest("http://localhost/api/file-upload"));
+		test.each([null, false])(
+			"denies patient upload grants without a verified session: %s",
+			async (verified) => {
+				getSessionDataMock.mockResolvedValue(
+					verified === null ? null : { user: { id: "owner-1", emailVerified: false } },
+				);
+				expect((await uploadFile(fileRequest())).status).toBe(verified === null ? 401 : 403);
+				expect(signedUploadMock).not.toHaveBeenCalled();
+			},
+		);
+		test("keeps upload keys in the authenticated hospital and uploader namespace", async () => {
+			const first = (await (await uploadFile(fileRequest())).json()).files[0];
+			getOrganizationIdMock.mockResolvedValue("hospital-2");
+			getSessionDataMock.mockResolvedValue({ user: { id: "owner-2", emailVerified: true } });
+			const second = (await (await uploadFile(fileRequest())).json()).files[0];
+			expect(first.url).toContain("hospital-1/owner-1/");
+			expect(second.url).toContain("hospital-2/owner-2/");
+			getOrganizationIdMock.mockResolvedValue(null);
+			expect((await uploadFile(fileRequest())).status).toBe(403);
+		});
+		test("reports provider failure with a fixed message", async () => {
+			vi.spyOn(console, "error").mockImplementation(() => {});
+			signedUploadMock.mockResolvedValueOnce({
+				data: null,
+				error: new Error("private provider details"),
+			});
+			const response = await uploadFile(fileRequest());
 			expect(response.status).toBe(500);
 			expect(await response.json()).toEqual({
 				status: "failed",
 				error: "We couldn’t upload your files. Please try again.",
 			});
-			expect(await fileSystem.readdir(testUploadDir)).toEqual([]);
 		});
-
-		test("preserves the display names and contents of every valid file in a batch", async () => {
-			const formData = new FormData();
-			formData.append("file", new File(["pdf contents"], "record.PDF"));
-			formData.append("clientId", "client-record");
-			formData.append("file", new File(["docx contents"], "intake.docx"));
-			formData.append("clientId", "client-intake");
-			const response = await uploadFile(
-				new Request("http://localhost/api/file-upload", {
-					method: "POST",
-					body: formData,
-				}),
-			);
-			expect(response.status).toBe(200);
-			const body = await response.json();
-			expect(body.files.map((file: { name: string }) => file.name)).toEqual([
-				"record.PDF",
-				"intake.docx",
-			]);
-			for (const [index, contents] of ["pdf contents", "docx contents"].entries()) {
-				expect(
-					await fileSystem.readFile(storedPath(path.resolve(body.files[index].url)), "utf8"),
-				).toBe(contents);
-			}
-		});
-
-		test("reports a failed patient file write instead of success", async () => {
-			writeFileMock.mockRejectedValueOnce(new Error("private disk details"));
-			const response = await uploadFile(fileRequest("http://localhost/api/file-upload"));
-			expect(response.status).toBe(200);
-			expect((await response.json()).files).toEqual([
-				{
-					clientId: "client-record",
-					name: "record.pdf",
-					status: "upload-failed",
-				},
-			]);
+		test("rejects missing or malformed metadata", async () => {
 			expect(
-				await fileSystem.readdir(
-					storedPath(path.resolve("patient-uploads", "hospital-1", "owner-1")),
-				),
-			).toEqual([]);
-		});
-
-		test("keeps another user's upload separate when both choose the same filename", async () => {
-			const firstResponse = await uploadFile(fileRequest("http://localhost/api/file-upload"));
-			getSessionDataMock.mockResolvedValue({ user: { id: "owner-2", emailVerified: true } });
-			getOrganizationIdMock.mockResolvedValue("hospital-2");
-			const secondResponse = await uploadFile(fileRequest("http://localhost/api/file-upload"));
-			const firstUpload = (await firstResponse.json()).files[0];
-			const secondUpload = (await secondResponse.json()).files[0];
-			expect(firstUpload.name).toBe(secondUpload.name);
-			expect(firstUpload.url).not.toBe(secondUpload.url);
-			expect(secondUpload.url).toBe(
-				`patient-uploads/hospital-2/owner-2/${secondUpload.storedName}`,
-			);
-		});
-
-		test.each(["..\\private.pdf", "../../private.pdf", "report:final.pdf", "🩺 report.pdf"])(
-			"saves the original name %s safely under a generated filename",
-			async (name) => {
-				const formData = new FormData();
-				formData.append("file", new File(["contents"], name, { type: "application/pdf" }));
-				formData.append("clientId", "client-record");
-				const response = await uploadFile({ formData: async () => formData } as Request);
-				expect(response.status).toBe(200);
-				const [uploadedFile] = (await response.json()).files;
-				expect(uploadedFile.name).toBe(name);
-				expect(uploadedFile.storedName).toMatch(/^[0-9a-f-]{36}\.pdf$/);
-				expect(path.dirname(path.resolve(uploadedFile.url))).toBe(
-					path.resolve("patient-uploads", "hospital-1", "owner-1"),
-				);
-				expect(await fileSystem.readFile(storedPath(path.resolve(uploadedFile.url)), "utf8")).toBe(
-					"contents",
-				);
-			},
-		);
-
-		test("does not overwrite another upload with the same original filename", async () => {
-			const formData = new FormData();
-			formData.append("file", new File(["first document"], "record.pdf"));
-			formData.append("clientId", "client-first");
-			formData.append("file", new File(["second document"], "record.pdf"));
-			formData.append("clientId", "client-second");
-			const response = await uploadFile({ formData: async () => formData } as Request);
-			expect(response.status).toBe(200);
-			const { files } = await response.json();
-			expect(files).toHaveLength(2);
-			expect(files[0].name).toBe("record.pdf");
-			expect(files[1].name).toBe("record.pdf");
-			expect(files[0].url).not.toBe(files[1].url);
-			expect(await fileSystem.readFile(storedPath(path.resolve(files[0].url)), "utf8")).toBe(
-				"first document",
-			);
-			expect(await fileSystem.readFile(storedPath(path.resolve(files[1].url)), "utf8")).toBe(
-				"second document",
-			);
-		});
-
-		test.each([
-			["empty.pdf", "", 0, "No file"],
-			["pdf", "contents", 8, "Invalid file type. Only PDF, PNG, JPG, and DOCX are allowed."],
-			["record.doc", "contents", 8, "Invalid file type. Only PDF, PNG, JPG, and DOCX are allowed."],
-			[
-				"record.pdf",
-				"contents",
-				50 * 1024 * 1024 + 1,
-				"File is too large. Maximum allowed size is 50MB.",
-			],
-		])("rejects invalid file %s of size %s before saving", async (name, contents, size, error) => {
-			const file = new File([contents], name);
-			Object.defineProperty(file, "size", { value: size });
-			const formData = new FormData();
-			formData.append("file", file);
-			const response = await uploadFile({ formData: async () => formData } as Request);
-			expect(response.status).toBe(400);
-			expect(await response.json()).toEqual({ status: "failed", error });
-			expect(await fileSystem.readdir(testUploadDir)).toEqual([]);
-		});
-
-		test("rejects a non-file form entry as a client error without saving it", async () => {
-			const formData = new FormData();
-			formData.append("file", "not-a-file");
-
-			const response = await uploadFile(
-				new Request("http://localhost/api/file-upload", { method: "POST", body: formData }),
-			);
-
-			expect(writeFileMock).not.toHaveBeenCalled();
-			expect(response.status).toBe(400);
-			expect(await response.json()).toMatchObject({
-				status: "failed",
-				error: "No file",
-			});
+				(await uploadFile(metadataRequest("http://localhost/api/file-upload", { files: [] })))
+					.status,
+			).toBe(400);
+			expect(
+				(
+					await uploadFile(
+						new Request("http://localhost/api/file-upload", { method: "POST", body: "bad json" }),
+					)
+				).status,
+			).toBe(400);
+			expect(signedUploadMock).not.toHaveBeenCalled();
 		});
 	});
-
-	describe("POST /api/verification-file-upload", () => {
-		const verifiedOwnerSession = {
-			user: { id: "owner-1", email: "owner@stmaryhospital.org", emailVerified: true },
-		};
-
-		function verificationFileRequest(fileName: string, contents = "accreditation contents") {
-			const formData = new FormData();
-			formData.append("file", new File([contents], fileName, { type: "application/pdf" }));
-
-			return new Request("http://localhost/api/verification-file-upload", {
-				method: "POST",
-				body: formData,
+	describe("accreditation upload authorization", () => {
+		const request = (name = "license.pdf") =>
+			metadataRequest("http://localhost/api/verification-file-upload", {
+				name,
+				type: "application/pdf",
+				size: 10,
 			});
-		}
-
-		beforeEach(() => {
-			getSessionDataMock.mockResolvedValue(verifiedOwnerSession);
-			selectMock.mockReturnValue({
-				from: () => ({ where: () => ({ limit: existingHospitalQueryMock }) }),
-			});
-			existingHospitalQueryMock.mockResolvedValue([]);
-		});
-
-		test("rejects an upload without a signed-in user and saves nothing", async () => {
-			getSessionDataMock.mockResolvedValue(null);
-
-			const response = await uploadVerificationFile(verificationFileRequest("license.pdf"));
-
-			expect(response.status).toBe(401);
-			expect(writeFileMock).not.toHaveBeenCalled();
-		});
-
-		test("rejects an upload from an owner whose email is not verified", async () => {
-			getSessionDataMock.mockResolvedValue({
-				user: { ...verifiedOwnerSession.user, emailVerified: false },
-			});
-
-			const response = await uploadVerificationFile(verificationFileRequest("license.pdf"));
-
-			expect(response.status).toBe(403);
-			expect(writeFileMock).not.toHaveBeenCalled();
-		});
-
-		test("does not replace the document after hospital details were submitted", async () => {
-			existingHospitalQueryMock.mockResolvedValue([{ id: "hospital-1" }]);
-
-			const response = await uploadVerificationFile(verificationFileRequest("license.pdf"));
-
-			expect(response.status).toBe(409);
-			expect(rmMock).not.toHaveBeenCalled();
-			expect(writeFileMock).not.toHaveBeenCalled();
-		});
-
-		test("returns 400 when no file is included", async () => {
-			const response = await uploadVerificationFile(
-				new Request("http://localhost/api/verification-file-upload", {
-					method: "POST",
-					body: new FormData(),
-				}),
-			);
-
-			expect(response.status).toBe(400);
-			expect(await response.json()).toEqual({ status: "failed", error: "No file" });
-			expect(writeFileMock).not.toHaveBeenCalled();
-		});
-
-		test("rejects a file type the accreditation upload does not accept", async () => {
-			const response = await uploadVerificationFile(verificationFileRequest("record.txt"));
-
-			expect(response.status).toBe(400);
-			expect(writeFileMock).not.toHaveBeenCalled();
-		});
-
-		test("stores the document in the owner's folder under a server-generated name", async () => {
-			const response = await uploadVerificationFile(verificationFileRequest("license.pdf"));
-
+		test("gives a verified owner a generated private key before hospital onboarding", async () => {
+			const response = await uploadVerificationFile(request());
+			const body = await response.json();
 			expect(response.status).toBe(200);
-			expect(await response.json()).toMatchObject({
-				status: "success",
-				filename: "license.pdf",
-				size: "accreditation contents".length,
-			});
-
-			const ownerUploadDir = path.resolve("hospital-uploads", "owner-1");
-			const savedNames = await fileSystem.readdir(storedPath(ownerUploadDir));
-			expect(savedNames).toHaveLength(1);
-			expect(savedNames[0]).toMatch(/^[0-9a-f-]{36}\.pdf$/);
-			expect(
-				await fileSystem.readFile(storedPath(path.join(ownerUploadDir, savedNames[0])), "utf8"),
-			).toBe("accreditation contents");
+			expect(body.key).toMatch(/^owner-1\/[a-f0-9-]{36}\.pdf$/);
+			expect(signedUploadMock).toHaveBeenCalledWith(body.key, { upsert: false });
 		});
-
-		test("keeps a path-traversal file name inside the owner's folder", async () => {
-			const response = await uploadVerificationFile(
-				verificationFileRequest("../../.env.local.pdf"),
+		test.each([null, false])("requires a signed-in verified owner: %s", async (verified) => {
+			getSessionDataMock.mockResolvedValue(
+				verified === null ? null : { user: { id: "owner-1", emailVerified: false } },
 			);
-
-			expect(response.status).toBe(200);
-			const savedNames = await fileSystem.readdir(
-				storedPath(path.resolve("hospital-uploads", "owner-1")),
-			);
-			expect(savedNames).toHaveLength(1);
-			expect(savedNames[0]).toMatch(/^[0-9a-f-]{36}\.pdf$/);
+			expect((await uploadVerificationFile(request())).status).toBe(verified === null ? 401 : 403);
+			expect(signedUploadMock).not.toHaveBeenCalled();
 		});
-
-		test.each(["write", "rename"])(
-			"preserves the previous document when replacement %s fails",
-			async (failure) => {
-				const ownerUploadDir = storedPath(path.resolve("hospital-uploads", "owner-1"));
-				expect(
-					(await uploadVerificationFile(verificationFileRequest("old.pdf", "old document"))).status,
-				).toBe(200);
-				const previousFileNames = await fileSystem.readdir(ownerUploadDir);
-				let documentsDuringWrite: string[] | undefined;
-				expect(previousFileNames).toHaveLength(1);
-				expect(
-					await fileSystem.readFile(path.join(ownerUploadDir, previousFileNames[0]), "utf8"),
-				).toBe("old document");
-				if (failure === "write") {
-					writeFileMock.mockImplementationOnce(async (filePath) => {
-						await fileSystem.writeFile(storedPath(filePath), "partial replacement");
-						documentsDuringWrite = await fileSystem.readdir(ownerUploadDir);
-						throw new Error("disk full");
-					});
-				} else {
-					renameMock.mockRejectedValueOnce(new Error("replacement cannot be moved"));
-				}
-
-				const response = await uploadVerificationFile(verificationFileRequest("license.pdf"));
-
-				expect(response.status).toBe(500);
-				if (failure === "write") {
-					expect(documentsDuringWrite).toEqual(previousFileNames);
-				}
-				expect(await response.json()).toEqual({
-					status: "failed",
-					error: "We couldn’t upload your file. Please try again.",
-				});
-				expect(await fileSystem.readdir(ownerUploadDir)).toEqual(previousFileNames);
-				expect(
-					await fileSystem.readFile(path.join(ownerUploadDir, previousFileNames[0]), "utf8"),
-				).toBe("old document");
-				expect(await fileSystem.readdir(storedPath(path.resolve("hospital-uploads")))).toEqual([
-					"owner-1",
-				]);
-			},
-		);
-
-		test("keeps only the complete replacement when its file type changes", async () => {
-			const ownerUploadDir = storedPath(path.resolve("hospital-uploads", "owner-1"));
-			expect(
-				(await uploadVerificationFile(verificationFileRequest("old.pdf", "old document"))).status,
-			).toBe(200);
-			const [oldFileName] = await fileSystem.readdir(ownerUploadDir);
-			expect(await fileSystem.readFile(path.join(ownerUploadDir, oldFileName), "utf8")).toBe(
-				"old document",
-			);
-
-			const response = await uploadVerificationFile(
-				verificationFileRequest("new.png", "new document"),
-			);
-			expect(response.status).toBe(200);
-			expect(await response.json()).toMatchObject({ status: "success", filename: "new.png" });
-			const savedNames = await fileSystem.readdir(ownerUploadDir);
-			expect(savedNames).toHaveLength(1);
-			expect(savedNames[0]).not.toBe(oldFileName);
-			expect(savedNames[0]).toMatch(/\.png$/);
-			expect(await fileSystem.readFile(path.join(ownerUploadDir, savedNames[0]), "utf8")).toBe(
-				"new document",
-			);
+		test("does not grant replacement access after hospital details were submitted", async () => {
+			existingHospitalQueryMock.mockResolvedValue([{ id: "hospital-details-1" }]);
+			expect((await uploadVerificationFile(request())).status).toBe(409);
+			expect(signedUploadMock).not.toHaveBeenCalled();
+		});
+		test("rejects an unsupported accreditation file", async () => {
+			expect((await uploadVerificationFile(request("license.html"))).status).toBe(400);
+			expect(signedUploadMock).not.toHaveBeenCalled();
 		});
 	});
 
@@ -791,8 +491,9 @@ describe("Uploads and extraction API", () => {
 					terminate: terminateMock,
 					recognize: vi.fn().mockRejectedValue(internalError),
 				});
-				mammothExtractRawTextMock.mockImplementation(async ({ path: filePath }) => {
-					if (filePath.endsWith("unreadable.docx")) throw internalError;
+				readFileMock.mockImplementation(async (key: string) => Buffer.from(key));
+				mammothExtractRawTextMock.mockImplementation(async ({ buffer }: { buffer: Buffer }) => {
+					if (buffer.toString().endsWith("unreadable.docx")) throw internalError;
 					return { value: "Good patient information" };
 				});
 				PdfParseMock.mockImplementation(function () {
@@ -1039,23 +740,20 @@ describe("Uploads and extraction API", () => {
 			generateTextMock.mockResolvedValue({ output: [createExtractedPatient("intake.docx")] });
 			const response = await extractFile(extractFileRequest({ filenames: ["intake.docx"] }));
 			expect(response.status).toBe(200);
-			expect(mammothExtractRawTextMock).toHaveBeenCalledWith({
-				path: path.resolve("patient-uploads/hospital-1/owner-1/intake.docx"),
-			});
+			expect(readFileMock).toHaveBeenCalledWith("hospital-1/owner-1/intake.docx");
+			expect(mammothExtractRawTextMock).toHaveBeenCalledWith({ buffer: expect.any(Buffer) });
 			expect(savedExtractions).toEqual([
 				expect.objectContaining({ organizationId: "hospital-1", createdBy: "owner-1" }),
 			]);
 		});
 
 		test("extracts an uploaded patient document using its returned stored filename", async () => {
-			const formData = new FormData();
-			formData.append("file", new File(["patient information"], "original intake.docx"));
-			formData.append("clientId", "client-original");
-			const uploadedResponse = await uploadFile({ formData: async () => formData } as Request);
+			const uploadedResponse = await uploadFile(fileRequest("original intake.docx"));
 			expect(uploadedResponse.status).toBe(200);
 			const [uploadedFile] = (await uploadedResponse.json()).files;
-			mammothExtractRawTextMock.mockImplementation(async ({ path: filePath }) => ({
-				value: await fileSystem.readFile(storedPath(filePath), "utf8"),
+			readFileMock.mockResolvedValue(Buffer.from("patient information"));
+			mammothExtractRawTextMock.mockImplementation(async ({ buffer }: { buffer: Buffer }) => ({
+				value: buffer.toString(),
 			}));
 			generateTextMock.mockResolvedValue({
 				output: [createExtractedPatient(uploadedFile.storedName)],

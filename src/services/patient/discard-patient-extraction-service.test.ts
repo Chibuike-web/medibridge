@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import path from "node:path";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { PatientExtractionDocument } from "@/db/schemas/patient";
 import { discardPatientExtractionService } from "./discard-patient-extraction-service";
@@ -21,7 +20,14 @@ const {
 	},
 }));
 
-vi.mock("node:fs/promises", () => ({ rm: removeFileMock }));
+vi.mock("@/lib/storage/client", () => ({
+	patientUploads: {
+		remove: async (keys: string[]) => {
+			for (const key of keys) await removeFileMock(key);
+			return { data: [], error: null };
+		},
+	},
+}));
 vi.mock("next/cache", () => ({ updateTag: updateTagMock }));
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
@@ -76,7 +82,7 @@ const patient = {
 };
 
 function uploadedFile(documentId: string) {
-	return path.resolve("patient-uploads", "hospital-1", "uploader-1", documentId);
+	return `hospital-1/uploader-1/${documentId}`;
 }
 
 describe("discarding a patient extraction", () => {
@@ -98,8 +104,8 @@ describe("discarding a patient extraction", () => {
 	test("clears the review and all of its uploaded files", async () => {
 		expect(await discardPatientExtractionService("extraction-1")).toEqual({ status: "success" });
 		expect(storedExtraction.current).toBeNull();
-		expect(removeFileMock).toHaveBeenCalledWith(uploadedFile("ready.pdf"), { force: true });
-		expect(removeFileMock).toHaveBeenCalledWith(uploadedFile("failed.pdf"), { force: true });
+		expect(removeFileMock).toHaveBeenCalledWith(uploadedFile("ready.pdf"));
+		expect(removeFileMock).toHaveBeenCalledWith(uploadedFile("failed.pdf"));
 		expect(updateTagMock).toHaveBeenCalledWith("patient-extraction-hospital-1-extraction-1");
 	});
 

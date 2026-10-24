@@ -1,3 +1,4 @@
+import { SignJWT, decodeJwt } from "jose";
 // @vitest-environment node
 
 import path from "node:path";
@@ -22,6 +23,31 @@ const { getSessionDataMock, getOrganizationIdMock, updateTagMock, database, disk
 
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
+vi.mock("@/lib/utils/env", () => ({ ENV: { BETTER_AUTH_SECRET: "storage-test-secret" } }));
+vi.mock("@/lib/storage/client", () => ({
+	patientUploads: {
+		info: async (key: string) => {
+			const content = disk.files.get(key);
+			return content
+				? {
+						data: {
+							size: content.byteLength,
+							contentType: key.endsWith(".pdf")
+								? "application/pdf"
+								: key.endsWith(".png")
+									? "image/png"
+									: "image/jpeg",
+						},
+						error: null,
+					}
+				: { data: null, error: new Error("Missing object") };
+		},
+		remove: async (keys: string[]) => {
+			for (const key of keys) disk.files.delete(key);
+			return { data: [], error: null };
+		},
+	},
+}));
 vi.mock("next/cache", () => ({ updateTag: updateTagMock }));
 vi.mock("node:fs/promises", async () => {
 	const { sep } = await import("node:path");
@@ -69,11 +95,11 @@ vi.mock("@/lib/better-auth/auth", async () => {
 	};
 });
 
-const imagingFolders = path.resolve("patient-uploads", "hospital-1", "record-files");
+const imagingFolders = "hospital-1/record-files";
 const chestFilm = new File(["png chest film"], "chest-pa.png", { type: "image/png" });
 const completedStudy = { status: "Completed", impression: "No focal consolidation." };
 
-function imagingForm(overrides: Record<string, string> = {}, files: File[] = []) {
+async function imagingForm(overrides: Record<string, string> = {}, files: File[] = []) {
 	const formData = new FormData();
 	for (const [field, value] of Object.entries({
 		study: "Chest X-ray",
@@ -87,7 +113,37 @@ function imagingForm(overrides: Record<string, string> = {}, files: File[] = [])
 		...overrides,
 	}))
 		formData.set(field, value);
-	for (const file of files) formData.append("files", file);
+	for (const file of files) {
+		const id = crypto.randomUUID();
+		const extension =
+			file.type === "application/pdf"
+				? ".pdf"
+				: file.type === "image/png"
+					? ".png"
+					: file.type === "image/jpeg"
+						? ".jpg"
+						: ".docx";
+		disk.files.set(
+			`hospital-1/record-files/${id}${extension}`,
+			Buffer.from(await file.arrayBuffer()),
+		);
+		const receipt = await new SignJWT({
+			id,
+			name: file.name,
+			type: file.type,
+			size: file.size,
+			patientId: "patient-1",
+			organizationId: "hospital-1",
+			userId: "member-1",
+			recordType: "imaging",
+		})
+			.setProtectedHeader({ alg: "HS256" })
+			.setAudience("patient-record-upload")
+			.setIssuedAt()
+			.setExpirationTime("2h")
+			.sign(new TextEncoder().encode("storage-test-secret"));
+		formData.append("files", receipt);
+	}
 	return formData;
 }
 
@@ -108,7 +164,7 @@ describe("adding a patient imaging study", () => {
 	});
 
 	test("a verified hospital member can order a pending study without images", async () => {
-		const result = await createPatientImagingAction("patient-1", imagingForm());
+		const result = await createPatientImagingAction("patient-1", await imagingForm());
 
 		expect(result).toEqual({ status: "success", imagingId: expect.stringMatching(/^IMG-/) });
 		expect(database.imaging).toEqual([
@@ -134,13 +190,13 @@ describe("adding a patient imaging study", () => {
 	});
 
 	test("links the study to the patient's encounter it was ordered from", async () => {
-		await createPatientImagingAction("patient-1", imagingForm({ encounterId: "ENC-1" }));
+		await createPatientImagingAction("patient-1", await imagingForm({ encounterId: "ENC-1" }));
 
 		expect(database.imaging).toEqual([expect.objectContaining({ encounterId: "ENC-1" })]);
 	});
 
 	test("a completed study can be saved with its impression and no images", async () => {
-		const result = await createPatientImagingAction("patient-1", imagingForm(completedStudy));
+		const result = await createPatientImagingAction("patient-1", await imagingForm(completedStudy));
 
 		expect(result).toEqual({ status: "success", imagingId: expect.stringMatching(/^IMG-/) });
 		expect(database.imaging).toEqual([
@@ -152,7 +208,7 @@ describe("adding a patient imaging study", () => {
 	test("stores each attached image in the study's folder and lists it with a viewer link", async () => {
 		const result = await createPatientImagingAction(
 			"patient-1",
-			imagingForm(completedStudy, [chestFilm]),
+			await imagingForm(completedStudy, [chestFilm]),
 		);
 
 		expect(result).toEqual({ status: "success", imagingId: expect.stringMatching(/^IMG-/) });
@@ -170,44 +226,50 @@ describe("adding a patient imaging study", () => {
 			},
 		]);
 		expect(disk.files.size).toBe(1);
-		expect(
-			disk.files.get(path.join(imagingFolders, imagingId, `${savedFilm.id}.png`))?.toString(),
-		).toBe("png chest film");
+		expect(disk.files.get(path.posix.join(imagingFolders, `${savedFilm.id}.png`))?.toString()).toBe(
+			"png chest film",
+		);
 	});
 
-	test("a completed study without an impression is rejected without saving or storing images", async () => {
+	test("a completed study without an impression is rejected without creating a clinical record", async () => {
 		expect(
 			await createPatientImagingAction(
 				"patient-1",
-				imagingForm({ ...completedStudy, impression: "  " }, [chestFilm]),
+				await imagingForm({ ...completedStudy, impression: "  " }, [chestFilm]),
 			),
 		).toEqual({ status: "failed", error: "Enter the impression of a completed study." });
 		expect(database.imaging).toEqual([]);
-		expect(disk.files.size).toBe(0);
+		expect(disk.files.size).toBe(1);
 	});
 
-	test("rejects an image that is not a PDF, PNG or JPG without storing any file", async () => {
+	test("rejects an image that is not a PDF, PNG or JPG without saving a clinical record", async () => {
 		const scan = new File(["dicom"], "chest.dcm", { type: "application/dicom" });
 
 		expect(
-			await createPatientImagingAction("patient-1", imagingForm(completedStudy, [chestFilm, scan])),
-		).toEqual({ status: "failed", error: "Files must be PDF, PNG or JPG." });
+			await createPatientImagingAction(
+				"patient-1",
+				await imagingForm(completedStudy, [chestFilm, scan]),
+			),
+		).toEqual({
+			status: "failed",
+			error: "We couldn’t verify these uploads. Upload the reports again.",
+		});
 		expect(database.imaging).toEqual([]);
-		expect(disk.files.size).toBe(0);
+		expect(disk.files.size).toBe(2);
 	});
 
-	test("removes the stored images and shows a plain message when the save fails", async () => {
+	test("keeps the uploaded images for retry or orphan cleanup and shows a plain message when the save fails", async () => {
 		database.failWrites = true;
 		vi.spyOn(console, "error").mockImplementation(() => {});
 
 		expect(
-			await createPatientImagingAction("patient-1", imagingForm(completedStudy, [chestFilm])),
+			await createPatientImagingAction("patient-1", await imagingForm(completedStudy, [chestFilm])),
 		).toEqual({
 			status: "failed",
 			error: "We couldn’t add this imaging study. Please try again.",
 		});
-		expect(disk.writes).toEqual([expect.stringContaining(path.join(imagingFolders, "IMG-"))]);
-		expect(disk.files.size).toBe(0);
+		expect(disk.writes).toEqual([]);
+		expect(disk.files.size).toBe(1);
 		expect(updateTagMock).not.toHaveBeenCalled();
 	});
 
@@ -215,10 +277,10 @@ describe("adding a patient imaging study", () => {
 		getSessionDataMock.mockResolvedValue(null);
 
 		expect(
-			await createPatientImagingAction("patient-1", imagingForm(completedStudy, [chestFilm])),
+			await createPatientImagingAction("patient-1", await imagingForm(completedStudy, [chestFilm])),
 		).toEqual({ status: "unauthorized", error: "You must be signed in to add imaging." });
 		expect(database.imaging).toEqual([]);
-		expect(disk.files.size).toBe(0);
+		expect(disk.files.size).toBe(1);
 	});
 
 	test.each([
@@ -255,11 +317,55 @@ describe("adding a patient imaging study", () => {
 		expect(
 			await createPatientImagingAction(
 				"patient-1",
-				imagingForm({ ...completedStudy, encounterId: "ENC-1" }, [chestFilm]),
+				await imagingForm({ ...completedStudy, encounterId: "ENC-1" }, [chestFilm]),
 			),
 		).toEqual({ status: "failed", error });
 		expect(database.imaging).toEqual([]);
 		expect(database.files).toEqual([]);
-		expect(disk.files.size).toBe(0);
+		expect(disk.files.size).toBe(1);
+	});
+	test.each([
+		{ organizationId: "other-hospital" },
+		{ patientId: "other-patient" },
+		{ userId: "other-uploader" },
+		{ recordType: "lab" },
+	])("rejects an existing uploaded report signed for a different scope: %j", async (scope) => {
+		const form = await imagingForm({}, [
+			new File(["%PDF-test"], "scope.pdf", { type: "application/pdf" }),
+		]);
+		expect(disk.files.size).toBe(1);
+		const payload = decodeJwt(String(form.get("files")));
+		const receipt = await new SignJWT({ ...payload, ...scope })
+			.setProtectedHeader({ alg: "HS256" })
+			.sign(new TextEncoder().encode("storage-test-secret"));
+		form.set("files", receipt);
+		expect(await createPatientImagingAction("patient-1", form)).toEqual({
+			status: "failed",
+			error: "This report does not belong to this patient.",
+		});
+		expect(database.files).toEqual([]);
+		expect(disk.files.size).toBe(1);
+	});
+	test("rejects a forged upload receipt without linking or deleting an existing uploaded object", async () => {
+		const form = await imagingForm({}, [
+			new File(["%PDF-test"], "scope.pdf", { type: "application/pdf" }),
+		]);
+		expect(disk.files.size).toBe(1);
+		form.set("files", String(form.get("files")) + "forged");
+		expect((await createPatientImagingAction("patient-1", form)).status).toBe("failed");
+		expect(database.files).toEqual([]);
+		expect(disk.files.size).toBe(1);
+	});
+	test("refuses to save a receipt when its object was never fully uploaded", async () => {
+		const form = await imagingForm({}, [
+			new File(["%PDF-test"], "scope.pdf", { type: "application/pdf" }),
+		]);
+		expect(disk.files.size).toBe(1);
+		disk.files.clear();
+		expect(await createPatientImagingAction("patient-1", form)).toEqual({
+			status: "failed",
+			error: "Upload the complete report before saving.",
+		});
+		expect(database.files).toEqual([]);
 	});
 });

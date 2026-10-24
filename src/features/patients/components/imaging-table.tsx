@@ -540,6 +540,7 @@ export function ImagingTable({
 				encounterId={encounterId}
 			/>
 			<ImagingDetailsDrawer
+				patientId={patientId}
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}
 				imaging={

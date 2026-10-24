@@ -23,8 +23,8 @@ const firstStoredName = "11111111-1111-4111-8111-111111111111.pdf";
 const secondStoredName = "22222222-2222-4222-8222-222222222222.pdf";
 
 async function uploadRecords() {
-	fetchMock.mockImplementationOnce(async (_url, { body }: { body: FormData }) => {
-		const clientIds = body.getAll("clientId");
+	fetchMock.mockImplementationOnce(async (_url, { body }: { body: string }) => {
+		const clientIds = JSON.parse(body).files.map((file: { clientId: string }) => file.clientId);
 		return Response.json({
 			status: "success",
 			files: [firstStoredName, secondStoredName].map((storedName, index) => ({
@@ -64,7 +64,21 @@ describe("continue to review saved patient extractions", () => {
 		pushMock.mockReset();
 		removeDocumentMock.mockReset();
 		vi.mocked(deletePatientUploadAction).mockReset();
-		vi.stubGlobal("fetch", fetchMock);
+		vi.stubGlobal("fetch", async (url: string, options: RequestInit) => {
+			if (url.startsWith("https://storage.test/"))
+				return new Response(null, { status: url.includes("/failed/") ? 500 : 200 });
+			const response = await fetchMock(url, options);
+			if (url !== "/api/file-upload" || !response?.ok) return response;
+			const data = await response.clone().json();
+			if (data.status !== "success" || !Array.isArray(data.files)) return response;
+			return Response.json({
+				...data,
+				files: data.files.map((file: { clientId: string; status?: string }) => ({
+					...file,
+					signedUrl: `https://storage.test/${file.status === "upload-failed" ? "failed" : "complete"}/${file.clientId}`,
+				})),
+			});
+		});
 	});
 
 	afterEach(() => {
@@ -276,12 +290,12 @@ describe("continue to review saved patient extractions", () => {
 		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 		expect(screen.queryByRole("button", { name: "Retry all" })).not.toBeInTheDocument();
 
-		fetchMock.mockImplementationOnce(async (_url, { body }: { body: FormData }) =>
+		fetchMock.mockImplementationOnce(async (_url, { body }: { body: string }) =>
 			Response.json({
 				status: "success",
 				files: [
 					{
-						clientId: body.get("clientId"),
+						clientId: JSON.parse(body).files[0].clientId,
 						status: "upload-complete",
 						id: "33333333-3333-4333-8333-333333333333",
 						name: "record-1.pdf",
@@ -493,12 +507,12 @@ describe("continue to review saved patient extractions", () => {
 			);
 		});
 		expect(screen.getByRole("button", { name: "Dismiss extraction error" })).toBeVisible();
-		fetchMock.mockImplementationOnce(async (_url, { body }: { body: FormData }) =>
+		fetchMock.mockImplementationOnce(async (_url, { body }: { body: string }) =>
 			Response.json({
 				status: "success",
 				files: [
 					{
-						clientId: body.get("clientId"),
+						clientId: JSON.parse(body).files[0].clientId,
 						status: "upload-complete",
 						name: "new-record.pdf",
 						id: "33333333-3333-4333-8333-333333333333",
@@ -537,12 +551,12 @@ describe("continue to review saved patient extractions", () => {
 		expect(screen.getByText("Upload failed")).toBeVisible();
 		expect(screen.getByRole("button", { name: "Extract Information" })).toBeDisabled();
 
-		fetchMock.mockImplementationOnce(async (_url, { body }: { body: FormData }) =>
+		fetchMock.mockImplementationOnce(async (_url, { body }: { body: string }) =>
 			Response.json({
 				status: "success",
 				files: [
 					{
-						clientId: body.get("clientId"),
+						clientId: JSON.parse(body).files[0].clientId,
 						status: "upload-complete",
 						id: firstStoredName.slice(0, -4),
 						name: "record.pdf",

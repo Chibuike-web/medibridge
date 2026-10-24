@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import path from "node:path";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { PatientExtractionDocument } from "@/db/schemas/patient";
 import { removeExtractionDocumentService } from "./remove-extraction-document-service";
@@ -21,7 +20,14 @@ const {
 	},
 }));
 
-vi.mock("node:fs/promises", () => ({ rm: removeFileMock }));
+vi.mock("@/lib/storage/client", () => ({
+	patientUploads: {
+		remove: async (keys: string[]) => {
+			for (const key of keys) await removeFileMock(key);
+			return { data: [], error: null };
+		},
+	},
+}));
 vi.mock("next/cache", () => ({ updateTag: updateTagMock }));
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
@@ -111,10 +117,7 @@ describe("removing a document from a saved extraction", () => {
 			status: "success",
 		});
 		expect(storedExtraction.current?.extractedData).toEqual([readyDocument]);
-		expect(removeFileMock).toHaveBeenCalledWith(
-			path.resolve("patient-uploads", "hospital-1", "uploader-1", "scan.pdf"),
-			{ force: true },
-		);
+		expect(removeFileMock).toHaveBeenCalledWith(`hospital-1/uploader-1/${"scan.pdf"}`);
 		expect(updateTagMock).toHaveBeenCalledWith("patient-extraction-hospital-1-extraction-1");
 	});
 

@@ -78,6 +78,7 @@ import { ChooseFileCard } from "@/components/choose-file-card";
 import { useRouter } from "next/navigation";
 
 type LabTestDetailsDrawerProps = {
+	patientId: string;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	labTest: LabTestType | null;
@@ -90,7 +91,12 @@ const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
-export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDetailsDrawerProps) {
+export function LabTestDetailsDrawer({
+	open,
+	onOpenChange,
+	labTest,
+	patientId,
+}: LabTestDetailsDrawerProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
@@ -126,19 +132,56 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 		}
 
 		startTransition(async () => {
-			const result = await updatePatientLabTestAction(labTest.labId, formData);
+			try {
+				const reportFiles = formData
+					.getAll("files")
+					.filter((file): file is File => file instanceof File && file.size > 0);
+				formData.delete("files");
+				for (const file of reportFiles) {
+					const response = await fetch("/api/patient-record-files/upload", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							name: file.name,
+							size: file.size,
+							type: file.type,
+							patientId,
+							recordType: "lab",
+						}),
+					});
+					const grant = await response.json();
+					if (!response.ok || grant.status !== "success") {
+						setFormError(grant.error ?? "We couldn’t upload this report. Please try again.");
+						return;
+					}
+					const uploaded = await fetch(grant.signedUrl, {
+						method: "PUT",
+						headers: { "Content-Type": file.type, "x-upsert": "false" },
+						body: file,
+					});
+					if (!uploaded.ok) {
+						setFormError("We couldn’t upload this report. Please try again.");
+						return;
+					}
+					formData.append("files", grant.receipt);
+				}
+				const result = await updatePatientLabTestAction(labTest.labId, formData);
 
-			if (result.status === "unauthorized") {
-				router.refresh();
-				return;
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				setLabTestDetailsMode("view");
+			} catch (error) {
+				console.error("Saving report files failed:", error);
+				setFormError("We couldn’t save these changes. Please try again.");
 			}
-
-			if (result.status !== "success") {
-				setFormError(result.error);
-				return;
-			}
-
-			setLabTestDetailsMode("view");
 		});
 	}
 

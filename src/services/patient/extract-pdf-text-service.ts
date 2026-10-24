@@ -1,15 +1,13 @@
 import "server-only";
 
-import { readFile } from "node:fs/promises";
 import { PDFParse } from "pdf-parse";
 import type { ExtractTextResult, OcrWorker } from "./types";
 
 export async function extractPdfText(
-	filePath: string,
+	buffer: Buffer,
 	worker: OcrWorker,
 ): Promise<ExtractTextResult> {
 	try {
-		const buffer = await readFile(filePath);
 		const parser = new PDFParse({ data: buffer });
 
 		try {

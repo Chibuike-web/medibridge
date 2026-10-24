@@ -1,5 +1,4 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
+import { patientUploads } from "@/lib/storage/client";
 import { and, eq } from "drizzle-orm";
 import {
 	patient,
@@ -80,20 +79,18 @@ export async function GET(
 	const isDownload = new URL(request.url).searchParams.has("download");
 
 	try {
-		const file = await readFile(
-			path.resolve(
-				"patient-uploads",
-				organizationId,
-				"record-files",
-				recordFile.recordId,
-				`${fileId}${extension}`,
-			),
-		);
-
-		return new Response(new Uint8Array(file), {
+		const key = `${organizationId}/record-files/${fileId}${extension}`;
+		const { data: file, error: missingFile } = await patientUploads.info(key);
+		if (missingFile || !file)
+			return Response.json({ status: "failed", error: "File not found." }, { status: 404 });
+		const { data, error } = await patientUploads.createSignedUrl(key, 60, {
+			download: isDownload ? recordFile.name : false,
+		});
+		if (error) throw error;
+		return new Response(null, {
+			status: 302,
 			headers: {
-				"Content-Type": recordFile.type ?? "application/octet-stream",
-				"Content-Disposition": `${isDownload ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(recordFile.name)}`,
+				Location: data.signedUrl,
 				"Cache-Control": "private, no-store",
 				"X-Content-Type-Options": "nosniff",
 			},

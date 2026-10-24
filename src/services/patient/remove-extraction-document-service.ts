@@ -1,7 +1,7 @@
 import "server-only";
 
 import path from "node:path";
-import { rm } from "node:fs/promises";
+import { patientUploads } from "@/lib/storage/client";
 import { and, eq } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { patientExtraction } from "@/db/schemas/patient";
@@ -88,13 +88,20 @@ export async function removeExtractionDocumentService(
 
 		updateTag(`patient-extraction-${organizationId}-${extractionId}`);
 
-		const uploadRoot = path.resolve("patient-uploads", organizationId, removal.uploadedBy);
-		const filePath = path.resolve(uploadRoot, documentId);
-
-		if (path.dirname(filePath) === uploadRoot) {
-			await rm(filePath, { force: true }).catch((error) => {
+		if (
+			documentId === path.posix.basename(documentId) &&
+			!/[\\:]/.test(documentId) &&
+			documentId !== "." &&
+			documentId !== ".."
+		) {
+			try {
+				const { error } = await patientUploads.remove([
+					`${organizationId}/${removal.uploadedBy}/${documentId}`,
+				]);
+				if (error) console.error("Removing patient upload failed:", error);
+			} catch (error) {
 				console.error("Removing patient upload failed:", error);
-			});
+			}
 		}
 
 		return { status: "success" };

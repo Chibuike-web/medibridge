@@ -1,9 +1,11 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { LabTestType } from "@/features/patients/types";
 import { LabTestsTable } from "./lab-tests-table";
+
+const uploadFetch = vi.fn();
 
 const activeMember = vi.hoisted(() => ({ role: "owner" }));
 const { createLabTestMock, updateLabTestMock } = vi.hoisted(() => ({
@@ -148,7 +150,19 @@ function bulkActionBar() {
 }
 
 describe("Lab tests table", () => {
+	afterEach(() => vi.unstubAllGlobals());
 	beforeEach(() => {
+		uploadFetch.mockReset();
+		uploadFetch.mockImplementation(async (url: string, options: RequestInit) =>
+			url === "/api/patient-record-files/upload"
+				? Response.json({
+						status: "success",
+						signedUrl: "https://storage.test/report",
+						receipt: options.body,
+					})
+				: new Response(null, { status: 200 }),
+		);
+		vi.stubGlobal("fetch", uploadFetch);
 		activeMember.role = "owner";
 		createLabTestMock.mockReset();
 		updateLabTestMock.mockReset();
@@ -534,7 +548,7 @@ describe("Lab tests table", () => {
 				encounterId: "ENC-1",
 			}),
 		);
-		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual([
+		expect(formData.getAll("files").map((receipt) => JSON.parse(String(receipt)).name)).toEqual([
 			"fbc-request.pdf",
 		]);
 		expect(screen.queryByRole("dialog", { name: "Add lab test" })).not.toBeInTheDocument();
@@ -619,7 +633,9 @@ describe("Lab tests table", () => {
 				removedFileIds: "FILE-a1c",
 			}),
 		);
-		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual(["a1c-repeat.pdf"]);
+		expect(formData.getAll("files").map((receipt) => JSON.parse(String(receipt)).name)).toEqual([
+			"a1c-repeat.pdf",
+		]);
 		expect(await screen.findByRole("dialog", { name: "Lab test details" })).toBeVisible();
 		rerender(
 			<LabTestsTable
