@@ -346,7 +346,6 @@ export function TransferTable({
 					}
 				}}
 				transfer={transferDetailsQuery.data ?? null}
-				isLoading={transferDetailsQuery.isLoading}
 				canArchive={canArchive}
 				returnTo={returnTo}
 				transferActionFeedback={

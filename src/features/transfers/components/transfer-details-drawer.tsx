@@ -53,7 +53,6 @@ type TransferDetailsDrawerProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	transfer: TransferDetailsType | null;
-	isLoading: boolean;
 	canArchive: boolean;
 	returnTo: string;
 	transferActionFeedback: TransferActionFeedback | null;
@@ -64,13 +63,10 @@ type TransferDetailsDrawerProps = {
 	onCancelTransfer: (transferId: string) => void;
 };
 
-const EMPTY_VALUE = "-";
-
 export function TransferDetailsDrawer({
 	open,
 	onOpenChange,
 	transfer,
-	isLoading,
 	canArchive,
 	returnTo,
 	transferActionFeedback,
@@ -224,61 +220,47 @@ export function TransferDetailsDrawer({
 							</Button>
 						</div>
 					) : null}
-					{isLoading ? (
-						<TransferDetailsFallback />
-					) : (
+					{transfer ? (
 						<>
 							<div className="flex flex-col gap-6">
 								<div className="flex items-center gap-x-4 gap-y-2 flex-wrap text-nowrap">
 									<div className="flex items-center gap-2 shrink-0">
 										<span className="text-gray-400">Transfer Status:</span>
-										{transfer ? (
-											<StatusBadge status={transfer.status} />
-										) : (
-											<span className="text-gray-600 font-medium">{EMPTY_VALUE}</span>
-										)}
+										<StatusBadge status={transfer.status} />
 									</div>
 									<div className="flex items-center gap-2 shrink-0">
 										<span className="text-gray-400">Patient ID:</span>
-										{transfer ? (
-											<CopyIdButton id={transfer.patientId} />
-										) : (
-											<span className="text-gray-600 font-medium">{EMPTY_VALUE}</span>
-										)}
+										<CopyIdButton id={transfer.patientId} />
 									</div>
 									<div className="flex items-center gap-2 shrink-0">
 										<span className="text-gray-400">Transfer ID:</span>
-										{transfer ? (
-											<CopyIdButton id={transfer.id} />
-										) : (
-											<span className="text-gray-600 font-medium">{EMPTY_VALUE}</span>
-										)}
+										<CopyIdButton id={transfer.id} />
 									</div>
 								</div>
 								<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-									<DetailItem label="Patient Name" value={transfer?.patientName} />
-									<DetailItem label="Target Hospital" value={transfer?.targetHospitalName} />
+									<DetailItem label="Patient Name" value={transfer.patientName} />
+									<DetailItem label="Target Hospital" value={transfer.targetHospitalName} />
 									<DetailItem
 										label="Target Hospital Email"
 										value={
-											transfer ? (
-												<>
-													{transfer.targetHospitalEmail.split("@")[0]}@<wbr />
-													<span className="inline-block">
-														{transfer.targetHospitalEmail.split("@")[1]}
-													</span>
-												</>
-											) : null
+											<>
+												{transfer.targetHospitalEmail.split("@")[0]}@<wbr />
+												<span className="inline-block">
+													{transfer.targetHospitalEmail.split("@")[1]}
+												</span>
+											</>
 										}
 									/>
-									{transfer?.notes ? <DetailItem label="Reason" value={transfer.notes} /> : null}
+									{transfer.notes ? <DetailItem label="Reason" value={transfer.notes} /> : null}
 								</div>
-								{transfer && transfer.transferContent.length > 0 ? (
+								{transfer.transferContent.length > 0 ? (
 									<TransferContentSections transferContent={transfer.transferContent} />
 								) : null}
 							</div>
-							{transfer ? <TransferProgress transfer={transfer} /> : null}
+							<TransferProgress transfer={transfer} />
 						</>
+					) : (
+						<TransferDetailsFallback />
 					)}
 				</div>
 			</DrawerContent>
@@ -438,12 +420,12 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 	);
 }
 
-function DetailItem({ label, value }: { label: string; value?: React.ReactNode }) {
+function DetailItem({ label, value }: { label: string; value: React.ReactNode }) {
 	return (
 		<div className="flex min-w-0 flex-col gap-2 no-line-height">
 			<span className="text-gray-400">{label}</span>
 			<span className="text-gray-600 font-medium text-pretty [overflow-wrap:anywhere]">
-				{value || EMPTY_VALUE}
+				{value}
 			</span>
 		</div>
 	);

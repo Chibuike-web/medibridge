@@ -42,7 +42,6 @@ function renderDrawer(transfer: TransferDetailsType) {
 			open
 			onOpenChange={() => {}}
 			transfer={transfer}
-			isLoading={false}
 			canArchive={false}
 			returnTo="/dashboard/transfers"
 			transferActionFeedback={null}
