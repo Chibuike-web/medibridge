@@ -114,6 +114,7 @@ export function TransferDetailsDrawer({
 										</DropdownMenuItem>
 										<DropdownMenuItem
 											className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600"
+											disabled={isTransferActionPending}
 											onSelect={() => onCancelTransfer(transfer.id)}
 										>
 											<RiCloseLine aria-hidden="true" className="text-current" />

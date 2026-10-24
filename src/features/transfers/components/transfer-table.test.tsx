@@ -486,6 +486,35 @@ describe("Transfer recovery feedback", () => {
 		expect(resendMock).toHaveBeenCalledWith("TRF-1");
 	});
 
+	test("while one action is running, the drawer menu doesn't offer Cancel on another transfer", async () => {
+		let finishRetry!: () => void;
+		retryMock.mockImplementation(
+			() =>
+				new Promise((resolve) => {
+					finishRetry = () =>
+						resolve({
+							status: "success",
+							message: "Access code sent to records@luth.example.org.",
+						});
+				}),
+		);
+		renderTransferTable();
+
+		const user = await chooseFromRowMenu("Ngozi Bello", "Retry transfer");
+		await user.click(await screen.findByRole("button", { name: "Close transfer details" }));
+		await user.click(rowFor("Chuka Joy Eze"));
+		const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
+		expect(await within(drawer).findByText("Chuka Joy Eze")).toBeVisible();
+		await user.click(within(drawer).getByRole("button", { name: "Transfer actions" }));
+		const cancelItem = await screen.findByRole("menuitem", { name: "Cancel transfer" });
+		expect(cancelItem).toHaveAttribute("aria-disabled", "true");
+
+		await act(async () => finishRetry());
+
+		await waitFor(() => expect(cancelItem).not.toHaveAttribute("aria-disabled"));
+		expect(cancelMock).not.toHaveBeenCalled();
+	});
+
 	test("a retry that finishes after switching transfers shows nothing on the other transfer", async () => {
 		let finishRetry!: () => void;
 		retryMock.mockImplementation(
