@@ -247,6 +247,8 @@ export function TransferTable({
 	);
 
 	function handleCancelTransfer(transferId: string) {
+		setTransferIdToCancel(null);
+		setSelectedTransferId(transferId);
 		setTransferActionFeedback(null);
 		startTransferActionTransition(async () => {
 			try {
@@ -283,12 +285,8 @@ export function TransferTable({
 								},
 					);
 				}
-				setTransferIdToCancel(null);
-				setSelectedTransferId(transferId);
 			} catch (error) {
 				console.error("Cancelling the transfer failed:", error);
-				setTransferIdToCancel(null);
-				setSelectedTransferId(transferId);
 				setTransferActionFeedback({
 					transferId,
 					type: "error",
@@ -363,7 +361,7 @@ export function TransferTable({
 			<AlertDialog
 				open={transferIdToCancel !== null}
 				onOpenChange={(open) => {
-					if (!open && !isTransferActionPending) setTransferIdToCancel(null);
+					if (!open) setTransferIdToCancel(null);
 				}}
 			>
 				<AlertDialogContent>
@@ -374,7 +372,6 @@ export function TransferTable({
 							variant="ghost"
 							size="icon"
 							aria-label="Close cancel transfer dialog"
-							disabled={isTransferActionPending}
 							onClick={() => setTransferIdToCancel(null)}
 						>
 							<RiCloseLine aria-hidden="true" />
@@ -385,16 +382,15 @@ export function TransferTable({
 						respond. The transfer and its full activity history are retained.
 					</AlertDialogDescription>
 					<AlertDialogFooter className="sm:justify-end">
-						<AlertDialogCancel disabled={isTransferActionPending}>Cancel</AlertDialogCancel>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<Button
 							type="button"
 							className="bg-rose-500 text-white hover:bg-rose-600"
-							disabled={isTransferActionPending}
 							onClick={() => {
 								if (transferIdToCancel) handleCancelTransfer(transferIdToCancel);
 							}}
 						>
-							{isTransferActionPending ? "Cancelling…" : "Cancel transfer"}
+							Cancel transfer
 						</Button>
 					</AlertDialogFooter>
 				</AlertDialogContent>

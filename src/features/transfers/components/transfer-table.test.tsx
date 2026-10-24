@@ -401,35 +401,36 @@ describe("Transfer recovery feedback", () => {
 		expect(await within(viewedDrawer).findByText("Waiting for patient response")).toBeVisible();
 		await user.click(screen.getByRole("button", { name: "Close transfer details" }));
 		let finishRefresh!: () => void;
+		const refreshFinished = new Promise<void>((resolve) => {
+			finishRefresh = resolve;
+		});
 		vi.stubGlobal(
 			"fetch",
-			vi.fn(
-				() =>
-					new Promise<Response>((resolve) => {
-						finishRefresh = () =>
-							resolve({
-								ok: true,
-								json: async () => ({
-									transfer: {
-										...waitingTransfer,
-										status: "cancelled",
-										cancelledAt: "2026-10-16T16:00:00.000Z",
-									},
-								}),
-							} as Response);
+			vi.fn(async () => {
+				await refreshFinished;
+				return {
+					ok: true,
+					json: async () => ({
+						transfer: {
+							...waitingTransfer,
+							status: "cancelled",
+							cancelledAt: "2026-10-16T16:00:00.000Z",
+						},
 					}),
-			),
+				} as Response;
+			}),
 		);
 
 		await chooseFromRowMenu("Chuka Joy Eze", "Cancel transfer");
 		const dialog = await screen.findByRole("alertdialog", { name: "Cancel transfer?" });
 		await user.click(within(dialog).getByRole("button", { name: "Cancel transfer" }));
-		await waitFor(() => expect(finishRefresh).toBeDefined());
-
-		expect(screen.queryByText("Waiting for patient response")).not.toBeInTheDocument();
-		await act(async () => finishRefresh());
+		await waitFor(() => expect(cancelMock).toHaveBeenCalledWith("TRF-1"));
+		await act(async () => {});
 
 		const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
+		expect(within(drawer).queryByRole("status")).not.toBeInTheDocument();
+		await act(async () => finishRefresh());
+
 		expect(await within(drawer).findByRole("status")).toHaveTextContent(
 			"Transfer cancelled. The patient can no longer respond to the request.",
 		);
@@ -547,7 +548,7 @@ describe("Transfer recovery feedback", () => {
 		expect(within(drawer).queryByRole("alert")).not.toBeInTheDocument();
 	});
 
-	test("a running cancel can't be dismissed, so its result opens the transfer that was cancelled", async () => {
+	test("confirming a cancel closes the dialog and opens the transfer, which can't be cancelled again until the result arrives", async () => {
 		let finishCancel!: () => void;
 		cancelMock.mockImplementation(
 			() =>
@@ -570,22 +571,50 @@ describe("Transfer recovery feedback", () => {
 		const user = await chooseFromRowMenu("Chuka Joy Eze", "Cancel transfer");
 		const dialog = await screen.findByRole("alertdialog", { name: "Cancel transfer?" });
 		await user.click(within(dialog).getByRole("button", { name: "Cancel transfer" }));
-		await user.keyboard("{Escape}");
 
-		expect(screen.getByRole("alertdialog", { name: "Cancel transfer?" })).toBeVisible();
-		expect(within(dialog).getByRole("button", { name: "Cancelling…" })).toBeDisabled();
-		expect(within(dialog).getByRole("button", { name: "Cancel" })).toBeDisabled();
-		expect(
-			within(dialog).getByRole("button", { name: "Close cancel transfer dialog" }),
-		).toBeDisabled();
+		const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
+		expect(screen.queryByRole("alertdialog", { hidden: true })).not.toBeInTheDocument();
+		expect(await within(drawer).findByText("Chuka Joy Eze")).toBeVisible();
+		await user.click(within(drawer).getByRole("button", { name: "Transfer actions" }));
+		const cancelItem = await screen.findByRole("menuitem", { name: "Cancel transfer" });
+		expect(cancelItem).toHaveAttribute("aria-disabled", "true");
+		await user.keyboard("{Escape}");
 
 		await act(async () => finishCancel());
 
-		const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
 		expect(await within(drawer).findByRole("status")).toHaveTextContent(
 			"Transfer cancelled. The patient can no longer respond to the request.",
 		);
-		expect(within(drawer).getByText("Chuka Joy Eze")).toBeVisible();
-		expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+		expect(within(drawer).getByText("Cancelled before the patient responded")).toBeVisible();
+		expect(cancelMock).toHaveBeenCalledTimes(1);
+	});
+
+	test("closing the details while a cancel runs keeps them closed when it finishes", async () => {
+		let finishCancel!: () => void;
+		cancelMock.mockImplementation(
+			() =>
+				new Promise((resolve) => {
+					finishCancel = () =>
+						resolve({
+							status: "success",
+							message: "Transfer cancelled. The patient can no longer respond to the request.",
+						});
+				}),
+		);
+		renderTransferTable();
+
+		const user = await chooseFromRowMenu("Chuka Joy Eze", "Cancel transfer");
+		const dialog = await screen.findByRole("alertdialog", { name: "Cancel transfer?" });
+		await user.click(within(dialog).getByRole("button", { name: "Cancel transfer" }));
+		expect(await screen.findByRole("dialog", { name: "Transfer details" })).toBeVisible();
+		await user.click(screen.getByRole("button", { name: "Close transfer details" }));
+		await waitFor(() =>
+			expect(screen.queryByRole("dialog", { name: "Transfer details" })).not.toBeInTheDocument(),
+		);
+
+		await act(async () => finishCancel());
+
+		await waitFor(() => expect(cancelMock).toHaveBeenCalledWith("TRF-1"));
+		expect(screen.queryByRole("dialog", { name: "Transfer details" })).not.toBeInTheDocument();
 	});
 });
