@@ -213,7 +213,7 @@ const Valid = () => {
 		<main className="h-dvh overflow-y-auto bg-white">
 			<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
 				<div className="w-full text-center">
-					<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-green-600 text-balance">
+					<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 						Email verified
 					</h1>
 					<p className="text-gray-600 text-sm font-normal text-pretty mt-4">

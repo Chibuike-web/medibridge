@@ -13,7 +13,7 @@ export type PatientSection =
 	| "vitals"
 	| "diagnoses"
 	| "allergies"
-	| "immunization"
+	| "immunizations"
 	| "procedures"
 	| "medications"
 	| "encounters"
@@ -78,7 +78,7 @@ export const sections = [
 	{ id: "vitals", label: "Vitals" },
 	{ id: "diagnoses", label: "Diagnoses" },
 	{ id: "allergies", label: "Allergies" },
-	{ id: "immunization", label: "Immunizations" },
+	{ id: "immunizations", label: "Immunizations" },
 	{ id: "procedures", label: "Procedures" },
 	{ id: "medications", label: "Medications" },
 	{ id: "encounters", label: "Encounters" },

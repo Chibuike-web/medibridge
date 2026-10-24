@@ -101,7 +101,7 @@ test("shows a tab for each shared section only, in record order", async () => {
 
 	expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
 		"Patient Details",
-		"Immunization",
+		"Immunizations",
 		"Medications",
 	]);
 });

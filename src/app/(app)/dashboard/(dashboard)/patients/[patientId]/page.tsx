@@ -234,7 +234,7 @@ async function renderSectionContent(
 		return <AllergiesSection patientId={patientId} searchParams={searchParams} />;
 	}
 
-	if (section === "immunization") {
+	if (section === "immunizations") {
 		return <ImmunizationSection patientId={patientId} searchParams={searchParams} />;
 	}
 
