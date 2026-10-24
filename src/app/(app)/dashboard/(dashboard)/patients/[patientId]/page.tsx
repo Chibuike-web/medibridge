@@ -270,12 +270,14 @@ async function VitalsSection({
 	const page = getNumberParam(tableParams.vitalsPage, 1, { min: 1 });
 	const limit = getNumberParam(tableParams.vitalsLimit, 14);
 	const searchQuery = getStringParam(tableParams.vitalsQuery);
+	const sort = getStringParam(tableParams.vitalsSort);
+	const order = getStringParam(tableParams.vitalsOrder);
 	const recordedFrom = getStringParam(tableParams.vitalsRecordedFrom);
 	const recordedTo = getStringParam(tableParams.vitalsRecordedTo);
 	const createdFrom = getStringParam(tableParams.vitalsCreatedFrom);
 	const createdTo = getStringParam(tableParams.vitalsCreatedTo);
 	const [{ vitals, totalVitals }, readings, { encounters }] = await Promise.all([
-		getPatientVitals(patientId, page, limit, searchQuery, {
+		getPatientVitals(patientId, page, limit, searchQuery, { sort, order }, {
 			recordedFrom,
 			recordedTo,
 			createdFrom,
@@ -330,6 +332,8 @@ async function VitalsSection({
 			vitals={vitals}
 			readings={readings}
 			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
 			recordedFrom={recordedFrom}
 			recordedTo={recordedTo}
 			createdFrom={createdFrom}
@@ -352,6 +356,8 @@ async function DiagnosesSection({
 	const page = getNumberParam(tableParams.diagnosesPage, 1, { min: 1 });
 	const limit = getNumberParam(tableParams.diagnosesLimit, 14);
 	const searchQuery = getStringParam(tableParams.diagnosesQuery);
+	const sort = getStringParam(tableParams.diagnosesSort);
+	const order = getStringParam(tableParams.diagnosesOrder);
 	const createdFrom = getStringParam(tableParams.diagnosesCreatedFrom);
 	const createdTo = getStringParam(tableParams.diagnosesCreatedTo);
 	const diagnosedFrom = getStringParam(tableParams.diagnosesDiagnosedFrom);
@@ -366,6 +372,7 @@ async function DiagnosesSection({
 		page,
 		limit,
 		searchQuery,
+		{ sort, order },
 		{ createdFrom, createdTo, diagnosedFrom, diagnosedTo, lastReviewedFrom, lastReviewedTo },
 		statusFilters,
 	);
@@ -408,6 +415,8 @@ async function DiagnosesSection({
 			patientId={patientId}
 			diagnoses={diagnoses}
 			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
 			createdFrom={createdFrom}
 			createdTo={createdTo}
 			diagnosedFrom={diagnosedFrom}
@@ -433,6 +442,8 @@ async function AllergiesSection({
 	const page = getNumberParam(tableParams.allergiesPage, 1, { min: 1 });
 	const limit = getNumberParam(tableParams.allergiesLimit, 14);
 	const searchQuery = getStringParam(tableParams.allergiesQuery);
+	const sort = getStringParam(tableParams.allergiesSort);
+	const order = getStringParam(tableParams.allergiesOrder);
 	const createdFrom = getStringParam(tableParams.allergiesCreatedFrom);
 	const createdTo = getStringParam(tableParams.allergiesCreatedTo);
 	const statusFilters = getStringParam(tableParams.allergiesStatus)
@@ -448,6 +459,7 @@ async function AllergiesSection({
 		page,
 		limit,
 		searchQuery,
+		{ sort, order },
 		{ createdFrom, createdTo },
 		statusFilters,
 		severityFilters,
@@ -488,6 +500,8 @@ async function AllergiesSection({
 			patientId={patientId}
 			allergies={allergies}
 			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
 			createdFrom={createdFrom}
 			createdTo={createdTo}
 			statusFilters={statusFilters}
@@ -510,6 +524,8 @@ async function ImmunizationSection({
 	const page = getNumberParam(tableParams.immunizationsPage, 1, { min: 1 });
 	const limit = getNumberParam(tableParams.immunizationsLimit, 14);
 	const searchQuery = getStringParam(tableParams.immunizationsQuery);
+	const sort = getStringParam(tableParams.immunizationsSort);
+	const order = getStringParam(tableParams.immunizationsOrder);
 	const createdFrom = getStringParam(tableParams.immunizationsCreatedFrom);
 	const createdTo = getStringParam(tableParams.immunizationsCreatedTo);
 	const statusFilters = getStringParam(tableParams.immunizationsStatus)
@@ -522,6 +538,7 @@ async function ImmunizationSection({
 		page,
 		limit,
 		searchQuery,
+		{ sort, order },
 		{ createdFrom, createdTo },
 		statusFilters,
 	);
@@ -560,6 +577,8 @@ async function ImmunizationSection({
 			patientId={patientId}
 			immunizations={immunizations}
 			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
 			createdFrom={createdFrom}
 			createdTo={createdTo}
 			statusFilters={statusFilters}
@@ -581,6 +600,8 @@ async function ProceduresSection({
 	const page = getNumberParam(tableParams.proceduresPage, 1, { min: 1 });
 	const limit = getNumberParam(tableParams.proceduresLimit, 14);
 	const searchQuery = getStringParam(tableParams.proceduresQuery);
+	const sort = getStringParam(tableParams.proceduresSort);
+	const order = getStringParam(tableParams.proceduresOrder);
 	const createdFrom = getStringParam(tableParams.proceduresCreatedFrom);
 	const createdTo = getStringParam(tableParams.proceduresCreatedTo);
 	const statusFilters = getStringParam(tableParams.proceduresStatus)
@@ -593,6 +614,7 @@ async function ProceduresSection({
 		page,
 		limit,
 		searchQuery,
+		{ sort, order },
 		{ createdFrom, createdTo },
 		statusFilters,
 	);
@@ -631,6 +653,8 @@ async function ProceduresSection({
 			patientId={patientId}
 			procedures={procedures}
 			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
 			createdFrom={createdFrom}
 			createdTo={createdTo}
 			statusFilters={statusFilters}
@@ -652,6 +676,8 @@ async function MedicationsSection({
 	const page = getNumberParam(tableParams.medicationsPage, 1, { min: 1 });
 	const limit = getNumberParam(tableParams.medicationsLimit, 14);
 	const searchQuery = getStringParam(tableParams.medicationsQuery);
+	const sort = getStringParam(tableParams.medicationsSort);
+	const order = getStringParam(tableParams.medicationsOrder);
 	const createdFrom = getStringParam(tableParams.medicationsCreatedFrom);
 	const createdTo = getStringParam(tableParams.medicationsCreatedTo);
 	const statusFilters = getStringParam(tableParams.medicationsStatus)
@@ -664,6 +690,7 @@ async function MedicationsSection({
 		page,
 		limit,
 		searchQuery,
+		{ sort, order },
 		{ createdFrom, createdTo },
 		statusFilters,
 	);
@@ -702,6 +729,8 @@ async function MedicationsSection({
 			patientId={patientId}
 			medications={medications}
 			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
 			createdFrom={createdFrom}
 			createdTo={createdTo}
 			statusFilters={statusFilters}
@@ -723,6 +752,8 @@ async function EncountersSection({
 	const page = getNumberParam(tableParams.encountersPage, 1, { min: 1 });
 	const limit = getNumberParam(tableParams.encountersLimit, 14);
 	const searchQuery = getStringParam(tableParams.encountersQuery);
+	const sort = getStringParam(tableParams.encountersSort);
+	const order = getStringParam(tableParams.encountersOrder);
 	const encounterFrom = getStringParam(tableParams.encountersEncounterFrom);
 	const encounterTo = getStringParam(tableParams.encountersEncounterTo);
 	const createdFrom = getStringParam(tableParams.encountersCreatedFrom);
@@ -749,6 +780,7 @@ async function EncountersSection({
 		page,
 		limit,
 		searchQuery,
+		{ sort, order },
 		{ encounterFrom, encounterTo, createdFrom, createdTo },
 		encounterTypeFilters,
 		departmentFilters,
@@ -791,6 +823,8 @@ async function EncountersSection({
 			patientId={patientId}
 			encounters={encounters}
 			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
 			encounterFrom={encounterFrom}
 			encounterTo={encounterTo}
 			createdFrom={createdFrom}
@@ -815,6 +849,8 @@ async function LabTestsSection({
 	const page = getNumberParam(tableParams.labTestsPage, 1, { min: 1 });
 	const limit = getNumberParam(tableParams.labTestsLimit, 14);
 	const searchQuery = getStringParam(tableParams.labTestsQuery);
+	const sort = getStringParam(tableParams.labTestsSort);
+	const order = getStringParam(tableParams.labTestsOrder);
 	const createdFrom = getStringParam(tableParams.labTestsCreatedFrom);
 	const createdTo = getStringParam(tableParams.labTestsCreatedTo);
 	const statusFilters = getStringParam(tableParams.labTestsStatus)
@@ -843,6 +879,7 @@ async function LabTestsSection({
 		page,
 		limit,
 		searchQuery,
+		{ sort, order },
 		{ createdFrom, createdTo },
 		statusFilters,
 		flagFilters,
@@ -883,6 +920,8 @@ async function LabTestsSection({
 			patientId={patientId}
 			labTests={labTests}
 			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
 			createdFrom={createdFrom}
 			createdTo={createdTo}
 			statusFilters={statusFilters}
@@ -905,6 +944,8 @@ async function ImagingSection({
 	const page = getNumberParam(tableParams.imagingPage, 1, { min: 1 });
 	const limit = getNumberParam(tableParams.imagingLimit, 14);
 	const searchQuery = getStringParam(tableParams.imagingQuery);
+	const sort = getStringParam(tableParams.imagingSort);
+	const order = getStringParam(tableParams.imagingOrder);
 	const orderedFrom = getStringParam(tableParams.imagingOrderedFrom);
 	const orderedTo = getStringParam(tableParams.imagingOrderedTo);
 	const createdFrom = getStringParam(tableParams.imagingCreatedFrom);
@@ -924,6 +965,7 @@ async function ImagingSection({
 		page,
 		limit,
 		searchQuery,
+		{ sort, order },
 		{ orderedFrom, orderedTo, createdFrom, createdTo },
 		statusFilters,
 		modalityFilters,
@@ -966,6 +1008,8 @@ async function ImagingSection({
 			patientId={patientId}
 			imagingStudies={imagingStudies}
 			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
 			orderedFrom={orderedFrom}
 			orderedTo={orderedTo}
 			createdFrom={createdFrom}

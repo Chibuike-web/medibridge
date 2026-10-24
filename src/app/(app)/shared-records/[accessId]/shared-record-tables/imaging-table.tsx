@@ -22,6 +22,7 @@ import {
 import {
 	type ColumnDef,
 	flexRender,
+	functionalUpdate,
 	createSortedRowModel,
 	stockFeatures,
 	sortFns,
@@ -104,6 +105,8 @@ export function SharedImagingTable({
 	limit,
 	totalPages,
 	searchQuery,
+	sort,
+	order,
 	statusFilters,
 	modalityFilters,
 	orderedFrom,
@@ -116,6 +119,8 @@ export function SharedImagingTable({
 	limit: number;
 	totalPages: number;
 	searchQuery: string;
+	sort: string;
+	order: string;
 	statusFilters: SharedImagingRow["status"][];
 	modalityFilters: SharedImagingRow["modality"][];
 	orderedFrom: string;
@@ -139,7 +144,11 @@ export function SharedImagingTable({
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<ImagingFilterSubmenu | null>(null);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isPending, startTransition] = useTransition();
-	const [sorting, setSorting] = useState<SortingState>([{ id: "study", desc: false }]);
+	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
+	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
+	const sorting: SortingState = optimisticSort
+		? [{ id: optimisticSort, desc: optimisticOrder === "desc" }]
+		: [];
 
 	// Restore URL changes while preserving typing ahead of our pending search.
 	if (previousSearchQuery !== searchQuery) {
@@ -151,6 +160,8 @@ export function SharedImagingTable({
 	function navigateTable(
 		{
 			nextPage = 1,
+			nextSort = optimisticSort,
+			nextOrder = optimisticOrder,
 			nextLimit = optimisticLimit,
 			nextQuery = query,
 			nextStatusFilters = optimisticStatusFilters,
@@ -161,6 +172,8 @@ export function SharedImagingTable({
 			nextCreatedTo = optimisticCreatedTo,
 		}: {
 			nextPage?: number;
+			nextSort?: string;
+			nextOrder?: string;
 			nextLimit?: number;
 			nextQuery?: string;
 			nextStatusFilters?: SharedImagingRow["status"][];
@@ -174,6 +187,8 @@ export function SharedImagingTable({
 	) {
 		const values = {
 			imagingPage: nextPage === 1 ? "" : String(nextPage),
+			imagingSort: nextSort,
+			imagingOrder: nextSort ? nextOrder : "",
 			imagingLimit: nextLimit === 14 ? "" : String(nextLimit),
 			imagingQuery: nextQuery,
 			imagingStatus: nextStatusFilters.join(","),
@@ -188,6 +203,8 @@ export function SharedImagingTable({
 			setNavigatedQuery(nextQuery);
 			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
+			setOptimisticSort(nextSort);
+			setOptimisticOrder(nextOrder);
 			setOptimisticLimit(nextLimit);
 			setOptimisticStatusFilters(nextStatusFilters);
 			setOptimisticModalityFilters(nextModalityFilters);
@@ -275,7 +292,14 @@ export function SharedImagingTable({
 		features: configuredTableFeatures,
 		data: rows,
 		columns,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange: (updater) => {
+			const [nextSorting] = functionalUpdate(updater, sorting);
+			navigateTable({
+				nextSort: nextSorting?.id ?? "",
+				nextOrder: nextSorting?.desc ? "desc" : "asc",
+			});
+		},
 		state: { sorting },
 	});
 
@@ -322,7 +346,6 @@ export function SharedImagingTable({
 								name="shared-imaging-status"
 								options={imagingStatusFilterOptions}
 								selectedValues={optimisticStatusFilters}
-								isPending={isPending}
 								onSelectedValuesChange={handleStatusFiltersChange}
 							/>
 						</FilterSubmenu>
@@ -336,7 +359,6 @@ export function SharedImagingTable({
 								name="shared-imaging-modality"
 								options={imagingModalityFilterOptions}
 								selectedValues={optimisticModalityFilters}
-								isPending={isPending}
 								onSelectedValuesChange={handleModalityFiltersChange}
 							/>
 						</FilterSubmenu>
@@ -628,13 +650,11 @@ function CheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: readonly { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (values: TValue[]) => void;
 }) {
 	return options.map((option) => {
@@ -653,7 +673,6 @@ function CheckboxFilterList<TValue extends string>({
 					<Checkbox
 						id={id}
 						checked={selected}
-						disabled={isPending}
 						onCheckedChange={(checked) =>
 							onSelectedValuesChange(
 								checked === true

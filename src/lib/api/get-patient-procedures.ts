@@ -7,7 +7,7 @@ import { formatDateTime } from "@/lib/utils/format-date-time";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
 import { endOfDay, startOfDay } from "date-fns";
-import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { getOrganizationId } from "./get-organization-id";
 
 function normalizeStatus(value: string): ProcedureType["status"] {
@@ -29,6 +29,7 @@ export const getPatientProcedures = cache(async (
 	page = 1,
 	limit = 14,
 	query = "",
+	sorting = { sort: "", order: "" },
 	createdAtFilter: { createdFrom?: string; createdTo?: string } = {},
 	statusFilters: ProcedureStatusFilter[] = [],
 	encounterId?: string,
@@ -43,6 +44,7 @@ export const getPatientProcedures = cache(async (
 		page,
 		limit,
 		query.trim(),
+		sorting,
 		createdAtFilter,
 		statusFilters,
 		encounterId,
@@ -55,6 +57,7 @@ export async function getPatientProceduresForOrganization(
 	page: number,
 	limit: number,
 	normalizedQuery: string,
+	{ sort, order }: { sort: string; order: string },
 	createdAtFilter: { createdFrom?: string; createdTo?: string },
 	statusFilters: ProcedureStatusFilter[],
 	encounterId?: string,
@@ -91,6 +94,16 @@ export async function getPatientProceduresForOrganization(
 		),
 	);
 
+	const sortColumns = {
+		procedure: patientProcedure.procedureName,
+		createdAt: patientProcedure.createdAt,
+		indication: patientProcedure.indication,
+		facility: patientProcedure.facility,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, rows] = await Promise.all([
 		db
 			.select({ value: count() })
@@ -110,7 +123,7 @@ export async function getPatientProceduresForOrganization(
 			.from(patientProcedure)
 			.innerJoin(patient, eq(patientProcedure.patientId, patient.id))
 			.where(procedureFilter)
-			.orderBy(desc(patientProcedure.createdAt))
+			.orderBy(sortDirection(sortColumn ?? patientProcedure.createdAt), sortDirection(patientProcedure.id))
 			.limit(limit)
 			.offset(offset),
 	]);

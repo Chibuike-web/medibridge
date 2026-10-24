@@ -22,6 +22,7 @@ import {
 import {
 	type ColumnDef,
 	flexRender,
+	functionalUpdate,
 	createSortedRowModel,
 	stockFeatures,
 	sortFns,
@@ -98,6 +99,8 @@ export function SharedAllergiesTable({
 	limit,
 	totalPages,
 	searchQuery,
+	sort,
+	order,
 	statusFilters,
 	severityFilters,
 	createdFrom,
@@ -108,6 +111,8 @@ export function SharedAllergiesTable({
 	limit: number;
 	totalPages: number;
 	searchQuery: string;
+	sort: string;
+	order: string;
 	statusFilters: SharedAllergyRow["status"][];
 	severityFilters: SharedAllergyRow["severity"][];
 	createdFrom: string;
@@ -127,7 +132,11 @@ export function SharedAllergiesTable({
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<AllergyFilterSubmenu | null>(null);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isPending, startTransition] = useTransition();
-	const [sorting, setSorting] = useState<SortingState>([{ id: "allergen", desc: false }]);
+	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
+	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
+	const sorting: SortingState = optimisticSort
+		? [{ id: optimisticSort, desc: optimisticOrder === "desc" }]
+		: [];
 
 	// Restore URL changes while preserving typing ahead of our pending search.
 	if (previousSearchQuery !== searchQuery) {
@@ -139,6 +148,8 @@ export function SharedAllergiesTable({
 	function navigateTable(
 		{
 			nextPage = 1,
+			nextSort = optimisticSort,
+			nextOrder = optimisticOrder,
 			nextLimit = optimisticLimit,
 			nextQuery = query,
 			nextStatusFilters = optimisticStatusFilters,
@@ -147,6 +158,8 @@ export function SharedAllergiesTable({
 			nextCreatedTo = optimisticCreatedTo,
 		}: {
 			nextPage?: number;
+			nextSort?: string;
+			nextOrder?: string;
 			nextLimit?: number;
 			nextQuery?: string;
 			nextStatusFilters?: SharedAllergyRow["status"][];
@@ -158,6 +171,8 @@ export function SharedAllergiesTable({
 	) {
 		const values = {
 			allergiesPage: nextPage === 1 ? "" : String(nextPage),
+			allergiesSort: nextSort,
+			allergiesOrder: nextSort ? nextOrder : "",
 			allergiesLimit: nextLimit === 14 ? "" : String(nextLimit),
 			allergiesQuery: nextQuery,
 			allergiesStatus: nextStatusFilters.join(","),
@@ -170,6 +185,8 @@ export function SharedAllergiesTable({
 			setNavigatedQuery(nextQuery);
 			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
+			setOptimisticSort(nextSort);
+			setOptimisticOrder(nextOrder);
 			setOptimisticLimit(nextLimit);
 			setOptimisticStatusFilters(nextStatusFilters);
 			setOptimisticSeverityFilters(nextSeverityFilters);
@@ -249,7 +266,14 @@ export function SharedAllergiesTable({
 		features: configuredTableFeatures,
 		data: rows,
 		columns,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange: (updater) => {
+			const [nextSorting] = functionalUpdate(updater, sorting);
+			navigateTable({
+				nextSort: nextSorting?.id ?? "",
+				nextOrder: nextSorting?.desc ? "desc" : "asc",
+			});
+		},
 		state: { sorting },
 	});
 
@@ -296,7 +320,6 @@ export function SharedAllergiesTable({
 								name="shared-allergy-status"
 								options={allergyStatusFilterOptions}
 								selectedValues={optimisticStatusFilters}
-								isPending={isPending}
 								onSelectedValuesChange={handleStatusFiltersChange}
 							/>
 						</FilterSubmenu>
@@ -310,7 +333,6 @@ export function SharedAllergiesTable({
 								name="shared-allergy-severity"
 								options={allergySeverityFilterOptions}
 								selectedValues={optimisticSeverityFilters}
-								isPending={isPending}
 								onSelectedValuesChange={handleSeverityFiltersChange}
 							/>
 						</FilterSubmenu>
@@ -583,13 +605,11 @@ function CheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: readonly { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (values: TValue[]) => void;
 }) {
 	return options.map((option) => {
@@ -608,7 +628,6 @@ function CheckboxFilterList<TValue extends string>({
 					<Checkbox
 						id={optionId}
 						checked={isSelected}
-						disabled={isPending}
 						onCheckedChange={(checked) =>
 							onSelectedValuesChange(
 								checked === true

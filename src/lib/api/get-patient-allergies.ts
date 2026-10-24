@@ -10,7 +10,7 @@ import { db } from "@/lib/better-auth/auth";
 import { formatDateTime } from "@/lib/utils/format-date-time";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
-import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
 import { getOrganizationId } from "./get-organization-id";
 
@@ -36,6 +36,7 @@ export const getPatientAllergies = cache(async (
 	page = 1,
 	limit = 14,
 	query = "",
+	sorting = { sort: "", order: "" },
 	dateFilters: AllergyDateFilters = {},
 	statusFilters: AllergyStatusFilter[] = [],
 	severityFilters: AllergySeverityFilter[] = [],
@@ -51,6 +52,7 @@ export const getPatientAllergies = cache(async (
 		page,
 		limit,
 		query.trim(),
+		sorting,
 		dateFilters,
 		statusFilters,
 		severityFilters,
@@ -64,6 +66,7 @@ export async function getPatientAllergiesForOrganization(
 	page: number,
 	limit: number,
 	normalizedQuery: string,
+	{ sort, order }: { sort: string; order: string },
 	dateFilters: AllergyDateFilters,
 	statusFilters: AllergyStatusFilter[],
 	severityFilters: AllergySeverityFilter[],
@@ -101,6 +104,15 @@ export async function getPatientAllergiesForOrganization(
 			ilike(patientAllergy.status, searchPattern),
 		),
 	);
+	const sortColumns = {
+		allergen: patientAllergy.allergen,
+		createdAt: patientAllergy.createdAt,
+		severity: patientAllergy.severity,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, rows] = await Promise.all([
 		db
 			.select({ value: count() })
@@ -119,7 +131,7 @@ export async function getPatientAllergiesForOrganization(
 			.from(patientAllergy)
 			.innerJoin(patient, eq(patientAllergy.patientId, patient.id))
 			.where(allergyFilter)
-			.orderBy(desc(patientAllergy.createdAt))
+			.orderBy(sortDirection(sortColumn ?? patientAllergy.createdAt), sortDirection(patientAllergy.id))
 			.limit(limit)
 			.offset(offset),
 	]);

@@ -1,11 +1,11 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
 import { Tabs } from "radix-ui";
 import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils/cn";
 import { useOptimistic } from "react";
 import { startTransition } from "react";
+import { useTableUrlNavigation } from "./table-url-navigation";
 
 export type PatientSection =
 	| "patient-overview"
@@ -21,19 +21,16 @@ export type PatientSection =
 	| "imaging";
 
 export function SectionTabs({ activeSection }: { activeSection: PatientSection }) {
-	const searchParams = useSearchParams();
-	const router = useRouter();
+	const navigateTableUrl = useTableUrlNavigation();
 	const shouldReduceMotion = useReducedMotion();
 
 	const [optimisticSection, setOptimisticSection] = useOptimistic(activeSection);
 
 	function handleClick(value: string) {
 		const section = value as PatientSection;
-		const params = new URLSearchParams(searchParams.toString());
 		startTransition(() => {
 			setOptimisticSection(section);
-			params.set("section", section);
-			router.push(`?section=${section}`);
+			navigateTableUrl({ section }, {});
 		});
 	}
 

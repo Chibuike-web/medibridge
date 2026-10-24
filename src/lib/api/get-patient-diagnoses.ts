@@ -7,7 +7,7 @@ import { formatDateTime } from "@/lib/utils/format-date-time";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
 import { endOfDay, startOfDay } from "date-fns";
-import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { getOrganizationId } from "./get-organization-id";
 
 type DiagnosisDateFilters = {
@@ -43,6 +43,7 @@ export const getPatientDiagnoses = cache(async (
 	page = 1,
 	limit = 14,
 	query = "",
+	sorting = { sort: "", order: "" },
 	dateFilters: DiagnosisDateFilters = {},
 	statusFilters: DiagnosisStatusFilter[] = [],
 	encounterId?: string,
@@ -60,6 +61,7 @@ export const getPatientDiagnoses = cache(async (
 		currentPage,
 		currentLimit,
 		normalizedQuery,
+		sorting,
 		dateFilters,
 		statusFilters,
 		encounterId,
@@ -72,6 +74,7 @@ export async function getPatientDiagnosesForOrganization(
 	page: number,
 	limit: number,
 	normalizedQuery: string,
+	{ sort, order }: { sort: string; order: string },
 	dateFilters: DiagnosisDateFilters,
 	statusFilters: DiagnosisStatusFilter[],
 	encounterId?: string,
@@ -115,6 +118,16 @@ export async function getPatientDiagnosesForOrganization(
 		),
 	);
 
+	const sortColumns = {
+		name: patientDiagnosis.diagnosisName,
+		diagnosedAt: patientDiagnosis.diagnosedAt,
+		lastReviewed: patientDiagnosis.updatedAt,
+		createdAt: patientDiagnosis.createdAt,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, rows] = await Promise.all([
 		db
 			.select({ value: count() })
@@ -133,7 +146,7 @@ export async function getPatientDiagnosesForOrganization(
 			.from(patientDiagnosis)
 			.innerJoin(patient, eq(patientDiagnosis.patientId, patient.id))
 			.where(diagnosisFilter)
-			.orderBy(desc(patientDiagnosis.createdAt))
+			.orderBy(sortDirection(sortColumn ?? patientDiagnosis.createdAt), sortDirection(patientDiagnosis.id))
 			.limit(limit)
 			.offset(offset),
 	]);

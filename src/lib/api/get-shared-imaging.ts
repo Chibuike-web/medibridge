@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
 import { patientImaging } from "@/db/schemas";
 import { db } from "@/lib/better-auth/auth";
@@ -28,6 +28,8 @@ export async function getSharedImaging(
 		page,
 		limit,
 		query,
+		sort,
+		order,
 		statusFilters,
 		modalityFilters,
 		orderedFrom,
@@ -38,6 +40,8 @@ export async function getSharedImaging(
 		page: number;
 		limit: number;
 		query: string;
+		sort: string;
+		order: string;
 		statusFilters: string[];
 		modalityFilters: string[];
 		orderedFrom: string;
@@ -75,13 +79,25 @@ export async function getSharedImaging(
 			ilike(patientImaging.status, searchPattern),
 		),
 	);
+	const sortColumns = {
+		study: patientImaging.study,
+		modality: patientImaging.modality,
+		region: patientImaging.region,
+		impression: patientImaging.impression,
+		orderedAt: patientImaging.orderedAt,
+		status: patientImaging.status,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, imaging] = await Promise.all([
 		db.select({ value: count() }).from(patientImaging).where(imagingFilter),
 		db
 			.select()
 			.from(patientImaging)
 			.where(imagingFilter)
-			.orderBy(desc(patientImaging.orderedAt))
+			.orderBy(sortDirection(sortColumn ?? patientImaging.orderedAt), sortDirection(patientImaging.id))
 			.limit(limit)
 			.offset((page - 1) * limit),
 	]);

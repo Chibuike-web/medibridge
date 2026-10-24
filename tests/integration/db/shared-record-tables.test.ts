@@ -11,7 +11,15 @@ import {
 } from "../../helpers/test-database";
 
 const accessId = "access-tables";
-const noFilters = { page: 1, limit: 14, query: "", createdFrom: "", createdTo: "" };
+const noFilters = {
+	page: 1,
+	limit: 14,
+	query: "",
+	sort: "",
+	order: "",
+	createdFrom: "",
+	createdTo: "",
+};
 
 describe.skipIf(!testDatabaseUrl)("Shared record tables", () => {
 	let authModule: typeof import("@/lib/better-auth/auth");

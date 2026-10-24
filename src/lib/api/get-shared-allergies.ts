@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
 import { patientAllergy } from "@/db/schemas";
 import { db } from "@/lib/better-auth/auth";
@@ -24,6 +24,8 @@ export async function getSharedAllergies(
 		page,
 		limit,
 		query,
+		sort,
+		order,
 		statusFilters,
 		severityFilters,
 		createdFrom,
@@ -32,6 +34,8 @@ export async function getSharedAllergies(
 		page: number;
 		limit: number;
 		query: string;
+		sort: string;
+		order: string;
 		statusFilters: string[];
 		severityFilters: string[];
 		createdFrom: string;
@@ -62,13 +66,24 @@ export async function getSharedAllergies(
 			ilike(patientAllergy.status, searchPattern),
 		),
 	);
+	const sortColumns = {
+		allergen: patientAllergy.allergen,
+		reaction: patientAllergy.reaction,
+		createdAt: patientAllergy.createdAt,
+		severity: patientAllergy.severity,
+		status: patientAllergy.status,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, allergies] = await Promise.all([
 		db.select({ value: count() }).from(patientAllergy).where(allergyFilter),
 		db
 			.select()
 			.from(patientAllergy)
 			.where(allergyFilter)
-			.orderBy(desc(patientAllergy.createdAt))
+			.orderBy(sortDirection(sortColumn ?? patientAllergy.createdAt), sortDirection(patientAllergy.id))
 			.limit(limit)
 			.offset((page - 1) * limit),
 	]);

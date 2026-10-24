@@ -30,6 +30,8 @@ const tableProps = {
 	limit: 14,
 	totalPages: 1,
 	searchQuery: "",
+	sort: "",
+	order: "",
 	statusFilters: [],
 	severityFilters: [],
 	createdFrom: "",
@@ -42,30 +44,35 @@ beforeEach(() => {
 	navigation.replace.mockReset();
 });
 
-test("shared records display and sort every supplied allergy without hiding later records", async () => {
+test("shared allergies keep the server's order, and sorting a column asks the server for it from page 1", async () => {
 	const user = userEvent.setup();
+	navigation.params += "&allergiesPage=3";
 	const rows: SharedAllergyRow[] = Array.from({ length: 14 }, (_, index) => ({
 		...penicillin,
-		allergen: `Allergen ${String(index + 1).padStart(2, "0")}`,
+		allergen: `Allergen ${String(14 - index).padStart(2, "0")}`,
 		allergyId: `AL-${index + 1}`,
 		status: "Active",
 	}));
-	render(<SharedAllergiesTable {...tableProps} rows={rows} />, { wrapper: TableUrlNavigation });
-	const table = screen.getByRole("table");
+	render(<SharedAllergiesTable {...tableProps} page={3} totalPages={4} rows={rows} />, {
+		wrapper: TableUrlNavigation,
+	});
 	const displayedAllergens = () =>
-		within(table)
+		within(screen.getByRole("table"))
 			.getAllByRole("cell", { name: /^Allergen \d+$/ })
 			.map((cell) => cell.textContent);
-	for (const allergy of rows) {
-		expect(within(table).getByText(allergy.allergen)).toBeVisible();
-	}
-	expect(screen.getByRole("columnheader", { name: "Allergen" })).toHaveAttribute(
-		"aria-sort",
-		"ascending",
-	);
-	await user.click(screen.getByRole("columnheader", { name: "Allergen" }));
-	expect(displayedAllergens()).toEqual(rows.map((allergy) => allergy.allergen).reverse());
+	const allergenHeader = screen.getByRole("columnheader", { name: "Allergen" });
+	expect(displayedAllergens()).toEqual(rows.map((allergy) => allergy.allergen));
+	expect(allergenHeader).toHaveAttribute("aria-sort", "none");
+
+	await user.click(allergenHeader);
+
+	const params = new URL(navigation.push.mock.lastCall![0], "http://localhost").searchParams;
+	expect(params.get("allergiesSort")).toBe("allergen");
+	expect(params.get("allergiesOrder")).toBe("asc");
+	expect(params.get("allergiesPage")).toBeNull();
+	expect(displayedAllergens()).toEqual(rows.map((allergy) => allergy.allergen));
 });
+
 
 test("shows the filter pill and first page while the filtered rows are still loading", async () => {
 	let finishNavigation!: () => void;

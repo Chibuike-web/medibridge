@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -148,6 +149,8 @@ function buildProps(overrides: Partial<MedicationsTableProps> = {}): Medications
 		limit: 14,
 		totalPages: 1,
 		query: "",
+		sorting: [],
+		onSortingChange: vi.fn(),
 		createdFrom: "",
 		createdTo: "",
 		statusFilters: [],
@@ -163,12 +166,17 @@ function buildProps(overrides: Partial<MedicationsTableProps> = {}): Medications
 	};
 }
 
+function SortableMedicationsTable(props: React.ComponentProps<typeof MedicationsTable>) {
+	const [sorting, setSorting] = useState(props.sorting);
+	return <MedicationsTable {...props} sorting={sorting} onSortingChange={setSorting} />;
+}
+
 function renderMedicationsTable(overrides: Partial<MedicationsTableProps> = {}) {
 	const props = buildProps(overrides);
 
 	render(
 		<SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-			<MedicationsTable {...props} />
+			<SortableMedicationsTable {...props} />
 		</SWRConfig>,
 	);
 
@@ -227,29 +235,30 @@ describe("Medications table", () => {
 		vi.unstubAllGlobals();
 	});
 
-	test("re-orders rows when a sortable header is clicked", async () => {
+	test("marks each sortable header when clicked and keeps the server's row order", async () => {
 		const user = userEvent.setup();
 		renderMedicationsTable();
 
 		const medicationHeader = screen.getByRole("columnheader", { name: "Medication" });
 		expect(medicationHeader).toHaveAttribute("aria-sort", "none");
+		const serverOrder = displayedMedications();
 		await user.click(medicationHeader);
 		expect(medicationHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedMedications()).toEqual(["Amoxicillin", "Metformin"]);
+		expect(displayedMedications()).toEqual(serverOrder);
 		await user.click(medicationHeader);
 		expect(medicationHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedMedications()).toEqual(["Metformin", "Amoxicillin"]);
+		expect(displayedMedications()).toEqual(serverOrder);
 
 		const routeHeader = screen.getByRole("columnheader", { name: "Route" });
 		await user.click(routeHeader);
 		expect(routeHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedMedications()).toEqual(["Amoxicillin", "Metformin"]);
+		expect(displayedMedications()).toEqual(serverOrder);
 
 		const createdHeader = screen.getByRole("columnheader", { name: "Created at" });
 		await user.click(createdHeader);
 		await user.click(createdHeader);
 		expect(createdHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedMedications()).toEqual(["Metformin", "Amoxicillin"]);
+		expect(displayedMedications()).toEqual(serverOrder);
 
 		expect(screen.getByRole("columnheader", { name: "Dose" })).not.toHaveAttribute("aria-sort");
 		expect(screen.getByRole("columnheader", { name: "Status" })).not.toHaveAttribute("aria-sort");

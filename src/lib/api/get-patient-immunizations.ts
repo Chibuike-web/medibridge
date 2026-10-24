@@ -6,7 +6,7 @@ import { db } from "@/lib/better-auth/auth";
 import { formatDateTime } from "@/lib/utils/format-date-time";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
-import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
 import { getOrganizationId } from "./get-organization-id";
 
@@ -38,6 +38,7 @@ export const getPatientImmunizations = cache(async (
 	page = 1,
 	limit = 14,
 	query = "",
+	sorting = { sort: "", order: "" },
 	dateFilters: ImmunizationDateFilters = {},
 	statusFilters: ImmunizationStatusFilter[] = [],
 	encounterId?: string,
@@ -52,6 +53,7 @@ export const getPatientImmunizations = cache(async (
 		page,
 		limit,
 		query.trim(),
+		sorting,
 		dateFilters,
 		statusFilters,
 		encounterId,
@@ -64,6 +66,7 @@ export async function getPatientImmunizationsForOrganization(
 	page: number,
 	limit: number,
 	normalizedQuery: string,
+	{ sort, order }: { sort: string; order: string },
 	dateFilters: ImmunizationDateFilters,
 	statusFilters: ImmunizationStatusFilter[],
 	encounterId?: string,
@@ -94,6 +97,14 @@ export async function getPatientImmunizationsForOrganization(
 		),
 	);
 
+	const sortColumns = {
+		vaccineName: patientImmunization.vaccineName,
+		createdAt: patientImmunization.createdAt,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, rows] = await Promise.all([
 		db
 			.select({ value: count() })
@@ -112,7 +123,7 @@ export async function getPatientImmunizationsForOrganization(
 			.from(patientImmunization)
 			.innerJoin(patient, eq(patientImmunization.patientId, patient.id))
 			.where(immunizationFilter)
-			.orderBy(desc(patientImmunization.createdAt))
+			.orderBy(sortDirection(sortColumn ?? patientImmunization.createdAt), sortDirection(patientImmunization.id))
 			.limit(limit)
 			.offset(offset),
 	]);

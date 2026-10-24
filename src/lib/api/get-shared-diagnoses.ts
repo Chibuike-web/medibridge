@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
 import { patientDiagnosis } from "@/db/schemas";
 import { db } from "@/lib/better-auth/auth";
@@ -24,6 +24,8 @@ export async function getSharedDiagnoses(
 		page,
 		limit,
 		query,
+		sort,
+		order,
 		statusFilters,
 		diagnosedFrom,
 		diagnosedTo,
@@ -35,6 +37,8 @@ export async function getSharedDiagnoses(
 		page: number;
 		limit: number;
 		query: string;
+		sort: string;
+		order: string;
 		statusFilters: string[];
 		diagnosedFrom: string;
 		diagnosedTo: string;
@@ -52,6 +56,8 @@ export async function getSharedDiagnoses(
 		.map((record) => record.recordId);
 	const createdFromDate = parseDateParam(createdFrom);
 	const createdToDate = parseDateParam(createdTo);
+	const reviewedFromDate = parseDateParam(reviewedFrom);
+	const reviewedToDate = parseDateParam(reviewedTo);
 	const databaseStatusFilters = statusFilters.flatMap((status) => [status, status.toLowerCase()]);
 	const searchPattern = `%${query.trim()}%`;
 	const diagnosisFilter = and(
@@ -59,8 +65,8 @@ export async function getSharedDiagnoses(
 		inArray(patientDiagnosis.id, diagnosisIds),
 		diagnosedFrom ? gte(patientDiagnosis.diagnosedAt, diagnosedFrom) : undefined,
 		diagnosedTo ? lte(patientDiagnosis.diagnosedAt, diagnosedTo) : undefined,
-		reviewedFrom ? gte(patientDiagnosis.lastReviewedAt, reviewedFrom) : undefined,
-		reviewedTo ? lte(patientDiagnosis.lastReviewedAt, reviewedTo) : undefined,
+		reviewedFromDate ? gte(patientDiagnosis.updatedAt, startOfDay(reviewedFromDate)) : undefined,
+		reviewedToDate ? lte(patientDiagnosis.updatedAt, endOfDay(reviewedToDate)) : undefined,
 		createdFromDate ? gte(patientDiagnosis.createdAt, startOfDay(createdFromDate)) : undefined,
 		createdToDate ? lte(patientDiagnosis.createdAt, endOfDay(createdToDate)) : undefined,
 		databaseStatusFilters.length > 0
@@ -72,13 +78,24 @@ export async function getSharedDiagnoses(
 			ilike(patientDiagnosis.status, searchPattern),
 		),
 	);
+	const sortColumns = {
+		name: patientDiagnosis.diagnosisName,
+		diagnosedAt: patientDiagnosis.diagnosedAt,
+		lastReviewed: patientDiagnosis.updatedAt,
+		createdAt: patientDiagnosis.createdAt,
+		status: patientDiagnosis.status,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, diagnoses] = await Promise.all([
 		db.select({ value: count() }).from(patientDiagnosis).where(diagnosisFilter),
 		db
 			.select()
 			.from(patientDiagnosis)
 			.where(diagnosisFilter)
-			.orderBy(desc(patientDiagnosis.createdAt))
+			.orderBy(sortDirection(sortColumn ?? patientDiagnosis.createdAt), sortDirection(patientDiagnosis.id))
 			.limit(limit)
 			.offset((page - 1) * limit),
 	]);
@@ -89,8 +106,8 @@ export async function getSharedDiagnoses(
 			name: record.diagnosisName,
 			diagnosedAt: record.diagnosedAt || "-",
 			diagnosedAtValue: toDateFilterValue(record.diagnosedAt),
-			lastReviewed: record.lastReviewedAt || "-",
-			lastReviewedValue: toDateFilterValue(record.lastReviewedAt),
+			lastReviewed: formatDate(record.updatedAt.toISOString()),
+			lastReviewedValue: record.updatedAt.toISOString(),
 			diagnosisId: record.id,
 			createdAt: formatDate(record.createdAt.toISOString()),
 			createdAtValue: record.createdAt.toISOString(),

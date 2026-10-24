@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
 import { patientProcedure } from "@/db/schemas";
 import { db } from "@/lib/better-auth/auth";
@@ -20,6 +20,8 @@ export async function getSharedProcedures(
 		page,
 		limit,
 		query,
+		sort,
+		order,
 		statusFilters,
 		createdFrom,
 		createdTo,
@@ -27,6 +29,8 @@ export async function getSharedProcedures(
 		page: number;
 		limit: number;
 		query: string;
+		sort: string;
+		order: string;
 		statusFilters: string[];
 		createdFrom: string;
 		createdTo: string;
@@ -56,13 +60,24 @@ export async function getSharedProcedures(
 			ilike(patientProcedure.status, searchPattern),
 		),
 	);
+	const sortColumns = {
+		procedure: patientProcedure.procedureName,
+		indication: patientProcedure.indication,
+		facility: patientProcedure.facility,
+		createdAt: patientProcedure.createdAt,
+		status: patientProcedure.status,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, procedures] = await Promise.all([
 		db.select({ value: count() }).from(patientProcedure).where(procedureFilter),
 		db
 			.select()
 			.from(patientProcedure)
 			.where(procedureFilter)
-			.orderBy(desc(patientProcedure.createdAt))
+			.orderBy(sortDirection(sortColumn ?? patientProcedure.createdAt), sortDirection(patientProcedure.id))
 			.limit(limit)
 			.offset((page - 1) * limit),
 	]);

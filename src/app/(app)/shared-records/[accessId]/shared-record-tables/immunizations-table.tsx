@@ -21,6 +21,7 @@ import {
 import {
 	type ColumnDef,
 	flexRender,
+	functionalUpdate,
 	createSortedRowModel,
 	stockFeatures,
 	sortFns,
@@ -93,6 +94,8 @@ export function SharedImmunizationsTable({
 	limit,
 	totalPages,
 	searchQuery,
+	sort,
+	order,
 	statusFilters,
 	createdFrom,
 	createdTo,
@@ -102,6 +105,8 @@ export function SharedImmunizationsTable({
 	limit: number;
 	totalPages: number;
 	searchQuery: string;
+	sort: string;
+	order: string;
 	statusFilters: SharedImmunizationRow["status"][];
 	createdFrom: string;
 	createdTo: string;
@@ -120,7 +125,11 @@ export function SharedImmunizationsTable({
 		null,
 	);
 	const [isPending, startTransition] = useTransition();
-	const [sorting, setSorting] = useState<SortingState>([{ id: "vaccineName", desc: false }]);
+	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
+	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
+	const sorting: SortingState = optimisticSort
+		? [{ id: optimisticSort, desc: optimisticOrder === "desc" }]
+		: [];
 
 	// Restore URL changes while preserving typing ahead of our pending search.
 	if (previousSearchQuery !== searchQuery) {
@@ -132,6 +141,8 @@ export function SharedImmunizationsTable({
 	function navigateTable(
 		{
 			nextPage = 1,
+			nextSort = optimisticSort,
+			nextOrder = optimisticOrder,
 			nextLimit = optimisticLimit,
 			nextQuery = query,
 			nextStatusFilters = optimisticStatusFilters,
@@ -139,6 +150,8 @@ export function SharedImmunizationsTable({
 			nextCreatedTo = optimisticCreatedTo,
 		}: {
 			nextPage?: number;
+			nextSort?: string;
+			nextOrder?: string;
 			nextLimit?: number;
 			nextQuery?: string;
 			nextStatusFilters?: SharedImmunizationRow["status"][];
@@ -149,6 +162,8 @@ export function SharedImmunizationsTable({
 	) {
 		const values = {
 			immunizationsPage: nextPage === 1 ? "" : String(nextPage),
+			immunizationsSort: nextSort,
+			immunizationsOrder: nextSort ? nextOrder : "",
 			immunizationsLimit: nextLimit === 14 ? "" : String(nextLimit),
 			immunizationsQuery: nextQuery,
 			immunizationsStatus: nextStatusFilters.join(","),
@@ -160,6 +175,8 @@ export function SharedImmunizationsTable({
 			setNavigatedQuery(nextQuery);
 			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
+			setOptimisticSort(nextSort);
+			setOptimisticOrder(nextOrder);
 			setOptimisticLimit(nextLimit);
 			setOptimisticStatusFilters(nextStatusFilters);
 			setOptimisticCreatedFrom(nextCreatedFrom);
@@ -233,7 +250,14 @@ export function SharedImmunizationsTable({
 		features: configuredTableFeatures,
 		data: rows,
 		columns,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange: (updater) => {
+			const [nextSorting] = functionalUpdate(updater, sorting);
+			navigateTable({
+				nextSort: nextSorting?.id ?? "",
+				nextOrder: nextSorting?.desc ? "desc" : "asc",
+			});
+		},
 		state: { sorting },
 	});
 
@@ -256,7 +280,6 @@ export function SharedImmunizationsTable({
 					statusFilters={optimisticStatusFilters}
 					createdFrom={optimisticCreatedFrom}
 					createdTo={optimisticCreatedTo}
-					isPending={isPending}
 					onActiveFilterSubmenuChange={setActiveFilterSubmenu}
 					onStatusFiltersChange={handleStatusFiltersChange}
 					onCreatedAtRangeApply={handleCreatedAtRangeApply}
@@ -451,7 +474,6 @@ function ImmunizationFilterMenu({
 	statusFilters,
 	createdFrom,
 	createdTo,
-	isPending,
 	onActiveFilterSubmenuChange,
 	onStatusFiltersChange,
 	onCreatedAtRangeApply,
@@ -460,7 +482,6 @@ function ImmunizationFilterMenu({
 	statusFilters: SharedImmunizationRow["status"][];
 	createdFrom: string;
 	createdTo: string;
-	isPending: boolean;
 	onActiveFilterSubmenuChange: (submenu: ImmunizationFilterSubmenu | null) => void;
 	onStatusFiltersChange: (values: SharedImmunizationRow["status"][]) => void;
 	onCreatedAtRangeApply: (from: string, to: string) => void;
@@ -504,7 +525,6 @@ function ImmunizationFilterMenu({
 								name="shared-immunization-status"
 								options={immunizationStatusFilterOptions}
 								selectedValues={statusFilters}
-								isPending={isPending}
 								onSelectedValuesChange={onStatusFiltersChange}
 							/>
 						</DropdownMenuSubContent>
@@ -560,13 +580,11 @@ function CheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: readonly { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (values: TValue[]) => void;
 }) {
 	return options.map((option) => {
@@ -585,7 +603,6 @@ function CheckboxFilterList<TValue extends string>({
 					<Checkbox
 						id={id}
 						checked={selected}
-						disabled={isPending}
 						onCheckedChange={(checked) =>
 							onSelectedValuesChange(
 								checked === true

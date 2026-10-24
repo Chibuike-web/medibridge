@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or, sql } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
 import { patientLabTest } from "@/db/schemas";
 import { db } from "@/lib/better-auth/auth";
@@ -20,6 +20,8 @@ export async function getSharedLabTests(
 		page,
 		limit,
 		query,
+		sort,
+		order,
 		statusFilters,
 		flagFilters,
 		createdFrom,
@@ -28,6 +30,8 @@ export async function getSharedLabTests(
 		page: number;
 		limit: number;
 		query: string;
+		sort: string;
+		order: string;
 		statusFilters: string[];
 		flagFilters: string[];
 		createdFrom: string;
@@ -59,16 +63,28 @@ export async function getSharedLabTests(
 			ilike(patientLabTest.id, searchPattern),
 			ilike(patientLabTest.referenceRange, searchPattern),
 			ilike(patientLabTest.interpretation, searchPattern),
+			ilike(patientLabTest.flag, searchPattern),
 			ilike(patientLabTest.status, searchPattern),
 		),
 	);
+	const sortColumns = {
+		test: patientLabTest.testName,
+		referenceRange: patientLabTest.referenceRange,
+		interpretation: sql`coalesce(${patientLabTest.flag}, ${patientLabTest.interpretation})`,
+		createdAt: patientLabTest.createdAt,
+		status: patientLabTest.status,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, labTests] = await Promise.all([
 		db.select({ value: count() }).from(patientLabTest).where(labTestFilter),
 		db
 			.select()
 			.from(patientLabTest)
 			.where(labTestFilter)
-			.orderBy(desc(patientLabTest.createdAt))
+			.orderBy(sortDirection(sortColumn ?? patientLabTest.createdAt), sortDirection(patientLabTest.id))
 			.limit(limit)
 			.offset((page - 1) * limit),
 	]);

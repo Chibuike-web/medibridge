@@ -136,6 +136,8 @@ test("loads the open section with the page, search and filters from the URL", as
 		section: "medications",
 		medicationsPage: "2",
 		medicationsQuery: "amox",
+		medicationsSort: "dose",
+		medicationsOrder: "desc",
 		medicationsStatus: "Discontinued,Unknown",
 		medicationsCreatedFrom: "2026-10-01",
 	});
@@ -144,6 +146,8 @@ test("loads the open section with the page, search and filters from the URL", as
 		page: 2,
 		limit: 14,
 		query: "amox",
+		sort: "dose",
+		order: "desc",
 		statusFilters: ["Discontinued"],
 		createdFrom: "2026-10-01",
 		createdTo: "",

@@ -22,6 +22,7 @@ import {
 import {
 	type ColumnDef,
 	flexRender,
+	functionalUpdate,
 	createSortedRowModel,
 	stockFeatures,
 	sortFns,
@@ -113,6 +114,8 @@ export function SharedLabTestsTable({
 	limit,
 	totalPages,
 	searchQuery,
+	sort,
+	order,
 	statusFilters,
 	interpretationFilters,
 	createdFrom,
@@ -123,6 +126,8 @@ export function SharedLabTestsTable({
 	limit: number;
 	totalPages: number;
 	searchQuery: string;
+	sort: string;
+	order: string;
 	statusFilters: SharedLabTestRow["status"][];
 	interpretationFilters: string[];
 	createdFrom: string;
@@ -143,7 +148,11 @@ export function SharedLabTestsTable({
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<LabTestFilterSubmenu | null>(null);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isPending, startTransition] = useTransition();
-	const [sorting, setSorting] = useState<SortingState>([{ id: "test", desc: false }]);
+	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
+	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
+	const sorting: SortingState = optimisticSort
+		? [{ id: optimisticSort, desc: optimisticOrder === "desc" }]
+		: [];
 
 	// Restore URL changes while preserving typing ahead of our pending search.
 	if (previousSearchQuery !== searchQuery) {
@@ -155,6 +164,8 @@ export function SharedLabTestsTable({
 	function navigateTable(
 		{
 			nextPage = 1,
+			nextSort = optimisticSort,
+			nextOrder = optimisticOrder,
 			nextLimit = optimisticLimit,
 			nextQuery = query,
 			nextStatusFilters = optimisticStatusFilters,
@@ -163,6 +174,8 @@ export function SharedLabTestsTable({
 			nextCreatedTo = optimisticCreatedTo,
 		}: {
 			nextPage?: number;
+			nextSort?: string;
+			nextOrder?: string;
 			nextLimit?: number;
 			nextQuery?: string;
 			nextStatusFilters?: SharedLabTestRow["status"][];
@@ -174,6 +187,8 @@ export function SharedLabTestsTable({
 	) {
 		const values = {
 			labTestsPage: nextPage === 1 ? "" : String(nextPage),
+			labTestsSort: nextSort,
+			labTestsOrder: nextSort ? nextOrder : "",
 			labTestsLimit: nextLimit === 14 ? "" : String(nextLimit),
 			labTestsQuery: nextQuery,
 			labTestsStatus: nextStatusFilters.join(","),
@@ -186,6 +201,8 @@ export function SharedLabTestsTable({
 			setNavigatedQuery(nextQuery);
 			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
+			setOptimisticSort(nextSort);
+			setOptimisticOrder(nextOrder);
 			setOptimisticLimit(nextLimit);
 			setOptimisticStatusFilters(nextStatusFilters);
 			setOptimisticInterpretationFilters(nextInterpretationFilters);
@@ -269,7 +286,14 @@ export function SharedLabTestsTable({
 		features: configuredTableFeatures,
 		data: rows,
 		columns,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange: (updater) => {
+			const [nextSorting] = functionalUpdate(updater, sorting);
+			navigateTable({
+				nextSort: nextSorting?.id ?? "",
+				nextOrder: nextSorting?.desc ? "desc" : "asc",
+			});
+		},
 		state: { sorting },
 	});
 	return (
@@ -315,7 +339,6 @@ export function SharedLabTestsTable({
 								name="shared-lab-status"
 								options={labTestStatusFilterOptions}
 								selectedValues={optimisticStatusFilters}
-								isPending={isPending}
 								onSelectedValuesChange={handleStatusFiltersChange}
 							/>
 						</FilterSubmenu>
@@ -329,7 +352,6 @@ export function SharedLabTestsTable({
 								name="shared-lab-flag"
 								options={labTestFlagFilterOptions}
 								selectedValues={optimisticInterpretationFilters}
-								isPending={isPending}
 								onSelectedValuesChange={handleFlagFiltersChange}
 							/>
 						</FilterSubmenu>
@@ -609,13 +631,11 @@ function CheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: readonly { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (values: TValue[]) => void;
 }) {
 	return options.map((option) => {
@@ -634,7 +654,6 @@ function CheckboxFilterList<TValue extends string>({
 					<Checkbox
 						id={id}
 						checked={selected}
-						disabled={isPending}
 						onCheckedChange={(checked) =>
 							onSelectedValuesChange(
 								checked === true

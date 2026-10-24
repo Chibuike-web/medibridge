@@ -21,6 +21,7 @@ import {
 import {
 	type ColumnDef,
 	flexRender,
+	functionalUpdate,
 	createSortedRowModel,
 	stockFeatures,
 	sortFns,
@@ -96,6 +97,8 @@ export function SharedMedicationsTable({
 	limit,
 	totalPages,
 	searchQuery,
+	sort,
+	order,
 	statusFilters,
 	createdFrom,
 	createdTo,
@@ -105,6 +108,8 @@ export function SharedMedicationsTable({
 	limit: number;
 	totalPages: number;
 	searchQuery: string;
+	sort: string;
+	order: string;
 	statusFilters: SharedMedicationRow["status"][];
 	createdFrom: string;
 	createdTo: string;
@@ -123,7 +128,11 @@ export function SharedMedicationsTable({
 		null,
 	);
 	const [isPending, startTransition] = useTransition();
-	const [sorting, setSorting] = useState<SortingState>([{ id: "medication", desc: false }]);
+	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
+	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
+	const sorting: SortingState = optimisticSort
+		? [{ id: optimisticSort, desc: optimisticOrder === "desc" }]
+		: [];
 
 	// Restore URL changes while preserving typing ahead of our pending search.
 	if (previousSearchQuery !== searchQuery) {
@@ -135,6 +144,8 @@ export function SharedMedicationsTable({
 	function navigateTable(
 		{
 			nextPage = 1,
+			nextSort = optimisticSort,
+			nextOrder = optimisticOrder,
 			nextLimit = optimisticLimit,
 			nextQuery = query,
 			nextStatusFilters = optimisticStatusFilters,
@@ -142,6 +153,8 @@ export function SharedMedicationsTable({
 			nextCreatedTo = optimisticCreatedTo,
 		}: {
 			nextPage?: number;
+			nextSort?: string;
+			nextOrder?: string;
 			nextLimit?: number;
 			nextQuery?: string;
 			nextStatusFilters?: SharedMedicationRow["status"][];
@@ -152,6 +165,8 @@ export function SharedMedicationsTable({
 	) {
 		const values = {
 			medicationsPage: nextPage === 1 ? "" : String(nextPage),
+			medicationsSort: nextSort,
+			medicationsOrder: nextSort ? nextOrder : "",
 			medicationsLimit: nextLimit === 14 ? "" : String(nextLimit),
 			medicationsQuery: nextQuery,
 			medicationsStatus: nextStatusFilters.join(","),
@@ -163,6 +178,8 @@ export function SharedMedicationsTable({
 			setNavigatedQuery(nextQuery);
 			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
+			setOptimisticSort(nextSort);
+			setOptimisticOrder(nextOrder);
 			setOptimisticLimit(nextLimit);
 			setOptimisticStatusFilters(nextStatusFilters);
 			setOptimisticCreatedFrom(nextCreatedFrom);
@@ -240,7 +257,14 @@ export function SharedMedicationsTable({
 		features: configuredTableFeatures,
 		data: rows,
 		columns,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange: (updater) => {
+			const [nextSorting] = functionalUpdate(updater, sorting);
+			navigateTable({
+				nextSort: nextSorting?.id ?? "",
+				nextOrder: nextSorting?.desc ? "desc" : "asc",
+			});
+		},
 		state: { sorting },
 	});
 
@@ -263,7 +287,6 @@ export function SharedMedicationsTable({
 					statusFilters={optimisticStatusFilters}
 					createdFrom={optimisticCreatedFrom}
 					createdTo={optimisticCreatedTo}
-					isPending={isPending}
 					onActiveFilterSubmenuChange={setActiveFilterSubmenu}
 					onStatusFiltersChange={handleStatusFiltersChange}
 					onCreatedAtRangeApply={handleCreatedAtRangeApply}
@@ -467,7 +490,6 @@ function MedicationFilterMenu({
 	statusFilters,
 	createdFrom,
 	createdTo,
-	isPending,
 	onActiveFilterSubmenuChange,
 	onStatusFiltersChange,
 	onCreatedAtRangeApply,
@@ -476,7 +498,6 @@ function MedicationFilterMenu({
 	statusFilters: SharedMedicationRow["status"][];
 	createdFrom: string;
 	createdTo: string;
-	isPending: boolean;
 	onActiveFilterSubmenuChange: (submenu: MedicationFilterSubmenu | null) => void;
 	onStatusFiltersChange: (values: SharedMedicationRow["status"][]) => void;
 	onCreatedAtRangeApply: (from: string, to: string) => void;
@@ -520,7 +541,6 @@ function MedicationFilterMenu({
 								name="shared-medication-status"
 								options={medicationStatusFilterOptions}
 								selectedValues={statusFilters}
-								isPending={isPending}
 								onSelectedValuesChange={onStatusFiltersChange}
 							/>
 						</DropdownMenuSubContent>
@@ -576,13 +596,11 @@ function CheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: readonly { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (values: TValue[]) => void;
 }) {
 	return options.map((option) => {
@@ -601,7 +619,6 @@ function CheckboxFilterList<TValue extends string>({
 					<Checkbox
 						id={id}
 						checked={selected}
-						disabled={isPending}
 						onCheckedChange={(checked) =>
 							onSelectedValuesChange(
 								checked === true

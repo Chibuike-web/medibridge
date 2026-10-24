@@ -39,7 +39,15 @@ vi.mock("@/lib/better-auth/auth", () => ({
 	},
 }));
 
-const noFilters = { page: 1, limit: 14, query: "", createdFrom: "", createdTo: "" };
+const noFilters = {
+	page: 1,
+	limit: 14,
+	query: "",
+	sort: "",
+	order: "",
+	createdFrom: "",
+	createdTo: "",
+};
 const sectionLoaders = [
 	(accessId: string) =>
 		getSharedDiagnoses(accessId, {

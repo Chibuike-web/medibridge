@@ -11,7 +11,7 @@ import { db } from "@/lib/better-auth/auth";
 import { formatDateTime } from "@/lib/utils/format-date-time";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
-import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
 import { getOrganizationId } from "./get-organization-id";
 
@@ -48,6 +48,7 @@ export const getPatientLabTests = cache(
 		page = 1,
 		limit = 14,
 		query = "",
+		sorting = { sort: "", order: "" },
 		dateFilters: LabTestDateFilters = {},
 		statusFilters: LabTestStatusFilter[] = [],
 		flagFilters: LabTestFlagFilter[] = [],
@@ -63,6 +64,7 @@ export const getPatientLabTests = cache(
 			page,
 			limit,
 			query.trim(),
+			sorting,
 			dateFilters,
 			statusFilters,
 			flagFilters,
@@ -111,6 +113,7 @@ export async function getPatientLabTestsForOrganization(
 	page: number,
 	limit: number,
 	normalizedQuery: string,
+	{ sort, order }: { sort: string; order: string },
 	dateFilters: LabTestDateFilters,
 	statusFilters: LabTestStatusFilter[],
 	flagFilters: LabTestFlagFilter[],
@@ -145,10 +148,20 @@ export async function getPatientLabTestsForOrganization(
 			encounterId ? undefined : ilike(patientLabTest.encounterId, searchPattern),
 			ilike(patientLabTest.referenceRange, searchPattern),
 			ilike(patientLabTest.interpretation, searchPattern),
+			ilike(patientLabTest.flag, searchPattern),
 			ilike(patientLabTest.status, searchPattern),
 		),
 	);
 
+	const sortColumns = {
+		test: patientLabTest.testName,
+		flag: patientLabTest.flag,
+		createdAt: patientLabTest.createdAt,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, rows] = await Promise.all([
 		db
 			.select({ value: count() })
@@ -177,7 +190,7 @@ export async function getPatientLabTestsForOrganization(
 			.from(patientLabTest)
 			.innerJoin(patient, eq(patientLabTest.patientId, patient.id))
 			.where(labTestFilter)
-			.orderBy(desc(patientLabTest.createdAt))
+			.orderBy(sortDirection(sortColumn ?? patientLabTest.createdAt), sortDirection(patientLabTest.id))
 			.limit(limit)
 			.offset(offset),
 	]);

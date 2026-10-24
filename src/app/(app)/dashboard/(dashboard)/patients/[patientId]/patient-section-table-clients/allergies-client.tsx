@@ -8,6 +8,7 @@ import type {
 	AllergyType,
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
+import { functionalUpdate, type SortingState, type Updater } from "@tanstack/react-table";
 import { useOptimistic, useState, useTransition } from "react";
 
 type AllergiesClientProps = {
@@ -18,6 +19,8 @@ type AllergiesClientProps = {
 	limit: number;
 	totalPages: number;
 	searchQuery?: string;
+	sort?: string;
+	order?: string;
 	createdFrom?: string;
 	createdTo?: string;
 	statusFilters?: AllergyStatusFilter[];
@@ -26,6 +29,8 @@ type AllergiesClientProps = {
 
 type AllergiesTableChange = {
 	nextPage?: number;
+	nextSort?: string;
+	nextOrder?: string;
 	nextLimit?: number;
 	nextQuery?: string;
 	nextCreatedFrom?: string;
@@ -42,6 +47,8 @@ export function AllergiesClient({
 	limit,
 	totalPages,
 	searchQuery = "",
+	sort = "",
+	order = "",
 	createdFrom = "",
 	createdTo = "",
 	statusFilters = [],
@@ -50,6 +57,11 @@ export function AllergiesClient({
 	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
+	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
+	const sorting: SortingState = optimisticSort
+		? [{ id: optimisticSort, desc: optimisticOrder === "desc" }]
+		: [];
 	const [query, setQuery] = useState(searchQuery);
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
 	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
@@ -70,6 +82,8 @@ export function AllergiesClient({
 	function navigateTable(
 		{
 			nextPage = 1,
+			nextSort = optimisticSort,
+			nextOrder = optimisticOrder,
 			nextLimit = optimisticLimit,
 			nextQuery = query,
 			nextCreatedFrom = optimisticCreatedFrom,
@@ -81,6 +95,8 @@ export function AllergiesClient({
 	) {
 		const values = {
 			allergiesPage: nextPage === 1 ? "" : String(nextPage),
+			allergiesSort: nextSort,
+			allergiesOrder: nextSort ? nextOrder : "",
 			allergiesLimit: nextLimit === 14 ? "" : String(nextLimit),
 			allergiesQuery: nextQuery,
 			allergiesCreatedFrom: nextCreatedFrom,
@@ -93,6 +109,8 @@ export function AllergiesClient({
 			setNavigatedQuery(nextQuery);
 			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
+			setOptimisticSort(nextSort);
+			setOptimisticOrder(nextOrder);
 			setOptimisticLimit(nextLimit);
 			setOptimisticCreatedFrom(nextCreatedFrom);
 			setOptimisticCreatedTo(nextCreatedTo);
@@ -146,6 +164,14 @@ export function AllergiesClient({
 		});
 	}
 
+	function handleSortingChange(updater: Updater<SortingState>) {
+		const [nextSorting] = functionalUpdate(updater, sorting);
+		navigateTable({
+			nextSort: nextSorting?.id ?? "",
+			nextOrder: nextSorting?.desc ? "desc" : "asc",
+		});
+	}
+
 	return (
 		<AllergiesTable
 			patientId={patientId}
@@ -155,6 +181,8 @@ export function AllergiesClient({
 			limit={optimisticLimit}
 			totalPages={totalPages}
 			query={query}
+			sorting={sorting}
+			onSortingChange={handleSortingChange}
 			createdFrom={optimisticCreatedFrom}
 			createdTo={optimisticCreatedTo}
 			statusFilters={optimisticStatusFilters}

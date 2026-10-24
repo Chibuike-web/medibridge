@@ -9,7 +9,15 @@ import {
 	useTestDatabase,
 } from "../../helpers/test-database";
 
-const noFilters = { page: 1, limit: 14, query: "", createdFrom: "", createdTo: "" };
+const noFilters = {
+	page: 1,
+	limit: 14,
+	query: "",
+	sort: "",
+	order: "",
+	createdFrom: "",
+	createdTo: "",
+};
 
 describe.skipIf(!testDatabaseUrl)("Shared record statuses", () => {
 	let authModule: typeof import("@/lib/better-auth/auth");

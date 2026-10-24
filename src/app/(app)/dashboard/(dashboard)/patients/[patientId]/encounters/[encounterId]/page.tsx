@@ -93,6 +93,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 		page: getNumberParam(tableParams.proceduresPage, 1, { min: 1 }),
 		limit: getNumberParam(tableParams.proceduresLimit, 14),
 		searchQuery: getStringParam(tableParams.proceduresQuery),
+		sort: getStringParam(tableParams.proceduresSort),
+		order: getStringParam(tableParams.proceduresOrder),
 		createdFrom: getStringParam(tableParams.proceduresCreatedFrom),
 		createdTo: getStringParam(tableParams.proceduresCreatedTo),
 		statusFilters: getStringParam(tableParams.proceduresStatus)
@@ -106,6 +108,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 		page: getNumberParam(tableParams.imagingPage, 1, { min: 1 }),
 		limit: getNumberParam(tableParams.imagingLimit, 14),
 		searchQuery: getStringParam(tableParams.imagingQuery),
+		sort: getStringParam(tableParams.imagingSort),
+		order: getStringParam(tableParams.imagingOrder),
 		orderedFrom: getStringParam(tableParams.imagingOrderedFrom),
 		orderedTo: getStringParam(tableParams.imagingOrderedTo),
 		createdFrom: getStringParam(tableParams.imagingCreatedFrom),
@@ -126,6 +130,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 		page: getNumberParam(tableParams.allergiesPage, 1, { min: 1 }),
 		limit: getNumberParam(tableParams.allergiesLimit, 14),
 		searchQuery: getStringParam(tableParams.allergiesQuery),
+		sort: getStringParam(tableParams.allergiesSort),
+		order: getStringParam(tableParams.allergiesOrder),
 		createdFrom: getStringParam(tableParams.allergiesCreatedFrom),
 		createdTo: getStringParam(tableParams.allergiesCreatedTo),
 		statusFilters: getStringParam(tableParams.allergiesStatus)
@@ -142,6 +148,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 		page: getNumberParam(tableParams.vitalsPage, 1, { min: 1 }),
 		limit: getNumberParam(tableParams.vitalsLimit, 14),
 		searchQuery: getStringParam(tableParams.vitalsQuery),
+		sort: getStringParam(tableParams.vitalsSort),
+		order: getStringParam(tableParams.vitalsOrder),
 		recordedFrom: getStringParam(tableParams.vitalsRecordedFrom),
 		recordedTo: getStringParam(tableParams.vitalsRecordedTo),
 		createdFrom: getStringParam(tableParams.vitalsCreatedFrom),
@@ -152,6 +160,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 		page: getNumberParam(tableParams.labTestsPage, 1, { min: 1 }),
 		limit: getNumberParam(tableParams.labTestsLimit, 14),
 		searchQuery: getStringParam(tableParams.labTestsQuery),
+		sort: getStringParam(tableParams.labTestsSort),
+		order: getStringParam(tableParams.labTestsOrder),
 		createdFrom: getStringParam(tableParams.labTestsCreatedFrom),
 		createdTo: getStringParam(tableParams.labTestsCreatedTo),
 		statusFilters: getStringParam(tableParams.labTestsStatus)
@@ -181,6 +191,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 		page: getNumberParam(tableParams.immunizationsPage, 1, { min: 1 }),
 		limit: getNumberParam(tableParams.immunizationsLimit, 14),
 		searchQuery: getStringParam(tableParams.immunizationsQuery),
+		sort: getStringParam(tableParams.immunizationsSort),
+		order: getStringParam(tableParams.immunizationsOrder),
 		createdFrom: getStringParam(tableParams.immunizationsCreatedFrom),
 		createdTo: getStringParam(tableParams.immunizationsCreatedTo),
 		statusFilters: getStringParam(tableParams.immunizationsStatus)
@@ -194,6 +206,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 		page: getNumberParam(tableParams.medicationsPage, 1, { min: 1 }),
 		limit: getNumberParam(tableParams.medicationsLimit, 14),
 		searchQuery: getStringParam(tableParams.medicationsQuery),
+		sort: getStringParam(tableParams.medicationsSort),
+		order: getStringParam(tableParams.medicationsOrder),
 		createdFrom: getStringParam(tableParams.medicationsCreatedFrom),
 		createdTo: getStringParam(tableParams.medicationsCreatedTo),
 		statusFilters: getStringParam(tableParams.medicationsStatus)
@@ -207,6 +221,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 		page: getNumberParam(tableParams.diagnosesPage, 1, { min: 1 }),
 		limit: getNumberParam(tableParams.diagnosesLimit, 14),
 		searchQuery: getStringParam(tableParams.diagnosesQuery),
+		sort: getStringParam(tableParams.diagnosesSort),
+		order: getStringParam(tableParams.diagnosesOrder),
 		createdFrom: getStringParam(tableParams.diagnosesCreatedFrom),
 		createdTo: getStringParam(tableParams.diagnosesCreatedTo),
 		diagnosedFrom: getStringParam(tableParams.diagnosesDiagnosedFrom),
@@ -238,6 +254,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			medicationsParams.page,
 			medicationsParams.limit,
 			medicationsParams.searchQuery,
+			{ sort: medicationsParams.sort, order: medicationsParams.order },
 			{ createdFrom: medicationsParams.createdFrom, createdTo: medicationsParams.createdTo },
 			medicationsParams.statusFilters,
 			encounterId,
@@ -247,6 +264,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			allergiesParams.page,
 			allergiesParams.limit,
 			allergiesParams.searchQuery,
+			{ sort: allergiesParams.sort, order: allergiesParams.order },
 			{ createdFrom: allergiesParams.createdFrom, createdTo: allergiesParams.createdTo },
 			allergiesParams.statusFilters,
 			allergiesParams.severityFilters,
@@ -257,6 +275,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			diagnosesParams.page,
 			diagnosesParams.limit,
 			diagnosesParams.searchQuery,
+			{ sort: diagnosesParams.sort, order: diagnosesParams.order },
 			{
 				createdFrom: diagnosesParams.createdFrom,
 				createdTo: diagnosesParams.createdTo,
@@ -273,6 +292,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			immunizationsParams.page,
 			immunizationsParams.limit,
 			immunizationsParams.searchQuery,
+			{ sort: immunizationsParams.sort, order: immunizationsParams.order },
 			{ createdFrom: immunizationsParams.createdFrom, createdTo: immunizationsParams.createdTo },
 			immunizationsParams.statusFilters,
 			encounterId,
@@ -282,6 +302,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			proceduresParams.page,
 			proceduresParams.limit,
 			proceduresParams.searchQuery,
+			{ sort: proceduresParams.sort, order: proceduresParams.order },
 			{ createdFrom: proceduresParams.createdFrom, createdTo: proceduresParams.createdTo },
 			proceduresParams.statusFilters,
 			encounterId,
@@ -291,6 +312,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			labTestsParams.page,
 			labTestsParams.limit,
 			labTestsParams.searchQuery,
+			{ sort: labTestsParams.sort, order: labTestsParams.order },
 			{ createdFrom: labTestsParams.createdFrom, createdTo: labTestsParams.createdTo },
 			labTestsParams.statusFilters,
 			labTestsParams.flagFilters,
@@ -301,6 +323,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			imagingParams.page,
 			imagingParams.limit,
 			imagingParams.searchQuery,
+			{ sort: imagingParams.sort, order: imagingParams.order },
 			{
 				orderedFrom: imagingParams.orderedFrom,
 				orderedTo: imagingParams.orderedTo,
@@ -316,6 +339,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			vitalsParams.page,
 			vitalsParams.limit,
 			vitalsParams.searchQuery,
+			{ sort: vitalsParams.sort, order: vitalsParams.order },
 			{
 				recordedFrom: vitalsParams.recordedFrom,
 				recordedTo: vitalsParams.recordedTo,
@@ -472,6 +496,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								limit={vitalsParams.limit}
 								totalPages={vitalsTotalPages}
 								searchQuery={vitalsParams.searchQuery}
+								sort={vitalsParams.sort}
+								order={vitalsParams.order}
 								recordedFrom={vitalsParams.recordedFrom}
 								recordedTo={vitalsParams.recordedTo}
 								createdFrom={vitalsParams.createdFrom}
@@ -507,6 +533,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								limit={medicationsParams.limit}
 								totalPages={medicationsTotalPages}
 								searchQuery={medicationsParams.searchQuery}
+								sort={medicationsParams.sort}
+								order={medicationsParams.order}
 								createdFrom={medicationsParams.createdFrom}
 								createdTo={medicationsParams.createdTo}
 								statusFilters={medicationsParams.statusFilters}
@@ -542,6 +570,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								limit={allergiesParams.limit}
 								totalPages={allergiesTotalPages}
 								searchQuery={allergiesParams.searchQuery}
+								sort={allergiesParams.sort}
+								order={allergiesParams.order}
 								createdFrom={allergiesParams.createdFrom}
 								createdTo={allergiesParams.createdTo}
 								statusFilters={allergiesParams.statusFilters}
@@ -581,6 +611,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								limit={diagnosesParams.limit}
 								totalPages={diagnosesTotalPages}
 								searchQuery={diagnosesParams.searchQuery}
+								sort={diagnosesParams.sort}
+								order={diagnosesParams.order}
 								createdFrom={diagnosesParams.createdFrom}
 								createdTo={diagnosesParams.createdTo}
 								diagnosedFrom={diagnosesParams.diagnosedFrom}
@@ -619,6 +651,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								limit={immunizationsParams.limit}
 								totalPages={immunizationsTotalPages}
 								searchQuery={immunizationsParams.searchQuery}
+								sort={immunizationsParams.sort}
+								order={immunizationsParams.order}
 								createdFrom={immunizationsParams.createdFrom}
 								createdTo={immunizationsParams.createdTo}
 								statusFilters={immunizationsParams.statusFilters}
@@ -653,6 +687,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								limit={proceduresParams.limit}
 								totalPages={proceduresTotalPages}
 								searchQuery={proceduresParams.searchQuery}
+								sort={proceduresParams.sort}
+								order={proceduresParams.order}
 								createdFrom={proceduresParams.createdFrom}
 								createdTo={proceduresParams.createdTo}
 								statusFilters={proceduresParams.statusFilters}
@@ -688,6 +724,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								limit={labTestsParams.limit}
 								totalPages={labTestsTotalPages}
 								searchQuery={labTestsParams.searchQuery}
+								sort={labTestsParams.sort}
+								order={labTestsParams.order}
 								createdFrom={labTestsParams.createdFrom}
 								createdTo={labTestsParams.createdTo}
 								statusFilters={labTestsParams.statusFilters}
@@ -726,6 +764,8 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 								limit={imagingParams.limit}
 								totalPages={imagingTotalPages}
 								searchQuery={imagingParams.searchQuery}
+								sort={imagingParams.sort}
+								order={imagingParams.order}
 								orderedFrom={imagingParams.orderedFrom}
 								orderedTo={imagingParams.orderedTo}
 								createdFrom={imagingParams.createdFrom}
