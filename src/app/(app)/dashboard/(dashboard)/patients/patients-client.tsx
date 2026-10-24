@@ -303,7 +303,6 @@ export function PatientsClient({
 							createdFrom={optimisticCreatedAtRange.createdFrom}
 							createdTo={optimisticCreatedAtRange.createdTo}
 							genderFilter={optimisticGenderFilter}
-							isPending={isPending}
 							onAgeGroupFilterChange={handleAgeGroupFilterChange}
 							onCreatedAtRangeApply={handleCreatedAtRangeApply}
 							onGenderFilterChange={handleGenderFilterChange}

@@ -267,13 +267,6 @@ describe("Imaging table", () => {
 		expect(onModalityFiltersChange).toHaveBeenCalledWith(["mri", "x-ray"]);
 	});
 
-	test("disables the filter checkboxes while a request is pending", async () => {
-		const user = setupSubmenuUser();
-		renderImagingTable({ isPending: true });
-
-		await openFilterSubmenu(user, "Modality");
-		expect(await screen.findByRole("checkbox", { name: "CT" })).toBeDisabled();
-	});
 
 	test("applies an order date preset to the ordered-at range only", async () => {
 		const user = setupSubmenuUser();

@@ -33,7 +33,6 @@ export function FilterButton({
 	createdFrom,
 	createdTo,
 	genderFilter,
-	isPending,
 	onAgeGroupFilterChange,
 	onCreatedAtRangeApply,
 	onGenderFilterChange,
@@ -42,7 +41,6 @@ export function FilterButton({
 	createdFrom: string;
 	createdTo: string;
 	genderFilter: PatientGenderFilter;
-	isPending: boolean;
 	onAgeGroupFilterChange: (ageGroupFilter: PatientAgeGroupFilter) => void;
 	onCreatedAtRangeApply: (createdFrom: string, createdTo: string) => void;
 	onGenderFilterChange: (genderFilter: PatientGenderFilter) => void;
@@ -133,7 +131,6 @@ export function FilterButton({
 									);
 								}}
 								className="flex flex-col gap-0.5"
-								disabled={isPending}
 							>
 								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 									<RadioGroupItem value="all" id="patient-gender-all" />
@@ -178,7 +175,6 @@ export function FilterButton({
 									);
 								}}
 								className="flex flex-col gap-0.5"
-								disabled={isPending}
 							>
 								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
 									<RadioGroupItem value="any-age" id="patient-age-any" />

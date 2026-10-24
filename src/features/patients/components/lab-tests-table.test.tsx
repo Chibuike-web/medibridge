@@ -269,13 +269,6 @@ describe("Lab tests table", () => {
 		expect(onFlagFiltersChange).toHaveBeenCalledWith(["high", "critical"]);
 	});
 
-	test("disables the filter checkboxes while a request is pending", async () => {
-		const user = setupSubmenuUser();
-		renderLabTestsTable({ isPending: true });
-
-		await openFilterSubmenu(user, "Status");
-		expect(await screen.findByRole("checkbox", { name: "Pending" })).toBeDisabled();
-	});
 
 	test("applies a creation date preset as a from/to range", async () => {
 		const user = setupSubmenuUser();

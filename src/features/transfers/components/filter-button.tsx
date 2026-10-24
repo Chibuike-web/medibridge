@@ -33,14 +33,12 @@ const transferStatusFilterOptions: { label: string; value: TransferStatusFilter 
 export function FilterButton({
 	requestedFrom,
 	requestedTo,
-	isPending,
 	onRequestedAtRangeApply,
 	onStatusFiltersChange,
 	statusFilters,
 }: {
 	requestedFrom: string;
 	requestedTo: string;
-	isPending: boolean;
 	onRequestedAtRangeApply: (requestedFrom: string, requestedTo: string) => void;
 	onStatusFiltersChange: (statusFilters: TransferStatusFilter[]) => void;
 	statusFilters: TransferStatusFilter[];
@@ -122,7 +120,6 @@ export function FilterButton({
 										<Checkbox
 											id={statusOptionId}
 											checked={isStatusSelected}
-											disabled={isPending}
 											onCheckedChange={(checked) => {
 												onStatusFiltersChange(
 													checked === true
