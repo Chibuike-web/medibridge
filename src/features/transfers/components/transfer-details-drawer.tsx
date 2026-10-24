@@ -189,9 +189,9 @@ export function TransferDetailsDrawer({
 							role={transferActionFeedback.type === "error" ? "alert" : "status"}
 							className={cn(
 								"mb-6 flex items-start gap-2 rounded-xl px-3 py-3 text-left text-sm font-medium",
-								transferActionFeedback.type === "error"
-									? "bg-red-50 text-red-700"
-									: "bg-green-50 text-green-700",
+								transferActionFeedback.type === "success"
+									? "bg-green-50 text-green-700"
+									: "bg-red-50 text-red-700",
 							)}
 						>
 							{transferActionFeedback.type === "error" ? (
@@ -206,9 +206,9 @@ export function TransferDetailsDrawer({
 								size="icon"
 								className={cn(
 									"ml-auto -my-1 size-6 rounded-full",
-									transferActionFeedback.type === "error"
-										? "text-red-700 hover:bg-red-100 hover:text-red-700"
-										: "text-green-700 hover:bg-green-100 hover:text-green-700",
+									transferActionFeedback.type === "success"
+										? "text-green-700 hover:bg-green-100 hover:text-green-700"
+										: "text-red-700 hover:bg-red-100 hover:text-red-700",
 								)}
 								aria-label="Dismiss message"
 								onClick={onDismissTransferActionFeedback}

@@ -63,7 +63,7 @@ export type TransferStatusFilter = TransferType["status"];
 
 export type TransferActionFeedback = {
 	transferId: string;
-	type: "error" | "success";
+	type: "error" | "success" | "cancelled";
 	message: string;
 };
 

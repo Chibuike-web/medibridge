@@ -210,7 +210,7 @@ export function TransferTable({
 				setSelectedTransferId(transferId);
 				setTransferActionFeedback(
 					result.status === "success"
-						? { transferId, type: "success", message: result.message }
+						? { transferId, type: "cancelled", message: result.message }
 						: { transferId, type: "error", message: result.error },
 				);
 				mutate(["transfer-details", transferId]);
