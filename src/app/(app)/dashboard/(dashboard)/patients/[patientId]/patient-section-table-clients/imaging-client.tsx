@@ -8,6 +8,7 @@ import type {
 	ImagingType,
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
+import { functionalUpdate, type SortingState, type Updater } from "@tanstack/react-table";
 import { useOptimistic, useState, useTransition } from "react";
 
 type ImagingClientProps = {
@@ -18,6 +19,8 @@ type ImagingClientProps = {
 	limit: number;
 	totalPages: number;
 	searchQuery?: string;
+	sort?: string;
+	order?: string;
 	orderedFrom?: string;
 	orderedTo?: string;
 	createdFrom?: string;
@@ -28,6 +31,8 @@ type ImagingClientProps = {
 
 type ImagingTableChange = {
 	nextPage?: number;
+	nextSort?: string;
+	nextOrder?: string;
 	nextLimit?: number;
 	nextQuery?: string;
 	nextOrderedFrom?: string;
@@ -46,6 +51,8 @@ export function ImagingClient({
 	limit,
 	totalPages,
 	searchQuery = "",
+	sort = "",
+	order = "",
 	orderedFrom = "",
 	orderedTo = "",
 	createdFrom = "",
@@ -56,6 +63,11 @@ export function ImagingClient({
 	const navigateTableUrl = useTableUrlNavigation();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
+	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
+	const sorting: SortingState = optimisticSort
+		? [{ id: optimisticSort, desc: optimisticOrder === "desc" }]
+		: [];
 	const [query, setQuery] = useState(searchQuery);
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
 	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
@@ -78,6 +90,8 @@ export function ImagingClient({
 	function navigateTable(
 		{
 			nextPage = 1,
+			nextSort = optimisticSort,
+			nextOrder = optimisticOrder,
 			nextLimit = optimisticLimit,
 			nextQuery = query,
 			nextOrderedFrom = optimisticOrderedFrom,
@@ -91,6 +105,8 @@ export function ImagingClient({
 	) {
 		const values = {
 			imagingPage: nextPage === 1 ? "" : String(nextPage),
+			imagingSort: nextSort,
+			imagingOrder: nextSort ? nextOrder : "",
 			imagingLimit: nextLimit === 14 ? "" : String(nextLimit),
 			imagingQuery: nextQuery,
 			imagingOrderedFrom: nextOrderedFrom,
@@ -105,6 +121,8 @@ export function ImagingClient({
 			setNavigatedQuery(nextQuery);
 			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
+			setOptimisticSort(nextSort);
+			setOptimisticOrder(nextOrder);
 			setOptimisticLimit(nextLimit);
 			setOptimisticOrderedFrom(nextOrderedFrom);
 			setOptimisticOrderedTo(nextOrderedTo);
@@ -167,6 +185,14 @@ export function ImagingClient({
 		});
 	}
 
+	function handleSortingChange(updater: Updater<SortingState>) {
+		const [nextSorting] = functionalUpdate(updater, sorting);
+		navigateTable({
+			nextSort: nextSorting?.id ?? "",
+			nextOrder: nextSorting?.desc ? "desc" : "asc",
+		});
+	}
+
 	return (
 		<ImagingTable
 			patientId={patientId}
@@ -176,6 +202,8 @@ export function ImagingClient({
 			limit={optimisticLimit}
 			totalPages={totalPages}
 			query={query}
+			sorting={sorting}
+			onSortingChange={handleSortingChange}
 			orderedFrom={optimisticOrderedFrom}
 			orderedTo={optimisticOrderedTo}
 			createdFrom={optimisticCreatedFrom}

@@ -58,6 +58,7 @@ import {
 	sortFns,
 	tableFeatures,
 	type RowSelectionState,
+	type OnChangeFn,
 	type SortingState,
 	useTable,
 } from "@tanstack/react-table";
@@ -115,6 +116,8 @@ type ImagingTableProps = {
 	limit: number;
 	totalPages: number;
 	query: string;
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
 	orderedFrom: string;
 	orderedTo: string;
 	createdFrom: string;
@@ -157,10 +160,11 @@ export function ImagingTable({
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
+	sorting,
+	onSortingChange,
 }: ImagingTableProps) {
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
-	const [sorting, setSorting] = useState<SortingState>([]);
 	const [selectedImagingRows, setSelectedImagingRows] = useState<RowSelectionState>({});
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<ImagingFilterSubmenu | null>(null);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
@@ -184,7 +188,8 @@ export function ImagingTable({
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.imagingId,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange,
 		onRowSelectionChange: setSelectedImagingRows,
 		state: {
 			sorting,

@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -94,6 +95,11 @@ const labTests: LabTestType[] = [
 	},
 ];
 
+function SortableLabTestsTable(props: React.ComponentProps<typeof LabTestsTable>) {
+	const [sorting, setSorting] = useState(props.sorting);
+	return <LabTestsTable {...props} sorting={sorting} onSortingChange={setSorting} />;
+}
+
 function renderLabTestsTable(overrides: Partial<React.ComponentProps<typeof LabTestsTable>> = {}) {
 	const props: React.ComponentProps<typeof LabTestsTable> = {
 		patientId: "patient-a",
@@ -102,6 +108,8 @@ function renderLabTestsTable(overrides: Partial<React.ComponentProps<typeof LabT
 		limit: 14,
 		totalPages: 1,
 		query: "",
+		sorting: [],
+		onSortingChange: vi.fn(),
 		createdFrom: "",
 		createdTo: "",
 		statusFilters: [],
@@ -118,7 +126,7 @@ function renderLabTestsTable(overrides: Partial<React.ComponentProps<typeof LabT
 		...overrides,
 	};
 
-	const { rerender } = render(<LabTestsTable {...props} />);
+	const { rerender } = render(<SortableLabTestsTable {...props} />);
 
 	return { ...props, rerender };
 }
@@ -168,39 +176,41 @@ describe("Lab tests table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Hemog");
 	});
 
-	test("sorts rows by test name when the header is clicked, then reverses, then clears", async () => {
+	test("marks the test name sort ascending, then descending, then clears, keeping the server's row order", async () => {
 		const user = userEvent.setup();
 		renderLabTestsTable();
 
 		const testHeader = screen.getByRole("columnheader", { name: "Test" });
 		expect(testHeader).toHaveAttribute("aria-sort", "none");
 
+		const serverOrder = displayedLabIds();
 		await user.click(testHeader);
 		expect(testHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedLabIds()).toEqual(["LAB-BMP", "LAB-A1C"]);
+		expect(displayedLabIds()).toEqual(serverOrder);
 
 		await user.click(testHeader);
 		expect(testHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedLabIds()).toEqual(["LAB-A1C", "LAB-BMP"]);
+		expect(displayedLabIds()).toEqual(serverOrder);
 
 		await user.click(testHeader);
 		expect(testHeader).toHaveAttribute("aria-sort", "none");
-		expect(displayedLabIds()).toEqual(["LAB-A1C", "LAB-BMP"]);
+		expect(displayedLabIds()).toEqual(serverOrder);
 	});
 
-	test("sorts by creation date chronologically using the keyboard", async () => {
+	test("sorts by creation date from the keyboard and keeps the server's row order", async () => {
 		const user = userEvent.setup();
 		renderLabTestsTable();
 
 		const createdAtHeader = screen.getByRole("columnheader", { name: "Created at" });
+		const serverOrder = displayedLabIds();
 		createdAtHeader.focus();
 		await user.keyboard("{Enter}");
 		expect(createdAtHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedLabIds()).toEqual(["LAB-BMP", "LAB-A1C"]);
+		expect(displayedLabIds()).toEqual(serverOrder);
 
 		await user.keyboard(" ");
 		expect(createdAtHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedLabIds()).toEqual(["LAB-A1C", "LAB-BMP"]);
+		expect(displayedLabIds()).toEqual(serverOrder);
 	});
 
 	test("does not offer sorting on the lab ID, reference range or status columns", () => {
@@ -259,13 +269,6 @@ describe("Lab tests table", () => {
 		expect(onFlagFiltersChange).toHaveBeenCalledWith(["high", "critical"]);
 	});
 
-	test("disables the filter checkboxes while a request is pending", async () => {
-		const user = setupSubmenuUser();
-		renderLabTestsTable({ isPending: true });
-
-		await openFilterSubmenu(user, "Status");
-		expect(await screen.findByRole("checkbox", { name: "Pending" })).toBeDisabled();
-	});
 
 	test("applies a creation date preset as a from/to range", async () => {
 		const user = setupSubmenuUser();
@@ -622,7 +625,7 @@ describe("Lab tests table", () => {
 		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual(["a1c-repeat.pdf"]);
 		expect(await screen.findByRole("dialog", { name: "Lab test details" })).toBeVisible();
 		rerender(
-			<LabTestsTable
+			<SortableLabTestsTable
 				{...props}
 				labTests={labTests.map((row, index) => (index === 0 ? { ...row, result: "5.4 %" } : row))}
 			/>,

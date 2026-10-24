@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -52,6 +53,11 @@ const encounters: EncounterType[] = [
 	},
 ];
 
+function SortableEncountersTable(props: React.ComponentProps<typeof EncountersTable>) {
+	const [sorting, setSorting] = useState(props.sorting);
+	return <EncountersTable {...props} sorting={sorting} onSortingChange={setSorting} />;
+}
+
 function renderEncountersTable(
 	overrides: Partial<React.ComponentProps<typeof EncountersTable>> = {},
 ) {
@@ -62,6 +68,8 @@ function renderEncountersTable(
 		limit: 14,
 		totalPages: 1,
 		query: "",
+		sorting: [],
+		onSortingChange: vi.fn(),
 		encounterFrom: "",
 		encounterTo: "",
 		createdFrom: "",
@@ -81,7 +89,7 @@ function renderEncountersTable(
 		...overrides,
 	};
 
-	render(<EncountersTable {...props} />);
+	render(<SortableEncountersTable {...props} />);
 
 	return props;
 }
@@ -130,33 +138,35 @@ describe("Encounters table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Cardiol");
 	});
 
-	test("re-orders rows when the user sorts by encounter date", async () => {
+	test("marks the encounter date sort when clicked and keeps the server's row order", async () => {
 		const user = userEvent.setup();
 		renderEncountersTable();
 
 		expect(displayedIds()).toEqual(["ENC-2001", "ENC-1001"]);
 
 		const dateHeader = screen.getByRole("columnheader", { name: "Encounter date" });
+		const serverOrder = displayedIds();
 		await user.click(dateHeader);
 		expect(dateHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedIds()).toEqual(["ENC-1001", "ENC-2001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 
 		await user.click(dateHeader);
 		expect(dateHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedIds()).toEqual(["ENC-2001", "ENC-1001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 	});
 
-	test("sorts by physician from the keyboard", async () => {
+	test("sorts by physician from the keyboard and keeps the server's row order", async () => {
 		const user = userEvent.setup();
 		renderEncountersTable();
 
 		const physicianHeader = screen.getByRole("columnheader", { name: "Physician" });
+		const serverOrder = displayedIds();
 		physicianHeader.focus();
 		await user.keyboard("{Enter}");
 		expect(physicianHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedIds()).toEqual(["ENC-2001", "ENC-1001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 		await user.keyboard("{Enter}");
-		expect(displayedIds()).toEqual(["ENC-1001", "ENC-2001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 	});
 
 	test("does not allow sorting by encounter ID", () => {

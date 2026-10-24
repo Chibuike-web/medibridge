@@ -57,6 +57,7 @@ import {
 	sortFns,
 	tableFeatures,
 	type RowSelectionState,
+	type OnChangeFn,
 	type SortingState,
 	useTable,
 } from "@tanstack/react-table";
@@ -108,6 +109,8 @@ type ProceduresTableProps = {
 	limit: number;
 	totalPages: number;
 	query: string;
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
 	createdFrom: string;
 	createdTo: string;
 	statusFilters: ProcedureStatusFilter[];
@@ -140,6 +143,8 @@ export function ProceduresTable({
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
+	sorting,
+	onSortingChange,
 }: ProceduresTableProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
@@ -147,7 +152,6 @@ export function ProceduresTable({
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
-	const [sorting, setSorting] = useState<SortingState>([]);
 	const [selectedProcedureRows, setSelectedProcedureRows] = useState<RowSelectionState>({});
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<ProcedureFilterSubmenu | null>(
 		null,
@@ -184,7 +188,8 @@ export function ProceduresTable({
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.procedureId,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange,
 		onRowSelectionChange: setSelectedProcedureRows,
 		state: {
 			sorting,

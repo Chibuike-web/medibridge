@@ -55,6 +55,7 @@ import {
 	sortFns,
 	tableFeatures,
 	type RowSelectionState,
+	type OnChangeFn,
 	type SortingState,
 	useTable,
 } from "@tanstack/react-table";
@@ -109,6 +110,8 @@ type ImmunizationsTableProps = {
 	limit: number;
 	totalPages: number;
 	query: string;
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
 	createdFrom: string;
 	createdTo: string;
 	statusFilters: ImmunizationStatusFilter[];
@@ -141,11 +144,12 @@ export function ImmunizationsTable({
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
+	sorting,
+	onSortingChange,
 }: ImmunizationsTableProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
-	const [sorting, setSorting] = useState<SortingState>([]);
 	const [selectedImmunizationRows, setSelectedImmunizationRows] = useState<RowSelectionState>({});
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<ImmunizationFilterSubmenu | null>(
 		null,
@@ -190,7 +194,8 @@ export function ImmunizationsTable({
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.immunizationId,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange,
 		onRowSelectionChange: setSelectedImmunizationRows,
 		state: {
 			sorting,

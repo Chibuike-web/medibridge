@@ -118,6 +118,8 @@ type AllergiesTableProps = {
 	limit: number;
 	totalPages: number;
 	query: string;
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
 	createdFrom: string;
 	createdTo: string;
 	statusFilters: AllergyStatusFilter[];
@@ -154,6 +156,8 @@ export function AllergiesTable({
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
+	sorting,
+	onSortingChange,
 }: AllergiesTableProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
@@ -162,7 +166,6 @@ export function AllergiesTable({
 		() => allergies.map((allergy) => allergy.allergyId).join(","),
 		[allergies],
 	);
-	const [sorting, setSorting] = useState<SortingState>([]);
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<AllergyFilterSubmenu | null>(null);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
@@ -332,7 +335,7 @@ export function AllergiesTable({
 				allergies={allergies}
 				columns={columns}
 				sorting={sorting}
-				onSortingChange={setSorting}
+				onSortingChange={onSortingChange}
 				page={page}
 				limit={limit}
 				totalPages={totalPages}
@@ -397,6 +400,7 @@ function AllergiesTableContent({
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.allergyId,
+		manualSorting: true,
 		onSortingChange,
 		onRowSelectionChange: setSelectedAllergyRows,
 		state: {

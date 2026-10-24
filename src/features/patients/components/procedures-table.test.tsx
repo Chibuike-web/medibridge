@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format } from "date-fns";
 import { SWRConfig } from "swr";
@@ -125,6 +126,11 @@ const procedureDetailsById: Record<string, ProcedureDetailsType> = {
 	},
 };
 
+function SortableProceduresTable(props: React.ComponentProps<typeof ProceduresTable>) {
+	const [sorting, setSorting] = useState(props.sorting);
+	return <ProceduresTable {...props} sorting={sorting} onSortingChange={setSorting} />;
+}
+
 function renderProceduresTable(
 	overrides: Partial<React.ComponentProps<typeof ProceduresTable>> = {},
 ) {
@@ -135,6 +141,8 @@ function renderProceduresTable(
 		limit: 14,
 		totalPages: 1,
 		query: "",
+		sorting: [],
+		onSortingChange: vi.fn(),
 		createdFrom: "",
 		createdTo: "",
 		statusFilters: [],
@@ -151,7 +159,7 @@ function renderProceduresTable(
 
 	render(
 		<SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-			<ProceduresTable {...props} />
+			<SortableProceduresTable {...props} />
 		</SWRConfig>,
 	);
 
@@ -222,34 +230,36 @@ describe("Procedures table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Append");
 	});
 
-	test("re-orders rows when the user sorts by procedure name", async () => {
+	test("marks the procedure name sort when clicked and keeps the server's row order", async () => {
 		const user = userEvent.setup();
 		renderProceduresTable();
 
 		expect(displayedIds()).toEqual(["PROC-3001", "PROC-1001"]);
 
 		const procedureHeader = screen.getByRole("columnheader", { name: "Procedure" });
+		const serverOrder = displayedIds();
 		await user.click(procedureHeader);
 		expect(procedureHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedIds()).toEqual(["PROC-1001", "PROC-3001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 
 		await user.click(procedureHeader);
 		expect(procedureHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedIds()).toEqual(["PROC-3001", "PROC-1001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 	});
 
-	test("sorts by creation date from the keyboard", async () => {
+	test("sorts by creation date from the keyboard and keeps the server's row order", async () => {
 		const user = userEvent.setup();
 		renderProceduresTable();
 
 		const createdHeader = screen.getByRole("columnheader", { name: "Created At" });
+		const serverOrder = displayedIds();
 		createdHeader.focus();
 		await user.keyboard("{Enter}");
 		expect(createdHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedIds()).toEqual(["PROC-1001", "PROC-3001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 		await user.keyboard(" ");
 		expect(createdHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedIds()).toEqual(["PROC-3001", "PROC-1001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 	});
 
 	test("does not allow sorting by procedure ID or status", () => {

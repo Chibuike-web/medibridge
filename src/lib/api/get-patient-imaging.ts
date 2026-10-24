@@ -11,7 +11,7 @@ import { db } from "@/lib/better-auth/auth";
 import { formatDate } from "@/lib/utils/format-date";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
-import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
 import { getOrganizationId } from "./get-organization-id";
 
@@ -67,6 +67,7 @@ export const getPatientImaging = cache(
 		page = 1,
 		limit = 14,
 		query = "",
+		sorting = { sort: "", order: "" },
 		dateFilters: ImagingDateFilters = {},
 		statusFilters: ImagingStatusFilter[] = [],
 		modalityFilters: ImagingModalityFilter[] = [],
@@ -82,6 +83,7 @@ export const getPatientImaging = cache(
 			page,
 			limit,
 			query.trim(),
+			sorting,
 			dateFilters,
 			statusFilters,
 			modalityFilters,
@@ -130,6 +132,7 @@ export async function getPatientImagingForOrganization(
 	page: number,
 	limit: number,
 	normalizedQuery: string,
+	{ sort, order }: { sort: string; order: string },
 	dateFilters: ImagingDateFilters,
 	statusFilters: ImagingStatusFilter[],
 	modalityFilters: ImagingModalityFilter[],
@@ -174,6 +177,16 @@ export async function getPatientImagingForOrganization(
 		),
 	);
 
+	const sortColumns = {
+		study: patientImaging.study,
+		modality: patientImaging.modality,
+		region: patientImaging.region,
+		orderedAt: patientImaging.orderedAt,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, rows] = await Promise.all([
 		db
 			.select({ value: count() })
@@ -201,7 +214,7 @@ export async function getPatientImagingForOrganization(
 			.from(patientImaging)
 			.innerJoin(patient, eq(patientImaging.patientId, patient.id))
 			.where(imagingFilter)
-			.orderBy(desc(patientImaging.orderedAt))
+			.orderBy(sortDirection(sortColumn ?? patientImaging.orderedAt), sortDirection(patientImaging.id))
 			.limit(limit)
 			.offset(offset),
 	]);

@@ -5,7 +5,7 @@ import {
 	SetDateRangeDialog,
 	type DateRangeFilter,
 } from "@/components/date-range-filter";
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useMemo, useOptimistic, useState, useTransition } from "react";
 import {
 	RiArrowDownSLine,
 	RiArrowUpSLine,
@@ -22,6 +22,7 @@ import {
 import {
 	type ColumnDef,
 	flexRender,
+	functionalUpdate,
 	createSortedRowModel,
 	stockFeatures,
 	sortFns,
@@ -51,6 +52,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import {
 	Table,
 	TableBody,
 	TableCell,
@@ -61,9 +69,10 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
+import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { getSharedLabTestsTableAction } from "../shared-record-table-actions";
 
+const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 type LabTestFilterSubmenu = "status" | "flag" | "created-at";
 const labTestStatusFilterOptions = [
 	{ label: "Pending", value: "Pending" },
@@ -100,78 +109,131 @@ export type SharedLabTestRow = {
 };
 
 export function SharedLabTestsTable({
-	accessId,
 	rows,
+	page,
+	limit,
+	totalPages,
+	searchQuery,
+	sort,
+	order,
+	statusFilters,
+	interpretationFilters,
+	createdFrom,
+	createdTo,
 }: {
-	accessId: string;
 	rows: SharedLabTestRow[];
+	page: number;
+	limit: number;
+	totalPages: number;
+	searchQuery: string;
+	sort: string;
+	order: string;
+	statusFilters: SharedLabTestRow["status"][];
+	interpretationFilters: string[];
+	createdFrom: string;
+	createdTo: string;
 }) {
-	const [tableRows, setTableRows] = useState(rows);
-	const [recordSearchQuery, setRecordSearchQuery] = useState("");
-	const [statusFilters, setStatusFilters] = useState<SharedLabTestRow["status"][]>([]);
-	const [interpretationFilters, setInterpretationFilters] = useState<string[]>([]);
-	const [createdFrom, setCreatedFrom] = useState("");
-	const [createdTo, setCreatedTo] = useState("");
+	const navigateTableUrl = useTableUrlNavigation();
+	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
+	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [query, setQuery] = useState(searchQuery);
+	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
+	const [optimisticQuery, setOptimisticQuery] = useOptimistic(searchQuery);
+	const [optimisticStatusFilters, setOptimisticStatusFilters] = useOptimistic(statusFilters);
+	const [optimisticInterpretationFilters, setOptimisticInterpretationFilters] =
+		useOptimistic(interpretationFilters);
+	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
+	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<LabTestFilterSubmenu | null>(null);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isPending, startTransition] = useTransition();
-	const latestRequestIdRef = useRef(0);
-	const [sorting, setSorting] = useState<SortingState>([{ id: "test", desc: false }]);
-	function refreshTable({
-		nextQuery = recordSearchQuery,
-		nextStatusFilters = statusFilters,
-		nextFlagFilters = interpretationFilters,
-		nextCreatedFrom = createdFrom,
-		nextCreatedTo = createdTo,
-	}: {
-		nextQuery?: string;
-		nextStatusFilters?: SharedLabTestRow["status"][];
-		nextFlagFilters?: string[];
-		nextCreatedFrom?: string;
-		nextCreatedTo?: string;
-	}) {
-		const requestId = ++latestRequestIdRef.current;
-		startTransition(async () => {
-			const nextRows = await getSharedLabTestsTableAction({
-				accessId,
-				query: nextQuery,
-				statusFilters: nextStatusFilters,
-				flagFilters: nextFlagFilters,
-				createdFrom: nextCreatedFrom,
-				createdTo: nextCreatedTo,
-			});
-			if (latestRequestIdRef.current === requestId) setTableRows(nextRows);
+	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
+	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
+	const sorting: SortingState = optimisticSort
+		? [{ id: optimisticSort, desc: optimisticOrder === "desc" }]
+		: [];
+
+	// Restore URL changes while preserving typing ahead of our pending search.
+	if (previousSearchQuery !== searchQuery) {
+		setPreviousSearchQuery(searchQuery);
+		setNavigatedQuery(null);
+		if (searchQuery !== navigatedQuery) setQuery(searchQuery);
+	}
+
+	function navigateTable(
+		{
+			nextPage = 1,
+			nextSort = optimisticSort,
+			nextOrder = optimisticOrder,
+			nextLimit = optimisticLimit,
+			nextQuery = query,
+			nextStatusFilters = optimisticStatusFilters,
+			nextInterpretationFilters = optimisticInterpretationFilters,
+			nextCreatedFrom = optimisticCreatedFrom,
+			nextCreatedTo = optimisticCreatedTo,
+		}: {
+			nextPage?: number;
+			nextSort?: string;
+			nextOrder?: string;
+			nextLimit?: number;
+			nextQuery?: string;
+			nextStatusFilters?: SharedLabTestRow["status"][];
+			nextInterpretationFilters?: string[];
+			nextCreatedFrom?: string;
+			nextCreatedTo?: string;
+		},
+		{ replace = false }: { replace?: boolean } = {},
+	) {
+		const values = {
+			labTestsPage: nextPage === 1 ? "" : String(nextPage),
+			labTestsSort: nextSort,
+			labTestsOrder: nextSort ? nextOrder : "",
+			labTestsLimit: nextLimit === 14 ? "" : String(nextLimit),
+			labTestsQuery: nextQuery,
+			labTestsStatus: nextStatusFilters.join(","),
+			labTestsFlag: nextInterpretationFilters.join(","),
+			labTestsCreatedFrom: nextCreatedFrom,
+			labTestsCreatedTo: nextCreatedTo,
+		};
+
+		startTransition(() => {
+			setNavigatedQuery(nextQuery);
+			setOptimisticQuery(nextQuery);
+			setOptimisticPage(nextPage);
+			setOptimisticSort(nextSort);
+			setOptimisticOrder(nextOrder);
+			setOptimisticLimit(nextLimit);
+			setOptimisticStatusFilters(nextStatusFilters);
+			setOptimisticInterpretationFilters(nextInterpretationFilters);
+			setOptimisticCreatedFrom(nextCreatedFrom);
+			setOptimisticCreatedTo(nextCreatedTo);
+			navigateTableUrl(values, { replace });
 		});
 	}
-	const debouncedSearch = useDebouncedCallback(
-		(nextQuery: string) => refreshTable({ nextQuery }),
-		300,
-	);
+
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		if (nextQuery !== query || nextQuery === optimisticQuery) return;
+		navigateTable({ nextQuery }, { replace: true });
+	}, 300);
+
 	function handleQueryChange(nextQuery: string) {
-		setRecordSearchQuery(nextQuery);
+		setQuery(nextQuery);
 		debouncedSearch(nextQuery);
 	}
 	function handleStatusFiltersChange(nextStatusFilters: SharedLabTestRow["status"][]) {
-		setStatusFilters(nextStatusFilters);
-		refreshTable({ nextStatusFilters });
+		navigateTable({ nextStatusFilters });
 	}
-	function handleFlagFiltersChange(nextFlagFilters: string[]) {
-		setInterpretationFilters(nextFlagFilters);
-		refreshTable({ nextFlagFilters });
+	function handleFlagFiltersChange(nextInterpretationFilters: string[]) {
+		navigateTable({ nextInterpretationFilters });
 	}
 	function handleCreatedRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
-		setCreatedFrom(nextCreatedFrom);
-		setCreatedTo(nextCreatedTo);
-		refreshTable({ nextCreatedFrom, nextCreatedTo });
+		navigateTable({ nextCreatedFrom, nextCreatedTo });
 	}
 	function handleFiltersClear() {
-		setStatusFilters([]);
-		setInterpretationFilters([]);
-		setCreatedFrom("");
-		setCreatedTo("");
-		refreshTable({
+		navigateTable({
 			nextStatusFilters: [],
-			nextFlagFilters: [],
+			nextInterpretationFilters: [],
 			nextCreatedFrom: "",
 			nextCreatedTo: "",
 		});
@@ -222,9 +284,16 @@ export function SharedLabTestsTable({
 	);
 	const table = useTable({
 		features: configuredTableFeatures,
-		data: tableRows,
+		data: rows,
 		columns,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange: (updater) => {
+			const [nextSorting] = functionalUpdate(updater, sorting);
+			navigateTable({
+				nextSort: nextSorting?.id ?? "",
+				nextOrder: nextSorting?.desc ? "desc" : "asc",
+			});
+		},
 		state: { sorting },
 	});
 	return (
@@ -235,7 +304,7 @@ export function SharedLabTestsTable({
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
 					<Input
 						type="search"
-						value={recordSearchQuery}
+						value={query}
 						onChange={(event) => handleQueryChange(event.target.value)}
 						placeholder="Search by test, result, or lab ID"
 						className="pl-10"
@@ -269,7 +338,7 @@ export function SharedLabTestsTable({
 							<CheckboxFilterList
 								name="shared-lab-status"
 								options={labTestStatusFilterOptions}
-								selectedValues={statusFilters}
+								selectedValues={optimisticStatusFilters}
 								onSelectedValuesChange={handleStatusFiltersChange}
 							/>
 						</FilterSubmenu>
@@ -282,7 +351,7 @@ export function SharedLabTestsTable({
 							<CheckboxFilterList
 								name="shared-lab-flag"
 								options={labTestFlagFilterOptions}
-								selectedValues={interpretationFilters}
+								selectedValues={optimisticInterpretationFilters}
 								onSelectedValuesChange={handleFlagFiltersChange}
 							/>
 						</FilterSubmenu>
@@ -293,8 +362,8 @@ export function SharedLabTestsTable({
 							label="Created at"
 						>
 							<DateRangeMenuItems
-								from={createdFrom}
-								to={createdTo}
+								from={optimisticCreatedFrom}
+								to={optimisticCreatedTo}
 								onDateRangeApply={handleCreatedRangeApply}
 								onCustomDateRangeSelect={setCustomDateRangeFilter}
 							/>
@@ -310,32 +379,37 @@ export function SharedLabTestsTable({
 					Export
 				</Button>
 			</div>
-			{statusFilters.length > 0 || interpretationFilters.length > 0 || createdFrom || createdTo ? (
+			{optimisticStatusFilters.length > 0 ||
+			optimisticInterpretationFilters.length > 0 ||
+			optimisticCreatedFrom ||
+			optimisticCreatedTo ? (
 				<div className="mb-4 flex items-start gap-4">
 					<div className="flex flex-1 flex-wrap gap-2">
-						{statusFilters.map((status) => (
+						{optimisticStatusFilters.map((status) => (
 							<FilterPill
 								key={status}
 								label={`Status: ${status}`}
 								onRemove={() =>
-									handleStatusFiltersChange(statusFilters.filter((value) => value !== status))
+									handleStatusFiltersChange(
+										optimisticStatusFilters.filter((value) => value !== status),
+									)
 								}
 							/>
 						))}
-						{interpretationFilters.map((interpretation) => (
+						{optimisticInterpretationFilters.map((interpretation) => (
 							<FilterPill
 								key={interpretation}
 								label={`Flag: ${interpretation}`}
 								onRemove={() =>
 									handleFlagFiltersChange(
-										interpretationFilters.filter((value) => value !== interpretation),
+										optimisticInterpretationFilters.filter((value) => value !== interpretation),
 									)
 								}
 							/>
 						))}
-						{createdFrom || createdTo ? (
+						{optimisticCreatedFrom || optimisticCreatedTo ? (
 							<FilterPill
-								label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+								label={`Created: ${formatDateRangeFilterLabel(optimisticCreatedFrom, optimisticCreatedTo)}`}
 								onRemove={() => handleCreatedRangeApply("", "")}
 							/>
 						) : null}
@@ -426,7 +500,7 @@ export function SharedLabTestsTable({
 					</TableHeader>
 					<TableBody
 						data-pending={isPending || undefined}
-						className="transition-opacity data-[pending=true]:opacity-80"
+						className="transition-opacity data-[pending=true]:opacity-80 data-[pending=true]:delay-150"
 					>
 						{table.getRowModel().rows.length > 0 ? (
 							table.getRowModel().rows.map((row) => (
@@ -453,6 +527,56 @@ export function SharedLabTestsTable({
 						)}
 					</TableBody>
 				</Table>
+				<div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500">
+					<div className="flex items-center gap-3">
+						<span>Rows per page</span>
+						<Select
+							value={String(optimisticLimit)}
+							onValueChange={(value) => navigateTable({ nextLimit: Number(value) })}
+							disabled={isPending}
+						>
+							<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
+								<SelectValue aria-label="Rows per page" placeholder="Rows" />
+							</SelectTrigger>
+							<SelectContent className="w-20" align="start">
+								{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
+									<SelectItem key={pageSize} value={String(pageSize)}>
+										{pageSize}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+					<div className="flex items-center gap-3">
+						<span>
+							Page {optimisticPage} of {totalPages}
+						</span>
+						<div className="flex items-center gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => navigateTable({ nextPage: Math.max(optimisticPage - 1, 1) })}
+								disabled={optimisticPage <= 1 || isPending}
+								className="text-gray-700 shadow-none"
+							>
+								Previous
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() =>
+									navigateTable({ nextPage: Math.min(optimisticPage + 1, totalPages) })
+								}
+								disabled={optimisticPage >= totalPages || isPending}
+								className="text-gray-700 shadow-none"
+							>
+								Next
+							</Button>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	);

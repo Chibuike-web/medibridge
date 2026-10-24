@@ -5,7 +5,7 @@ import {
 	SetDateRangeDialog,
 	type DateRangeFilter,
 } from "@/components/date-range-filter";
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useMemo, useOptimistic, useState, useTransition } from "react";
 import {
 	RiArrowDownSLine,
 	RiArrowUpSLine,
@@ -23,6 +23,7 @@ import {
 import {
 	type ColumnDef,
 	flexRender,
+	functionalUpdate,
 	createSortedRowModel,
 	stockFeatures,
 	sortFns,
@@ -52,6 +53,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import {
 	Table,
 	TableBody,
 	TableCell,
@@ -62,9 +70,10 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
+import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { getSharedDiagnosesTableAction } from "../shared-record-table-actions";
 
+const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 type DiagnosisFilterSubmenu = "status" | "diagnosed-at" | "last-reviewed" | "created-at";
 const diagnosisStatusFilterOptions = [
 	{ label: "Active", value: "Active" },
@@ -83,99 +92,154 @@ export type SharedDiagnosisRow = {
 };
 
 export function SharedDiagnosesTable({
-	accessId,
 	rows,
+	page,
+	limit,
+	totalPages,
+	searchQuery,
+	sort,
+	order,
+	statusFilters,
+	diagnosedFrom,
+	diagnosedTo,
+	reviewedFrom,
+	reviewedTo,
+	createdFrom,
+	createdTo,
 }: {
-	accessId: string;
 	rows: SharedDiagnosisRow[];
+	page: number;
+	limit: number;
+	totalPages: number;
+	searchQuery: string;
+	sort: string;
+	order: string;
+	statusFilters: SharedDiagnosisRow["status"][];
+	diagnosedFrom: string;
+	diagnosedTo: string;
+	reviewedFrom: string;
+	reviewedTo: string;
+	createdFrom: string;
+	createdTo: string;
 }) {
-	const [tableRows, setTableRows] = useState(rows);
-	const [recordSearchQuery, setRecordSearchQuery] = useState("");
-	const [statusFilters, setStatusFilters] = useState<SharedDiagnosisRow["status"][]>([]);
-	const [diagnosedFrom, setDiagnosedFrom] = useState("");
-	const [diagnosedTo, setDiagnosedTo] = useState("");
-	const [reviewedFrom, setReviewedFrom] = useState("");
-	const [reviewedTo, setReviewedTo] = useState("");
-	const [createdFrom, setCreatedFrom] = useState("");
-	const [createdTo, setCreatedTo] = useState("");
+	const navigateTableUrl = useTableUrlNavigation();
+	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
+	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [query, setQuery] = useState(searchQuery);
+	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
+	const [optimisticQuery, setOptimisticQuery] = useOptimistic(searchQuery);
+	const [optimisticStatusFilters, setOptimisticStatusFilters] = useOptimistic(statusFilters);
+	const [optimisticDiagnosedFrom, setOptimisticDiagnosedFrom] = useOptimistic(diagnosedFrom);
+	const [optimisticDiagnosedTo, setOptimisticDiagnosedTo] = useOptimistic(diagnosedTo);
+	const [optimisticReviewedFrom, setOptimisticReviewedFrom] = useOptimistic(reviewedFrom);
+	const [optimisticReviewedTo, setOptimisticReviewedTo] = useOptimistic(reviewedTo);
+	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
+	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<DiagnosisFilterSubmenu | null>(
 		null,
 	);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isPending, startTransition] = useTransition();
-	const latestRequestIdRef = useRef(0);
-	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
-	function refreshTable({
-		nextQuery = recordSearchQuery,
-		nextStatusFilters = statusFilters,
-		nextDiagnosedFrom = diagnosedFrom,
-		nextDiagnosedTo = diagnosedTo,
-		nextReviewedFrom = reviewedFrom,
-		nextReviewedTo = reviewedTo,
-		nextCreatedFrom = createdFrom,
-		nextCreatedTo = createdTo,
-	}: {
-		nextQuery?: string;
-		nextStatusFilters?: SharedDiagnosisRow["status"][];
-		nextDiagnosedFrom?: string;
-		nextDiagnosedTo?: string;
-		nextReviewedFrom?: string;
-		nextReviewedTo?: string;
-		nextCreatedFrom?: string;
-		nextCreatedTo?: string;
-	}) {
-		const requestId = ++latestRequestIdRef.current;
-		startTransition(async () => {
-			const nextRows = await getSharedDiagnosesTableAction({
-				accessId,
-				query: nextQuery,
-				statusFilters: nextStatusFilters,
-				diagnosedFrom: nextDiagnosedFrom,
-				diagnosedTo: nextDiagnosedTo,
-				reviewedFrom: nextReviewedFrom,
-				reviewedTo: nextReviewedTo,
-				createdFrom: nextCreatedFrom,
-				createdTo: nextCreatedTo,
-			});
-			if (latestRequestIdRef.current === requestId) setTableRows(nextRows);
+	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
+	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
+	const sorting: SortingState = optimisticSort
+		? [{ id: optimisticSort, desc: optimisticOrder === "desc" }]
+		: [];
+
+	// Restore URL changes while preserving typing ahead of our pending search.
+	if (previousSearchQuery !== searchQuery) {
+		setPreviousSearchQuery(searchQuery);
+		setNavigatedQuery(null);
+		if (searchQuery !== navigatedQuery) setQuery(searchQuery);
+	}
+
+	function navigateTable(
+		{
+			nextPage = 1,
+			nextSort = optimisticSort,
+			nextOrder = optimisticOrder,
+			nextLimit = optimisticLimit,
+			nextQuery = query,
+			nextStatusFilters = optimisticStatusFilters,
+			nextDiagnosedFrom = optimisticDiagnosedFrom,
+			nextDiagnosedTo = optimisticDiagnosedTo,
+			nextReviewedFrom = optimisticReviewedFrom,
+			nextReviewedTo = optimisticReviewedTo,
+			nextCreatedFrom = optimisticCreatedFrom,
+			nextCreatedTo = optimisticCreatedTo,
+		}: {
+			nextPage?: number;
+			nextSort?: string;
+			nextOrder?: string;
+			nextLimit?: number;
+			nextQuery?: string;
+			nextStatusFilters?: SharedDiagnosisRow["status"][];
+			nextDiagnosedFrom?: string;
+			nextDiagnosedTo?: string;
+			nextReviewedFrom?: string;
+			nextReviewedTo?: string;
+			nextCreatedFrom?: string;
+			nextCreatedTo?: string;
+		},
+		{ replace = false }: { replace?: boolean } = {},
+	) {
+		const values = {
+			diagnosesPage: nextPage === 1 ? "" : String(nextPage),
+			diagnosesSort: nextSort,
+			diagnosesOrder: nextSort ? nextOrder : "",
+			diagnosesLimit: nextLimit === 14 ? "" : String(nextLimit),
+			diagnosesQuery: nextQuery,
+			diagnosesStatus: nextStatusFilters.join(","),
+			diagnosesDiagnosedFrom: nextDiagnosedFrom,
+			diagnosesDiagnosedTo: nextDiagnosedTo,
+			diagnosesReviewedFrom: nextReviewedFrom,
+			diagnosesReviewedTo: nextReviewedTo,
+			diagnosesCreatedFrom: nextCreatedFrom,
+			diagnosesCreatedTo: nextCreatedTo,
+		};
+
+		startTransition(() => {
+			setNavigatedQuery(nextQuery);
+			setOptimisticQuery(nextQuery);
+			setOptimisticPage(nextPage);
+			setOptimisticSort(nextSort);
+			setOptimisticOrder(nextOrder);
+			setOptimisticLimit(nextLimit);
+			setOptimisticStatusFilters(nextStatusFilters);
+			setOptimisticDiagnosedFrom(nextDiagnosedFrom);
+			setOptimisticDiagnosedTo(nextDiagnosedTo);
+			setOptimisticReviewedFrom(nextReviewedFrom);
+			setOptimisticReviewedTo(nextReviewedTo);
+			setOptimisticCreatedFrom(nextCreatedFrom);
+			setOptimisticCreatedTo(nextCreatedTo);
+			navigateTableUrl(values, { replace });
 		});
 	}
-	const debouncedSearch = useDebouncedCallback(
-		(nextQuery: string) => refreshTable({ nextQuery }),
-		300,
-	);
+
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		if (nextQuery !== query || nextQuery === optimisticQuery) return;
+		navigateTable({ nextQuery }, { replace: true });
+	}, 300);
+
 	function handleQueryChange(nextQuery: string) {
-		setRecordSearchQuery(nextQuery);
+		setQuery(nextQuery);
 		debouncedSearch(nextQuery);
 	}
 	function handleStatusFiltersChange(nextStatusFilters: SharedDiagnosisRow["status"][]) {
-		setStatusFilters(nextStatusFilters);
-		refreshTable({ nextStatusFilters });
+		navigateTable({ nextStatusFilters });
 	}
 	function handleDiagnosedRangeApply(nextDiagnosedFrom: string, nextDiagnosedTo: string) {
-		setDiagnosedFrom(nextDiagnosedFrom);
-		setDiagnosedTo(nextDiagnosedTo);
-		refreshTable({ nextDiagnosedFrom, nextDiagnosedTo });
+		navigateTable({ nextDiagnosedFrom, nextDiagnosedTo });
 	}
 	function handleReviewedRangeApply(nextReviewedFrom: string, nextReviewedTo: string) {
-		setReviewedFrom(nextReviewedFrom);
-		setReviewedTo(nextReviewedTo);
-		refreshTable({ nextReviewedFrom, nextReviewedTo });
+		navigateTable({ nextReviewedFrom, nextReviewedTo });
 	}
 	function handleCreatedRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
-		setCreatedFrom(nextCreatedFrom);
-		setCreatedTo(nextCreatedTo);
-		refreshTable({ nextCreatedFrom, nextCreatedTo });
+		navigateTable({ nextCreatedFrom, nextCreatedTo });
 	}
 	function handleFiltersClear() {
-		setStatusFilters([]);
-		setDiagnosedFrom("");
-		setDiagnosedTo("");
-		setReviewedFrom("");
-		setReviewedTo("");
-		setCreatedFrom("");
-		setCreatedTo("");
-		refreshTable({
+		navigateTable({
 			nextStatusFilters: [],
 			nextDiagnosedFrom: "",
 			nextDiagnosedTo: "",
@@ -235,9 +299,16 @@ export function SharedDiagnosesTable({
 	);
 	const table = useTable({
 		features: configuredTableFeatures,
-		data: tableRows,
+		data: rows,
 		columns,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange: (updater) => {
+			const [nextSorting] = functionalUpdate(updater, sorting);
+			navigateTable({
+				nextSort: nextSorting?.id ?? "",
+				nextOrder: nextSorting?.desc ? "desc" : "asc",
+			});
+		},
 		state: { sorting },
 	});
 
@@ -249,7 +320,7 @@ export function SharedDiagnosesTable({
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
 					<Input
 						type="search"
-						value={recordSearchQuery}
+						value={query}
 						onChange={(event) => handleQueryChange(event.target.value)}
 						placeholder="Search by diagnosis or diagnosis ID"
 						className="pl-10"
@@ -283,7 +354,7 @@ export function SharedDiagnosesTable({
 							<CheckboxFilterList
 								name="shared-diagnosis-status"
 								options={diagnosisStatusFilterOptions}
-								selectedValues={statusFilters}
+								selectedValues={optimisticStatusFilters}
 								onSelectedValuesChange={handleStatusFiltersChange}
 							/>
 						</FilterSubmenu>
@@ -294,8 +365,8 @@ export function SharedDiagnosesTable({
 							label="Last updated"
 						>
 							<DateRangeMenuItems
-								from={reviewedFrom}
-								to={reviewedTo}
+								from={optimisticReviewedFrom}
+								to={optimisticReviewedTo}
 								onDateRangeApply={handleReviewedRangeApply}
 								onCustomDateRangeSelect={setCustomDateRangeFilter}
 							/>
@@ -307,8 +378,8 @@ export function SharedDiagnosesTable({
 							label="Diagnosed At"
 						>
 							<DateRangeMenuItems
-								from={diagnosedFrom}
-								to={diagnosedTo}
+								from={optimisticDiagnosedFrom}
+								to={optimisticDiagnosedTo}
 								onDateRangeApply={handleDiagnosedRangeApply}
 								onCustomDateRangeSelect={setCustomDateRangeFilter}
 							/>
@@ -320,8 +391,8 @@ export function SharedDiagnosesTable({
 							label="Created at"
 						>
 							<DateRangeMenuItems
-								from={createdFrom}
-								to={createdTo}
+								from={optimisticCreatedFrom}
+								to={optimisticCreatedTo}
 								onDateRangeApply={handleCreatedRangeApply}
 								onCustomDateRangeSelect={setCustomDateRangeFilter}
 							/>
@@ -337,39 +408,41 @@ export function SharedDiagnosesTable({
 					Export
 				</Button>
 			</div>
-			{statusFilters.length > 0 ||
-			diagnosedFrom ||
-			diagnosedTo ||
-			reviewedFrom ||
-			reviewedTo ||
-			createdFrom ||
-			createdTo ? (
+			{optimisticStatusFilters.length > 0 ||
+			optimisticDiagnosedFrom ||
+			optimisticDiagnosedTo ||
+			optimisticReviewedFrom ||
+			optimisticReviewedTo ||
+			optimisticCreatedFrom ||
+			optimisticCreatedTo ? (
 				<div className="mb-4 flex items-start gap-4">
 					<div className="flex flex-1 flex-wrap gap-2">
-						{statusFilters.map((status) => (
+						{optimisticStatusFilters.map((status) => (
 							<FilterPill
 								key={status}
 								label={`Status: ${status}`}
 								onRemove={() =>
-									handleStatusFiltersChange(statusFilters.filter((value) => value !== status))
+									handleStatusFiltersChange(
+										optimisticStatusFilters.filter((value) => value !== status),
+									)
 								}
 							/>
 						))}
-						{diagnosedFrom || diagnosedTo ? (
+						{optimisticDiagnosedFrom || optimisticDiagnosedTo ? (
 							<FilterPill
-								label={`Diagnosed: ${formatDateRangeFilterLabel(diagnosedFrom, diagnosedTo)}`}
+								label={`Diagnosed: ${formatDateRangeFilterLabel(optimisticDiagnosedFrom, optimisticDiagnosedTo)}`}
 								onRemove={() => handleDiagnosedRangeApply("", "")}
 							/>
 						) : null}
-						{reviewedFrom || reviewedTo ? (
+						{optimisticReviewedFrom || optimisticReviewedTo ? (
 							<FilterPill
-								label={`Reviewed: ${formatDateRangeFilterLabel(reviewedFrom, reviewedTo)}`}
+								label={`Reviewed: ${formatDateRangeFilterLabel(optimisticReviewedFrom, optimisticReviewedTo)}`}
 								onRemove={() => handleReviewedRangeApply("", "")}
 							/>
 						) : null}
-						{createdFrom || createdTo ? (
+						{optimisticCreatedFrom || optimisticCreatedTo ? (
 							<FilterPill
-								label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+								label={`Created: ${formatDateRangeFilterLabel(optimisticCreatedFrom, optimisticCreatedTo)}`}
 								onRemove={() => handleCreatedRangeApply("", "")}
 							/>
 						) : null}
@@ -455,7 +528,7 @@ export function SharedDiagnosesTable({
 					</TableHeader>
 					<TableBody
 						data-pending={isPending || undefined}
-						className="transition-opacity data-[pending=true]:opacity-80"
+						className="transition-opacity data-[pending=true]:opacity-80 data-[pending=true]:delay-150"
 					>
 						{table.getRowModel().rows.length > 0 ? (
 							table.getRowModel().rows.map((row) => (
@@ -479,6 +552,56 @@ export function SharedDiagnosesTable({
 						)}
 					</TableBody>
 				</Table>
+				<div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500">
+					<div className="flex items-center gap-3">
+						<span>Rows per page</span>
+						<Select
+							value={String(optimisticLimit)}
+							onValueChange={(value) => navigateTable({ nextLimit: Number(value) })}
+							disabled={isPending}
+						>
+							<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
+								<SelectValue aria-label="Rows per page" placeholder="Rows" />
+							</SelectTrigger>
+							<SelectContent className="w-20" align="start">
+								{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
+									<SelectItem key={pageSize} value={String(pageSize)}>
+										{pageSize}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+					<div className="flex items-center gap-3">
+						<span>
+							Page {optimisticPage} of {totalPages}
+						</span>
+						<div className="flex items-center gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => navigateTable({ nextPage: Math.max(optimisticPage - 1, 1) })}
+								disabled={optimisticPage <= 1 || isPending}
+								className="text-gray-700 shadow-none"
+							>
+								Previous
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() =>
+									navigateTable({ nextPage: Math.min(optimisticPage + 1, totalPages) })
+								}
+								disabled={optimisticPage >= totalPages || isPending}
+								className="text-gray-700 shadow-none"
+							>
+								Next
+							</Button>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	);

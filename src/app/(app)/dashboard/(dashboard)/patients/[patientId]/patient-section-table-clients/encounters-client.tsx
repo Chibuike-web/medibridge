@@ -7,6 +7,7 @@ import type {
 	EncounterTypeFilter,
 } from "@/features/patients/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
+import { functionalUpdate, type SortingState, type Updater } from "@tanstack/react-table";
 import { useOptimistic, useState, useTransition } from "react";
 
 import type { Route } from "next";
@@ -19,6 +20,8 @@ export function EncountersClient({
 	limit,
 	totalPages,
 	searchQuery = "",
+	sort = "",
+	order = "",
 	encounterFrom = "",
 	encounterTo = "",
 	createdFrom = "",
@@ -32,6 +35,8 @@ export function EncountersClient({
 	limit: number;
 	totalPages: number;
 	searchQuery?: string;
+	sort?: string;
+	order?: string;
 	encounterFrom?: string;
 	encounterTo?: string;
 	createdFrom?: string;
@@ -44,6 +49,11 @@ export function EncountersClient({
 	const searchParams = useSearchParams();
 	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
+	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
+	const sorting: SortingState = optimisticSort
+		? [{ id: optimisticSort, desc: optimisticOrder === "desc" }]
+		: [];
 	const [query, setQuery] = useState(searchQuery);
 	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
 	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
@@ -68,6 +78,8 @@ export function EncountersClient({
 	function navigateTable(
 		{
 			nextPage = 1,
+			nextSort = optimisticSort,
+			nextOrder = optimisticOrder,
 			nextLimit = optimisticLimit,
 			nextQuery = query,
 			nextEncounterFrom = optimisticEncounterFrom,
@@ -78,6 +90,8 @@ export function EncountersClient({
 			nextDepartmentFilters = optimisticDepartmentFilters,
 		}: {
 			nextPage?: number;
+	nextSort?: string;
+	nextOrder?: string;
 			nextLimit?: number;
 			nextQuery?: string;
 			nextEncounterFrom?: string;
@@ -92,6 +106,8 @@ export function EncountersClient({
 		const params = new URLSearchParams(searchParams.toString());
 		const values = {
 			encountersPage: nextPage === 1 ? "" : String(nextPage),
+			encountersSort: nextSort,
+			encountersOrder: nextSort ? nextOrder : "",
 			encountersLimit: nextLimit === 14 ? "" : String(nextLimit),
 			encountersQuery: nextQuery,
 			encountersEncounterFrom: nextEncounterFrom,
@@ -110,6 +126,8 @@ export function EncountersClient({
 			setNavigatedQuery(nextQuery);
 			setOptimisticQuery(nextQuery);
 			setOptimisticPage(nextPage);
+			setOptimisticSort(nextSort);
+			setOptimisticOrder(nextOrder);
 			setOptimisticLimit(nextLimit);
 			setOptimisticEncounterFrom(nextEncounterFrom);
 			setOptimisticEncounterTo(nextEncounterTo);
@@ -174,6 +192,14 @@ export function EncountersClient({
 		});
 	}
 
+	function handleSortingChange(updater: Updater<SortingState>) {
+		const [nextSorting] = functionalUpdate(updater, sorting);
+		navigateTable({
+			nextSort: nextSorting?.id ?? "",
+			nextOrder: nextSorting?.desc ? "desc" : "asc",
+		});
+	}
+
 	return (
 		<EncountersTable
 			patientId={patientId}
@@ -182,6 +208,8 @@ export function EncountersClient({
 			limit={optimisticLimit}
 			totalPages={totalPages}
 			query={query}
+			sorting={sorting}
+			onSortingChange={handleSortingChange}
 			encounterFrom={optimisticEncounterFrom}
 			encounterTo={optimisticEncounterTo}
 			createdFrom={optimisticCreatedFrom}

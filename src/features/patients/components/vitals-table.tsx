@@ -115,6 +115,8 @@ type VitalsTableProps = {
 	limit: number;
 	totalPages: number;
 	query: string;
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
 	recordedFrom: string;
 	recordedTo: string;
 	createdFrom: string;
@@ -151,6 +153,8 @@ export function VitalsTable({
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
+	sorting,
+	onSortingChange,
 }: VitalsTableProps) {
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
@@ -158,7 +162,6 @@ export function VitalsTable({
 		() => vitals.map((vital) => vital.vitalId).join(","),
 		[vitals],
 	);
-	const [sorting, setSorting] = useState<SortingState>([]);
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<VitalFilterSubmenu | null>(null);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isVitalsFilterMenuOpen, setIsVitalsFilterMenuOpen] = useState(false);
@@ -342,7 +345,7 @@ export function VitalsTable({
 				vitals={vitals}
 				columns={columns}
 				sorting={sorting}
-				onSortingChange={setSorting}
+				onSortingChange={onSortingChange}
 				page={page}
 				limit={limit}
 				totalPages={totalPages}
@@ -404,6 +407,7 @@ function VitalsTableContent({
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.vitalId,
+		manualSorting: true,
 		onSortingChange,
 		onRowSelectionChange: setSelectedVitalRows,
 		state: {

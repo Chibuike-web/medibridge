@@ -1,9 +1,11 @@
 import "server-only";
 
-import { and, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { endOfDay, startOfDay } from "date-fns";
 import { patientMedication } from "@/db/schemas";
 import { db } from "@/lib/better-auth/auth";
 import { formatDate } from "@/lib/utils/format-date";
+import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { getSharedRecord } from "./get-shared-record";
 
 function medicationStatus(value: string): "Active" | "Completed" | "Discontinued" {
@@ -12,33 +14,90 @@ function medicationStatus(value: string): "Active" | "Completed" | "Discontinued
 	return "Active";
 }
 
-export async function getSharedMedications(accessId: string) {
+export async function getSharedMedications(
+	accessId: string,
+	{
+		page,
+		limit,
+		query,
+		sort,
+		order,
+		statusFilters,
+		createdFrom,
+		createdTo,
+	}: {
+		page: number;
+		limit: number;
+		query: string;
+		sort: string;
+		order: string;
+		statusFilters: string[];
+		createdFrom: string;
+		createdTo: string;
+	},
+) {
 	const sharedRecord = await getSharedRecord(accessId);
-	if (!sharedRecord) return [];
+	if (!sharedRecord) return { rows: [], totalRows: 0 };
 
 	const medicationIds = sharedRecord.selectedRecordIds
 		.filter((record) => record.section === "medications")
 		.map((record) => record.recordId);
-	const medications = await db
-		.select()
-		.from(patientMedication)
-		.where(
-			and(
-				eq(patientMedication.patientId, sharedRecord.patientId),
-				inArray(patientMedication.id, medicationIds),
-			),
-		);
+	const createdFromDate = parseDateParam(createdFrom);
+	const createdToDate = parseDateParam(createdTo);
+	const searchPattern = `%${query.trim()}%`;
+	const medicationFilter = and(
+		eq(patientMedication.patientId, sharedRecord.patientId),
+		inArray(patientMedication.id, medicationIds),
+		createdFromDate ? gte(patientMedication.createdAt, startOfDay(createdFromDate)) : undefined,
+		createdToDate ? lte(patientMedication.createdAt, endOfDay(createdToDate)) : undefined,
+		statusFilters.length > 0 ? inArray(patientMedication.status, statusFilters) : undefined,
+		or(
+			ilike(patientMedication.medicationName, searchPattern),
+			ilike(patientMedication.id, searchPattern),
+			ilike(patientMedication.dose, searchPattern),
+			ilike(patientMedication.route, searchPattern),
+			ilike(patientMedication.indication, searchPattern),
+			ilike(patientMedication.status, searchPattern),
+		),
+	);
+	const sortColumns = {
+		medication: patientMedication.medicationName,
+		dose: patientMedication.dose,
+		frequency: patientMedication.frequency,
+		duration: patientMedication.duration,
+		route: patientMedication.route,
+		indication: patientMedication.indication,
+		createdAt: patientMedication.createdAt,
+		status: patientMedication.status,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
+	const [countRows, medications] = await Promise.all([
+		db.select({ value: count() }).from(patientMedication).where(medicationFilter),
+		db
+			.select()
+			.from(patientMedication)
+			.where(medicationFilter)
+			.orderBy(sortDirection(sortColumn ?? patientMedication.createdAt), sortDirection(patientMedication.id))
+			.limit(limit)
+			.offset((page - 1) * limit),
+	]);
 
-	return medications.map((record) => ({
-		medication: record.medicationName,
-		dose: record.dose || "-",
-		frequency: record.frequency || "-",
-		duration: record.duration || "-",
-		route: record.route || "-",
-		indication: record.indication || "-",
-		medicationId: record.id,
-		createdAt: formatDate(record.createdAt.toISOString()),
-		createdAtValue: record.createdAt.toISOString(),
-		status: medicationStatus(record.status),
-	}));
+	return {
+		totalRows: countRows[0]?.value ?? 0,
+		rows: medications.map((record) => ({
+			medication: record.medicationName,
+			dose: record.dose || "-",
+			frequency: record.frequency || "-",
+			duration: record.duration || "-",
+			route: record.route || "-",
+			indication: record.indication || "-",
+			medicationId: record.id,
+			createdAt: formatDate(record.createdAt.toISOString()),
+			createdAtValue: record.createdAt.toISOString(),
+			status: medicationStatus(record.status),
+		})),
+	};
 }

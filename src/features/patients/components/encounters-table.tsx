@@ -56,6 +56,7 @@ import {
 	sortFns,
 	tableFeatures,
 	type RowSelectionState,
+	type OnChangeFn,
 	type SortingState,
 	useTable,
 } from "@tanstack/react-table";
@@ -115,6 +116,8 @@ type EncountersTableProps = {
 	limit: number;
 	totalPages: number;
 	query: string;
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
 	encounterFrom: string;
 	encounterTo: string;
 	createdFrom: string;
@@ -156,6 +159,8 @@ export function EncountersTable({
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
+	sorting,
+	onSortingChange,
 }: EncountersTableProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
@@ -164,7 +169,6 @@ export function EncountersTable({
 		() => getEncountersColumns(patientId, canArchive),
 		[canArchive, patientId],
 	);
-	const [sorting, setSorting] = useState<SortingState>([]);
 	const [selectedEncounterRows, setSelectedEncounterRows] = useState<RowSelectionState>({});
 	const [isCreateEncounterDrawerOpen, setIsCreateEncounterDrawerOpen] = useState(false);
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<EncounterFilterSubmenu | null>(
@@ -178,7 +182,8 @@ export function EncountersTable({
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.encounterId,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange,
 		onRowSelectionChange: setSelectedEncounterRows,
 		state: { sorting, rowSelection: selectedEncounterRows },
 	});

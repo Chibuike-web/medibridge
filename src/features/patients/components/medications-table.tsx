@@ -58,6 +58,7 @@ import {
 	sortFns,
 	tableFeatures,
 	type RowSelectionState,
+	type OnChangeFn,
 	type SortingState,
 	useTable,
 } from "@tanstack/react-table";
@@ -108,6 +109,8 @@ type MedicationsTableProps = {
 	limit: number;
 	totalPages: number;
 	query: string;
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
 	createdFrom: string;
 	createdTo: string;
 	statusFilters: MedicationStatusFilter[];
@@ -140,6 +143,8 @@ export function MedicationsTable({
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
+	sorting,
+	onSortingChange,
 }: MedicationsTableProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
@@ -147,7 +152,6 @@ export function MedicationsTable({
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
-	const [sorting, setSorting] = useState<SortingState>([]);
 	const [selectedMedicationRows, setSelectedMedicationRows] = useState<RowSelectionState>({});
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<MedicationFilterSubmenu | null>(
 		null,
@@ -187,7 +191,8 @@ export function MedicationsTable({
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.medicationId,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange,
 		onRowSelectionChange: setSelectedMedicationRows,
 		state: {
 			sorting,
