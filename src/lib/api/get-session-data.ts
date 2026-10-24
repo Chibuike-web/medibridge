@@ -1,9 +1,10 @@
 import "server-only";
 
+import { cache } from "react";
 import { headers } from "next/headers";
 import { auth } from "../better-auth/auth";
 
-export async function getSessionData() {
+export const getSessionData = cache(async () => {
 	try {
 		return await auth.api.getSession({
 			headers: await headers(),
@@ -11,4 +12,4 @@ export async function getSessionData() {
 	} catch {
 		return null;
 	}
-}
+});
