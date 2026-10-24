@@ -43,14 +43,10 @@ import {
 	RiShare2Line,
 } from "@remixicon/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { CopyIdButton } from "@/components/copy-id-button";
 import { cn } from "@/lib/utils/cn";
-import { useId, useState, useTransition } from "react";
-import type { TransferDetailsType } from "@/features/transfers/types";
-import { cancelTransferAction } from "@/features/transfers/server/cancel-transfer-action";
-import { resendTransferRequestAction } from "@/features/transfers/server/resend-transfer-request-action";
-import { retryTransferDeliveryAction } from "@/features/transfers/server/retry-transfer-delivery-action";
+import { useId, useState } from "react";
+import type { TransferActionFeedback, TransferDetailsType } from "@/features/transfers/types";
 import { formatDate } from "@/lib/utils/format-date";
 
 type TransferDetailsDrawerProps = {
@@ -60,13 +56,12 @@ type TransferDetailsDrawerProps = {
 	isLoading: boolean;
 	canArchive: boolean;
 	returnTo: string;
-	onTransferUpdated: () => void;
-};
-
-type TransferActionFeedback = {
-	transferId: string;
-	type: "error" | "success";
-	message: string;
+	transferActionFeedback: TransferActionFeedback | null;
+	onDismissTransferActionFeedback: () => void;
+	isTransferActionPending: boolean;
+	onResendRequest: (transferId: string) => void;
+	onRetryTransfer: (transferId: string) => void;
+	onCancelTransfer: (transferId: string) => void;
 };
 
 const EMPTY_VALUE = "-";
@@ -78,110 +73,17 @@ export function TransferDetailsDrawer({
 	isLoading,
 	canArchive,
 	returnTo,
-	onTransferUpdated,
+	transferActionFeedback,
+	onDismissTransferActionFeedback,
+	isTransferActionPending,
+	onResendRequest,
+	onRetryTransfer,
+	onCancelTransfer,
 }: TransferDetailsDrawerProps) {
-	const router = useRouter();
-	const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
-	const [transferActionFeedback, setTransferActionFeedback] =
-		useState<TransferActionFeedback | null>(null);
-	const [isPending, startTransition] = useTransition();
-
-	function handleResendRequest(transferId: string) {
-		setTransferActionFeedback(null);
-		startTransition(async () => {
-			try {
-				const result = await resendTransferRequestAction(transferId);
-
-				if (result.status === "unauthorized") {
-					router.refresh();
-					return;
-				}
-
-				setTransferActionFeedback(
-					result.status === "success"
-						? { transferId, type: "success", message: result.message }
-						: { transferId, type: "error", message: result.error },
-				);
-				onTransferUpdated();
-			} catch (error) {
-				console.error("Resending the transfer request failed:", error);
-				setTransferActionFeedback({
-					transferId,
-					type: "error",
-					message: "We couldn’t send the approval link. Please try again.",
-				});
-			}
-		});
-	}
-
-	function handleRetryTransfer(transferId: string) {
-		setTransferActionFeedback(null);
-		startTransition(async () => {
-			try {
-				const result = await retryTransferDeliveryAction(transferId);
-
-				if (result.status === "unauthorized") {
-					router.refresh();
-					return;
-				}
-
-				setTransferActionFeedback(
-					result.status === "success"
-						? { transferId, type: "success", message: result.message }
-						: { transferId, type: "error", message: result.error },
-				);
-				onTransferUpdated();
-			} catch (error) {
-				console.error("Retrying the transfer delivery failed:", error);
-				setTransferActionFeedback({
-					transferId,
-					type: "error",
-					message: "We couldn’t retry this transfer. Please try again.",
-				});
-			}
-		});
-	}
-
-	function handleCancelTransfer(transferId: string) {
-		setTransferActionFeedback(null);
-		startTransition(async () => {
-			try {
-				const result = await cancelTransferAction(transferId);
-
-				if (result.status === "unauthorized") {
-					router.refresh();
-					return;
-				}
-
-				setIsCancelDialogOpen(false);
-				setTransferActionFeedback(
-					result.status === "success"
-						? { transferId, type: "success", message: result.message }
-						: { transferId, type: "error", message: result.error },
-				);
-				onTransferUpdated();
-			} catch (error) {
-				console.error("Cancelling the transfer failed:", error);
-				setIsCancelDialogOpen(false);
-				setTransferActionFeedback({
-					transferId,
-					type: "error",
-					message: "We couldn’t cancel this transfer. Please try again.",
-				});
-			}
-		});
-	}
 
 	return (
-		<Drawer
-			open={open}
-			onOpenChange={(isOpen) => {
-				if (!isOpen) setTransferActionFeedback(null);
-				onOpenChange(isOpen);
-			}}
-			direction="right"
-		>
+		<Drawer open={open} onOpenChange={onOpenChange} direction="right">
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="border-b border-gray-200 text-left flex-row gap-4 items-center">
 					<DrawerTitle className="text-gray-800 leading-[1.2] flex-1">Transfer details</DrawerTitle>
@@ -204,15 +106,15 @@ export function TransferDetailsDrawer({
 									<>
 										<DropdownMenuItem
 											className="rounded-lg"
-											disabled={isPending}
-											onSelect={() => handleResendRequest(transfer.id)}
+											disabled={isTransferActionPending}
+											onSelect={() => onResendRequest(transfer.id)}
 										>
 											<RiSendPlaneLine aria-hidden="true" />
 											Resend request
 										</DropdownMenuItem>
 										<DropdownMenuItem
 											className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600"
-											onSelect={() => setIsCancelDialogOpen(true)}
+											onSelect={() => onCancelTransfer(transfer.id)}
 										>
 											<RiCloseLine aria-hidden="true" className="text-current" />
 											Cancel transfer
@@ -222,8 +124,8 @@ export function TransferDetailsDrawer({
 								{transfer.status === "failed" ? (
 									<DropdownMenuItem
 										className="rounded-lg"
-										disabled={isPending}
-										onSelect={() => handleRetryTransfer(transfer.id)}
+										disabled={isTransferActionPending}
+										onSelect={() => onRetryTransfer(transfer.id)}
 									>
 										<RiCornerDownLeftFill aria-hidden="true" />
 										Retry transfer
@@ -309,7 +211,7 @@ export function TransferDetailsDrawer({
 										: "text-green-700 hover:bg-green-100 hover:text-green-700",
 								)}
 								aria-label="Dismiss message"
-								onClick={() => setTransferActionFeedback(null)}
+								onClick={onDismissTransferActionFeedback}
 							>
 								<RiCloseLine aria-hidden="true" />
 							</Button>
@@ -373,39 +275,6 @@ export function TransferDetailsDrawer({
 					)}
 				</div>
 			</DrawerContent>
-			<AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>Cancel transfer?</AlertDialogTitle>
-						<Button
-							type="button"
-							variant="ghost"
-							size="icon"
-							aria-label="Close cancel transfer dialog"
-							onClick={() => setIsCancelDialogOpen(false)}
-						>
-							<RiCloseLine aria-hidden="true" />
-						</Button>
-					</AlertDialogHeader>
-					<AlertDialogDescription>
-						The approval request will be withdrawn and the patient will no longer be able to
-						respond. The transfer and its full activity history are retained.
-					</AlertDialogDescription>
-					<AlertDialogFooter className="sm:justify-end">
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<Button
-							type="button"
-							className="bg-rose-500 text-white hover:bg-rose-600"
-							disabled={isPending || !transfer}
-							onClick={() => {
-								if (transfer) handleCancelTransfer(transfer.id);
-							}}
-						>
-							{isPending ? "Cancelling…" : "Cancel transfer"}
-						</Button>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
 			<AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
 				<AlertDialogContent>
 					<AlertDialogHeader>

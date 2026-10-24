@@ -61,6 +61,12 @@ export type TransferType = {
 
 export type TransferStatusFilter = TransferType["status"];
 
+export type TransferActionFeedback = {
+	transferId: string;
+	type: "error" | "success";
+	message: string;
+};
+
 export type TransferDetailsType = TransferType & {
 	requestedByName: string | null;
 	notes: string | null;
