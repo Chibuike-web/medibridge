@@ -111,6 +111,9 @@ export const auth = betterAuth({
 	},
 	session: {
 		expiresIn: 60 * 60 * 24 * 7,
+		cookieCache: {
+			enabled: true,
+		},
 	},
 	// Enabled in every environment; Better Auth's stricter built-in rules still apply to
 	// sign-in, sign-up, password changes, and verification or reset emails.
