@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SWRConfig } from "swr";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -121,11 +121,6 @@ async function chooseFromDrawerMenu(patientName: string, action: string) {
 	return user;
 }
 
-async function confirmCancel(user: ReturnType<typeof userEvent.setup>) {
-	const dialog = await screen.findByRole("alertdialog", { name: "Cancel transfer?" });
-	await user.click(within(dialog).getByRole("button", { name: "Cancel transfer" }));
-}
-
 describe.each([
 	{ entryPoint: "row menu", choose: chooseFromRowMenu },
 	{ entryPoint: "drawer menu", choose: chooseFromDrawerMenu },
@@ -147,22 +142,34 @@ describe.each([
 		expect(resendMock).toHaveBeenCalledWith("TRF-1");
 	});
 
-	test("retrying a failed delivery shows the access code was sent and the refreshed activity", async () => {
-		retryMock.mockImplementation(async () => {
-			savedTransfers["TRF-2"] = {
-				...failedTransfer,
-				status: "completed",
-				deliveryStatus: "sent",
-				failedAt: null,
-				sentAt: "2026-10-16T16:00:00.000Z",
-			};
-			return { status: "success", message: "Access code sent to records@luth.example.org." };
-		});
+	test("retrying a failed delivery shows the access code was sent and refreshes the activity", async () => {
+		let finishRetry!: () => void;
+		retryMock.mockImplementation(
+			() =>
+				new Promise((resolve) => {
+					finishRetry = () => {
+						savedTransfers["TRF-2"] = {
+							...failedTransfer,
+							status: "completed",
+							deliveryStatus: "sent",
+							failedAt: null,
+							sentAt: "2026-10-16T16:00:00.000Z",
+						};
+						resolve({
+							status: "success",
+							message: "Access code sent to records@luth.example.org.",
+						});
+					};
+				}),
+		);
 		renderTransferTable();
 
 		await choose("Ngozi Bello", "Retry transfer");
 
 		const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
+		expect(await within(drawer).findByText("The access email could not be sent")).toBeVisible();
+		await act(async () => finishRetry());
+
 		expect(await within(drawer).findByRole("status")).toHaveTextContent(
 			"Access code sent to records@luth.example.org.",
 		);
@@ -190,9 +197,9 @@ describe.each([
 		renderTransferTable();
 
 		const user = await choose("Chuka Joy Eze", "Cancel transfer");
-		await screen.findByRole("alertdialog", { name: "Cancel transfer?" });
+		const dialog = await screen.findByRole("alertdialog", { name: "Cancel transfer?" });
 		expect(cancelMock).not.toHaveBeenCalled();
-		await confirmCancel(user);
+		await user.click(within(dialog).getByRole("button", { name: "Cancel transfer" }));
 
 		const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
 		expect(await within(drawer).findByRole("status")).toHaveTextContent(
@@ -233,7 +240,10 @@ describe.each([
 			renderTransferTable();
 
 			const user = await choose(patientName, action);
-			if (action === "Cancel transfer") await confirmCancel(user);
+			if (action === "Cancel transfer") {
+				const dialog = await screen.findByRole("alertdialog", { name: "Cancel transfer?" });
+				await user.click(within(dialog).getByRole("button", { name: "Cancel transfer" }));
+			}
 
 			const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
 			expect(await within(drawer).findByRole("alert")).toHaveTextContent(error);
@@ -243,24 +253,88 @@ describe.each([
 });
 
 describe("Transfer recovery feedback", () => {
-	test("shows why a resend failed", async () => {
-		resendMock.mockResolvedValue({
-			status: "failed",
-			error: "Add an email address for this patient before resending the request.",
-		});
+	test("a failed resend shows why and refreshes the transfer, which may have moved on", async () => {
+		let finishResend!: () => void;
+		resendMock.mockImplementation(
+			() =>
+				new Promise((resolve) => {
+					finishResend = () => {
+						savedTransfers["TRF-1"] = {
+							...waitingTransfer,
+							status: "completed",
+							patientApprovalStatus: "approved",
+							deliveryStatus: "sent",
+							approvedAt: "2026-10-16T15:30:00.000Z",
+							sentAt: "2026-10-16T15:30:05.000Z",
+						};
+						resolve({
+							status: "failed",
+							error: "Only a transfer still waiting for the patient's answer can be resent.",
+						});
+					};
+				}),
+		);
 		renderTransferTable();
 
 		await chooseFromRowMenu("Chuka Joy Eze", "Resend request");
-
 		const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
+		expect(await within(drawer).findByText("Waiting for patient response")).toBeVisible();
+		await act(async () => finishResend());
+
 		expect(await within(drawer).findByRole("alert")).toHaveTextContent(
-			"Add an email address for this patient before resending the request.",
+			"Only a transfer still waiting for the patient's answer can be resent.",
 		);
+		expect(await within(drawer).findByText("Approved by the patient")).toBeVisible();
+	});
+
+	test("while one action is running, the row menus don't offer another", async () => {
+		let finishResend!: () => void;
+		resendMock.mockImplementation(
+			() =>
+				new Promise((resolve) => {
+					finishResend = () =>
+						resolve({ status: "success", message: "Approval link sent to chuka@example.com." });
+				}),
+		);
+		renderTransferTable();
+
+		const user = await chooseFromRowMenu("Chuka Joy Eze", "Resend request");
+		await user.click(await screen.findByRole("button", { name: "Close transfer details" }));
+		await user.click(
+			within(rowFor("Chuka Joy Eze")).getByRole("button", { name: "Open transfer actions" }),
+		);
+		expect(await screen.findByRole("menuitem", { name: "Resend request" })).toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+		expect(screen.getByRole("menuitem", { name: "Cancel transfer" })).toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+		await user.keyboard("{Escape}");
+
+		await act(async () => finishResend());
+		await user.click(
+			within(rowFor("Ngozi Bello")).getByRole("button", { name: "Open transfer actions" }),
+		);
+		expect(await screen.findByRole("menuitem", { name: "Retry transfer" })).not.toHaveAttribute(
+			"aria-disabled",
+		);
+		expect(resendMock).toHaveBeenCalledTimes(1);
 	});
 
 	test("a retry that finishes after switching transfers shows nothing on the other transfer", async () => {
-		let finishRetry!: (result: { status: "success"; message: string }) => void;
-		retryMock.mockReturnValue(new Promise((resolve) => (finishRetry = resolve)));
+		let finishRetry!: () => void;
+		retryMock.mockImplementation(
+			() =>
+				new Promise((resolve) => {
+					finishRetry = () =>
+						resolve({
+							status: "success",
+							message: "Access code sent to records@luth.example.org.",
+						});
+				}),
+		);
 		renderTransferTable();
 
 		const user = await chooseFromRowMenu("Ngozi Bello", "Retry transfer");
@@ -268,11 +342,58 @@ describe("Transfer recovery feedback", () => {
 		await user.click(rowFor("Chuka Joy Eze"));
 		const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
 		expect(await within(drawer).findByText("Chuka Joy Eze")).toBeVisible();
+		await user.click(within(drawer).getByRole("button", { name: "Transfer actions" }));
+		const resendItem = await screen.findByRole("menuitem", { name: "Resend request" });
+		expect(resendItem).toHaveAttribute("aria-disabled", "true");
 
-		finishRetry({ status: "success", message: "Access code sent to records@luth.example.org." });
-		await new Promise((resolve) => setTimeout(resolve, 0));
+		await act(async () => finishRetry());
 
+		await waitFor(() => expect(resendItem).not.toHaveAttribute("aria-disabled"));
+		await user.keyboard("{Escape}");
+		expect(within(drawer).getByText("Chuka Joy Eze")).toBeVisible();
 		expect(within(drawer).queryByRole("status")).not.toBeInTheDocument();
 		expect(within(drawer).queryByRole("alert")).not.toBeInTheDocument();
+	});
+
+	test("a running cancel can't be dismissed, so its result opens the transfer that was cancelled", async () => {
+		let finishCancel!: () => void;
+		cancelMock.mockImplementation(
+			() =>
+				new Promise((resolve) => {
+					finishCancel = () => {
+						savedTransfers["TRF-1"] = {
+							...waitingTransfer,
+							status: "cancelled",
+							cancelledAt: "2026-10-16T16:00:00.000Z",
+						};
+						resolve({
+							status: "success",
+							message: "Transfer cancelled. The patient can no longer respond to the request.",
+						});
+					};
+				}),
+		);
+		renderTransferTable();
+
+		const user = await chooseFromRowMenu("Chuka Joy Eze", "Cancel transfer");
+		const dialog = await screen.findByRole("alertdialog", { name: "Cancel transfer?" });
+		await user.click(within(dialog).getByRole("button", { name: "Cancel transfer" }));
+		await user.keyboard("{Escape}");
+
+		expect(screen.getByRole("alertdialog", { name: "Cancel transfer?" })).toBeVisible();
+		expect(within(dialog).getByRole("button", { name: "Cancelling…" })).toBeDisabled();
+		expect(within(dialog).getByRole("button", { name: "Cancel" })).toBeDisabled();
+		expect(
+			within(dialog).getByRole("button", { name: "Close cancel transfer dialog" }),
+		).toBeDisabled();
+
+		await act(async () => finishCancel());
+
+		const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
+		expect(await within(drawer).findByRole("status")).toHaveTextContent(
+			"Transfer cancelled. The patient can no longer respond to the request.",
+		);
+		expect(within(drawer).getByText("Chuka Joy Eze")).toBeVisible();
+		expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
 	});
 });

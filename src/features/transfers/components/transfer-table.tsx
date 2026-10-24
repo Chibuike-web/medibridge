@@ -154,7 +154,7 @@ export function TransferTable({
 						? { transferId, type: "success", message: result.message }
 						: { transferId, type: "error", message: result.error },
 				);
-				mutate(["transfer-details", transferId]);
+				if (result.status !== "success") mutate(["transfer-details", transferId]);
 			} catch (error) {
 				console.error("Resending the transfer request failed:", error);
 				setTransferActionFeedback({
@@ -231,7 +231,8 @@ export function TransferTable({
 		onViewTransferDetails: setSelectedTransferId,
 		onResendRequest: handleResendRequest,
 		onRetryTransfer: handleRetryTransfer,
-		onCancelTransfer: setTransferIdToCancel,
+		onCancelTransfer: (transferId) => setTransferIdToCancel(transferId),
+		isTransferActionPending,
 		router,
 		returnTo,
 		canArchive,
@@ -272,12 +273,12 @@ export function TransferTable({
 				isTransferActionPending={isTransferActionPending}
 				onResendRequest={handleResendRequest}
 				onRetryTransfer={handleRetryTransfer}
-				onCancelTransfer={setTransferIdToCancel}
+				onCancelTransfer={(transferId) => setTransferIdToCancel(transferId)}
 			/>
 			<AlertDialog
 				open={transferIdToCancel !== null}
 				onOpenChange={(open) => {
-					if (!open) setTransferIdToCancel(null);
+					if (!open && !isTransferActionPending) setTransferIdToCancel(null);
 				}}
 			>
 				<AlertDialogContent>
@@ -288,6 +289,7 @@ export function TransferTable({
 							variant="ghost"
 							size="icon"
 							aria-label="Close cancel transfer dialog"
+							disabled={isTransferActionPending}
 							onClick={() => setTransferIdToCancel(null)}
 						>
 							<RiCloseLine aria-hidden="true" />
@@ -298,7 +300,7 @@ export function TransferTable({
 						respond. The transfer and its full activity history are retained.
 					</AlertDialogDescription>
 					<AlertDialogFooter className="sm:justify-end">
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogCancel disabled={isTransferActionPending}>Cancel</AlertDialogCancel>
 						<Button
 							type="button"
 							className="bg-rose-500 text-white hover:bg-rose-600"
@@ -619,6 +621,7 @@ function getTransferColumns({
 	onResendRequest,
 	onRetryTransfer,
 	onCancelTransfer,
+	isTransferActionPending,
 	router,
 	returnTo,
 	canArchive,
@@ -627,6 +630,7 @@ function getTransferColumns({
 	onResendRequest: (transferId: string) => void;
 	onRetryTransfer: (transferId: string) => void;
 	onCancelTransfer: (transferId: string) => void;
+	isTransferActionPending: boolean;
 	router: ReturnType<typeof useRouter>;
 	returnTo: string;
 	canArchive: boolean;
@@ -715,7 +719,7 @@ function getTransferColumns({
 							align="end"
 							className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
-							{row.original.status.toLowerCase() === "pending" ? (
+							{row.original.status === "pending" ? (
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
@@ -725,19 +729,21 @@ function getTransferColumns({
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem
+										disabled={isTransferActionPending}
 										onSelect={() => onResendRequest(row.original.id)}
 										className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiSendPlaneLine className="text-white" /> <span>Resend request</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem
+										disabled={isTransferActionPending}
 										onSelect={() => onCancelTransfer(row.original.id)}
 										className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
 										<RiCloseLine className="text-white" /> <span>Cancel transfer</span>
 									</DropdownMenuItem>
 								</>
-							) : row.original.status.toLowerCase() === "rejected" ? (
+							) : row.original.status === "rejected" ? (
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
@@ -761,12 +767,12 @@ function getTransferColumns({
 											<DropdownMenuSeparator className="bg-white/20" />
 											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 												<RiArchiveLine className="text-white" />
-												<span>Archive</span>
+												<span>Archive transfer</span>
 											</DropdownMenuItem>
 										</>
 									) : null}
 								</>
-							) : row.original.status.toLowerCase() === "completed" ? (
+							) : row.original.status === "completed" ? (
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
@@ -780,12 +786,12 @@ function getTransferColumns({
 											<DropdownMenuSeparator className="bg-white/20" />
 											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 												<RiArchiveLine className="text-white" />
-												<span>Archive</span>
+												<span>Archive transfer</span>
 											</DropdownMenuItem>
 										</>
 									) : null}
 								</>
-							) : row.original.status.toLowerCase() === "failed" ? (
+							) : row.original.status === "failed" ? (
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
@@ -795,6 +801,7 @@ function getTransferColumns({
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem
+										disabled={isTransferActionPending}
 										onSelect={() => onRetryTransfer(row.original.id)}
 										className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
 									>
@@ -805,12 +812,12 @@ function getTransferColumns({
 											<DropdownMenuSeparator className="bg-white/20" />
 											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 												<RiArchiveLine className="text-white" />
-												<span>Archive</span>
+												<span>Archive transfer</span>
 											</DropdownMenuItem>
 										</>
 									) : null}
 								</>
-							) : row.original.status.toLowerCase() === "cancelled" ? (
+							) : row.original.status === "cancelled" ? (
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
@@ -834,7 +841,7 @@ function getTransferColumns({
 											<DropdownMenuSeparator className="bg-white/20" />
 											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 												<RiArchiveLine className="text-white" />
-												<span>Archive</span>
+												<span>Archive transfer</span>
 											</DropdownMenuItem>
 										</>
 									) : null}

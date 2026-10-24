@@ -153,7 +153,7 @@ export function TransferDetailsDrawer({
 											}}
 										>
 											<RiEdit2Line aria-hidden="true" />
-											Edit and resend
+											Edit and resend request
 										</Link>
 									</DropdownMenuItem>
 								) : null}
@@ -196,6 +196,8 @@ export function TransferDetailsDrawer({
 						>
 							{transferActionFeedback.type === "error" ? (
 								<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+							) : transferActionFeedback.type === "cancelled" ? (
+								<RiCloseCircleFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
 							) : (
 								<RiCheckboxCircleFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
 							)}
