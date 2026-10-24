@@ -155,12 +155,32 @@ export function TransferTable({
 						return;
 					}
 
-					setTransferActionFeedback(
-						result.status === "success"
-							? { transferId, type: "success", message: result.message }
-							: { transferId, type: "error", message: result.error },
-					);
-					if (result.status !== "success") mutate(["transfer-details", transferId]);
+					try {
+						await mutate(["transfer-details", transferId], fetchTransferDetails(transferId), {
+							revalidate: false,
+						});
+						setTransferActionFeedback(
+							result.status === "success"
+								? { transferId, type: "success", message: result.message }
+								: { transferId, type: "error", message: result.error },
+						);
+					} catch (error) {
+						const { status } = error as TransferDetailsRequestError;
+						if (status === 401 || status === 403) router.refresh();
+						setTransferActionFeedback(
+							result.status === "success"
+								? {
+										transferId,
+										type: "success",
+										message: `${result.message} We couldn’t refresh its details.`,
+									}
+								: {
+										transferId,
+										type: "error",
+										message: `${result.error} We couldn’t refresh its details.`,
+									},
+						);
+					}
 				} catch (error) {
 					console.error("Resending the transfer request failed:", error);
 					setTransferActionFeedback({
@@ -187,12 +207,32 @@ export function TransferTable({
 						return;
 					}
 
-					setTransferActionFeedback(
-						result.status === "success"
-							? { transferId, type: "success", message: result.message }
-							: { transferId, type: "error", message: result.error },
-					);
-					mutate(["transfer-details", transferId]);
+					try {
+						await mutate(["transfer-details", transferId], fetchTransferDetails(transferId), {
+							revalidate: false,
+						});
+						setTransferActionFeedback(
+							result.status === "success"
+								? { transferId, type: "success", message: result.message }
+								: { transferId, type: "error", message: result.error },
+						);
+					} catch (error) {
+						const { status } = error as TransferDetailsRequestError;
+						if (status === 401 || status === 403) router.refresh();
+						setTransferActionFeedback(
+							result.status === "success"
+								? {
+										transferId,
+										type: "success",
+										message: `${result.message} We couldn’t refresh its details.`,
+									}
+								: {
+										transferId,
+										type: "error",
+										message: `${result.error} We couldn’t refresh its details.`,
+									},
+						);
+					}
 				} catch (error) {
 					console.error("Retrying the transfer delivery failed:", error);
 					setTransferActionFeedback({
@@ -217,14 +257,34 @@ export function TransferTable({
 					return;
 				}
 
+				try {
+					await mutate(["transfer-details", transferId], fetchTransferDetails(transferId), {
+						revalidate: false,
+					});
+					setTransferActionFeedback(
+						result.status === "success"
+							? { transferId, type: "cancelled", message: result.message }
+							: { transferId, type: "error", message: result.error },
+					);
+				} catch (error) {
+					const { status } = error as TransferDetailsRequestError;
+					if (status === 401 || status === 403) router.refresh();
+					setTransferActionFeedback(
+						result.status === "success"
+							? {
+									transferId,
+									type: "cancelled",
+									message: `${result.message} We couldn’t refresh its details.`,
+								}
+							: {
+									transferId,
+									type: "error",
+									message: `${result.error} We couldn’t refresh its details.`,
+								},
+					);
+				}
 				setTransferIdToCancel(null);
 				setSelectedTransferId(transferId);
-				setTransferActionFeedback(
-					result.status === "success"
-						? { transferId, type: "cancelled", message: result.message }
-						: { transferId, type: "error", message: result.error },
-				);
-				mutate(["transfer-details", transferId]);
 			} catch (error) {
 				console.error("Cancelling the transfer failed:", error);
 				setTransferIdToCancel(null);
@@ -291,7 +351,9 @@ export function TransferTable({
 				isLoading={transferDetailsQuery.isLoading}
 				canArchive={canArchive}
 				returnTo={returnTo}
-				transferActionFeedback={transferActionFeedback}
+				transferActionFeedback={
+					transferActionFeedback?.transferId === selectedTransferId ? transferActionFeedback : null
+				}
 				onDismissTransferActionFeedback={() => setTransferActionFeedback(null)}
 				isTransferActionPending={isTransferActionPending}
 				onResendRequest={handleResendRequest}

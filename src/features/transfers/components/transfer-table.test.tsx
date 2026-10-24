@@ -324,6 +324,119 @@ describe("Transfer recovery feedback", () => {
 		expect(resendMock).toHaveBeenCalledTimes(1);
 	});
 
+	test("an action stays pending, with its result hidden, until the transfer's details are refreshed", async () => {
+		resendMock.mockResolvedValue({
+			status: "success",
+			message: "Approval link sent to chuka@example.com.",
+		});
+		let finishRefresh!: () => void;
+		renderTransferTable();
+		const user = userEvent.setup();
+		await user.click(rowFor("Chuka Joy Eze"));
+		const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
+		expect(await within(drawer).findByText("Waiting for patient response")).toBeVisible();
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(
+				() =>
+					new Promise<Response>((resolve) => {
+						finishRefresh = () =>
+							resolve({ ok: true, json: async () => ({ transfer: waitingTransfer }) } as Response);
+					}),
+			),
+		);
+		await user.click(within(drawer).getByRole("button", { name: "Transfer actions" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Resend request" }));
+		await waitFor(() => expect(finishRefresh).toBeDefined());
+		await user.click(within(drawer).getByRole("button", { name: "Transfer actions" }));
+		expect(await screen.findByRole("menuitem", { name: "Resend request" })).toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+		expect(within(drawer).queryByRole("status")).not.toBeInTheDocument();
+		await user.keyboard("{Escape}");
+
+		await act(async () => finishRefresh());
+
+		expect(await within(drawer).findByRole("status")).toHaveTextContent(
+			"Approval link sent to chuka@example.com.",
+		);
+	});
+
+	test("a refresh that fails keeps the action's result and says the details weren't refreshed", async () => {
+		let finishResend!: () => void;
+		resendMock.mockImplementation(
+			() =>
+				new Promise((resolve) => {
+					finishResend = () =>
+						resolve({ status: "success", message: "Approval link sent to chuka@example.com." });
+				}),
+		);
+		renderTransferTable();
+
+		await chooseFromRowMenu("Chuka Joy Eze", "Resend request");
+		const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
+		expect(await within(drawer).findByText("Waiting for patient response")).toBeVisible();
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) }) as Response),
+		);
+		await act(async () => finishResend());
+
+		expect(await within(drawer).findByRole("status")).toHaveTextContent(
+			"Approval link sent to chuka@example.com. We couldn’t refresh its details.",
+		);
+		expect(within(drawer).getByText("Waiting for patient response")).toBeVisible();
+	});
+
+	test("cancelling from the row a transfer viewed earlier never shows its old state beside the result", async () => {
+		cancelMock.mockResolvedValue({
+			status: "success",
+			message: "Transfer cancelled. The patient can no longer respond to the request.",
+		});
+		renderTransferTable();
+		const user = userEvent.setup();
+		await user.click(rowFor("Chuka Joy Eze"));
+		const viewedDrawer = await screen.findByRole("dialog", { name: "Transfer details" });
+		expect(await within(viewedDrawer).findByText("Waiting for patient response")).toBeVisible();
+		await user.click(screen.getByRole("button", { name: "Close transfer details" }));
+		let finishRefresh!: () => void;
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(
+				() =>
+					new Promise<Response>((resolve) => {
+						finishRefresh = () =>
+							resolve({
+								ok: true,
+								json: async () => ({
+									transfer: {
+										...waitingTransfer,
+										status: "cancelled",
+										cancelledAt: "2026-10-16T16:00:00.000Z",
+									},
+								}),
+							} as Response);
+					}),
+			),
+		);
+
+		await chooseFromRowMenu("Chuka Joy Eze", "Cancel transfer");
+		const dialog = await screen.findByRole("alertdialog", { name: "Cancel transfer?" });
+		await user.click(within(dialog).getByRole("button", { name: "Cancel transfer" }));
+		await waitFor(() => expect(finishRefresh).toBeDefined());
+
+		expect(screen.queryByText("Waiting for patient response")).not.toBeInTheDocument();
+		await act(async () => finishRefresh());
+
+		const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
+		expect(await within(drawer).findByRole("status")).toHaveTextContent(
+			"Transfer cancelled. The patient can no longer respond to the request.",
+		);
+		expect(within(drawer).getByText("Cancelled before the patient responded")).toBeVisible();
+		expect(within(drawer).queryByText("Waiting for patient response")).not.toBeInTheDocument();
+	});
+
 	test("an open row menu stays open while the page around the table updates", async () => {
 		const table = (onPreviousPage: () => void) => (
 			<SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>

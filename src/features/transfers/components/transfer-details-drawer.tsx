@@ -182,8 +182,12 @@ export function TransferDetailsDrawer({
 					</DrawerDescription>
 				</DrawerHeader>
 
-				<div className="px-4 py-5 overflow-y-auto text-sm">
-					{transferActionFeedback && transferActionFeedback.transferId === transfer?.id ? (
+				<div
+					data-pending={isTransferActionPending || undefined}
+					aria-busy={isTransferActionPending}
+					className="px-4 py-5 overflow-y-auto text-sm transition-opacity data-[pending=true]:opacity-60"
+				>
+					{transferActionFeedback ? (
 						<div
 							key={transferActionFeedback.message}
 							role={transferActionFeedback.type === "error" ? "alert" : "status"}
