@@ -253,7 +253,6 @@ export function MedicationsTable({
 									name="medication-status"
 									options={medicationStatusFilterOptions}
 									selectedValues={statusFilters}
-									isPending={isPending}
 									onSelectedValuesChange={onStatusFiltersChange}
 								/>
 							</DropdownMenuSubContent>
@@ -583,13 +582,11 @@ function MedicationCheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (selectedValues: TValue[]) => void;
 }) {
 	return (
@@ -613,7 +610,6 @@ function MedicationCheckboxFilterList<TValue extends string>({
 							<Checkbox
 								id={optionId}
 								checked={isSelected}
-								disabled={isPending}
 								onCheckedChange={(checked) => {
 									onSelectedValuesChange(
 										checked === true

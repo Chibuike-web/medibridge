@@ -284,7 +284,6 @@ export function SharedDiagnosesTable({
 								name="shared-diagnosis-status"
 								options={diagnosisStatusFilterOptions}
 								selectedValues={statusFilters}
-								isPending={isPending}
 								onSelectedValuesChange={handleStatusFiltersChange}
 							/>
 						</FilterSubmenu>
@@ -388,7 +387,7 @@ export function SharedDiagnosesTable({
 			) : null}
 
 			<div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-				<Table>
+				<Table aria-busy={isPending}>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className="bg-gray-50 hover:bg-gray-50">
@@ -454,7 +453,10 @@ export function SharedDiagnosesTable({
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody>
+					<TableBody
+						data-pending={isPending || undefined}
+						className="transition-opacity data-[pending=true]:opacity-80"
+					>
 						{table.getRowModel().rows.length > 0 ? (
 							table.getRowModel().rows.map((row) => (
 								<TableRow key={row.id}>
@@ -531,13 +533,11 @@ function CheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: readonly { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (values: TValue[]) => void;
 }) {
 	return options.map((option) => {
@@ -556,7 +556,6 @@ function CheckboxFilterList<TValue extends string>({
 					<Checkbox
 						id={id}
 						checked={selected}
-						disabled={isPending}
 						onCheckedChange={(checked) =>
 							onSelectedValuesChange(
 								checked === true

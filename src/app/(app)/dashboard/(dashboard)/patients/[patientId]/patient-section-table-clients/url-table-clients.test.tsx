@@ -552,13 +552,23 @@ test("shows the filter pill and pending page immediately while navigation waits 
 		keys: "[TouchA]",
 		target: screen.getByRole("checkbox", { name: "Active" }),
 	});
+	expect(screen.getByRole("checkbox", { name: "Active" })).toBeChecked();
+	expect(screen.getByRole("checkbox", { name: "Active" })).toBeEnabled();
+	expect(screen.getByRole("checkbox", { name: "Inactive" })).toBeEnabled();
+	await user.pointer({
+		keys: "[TouchA]",
+		target: screen.getByRole("checkbox", { name: "Inactive" }),
+	});
+	expect(screen.getByRole("checkbox", { name: "Active" })).toBeChecked();
+	expect(screen.getByRole("checkbox", { name: "Inactive" })).toBeChecked();
 	await user.keyboard("{Escape}{Escape}");
 	expect(screen.getByText("Status: Active")).toBeVisible();
+	expect(screen.getByText("Status: Inactive")).toBeVisible();
 	expect(screen.getByText("Page 1 of 4")).toBeVisible();
 	expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "true");
 	expect(within(screen.getByRole("table")).getByText("Peanuts")).toBeVisible();
-	const params = new URL(navigation.push.mock.calls[0][0], "http://localhost").searchParams;
-	expect(params.get("allergiesStatus")).toBe("active");
+	const params = new URL(navigation.push.mock.lastCall![0], "http://localhost").searchParams;
+	expect(params.get("allergiesStatus")).toBe("active,inactive");
 	expect(params.get("medicationsQuery")).toBe("aspirin");
 	await act(async () => {
 		finishNavigation();

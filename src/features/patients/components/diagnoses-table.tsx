@@ -265,7 +265,6 @@ export function DiagnosesTable({
 												<Checkbox
 													id={statusOptionId}
 													checked={isStatusSelected}
-													disabled={isPending}
 													onCheckedChange={(checked) => {
 														onStatusFiltersChange(
 															checked === true

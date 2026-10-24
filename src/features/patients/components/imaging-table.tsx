@@ -249,7 +249,6 @@ export function ImagingTable({
 									name="imaging-status"
 									options={imagingStatusFilterOptions}
 									selectedValues={statusFilters}
-									isPending={isPending}
 									onSelectedValuesChange={onStatusFiltersChange}
 								/>
 							</DropdownMenuSubContent>
@@ -277,7 +276,6 @@ export function ImagingTable({
 									name="imaging-modality"
 									options={imagingModalityFilterOptions}
 									selectedValues={modalityFilters}
-									isPending={isPending}
 									onSelectedValuesChange={onModalityFiltersChange}
 								/>
 							</DropdownMenuSubContent>
@@ -625,13 +623,11 @@ function ImagingCheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (selectedValues: TValue[]) => void;
 }) {
 	return (
@@ -655,7 +651,6 @@ function ImagingCheckboxFilterList<TValue extends string>({
 							<Checkbox
 								id={optionId}
 								checked={isSelected}
-								disabled={isPending}
 								onCheckedChange={(checked) => {
 									onSelectedValuesChange(
 										checked === true

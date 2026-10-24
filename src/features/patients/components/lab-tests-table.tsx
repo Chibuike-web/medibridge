@@ -251,7 +251,6 @@ export function LabTestsTable({
 									name="lab-test-status"
 									options={labTestStatusFilterOptions}
 									selectedValues={statusFilters}
-									isPending={isPending}
 									onSelectedValuesChange={onStatusFiltersChange}
 								/>
 							</DropdownMenuSubContent>
@@ -279,7 +278,6 @@ export function LabTestsTable({
 									name="lab-test-flag"
 									options={labTestFlagFilterOptions}
 									selectedValues={flagFilters}
-									isPending={isPending}
 									onSelectedValuesChange={onFlagFiltersChange}
 								/>
 							</DropdownMenuSubContent>
@@ -531,13 +529,11 @@ function LabTestCheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (selectedValues: TValue[]) => void;
 }) {
 	return (
@@ -561,7 +557,6 @@ function LabTestCheckboxFilterList<TValue extends string>({
 							<Checkbox
 								id={optionId}
 								checked={isSelected}
-								disabled={isPending}
 								onCheckedChange={(checked) => {
 									onSelectedValuesChange(
 										checked === true

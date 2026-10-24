@@ -290,7 +290,6 @@ export function VitalsTable({
 											<Checkbox
 												id={inputId}
 												checked={isSelected}
-												disabled={isPending}
 												onCheckedChange={(isChecked) => {
 													setSelectedEncounterTypeFilters((previousFilters) =>
 														isChecked

@@ -296,7 +296,6 @@ export function EncountersTable({
 									name="encounter-type"
 									options={encounterTypeFilterOptions}
 									selectedValues={encounterTypeFilters}
-									isPending={isPending}
 									onSelectedValuesChange={onEncounterTypeFiltersChange}
 								/>
 							</div>
@@ -315,7 +314,6 @@ export function EncountersTable({
 									name="encounter-department"
 									options={encounterDepartmentFilterOptions}
 									selectedValues={departmentFilters}
-									isPending={isPending}
 									onSelectedValuesChange={onDepartmentFiltersChange}
 								/>
 							</div>
@@ -620,13 +618,11 @@ function EncounterCheckboxFilterList<T extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: { label: string; value: T }[];
 	selectedValues: T[];
-	isPending: boolean;
 	onSelectedValuesChange: (selectedValues: T[]) => void;
 }) {
 	return options.map((option) => {
@@ -642,7 +638,6 @@ function EncounterCheckboxFilterList<T extends string>({
 				<Checkbox
 					id={optionId}
 					checked={isSelected}
-					disabled={isPending}
 					onCheckedChange={(checked) => {
 						onSelectedValuesChange(
 							checked === true

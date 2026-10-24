@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
 import { getSharedAllergiesTableAction } from "../shared-record-table-actions";
@@ -75,4 +75,58 @@ test("Clear all removes every filter pill and reloads the allergies without filt
 		createdFrom: "",
 		createdTo: "",
 	});
+});
+
+test("keeps filter options interactive while earlier filtered results are loading", async () => {
+	const rows: SharedAllergyRow[] = [
+		{
+			allergen: "Penicillin",
+			allergyId: "AL-1",
+			reaction: "Rash",
+			createdAt: "Sep 1, 2026",
+			createdAtValue: "2026-09-01",
+			severity: "Mild",
+			status: "Inactive",
+		},
+	];
+	let finishRefresh!: (rows: SharedAllergyRow[]) => void;
+	const refreshedRows = new Promise<SharedAllergyRow[]>((resolve) => {
+		finishRefresh = resolve;
+	});
+	const getSharedAllergies = vi.mocked(getSharedAllergiesTableAction);
+	getSharedAllergies.mockReset();
+	getSharedAllergies.mockReturnValue(refreshedRows);
+	const user = userEvent.setup();
+	render(<SharedAllergiesTable accessId="test-access" rows={rows} />);
+	const table = screen.getByRole("table");
+	await user.click(screen.getByRole("button", { name: "Filter" }));
+	await user.click(screen.getByRole("menuitem", { name: "Status" }));
+	const activeOption = await screen.findByRole("checkbox", { name: "Active" });
+	const inactiveOption = screen.getByRole("checkbox", { name: "Inactive" });
+	expect(activeOption).not.toBeChecked();
+	expect(inactiveOption).not.toBeChecked();
+
+	try {
+		await user.pointer({ keys: "[TouchA]", target: activeOption });
+		expect(table).toHaveAttribute("aria-busy", "true");
+		expect(activeOption).toBeChecked();
+		expect(inactiveOption).not.toBeChecked();
+		expect(activeOption).toBeEnabled();
+		expect(inactiveOption).toBeEnabled();
+
+		await user.pointer({ keys: "[TouchA]", target: inactiveOption });
+		expect(activeOption).toBeChecked();
+		expect(inactiveOption).toBeChecked();
+		expect(getSharedAllergies.mock.lastCall?.[0].statusFilters).toEqual(["Active", "Inactive"]);
+
+		await user.pointer({ keys: "[TouchA]", target: activeOption });
+		expect(activeOption).not.toBeChecked();
+		expect(inactiveOption).toBeChecked();
+		expect(getSharedAllergies.mock.lastCall?.[0].statusFilters).toEqual(["Inactive"]);
+	} finally {
+		await act(async () => {
+			finishRefresh(rows);
+			await refreshedRows;
+		});
+	}
 });

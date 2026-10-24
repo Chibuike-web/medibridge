@@ -246,7 +246,6 @@ export function AllergiesTable({
 									name="allergy-status"
 									options={allergyStatusFilterOptions}
 									selectedValues={statusFilters}
-									isPending={isPending}
 									onSelectedValuesChange={onStatusFiltersChange}
 								/>
 							</DropdownMenuSubContent>
@@ -273,7 +272,6 @@ export function AllergiesTable({
 									name="allergy-severity"
 									options={allergySeverityFilterOptions}
 									selectedValues={severityFilters}
-									isPending={isPending}
 									onSelectedValuesChange={onSeverityFiltersChange}
 								/>
 							</DropdownMenuSubContent>
@@ -664,13 +662,11 @@ function AllergyCheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (selectedValues: TValue[]) => void;
 }) {
 	return (
@@ -694,7 +690,6 @@ function AllergyCheckboxFilterList<TValue extends string>({
 							<Checkbox
 								id={optionId}
 								checked={isSelected}
-								disabled={isPending}
 								onCheckedChange={(checked) => {
 									onSelectedValuesChange(
 										checked === true

@@ -216,7 +216,6 @@ export function SharedMedicationsTable({
 					statusFilters={statusFilters}
 					createdFrom={createdFrom}
 					createdTo={createdTo}
-					isPending={isPending}
 					onActiveFilterSubmenuChange={setActiveFilterSubmenu}
 					onStatusFiltersChange={handleStatusFiltersChange}
 					onCreatedAtRangeApply={handleCreatedAtRangeApply}
@@ -257,7 +256,7 @@ export function SharedMedicationsTable({
 				</div>
 			) : null}
 			<div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-				<Table>
+				<Table aria-busy={isPending}>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className="bg-gray-50 hover:bg-gray-50">
@@ -329,7 +328,10 @@ export function SharedMedicationsTable({
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody>
+					<TableBody
+						data-pending={isPending || undefined}
+						className="transition-opacity data-[pending=true]:opacity-80"
+					>
 						{table.getRowModel().rows.length > 0 ? (
 							table.getRowModel().rows.map((row) => (
 								<TableRow key={row.id}>
@@ -365,7 +367,6 @@ function MedicationFilterMenu({
 	statusFilters,
 	createdFrom,
 	createdTo,
-	isPending,
 	onActiveFilterSubmenuChange,
 	onStatusFiltersChange,
 	onCreatedAtRangeApply,
@@ -374,7 +375,6 @@ function MedicationFilterMenu({
 	statusFilters: SharedMedicationRow["status"][];
 	createdFrom: string;
 	createdTo: string;
-	isPending: boolean;
 	onActiveFilterSubmenuChange: (submenu: MedicationFilterSubmenu | null) => void;
 	onStatusFiltersChange: (values: SharedMedicationRow["status"][]) => void;
 	onCreatedAtRangeApply: (from: string, to: string) => void;
@@ -418,7 +418,6 @@ function MedicationFilterMenu({
 								name="shared-medication-status"
 								options={medicationStatusFilterOptions}
 								selectedValues={statusFilters}
-								isPending={isPending}
 								onSelectedValuesChange={onStatusFiltersChange}
 							/>
 						</DropdownMenuSubContent>
@@ -474,13 +473,11 @@ function CheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: readonly { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (values: TValue[]) => void;
 }) {
 	return options.map((option) => {
@@ -499,7 +496,6 @@ function CheckboxFilterList<TValue extends string>({
 					<Checkbox
 						id={id}
 						checked={selected}
-						disabled={isPending}
 						onCheckedChange={(checked) =>
 							onSelectedValuesChange(
 								checked === true
