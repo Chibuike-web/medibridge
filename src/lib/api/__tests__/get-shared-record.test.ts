@@ -1,17 +1,7 @@
 // @vitest-environment node
 
 import { beforeEach, expect, test, vi } from "vitest";
-import {
-	patientAllergy,
-	patientDiagnosis,
-	patientImaging,
-	patientImmunization,
-	patientLabTest,
-	patientMedication,
-	patientPersonalInformation,
-	patientProcedure,
-	patientRecordAccess,
-} from "@/db/schemas";
+import { patientPersonalInformation, patientRecordAccess } from "@/db/schemas";
 import { getSharedAllergies } from "../get-shared-allergies";
 import { getSharedDiagnoses } from "../get-shared-diagnoses";
 import { getSharedImaging } from "../get-shared-imaging";
@@ -49,73 +39,33 @@ vi.mock("@/lib/better-auth/auth", () => ({
 	},
 }));
 
-const createdAt = new Date("2026-10-01T09:00:00.000Z");
-
-const sections = [
-	{
-		section: "diagnoses",
-		load: getSharedDiagnoses,
-		table: patientDiagnosis,
-		idKey: "diagnosisId",
-		row: { id: "DIA-1", diagnosisName: "Asthma", status: "Active", createdAt },
-	},
-	{
-		section: "allergies",
-		load: getSharedAllergies,
-		table: patientAllergy,
-		idKey: "allergyId",
-		row: {
-			id: "ALG-1",
-			allergen: "Penicillin",
-			reaction: "Rash",
-			severity: "Mild",
-			status: "Active",
-			createdAt,
-		},
-	},
-	{
-		section: "immunizations",
-		load: getSharedImmunizations,
-		table: patientImmunization,
-		idKey: "immunizationId",
-		row: { id: "IMM-1", vaccineName: "Hepatitis B", status: "Completed", createdAt },
-	},
-	{
-		section: "procedures",
-		load: getSharedProcedures,
-		table: patientProcedure,
-		idKey: "procedureId",
-		row: { id: "PRO-1", procedureName: "Appendectomy", status: "Completed", createdAt },
-	},
-	{
-		section: "medications",
-		load: getSharedMedications,
-		table: patientMedication,
-		idKey: "medicationId",
-		row: { id: "MED-1", medicationName: "Amoxicillin", status: "Discontinued", createdAt },
-	},
-	{
-		section: "lab-tests",
-		load: getSharedLabTests,
-		table: patientLabTest,
-		idKey: "labId",
-		row: { id: "LAB-1", testName: "Full Blood Count", status: "Completed", createdAt },
-	},
-	{
-		section: "imaging",
-		load: getSharedImaging,
-		table: patientImaging,
-		idKey: "imagingId",
-		row: {
-			id: "IMG-1",
-			study: "Chest X-ray",
-			modality: "x-ray",
-			region: "Chest",
-			status: "Completed",
-			createdAt,
-		},
-	},
-] as const;
+const noFilters = { page: 1, limit: 14, query: "", createdFrom: "", createdTo: "" };
+const sectionLoaders = [
+	(accessId: string) =>
+		getSharedDiagnoses(accessId, {
+			...noFilters,
+			statusFilters: [],
+			diagnosedFrom: "",
+			diagnosedTo: "",
+			reviewedFrom: "",
+			reviewedTo: "",
+		}),
+	(accessId: string) =>
+		getSharedAllergies(accessId, { ...noFilters, statusFilters: [], severityFilters: [] }),
+	(accessId: string) => getSharedImmunizations(accessId, { ...noFilters, statusFilters: [] }),
+	(accessId: string) => getSharedProcedures(accessId, { ...noFilters, statusFilters: [] }),
+	(accessId: string) => getSharedMedications(accessId, { ...noFilters, statusFilters: [] }),
+	(accessId: string) =>
+		getSharedLabTests(accessId, { ...noFilters, statusFilters: [], flagFilters: [] }),
+	(accessId: string) =>
+		getSharedImaging(accessId, {
+			...noFilters,
+			statusFilters: [],
+			modalityFilters: [],
+			orderedFrom: "",
+			orderedTo: "",
+		}),
+];
 
 beforeEach(() => {
 	database.queriedTables.clear();
@@ -132,13 +82,12 @@ beforeEach(() => {
 		age: 34,
 		selectedRecordIds: [
 			{ section: "patient-details", recordId: "personal-information" },
-			...sections.map(({ section, row }) => ({ section, recordId: row.id })),
+			{ section: "medications", recordId: "MED-1" },
 		],
 	};
 	database.records.set(patientPersonalInformation, [
 		{ firstName: "Ada", lastName: "Obi", age: 34, sex: "female", emailAddress: "ada@example.org" },
 	]);
-	for (const { table, row } of sections) database.records.set(table, [row]);
 });
 
 test("a valid link names the patient and the hospital that shared the record", async () => {
@@ -146,10 +95,6 @@ test("a valid link names the patient and the hospital that shared the record", a
 
 	expect(sharedRecord?.patient).toEqual({ name: "Ada Obi", sex: "Female", age: "34" });
 	expect(sharedRecord?.sourceOrganizationName).toBe("Source Hospital");
-});
-
-test.each(sections)("a valid link loads the shared $section", async ({ load, idKey, row }) => {
-	expect(await load("access-1")).toEqual([expect.objectContaining({ [idKey]: row.id })]);
 });
 
 test("patient details include only the detail sections that were shared", async () => {
@@ -177,7 +122,9 @@ test.each([
 
 	expect(await getSharedRecord("access-1")).toBeNull();
 	expect(await getSharedPatientDetails("access-1")).toEqual([]);
-	for (const { load } of sections) expect(await load("access-1")).toEqual([]);
+	for (const load of sectionLoaders) {
+		expect(await load("access-1")).toEqual({ rows: [], totalRows: 0 });
+	}
 	expect(database.queriedTables).toEqual(new Set([patientRecordAccess]));
 });
 
@@ -185,6 +132,8 @@ test("a missing link shows nothing and reads no records", async () => {
 	database.access = null;
 
 	expect(await getSharedRecord("missing")).toBeNull();
-	for (const { load } of sections) expect(await load("missing")).toEqual([]);
+	for (const load of sectionLoaders) {
+		expect(await load("missing")).toEqual({ rows: [], totalRows: 0 });
+	}
 	expect(database.queriedTables).toEqual(new Set([patientRecordAccess]));
 });

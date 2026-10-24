@@ -44,6 +44,7 @@ vi.mock("@/lib/api/get-shared-imaging", () => ({ getSharedImaging: loaders.getSh
 vi.mock("next/navigation", () => ({
 	useRouter: () => ({ push: vi.fn() }),
 	useSearchParams: () => new URLSearchParams(),
+	usePathname: () => "/shared-records/access-1",
 	notFound: vi.fn(),
 	redirect: vi.fn(),
 }));
@@ -71,11 +72,11 @@ const amoxicillin = {
 	status: "Discontinued",
 };
 
-async function renderSharedRecordsPage(section?: string) {
+async function renderSharedRecordsPage(searchParams: Record<string, string> = {}) {
 	const { prelude } = await prerender(
 		<SharedRecordsPage
 			params={Promise.resolve({ accessId: "access-1" })}
-			searchParams={Promise.resolve(section ? { section } : {})}
+			searchParams={Promise.resolve(searchParams)}
 		/>,
 		{ onError: () => {}, progressiveChunkSize: Infinity },
 	);
@@ -87,8 +88,9 @@ beforeEach(() => {
 	cleanup();
 	for (const loader of Object.values(loaders)) {
 		loader.mockReset();
-		loader.mockResolvedValue([]);
+		loader.mockResolvedValue({ rows: [], totalRows: 0 });
 	}
+	loaders.getSharedPatientDetails.mockResolvedValue([]);
 });
 
 test("shows a tab for each shared section only, in record order", async () => {
@@ -108,8 +110,8 @@ test("opens the section named in the URL and loads only that section's records",
 	loaders.getSharedRecord.mockResolvedValue(
 		sharedRecordWith(["patient-details", "diagnoses", "medications"]),
 	);
-	loaders.getSharedMedications.mockResolvedValue([amoxicillin]);
-	await renderSharedRecordsPage("medications");
+	loaders.getSharedMedications.mockResolvedValue({ rows: [amoxicillin], totalRows: 1 });
+	await renderSharedRecordsPage({ section: "medications" });
 
 	expect(screen.getByRole("tab", { name: "Medications" })).toHaveAttribute("aria-selected", "true");
 	expect(screen.getByText("Amoxicillin")).toBeInTheDocument();
@@ -119,10 +121,34 @@ test("opens the section named in the URL and loads only that section's records",
 
 test("opens the first shared section when the URL names one that wasn't shared", async () => {
 	loaders.getSharedRecord.mockResolvedValue(sharedRecordWith(["medications", "lab-tests"]));
-	loaders.getSharedMedications.mockResolvedValue([amoxicillin]);
-	await renderSharedRecordsPage("diagnoses");
+	loaders.getSharedMedications.mockResolvedValue({ rows: [amoxicillin], totalRows: 1 });
+	await renderSharedRecordsPage({ section: "diagnoses" });
 
 	expect(screen.getByRole("tab", { name: "Medications" })).toHaveAttribute("aria-selected", "true");
 	expect(screen.getByText("Amoxicillin")).toBeInTheDocument();
 	expect(loaders.getSharedDiagnoses).not.toHaveBeenCalled();
+});
+
+test("loads the open section with the page, search and filters from the URL", async () => {
+	loaders.getSharedRecord.mockResolvedValue(sharedRecordWith(["medications"]));
+	loaders.getSharedMedications.mockResolvedValue({ rows: [amoxicillin], totalRows: 30 });
+	await renderSharedRecordsPage({
+		section: "medications",
+		medicationsPage: "2",
+		medicationsQuery: "amox",
+		medicationsStatus: "Discontinued,Unknown",
+		medicationsCreatedFrom: "2026-10-01",
+	});
+
+	expect(loaders.getSharedMedications).toHaveBeenCalledWith("access-1", {
+		page: 2,
+		limit: 14,
+		query: "amox",
+		statusFilters: ["Discontinued"],
+		createdFrom: "2026-10-01",
+		createdTo: "",
+	});
+	expect(screen.getByRole("searchbox")).toHaveValue("amox");
+	expect(screen.getByText("Status: Discontinued")).toBeInTheDocument();
+	expect(screen.getByText("Page 2 of 3")).toBeInTheDocument();
 });
