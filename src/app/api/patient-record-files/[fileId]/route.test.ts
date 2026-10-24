@@ -1,31 +1,22 @@
 // @vitest-environment node
-
-import path from "node:path";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { GET } from "./route";
 
-const { getSessionDataMock, getOrganizationIdMock, database, disk } = vi.hoisted(() => ({
-	getSessionDataMock: vi.fn(),
-	getOrganizationIdMock: vi.fn(),
-	database: {
-		labTestFiles: [] as { name: string; type: string; recordId: string }[],
-		imagingFiles: [] as { name: string; type: string; recordId: string }[],
-	},
-	disk: new Map<string, Buffer>(),
-}));
-
-vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
-vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
-vi.mock("node:fs/promises", () => ({
-	readFile: async (file: string) => {
-		const contents = disk.get(file);
-		if (!contents) throw new Error(`ENOENT: ${file}`);
-		return contents;
+const { session, organization, signedUrl, info, rows } = vi.hoisted(() => ({
+	session: vi.fn(),
+	organization: vi.fn(),
+	signedUrl: vi.fn(),
+	info: vi.fn(),
+	rows: {
+		lab: [] as { name: string; type: string; recordId: string }[],
+		imaging: [] as { name: string; type: string; recordId: string }[],
 	},
 }));
+vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: session }));
+vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: organization }));
+vi.mock("@/lib/storage/client", () => ({ patientUploads: { createSignedUrl: signedUrl, info } }));
 vi.mock("@/lib/better-auth/auth", async () => {
 	const { patientImagingFile } = await import("@/db/schemas");
-
 	return {
 		db: {
 			select: () => ({
@@ -33,8 +24,7 @@ vi.mock("@/lib/better-auth/auth", async () => {
 					innerJoin: () => ({
 						innerJoin: () => ({
 							where: () => ({
-								limit: async () =>
-									table === patientImagingFile ? database.imagingFiles : database.labTestFiles,
+								limit: async () => (table === patientImagingFile ? rows.imaging : rows.lab),
 							}),
 						}),
 					}),
@@ -43,124 +33,77 @@ vi.mock("@/lib/better-auth/auth", async () => {
 		},
 	};
 });
-
-const recordFiles = path.resolve("patient-uploads", "hospital-1", "record-files");
-
-function requestFile(query = "") {
-	return GET(new Request(`http://localhost/api/patient-record-files/f1${query}`), {
+const request = (query = "") =>
+	GET(new Request(`http://localhost/api/patient-record-files/f1${query}`), {
 		params: Promise.resolve({ fileId: "f1" }),
 	});
-}
 
-describe("viewing a patient record file", () => {
+describe("private clinical report access", () => {
 	beforeEach(() => {
-		database.labTestFiles = [
-			{ name: "Full blood count – March.pdf", type: "application/pdf", recordId: "LAB-1" },
-		];
-		database.imagingFiles = [];
-		disk.clear();
-		disk.set(path.join(recordFiles, "LAB-1", "f1.pdf"), Buffer.from("%PDF-1.4 cbc"));
-		getSessionDataMock.mockResolvedValue({ user: { id: "member-1", emailVerified: true } });
-		getOrganizationIdMock.mockResolvedValue("hospital-1");
-	});
-
-	test("shows a lab test report inline without letting it be cached", async () => {
-		const response = await requestFile();
-
-		expect(response.status).toBe(200);
-		expect(response.headers.get("Content-Type")).toBe("application/pdf");
-		expect(response.headers.get("Content-Disposition")).toBe(
-			"inline; filename*=UTF-8''Full%20blood%20count%20%E2%80%93%20March.pdf",
-		);
-		expect(response.headers.get("Cache-Control")).toBe("private, no-store");
-		expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
-		expect(await response.text()).toBe("%PDF-1.4 cbc");
-	});
-
-	test("downloads the report as an attachment when asked", async () => {
-		const response = await requestFile("?download");
-
-		expect(response.status).toBe(200);
-		expect(response.headers.get("Content-Disposition")).toBe(
-			"attachment; filename*=UTF-8''Full%20blood%20count%20%E2%80%93%20March.pdf",
-		);
-		expect(await response.text()).toBe("%PDF-1.4 cbc");
-	});
-
-	test("shows an imaging file when the id belongs to an imaging study", async () => {
-		database.labTestFiles = [];
-		database.imagingFiles = [{ name: "chest-pa.png", type: "image/png", recordId: "IMG-1" }];
-		disk.set(path.join(recordFiles, "IMG-1", "f1.png"), Buffer.from("png chest film"));
-
-		const response = await requestFile();
-
-		expect(response.status).toBe(200);
-		expect(response.headers.get("Content-Type")).toBe("image/png");
-		expect(response.headers.get("Content-Disposition")).toBe(
-			"inline; filename*=UTF-8''chest-pa.png",
-		);
-		expect(await response.text()).toBe("png chest film");
-	});
-
-	test("does not serve a file that belongs to another hospital", async () => {
-		database.labTestFiles = [];
-
-		const response = await requestFile();
-
-		expect(response.status).toBe(404);
-		expect(await response.json()).toEqual({ status: "failed", error: "File not found." });
-	});
-
-	test("does not serve a stored file whose type is not a PDF, PNG or JPG", async () => {
-		database.labTestFiles = [{ name: "report.html", type: "text/html", recordId: "LAB-1" }];
-		disk.set(path.join(recordFiles, "LAB-1", "f1.html"), Buffer.from("<script></script>"));
-
-		const response = await requestFile();
-
-		expect(response.status).toBe(404);
-		expect(await response.json()).toEqual({ status: "failed", error: "File not found." });
-	});
-
-	test("returns not found when the stored file is missing from disk", async () => {
-		vi.spyOn(console, "error").mockImplementation(() => {});
-		disk.clear();
-
-		const response = await requestFile();
-
-		expect(response.status).toBe(404);
-		expect(await response.json()).toEqual({ status: "failed", error: "File not found." });
-	});
-
-	test("asks a signed-out user to sign in", async () => {
-		getSessionDataMock.mockResolvedValue(null);
-
-		const response = await requestFile();
-
-		expect(response.status).toBe(401);
-		expect(await response.json()).toEqual({
-			status: "failed",
-			error: "Sign in to view patient files.",
+		session.mockResolvedValue({ user: { id: "member-1", emailVerified: true } });
+		organization.mockResolvedValue("hospital-1");
+		rows.lab = [{ name: "Full blood count.pdf", type: "application/pdf", recordId: "LAB-1" }];
+		rows.imaging = [];
+		info.mockResolvedValue({ data: { size: 500 }, error: null });
+		signedUrl.mockResolvedValue({
+			data: { signedUrl: "https://storage.test/scoped-file?token=short-lived" },
+			error: null,
 		});
 	});
-
-	test.each([
-		{
-			scenario: "their email is unverified",
-			setup: () =>
-				getSessionDataMock.mockResolvedValue({ user: { id: "member-1", emailVerified: false } }),
-			error: "Verify your email before you can view patient files.",
-		},
-		{
-			scenario: "their hospital is unverified",
-			setup: () => getOrganizationIdMock.mockResolvedValue(null),
-			error: "Your hospital must be verified before you can view patient files.",
-		},
-	])("refuses the file when $scenario", async ({ setup, error }) => {
-		setup();
-
-		const response = await requestFile();
-
-		expect(response.status).toBe(403);
-		expect(await response.json()).toEqual({ status: "failed", error });
+	for (const download of [false, true])
+		test(`authorizes a ${download ? "download" : "preview"} before granting 60-second access`, async () => {
+			const response = await request(download ? "?download" : "");
+			expect(response.status).toBe(302);
+			expect(response.headers.get("Location")).toBe(
+				"https://storage.test/scoped-file?token=short-lived",
+			);
+			expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+			expect(signedUrl).toHaveBeenCalledWith("hospital-1/record-files/f1.pdf", 60, {
+				download: download ? "Full blood count.pdf" : false,
+			});
+		});
+	test("opens a scoped imaging report", async () => {
+		rows.lab = [];
+		rows.imaging = [{ name: "Chest.png", type: "image/png", recordId: "IMG-1" }];
+		expect((await request()).status).toBe(302);
+		expect(signedUrl).toHaveBeenCalledWith("hospital-1/record-files/f1.png", 60, {
+			download: false,
+		});
+	});
+	test("denies an existing report outside the member's hospital without signing access", async () => {
+		expect((await request()).status).toBe(302);
+		signedUrl.mockClear();
+		rows.lab = [];
+		expect((await request()).status).toBe(404);
+		expect(signedUrl).not.toHaveBeenCalled();
+	});
+	test.each([null, false])("requires a signed-in verified user: %s", async (verified) => {
+		session.mockResolvedValue(
+			verified === null ? null : { user: { id: "member-1", emailVerified: false } },
+		);
+		expect((await request()).status).toBe(verified === null ? 401 : 403);
+		expect(signedUrl).not.toHaveBeenCalled();
+	});
+	test("requires a verified hospital", async () => {
+		organization.mockResolvedValue(null);
+		expect((await request()).status).toBe(403);
+		expect(signedUrl).not.toHaveBeenCalled();
+	});
+	test("does not expose an unsupported file type", async () => {
+		rows.lab[0].type = "text/html";
+		expect((await request()).status).toBe(404);
+		expect(signedUrl).not.toHaveBeenCalled();
+	});
+	test("returns not found for a missing storage object", async () => {
+		info.mockResolvedValue({ data: null, error: new Error("missing") });
+		expect((await request()).status).toBe(404);
+		expect(signedUrl).not.toHaveBeenCalled();
+	});
+	test("does not expose storage provider errors", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		signedUrl.mockResolvedValue({ data: null, error: new Error("private credential details") });
+		const response = await request();
+		expect(response.status).toBe(404);
+		expect(await response.json()).toEqual({ status: "failed", error: "File not found." });
 	});
 });

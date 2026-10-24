@@ -74,13 +74,18 @@ export function useVerificationFileUpload() {
 		});
 
 		try {
-			const formData = new FormData();
-			formData.append("file", selectedFile);
 			const res = await fetch("/api/verification-file-upload", {
 				method: "POST",
-				body: formData,
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					name: selectedFile.name,
+					size: selectedFile.size,
+					type: selectedFile.type || "application/octet-stream",
+				}),
 			});
-			const data: { error?: string } = await res.json().catch(() => ({}));
+			const data: { error?: string; signedUrl?: string; type?: string } = await res
+				.json()
+				.catch(() => ({}));
 
 			if (!res.ok) {
 				setVerificationFile({
@@ -92,6 +97,13 @@ export function useVerificationFileUpload() {
 				});
 				return;
 			}
+			if (!data.signedUrl || !data.type) throw new Error("Missing upload authorization.");
+			const upload = await fetch(data.signedUrl, {
+				method: "PUT",
+				headers: { "Content-Type": data.type, "x-upsert": "false" },
+				body: selectedFile,
+			});
+			if (!upload.ok) throw new Error("Storage rejected upload.");
 			setVerificationFile((prev) => ({ ...prev, status: "upload-complete" }));
 		} catch {
 			setVerificationFile({

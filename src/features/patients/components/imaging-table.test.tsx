@@ -1,9 +1,11 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { ImagingType } from "@/features/patients/types";
 import { ImagingTable } from "./imaging-table";
+
+const uploadFetch = vi.fn();
 
 const activeMember = vi.hoisted(() => ({ role: "owner" }));
 const { createImagingMock, updateImagingMock } = vi.hoisted(() => ({
@@ -143,7 +145,19 @@ function bulkActionBar() {
 }
 
 describe("Imaging table", () => {
+	afterEach(() => vi.unstubAllGlobals());
 	beforeEach(() => {
+		uploadFetch.mockReset();
+		uploadFetch.mockImplementation(async (url: string, options: RequestInit) =>
+			url === "/api/patient-record-files/upload"
+				? Response.json({
+						status: "success",
+						signedUrl: "https://storage.test/report",
+						receipt: options.body,
+					})
+				: new Response(null, { status: 200 }),
+		);
+		vi.stubGlobal("fetch", uploadFetch);
 		activeMember.role = "owner";
 		createImagingMock.mockReset();
 		updateImagingMock.mockReset();
@@ -632,7 +646,7 @@ describe("Imaging table", () => {
 				impression: "Small left pleural effusion.",
 			}),
 		);
-		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual([
+		expect(formData.getAll("files").map((receipt) => JSON.parse(String(receipt)).name)).toEqual([
 			"chest-xray-lateral.png",
 		]);
 		expect(formData.getAll("removedFileIds")).toEqual([]);

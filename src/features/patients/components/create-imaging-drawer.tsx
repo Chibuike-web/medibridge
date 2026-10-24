@@ -87,23 +87,57 @@ export function CreateImagingDrawer({
 		}
 
 		const formData = new FormData(event.currentTarget);
-		for (const file of selectedFiles) formData.append("files", file);
 		if (encounterId) formData.set("encounterId", encounterId);
 
 		startTransition(async () => {
-			const result = await createPatientImagingAction(patientId, formData);
+			try {
+				const reportFiles = selectedFiles;
+				formData.delete("files");
+				for (const file of reportFiles) {
+					const response = await fetch("/api/patient-record-files/upload", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							name: file.name,
+							size: file.size,
+							type: file.type,
+							patientId: patientId,
+							recordType: "imaging",
+						}),
+					});
+					const grant = await response.json();
+					if (!response.ok || grant.status !== "success") {
+						setFormError(grant.error ?? "We couldn’t upload this report. Please try again.");
+						return;
+					}
+					const uploaded = await fetch(grant.signedUrl, {
+						method: "PUT",
+						headers: { "Content-Type": file.type, "x-upsert": "false" },
+						body: file,
+					});
+					if (!uploaded.ok) {
+						setFormError("We couldn’t upload this report. Please try again.");
+						return;
+					}
+					formData.append("files", grant.receipt);
+				}
+				const result = await createPatientImagingAction(patientId, formData);
 
-			if (result.status === "unauthorized") {
-				router.refresh();
-				return;
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				handleOpenChange(false);
+			} catch (error) {
+				console.error("Saving report files failed:", error);
+				setFormError("We couldn’t save these changes. Please try again.");
 			}
-
-			if (result.status !== "success") {
-				setFormError(result.error);
-				return;
-			}
-
-			handleOpenChange(false);
 		});
 	}
 

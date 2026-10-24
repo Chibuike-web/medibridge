@@ -15,9 +15,13 @@ const { files, getSessionDataMock, getOrganizationIdMock, unlinkMock } = vi.hois
 
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
-vi.mock("node:fs", () => ({
-	existsSync: (file: string) => files.has(file),
-	unlinkSync: unlinkMock,
+vi.mock("@/lib/storage/client", () => ({
+	patientUploads: {
+		remove: async (keys: string[]) => {
+			for (const key of keys) await unlinkMock(path.resolve("patient-uploads", ...key.split("/")));
+			return { data: [], error: null };
+		},
+	},
 }));
 
 import { deletePatientUploadService } from "./delete-patient-upload-service";

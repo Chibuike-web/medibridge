@@ -75,6 +75,7 @@ import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from
 import { useRouter } from "next/navigation";
 
 type ImagingDetailsDrawerProps = {
+	patientId: string;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	imaging: ImagingType | null;
@@ -88,7 +89,12 @@ const imagingDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const imagingDetailsFieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
-export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDetailsDrawerProps) {
+export function ImagingDetailsDrawer({
+	open,
+	onOpenChange,
+	imaging,
+	patientId,
+}: ImagingDetailsDrawerProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
@@ -125,19 +131,56 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 		}
 
 		startTransition(async () => {
-			const result = await updatePatientImagingAction(imaging.imagingId, formData);
+			try {
+				const reportFiles = formData
+					.getAll("files")
+					.filter((file): file is File => file instanceof File && file.size > 0);
+				formData.delete("files");
+				for (const file of reportFiles) {
+					const response = await fetch("/api/patient-record-files/upload", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							name: file.name,
+							size: file.size,
+							type: file.type,
+							patientId,
+							recordType: "imaging",
+						}),
+					});
+					const grant = await response.json();
+					if (!response.ok || grant.status !== "success") {
+						setFormError(grant.error ?? "We couldn’t upload this report. Please try again.");
+						return;
+					}
+					const uploaded = await fetch(grant.signedUrl, {
+						method: "PUT",
+						headers: { "Content-Type": file.type, "x-upsert": "false" },
+						body: file,
+					});
+					if (!uploaded.ok) {
+						setFormError("We couldn’t upload this report. Please try again.");
+						return;
+					}
+					formData.append("files", grant.receipt);
+				}
+				const result = await updatePatientImagingAction(imaging.imagingId, formData);
 
-			if (result.status === "unauthorized") {
-				router.refresh();
-				return;
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				setImagingDetailsMode("view");
+			} catch (error) {
+				console.error("Saving report files failed:", error);
+				setFormError("We couldn’t save these changes. Please try again.");
 			}
-
-			if (result.status !== "success") {
-				setFormError(result.error);
-				return;
-			}
-
-			setImagingDetailsMode("view");
 		});
 	}
 

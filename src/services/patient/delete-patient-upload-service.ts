@@ -2,7 +2,7 @@ import "server-only";
 
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getSessionData } from "@/lib/api/get-session-data";
-import { existsSync, unlinkSync } from "node:fs";
+import { patientUploads } from "@/lib/storage/client";
 import path from "node:path";
 
 type DeletePatientUploadResult = { status: "success" } | { status: "failed"; error: string };
@@ -31,19 +31,19 @@ export async function deletePatientUploadService(
 			return { status: "failed", error: "Missing file path" };
 		}
 
-		const uploadRoot = path.resolve("patient-uploads", organizationId, session.user.id);
-		const absolutePath = path.resolve(relativePath);
-		const isInsideUploadRoot = path.dirname(absolutePath) === uploadRoot;
-
-		if (!isInsideUploadRoot) {
+		const prefix = `patient-uploads/${organizationId}/${session.user.id}/`;
+		const filename = relativePath.slice(prefix.length);
+		if (
+			!relativePath.startsWith(prefix) ||
+			!filename ||
+			filename !== path.posix.basename(filename) ||
+			/[\\:]/.test(filename) ||
+			filename === "." ||
+			filename === ".."
+		)
 			return { status: "failed", error: "Invalid file path" };
-		}
-
-		if (!existsSync(absolutePath)) {
-			return { status: "failed", error: "File does not exist" };
-		}
-
-		unlinkSync(absolutePath);
+		const { error } = await patientUploads.remove([relativePath.slice("patient-uploads/".length)]);
+		if (error) throw error;
 
 		return { status: "success" };
 	} catch (error) {

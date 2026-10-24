@@ -8,10 +8,7 @@ import { hospitalDetails, member, organization } from "@/db/schemas";
 import { auth, db } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
-import { readdir } from "node:fs/promises";
-import path from "node:path";
-
-const uploadDir = path.resolve("hospital-uploads");
+import { hospitalUploads } from "@/lib/storage/client";
 
 function hospitalSlug(name: string) {
 	const nameSlug = name
@@ -64,7 +61,21 @@ export async function createHospitalService(
 			return { status: "failed", error: "Enter the correct details" };
 		}
 
-		const [uploadedFileName] = await readdir(path.join(uploadDir, userId)).catch(() => []);
+		const { data: files, error: listError } = await hospitalUploads.list(userId, {
+			limit: 100,
+			sortBy: { column: "created_at", order: "desc" },
+		});
+		if (listError) throw listError;
+		const uploadedFileName = files.find(
+			(file) =>
+				file.id &&
+				file.metadata &&
+				file.metadata.size > 0 &&
+				file.metadata.size <= 50 * 1024 * 1024 &&
+				["application/pdf", "image/png", "image/jpeg", "application/msword"].includes(
+					file.metadata.mimetype,
+				),
+		)?.name;
 		if (!uploadedFileName) {
 			return {
 				status: "failed",

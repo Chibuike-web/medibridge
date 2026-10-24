@@ -1,7 +1,10 @@
 "use server";
 
-import { mkdir, rm, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { jwtVerify } from "jose";
+import type { z } from "zod";
+import { patientUploads } from "@/lib/storage/client";
+import { recordUploadSchema } from "@/lib/storage/schemas";
+import { ENV } from "@/lib/utils/env";
 import { format, parseISO } from "date-fns";
 import { and, eq, gte, lt, inArray } from "drizzle-orm";
 import { updateTag } from "next/cache";
@@ -9,7 +12,7 @@ import { patient, patientImaging, patientImagingFile, patientImagingHistory } fr
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { db } from "@/lib/better-auth/auth";
-import { patientImagingSchema, recordFileExtensions, recordFilesSchema } from "./schemas";
+import { patientImagingSchema, recordFileExtensions } from "./schemas";
 
 type UpdatePatientImagingResult =
 	| { status: "success" }
@@ -53,12 +56,6 @@ export async function updatePatientImagingAction(
 		return { status: "failed", error: parsedImaging.error.issues[0].message };
 	}
 
-	const parsedFiles = recordFilesSchema.safeParse(formData.getAll("files"));
-
-	if (!parsedFiles.success) {
-		return { status: "failed", error: parsedFiles.error.issues[0].message };
-	}
-
 	const [currentImaging] = await db
 		.select({
 			patientId: patientImaging.patientId,
@@ -81,6 +78,42 @@ export async function updatePatientImagingAction(
 		return { status: "failed", error: "Imaging study could not be found." };
 	}
 
+	const uploadedFiles: z.infer<typeof recordUploadSchema>[] = [];
+	try {
+		const receipts = formData.getAll("files");
+		for (const receipt of receipts) {
+			if (typeof receipt !== "string")
+				return { status: "failed", error: "Upload each report before saving." };
+			const { payload } = await jwtVerify(
+				receipt,
+				new TextEncoder().encode(ENV.BETTER_AUTH_SECRET),
+				{ algorithms: ["HS256"], audience: "patient-record-upload" },
+			);
+			const file = recordUploadSchema.parse(payload);
+			if (
+				file.organizationId !== organizationId ||
+				file.userId !== session.user.id ||
+				file.patientId !== currentImaging.patientId ||
+				file.recordType !== "imaging"
+			)
+				return { status: "failed", error: "This report does not belong to this patient." };
+			const { data, error } = await patientUploads.info(
+				`${organizationId}/record-files/${file.id}${recordFileExtensions[file.type]}`,
+			);
+			if (error || data.size !== file.size || data.contentType !== file.type)
+				return { status: "failed", error: "Upload the complete report before saving." };
+			uploadedFiles.push(file);
+		}
+		if (uploadedFiles.reduce((size, file) => size + file.size, 0) > 100 * 1024 * 1024)
+			return { status: "failed", error: "Files can add up to 100 MB per save." };
+	} catch (error) {
+		console.error("Validating report uploads failed:", error);
+		return {
+			status: "failed",
+			error: "We couldn’t verify these uploads. Upload the reports again.",
+		};
+	}
+
 	const savedFiles = await db
 		.select({
 			id: patientImagingFile.id,
@@ -92,10 +125,9 @@ export async function updatePatientImagingAction(
 	const removedFileIds = formData.getAll("removedFileIds").map(String);
 	const removedFiles = savedFiles.filter((file) => removedFileIds.includes(file.id));
 	const keptFiles = savedFiles.filter((file) => !removedFileIds.includes(file.id));
-	const addedFiles = parsedFiles.data.map((file) => ({
-		id: crypto.randomUUID(),
+	const addedFiles = uploadedFiles.map((file) => ({
+		id: file.id,
 		file,
-		extension: recordFileExtensions[file.type as keyof typeof recordFileExtensions],
 	}));
 
 	const { patientId, updatedAt: lastSavedAt, orderedAt, ...savedImaging } = currentImaging;
@@ -131,22 +163,9 @@ export async function updatePatientImagingAction(
 	const updatedAt = new Date(Math.max(Date.now(), lastSavedAt.getTime() + 1));
 	const historyValue = (field: keyof typeof nextImaging, value: string | null) =>
 		value && field === "orderedAt" ? format(parseISO(value), "do MMMM yyyy") : value;
-	const fileDirectory = path.resolve("patient-uploads", organizationId, "record-files", imagingId);
 
 	const staleRecordError = new Error("Record changed before saving.");
 	try {
-		if (addedFiles.length > 0) {
-			await mkdir(fileDirectory, { recursive: true });
-			await Promise.all(
-				addedFiles.map(async ({ id, file, extension }) =>
-					writeFile(
-						path.join(fileDirectory, `${id}${extension}`),
-						Buffer.from(await file.arrayBuffer()),
-					),
-				),
-			);
-		}
-
 		await db.transaction(async (tx) => {
 			const [updatedRecord] = await tx
 				.update(patientImaging)
@@ -218,28 +237,23 @@ export async function updatePatientImagingAction(
 		});
 	} catch (error) {
 		if (error !== staleRecordError) console.error("Updating patient imaging failed:", error);
-		await Promise.all(
-			addedFiles.map(({ id, extension }) =>
-				rm(path.join(fileDirectory, `${id}${extension}`), { force: true }),
-			),
-		).catch((cleanupError) =>
-			console.error("Removing unsaved imaging files failed:", cleanupError),
-		);
 		if (error === staleRecordError) return staleRecordResult;
 		return { status: "failed", error: "We couldn’t save these changes. Please try again." };
 	}
 
-	await Promise.all(
-		removedFiles.map((file) =>
-			rm(
-				path.join(
-					fileDirectory,
-					`${file.id}${recordFileExtensions[file.type as keyof typeof recordFileExtensions] ?? ""}`,
+	if (removedFiles.length > 0) {
+		try {
+			const { error } = await patientUploads.remove(
+				removedFiles.map(
+					(file) =>
+						`${organizationId}/record-files/${file.id}${recordFileExtensions[file.type as keyof typeof recordFileExtensions] ?? ""}`,
 				),
-				{ force: true },
-			),
-		),
-	).catch((error) => console.error("Removing replaced imaging files failed:", error));
+			);
+			if (error) console.error("Removing replaced report files failed:", error);
+		} catch (error) {
+			console.error("Removing replaced report files failed:", error);
+		}
+	}
 
 	updateTag(`patient-imaging-${organizationId}-${patientId}`);
 

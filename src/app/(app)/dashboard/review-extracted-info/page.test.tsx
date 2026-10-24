@@ -1,3 +1,4 @@
+vi.mock("@/lib/storage/client", () => ({ patientUploads: {}, hospitalUploads: {} }));
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { renderToReadableStream } from "react-dom/server.browser";
 import { beforeEach, describe, expect, test, vi } from "vitest";

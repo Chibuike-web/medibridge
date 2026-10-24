@@ -12,6 +12,9 @@ const { deleteUploadMock, pushMock } = vi.hoisted(() => ({
 vi.mock("@/features/patients/server/delete-patient-upload-action", () => ({
 	deletePatientUploadAction: deleteUploadMock,
 }));
+vi.mock("@/features/patients/server/remove-extraction-document-action", () => ({
+	removeExtractionDocumentAction: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: pushMock }) }));
 
 const fetchMock = vi.fn();
@@ -99,11 +102,15 @@ function uploadedFile(name: string, storedName: string) {
 }
 
 function respondToUpload(files: ReturnType<typeof uploadedFile>[]) {
-	fetchMock.mockImplementationOnce(async (_url, { body }: { body: FormData }) => {
-		const clientIds = body.getAll("clientId");
+	fetchMock.mockImplementationOnce(async (_url, { body }: { body: string }) => {
+		const clientIds = JSON.parse(body).files.map((file: { clientId: string }) => file.clientId);
 		return Response.json({
 			status: "success",
-			files: files.map((file, index) => ({ ...file, clientId: clientIds[index] })),
+			files: files.map((file, index) => ({
+				...file,
+				signedUrl: `https://storage.test/${file.storedName}`,
+				clientId: clientIds[index],
+			})),
 		});
 	});
 }
@@ -127,7 +134,21 @@ describe("Patient uploads with generated storage names", () => {
 		fetchMock.mockReset();
 		deleteUploadMock.mockReset();
 		pushMock.mockReset();
-		vi.stubGlobal("fetch", fetchMock);
+		vi.stubGlobal("fetch", async (url: string, options: RequestInit) => {
+			if (url.startsWith("https://storage.test/"))
+				return new Response(null, { status: url.includes("/failed/") ? 500 : 200 });
+			const response = await fetchMock(url, options);
+			if (url !== "/api/file-upload" || !response?.ok) return response;
+			const data = await response.clone().json();
+			if (data.status !== "success" || !Array.isArray(data.files)) return response;
+			return Response.json({
+				...data,
+				files: data.files.map((file: { clientId: string; status?: string }) => ({
+					...file,
+					signedUrl: `https://storage.test/${file.status === "upload-failed" ? "failed" : "complete"}/${file.clientId}`,
+				})),
+			});
+		});
 	});
 
 	afterEach(() => {
@@ -176,8 +197,8 @@ describe("Patient uploads with generated storage names", () => {
 	});
 
 	test("matches mixed upload results to their cards by client ID even when results arrive in another order", async () => {
-		fetchMock.mockImplementationOnce(async (_url, { body }: { body: FormData }) => {
-			const clientIds = body.getAll("clientId");
+		fetchMock.mockImplementationOnce(async (_url, { body }: { body: string }) => {
+			const clientIds = JSON.parse(body).files.map((file: { clientId: string }) => file.clientId);
 			return Response.json({
 				status: "success",
 				files: [
@@ -252,7 +273,21 @@ describe("retrying failed patient uploads", () => {
 		vi.useFakeTimers();
 		fetchMock.mockReset();
 		deleteUploadMock.mockReset();
-		vi.stubGlobal("fetch", fetchMock);
+		vi.stubGlobal("fetch", async (url: string, options: RequestInit) => {
+			if (url.startsWith("https://storage.test/"))
+				return new Response(null, { status: url.includes("/failed/") ? 500 : 200 });
+			const response = await fetchMock(url, options);
+			if (url !== "/api/file-upload" || !response?.ok) return response;
+			const data = await response.clone().json();
+			if (data.status !== "success" || !Array.isArray(data.files)) return response;
+			return Response.json({
+				...data,
+				files: data.files.map((file: { clientId: string; status?: string }) => ({
+					...file,
+					signedUrl: `https://storage.test/${file.status === "upload-failed" ? "failed" : "complete"}/${file.clientId}`,
+				})),
+			});
+		});
 	});
 
 	afterEach(() => {
@@ -263,8 +298,8 @@ describe("retrying failed patient uploads", () => {
 
 	test("retries the selected failed file in its existing card and preserves successful uploads", async () => {
 		let failedClientId: FormDataEntryValue | null = null;
-		fetchMock.mockImplementationOnce(async (_url, { body }: { body: FormData }) => {
-			const clientIds = body.getAll("clientId");
+		fetchMock.mockImplementationOnce(async (_url, { body }: { body: string }) => {
+			const clientIds = JSON.parse(body).files.map((file: { clientId: string }) => file.clientId);
 			failedClientId = clientIds[1];
 			return Response.json({
 				status: "success",
@@ -284,11 +319,13 @@ describe("retrying failed patient uploads", () => {
 		expect(within(savedCard).getByText("Upload complete")).toBeVisible();
 		expect(within(failedCard).getByText("Upload failed")).toBeVisible();
 
-		fetchMock.mockImplementationOnce(async (url, { body }: { body: FormData }) => {
+		fetchMock.mockImplementationOnce(async (url, { body }: { body: string }) => {
 			expect(url).toBe("/api/file-upload");
-			expect(body.getAll("clientId")).toEqual([failedClientId]);
-			expect(body.getAll("file")).toHaveLength(1);
-			expect(body.get("file")).toMatchObject({
+			expect(JSON.parse(body).files.map((file: { clientId: string }) => file.clientId)).toEqual([
+				failedClientId,
+			]);
+			expect(JSON.parse(body).files).toHaveLength(1);
+			expect(JSON.parse(body).files[0]).toMatchObject({
 				name: "failed.pdf",
 				size: "failed contents".length,
 				type: "application/pdf",
@@ -331,14 +368,20 @@ describe("retrying failed patient uploads", () => {
 			const failedCard = screen.getByRole("region", { name: "failed.pdf" });
 			expect(within(failedCard).getByText("Upload failed")).toBeVisible();
 
-			fetchMock.mockImplementationOnce(async (_url, { body }: { body: FormData }) => {
+			fetchMock.mockImplementationOnce(async (_url, { body }: { body: string }) => {
 				if (failedStatus === "request")
 					return Response.json({ status: "failed", error }, { status: 503 });
 				return Response.json({
 					status: "success",
 					files:
 						failedStatus === "file"
-							? [{ clientId: body.get("clientId"), name: "failed.pdf", status: "upload-failed" }]
+							? [
+									{
+										clientId: JSON.parse(body).files[0].clientId,
+										name: "failed.pdf",
+										status: "upload-failed",
+									},
+								]
 							: [],
 				});
 			});
@@ -394,8 +437,8 @@ describe("retrying failed patient uploads", () => {
 		expect(within(failedCard).getByText("Upload failed")).toBeVisible();
 		let completeRetry!: (response: Response) => void;
 		let retryClientId: FormDataEntryValue | null = null;
-		fetchMock.mockImplementationOnce((_url, { body }: { body: FormData }) => {
-			retryClientId = body.get("clientId");
+		fetchMock.mockImplementationOnce((_url, { body }: { body: string }) => {
+			retryClientId = JSON.parse(body).files[0].clientId;
 			return new Promise<Response>((resolve) => {
 				completeRetry = resolve;
 			});

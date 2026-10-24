@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { patientUploads } from "@/lib/storage/client";
 import path from "node:path";
 import { getPatientExtractionById } from "@/lib/api/get-patient-extraction-by-id";
 import { getSessionData } from "@/lib/api/get-session-data";
@@ -48,24 +48,30 @@ export async function GET(
 	const extraction = await getPatientExtractionById(extractionId);
 	const fileExtension = path.extname(documentId).toLowerCase();
 	const contentType = documentContentTypes[fileExtension];
-	const uploadRoot = path.resolve("patient-uploads", organizationId, extraction?.createdBy ?? "");
-	const filePath = path.resolve(uploadRoot, documentId);
 
 	if (
 		!extraction ||
 		!contentType ||
-		path.dirname(filePath) !== uploadRoot ||
+		documentId !== path.posix.basename(documentId) ||
+		/[\\:]/.test(documentId) ||
 		!extraction.extractedData.some((record) => record.documentId === documentId)
 	) {
 		return Response.json({ status: "failed", error: "Document not found." }, { status: 404 });
 	}
 
 	try {
-		const file = await readFile(filePath);
-		return new Response(new Uint8Array(file), {
+		const key = `${organizationId}/${extraction.createdBy}/${documentId}`;
+		const { data: file, error: missingFile } = await patientUploads.info(key);
+		if (missingFile || !file)
+			return Response.json({ status: "failed", error: "Document not found." }, { status: 404 });
+		const { data, error } = await patientUploads.createSignedUrl(key, 60, {
+			download: fileExtension === ".docx",
+		});
+		if (error) throw error;
+		return new Response(null, {
+			status: 302,
 			headers: {
-				"Content-Type": contentType,
-				"Content-Disposition": fileExtension === ".docx" ? "attachment" : "inline",
+				Location: data.signedUrl,
 				"Cache-Control": "private, no-store",
 				"X-Content-Type-Options": "nosniff",
 			},
