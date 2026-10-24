@@ -323,6 +323,28 @@ describe("Transfer recovery feedback", () => {
 		expect(resendMock).toHaveBeenCalledTimes(1);
 	});
 
+	test("a result that arrives after the drawer closes doesn't reappear when the transfer is reopened", async () => {
+		let finishResend!: () => void;
+		resendMock.mockImplementation(
+			() =>
+				new Promise((resolve) => {
+					finishResend = () =>
+						resolve({ status: "success", message: "Approval link sent to chuka@example.com." });
+				}),
+		);
+		renderTransferTable();
+
+		const user = await chooseFromRowMenu("Chuka Joy Eze", "Resend request");
+		await user.click(await screen.findByRole("button", { name: "Close transfer details" }));
+		await act(async () => finishResend());
+		await user.click(rowFor("Chuka Joy Eze"));
+
+		const drawer = await screen.findByRole("dialog", { name: "Transfer details" });
+		expect(await within(drawer).findByText("Waiting for patient response")).toBeVisible();
+		expect(within(drawer).queryByRole("status")).not.toBeInTheDocument();
+		expect(resendMock).toHaveBeenCalledWith("TRF-1");
+	});
+
 	test("a retry that finishes after switching transfers shows nothing on the other transfer", async () => {
 		let finishRetry!: () => void;
 		retryMock.mockImplementation(

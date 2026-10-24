@@ -137,6 +137,11 @@ export function TransferTable({
 	const [transferIdToCancel, setTransferIdToCancel] = useState<string | null>(null);
 	const [isTransferActionPending, startTransferActionTransition] = useTransition();
 
+	function handleViewTransferDetails(transferId: string) {
+		setSelectedTransferId(transferId);
+		setTransferActionFeedback(null);
+	}
+
 	function handleResendRequest(transferId: string) {
 		setSelectedTransferId(transferId);
 		setTransferActionFeedback(null);
@@ -228,7 +233,7 @@ export function TransferTable({
 	}
 
 	const columns = getTransferColumns({
-		onViewTransferDetails: setSelectedTransferId,
+		onViewTransferDetails: handleViewTransferDetails,
 		onResendRequest: handleResendRequest,
 		onRetryTransfer: handleRetryTransfer,
 		onCancelTransfer: (transferId) => setTransferIdToCancel(transferId),
@@ -254,7 +259,7 @@ export function TransferTable({
 				onPreviousPage={onPreviousPage}
 				onNextPage={onNextPage}
 				onLimitChange={onLimitChange}
-				onViewTransferDetails={setSelectedTransferId}
+				onViewTransferDetails={handleViewTransferDetails}
 			/>
 			<TransferDetailsDrawer
 				open={selectedTransferId !== null}
