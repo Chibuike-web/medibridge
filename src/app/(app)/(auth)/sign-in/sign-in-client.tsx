@@ -282,7 +282,7 @@ export function SignInClient() {
 					<Controller
 						name="rememberMe"
 						control={control}
-						defaultValue={false}
+						defaultValue={true}
 						render={({ field }) => (
 							<Label className="cursor-pointer">
 								<Checkbox checked={field.value} onCheckedChange={field.onChange} />
