@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { auth } from "../better-auth/auth";
 
 export const getSessionData = cache(async () => {
+	"use cache: private";
 	try {
 		return await auth.api.getSession({
 			headers: await headers(),
