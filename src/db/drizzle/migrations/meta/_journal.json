@@ -225,6 +225,13 @@
 			"when": 1792239600000,
 			"tag": "0031_vital_optional_encounter",
 			"breakpoints": true
+		},
+		{
+			"idx": 32,
+			"version": "7",
+			"when": 1793136000000,
+			"tag": "0032_enable_rls",
+			"breakpoints": true
 		}
 	]
 }

@@ -12,4 +12,4 @@ export const hospitalDetails = pgTable("hospitalDetails", {
 	hospitalOwnerEmail: text("hospital_owner_email").notNull().unique(),
 	documentPath: text("document_path"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}).enableRLS();

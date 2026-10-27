@@ -30,4 +30,4 @@ export const patientLabTest = pgTable("patient_lab_test", {
 
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}).enableRLS();

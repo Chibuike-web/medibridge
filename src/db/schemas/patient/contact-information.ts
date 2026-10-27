@@ -17,4 +17,4 @@ export const patientContactInformation = pgTable("patient_contact_information", 
 
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}).enableRLS();

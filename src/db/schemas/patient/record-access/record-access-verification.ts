@@ -21,4 +21,4 @@ export const patientRecordAccessVerification = pgTable("patient_record_access_ve
 	targetHospitalName: text("target_hospital_name").notNull(),
 
 	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}).enableRLS();

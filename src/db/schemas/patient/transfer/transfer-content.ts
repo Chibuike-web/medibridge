@@ -13,4 +13,4 @@ export const patientTransferContent = pgTable("patient_transfer_content", {
 	recordId: text("record_id").notNull(),
 
 	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}).enableRLS();
