@@ -13,4 +13,4 @@ export const member = pgTable("member", {
 		.references(() => user.id, { onDelete: "cascade" }),
 	role: text("role").default("member").notNull(),
 	createdAt: timestamp("created_at").notNull(),
-});
+}).enableRLS();

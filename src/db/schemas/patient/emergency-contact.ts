@@ -18,4 +18,4 @@ export const patientEmergencyContact = pgTable("patient_emergency_contact", {
 
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}).enableRLS();

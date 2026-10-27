@@ -8,4 +8,4 @@ export const organization = pgTable("organization", {
 	createdAt: timestamp("created_at").notNull(),
 	metadata: text("metadata"),
 	isVerified: boolean("is_verified").default(false).notNull(),
-});
+}).enableRLS();

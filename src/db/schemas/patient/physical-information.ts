@@ -16,4 +16,4 @@ export const patientPhysicalInformation = pgTable("patient_physical_information"
 
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}).enableRLS();

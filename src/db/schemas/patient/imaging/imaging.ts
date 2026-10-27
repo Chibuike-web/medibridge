@@ -27,4 +27,4 @@ export const patientImaging = pgTable("patient_imaging", {
 
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}).enableRLS();

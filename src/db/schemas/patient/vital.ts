@@ -29,4 +29,4 @@ export const patientVital = pgTable(
 		index("patient_vital_patient_recorded_idx").on(table.patientId, table.recordedAt),
 		index("patient_vital_encounter_idx").on(table.encounterId),
 	],
-);
+).enableRLS();

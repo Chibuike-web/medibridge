@@ -68,4 +68,4 @@ export const patientRecordAccess = pgTable("patient_record_access", {
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}).enableRLS();

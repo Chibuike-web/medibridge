@@ -15,4 +15,4 @@ export const patientTransferProgress = pgTable("patient_transfer_progress", {
 	status: text("status"),
 
 	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}).enableRLS();

@@ -15,4 +15,4 @@ export const patientEncounter = pgTable("patient_encounter", {
 	updatedBy: text("updated_by").notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}).enableRLS();
