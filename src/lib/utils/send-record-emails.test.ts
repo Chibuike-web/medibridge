@@ -35,9 +35,9 @@ test("delivers transfer approval emails through Resend during local development"
 	expect(result).toEqual(providerResult);
 	expect(sendEmailMock).toHaveBeenCalledWith(
 		expect.objectContaining({
-			from: "MediBridge <noreply@medibridge.chibu.dev>",
+			from: "Medibridge <noreply@medibridge.chibu.dev>",
 			to: "patient@example.com",
-			subject: "Review your MediBridge record transfer",
+			subject: "Review your Medibridge record transfer",
 			html: expect.stringContaining("https://example.com/transfer-approval/test"),
 		}),
 	);
@@ -56,7 +56,7 @@ test("delivers access codes through Resend during local development", async () =
 	expect(result).toEqual(providerResult);
 	expect(sendEmailMock).toHaveBeenCalledWith(
 		expect.objectContaining({
-			from: "MediBridge <noreply@medibridge.chibu.dev>",
+			from: "Medibridge <noreply@medibridge.chibu.dev>",
 			to: "recipient@example.com",
 			subject: "Your shared patient record access code",
 			html: expect.stringContaining("123456"),

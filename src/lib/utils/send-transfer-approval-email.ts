@@ -25,9 +25,9 @@ export async function sendTransferApprovalEmail({
 	approvalUrl: string;
 }) {
 	return resend.emails.send({
-		from: "MediBridge <noreply@medibridge.chibu.dev>",
+		from: "Medibridge <noreply@medibridge.chibu.dev>",
 		to: email,
-		subject: "Review your MediBridge record transfer",
+		subject: "Review your Medibridge record transfer",
 		html: `
 			<div>
 				<p>Hello ${escapeHtml(patientName)},</p>

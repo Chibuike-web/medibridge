@@ -14,7 +14,7 @@ export default function Verify() {
 					<Image src="/assets/verification-icon.svg" width={120} height={120} alt="" />
 
 					<p className="text-gray-600 text-sm font-normal text-center text-pretty mt-4">
-						If your email is associated with a MediBridge account, you’ll receive a reset link
+						If your email is associated with a Medibridge account, you’ll receive a reset link
 						shortly.
 					</p>
 					<Button asChild className="mt-16 w-full">
