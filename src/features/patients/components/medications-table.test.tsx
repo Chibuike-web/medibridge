@@ -130,7 +130,7 @@ const medicationDetails: Record<string, MedicationDetailsType> = {
 					{ label: "Dose", previousValue: "500 mg", value: "250 mg" },
 					{
 						label: "Clinical note",
-						previousValue: "-",
+						previousValue: "",
 						value: "Patient reported nausea after the first dose.",
 					},
 				],
@@ -417,6 +417,73 @@ describe("Medications table", () => {
 		expect(doseChange).toHaveTextContent("500 mg changed to 250 mg");
 		expect(clinicalNote).toHaveTextContent(/^Patient reported nausea after the first dose\.$/);
 		expect(within(dialog).queryByText("Metformin")).not.toBeInTheDocument();
+	});
+
+	test("shows the earlier note before the new note when a clinical note is edited", async () => {
+		const user = userEvent.setup();
+		savedMedicationDetails["MED-metformin"] = {
+			...medicationDetails["MED-metformin"],
+			history: [
+				{
+					id: "note-edited",
+					title: "Updated",
+					actor: "Dr. Okafor",
+					timestamp: "9 April 2021 at 09:00",
+					items: [
+						{
+							label: "Clinical note",
+							previousValue: "Check kidney function once a year.",
+							value: "Review renal function every six months.",
+						},
+					],
+				},
+			],
+		};
+		renderMedicationsTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Metformin" }));
+		await user.click(screen.getByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "Medication details" });
+		await user.click(await within(dialog).findByRole("button", { name: /Updated by Dr. Okafor/ }));
+
+		const activity = within(dialog).getByRole("region", { name: /Updated by Dr. Okafor/ });
+		expect(within(activity).getByRole("term")).toHaveTextContent("Clinical note");
+		expect(within(activity).getByRole("definition")).toHaveTextContent(
+			/^Before\s*Check kidney function once a year\.\s*After\s*Review renal function every six months\.$/,
+		);
+	});
+
+	test("marks a cleared clinical note as removed", async () => {
+		const user = userEvent.setup();
+		savedMedicationDetails["MED-metformin"] = {
+			...medicationDetails["MED-metformin"],
+			history: [
+				{
+					id: "note-cleared",
+					title: "Updated",
+					actor: "Dr. Okafor",
+					timestamp: "9 April 2021 at 09:00",
+					items: [
+						{
+							label: "Clinical note",
+							previousValue: "Check kidney function once a year.",
+							value: "",
+						},
+					],
+				},
+			],
+		};
+		renderMedicationsTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Metformin" }));
+		await user.click(screen.getByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "Medication details" });
+		await user.click(await within(dialog).findByRole("button", { name: /Updated by Dr. Okafor/ }));
+
+		const activity = within(dialog).getByRole("region", { name: /Updated by Dr. Okafor/ });
+		expect(within(activity).getByRole("definition")).toHaveTextContent(
+			/^Check kidney function once a year\.\s*Removed$/,
+		);
 	});
 
 	test("opens the details drawer when a row is activated with the keyboard", async () => {

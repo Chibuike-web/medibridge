@@ -393,6 +393,46 @@ describe("Procedures table", () => {
 		expect(within(dialog).queryByText("Updated at", { exact: true })).not.toBeInTheDocument();
 	});
 
+	test("shows only the new value for an optional field that was empty and marks it removed when cleared", async () => {
+		const user = userEvent.setup();
+		savedProcedureDetails["PROC-1001"] = {
+			...procedureDetailsById["PROC-1001"],
+			history: [
+				{
+					id: "indication-cleared",
+					title: "Updated",
+					actor: "Nurse Ade",
+					timestamp: "14 January 2024 at 08:00",
+					items: [{ label: "Indication", previousValue: "Acute appendicitis", value: "" }],
+				},
+				{
+					id: "indication-added",
+					title: "Updated",
+					actor: "Dr. Bello",
+					timestamp: "13 January 2024 at 10:30",
+					items: [{ label: "Indication", previousValue: "", value: "Acute appendicitis" }],
+				},
+			],
+		};
+		renderProceduresTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Appendectomy" }));
+		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "Procedure details" });
+
+		await user.click(await within(dialog).findByRole("button", { name: /^Updated by Dr. Bello/ }));
+		const added = within(dialog).getByRole("region", { name: /^Updated by Dr. Bello/ });
+		expect(within(added).getByRole("term")).toHaveTextContent("Indication");
+		expect(within(added).getByRole("definition")).toHaveTextContent(/^Acute appendicitis$/);
+
+		await user.click(within(dialog).getByRole("button", { name: /^Updated by Nurse Ade/ }));
+		const cleared = within(dialog).getByRole("region", { name: /^Updated by Nurse Ade/ });
+		expect(within(cleared).getByRole("term")).toHaveTextContent("Indication");
+		expect(within(cleared).getByRole("definition")).toHaveTextContent(
+			/^Acute appendicitis\s*Removed$/,
+		);
+	});
+
 	test("opens the details drawer when a row is activated from the keyboard", async () => {
 		const user = userEvent.setup();
 		renderProceduresTable();
