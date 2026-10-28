@@ -480,23 +480,59 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 				<div className="min-h-0 overflow-hidden">
 					<div role="region" aria-labelledby={titleId} className="mt-4">
 						<dl className="grid grid-cols-[8.75rem_1fr] gap-x-4 gap-y-2">
-							{historyEvent.items.map((item) => (
-								<Fragment key={`${historyEvent.id}-${item.label}`}>
-									<dt className="text-gray-400">{item.label}</dt>
-									<dd className="flex flex-wrap items-center gap-2 text-gray-700">
-										{item.label === "Clinical note" ? (
-											item.value
-										) : (
-											<>
-												<span className="text-gray-400">{item.previousValue}</span>
-												<RiArrowRightLine className="size-4 shrink-0" aria-hidden="true" />
-												<span className="sr-only">{" changed to "}</span>
-												<span>{item.value}</span>
-											</>
-										)}
-									</dd>
-								</Fragment>
-							))}
+							{historyEvent.items.map((item) =>
+								item.label === "Clinical note" ? (
+									<Fragment key={`${historyEvent.id}-${item.label}`}>
+										<dt className="col-span-2 text-gray-400">{item.label}</dt>
+										<dd className="col-span-2 flex flex-col gap-2 text-gray-700">
+											{item.value === "" && (
+												<>
+													<span className="text-gray-400 line-through">{item.previousValue}</span>
+													<span className="w-fit rounded-md bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+														Removed
+													</span>
+												</>
+											)}
+											{item.previousValue === "" && item.value}
+											{item.previousValue !== "" && item.value !== "" && (
+												<>
+													<div className="rounded-lg bg-gray-50 px-3 py-2">
+														<p className="text-xs font-medium text-gray-400 uppercase">Before</p>
+														<p className="text-gray-400">{item.previousValue}</p>
+													</div>
+													<div className="rounded-lg border border-gray-200 px-3 py-2">
+														<p className="text-xs font-medium text-gray-400 uppercase">After</p>
+														<p>{item.value}</p>
+													</div>
+												</>
+											)}
+										</dd>
+									</Fragment>
+								) : (
+									<Fragment key={`${historyEvent.id}-${item.label}`}>
+										<dt className="text-gray-400">{item.label}</dt>
+										<dd className="flex flex-wrap items-center gap-2 text-gray-700">
+											{item.value === "" && (
+												<>
+													<span className="text-gray-400 line-through">{item.previousValue}</span>
+													<span className="rounded-md bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+														Removed
+													</span>
+												</>
+											)}
+											{item.previousValue === "" && item.value}
+											{item.previousValue !== "" && item.value !== "" && (
+												<>
+													<span className="text-gray-400">{item.previousValue}</span>
+													<RiArrowRightLine className="size-4 shrink-0" aria-hidden="true" />
+													<span className="sr-only">{" changed to "}</span>
+													<span>{item.value}</span>
+												</>
+											)}
+										</dd>
+									</Fragment>
+								),
+							)}
 						</dl>
 					</div>
 				</div>
