@@ -422,7 +422,7 @@ export function ReviewExtractedInfoClient({
 					key={reviewError}
 					ref={(banner) => banner?.scrollIntoView({ behavior: "smooth", block: "center" })}
 					role="alert"
-					className="mx-auto mt-6 flex w-full max-w-[31.25rem] items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700 lg:max-w-[56.125rem] 2xl:max-w-[31.25rem]"
+					className="mx-auto mt-6 flex w-full max-w-[31.25rem] items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
 				>
 					<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
 					<p className="min-w-0 flex-1 text-pretty">{reviewError}</p>
@@ -441,7 +441,7 @@ export function ReviewExtractedInfoClient({
 			<p className="sr-only" role="status" aria-live="polite">
 				{reviewAnnouncement}
 			</p>
-			<div className="relative mx-auto mt-12 grid w-full max-w-[31.25rem] gap-10 lg:mt-16 lg:max-w-[56.125rem] lg:grid-cols-[31.25rem_21.875rem] lg:gap-12 2xl:max-w-[31.25rem] 2xl:grid-cols-1">
+			<div className="relative mx-auto mt-12 grid w-full max-w-[31.25rem] gap-10 lg:mt-16">
 				<div className="min-w-0">
 					{selectedDocument && selectedPatient ? (
 						<>
@@ -710,9 +710,9 @@ export function ReviewExtractedInfoClient({
 				</div>
 				<aside
 					aria-labelledby={`${formId}-documents`}
-					className="order-first min-w-0 lg:order-last 2xl:absolute 2xl:inset-y-0 2xl:left-[calc(100%+3rem)] 2xl:w-[21.875rem]"
+					className="order-first min-w-0 min-[84rem]:absolute min-[84rem]:inset-y-0 min-[84rem]:left-[calc(100%+3rem)] min-[84rem]:w-[21.875rem]"
 				>
-					<div className="lg:sticky lg:top-6">
+					<div className="min-[84rem]:sticky min-[84rem]:top-6">
 						<h2
 							id={`${formId}-documents`}
 							className="mb-4 text-base leading-[1.2] font-semibold tracking-[-0.015em]"
