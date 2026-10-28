@@ -3,10 +3,10 @@ import { Shell } from "@/components/layout/shell";
 
 export const metadata: Metadata = {
 	title: {
-		default: "Dashboard | MediBridge",
-		template: "%s | MediBridge",
+		default: "Dashboard | Medibridge",
+		template: "%s | Medibridge",
 	},
-	description: "Manage your hospital operations on MediBridge.",
+	description: "Manage your hospital operations on Medibridge.",
 	robots: { index: false, follow: false },
 };
 

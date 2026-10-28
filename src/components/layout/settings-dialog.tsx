@@ -148,7 +148,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 						<div className="flex h-10 items-center px-2">
 							<DialogTitle>Settings</DialogTitle>
 							<DialogDescription className="sr-only">
-								Manage your MediBridge profile and organization settings.
+								Manage your Medibridge profile and organization settings.
 							</DialogDescription>
 						</div>
 						<nav aria-label="Settings sections" className="mt-3 flex flex-col gap-px">

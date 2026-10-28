@@ -12,7 +12,7 @@ export async function sendAccessCodeEmail({
 	accessUrl?: string;
 }) {
 	return resend.emails.send({
-		from: "MediBridge <noreply@medibridge.chibu.dev>",
+		from: "Medibridge <noreply@medibridge.chibu.dev>",
 		to: email,
 		subject: "Your shared patient record access code",
 		html: `

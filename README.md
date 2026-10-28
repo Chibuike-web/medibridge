@@ -1,12 +1,12 @@
-# MediBridge
+# Medibridge
 
-MediBridge is a hospital-facing patient record and controlled record-sharing platform. It gives a healthcare organization one workspace for onboarding patients, reviewing longitudinal clinical data, and preparing selected records for another hospital without exposing the patient's entire chart.
+Medibridge is a hospital-facing patient record and controlled record-sharing platform. It gives a healthcare organization one workspace for onboarding patients, reviewing longitudinal clinical data, and preparing selected records for another hospital without exposing the patient's entire chart.
 
 > **Repository status:** active prototype development. Patient onboarding, clinical record reading and editing, transfer submission, approval, and access-scoped sharing are database-backed. Vitals and encounter editing, transfer recovery actions, and durable attachment storage are still incomplete. This repository is not ready for production clinical use.
 
 ## What the product does
 
-MediBridge is designed around three participants:
+Medibridge is designed around three participants:
 
 - **Hospital staff** register an organization, sign in, add patients, and work with records scoped to their hospital.
 - **Patients or designated approvers** review a proposed transfer and approve or reject it.
@@ -16,11 +16,11 @@ The intended end-to-end journey is:
 
 1. A hospital owner registers an account and hospital.
 2. Staff upload existing patient documents or enter patient information for review.
-3. MediBridge extracts structured demographic data from the uploaded files and saves confirmed patients to the hospital's workspace.
+3. Medibridge extracts structured demographic data from the uploaded files and saves confirmed patients to the hospital's workspace.
 4. Staff review a patient's profile and clinical sections.
 5. Staff select specific records and request a transfer to another hospital.
 6. The patient approves or rejects the request.
-7. After approval, MediBridge emails the recipient a verification code and a protected, expiring record link.
+7. After approval, Medibridge emails the recipient a verification code and a protected, expiring record link.
 
 ## Current implementation
 
@@ -199,4 +199,4 @@ The highest-value remaining work, based on the current code paths, is:
 
 ## Product direction
 
-MediBridge is being built for hospitals in Nigeria and similar environments where records are often fragmented across facilities. Its central product principle is **minimum necessary sharing**: a receiving hospital should get the records needed for a care transition, for a limited time, after explicit approval—not unrestricted access to the patient's full history.
+Medibridge is being built for hospitals in Nigeria and similar environments where records are often fragmented across facilities. Its central product principle is **minimum necessary sharing**: a receiving hospital should get the records needed for a care transition, for a limited time, after explicit approval—not unrestricted access to the patient's full history.

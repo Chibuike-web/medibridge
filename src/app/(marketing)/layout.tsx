@@ -5,12 +5,12 @@ export const metadata: Metadata = {
 	metadataBase: new URL("https://medibridge.com"),
 
 	title: {
-		default: "MediBridge | Connect Hospitals Seamlessly",
-		template: "%s | MediBridge",
+		default: "Medibridge | Connect Hospitals Seamlessly",
+		template: "%s | Medibridge",
 	},
 
 	description:
-		"Securely connect your healthcare institution to the MediBridge network. Enable fast, interoperable patient data sharing and modernize hospital operations.",
+		"Securely connect your healthcare institution to the Medibridge network. Enable fast, interoperable patient data sharing and modernize hospital operations.",
 
 	keywords: [
 		"electronic health records",
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
 		"digital health platform",
 	],
 
-	authors: [{ name: "MediBridge Team" }],
-	creator: "MediBridge",
+	authors: [{ name: "Medibridge Team" }],
+	creator: "Medibridge",
 
 	robots: {
 		index: true,
@@ -48,16 +48,16 @@ export const metadata: Metadata = {
 	},
 
 	openGraph: {
-		title: "MediBridge | Connect Hospitals Seamlessly",
-		description: "Securely connect your healthcare institution to the MediBridge network.",
+		title: "Medibridge | Connect Hospitals Seamlessly",
+		description: "Securely connect your healthcare institution to the Medibridge network.",
 		url: "https://medibridge.com",
-		siteName: "MediBridge",
+		siteName: "Medibridge",
 		images: [
 			{
 				url: "/og-image.png",
 				width: 1200,
 				height: 630,
-				alt: "MediBridge Platform Preview",
+				alt: "Medibridge Platform Preview",
 			},
 		],
 		locale: "en_US",
@@ -66,8 +66,8 @@ export const metadata: Metadata = {
 
 	twitter: {
 		card: "summary_large_image",
-		title: "MediBridge | Connect Hospitals Seamlessly",
-		description: "Securely connect your healthcare institution to the MediBridge network.",
+		title: "Medibridge | Connect Hospitals Seamlessly",
+		description: "Securely connect your healthcare institution to the Medibridge network.",
 		images: ["/og-image.png"],
 	},
 
@@ -86,7 +86,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
 						__html: JSON.stringify({
 							"@context": "https://schema.org",
 							"@type": "Organization",
-							name: "MediBridge",
+							name: "Medibridge",
 							url: "https://medibridge.com",
 							logo: "https://medibridge.com/logo.png",
 							description: "Secure hospital data sharing and interoperability platform.",

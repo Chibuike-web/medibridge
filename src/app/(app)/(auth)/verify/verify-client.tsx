@@ -17,7 +17,7 @@ const initialVerificationSteps: VerificationStep[] = [
 	{
 		id: "registration",
 		label: "Account created",
-		description: "Your MediBridge account is ready.",
+		description: "Your Medibridge account is ready.",
 		status: "complete",
 		statusLabel: "Complete",
 	},
