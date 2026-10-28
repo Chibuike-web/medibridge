@@ -196,7 +196,10 @@ async function Main({ searchParams, params }: PatientPageProps) {
 				<SectionTabs activeSection={currentSection as PatientSection} />
 			</Suspense>
 			<div className="min-h-0 flex-1 overflow-y-auto">
-				<Suspense fallback={<SectionContentSkeleton section={currentSection} />}>
+				<Suspense
+					key={currentSection}
+					fallback={<SectionContentSkeleton section={currentSection} />}
+				>
 					<SectionContent searchParams={searchParams} params={params} />
 				</Suspense>
 			</div>
