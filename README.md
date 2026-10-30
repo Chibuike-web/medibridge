@@ -6,33 +6,31 @@ Medibridge is a hospital-facing patient record and controlled record-sharing pla
 
 ## Product demo
 
-Select a recording to play it.
-
 ### Patient onboarding
 
 Four patient PDFs are uploaded, the extracted details are reviewed, a wrong age is corrected, and each patient is saved.
 
-[![Patient onboarding recording](docs/demo/patient-onboarding.webp)](docs/demo/patient-onboarding.mp4)
+https://github.com/user-attachments/assets/b362512a-c3a4-443a-accd-087657c07c34
 
 ### Patient management
 
 A patient record: the profile overview, a 30-day blood pressure chart, diagnoses with a detail drawer, then allergies, medications, and lab results.
 
-[![Patient record recording](docs/demo/patient-management-1.webp)](docs/demo/patient-management-1.mp4)
+https://github.com/user-attachments/assets/e477d7d3-e4c4-4563-ab16-07593db9aef3
 
 A diagnosis is edited from Stage 2 to Stage 1, its activity log shows the change, and an encounter lists the vitals and medications recorded during the visit.
 
-[![Diagnosis edit and encounter recording](docs/demo/patient-management-2.webp)](docs/demo/patient-management-2.mp4)
+https://github.com/user-attachments/assets/bac25c52-1ffd-42b7-aa50-957bf4d1f03d
 
 ### Patient records transfer
 
 A patient is selected, diagnoses, allergies, medications, and labs are attached, the receiving hospital is entered, and the request is sent for patient approval.
 
-[![Transfer request recording](docs/demo/patient-records-transfer-request.webp)](docs/demo/patient-records-transfer-request.mp4)
+https://github.com/user-attachments/assets/3186590a-bc9e-4793-9d5e-11c4ccc271c3
 
 The patient approves the transfer, the receiving hospital enters a verification code to open a read-only, expiring view of the approved records, and the request shows as completed.
 
-[![Transfer approval recording](docs/demo/patient-records-transfer-approval.webp)](docs/demo/patient-records-transfer-approval.mp4)
+https://github.com/user-attachments/assets/4575e6fd-9496-48d7-af7f-71765b9f7c34
 
 ## What the product does
 
