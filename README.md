@@ -4,6 +4,36 @@ Medibridge is a hospital-facing patient record and controlled record-sharing pla
 
 > **Repository status:** active prototype development. Patient onboarding, clinical record reading and editing, transfer submission, approval, and access-scoped sharing are database-backed. Vitals and encounter editing, transfer recovery actions, and durable attachment storage are still incomplete. This repository is not ready for production clinical use.
 
+## Product demo
+
+Select a recording to play it.
+
+### Patient onboarding
+
+Four patient PDFs are uploaded, the extracted details are reviewed, a wrong age is corrected, and each patient is saved.
+
+[![Patient onboarding recording](docs/demo/patient-onboarding.webp)](docs/demo/patient-onboarding.mp4)
+
+### Patient management
+
+A patient record: the profile overview, a 30-day blood pressure chart, diagnoses with a detail drawer, then allergies, medications, and lab results.
+
+[![Patient record recording](docs/demo/patient-management-1.webp)](docs/demo/patient-management-1.mp4)
+
+A diagnosis is edited from Stage 2 to Stage 1, its activity log shows the change, and an encounter lists the vitals and medications recorded during the visit.
+
+[![Diagnosis edit and encounter recording](docs/demo/patient-management-2.webp)](docs/demo/patient-management-2.mp4)
+
+### Patient records transfer
+
+A patient is selected, diagnoses, allergies, medications, and labs are attached, the receiving hospital is entered, and the request is sent for patient approval.
+
+[![Transfer request recording](docs/demo/patient-records-transfer-request.webp)](docs/demo/patient-records-transfer-request.mp4)
+
+The patient approves the transfer, the receiving hospital enters a verification code to open a read-only, expiring view of the approved records, and the request shows as completed.
+
+[![Transfer approval recording](docs/demo/patient-records-transfer-approval.webp)](docs/demo/patient-records-transfer-approval.mp4)
+
 ## What the product does
 
 Medibridge is designed around three participants:
