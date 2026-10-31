@@ -205,7 +205,7 @@ export function SignInClient() {
 	return (
 		<>
 			<h1 className="mt-10 text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
-				Welcome Back to MediBridge
+				Welcome Back to Medibridge
 			</h1>
 			<p className="text-gray-600 text-sm font-normal text-center text-pretty mt-2">
 				Sign in with your verified hospital credentials.
@@ -282,7 +282,7 @@ export function SignInClient() {
 					<Controller
 						name="rememberMe"
 						control={control}
-						defaultValue={false}
+						defaultValue={true}
 						render={({ field }) => (
 							<Label className="cursor-pointer">
 								<Checkbox checked={field.value} onCheckedChange={field.onChange} />

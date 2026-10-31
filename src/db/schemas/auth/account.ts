@@ -19,4 +19,4 @@ export const account = pgTable("account", {
 	updatedAt: timestamp("updated_at")
 		.$onUpdate(() => /* @__PURE__ */ new Date())
 		.notNull(),
-});
+}).enableRLS();

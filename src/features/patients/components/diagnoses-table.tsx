@@ -109,6 +109,8 @@ type DiagnosesTableProps = {
 	limit: number;
 	totalPages: number;
 	query: string;
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
 	createdFrom: string;
 	createdTo: string;
 	diagnosedFrom: string;
@@ -153,6 +155,8 @@ export function DiagnosesTable({
 	onNextPage,
 	onLimitChange,
 	onStatusFiltersChange,
+	sorting,
+	onSortingChange,
 }: DiagnosesTableProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
@@ -161,7 +165,6 @@ export function DiagnosesTable({
 		() => diagnoses.map((diagnosis) => diagnosis.diagnosisId).join(","),
 		[diagnoses],
 	);
-	const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<DiagnosisFilterSubmenu | null>(
 		null,
 	);
@@ -265,7 +268,6 @@ export function DiagnosesTable({
 												<Checkbox
 													id={statusOptionId}
 													checked={isStatusSelected}
-													disabled={isPending}
 													onCheckedChange={(checked) => {
 														onStatusFiltersChange(
 															checked === true
@@ -391,7 +393,7 @@ export function DiagnosesTable({
 				diagnoses={diagnoses}
 				columns={columns}
 				sorting={sorting}
-				onSortingChange={setSorting}
+				onSortingChange={onSortingChange}
 				page={page}
 				limit={limit}
 				totalPages={totalPages}
@@ -460,6 +462,7 @@ function DiagnosesTableContent({
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.diagnosisId,
+		manualSorting: true,
 		onSortingChange,
 		onRowSelectionChange: setSelectedDiagnosisRows,
 		state: {

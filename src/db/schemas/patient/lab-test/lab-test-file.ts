@@ -16,4 +16,4 @@ export const patientLabTestFile = pgTable(
 		uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
 	},
 	(table) => [index("patient_lab_test_file_parent_record_id_idx").on(table.parentRecordId)],
-);
+).enableRLS();

@@ -10,4 +10,4 @@ export const verification = pgTable("verification", {
 		.defaultNow()
 		.$onUpdate(() => /* @__PURE__ */ new Date())
 		.notNull(),
-});
+}).enableRLS();

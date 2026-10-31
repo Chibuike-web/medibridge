@@ -11,4 +11,4 @@ export const patientMedicationHistory = pgTable("patient_medication_history", {
 	newValue: text("new_value"),
 	updatedBy: text("updated_by"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}).enableRLS();

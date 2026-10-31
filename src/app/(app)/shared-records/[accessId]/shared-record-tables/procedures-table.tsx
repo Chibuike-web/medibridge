@@ -5,7 +5,7 @@ import {
 	SetDateRangeDialog,
 	type DateRangeFilter,
 } from "@/components/date-range-filter";
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useMemo, useOptimistic, useState, useTransition } from "react";
 import {
 	RiArrowDownSLine,
 	RiArrowUpSLine,
@@ -21,6 +21,7 @@ import {
 import {
 	type ColumnDef,
 	flexRender,
+	functionalUpdate,
 	createSortedRowModel,
 	stockFeatures,
 	sortFns,
@@ -50,6 +51,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import {
 	Table,
 	TableBody,
 	TableCell,
@@ -60,9 +68,10 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
+import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
-import { getSharedProceduresTableAction } from "../shared-record-table-actions";
 
+const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 type ProcedureFilterSubmenu = "status" | "created-at";
 const procedureStatusFilterOptions = [
 	{ label: "Pending", value: "Pending" },
@@ -80,68 +89,123 @@ export type SharedProcedureRow = {
 };
 
 export function SharedProceduresTable({
-	accessId,
 	rows,
+	page,
+	limit,
+	totalPages,
+	searchQuery,
+	sort,
+	order,
+	statusFilters,
+	createdFrom,
+	createdTo,
 }: {
-	accessId: string;
 	rows: SharedProcedureRow[];
+	page: number;
+	limit: number;
+	totalPages: number;
+	searchQuery: string;
+	sort: string;
+	order: string;
+	statusFilters: SharedProcedureRow["status"][];
+	createdFrom: string;
+	createdTo: string;
 }) {
-	const [tableRows, setTableRows] = useState(rows);
-	const [recordSearchQuery, setRecordSearchQuery] = useState("");
-	const [statusFilters, setStatusFilters] = useState<SharedProcedureRow["status"][]>([]);
-	const [createdFrom, setCreatedFrom] = useState("");
-	const [createdTo, setCreatedTo] = useState("");
+	const navigateTableUrl = useTableUrlNavigation();
+	const [optimisticPage, setOptimisticPage] = useOptimistic(page);
+	const [optimisticLimit, setOptimisticLimit] = useOptimistic(limit);
+	const [query, setQuery] = useState(searchQuery);
+	const [previousSearchQuery, setPreviousSearchQuery] = useState(searchQuery);
+	const [navigatedQuery, setNavigatedQuery] = useState<string | null>(null);
+	const [optimisticQuery, setOptimisticQuery] = useOptimistic(searchQuery);
+	const [optimisticStatusFilters, setOptimisticStatusFilters] = useOptimistic(statusFilters);
+	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
+	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<ProcedureFilterSubmenu | null>(
 		null,
 	);
 	const [isPending, startTransition] = useTransition();
-	const latestRequestIdRef = useRef(0);
-	const [sorting, setSorting] = useState<SortingState>([{ id: "procedure", desc: false }]);
-	function refreshTable({
-		nextQuery = recordSearchQuery,
-		nextStatusFilters = statusFilters,
-		nextCreatedFrom = createdFrom,
-		nextCreatedTo = createdTo,
-	}: {
-		nextQuery?: string;
-		nextStatusFilters?: SharedProcedureRow["status"][];
-		nextCreatedFrom?: string;
-		nextCreatedTo?: string;
-	}) {
-		const requestId = ++latestRequestIdRef.current;
-		startTransition(async () => {
-			const nextRows = await getSharedProceduresTableAction({
-				accessId,
-				query: nextQuery,
-				statusFilters: nextStatusFilters,
-				createdFrom: nextCreatedFrom,
-				createdTo: nextCreatedTo,
-			});
-			if (latestRequestIdRef.current === requestId) setTableRows(nextRows);
+	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
+	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
+	const sorting: SortingState = optimisticSort
+		? [{ id: optimisticSort, desc: optimisticOrder === "desc" }]
+		: [];
+
+	// Restore URL changes while preserving typing ahead of our pending search.
+	if (previousSearchQuery !== searchQuery) {
+		setPreviousSearchQuery(searchQuery);
+		setNavigatedQuery(null);
+		if (searchQuery !== navigatedQuery) setQuery(searchQuery);
+	}
+
+	function navigateTable(
+		{
+			nextPage = 1,
+			nextSort = optimisticSort,
+			nextOrder = optimisticOrder,
+			nextLimit = optimisticLimit,
+			nextQuery = query,
+			nextStatusFilters = optimisticStatusFilters,
+			nextCreatedFrom = optimisticCreatedFrom,
+			nextCreatedTo = optimisticCreatedTo,
+		}: {
+			nextPage?: number;
+			nextSort?: string;
+			nextOrder?: string;
+			nextLimit?: number;
+			nextQuery?: string;
+			nextStatusFilters?: SharedProcedureRow["status"][];
+			nextCreatedFrom?: string;
+			nextCreatedTo?: string;
+		},
+		{ replace = false }: { replace?: boolean } = {},
+	) {
+		const values = {
+			proceduresPage: nextPage === 1 ? "" : String(nextPage),
+			proceduresSort: nextSort,
+			proceduresOrder: nextSort ? nextOrder : "",
+			proceduresLimit: nextLimit === 14 ? "" : String(nextLimit),
+			proceduresQuery: nextQuery,
+			proceduresStatus: nextStatusFilters.join(","),
+			proceduresCreatedFrom: nextCreatedFrom,
+			proceduresCreatedTo: nextCreatedTo,
+		};
+
+		startTransition(() => {
+			setNavigatedQuery(nextQuery);
+			setOptimisticQuery(nextQuery);
+			setOptimisticPage(nextPage);
+			setOptimisticSort(nextSort);
+			setOptimisticOrder(nextOrder);
+			setOptimisticLimit(nextLimit);
+			setOptimisticStatusFilters(nextStatusFilters);
+			setOptimisticCreatedFrom(nextCreatedFrom);
+			setOptimisticCreatedTo(nextCreatedTo);
+			navigateTableUrl(values, { replace });
 		});
 	}
-	const debouncedSearch = useDebouncedCallback(
-		(nextQuery: string) => refreshTable({ nextQuery }),
-		300,
-	);
+
+	const debouncedSearch = useDebouncedCallback((nextQuery: string) => {
+		if (nextQuery !== query || nextQuery === optimisticQuery) return;
+		navigateTable({ nextQuery }, { replace: true });
+	}, 300);
+
 	function handleQueryChange(nextQuery: string) {
-		setRecordSearchQuery(nextQuery);
+		setQuery(nextQuery);
 		debouncedSearch(nextQuery);
 	}
 	function handleStatusFiltersChange(nextStatusFilters: SharedProcedureRow["status"][]) {
-		setStatusFilters(nextStatusFilters);
-		refreshTable({ nextStatusFilters });
+		navigateTable({ nextStatusFilters });
 	}
 	function handleCreatedAtRangeApply(nextCreatedFrom: string, nextCreatedTo: string) {
-		setCreatedFrom(nextCreatedFrom);
-		setCreatedTo(nextCreatedTo);
-		refreshTable({ nextCreatedFrom, nextCreatedTo });
+		navigateTable({ nextCreatedFrom, nextCreatedTo });
 	}
 	function handleFiltersClear() {
-		setStatusFilters([]);
-		setCreatedFrom("");
-		setCreatedTo("");
-		refreshTable({ nextStatusFilters: [], nextCreatedFrom: "", nextCreatedTo: "" });
+		navigateTable({
+			nextStatusFilters: [],
+			nextCreatedFrom: "",
+			nextCreatedTo: "",
+		});
 	}
 	const columns = useMemo<ColumnDef<typeof configuredTableFeatures, SharedProcedureRow>[]>(
 		() => [
@@ -185,9 +249,16 @@ export function SharedProceduresTable({
 	);
 	const table = useTable({
 		features: configuredTableFeatures,
-		data: tableRows,
+		data: rows,
 		columns,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange: (updater) => {
+			const [nextSorting] = functionalUpdate(updater, sorting);
+			navigateTable({
+				nextSort: nextSorting?.id ?? "",
+				nextOrder: nextSorting?.desc ? "desc" : "asc",
+			});
+		},
 		state: { sorting },
 	});
 	return (
@@ -198,7 +269,7 @@ export function SharedProceduresTable({
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
 					<Input
 						type="search"
-						value={recordSearchQuery}
+						value={query}
 						onChange={(event) => handleQueryChange(event.target.value)}
 						placeholder="Search by procedure, indication, facility, or procedure ID"
 						className="pl-10"
@@ -206,10 +277,9 @@ export function SharedProceduresTable({
 				</div>
 				<ProcedureFilterMenu
 					activeFilterSubmenu={activeFilterSubmenu}
-					statusFilters={statusFilters}
-					createdFrom={createdFrom}
-					createdTo={createdTo}
-					isPending={isPending}
+					statusFilters={optimisticStatusFilters}
+					createdFrom={optimisticCreatedFrom}
+					createdTo={optimisticCreatedTo}
 					onActiveFilterSubmenuChange={setActiveFilterSubmenu}
 					onStatusFiltersChange={handleStatusFiltersChange}
 					onCreatedAtRangeApply={handleCreatedAtRangeApply}
@@ -219,21 +289,23 @@ export function SharedProceduresTable({
 					Export
 				</Button>
 			</div>
-			{statusFilters.length > 0 || createdFrom || createdTo ? (
+			{optimisticStatusFilters.length > 0 || optimisticCreatedFrom || optimisticCreatedTo ? (
 				<div className="mb-4 flex items-start gap-4">
 					<div className="flex flex-1 flex-wrap gap-2">
-						{statusFilters.map((status) => (
+						{optimisticStatusFilters.map((status) => (
 							<FilterPill
 								key={status}
 								label={`Status: ${status}`}
 								onRemove={() =>
-									handleStatusFiltersChange(statusFilters.filter((value) => value !== status))
+									handleStatusFiltersChange(
+										optimisticStatusFilters.filter((value) => value !== status),
+									)
 								}
 							/>
 						))}
-						{createdFrom || createdTo ? (
+						{optimisticCreatedFrom || optimisticCreatedTo ? (
 							<FilterPill
-								label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
+								label={`Created: ${formatDateRangeFilterLabel(optimisticCreatedFrom, optimisticCreatedTo)}`}
 								onRemove={() => handleCreatedAtRangeApply("", "")}
 							/>
 						) : null}
@@ -250,7 +322,7 @@ export function SharedProceduresTable({
 				</div>
 			) : null}
 			<div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-				<Table>
+				<Table aria-busy={isPending}>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id} className="bg-gray-50 hover:bg-gray-50">
@@ -316,7 +388,10 @@ export function SharedProceduresTable({
 							</TableRow>
 						))}
 					</TableHeader>
-					<TableBody>
+					<TableBody
+						data-pending={isPending || undefined}
+						className="transition-opacity data-[pending=true]:opacity-80 data-[pending=true]:delay-150"
+					>
 						{table.getRowModel().rows.length > 0 ? (
 							table.getRowModel().rows.map((row) => (
 								<TableRow key={row.id}>
@@ -339,6 +414,56 @@ export function SharedProceduresTable({
 						)}
 					</TableBody>
 				</Table>
+				<div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500">
+					<div className="flex items-center gap-3">
+						<span>Rows per page</span>
+						<Select
+							value={String(optimisticLimit)}
+							onValueChange={(value) => navigateTable({ nextLimit: Number(value) })}
+							disabled={isPending}
+						>
+							<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
+								<SelectValue aria-label="Rows per page" placeholder="Rows" />
+							</SelectTrigger>
+							<SelectContent className="w-20" align="start">
+								{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
+									<SelectItem key={pageSize} value={String(pageSize)}>
+										{pageSize}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+					<div className="flex items-center gap-3">
+						<span>
+							Page {optimisticPage} of {totalPages}
+						</span>
+						<div className="flex items-center gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => navigateTable({ nextPage: Math.max(optimisticPage - 1, 1) })}
+								disabled={optimisticPage <= 1 || isPending}
+								className="text-gray-700 shadow-none"
+							>
+								Previous
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() =>
+									navigateTable({ nextPage: Math.min(optimisticPage + 1, totalPages) })
+								}
+								disabled={optimisticPage >= totalPages || isPending}
+								className="text-gray-700 shadow-none"
+							>
+								Next
+							</Button>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	);
@@ -349,7 +474,6 @@ function ProcedureFilterMenu({
 	statusFilters,
 	createdFrom,
 	createdTo,
-	isPending,
 	onActiveFilterSubmenuChange,
 	onStatusFiltersChange,
 	onCreatedAtRangeApply,
@@ -358,7 +482,6 @@ function ProcedureFilterMenu({
 	statusFilters: SharedProcedureRow["status"][];
 	createdFrom: string;
 	createdTo: string;
-	isPending: boolean;
 	onActiveFilterSubmenuChange: (submenu: ProcedureFilterSubmenu | null) => void;
 	onStatusFiltersChange: (values: SharedProcedureRow["status"][]) => void;
 	onCreatedAtRangeApply: (from: string, to: string) => void;
@@ -402,7 +525,6 @@ function ProcedureFilterMenu({
 								name="shared-procedure-status"
 								options={procedureStatusFilterOptions}
 								selectedValues={statusFilters}
-								isPending={isPending}
 								onSelectedValuesChange={onStatusFiltersChange}
 							/>
 						</DropdownMenuSubContent>
@@ -458,13 +580,11 @@ function CheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: readonly { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (values: TValue[]) => void;
 }) {
 	return options.map((option) => {
@@ -483,7 +603,6 @@ function CheckboxFilterList<TValue extends string>({
 					<Checkbox
 						id={id}
 						checked={selected}
-						disabled={isPending}
 						onCheckedChange={(checked) =>
 							onSelectedValuesChange(
 								checked === true

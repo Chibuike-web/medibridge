@@ -118,6 +118,8 @@ type AllergiesTableProps = {
 	limit: number;
 	totalPages: number;
 	query: string;
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
 	createdFrom: string;
 	createdTo: string;
 	statusFilters: AllergyStatusFilter[];
@@ -154,6 +156,8 @@ export function AllergiesTable({
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
+	sorting,
+	onSortingChange,
 }: AllergiesTableProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
@@ -162,7 +166,6 @@ export function AllergiesTable({
 		() => allergies.map((allergy) => allergy.allergyId).join(","),
 		[allergies],
 	);
-	const [sorting, setSorting] = useState<SortingState>([]);
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<AllergyFilterSubmenu | null>(null);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
@@ -246,7 +249,6 @@ export function AllergiesTable({
 									name="allergy-status"
 									options={allergyStatusFilterOptions}
 									selectedValues={statusFilters}
-									isPending={isPending}
 									onSelectedValuesChange={onStatusFiltersChange}
 								/>
 							</DropdownMenuSubContent>
@@ -273,7 +275,6 @@ export function AllergiesTable({
 									name="allergy-severity"
 									options={allergySeverityFilterOptions}
 									selectedValues={severityFilters}
-									isPending={isPending}
 									onSelectedValuesChange={onSeverityFiltersChange}
 								/>
 							</DropdownMenuSubContent>
@@ -334,7 +335,7 @@ export function AllergiesTable({
 				allergies={allergies}
 				columns={columns}
 				sorting={sorting}
-				onSortingChange={setSorting}
+				onSortingChange={onSortingChange}
 				page={page}
 				limit={limit}
 				totalPages={totalPages}
@@ -399,6 +400,7 @@ function AllergiesTableContent({
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.allergyId,
+		manualSorting: true,
 		onSortingChange,
 		onRowSelectionChange: setSelectedAllergyRows,
 		state: {
@@ -664,13 +666,11 @@ function AllergyCheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (selectedValues: TValue[]) => void;
 }) {
 	return (
@@ -694,7 +694,6 @@ function AllergyCheckboxFilterList<TValue extends string>({
 							<Checkbox
 								id={optionId}
 								checked={isSelected}
-								disabled={isPending}
 								onCheckedChange={(checked) => {
 									onSelectedValuesChange(
 										checked === true

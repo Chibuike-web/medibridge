@@ -58,6 +58,7 @@ import {
 	sortFns,
 	tableFeatures,
 	type RowSelectionState,
+	type OnChangeFn,
 	type SortingState,
 	useTable,
 } from "@tanstack/react-table";
@@ -121,6 +122,8 @@ type LabTestsTableProps = {
 	limit: number;
 	totalPages: number;
 	query: string;
+	sorting: SortingState;
+	onSortingChange: OnChangeFn<SortingState>;
 	createdFrom: string;
 	createdTo: string;
 	statusFilters: LabTestStatusFilter[];
@@ -157,11 +160,12 @@ export function LabTestsTable({
 	onPreviousPage,
 	onNextPage,
 	onLimitChange,
+	sorting,
+	onSortingChange,
 }: LabTestsTableProps) {
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 
-	const [sorting, setSorting] = useState<SortingState>([]);
 	const [selectedLabTestRows, setSelectedLabTestRows] = useState<RowSelectionState>({});
 	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<LabTestFilterSubmenu | null>(null);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
@@ -185,7 +189,8 @@ export function LabTestsTable({
 		columns,
 		enableRowSelection: true,
 		getRowId: (row) => row.labId,
-		onSortingChange: setSorting,
+		manualSorting: true,
+		onSortingChange,
 		onRowSelectionChange: setSelectedLabTestRows,
 		state: {
 			sorting,
@@ -251,7 +256,6 @@ export function LabTestsTable({
 									name="lab-test-status"
 									options={labTestStatusFilterOptions}
 									selectedValues={statusFilters}
-									isPending={isPending}
 									onSelectedValuesChange={onStatusFiltersChange}
 								/>
 							</DropdownMenuSubContent>
@@ -279,7 +283,6 @@ export function LabTestsTable({
 									name="lab-test-flag"
 									options={labTestFlagFilterOptions}
 									selectedValues={flagFilters}
-									isPending={isPending}
 									onSelectedValuesChange={onFlagFiltersChange}
 								/>
 							</DropdownMenuSubContent>
@@ -532,13 +535,11 @@ function LabTestCheckboxFilterList<TValue extends string>({
 	name,
 	options,
 	selectedValues,
-	isPending,
 	onSelectedValuesChange,
 }: {
 	name: string;
 	options: { label: string; value: TValue }[];
 	selectedValues: TValue[];
-	isPending: boolean;
 	onSelectedValuesChange: (selectedValues: TValue[]) => void;
 }) {
 	return (
@@ -562,7 +563,6 @@ function LabTestCheckboxFilterList<TValue extends string>({
 							<Checkbox
 								id={optionId}
 								checked={isSelected}
-								disabled={isPending}
 								onCheckedChange={(checked) => {
 									onSelectedValuesChange(
 										checked === true

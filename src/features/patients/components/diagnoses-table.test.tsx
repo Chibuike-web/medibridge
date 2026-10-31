@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -117,6 +118,8 @@ function buildProps(overrides: Partial<DiagnosesTableProps> = {}): DiagnosesTabl
 		limit: 14,
 		totalPages: 1,
 		query: "",
+		sorting: [],
+		onSortingChange: vi.fn(),
 		createdFrom: "",
 		createdTo: "",
 		diagnosedFrom: "",
@@ -138,12 +141,17 @@ function buildProps(overrides: Partial<DiagnosesTableProps> = {}): DiagnosesTabl
 	};
 }
 
+function SortableDiagnosesTable(props: React.ComponentProps<typeof DiagnosesTable>) {
+	const [sorting, setSorting] = useState(props.sorting);
+	return <DiagnosesTable {...props} sorting={sorting} onSortingChange={setSorting} />;
+}
+
 function renderDiagnosesTable(overrides: Partial<DiagnosesTableProps> = {}) {
 	const props = buildProps(overrides);
 
 	render(
 		<SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-			<DiagnosesTable {...props} />
+			<SortableDiagnosesTable {...props} />
 		</SWRConfig>,
 	);
 
@@ -202,7 +210,7 @@ describe("Diagnoses table", () => {
 		vi.unstubAllGlobals();
 	});
 
-	test("lists diagnoses alphabetically with their dates, IDs and statuses", () => {
+	test("lists diagnoses in the server's order with their dates, IDs and statuses", () => {
 		renderDiagnosesTable();
 
 		expect(screen.getByRole("heading", { name: "Diagnoses" })).toBeVisible();
@@ -217,7 +225,7 @@ describe("Diagnoses table", () => {
 			expect(screen.getByRole("columnheader", { name: header })).toBeVisible();
 		}
 
-		expect(displayedNames()).toEqual(["Asthma", "Hypertension"]);
+		expect(displayedNames()).toEqual(["Hypertension", "Asthma"]);
 
 		const hypertensionRow = rowFor("Hypertension");
 		expect(within(hypertensionRow).getByRole("cell", { name: "Jan 5, 2020" })).toBeVisible();
@@ -231,23 +239,24 @@ describe("Diagnoses table", () => {
 		expect(within(asthmaRow).getByRole("button", { name: "Copy DX-asthma" })).toBeVisible();
 	});
 
-	test("re-orders rows when a sortable header is clicked", async () => {
+	test("marks each sortable header when clicked and keeps the server's row order", async () => {
 		const user = userEvent.setup();
 		renderDiagnosesTable();
 
 		const nameHeader = screen.getByRole("columnheader", { name: "Diagnosis name" });
-		expect(nameHeader).toHaveAttribute("aria-sort", "ascending");
+		const serverOrder = displayedNames();
+		expect(nameHeader).toHaveAttribute("aria-sort", "none");
 		await user.click(nameHeader);
-		expect(nameHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedNames()).toEqual(["Hypertension", "Asthma"]);
+		expect(nameHeader).toHaveAttribute("aria-sort", "ascending");
+		expect(displayedNames()).toEqual(serverOrder);
 
 		const diagnosedHeader = screen.getByRole("columnheader", { name: "Diagnosed At" });
 		await user.click(diagnosedHeader);
 		expect(diagnosedHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedNames()).toEqual(["Asthma", "Hypertension"]);
+		expect(nameHeader).toHaveAttribute("aria-sort", "none");
 		await user.click(diagnosedHeader);
 		expect(diagnosedHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedNames()).toEqual(["Hypertension", "Asthma"]);
+		expect(displayedNames()).toEqual(serverOrder);
 
 		expect(screen.getByRole("columnheader", { name: "Diagnosis ID" })).not.toHaveAttribute(
 			"aria-sort",

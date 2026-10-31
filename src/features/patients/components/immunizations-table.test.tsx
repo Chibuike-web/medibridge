@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
 import { SWRConfig } from "swr";
@@ -104,6 +105,11 @@ const immunizationDetailsById: Record<string, ImmunizationDetailsType> = {
 	},
 };
 
+function SortableImmunizationsTable(props: React.ComponentProps<typeof ImmunizationsTable>) {
+	const [sorting, setSorting] = useState(props.sorting);
+	return <ImmunizationsTable {...props} sorting={sorting} onSortingChange={setSorting} />;
+}
+
 function renderImmunizationsTable(
 	overrides: Partial<React.ComponentProps<typeof ImmunizationsTable>> = {},
 ) {
@@ -114,6 +120,8 @@ function renderImmunizationsTable(
 		limit: 14,
 		totalPages: 1,
 		query: "",
+		sorting: [],
+		onSortingChange: vi.fn(),
 		createdFrom: "",
 		createdTo: "",
 		statusFilters: [],
@@ -130,7 +138,7 @@ function renderImmunizationsTable(
 
 	render(
 		<SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-			<ImmunizationsTable {...props} />
+			<SortableImmunizationsTable {...props} />
 		</SWRConfig>,
 	);
 
@@ -204,34 +212,36 @@ describe("Immunizations table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Hepa");
 	});
 
-	test("re-orders rows when the user sorts by vaccine name", async () => {
+	test("marks the vaccine name sort when clicked and keeps the server's row order", async () => {
 		const user = userEvent.setup();
 		renderImmunizationsTable();
 
 		expect(displayedIds()).toEqual(["IMM-3001", "IMM-1001"]);
 
 		const vaccineHeader = screen.getByRole("columnheader", { name: "Vaccine name" });
+		const serverOrder = displayedIds();
 		await user.click(vaccineHeader);
 		expect(vaccineHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedIds()).toEqual(["IMM-1001", "IMM-3001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 
 		await user.click(vaccineHeader);
 		expect(vaccineHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedIds()).toEqual(["IMM-3001", "IMM-1001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 	});
 
-	test("sorts by creation date from the keyboard", async () => {
+	test("sorts by creation date from the keyboard and keeps the server's row order", async () => {
 		const user = userEvent.setup();
 		renderImmunizationsTable();
 
 		const createdHeader = screen.getByRole("columnheader", { name: "Created At" });
+		const serverOrder = displayedIds();
 		createdHeader.focus();
 		await user.keyboard("{Enter}");
 		expect(createdHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedIds()).toEqual(["IMM-1001", "IMM-3001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 		await user.keyboard(" ");
 		expect(createdHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedIds()).toEqual(["IMM-3001", "IMM-1001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 	});
 
 	test("does not allow sorting by immunization ID, dose or status", () => {

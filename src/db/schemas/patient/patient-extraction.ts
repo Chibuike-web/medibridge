@@ -21,4 +21,4 @@ export const patientExtraction = pgTable(
 	(table) => [
 		index("patient_extractions_organization_created_idx").on(table.organizationId, table.createdAt),
 	],
-);
+).enableRLS();

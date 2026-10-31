@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -118,6 +119,8 @@ function buildProps(overrides: Partial<AllergiesTableProps> = {}): AllergiesTabl
 		limit: 14,
 		totalPages: 1,
 		query: "",
+		sorting: [],
+		onSortingChange: vi.fn(),
 		createdFrom: "",
 		createdTo: "",
 		statusFilters: [],
@@ -135,22 +138,21 @@ function buildProps(overrides: Partial<AllergiesTableProps> = {}): AllergiesTabl
 	};
 }
 
+function SortableAllergiesTable(props: React.ComponentProps<typeof AllergiesTable>) {
+	const [sorting, setSorting] = useState(props.sorting);
+	return <AllergiesTable {...props} sorting={sorting} onSortingChange={setSorting} />;
+}
+
 function renderAllergiesTable(overrides: Partial<AllergiesTableProps> = {}) {
 	const props = buildProps(overrides);
 
 	render(
 		<SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-			<AllergiesTable {...props} />
+			<SortableAllergiesTable {...props} />
 		</SWRConfig>,
 	);
 
 	return props;
-}
-
-function displayedAllergens() {
-	return Array.from(screen.getByRole("table").querySelectorAll("tbody tr")).map(
-		(row) => within(row as HTMLElement).getAllByRole("cell")[1].textContent,
-	);
 }
 
 function rowFor(allergen: string) {
@@ -199,7 +201,7 @@ describe("Allergies table", () => {
 		vi.unstubAllGlobals();
 	});
 
-	test("re-orders rows when a sortable header is clicked", async () => {
+	test("marks allergen, created at and severity as sortable", async () => {
 		const user = userEvent.setup();
 		renderAllergiesTable();
 
@@ -207,25 +209,21 @@ describe("Allergies table", () => {
 		expect(allergenHeader).toHaveAttribute("aria-sort", "none");
 		await user.click(allergenHeader);
 		expect(allergenHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedAllergens()).toEqual(["Latex", "Peanuts"]);
 		await user.click(allergenHeader);
 		expect(allergenHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedAllergens()).toEqual(["Peanuts", "Latex"]);
 
 		const createdHeader = screen.getByRole("columnheader", { name: "Created at" });
 		await user.click(createdHeader);
 		expect(createdHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedAllergens()).toEqual(["Latex", "Peanuts"]);
 
 		const severityHeader = screen.getByRole("columnheader", { name: "Severity" });
 		await user.click(severityHeader);
 		expect(severityHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedAllergens()).toEqual(["Latex", "Peanuts"]);
 
 		expect(screen.getByRole("columnheader", { name: "Reaction" })).not.toHaveAttribute("aria-sort");
 	});
 
-	test("shows, sorts and selects every allergy on the current page", async () => {
+	test("shows, sorts and selects every allergy on the current page in the server's order", async () => {
 		const user = userEvent.setup();
 		const serverPage = Array.from({ length: 14 }, (_, index) => ({
 			...allergies[0],
@@ -242,9 +240,11 @@ describe("Allergies table", () => {
 		expect(displayedPageAllergens()).toEqual(serverPage.map((allergy) => allergy.allergen));
 		await user.click(screen.getByRole("columnheader", { name: "Allergen" }));
 		await user.click(screen.getByRole("columnheader", { name: "Allergen" }));
-		expect(displayedPageAllergens()).toEqual(
-			serverPage.map((allergy) => allergy.allergen).reverse(),
+		expect(screen.getByRole("columnheader", { name: "Allergen" })).toHaveAttribute(
+			"aria-sort",
+			"descending",
 		);
+		expect(displayedPageAllergens()).toEqual(serverPage.map((allergy) => allergy.allergen));
 
 		const [selectAll] = within(screen.getByRole("table")).getAllByRole("checkbox");
 		await user.click(selectAll);

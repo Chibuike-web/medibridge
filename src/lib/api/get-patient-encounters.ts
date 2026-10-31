@@ -10,7 +10,7 @@ import { db } from "@/lib/better-auth/auth";
 import { formatDateTime } from "@/lib/utils/format-date-time";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
-import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
 import { getOrganizationId } from "./get-organization-id";
 
@@ -55,6 +55,7 @@ export const getPatientEncounters = cache(async (
 	page = 1,
 	limit = 14,
 	query = "",
+	sorting = { sort: "", order: "" },
 	dateFilters: EncounterDateFilters = {},
 	encounterTypeFilters: EncounterTypeFilter[] = [],
 	departmentFilters: EncounterDepartmentFilter[] = [],
@@ -69,6 +70,7 @@ export const getPatientEncounters = cache(async (
 		page,
 		limit,
 		query.trim(),
+		sorting,
 		dateFilters,
 		encounterTypeFilters,
 		departmentFilters,
@@ -81,6 +83,7 @@ export async function getPatientEncountersForOrganization(
 	page: number,
 	limit: number,
 	normalizedQuery: string,
+	{ sort, order }: { sort: string; order: string },
 	dateFilters: EncounterDateFilters,
 	encounterTypeFilters: EncounterTypeFilter[],
 	departmentFilters: EncounterDepartmentFilter[],
@@ -120,6 +123,16 @@ export async function getPatientEncountersForOrganization(
 		),
 	);
 
+	const sortColumns = {
+		encounterDate: patientEncounter.encounterDate,
+		encounterType: patientEncounter.encounterType,
+		department: patientEncounter.department,
+		physician: patientEncounter.physician,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, rows] = await Promise.all([
 		db
 			.select({ value: count() })
@@ -142,7 +155,7 @@ export async function getPatientEncountersForOrganization(
 			.from(patientEncounter)
 			.innerJoin(patient, eq(patientEncounter.patientId, patient.id))
 			.where(encounterFilter)
-			.orderBy(desc(patientEncounter.encounterDate))
+			.orderBy(sortDirection(sortColumn ?? patientEncounter.encounterDate), sortDirection(patientEncounter.id))
 			.limit(limit)
 			.offset(offset),
 	]);

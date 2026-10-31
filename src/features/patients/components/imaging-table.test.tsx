@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -88,6 +89,11 @@ const imagingStudies: ImagingType[] = [
 	},
 ];
 
+function SortableImagingTable(props: React.ComponentProps<typeof ImagingTable>) {
+	const [sorting, setSorting] = useState(props.sorting);
+	return <ImagingTable {...props} sorting={sorting} onSortingChange={setSorting} />;
+}
+
 function renderImagingTable(overrides: Partial<React.ComponentProps<typeof ImagingTable>> = {}) {
 	const props: React.ComponentProps<typeof ImagingTable> = {
 		patientId: "patient-a",
@@ -96,6 +102,8 @@ function renderImagingTable(overrides: Partial<React.ComponentProps<typeof Imagi
 		limit: 14,
 		totalPages: 1,
 		query: "",
+		sorting: [],
+		onSortingChange: vi.fn(),
 		orderedFrom: "",
 		orderedTo: "",
 		createdFrom: "",
@@ -115,7 +123,7 @@ function renderImagingTable(overrides: Partial<React.ComponentProps<typeof Imagi
 		...overrides,
 	};
 
-	const { rerender } = render(<ImagingTable {...props} />);
+	const { rerender } = render(<SortableImagingTable {...props} />);
 
 	return { ...props, rerender };
 }
@@ -177,32 +185,34 @@ describe("Imaging table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Chest");
 	});
 
-	test("sorts rows by study name when the header is clicked, then reverses, then clears", async () => {
+	test("marks the study sort ascending, then descending, then clears, keeping the server's row order", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
 
 		const studyHeader = screen.getByRole("columnheader", { name: "Study" });
 		expect(studyHeader).toHaveAttribute("aria-sort", "none");
 
+		const serverOrder = displayedImagingIds();
 		await user.click(studyHeader);
 		expect(studyHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedImagingIds()).toEqual(["IMG-USA", "IMG-CXR"]);
+		expect(displayedImagingIds()).toEqual(serverOrder);
 
 		await user.click(studyHeader);
 		expect(studyHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedImagingIds()).toEqual(["IMG-CXR", "IMG-USA"]);
+		expect(displayedImagingIds()).toEqual(serverOrder);
 
 		await user.click(studyHeader);
 		expect(studyHeader).toHaveAttribute("aria-sort", "none");
-		expect(displayedImagingIds()).toEqual(["IMG-CXR", "IMG-USA"]);
+		expect(displayedImagingIds()).toEqual(serverOrder);
 	});
 
-	test("sorts by modality and region", async () => {
+	test("sorts by modality and region, keeping the server's row order", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
 
+		const serverOrder = displayedImagingIds();
 		await user.click(screen.getByRole("columnheader", { name: "Modality" }));
-		expect(displayedImagingIds()).toEqual(["IMG-USA", "IMG-CXR"]);
+		expect(displayedImagingIds()).toEqual(serverOrder);
 
 		await user.click(screen.getByRole("columnheader", { name: "Region" }));
 		expect(screen.getByRole("columnheader", { name: "Modality" })).toHaveAttribute(
@@ -213,22 +223,23 @@ describe("Imaging table", () => {
 			"aria-sort",
 			"ascending",
 		);
-		expect(displayedImagingIds()).toEqual(["IMG-USA", "IMG-CXR"]);
+		expect(displayedImagingIds()).toEqual(serverOrder);
 	});
 
-	test("sorts by order date chronologically using the keyboard", async () => {
+	test("sorts by order date from the keyboard and keeps the server's row order", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();
 
 		const orderedAtHeader = screen.getByRole("columnheader", { name: "Ordered At" });
+		const serverOrder = displayedImagingIds();
 		orderedAtHeader.focus();
 		await user.keyboard("{Enter}");
 		expect(orderedAtHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedImagingIds()).toEqual(["IMG-USA", "IMG-CXR"]);
+		expect(displayedImagingIds()).toEqual(serverOrder);
 
 		await user.keyboard(" ");
 		expect(orderedAtHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedImagingIds()).toEqual(["IMG-CXR", "IMG-USA"]);
+		expect(displayedImagingIds()).toEqual(serverOrder);
 	});
 
 	test("does not offer sorting on the imaging ID, impression or status columns", () => {
@@ -270,13 +281,6 @@ describe("Imaging table", () => {
 		expect(onModalityFiltersChange).toHaveBeenCalledWith(["mri", "x-ray"]);
 	});
 
-	test("disables the filter checkboxes while a request is pending", async () => {
-		const user = setupSubmenuUser();
-		renderImagingTable({ isPending: true });
-
-		await openFilterSubmenu(user, "Modality");
-		expect(await screen.findByRole("checkbox", { name: "CT" })).toBeDisabled();
-	});
 
 	test("applies an order date preset to the ordered-at range only", async () => {
 		const user = setupSubmenuUser();
@@ -652,7 +656,7 @@ describe("Imaging table", () => {
 		expect(formData.getAll("removedFileIds")).toEqual([]);
 		expect(await screen.findByRole("dialog", { name: "Imaging details" })).toBeVisible();
 		rerender(
-			<ImagingTable
+			<SortableImagingTable
 				{...props}
 				imagingStudies={imagingStudies.map((row, index) =>
 					index === 0 ? { ...row, impression: "Small left pleural effusion." } : row,

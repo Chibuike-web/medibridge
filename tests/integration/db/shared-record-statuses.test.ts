@@ -9,6 +9,16 @@ import {
 	useTestDatabase,
 } from "../../helpers/test-database";
 
+const noFilters = {
+	page: 1,
+	limit: 14,
+	query: "",
+	sort: "",
+	order: "",
+	createdFrom: "",
+	createdTo: "",
+};
+
 describe.skipIf(!testDatabaseUrl)("Shared record statuses", () => {
 	let authModule: typeof import("@/lib/better-auth/auth");
 	let getSharedMedications: typeof import("@/lib/api/get-shared-medications").getSharedMedications;
@@ -93,16 +103,19 @@ describe.skipIf(!testDatabaseUrl)("Shared record statuses", () => {
 	});
 
 	test("shows the receiving hospital the statuses the records were saved with", async () => {
-		expect(await getSharedMedications(accessId)).toEqual([
-			expect.objectContaining({ medication: "Amoxicillin", status: "Discontinued" }),
-		]);
-		expect(await getSharedLabTests(accessId)).toEqual([
-			expect.objectContaining({ status: "Completed" }),
-		]);
+		expect(
+			(await getSharedMedications(accessId, { ...noFilters, statusFilters: [] })).rows,
+		).toEqual([expect.objectContaining({ medication: "Amoxicillin", status: "Discontinued" })]);
+		expect(
+			(await getSharedLabTests(accessId, { ...noFilters, statusFilters: [], flagFilters: [] }))
+				.rows,
+		).toEqual([expect.objectContaining({ status: "Completed" })]);
 	});
 
 	test("shows the receiving hospital how much, how often and how long each medication is taken", async () => {
-		expect(await getSharedMedications(accessId)).toEqual([
+		expect(
+			(await getSharedMedications(accessId, { ...noFilters, statusFilters: [] })).rows,
+		).toEqual([
 			expect.objectContaining({
 				medication: "Amoxicillin",
 				dose: "500 mg",

@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -129,7 +130,7 @@ const medicationDetails: Record<string, MedicationDetailsType> = {
 					{ label: "Dose", previousValue: "500 mg", value: "250 mg" },
 					{
 						label: "Clinical note",
-						previousValue: "-",
+						previousValue: "",
 						value: "Patient reported nausea after the first dose.",
 					},
 				],
@@ -148,6 +149,8 @@ function buildProps(overrides: Partial<MedicationsTableProps> = {}): Medications
 		limit: 14,
 		totalPages: 1,
 		query: "",
+		sorting: [],
+		onSortingChange: vi.fn(),
 		createdFrom: "",
 		createdTo: "",
 		statusFilters: [],
@@ -163,12 +166,17 @@ function buildProps(overrides: Partial<MedicationsTableProps> = {}): Medications
 	};
 }
 
+function SortableMedicationsTable(props: React.ComponentProps<typeof MedicationsTable>) {
+	const [sorting, setSorting] = useState(props.sorting);
+	return <MedicationsTable {...props} sorting={sorting} onSortingChange={setSorting} />;
+}
+
 function renderMedicationsTable(overrides: Partial<MedicationsTableProps> = {}) {
 	const props = buildProps(overrides);
 
 	render(
 		<SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-			<MedicationsTable {...props} />
+			<SortableMedicationsTable {...props} />
 		</SWRConfig>,
 	);
 
@@ -227,29 +235,30 @@ describe("Medications table", () => {
 		vi.unstubAllGlobals();
 	});
 
-	test("re-orders rows when a sortable header is clicked", async () => {
+	test("marks each sortable header when clicked and keeps the server's row order", async () => {
 		const user = userEvent.setup();
 		renderMedicationsTable();
 
 		const medicationHeader = screen.getByRole("columnheader", { name: "Medication" });
 		expect(medicationHeader).toHaveAttribute("aria-sort", "none");
+		const serverOrder = displayedMedications();
 		await user.click(medicationHeader);
 		expect(medicationHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedMedications()).toEqual(["Amoxicillin", "Metformin"]);
+		expect(displayedMedications()).toEqual(serverOrder);
 		await user.click(medicationHeader);
 		expect(medicationHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedMedications()).toEqual(["Metformin", "Amoxicillin"]);
+		expect(displayedMedications()).toEqual(serverOrder);
 
 		const routeHeader = screen.getByRole("columnheader", { name: "Route" });
 		await user.click(routeHeader);
 		expect(routeHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedMedications()).toEqual(["Amoxicillin", "Metformin"]);
+		expect(displayedMedications()).toEqual(serverOrder);
 
 		const createdHeader = screen.getByRole("columnheader", { name: "Created at" });
 		await user.click(createdHeader);
 		await user.click(createdHeader);
 		expect(createdHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedMedications()).toEqual(["Metformin", "Amoxicillin"]);
+		expect(displayedMedications()).toEqual(serverOrder);
 
 		expect(screen.getByRole("columnheader", { name: "Dose" })).not.toHaveAttribute("aria-sort");
 		expect(screen.getByRole("columnheader", { name: "Status" })).not.toHaveAttribute("aria-sort");
@@ -408,6 +417,73 @@ describe("Medications table", () => {
 		expect(doseChange).toHaveTextContent("500 mg changed to 250 mg");
 		expect(clinicalNote).toHaveTextContent(/^Patient reported nausea after the first dose\.$/);
 		expect(within(dialog).queryByText("Metformin")).not.toBeInTheDocument();
+	});
+
+	test("shows the earlier note before the new note when a clinical note is edited", async () => {
+		const user = userEvent.setup();
+		savedMedicationDetails["MED-metformin"] = {
+			...medicationDetails["MED-metformin"],
+			history: [
+				{
+					id: "note-edited",
+					title: "Updated",
+					actor: "Dr. Okafor",
+					timestamp: "9 April 2021 at 09:00",
+					items: [
+						{
+							label: "Clinical note",
+							previousValue: "Check kidney function once a year.",
+							value: "Review renal function every six months.",
+						},
+					],
+				},
+			],
+		};
+		renderMedicationsTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Metformin" }));
+		await user.click(screen.getByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "Medication details" });
+		await user.click(await within(dialog).findByRole("button", { name: /Updated by Dr. Okafor/ }));
+
+		const activity = within(dialog).getByRole("region", { name: /Updated by Dr. Okafor/ });
+		expect(within(activity).getByRole("term")).toHaveTextContent("Clinical note");
+		expect(within(activity).getByRole("definition")).toHaveTextContent(
+			/^Before\s*Check kidney function once a year\.\s*After\s*Review renal function every six months\.$/,
+		);
+	});
+
+	test("marks a cleared clinical note as removed", async () => {
+		const user = userEvent.setup();
+		savedMedicationDetails["MED-metformin"] = {
+			...medicationDetails["MED-metformin"],
+			history: [
+				{
+					id: "note-cleared",
+					title: "Updated",
+					actor: "Dr. Okafor",
+					timestamp: "9 April 2021 at 09:00",
+					items: [
+						{
+							label: "Clinical note",
+							previousValue: "Check kidney function once a year.",
+							value: "",
+						},
+					],
+				},
+			],
+		};
+		renderMedicationsTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Metformin" }));
+		await user.click(screen.getByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "Medication details" });
+		await user.click(await within(dialog).findByRole("button", { name: /Updated by Dr. Okafor/ }));
+
+		const activity = within(dialog).getByRole("region", { name: /Updated by Dr. Okafor/ });
+		expect(within(activity).getByRole("definition")).toHaveTextContent(
+			/^Check kidney function once a year\.\s*Removed$/,
+		);
 	});
 
 	test("opens the details drawer when a row is activated with the keyboard", async () => {

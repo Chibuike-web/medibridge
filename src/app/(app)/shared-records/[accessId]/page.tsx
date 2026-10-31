@@ -1,19 +1,36 @@
 import { Suspense } from "react";
+import type { Route } from "next";
 import { RiInformationFill } from "@remixicon/react";
 import { sharedSections, type SharedPatient } from "./shared-record-sections";
-import { SharedAllergiesTable } from "./shared-record-tables/allergies-table";
-import { SharedDiagnosesTable } from "./shared-record-tables/diagnoses-table";
-import { SharedImagingTable } from "./shared-record-tables/imaging-table";
-import { SharedImmunizationsTable } from "./shared-record-tables/immunizations-table";
-import { SharedLabTestsTable } from "./shared-record-tables/lab-tests-table";
-import { SharedMedicationsTable } from "./shared-record-tables/medications-table";
-import { SharedProceduresTable } from "./shared-record-tables/procedures-table";
+import {
+	SharedAllergiesTable,
+	type SharedAllergyRow,
+} from "./shared-record-tables/allergies-table";
+import {
+	SharedDiagnosesTable,
+	type SharedDiagnosisRow,
+} from "./shared-record-tables/diagnoses-table";
+import { SharedImagingTable, type SharedImagingRow } from "./shared-record-tables/imaging-table";
+import {
+	SharedImmunizationsTable,
+	type SharedImmunizationRow,
+} from "./shared-record-tables/immunizations-table";
+import { SharedLabTestsTable, type SharedLabTestRow } from "./shared-record-tables/lab-tests-table";
+import {
+	SharedMedicationsTable,
+	type SharedMedicationRow,
+} from "./shared-record-tables/medications-table";
+import {
+	SharedProceduresTable,
+	type SharedProcedureRow,
+} from "./shared-record-tables/procedures-table";
 import { SharedTabs } from "./shared-tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
 	DetailItem,
 	DetailsSection,
 } from "@/features/patients/components/patient-details-section/detail-fields";
+import { TableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import { hasVerifiedExternalAccessSession } from "@/lib/api/external-access-session";
 import { getInitials } from "@/lib/utils/get-initials";
 import { notFound, redirect } from "next/navigation";
@@ -27,7 +44,7 @@ import { getSharedPatientDetails } from "@/lib/api/get-shared-patient-details";
 import { getSharedProcedures } from "@/lib/api/get-shared-procedures";
 import { getSharedRecord } from "@/lib/api/get-shared-record";
 import { formatDate } from "@/lib/utils/format-date";
-import { getStringParam } from "@/lib/utils/search-params";
+import { getNumberParam, getStringParam } from "@/lib/utils/search-params";
 
 export const metadata = {
 	title: "Shared Patient Record",
@@ -42,7 +59,9 @@ export default function SharedRecordsPage({ params, searchParams }: SharedRecord
 	return (
 		<div className="min-h-dvh bg-white text-gray-800">
 			<Suspense fallback={<SharedRecordsPageSkeleton />}>
-				<SharedRecordsContent params={params} searchParams={searchParams} />
+				<TableUrlNavigation>
+					<SharedRecordsContent params={params} searchParams={searchParams} />
+				</TableUrlNavigation>
 			</Suspense>
 		</div>
 	);
@@ -78,13 +97,27 @@ async function SharedRecordsContent({ params, searchParams }: SharedRecordsPageP
 			</nav>
 			<main className="mx-auto w-full max-w-7xl px-6 py-9">
 				{activeSection === "patient-details" ? <SharedPatientDetails accessId={accessId} /> : null}
-				{activeSection === "diagnoses" ? <SharedDiagnoses accessId={accessId} /> : null}
-				{activeSection === "allergies" ? <SharedAllergies accessId={accessId} /> : null}
-				{activeSection === "immunizations" ? <SharedImmunizations accessId={accessId} /> : null}
-				{activeSection === "procedures" ? <SharedProcedures accessId={accessId} /> : null}
-				{activeSection === "medications" ? <SharedMedications accessId={accessId} /> : null}
-				{activeSection === "lab-tests" ? <SharedLabTests accessId={accessId} /> : null}
-				{activeSection === "imaging" ? <SharedImaging accessId={accessId} /> : null}
+				{activeSection === "diagnoses" ? (
+					<SharedDiagnoses accessId={accessId} searchParams={searchParams} />
+				) : null}
+				{activeSection === "allergies" ? (
+					<SharedAllergies accessId={accessId} searchParams={searchParams} />
+				) : null}
+				{activeSection === "immunizations" ? (
+					<SharedImmunizations accessId={accessId} searchParams={searchParams} />
+				) : null}
+				{activeSection === "procedures" ? (
+					<SharedProcedures accessId={accessId} searchParams={searchParams} />
+				) : null}
+				{activeSection === "medications" ? (
+					<SharedMedications accessId={accessId} searchParams={searchParams} />
+				) : null}
+				{activeSection === "lab-tests" ? (
+					<SharedLabTests accessId={accessId} searchParams={searchParams} />
+				) : null}
+				{activeSection === "imaging" ? (
+					<SharedImaging accessId={accessId} searchParams={searchParams} />
+				) : null}
 			</main>
 		</>
 	);
@@ -109,46 +142,458 @@ async function SharedPatientDetails({ accessId }: { accessId: string }) {
 	);
 }
 
-async function SharedDiagnoses({ accessId }: { accessId: string }) {
-	const diagnoses = await getSharedDiagnoses(accessId);
+async function SharedDiagnoses({
+	accessId,
+	searchParams,
+}: {
+	accessId: string;
+	searchParams: SharedRecordsPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.diagnosesPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.diagnosesLimit, 14, { min: 1 });
+	const searchQuery = getStringParam(tableParams.diagnosesQuery);
+	const sort = getStringParam(tableParams.diagnosesSort);
+	const order = getStringParam(tableParams.diagnosesOrder);
+	const diagnosedFrom = getStringParam(tableParams.diagnosesDiagnosedFrom);
+	const diagnosedTo = getStringParam(tableParams.diagnosesDiagnosedTo);
+	const reviewedFrom = getStringParam(tableParams.diagnosesReviewedFrom);
+	const reviewedTo = getStringParam(tableParams.diagnosesReviewedTo);
+	const createdFrom = getStringParam(tableParams.diagnosesCreatedFrom);
+	const createdTo = getStringParam(tableParams.diagnosesCreatedTo);
+	const statusFilters = getStringParam(tableParams.diagnosesStatus)
+		.split(",")
+		.filter((value): value is SharedDiagnosisRow["status"] =>
+			["Active", "Resolved"].includes(value),
+		);
+	const { rows, totalRows } = await getSharedDiagnoses(accessId, {
+		page,
+		limit,
+		query: searchQuery,
+		sort,
+		order,
+		statusFilters,
+		diagnosedFrom,
+		diagnosedTo,
+		reviewedFrom,
+		reviewedTo,
+		createdFrom,
+		createdTo,
+	});
+	const totalPages = Math.ceil(totalRows / limit) || 1;
 
-	return <SharedDiagnosesTable accessId={accessId} rows={diagnoses} />;
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("diagnosesPage", String(totalPages));
+		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
+	}
+
+	return (
+		<SharedDiagnosesTable
+			rows={rows}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
+			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
+			statusFilters={statusFilters}
+			diagnosedFrom={diagnosedFrom}
+			diagnosedTo={diagnosedTo}
+			reviewedFrom={reviewedFrom}
+			reviewedTo={reviewedTo}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+		/>
+	);
 }
 
-async function SharedAllergies({ accessId }: { accessId: string }) {
-	const allergies = await getSharedAllergies(accessId);
+async function SharedAllergies({
+	accessId,
+	searchParams,
+}: {
+	accessId: string;
+	searchParams: SharedRecordsPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.allergiesPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.allergiesLimit, 14, { min: 1 });
+	const searchQuery = getStringParam(tableParams.allergiesQuery);
+	const sort = getStringParam(tableParams.allergiesSort);
+	const order = getStringParam(tableParams.allergiesOrder);
+	const createdFrom = getStringParam(tableParams.allergiesCreatedFrom);
+	const createdTo = getStringParam(tableParams.allergiesCreatedTo);
+	const statusFilters = getStringParam(tableParams.allergiesStatus)
+		.split(",")
+		.filter((value): value is SharedAllergyRow["status"] => ["Active", "Inactive"].includes(value));
+	const severityFilters = getStringParam(tableParams.allergiesSeverity)
+		.split(",")
+		.filter((value): value is SharedAllergyRow["severity"] =>
+			["Mild", "Moderate", "Severe"].includes(value),
+		);
+	const { rows, totalRows } = await getSharedAllergies(accessId, {
+		page,
+		limit,
+		query: searchQuery,
+		sort,
+		order,
+		statusFilters,
+		severityFilters,
+		createdFrom,
+		createdTo,
+	});
+	const totalPages = Math.ceil(totalRows / limit) || 1;
 
-	return <SharedAllergiesTable accessId={accessId} rows={allergies} />;
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("allergiesPage", String(totalPages));
+		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
+	}
+
+	return (
+		<SharedAllergiesTable
+			rows={rows}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
+			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
+			statusFilters={statusFilters}
+			severityFilters={severityFilters}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+		/>
+	);
 }
 
-async function SharedImmunizations({ accessId }: { accessId: string }) {
-	const immunizations = await getSharedImmunizations(accessId);
+async function SharedImmunizations({
+	accessId,
+	searchParams,
+}: {
+	accessId: string;
+	searchParams: SharedRecordsPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.immunizationsPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.immunizationsLimit, 14, { min: 1 });
+	const searchQuery = getStringParam(tableParams.immunizationsQuery);
+	const sort = getStringParam(tableParams.immunizationsSort);
+	const order = getStringParam(tableParams.immunizationsOrder);
+	const createdFrom = getStringParam(tableParams.immunizationsCreatedFrom);
+	const createdTo = getStringParam(tableParams.immunizationsCreatedTo);
+	const statusFilters = getStringParam(tableParams.immunizationsStatus)
+		.split(",")
+		.filter((value): value is SharedImmunizationRow["status"] =>
+			["Active", "Completed", "Cancelled", "Discontinued"].includes(value),
+		);
+	const { rows, totalRows } = await getSharedImmunizations(accessId, {
+		page,
+		limit,
+		query: searchQuery,
+		sort,
+		order,
+		statusFilters,
+		createdFrom,
+		createdTo,
+	});
+	const totalPages = Math.ceil(totalRows / limit) || 1;
 
-	return <SharedImmunizationsTable accessId={accessId} rows={immunizations} />;
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("immunizationsPage", String(totalPages));
+		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
+	}
+
+	return (
+		<SharedImmunizationsTable
+			rows={rows}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
+			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
+			statusFilters={statusFilters}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+		/>
+	);
 }
 
-async function SharedProcedures({ accessId }: { accessId: string }) {
-	const procedures = await getSharedProcedures(accessId);
+async function SharedProcedures({
+	accessId,
+	searchParams,
+}: {
+	accessId: string;
+	searchParams: SharedRecordsPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.proceduresPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.proceduresLimit, 14, { min: 1 });
+	const searchQuery = getStringParam(tableParams.proceduresQuery);
+	const sort = getStringParam(tableParams.proceduresSort);
+	const order = getStringParam(tableParams.proceduresOrder);
+	const createdFrom = getStringParam(tableParams.proceduresCreatedFrom);
+	const createdTo = getStringParam(tableParams.proceduresCreatedTo);
+	const statusFilters = getStringParam(tableParams.proceduresStatus)
+		.split(",")
+		.filter((value): value is SharedProcedureRow["status"] =>
+			["Pending", "Completed", "Cancelled"].includes(value),
+		);
+	const { rows, totalRows } = await getSharedProcedures(accessId, {
+		page,
+		limit,
+		query: searchQuery,
+		sort,
+		order,
+		statusFilters,
+		createdFrom,
+		createdTo,
+	});
+	const totalPages = Math.ceil(totalRows / limit) || 1;
 
-	return <SharedProceduresTable accessId={accessId} rows={procedures} />;
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("proceduresPage", String(totalPages));
+		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
+	}
+
+	return (
+		<SharedProceduresTable
+			rows={rows}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
+			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
+			statusFilters={statusFilters}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+		/>
+	);
 }
 
-async function SharedMedications({ accessId }: { accessId: string }) {
-	const medications = await getSharedMedications(accessId);
+async function SharedMedications({
+	accessId,
+	searchParams,
+}: {
+	accessId: string;
+	searchParams: SharedRecordsPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.medicationsPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.medicationsLimit, 14, { min: 1 });
+	const searchQuery = getStringParam(tableParams.medicationsQuery);
+	const sort = getStringParam(tableParams.medicationsSort);
+	const order = getStringParam(tableParams.medicationsOrder);
+	const createdFrom = getStringParam(tableParams.medicationsCreatedFrom);
+	const createdTo = getStringParam(tableParams.medicationsCreatedTo);
+	const statusFilters = getStringParam(tableParams.medicationsStatus)
+		.split(",")
+		.filter((value): value is SharedMedicationRow["status"] =>
+			["Active", "Completed", "Discontinued"].includes(value),
+		);
+	const { rows, totalRows } = await getSharedMedications(accessId, {
+		page,
+		limit,
+		query: searchQuery,
+		sort,
+		order,
+		statusFilters,
+		createdFrom,
+		createdTo,
+	});
+	const totalPages = Math.ceil(totalRows / limit) || 1;
 
-	return <SharedMedicationsTable accessId={accessId} rows={medications} />;
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("medicationsPage", String(totalPages));
+		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
+	}
+
+	return (
+		<SharedMedicationsTable
+			rows={rows}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
+			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
+			statusFilters={statusFilters}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+		/>
+	);
 }
 
-async function SharedLabTests({ accessId }: { accessId: string }) {
-	const labTests = await getSharedLabTests(accessId);
+async function SharedLabTests({
+	accessId,
+	searchParams,
+}: {
+	accessId: string;
+	searchParams: SharedRecordsPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.labTestsPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.labTestsLimit, 14, { min: 1 });
+	const searchQuery = getStringParam(tableParams.labTestsQuery);
+	const sort = getStringParam(tableParams.labTestsSort);
+	const order = getStringParam(tableParams.labTestsOrder);
+	const createdFrom = getStringParam(tableParams.labTestsCreatedFrom);
+	const createdTo = getStringParam(tableParams.labTestsCreatedTo);
+	const statusFilters = getStringParam(tableParams.labTestsStatus)
+		.split(",")
+		.filter((value): value is SharedLabTestRow["status"] =>
+			["Pending", "Completed", "Cancelled"].includes(value),
+		);
+	const flagFilters = getStringParam(tableParams.labTestsFlag)
+		.split(",")
+		.filter((value) =>
+			[
+				"within-range",
+				"abnormal",
+				"high",
+				"low",
+				"critical",
+				"pending",
+				"borderline",
+				"invalid",
+				"cancelled",
+				"inconclusive",
+			].includes(value),
+		);
+	const { rows, totalRows } = await getSharedLabTests(accessId, {
+		page,
+		limit,
+		query: searchQuery,
+		sort,
+		order,
+		statusFilters,
+		flagFilters,
+		createdFrom,
+		createdTo,
+	});
+	const totalPages = Math.ceil(totalRows / limit) || 1;
 
-	return <SharedLabTestsTable accessId={accessId} rows={labTests} />;
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("labTestsPage", String(totalPages));
+		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
+	}
+
+	return (
+		<SharedLabTestsTable
+			rows={rows}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
+			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
+			statusFilters={statusFilters}
+			interpretationFilters={flagFilters}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+		/>
+	);
 }
 
-async function SharedImaging({ accessId }: { accessId: string }) {
-	const imaging = await getSharedImaging(accessId);
+async function SharedImaging({
+	accessId,
+	searchParams,
+}: {
+	accessId: string;
+	searchParams: SharedRecordsPageProps["searchParams"];
+}) {
+	const tableParams = await searchParams;
+	const page = getNumberParam(tableParams.imagingPage, 1, { min: 1 });
+	const limit = getNumberParam(tableParams.imagingLimit, 14, { min: 1 });
+	const searchQuery = getStringParam(tableParams.imagingQuery);
+	const sort = getStringParam(tableParams.imagingSort);
+	const order = getStringParam(tableParams.imagingOrder);
+	const orderedFrom = getStringParam(tableParams.imagingOrderedFrom);
+	const orderedTo = getStringParam(tableParams.imagingOrderedTo);
+	const createdFrom = getStringParam(tableParams.imagingCreatedFrom);
+	const createdTo = getStringParam(tableParams.imagingCreatedTo);
+	const statusFilters = getStringParam(tableParams.imagingStatus)
+		.split(",")
+		.filter((value): value is SharedImagingRow["status"] =>
+			["Pending", "Completed", "Cancelled"].includes(value),
+		);
+	const modalityFilters = getStringParam(tableParams.imagingModality)
+		.split(",")
+		.filter((value): value is SharedImagingRow["modality"] =>
+			["CT", "MRI", "Ultrasound", "X-ray"].includes(value),
+		);
+	const { rows, totalRows } = await getSharedImaging(accessId, {
+		page,
+		limit,
+		query: searchQuery,
+		sort,
+		order,
+		statusFilters,
+		modalityFilters,
+		orderedFrom,
+		orderedTo,
+		createdFrom,
+		createdTo,
+	});
+	const totalPages = Math.ceil(totalRows / limit) || 1;
 
-	return <SharedImagingTable accessId={accessId} rows={imaging} />;
+	if (page > totalPages) {
+		const lastPageParams = new URLSearchParams(
+			Object.entries(tableParams).flatMap(([name, value]) =>
+				typeof value === "string" ? [[name, value]] : [],
+			),
+		);
+		lastPageParams.set("imagingPage", String(totalPages));
+		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
+	}
+
+	return (
+		<SharedImagingTable
+			rows={rows}
+			page={page}
+			limit={limit}
+			totalPages={totalPages}
+			searchQuery={searchQuery}
+			sort={sort}
+			order={order}
+			statusFilters={statusFilters}
+			modalityFilters={modalityFilters}
+			orderedFrom={orderedFrom}
+			orderedTo={orderedTo}
+			createdFrom={createdFrom}
+			createdTo={createdTo}
+		/>
+	);
 }
 
 function SharedAccessBanner({

@@ -16,4 +16,4 @@ export const patientImagingFile = pgTable(
 		uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
 	},
 	(table) => [index("patient_imaging_file_parent_record_id_idx").on(table.parentRecordId)],
-);
+).enableRLS();

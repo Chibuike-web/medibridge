@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 import type { VitalType } from "@/features/patients/types";
@@ -51,6 +52,11 @@ const vitals: VitalType[] = [
 	},
 ];
 
+function SortableVitalsTable(props: React.ComponentProps<typeof VitalsTable>) {
+	const [sorting, setSorting] = useState(props.sorting);
+	return <VitalsTable {...props} sorting={sorting} onSortingChange={setSorting} />;
+}
+
 function renderVitalsTable(overrides: Partial<React.ComponentProps<typeof VitalsTable>> = {}) {
 	const props: React.ComponentProps<typeof VitalsTable> = {
 		patientId: "patient-a",
@@ -67,6 +73,8 @@ function renderVitalsTable(overrides: Partial<React.ComponentProps<typeof Vitals
 		limit: 14,
 		totalPages: 1,
 		query: "",
+		sorting: [],
+		onSortingChange: vi.fn(),
 		recordedFrom: "",
 		recordedTo: "",
 		createdFrom: "",
@@ -82,7 +90,7 @@ function renderVitalsTable(overrides: Partial<React.ComponentProps<typeof Vitals
 		...overrides,
 	};
 
-	render(<VitalsTable {...props} />);
+	render(<SortableVitalsTable {...props} />);
 
 	return props;
 }
@@ -94,7 +102,7 @@ function displayedIds() {
 }
 
 describe("Vitals table", () => {
-	test("shows supplied rows in order and sorts measurements numerically using the keyboard", async () => {
+	test("shows supplied rows in order and sorts measurements from the keyboard without reordering them", async () => {
 		const user = userEvent.setup();
 		renderVitalsTable();
 
@@ -103,13 +111,14 @@ describe("Vitals table", () => {
 		expect(screen.getByRole("columnheader", { name: "Date recorded" })).toBeVisible();
 
 		const heartRateHeader = screen.getByRole("columnheader", { name: "HR (bpm)" });
+		const serverOrder = displayedIds();
 		heartRateHeader.focus();
 		await user.keyboard("{Enter}");
 		expect(heartRateHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedIds()).toEqual(["V-older", "V-newer"]);
+		expect(displayedIds()).toEqual(serverOrder);
 		await user.keyboard("{Enter}");
 		expect(heartRateHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedIds()).toEqual(["V-newer", "V-older"]);
+		expect(displayedIds()).toEqual(serverOrder);
 	});
 
 	test("reports search input to the owner and renders the controlled query", async () => {

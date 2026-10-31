@@ -268,7 +268,6 @@ export function TransfersClient({
 						<FilterButton
 							requestedFrom={optimisticRequestedAtRange.requestedFrom}
 							requestedTo={optimisticRequestedAtRange.requestedTo}
-							isPending={isPending}
 							onRequestedAtRangeApply={handleRequestedAtRangeApply}
 							onStatusFiltersChange={handleStatusFiltersChange}
 							statusFilters={optimisticStatusFilters}

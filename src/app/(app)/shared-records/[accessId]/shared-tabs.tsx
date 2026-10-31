@@ -1,8 +1,8 @@
 "use client";
 
 import { startTransition, useOptimistic } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import type { PatientRecordAccessSection } from "@/db/schemas";
+import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import { cn } from "@/lib/utils/cn";
 import { sharedSections } from "./shared-record-sections";
 import { useReducedMotion, motion } from "motion/react";
@@ -14,8 +14,7 @@ type SharedTabsClientProps = {
 };
 
 export function SharedTabs({ activeSection, availableSections }: SharedTabsClientProps) {
-	const searchParams = useSearchParams();
-	const router = useRouter();
+	const navigateTableUrl = useTableUrlNavigation();
 	const shouldReduceMotion = useReducedMotion();
 
 	const [optimisticSelectedSharedRecordSection, setOptimisticSelectedSharedRecordSection] =
@@ -23,11 +22,9 @@ export function SharedTabs({ activeSection, availableSections }: SharedTabsClien
 
 	function handleClick(value: string) {
 		const section = value as PatientRecordAccessSection;
-		const params = new URLSearchParams(searchParams.toString());
 		startTransition(() => {
 			setOptimisticSelectedSharedRecordSection(section);
-			params.set("section", section);
-			router.push(`?${params.toString()}`);
+			navigateTableUrl({ section }, {});
 		});
 	}
 

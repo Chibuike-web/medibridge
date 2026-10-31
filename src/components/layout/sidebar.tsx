@@ -211,7 +211,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 									"w-auto opacity-100 text-lg",
 								)}
 							>
-								MediBridge
+								Medibridge
 							</h1>
 							<Button
 								variant="ghost"

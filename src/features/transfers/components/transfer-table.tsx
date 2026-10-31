@@ -1,7 +1,16 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+	AlertDialog,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CopyIdButton } from "@/components/copy-id-button";
@@ -65,10 +74,13 @@ import {
 	RiSendPlaneLine,
 	RiShare2Line,
 } from "@remixicon/react";
-import type { TransferDetailsType, TransferType } from "../types";
+import type { TransferActionFeedback, TransferDetailsType, TransferType } from "../types";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { authClient } from "@/lib/better-auth/auth.client";
+import { cancelTransferAction } from "@/features/transfers/server/cancel-transfer-action";
+import { resendTransferRequestAction } from "@/features/transfers/server/resend-transfer-request-action";
+import { retryTransferDeliveryAction } from "@/features/transfers/server/retry-transfer-delivery-action";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
@@ -119,13 +131,193 @@ export function TransferTable({
 		},
 	);
 
-	const onViewTransferDetails = useCallback((transferId: string) => {
+	const { mutate } = useSWRConfig();
+	const [transferActionFeedback, setTransferActionFeedback] =
+		useState<TransferActionFeedback | null>(null);
+	const [transferIdToCancel, setTransferIdToCancel] = useState<string | null>(null);
+	const [isTransferActionPending, startTransferActionTransition] = useTransition();
+
+	const handleViewTransferDetails = useCallback((transferId: string) => {
 		setSelectedTransferId(transferId);
+		setTransferActionFeedback(null);
 	}, []);
 
-	const columns = useMemo(() => {
-		return getTransferColumns(onViewTransferDetails, router, returnTo, canArchive);
-	}, [canArchive, onViewTransferDetails, router, returnTo]);
+	const handleResendRequest = useCallback(
+		(transferId: string) => {
+			setSelectedTransferId(transferId);
+			setTransferActionFeedback(null);
+			startTransferActionTransition(async () => {
+				try {
+					const result = await resendTransferRequestAction(transferId);
+
+					if (result.status === "unauthorized") {
+						router.refresh();
+						return;
+					}
+
+					try {
+						await mutate(["transfer-details", transferId], fetchTransferDetails(transferId), {
+							revalidate: false,
+						});
+						setTransferActionFeedback(
+							result.status === "success"
+								? { transferId, type: "success", message: result.message }
+								: { transferId, type: "error", message: result.error },
+						);
+					} catch (error) {
+						const { status } = error as TransferDetailsRequestError;
+						if (status === 401 || status === 403) router.refresh();
+						setTransferActionFeedback(
+							result.status === "success"
+								? {
+										transferId,
+										type: "success",
+										message: `${result.message} We couldn’t refresh its details.`,
+									}
+								: {
+										transferId,
+										type: "error",
+										message: `${result.error} We couldn’t refresh its details.`,
+									},
+						);
+					}
+				} catch (error) {
+					console.error("Resending the transfer request failed:", error);
+					setTransferActionFeedback({
+						transferId,
+						type: "error",
+						message: "We couldn’t send the approval link. Please try again.",
+					});
+				}
+			});
+		},
+		[mutate, router],
+	);
+
+	const handleRetryTransfer = useCallback(
+		(transferId: string) => {
+			setSelectedTransferId(transferId);
+			setTransferActionFeedback(null);
+			startTransferActionTransition(async () => {
+				try {
+					const result = await retryTransferDeliveryAction(transferId);
+
+					if (result.status === "unauthorized") {
+						router.refresh();
+						return;
+					}
+
+					try {
+						await mutate(["transfer-details", transferId], fetchTransferDetails(transferId), {
+							revalidate: false,
+						});
+						setTransferActionFeedback(
+							result.status === "success"
+								? { transferId, type: "success", message: result.message }
+								: { transferId, type: "error", message: result.error },
+						);
+					} catch (error) {
+						const { status } = error as TransferDetailsRequestError;
+						if (status === 401 || status === 403) router.refresh();
+						setTransferActionFeedback(
+							result.status === "success"
+								? {
+										transferId,
+										type: "success",
+										message: `${result.message} We couldn’t refresh its details.`,
+									}
+								: {
+										transferId,
+										type: "error",
+										message: `${result.error} We couldn’t refresh its details.`,
+									},
+						);
+					}
+				} catch (error) {
+					console.error("Retrying the transfer delivery failed:", error);
+					setTransferActionFeedback({
+						transferId,
+						type: "error",
+						message: "We couldn’t retry this transfer. Please try again.",
+					});
+				}
+			});
+		},
+		[mutate, router],
+	);
+
+	function handleCancelTransfer(transferId: string) {
+		setTransferIdToCancel(null);
+		setSelectedTransferId(transferId);
+		setTransferActionFeedback(null);
+		startTransferActionTransition(async () => {
+			try {
+				const result = await cancelTransferAction(transferId);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				try {
+					await mutate(["transfer-details", transferId], fetchTransferDetails(transferId), {
+						revalidate: false,
+					});
+					setTransferActionFeedback(
+						result.status === "success"
+							? { transferId, type: "cancelled", message: result.message }
+							: { transferId, type: "error", message: result.error },
+					);
+				} catch (error) {
+					const { status } = error as TransferDetailsRequestError;
+					if (status === 401 || status === 403) router.refresh();
+					setTransferActionFeedback(
+						result.status === "success"
+							? {
+									transferId,
+									type: "cancelled",
+									message: `${result.message} We couldn’t refresh its details.`,
+								}
+							: {
+									transferId,
+									type: "error",
+									message: `${result.error} We couldn’t refresh its details.`,
+								},
+					);
+				}
+			} catch (error) {
+				console.error("Cancelling the transfer failed:", error);
+				setTransferActionFeedback({
+					transferId,
+					type: "error",
+					message: "We couldn’t cancel this transfer. Please try again.",
+				});
+			}
+		});
+	}
+
+	const columns = useMemo(
+		() =>
+			getTransferColumns({
+				onViewTransferDetails: handleViewTransferDetails,
+				onResendRequest: handleResendRequest,
+				onRetryTransfer: handleRetryTransfer,
+				onCancelTransfer: (transferId) => setTransferIdToCancel(transferId),
+				isTransferActionPending,
+				router,
+				returnTo,
+				canArchive,
+			}),
+		[
+			canArchive,
+			handleResendRequest,
+			handleRetryTransfer,
+			handleViewTransferDetails,
+			isTransferActionPending,
+			returnTo,
+			router,
+		],
+	);
 
 	return (
 		<>
@@ -143,21 +335,65 @@ export function TransferTable({
 				onPreviousPage={onPreviousPage}
 				onNextPage={onNextPage}
 				onLimitChange={onLimitChange}
-				onViewTransferDetails={onViewTransferDetails}
+				onViewTransferDetails={handleViewTransferDetails}
 			/>
 			<TransferDetailsDrawer
 				open={selectedTransferId !== null}
 				onOpenChange={(open) => {
 					if (!open) {
 						setSelectedTransferId(null);
+						setTransferActionFeedback(null);
 					}
 				}}
 				transfer={transferDetailsQuery.data ?? null}
-				isLoading={transferDetailsQuery.isLoading}
 				canArchive={canArchive}
 				returnTo={returnTo}
-				onTransferUpdated={() => transferDetailsQuery.mutate()}
+				transferActionFeedback={
+					transferActionFeedback?.transferId === selectedTransferId ? transferActionFeedback : null
+				}
+				onDismissTransferActionFeedback={() => setTransferActionFeedback(null)}
+				isTransferActionPending={isTransferActionPending}
+				onResendRequest={handleResendRequest}
+				onRetryTransfer={handleRetryTransfer}
+				onCancelTransfer={(transferId) => setTransferIdToCancel(transferId)}
 			/>
+			<AlertDialog
+				open={transferIdToCancel !== null}
+				onOpenChange={(open) => {
+					if (!open) setTransferIdToCancel(null);
+				}}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Cancel transfer?</AlertDialogTitle>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							aria-label="Close cancel transfer dialog"
+							onClick={() => setTransferIdToCancel(null)}
+						>
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</AlertDialogHeader>
+					<AlertDialogDescription>
+						The approval request will be withdrawn and the patient will no longer be able to
+						respond. The transfer and its full activity history are retained.
+					</AlertDialogDescription>
+					<AlertDialogFooter className="sm:justify-end">
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<Button
+							type="button"
+							className="bg-rose-500 text-white hover:bg-rose-600"
+							onClick={() => {
+								if (transferIdToCancel) handleCancelTransfer(transferIdToCancel);
+							}}
+						>
+							Cancel transfer
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</>
 	);
 }
@@ -460,12 +696,25 @@ function TransferBulkActionBar({
 	);
 }
 
-function getTransferColumns(
-	onViewTransferDetails: (transferId: string) => void,
-	router: ReturnType<typeof useRouter>,
-	returnTo: string,
-	canArchive: boolean,
-): ColumnDef<typeof configuredTableFeatures, TransferType>[] {
+function getTransferColumns({
+	onViewTransferDetails,
+	onResendRequest,
+	onRetryTransfer,
+	onCancelTransfer,
+	isTransferActionPending,
+	router,
+	returnTo,
+	canArchive,
+}: {
+	onViewTransferDetails: (transferId: string) => void;
+	onResendRequest: (transferId: string) => void;
+	onRetryTransfer: (transferId: string) => void;
+	onCancelTransfer: (transferId: string) => void;
+	isTransferActionPending: boolean;
+	router: ReturnType<typeof useRouter>;
+	returnTo: string;
+	canArchive: boolean;
+}): ColumnDef<typeof configuredTableFeatures, TransferType>[] {
 	return [
 		{
 			id: "select",
@@ -550,7 +799,7 @@ function getTransferColumns(
 							align="end"
 							className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 						>
-							{row.original.status.toLowerCase() === "pending" ? (
+							{row.original.status === "pending" ? (
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
@@ -559,14 +808,22 @@ function getTransferColumns(
 										<RiEyeLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
-									<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<DropdownMenuItem
+										disabled={isTransferActionPending}
+										onSelect={() => onResendRequest(row.original.id)}
+										className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+									>
 										<RiSendPlaneLine className="text-white" /> <span>Resend request</span>
 									</DropdownMenuItem>
-									<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<DropdownMenuItem
+										disabled={isTransferActionPending}
+										onSelect={() => onCancelTransfer(row.original.id)}
+										className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+									>
 										<RiCloseLine className="text-white" /> <span>Cancel transfer</span>
 									</DropdownMenuItem>
 								</>
-							) : row.original.status.toLowerCase() === "rejected" ? (
+							) : row.original.status === "rejected" ? (
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
@@ -590,12 +847,12 @@ function getTransferColumns(
 											<DropdownMenuSeparator className="bg-white/20" />
 											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 												<RiArchiveLine className="text-white" />
-												<span>Archive</span>
+												<span>Archive transfer</span>
 											</DropdownMenuItem>
 										</>
 									) : null}
 								</>
-							) : row.original.status.toLowerCase() === "completed" ? (
+							) : row.original.status === "completed" ? (
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
@@ -609,12 +866,12 @@ function getTransferColumns(
 											<DropdownMenuSeparator className="bg-white/20" />
 											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 												<RiArchiveLine className="text-white" />
-												<span>Archive</span>
+												<span>Archive transfer</span>
 											</DropdownMenuItem>
 										</>
 									) : null}
 								</>
-							) : row.original.status.toLowerCase() === "failed" ? (
+							) : row.original.status === "failed" ? (
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
@@ -623,7 +880,11 @@ function getTransferColumns(
 										<RiEyeLine className="text-white" />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
-									<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+									<DropdownMenuItem
+										disabled={isTransferActionPending}
+										onSelect={() => onRetryTransfer(row.original.id)}
+										className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+									>
 										<RiCornerDownLeftFill className="text-whte" /> <span>Retry transfer</span>
 									</DropdownMenuItem>
 									{canArchive ? (
@@ -631,12 +892,12 @@ function getTransferColumns(
 											<DropdownMenuSeparator className="bg-white/20" />
 											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 												<RiArchiveLine className="text-white" />
-												<span>Archive</span>
+												<span>Archive transfer</span>
 											</DropdownMenuItem>
 										</>
 									) : null}
 								</>
-							) : row.original.status.toLowerCase() === "cancelled" ? (
+							) : row.original.status === "cancelled" ? (
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
@@ -660,7 +921,7 @@ function getTransferColumns(
 											<DropdownMenuSeparator className="bg-white/20" />
 											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
 												<RiArchiveLine className="text-white" />
-												<span>Archive</span>
+												<span>Archive transfer</span>
 											</DropdownMenuItem>
 										</>
 									) : null}

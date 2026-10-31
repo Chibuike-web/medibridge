@@ -23,4 +23,4 @@ export const patientAllergy = pgTable("patient_allergy", {
 
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}).enableRLS();

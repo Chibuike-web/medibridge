@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
-import { and, count, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
 import { patient, patientEncounter, patientVital } from "@/db/schemas";
 import type { VitalType } from "@/features/patients/types";
@@ -61,6 +61,7 @@ export const getPatientVitals = cache(
 		page = 1,
 		limit = 14,
 		query = "",
+		sorting = { sort: "", order: "" },
 		dateFilters: VitalDateFilters = {},
 		encounterId?: string,
 	): Promise<{ vitals: VitalType[]; totalVitals: number }> => {
@@ -74,6 +75,7 @@ export const getPatientVitals = cache(
 			page,
 			limit,
 			query.trim(),
+			sorting,
 			dateFilters,
 			encounterId,
 		);
@@ -86,6 +88,7 @@ export async function getPatientVitalsForOrganization(
 	page: number,
 	limit: number,
 	normalizedQuery: string,
+	{ sort, order }: { sort: string; order: string },
 	dateFilters: VitalDateFilters,
 	encounterId?: string,
 ): Promise<{ vitals: VitalType[]; totalVitals: number }> {
@@ -112,6 +115,20 @@ export async function getPatientVitalsForOrganization(
 			? or(ilike(patientVital.id, searchPattern), ilike(patientVital.notes, searchPattern))
 			: undefined,
 	);
+	const sortColumns = {
+		recordedAt: patientVital.recordedAt,
+		systolic: patientVital.systolic,
+		heartRate: patientVital.heartRate,
+		respiratoryRate: patientVital.respiratoryRate,
+		temperature: patientVital.temperature,
+		oxygenSaturation: patientVital.oxygenSaturation,
+		weight: patientVital.weight,
+		bmi: patientVital.bmi,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, rows] = await Promise.all([
 		db
 			.select({ value: count() })
@@ -124,7 +141,7 @@ export async function getPatientVitalsForOrganization(
 			.innerJoin(patient, eq(patientVital.patientId, patient.id))
 			.leftJoin(patientEncounter, eq(patientVital.encounterId, patientEncounter.id))
 			.where(vitalFilter)
-			.orderBy(desc(patientVital.recordedAt), desc(patientVital.id))
+			.orderBy(sortDirection(sortColumn ?? patientVital.recordedAt), sortDirection(patientVital.id))
 			.limit(limit)
 			.offset(offset),
 	]);

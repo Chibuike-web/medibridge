@@ -22,4 +22,4 @@ export const patientPersonalInformation = pgTable("patient_personal_information"
 
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}).enableRLS();

@@ -5,7 +5,7 @@ import type { MedicationStatusFilter, MedicationType } from "@/features/patients
 import { db } from "@/lib/better-auth/auth";
 import { formatDateTime } from "@/lib/utils/format-date-time";
 import { toSortValue } from "@/lib/utils/to-sort-value";
-import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { getOrganizationId } from "./get-organization-id";
 
 type MedicationDateFilters = {
@@ -32,6 +32,7 @@ export const getPatientMedications = cache(async (
 	page = 1,
 	limit = 14,
 	query = "",
+	sorting = { sort: "", order: "" },
 	dateFilters: MedicationDateFilters = {},
 	statusFilters: MedicationStatusFilter[] = [],
 	encounterId?: string,
@@ -46,6 +47,7 @@ export const getPatientMedications = cache(async (
 		page,
 		limit,
 		query.trim(),
+		sorting,
 		dateFilters,
 		statusFilters,
 		encounterId,
@@ -58,6 +60,7 @@ export async function getPatientMedicationsForOrganization(
 	page: number,
 	limit: number,
 	normalizedQuery: string,
+	{ sort, order }: { sort: string; order: string },
 	dateFilters: MedicationDateFilters,
 	statusFilters: MedicationStatusFilter[],
 	encounterId?: string,
@@ -91,6 +94,16 @@ export async function getPatientMedicationsForOrganization(
 		),
 	);
 
+	const sortColumns = {
+		medication: patientMedication.medicationName,
+		route: patientMedication.route,
+		indication: patientMedication.indication,
+		createdAt: patientMedication.createdAt,
+	};
+	const sortColumn = Object.hasOwn(sortColumns, sort)
+		? sortColumns[sort as keyof typeof sortColumns]
+		: undefined;
+	const sortDirection = sortColumn && order === "asc" ? asc : desc;
 	const [countRows, rows] = await Promise.all([
 		db
 			.select({ value: count() })
@@ -110,7 +123,7 @@ export async function getPatientMedicationsForOrganization(
 			.from(patientMedication)
 			.innerJoin(patient, eq(patientMedication.patientId, patient.id))
 			.where(filters)
-			.orderBy(desc(patientMedication.createdAt))
+			.orderBy(sortDirection(sortColumn ?? patientMedication.createdAt), sortDirection(patientMedication.id))
 			.limit(limit)
 			.offset(offset),
 	]);

@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format } from "date-fns";
 import { SWRConfig } from "swr";
@@ -125,6 +126,11 @@ const procedureDetailsById: Record<string, ProcedureDetailsType> = {
 	},
 };
 
+function SortableProceduresTable(props: React.ComponentProps<typeof ProceduresTable>) {
+	const [sorting, setSorting] = useState(props.sorting);
+	return <ProceduresTable {...props} sorting={sorting} onSortingChange={setSorting} />;
+}
+
 function renderProceduresTable(
 	overrides: Partial<React.ComponentProps<typeof ProceduresTable>> = {},
 ) {
@@ -135,6 +141,8 @@ function renderProceduresTable(
 		limit: 14,
 		totalPages: 1,
 		query: "",
+		sorting: [],
+		onSortingChange: vi.fn(),
 		createdFrom: "",
 		createdTo: "",
 		statusFilters: [],
@@ -151,7 +159,7 @@ function renderProceduresTable(
 
 	render(
 		<SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-			<ProceduresTable {...props} />
+			<SortableProceduresTable {...props} />
 		</SWRConfig>,
 	);
 
@@ -222,34 +230,36 @@ describe("Procedures table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Append");
 	});
 
-	test("re-orders rows when the user sorts by procedure name", async () => {
+	test("marks the procedure name sort when clicked and keeps the server's row order", async () => {
 		const user = userEvent.setup();
 		renderProceduresTable();
 
 		expect(displayedIds()).toEqual(["PROC-3001", "PROC-1001"]);
 
 		const procedureHeader = screen.getByRole("columnheader", { name: "Procedure" });
+		const serverOrder = displayedIds();
 		await user.click(procedureHeader);
 		expect(procedureHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedIds()).toEqual(["PROC-1001", "PROC-3001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 
 		await user.click(procedureHeader);
 		expect(procedureHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedIds()).toEqual(["PROC-3001", "PROC-1001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 	});
 
-	test("sorts by creation date from the keyboard", async () => {
+	test("sorts by creation date from the keyboard and keeps the server's row order", async () => {
 		const user = userEvent.setup();
 		renderProceduresTable();
 
 		const createdHeader = screen.getByRole("columnheader", { name: "Created At" });
+		const serverOrder = displayedIds();
 		createdHeader.focus();
 		await user.keyboard("{Enter}");
 		expect(createdHeader).toHaveAttribute("aria-sort", "ascending");
-		expect(displayedIds()).toEqual(["PROC-1001", "PROC-3001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 		await user.keyboard(" ");
 		expect(createdHeader).toHaveAttribute("aria-sort", "descending");
-		expect(displayedIds()).toEqual(["PROC-3001", "PROC-1001"]);
+		expect(displayedIds()).toEqual(serverOrder);
 	});
 
 	test("does not allow sorting by procedure ID or status", () => {
@@ -381,6 +391,46 @@ describe("Procedures table", () => {
 		expect(within(dialog).queryByText("Created at", { exact: true })).not.toBeInTheDocument();
 		expect(within(dialog).queryByText("Updated by", { exact: true })).not.toBeInTheDocument();
 		expect(within(dialog).queryByText("Updated at", { exact: true })).not.toBeInTheDocument();
+	});
+
+	test("shows only the new value for an optional field that was empty and marks it removed when cleared", async () => {
+		const user = userEvent.setup();
+		savedProcedureDetails["PROC-1001"] = {
+			...procedureDetailsById["PROC-1001"],
+			history: [
+				{
+					id: "indication-cleared",
+					title: "Updated",
+					actor: "Nurse Ade",
+					timestamp: "14 January 2024 at 08:00",
+					items: [{ label: "Indication", previousValue: "Acute appendicitis", value: "" }],
+				},
+				{
+					id: "indication-added",
+					title: "Updated",
+					actor: "Dr. Bello",
+					timestamp: "13 January 2024 at 10:30",
+					items: [{ label: "Indication", previousValue: "", value: "Acute appendicitis" }],
+				},
+			],
+		};
+		renderProceduresTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Appendectomy" }));
+		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "Procedure details" });
+
+		await user.click(await within(dialog).findByRole("button", { name: /^Updated by Dr. Bello/ }));
+		const added = within(dialog).getByRole("region", { name: /^Updated by Dr. Bello/ });
+		expect(within(added).getByRole("term")).toHaveTextContent("Indication");
+		expect(within(added).getByRole("definition")).toHaveTextContent(/^Acute appendicitis$/);
+
+		await user.click(within(dialog).getByRole("button", { name: /^Updated by Nurse Ade/ }));
+		const cleared = within(dialog).getByRole("region", { name: /^Updated by Nurse Ade/ });
+		expect(within(cleared).getByRole("term")).toHaveTextContent("Indication");
+		expect(within(cleared).getByRole("definition")).toHaveTextContent(
+			/^Acute appendicitis\s*Removed$/,
+		);
 	});
 
 	test("opens the details drawer when a row is activated from the keyboard", async () => {
