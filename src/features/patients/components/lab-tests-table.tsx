@@ -522,6 +522,7 @@ export function LabTestsTable({
 				encounterId={encounterId}
 			/>
 			<LabTestDetailsDrawer
+				patientId={patientId}
 				open={isDetailsDrawerOpen}
 				onOpenChange={setIsDetailsDrawerOpen}
 				labTest={labTests.find((labTest) => labTest.labId === selectedTest?.labId) ?? selectedTest}

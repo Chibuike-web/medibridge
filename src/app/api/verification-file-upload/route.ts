@@ -1,13 +1,17 @@
-import { mkdir, readdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { eq } from "drizzle-orm";
 import { hospitalDetails } from "@/db/schemas";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { db } from "@/lib/better-auth/auth";
+import { hospitalUploads } from "@/lib/storage/client";
+import { uploadMetadataSchema } from "@/lib/storage/schemas";
 
-const uploadDir = path.resolve("hospital-uploads");
-const maxSizeInBytes = 50 * 1024 * 1024;
-const allowedTypes = ["pdf", "png", "jpg", "doc"];
+const contentTypes = new Map([
+	["pdf", "application/pdf"],
+	["png", "image/png"],
+	["jpg", "image/jpeg"],
+	["doc", "application/msword"],
+]);
 
 export async function POST(req: Request) {
 	try {
@@ -37,57 +41,48 @@ export async function POST(req: Request) {
 			);
 		}
 
-		const formData = await req.formData();
-		const file = formData.get("file");
-		if (!(file instanceof File) || file.size === 0) {
-			return Response.json({ status: "failed", error: "No file" }, { status: 400 });
+		const parsed = uploadMetadataSchema.safeParse(await req.json().catch(() => null));
+		if (!parsed.success) {
+			return Response.json(
+				{ status: "failed", error: "Choose a valid accreditation file up to 50 MB." },
+				{ status: 400 },
+			);
 		}
 
-		const fileExtension = path.extname(file.name).slice(1).toLowerCase();
-		if (!fileExtension || !allowedTypes.includes(fileExtension)) {
+		const extension = path.extname(parsed.data.name).slice(1).toLowerCase();
+		const type = contentTypes.get(extension);
+		if (!type) {
 			return Response.json(
 				{ status: "failed", error: "Invalid file type. Only PDF, PNG, JPG, and DOC are allowed." },
 				{ status: 400 },
 			);
 		}
 
-		if (file.size > maxSizeInBytes) {
-			return Response.json(
-				{ status: "failed", error: "File is too large. Maximum allowed size is 50MB." },
-				{ status: 400 },
+		const { data: previousFiles, error: listError } = await hospitalUploads.list(session.user.id, {
+			limit: 100,
+			sortBy: { column: "created_at", order: "desc" },
+		});
+		if (listError) throw listError;
+
+		const key = `${session.user.id}/${crypto.randomUUID()}.${extension}`;
+		const { data, error } = await hospitalUploads.createSignedUploadUrl(key, { upsert: false });
+		if (error) throw error;
+
+		// WARNING: keep the newest file. The new upload hasn't reached storage yet and can still fail.
+		const replacedFiles = previousFiles.slice(1);
+		if (replacedFiles.length > 0) {
+			const { error: removeError } = await hospitalUploads.remove(
+				replacedFiles.map((file) => `${session.user.id}/${file.name}`),
 			);
+			if (removeError) console.error("Removing replaced accreditation files failed:", removeError);
 		}
 
-		const fileUploadId = crypto.randomUUID();
-		const buffer = Buffer.from(await file.arrayBuffer());
-		const userUploadDir = path.join(uploadDir, session.user.id);
-
-		await mkdir(userUploadDir, { recursive: true });
-		const previousFileNames = await readdir(userUploadDir);
-		const filePath = path.join(userUploadDir, `${fileUploadId}.${fileExtension}`);
-		const temporaryFilePath = path.join(uploadDir, `${fileUploadId}.tmp`);
-
-		// Hospital submission must only see complete documents in the owner's folder.
-		try {
-			await writeFile(temporaryFilePath, buffer);
-			await rename(temporaryFilePath, filePath);
-			for (const previousFileName of previousFileNames) {
-				await rm(path.join(userUploadDir, previousFileName), { force: true });
-			}
-		} finally {
-			await rm(temporaryFilePath, { force: true });
-		}
 		return Response.json(
-			{
-				status: "success",
-				filename: file.name,
-				mimetype: file.type,
-				size: file.size,
-			},
-			{ status: 200 },
+			{ status: "success", signedUrl: data.signedUrl, type },
+			{ headers: { "Cache-Control": "no-store" } },
 		);
 	} catch (error) {
-		console.error(error);
+		console.error("Preparing accreditation upload failed:", error);
 		return Response.json(
 			{ status: "failed", error: "We couldn’t upload your file. Please try again." },
 			{ status: 500 },

@@ -13,20 +13,27 @@ const {
 	extractionRow,
 	transactionMock,
 	updateTagMock,
+	removeUploadMock,
 } = vi.hoisted(() => ({
 	getOrganizationIdMock: vi.fn(),
 	getSessionDataMock: vi.fn(),
 	insertedRows: [] as Record<string, unknown>[],
 	updatedRows: [] as Record<string, unknown>[],
-	extractionRow: { extractedData: [] as PatientExtractionDocument[], isDeleted: false },
+	extractionRow: {
+		createdBy: "uploader-1",
+		extractedData: [] as PatientExtractionDocument[],
+		isDeleted: false,
+	},
 	transactionMock: vi.fn(),
 	updateTagMock: vi.fn(),
+	removeUploadMock: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({ updateTag: updateTagMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/better-auth/auth", () => ({ db: { transaction: transactionMock } }));
+vi.mock("@/lib/storage/client", () => ({ patientUploads: { remove: removeUploadMock } }));
 
 function createPatientRecord(patientId: string | null, firstName: string): PatientRecord {
 	return {
@@ -81,6 +88,8 @@ describe("saveExtractedPatientsService", () => {
 			failedDocument,
 		];
 		extractionRow.isDeleted = false;
+		removeUploadMock.mockReset();
+		removeUploadMock.mockResolvedValue({ data: [], error: null });
 		transactionMock.mockImplementation(async (save) =>
 			save({
 				select: () => ({
@@ -149,6 +158,30 @@ describe("saveExtractedPatientsService", () => {
 		expect(updateTagMock).toHaveBeenCalledWith("overview-stats-hospital-1");
 		expect(updateTagMock).toHaveBeenCalledWith(`patient-profile-hospital-1-${generatedId}`);
 		expect(updateTagMock).toHaveBeenCalledWith(`patient-by-id-hospital-1-${generatedId}`);
+	});
+
+	test("deletes the source document once its patient is saved", async () => {
+		await saveExtractedPatientsService(
+			"extraction-1",
+			"ada.pdf",
+			createPatientRecord("P-0001", "Ada"),
+		);
+
+		expect(removeUploadMock).toHaveBeenCalledWith(["hospital-1/uploader-1/ada.pdf"]);
+	});
+
+	test("keeps the saved patient when the source document can't be deleted yet", async () => {
+		const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+		removeUploadMock.mockResolvedValue({ data: null, error: new Error("Private storage detail") });
+
+		const result = await saveExtractedPatientsService(
+			"extraction-1",
+			"ada.pdf",
+			createPatientRecord("P-0001", "Ada"),
+		);
+
+		expect(result).toEqual({ status: "success", savedCount: 1 });
+		expect(consoleError).toHaveBeenCalled();
 	});
 
 	test("deletes the extraction once its last document is saved", async () => {

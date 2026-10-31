@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { patientUploads } from "@/lib/storage/client";
 import path from "node:path";
 import { getPatientExtractionById } from "@/lib/api/get-patient-extraction-by-id";
 import { getSessionData } from "@/lib/api/get-session-data";
@@ -13,7 +13,7 @@ const documentContentTypes: Record<string, string> = {
 };
 
 export async function GET(
-	_request: Request,
+	request: Request,
 	context: RouteContext<"/api/patient-extractions/[extractionId]/documents/[documentId]">,
 ) {
 	const session = await getSessionData();
@@ -48,28 +48,38 @@ export async function GET(
 	const extraction = await getPatientExtractionById(extractionId);
 	const fileExtension = path.extname(documentId).toLowerCase();
 	const contentType = documentContentTypes[fileExtension];
-	const uploadRoot = path.resolve("patient-uploads", organizationId, extraction?.createdBy ?? "");
-	const filePath = path.resolve(uploadRoot, documentId);
 
 	if (
 		!extraction ||
 		!contentType ||
-		path.dirname(filePath) !== uploadRoot ||
+		documentId !== path.posix.basename(documentId) ||
+		/[\\:]/.test(documentId) ||
 		!extraction.extractedData.some((record) => record.documentId === documentId)
 	) {
 		return Response.json({ status: "failed", error: "Document not found." }, { status: 404 });
 	}
 
 	try {
-		const file = await readFile(filePath);
-		return new Response(new Uint8Array(file), {
-			headers: {
-				"Content-Type": contentType,
-				"Content-Disposition": fileExtension === ".docx" ? "attachment" : "inline",
-				"Cache-Control": "private, no-store",
-				"X-Content-Type-Options": "nosniff",
-			},
+		const key = `${organizationId}/${extraction.createdBy}/${documentId}`;
+		const { data, error } = await patientUploads.createSignedUrl(key, 60);
+		if (error) throw error;
+		const range = request.headers.get("range");
+		const storageHeaders = new Headers({ "Accept-Encoding": "identity" });
+		if (range) storageHeaders.set("Range", range);
+		const file = await fetch(data.signedUrl, { headers: storageHeaders });
+		if (!file.ok) throw new Error(`Storage responded with ${file.status}.`);
+		const headers = new Headers({
+			"Content-Type": contentType,
+			"Content-Disposition": fileExtension === ".docx" ? "attachment" : "inline",
+			"Accept-Ranges": "bytes",
+			"Cache-Control": "private, no-store",
+			"X-Content-Type-Options": "nosniff",
 		});
+		for (const name of ["Content-Length", "Content-Range"]) {
+			const value = file.headers.get(name);
+			if (value) headers.set(name, value);
+		}
+		return new Response(file.body, { status: file.status, headers });
 	} catch (error) {
 		console.error(error);
 		return Response.json({ status: "failed", error: "Document not found." }, { status: 404 });

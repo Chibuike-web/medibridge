@@ -1,6 +1,5 @@
 import "server-only";
 
-import path from "node:path";
 import { eq } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { patientExtraction, type PatientExtractionDocument } from "@/db/schemas/patient";
@@ -59,7 +58,7 @@ export async function retryPatientExtractionService(
 		}
 
 		const retriedDocuments = await extractPatientDocumentsService(
-			path.resolve("patient-uploads", organizationId, extraction.createdBy),
+			`${organizationId}/${extraction.createdBy}`,
 			failedDocumentIds,
 		);
 

@@ -1,7 +1,7 @@
 import "server-only";
 
 import path from "node:path";
-import { rm } from "node:fs/promises";
+import { patientUploads } from "@/lib/storage/client";
 import { and, eq } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { patientExtraction } from "@/db/schemas/patient";
@@ -55,13 +55,6 @@ export async function discardPatientExtractionService(
 				return null;
 			}
 
-			const uploadRoot = path.resolve("patient-uploads", organizationId, extraction.createdBy);
-			for (const document of extraction.extractedData) {
-				const filePath = path.resolve(uploadRoot, document.documentId);
-				if (path.dirname(filePath) !== uploadRoot) continue;
-				await rm(filePath, { force: true });
-			}
-
 			await tx.delete(patientExtraction).where(eq(patientExtraction.id, extractionId));
 			return extraction;
 		});
@@ -71,6 +64,23 @@ export async function discardPatientExtractionService(
 		}
 
 		updateTag(`patient-extraction-${organizationId}-${extractionId}`);
+
+		const keys = discardedExtraction.extractedData
+			.filter(
+				(document) =>
+					document.documentId === path.posix.basename(document.documentId) &&
+					!/[\\:]/.test(document.documentId) &&
+					document.documentId !== "." &&
+					document.documentId !== "..",
+			)
+			.map(
+				(document) => `${organizationId}/${discardedExtraction.createdBy}/${document.documentId}`,
+			);
+
+		if (keys.length > 0) {
+			const { error } = await patientUploads.remove(keys);
+			if (error) console.error("Removing discarded patient uploads failed:", error);
+		}
 
 		return { status: "success" };
 	} catch (error) {

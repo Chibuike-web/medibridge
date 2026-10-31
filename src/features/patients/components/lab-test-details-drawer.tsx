@@ -76,8 +76,11 @@ import Image from "next/image";
 import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
 import { ChooseFileCard } from "@/components/choose-file-card";
 import { useRouter } from "next/navigation";
+import { uploadReportFiles, type UploadedReports } from "@/lib/storage/upload-report-files";
+import { patientLabTestSchema } from "@/features/patients/server/schemas";
 
 type LabTestDetailsDrawerProps = {
+	patientId: string;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	labTest: LabTestType | null;
@@ -90,13 +93,19 @@ const optionalLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
-export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDetailsDrawerProps) {
+export function LabTestDetailsDrawer({
+	open,
+	onOpenChange,
+	labTest,
+	patientId,
+}: LabTestDetailsDrawerProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [labTestDetailsMode, setLabTestDetailsMode] = useState<"view" | "edit">("view");
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 	const [formError, setFormError] = useState("");
+	const uploadedReportsRef = useRef<UploadedReports>(new Map());
 	const [isPending, startTransition] = useTransition();
 
 	function handleLabTestDetailsModeChange(nextMode: "view" | "edit") {
@@ -106,6 +115,7 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 
 	function handleLabTestDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
+			uploadedReportsRef.current.clear();
 			handleLabTestDetailsModeChange("view");
 		}
 
@@ -125,20 +135,78 @@ export function LabTestDetailsDrawer({ open, onOpenChange, labTest }: LabTestDet
 			return;
 		}
 
+		const parsedLabTest = patientLabTestSchema.safeParse({
+			testName: formData.get("testName") ?? "",
+			status: formData.get("status"),
+			flag: formData.get("flag") || undefined,
+			referenceRange: formData.get("referenceRange") ?? "",
+			orderedBy: formData.get("orderedBy") ?? "",
+			orderedAt: formData.get("orderedAt") ?? "",
+			specimen: formData.get("specimen") ?? "",
+			result: formData.get("result") ?? "",
+			interpretation: formData.get("interpretation") ?? "",
+			clinicalNote: formData.get("clinicalNote") ?? "",
+		});
+
+		if (!parsedLabTest.success) {
+			setFormError(parsedLabTest.error.issues[0].message);
+			return;
+		}
+
+		const reportFileCount =
+			labTest.files.length -
+			formData.getAll("removedFileIds").length +
+			formData.getAll("files").filter((file) => file instanceof File && file.size > 0).length;
+
+		if (parsedLabTest.data.status === "Completed" && reportFileCount === 0) {
+			setFormError("Attach the report for a completed lab test.");
+			return;
+		}
+
 		startTransition(async () => {
-			const result = await updatePatientLabTestAction(labTest.labId, formData);
+			try {
+				const reportFiles = formData
+					.getAll("files")
+					.filter((file): file is File => file instanceof File && file.size > 0);
+				formData.delete("files");
+				const uploadedReports = await uploadReportFiles(
+					reportFiles,
+					patientId,
+					"lab",
+					uploadedReportsRef.current,
+				);
 
-			if (result.status === "unauthorized") {
-				router.refresh();
-				return;
+				if (uploadedReports.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				if (uploadedReports.status === "failed") {
+					setFormError(uploadedReports.error);
+					return;
+				}
+
+				for (const receipt of uploadedReports.receipts) formData.append("files", receipt);
+
+				const result = await updatePatientLabTestAction(labTest.labId, formData);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				uploadedReportsRef.current.clear();
+				setLabTestDetailsMode("view");
+			} catch (error) {
+				console.error("Saving report files failed:", error);
+				uploadedReportsRef.current.clear();
+				setFormError("We couldn’t save these changes. Please try again.");
 			}
-
-			if (result.status !== "success") {
-				setFormError(result.error);
-				return;
-			}
-
-			setLabTestDetailsMode("view");
 		});
 	}
 

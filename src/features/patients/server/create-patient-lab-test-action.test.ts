@@ -1,3 +1,4 @@
+import { SignJWT, decodeJwt } from "jose";
 // @vitest-environment node
 
 import path from "node:path";
@@ -22,6 +23,31 @@ const { getSessionDataMock, getOrganizationIdMock, updateTagMock, database, disk
 
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
+vi.mock("@/lib/utils/env", () => ({ ENV: { BETTER_AUTH_SECRET: "storage-test-secret" } }));
+vi.mock("@/lib/storage/client", () => ({
+	patientUploads: {
+		info: async (key: string) => {
+			const content = disk.files.get(key);
+			return content
+				? {
+						data: {
+							size: content.byteLength,
+							contentType: key.endsWith(".pdf")
+								? "application/pdf"
+								: key.endsWith(".png")
+									? "image/png"
+									: "image/jpeg",
+						},
+						error: null,
+					}
+				: { data: null, error: new Error("Missing object") };
+		},
+		remove: async (keys: string[]) => {
+			for (const key of keys) disk.files.delete(key);
+			return { data: [], error: null };
+		},
+	},
+}));
 vi.mock("next/cache", () => ({ updateTag: updateTagMock }));
 vi.mock("node:fs/promises", async () => {
 	const { sep } = await import("node:path");
@@ -69,13 +95,13 @@ vi.mock("@/lib/better-auth/auth", async () => {
 	};
 });
 
-const labTestFolders = path.resolve("patient-uploads", "hospital-1", "record-files");
+const labTestFolders = "hospital-1/record-files";
 const cbcReport = new File(["%PDF-1.4 full blood count"], "cbc-report.pdf", {
 	type: "application/pdf",
 });
 const completedLabTest = { status: "Completed", result: "Hb 9.8 g/dL", flag: "Low" };
 
-function labTestForm(overrides: Record<string, string> = {}, files: File[] = []) {
+async function labTestForm(overrides: Record<string, string> = {}, files: File[] = []) {
 	const formData = new FormData();
 	for (const [field, value] of Object.entries({
 		testName: "Full blood count",
@@ -91,7 +117,37 @@ function labTestForm(overrides: Record<string, string> = {}, files: File[] = [])
 		...overrides,
 	}))
 		formData.set(field, value);
-	for (const file of files) formData.append("files", file);
+	for (const file of files) {
+		const id = crypto.randomUUID();
+		const extension =
+			file.type === "application/pdf"
+				? ".pdf"
+				: file.type === "image/png"
+					? ".png"
+					: file.type === "image/jpeg"
+						? ".jpg"
+						: ".docx";
+		disk.files.set(
+			`hospital-1/record-files/${id}${extension}`,
+			Buffer.from(await file.arrayBuffer()),
+		);
+		const receipt = await new SignJWT({
+			id,
+			name: file.name,
+			type: file.type,
+			size: file.size,
+			patientId: "patient-1",
+			organizationId: "hospital-1",
+			userId: "member-1",
+			recordType: "lab",
+		})
+			.setProtectedHeader({ alg: "HS256" })
+			.setAudience("patient-record-upload")
+			.setIssuedAt()
+			.setExpirationTime("2h")
+			.sign(new TextEncoder().encode("storage-test-secret"));
+		formData.append("files", receipt);
+	}
 	return formData;
 }
 
@@ -112,7 +168,7 @@ describe("adding a patient lab test", () => {
 	});
 
 	test("a verified hospital member can order a pending lab test without a report", async () => {
-		const result = await createPatientLabTestAction("patient-1", labTestForm());
+		const result = await createPatientLabTestAction("patient-1", await labTestForm());
 
 		expect(result).toEqual({ status: "success", labTestId: expect.stringMatching(/^LAB-/) });
 		expect(database.labTests).toEqual([
@@ -140,7 +196,7 @@ describe("adding a patient lab test", () => {
 	});
 
 	test("links the lab test to the patient's encounter it was ordered from", async () => {
-		await createPatientLabTestAction("patient-1", labTestForm({ encounterId: "ENC-1" }));
+		await createPatientLabTestAction("patient-1", await labTestForm({ encounterId: "ENC-1" }));
 
 		expect(database.labTests).toEqual([expect.objectContaining({ encounterId: "ENC-1" })]);
 	});
@@ -152,7 +208,7 @@ describe("adding a patient lab test", () => {
 
 		const result = await createPatientLabTestAction(
 			"patient-1",
-			labTestForm(completedLabTest, [cbcReport, bloodFilm]),
+			await labTestForm(completedLabTest, [cbcReport, bloodFilm]),
 		);
 
 		expect(result).toEqual({ status: "success", labTestId: expect.stringMatching(/^LAB-/) });
@@ -171,7 +227,7 @@ describe("adding a patient lab test", () => {
 				id: savedReport.id,
 				parentRecordId: labTestId,
 				name: "cbc-report.pdf",
-				url: `/api/patient-record-files/${savedReport.id}`,
+				url: `/api/patient-record-files/lab/${savedReport.id}`,
 				type: "application/pdf",
 				size: "1 KB",
 				uploadedBy: "Ada Obi",
@@ -180,7 +236,7 @@ describe("adding a patient lab test", () => {
 				id: savedFilm.id,
 				parentRecordId: labTestId,
 				name: "blood-film.jpg",
-				url: `/api/patient-record-files/${savedFilm.id}`,
+				url: `/api/patient-record-files/lab/${savedFilm.id}`,
 				type: "image/jpeg",
 				size: "1.5 MB",
 				uploadedBy: "Ada Obi",
@@ -188,11 +244,11 @@ describe("adding a patient lab test", () => {
 		]);
 		expect(disk.files.size).toBe(2);
 		expect(
-			disk.files.get(path.join(labTestFolders, labTestId, `${savedReport.id}.pdf`))?.toString(),
+			disk.files.get(path.posix.join(labTestFolders, `${savedReport.id}.pdf`))?.toString(),
 		).toBe("%PDF-1.4 full blood count");
-		expect(
-			disk.files.get(path.join(labTestFolders, labTestId, `${savedFilm.id}.jpg`)),
-		).toHaveLength(1.5 * 1024 * 1024);
+		expect(disk.files.get(path.posix.join(labTestFolders, `${savedFilm.id}.jpg`))).toHaveLength(
+			1.5 * 1024 * 1024,
+		);
 	});
 
 	test.each([
@@ -215,19 +271,21 @@ describe("adding a patient lab test", () => {
 			error: "Attach the report for a completed lab test.",
 		},
 	])(
-		"a completed lab test without its $missing is rejected without saving or storing files",
+		"a completed lab test without its $missing is rejected without creating a clinical record",
 		async ({ overrides, files, error }) => {
-			expect(await createPatientLabTestAction("patient-1", labTestForm(overrides, files))).toEqual({
+			expect(
+				await createPatientLabTestAction("patient-1", await labTestForm(overrides, files)),
+			).toEqual({
 				status: "failed",
 				error,
 			});
 			expect(database.labTests).toEqual([]);
 			expect(database.files).toEqual([]);
-			expect(disk.files.size).toBe(0);
+			expect(disk.files.size).toBe(files.length);
 		},
 	);
 
-	test("rejects a report that is not a PDF, PNG or JPG without storing any file", async () => {
+	test("rejects a report that is not a PDF, PNG or JPG without saving a clinical record", async () => {
 		const notes = new File(["lab notes"], "notes.docx", {
 			type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 		});
@@ -235,22 +293,28 @@ describe("adding a patient lab test", () => {
 		expect(
 			await createPatientLabTestAction(
 				"patient-1",
-				labTestForm(completedLabTest, [cbcReport, notes]),
+				await labTestForm(completedLabTest, [cbcReport, notes]),
 			),
-		).toEqual({ status: "failed", error: "Files must be PDF, PNG or JPG." });
+		).toEqual({
+			status: "failed",
+			error: "We couldn’t verify these uploads. Upload the reports again.",
+		});
 		expect(database.labTests).toEqual([]);
-		expect(disk.files.size).toBe(0);
+		expect(disk.files.size).toBe(2);
 	});
 
-	test("removes the stored reports and shows a plain message when the save fails", async () => {
+	test("keeps the uploaded reports for retry or orphan cleanup and shows a plain message when the save fails", async () => {
 		database.failWrites = true;
 		vi.spyOn(console, "error").mockImplementation(() => {});
 
 		expect(
-			await createPatientLabTestAction("patient-1", labTestForm(completedLabTest, [cbcReport])),
+			await createPatientLabTestAction(
+				"patient-1",
+				await labTestForm(completedLabTest, [cbcReport]),
+			),
 		).toEqual({ status: "failed", error: "We couldn’t add this lab test. Please try again." });
-		expect(disk.writes).toEqual([expect.stringContaining(path.join(labTestFolders, "LAB-"))]);
-		expect(disk.files.size).toBe(0);
+		expect(disk.writes).toEqual([]);
+		expect(disk.files.size).toBe(1);
 		expect(updateTagMock).not.toHaveBeenCalled();
 	});
 
@@ -258,10 +322,13 @@ describe("adding a patient lab test", () => {
 		getSessionDataMock.mockResolvedValue(null);
 
 		expect(
-			await createPatientLabTestAction("patient-1", labTestForm(completedLabTest, [cbcReport])),
+			await createPatientLabTestAction(
+				"patient-1",
+				await labTestForm(completedLabTest, [cbcReport]),
+			),
 		).toEqual({ status: "unauthorized", error: "You must be signed in to add lab tests." });
 		expect(database.labTests).toEqual([]);
-		expect(disk.files.size).toBe(0);
+		expect(disk.files.size).toBe(1);
 	});
 
 	test.each([
@@ -298,11 +365,55 @@ describe("adding a patient lab test", () => {
 		expect(
 			await createPatientLabTestAction(
 				"patient-1",
-				labTestForm({ ...completedLabTest, encounterId: "ENC-1" }, [cbcReport]),
+				await labTestForm({ ...completedLabTest, encounterId: "ENC-1" }, [cbcReport]),
 			),
 		).toEqual({ status: "failed", error });
 		expect(database.labTests).toEqual([]);
 		expect(database.files).toEqual([]);
-		expect(disk.files.size).toBe(0);
+		expect(disk.files.size).toBe(1);
+	});
+	test.each([
+		{ organizationId: "other-hospital" },
+		{ patientId: "other-patient" },
+		{ userId: "other-uploader" },
+		{ recordType: "imaging" },
+	])("rejects an existing uploaded report signed for a different scope: %j", async (scope) => {
+		const form = await labTestForm({}, [
+			new File(["%PDF-test"], "scope.pdf", { type: "application/pdf" }),
+		]);
+		expect(disk.files.size).toBe(1);
+		const payload = decodeJwt(String(form.get("files")));
+		const receipt = await new SignJWT({ ...payload, ...scope })
+			.setProtectedHeader({ alg: "HS256" })
+			.sign(new TextEncoder().encode("storage-test-secret"));
+		form.set("files", receipt);
+		expect(await createPatientLabTestAction("patient-1", form)).toEqual({
+			status: "failed",
+			error: "This report does not belong to this patient.",
+		});
+		expect(database.files).toEqual([]);
+		expect(disk.files.size).toBe(1);
+	});
+	test("rejects a forged upload receipt without linking or deleting an existing uploaded object", async () => {
+		const form = await labTestForm({}, [
+			new File(["%PDF-test"], "scope.pdf", { type: "application/pdf" }),
+		]);
+		expect(disk.files.size).toBe(1);
+		form.set("files", String(form.get("files")) + "forged");
+		expect((await createPatientLabTestAction("patient-1", form)).status).toBe("failed");
+		expect(database.files).toEqual([]);
+		expect(disk.files.size).toBe(1);
+	});
+	test("refuses to save a receipt when its object was never fully uploaded", async () => {
+		const form = await labTestForm({}, [
+			new File(["%PDF-test"], "scope.pdf", { type: "application/pdf" }),
+		]);
+		expect(disk.files.size).toBe(1);
+		disk.files.clear();
+		expect(await createPatientLabTestAction("patient-1", form)).toEqual({
+			status: "failed",
+			error: "Upload the complete report before saving.",
+		});
+		expect(database.files).toEqual([]);
 	});
 });

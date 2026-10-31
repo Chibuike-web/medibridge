@@ -26,7 +26,18 @@ const {
 }));
 
 vi.mock("next/headers", () => ({ headers: headersMock }));
-vi.mock("node:fs/promises", () => ({ readdir: readdirMock }));
+vi.mock("@/lib/storage/client", () => ({
+	hospitalUploads: {
+		list: async (folder: string) => ({
+			data: (await readdirMock(folder)).map((name: string) => ({
+				name,
+				id: name,
+				metadata: { size: 10, mimetype: "application/pdf" },
+			})),
+			error: null,
+		}),
+	},
+}));
 vi.mock("@/lib/better-auth/auth", () => ({
 	auth: {
 		api: {
@@ -142,7 +153,7 @@ describe("createHospitalService", () => {
 				emailVerified: true,
 			},
 		});
-		readdirMock.mockRejectedValue(Object.assign(new Error("ENOENT"), { code: "ENOENT" }));
+		readdirMock.mockResolvedValue([]);
 
 		const result = await createHospitalService({
 			hospitalName: "St Mary's Hospital",

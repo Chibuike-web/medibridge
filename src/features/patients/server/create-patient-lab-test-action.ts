@@ -1,14 +1,13 @@
 "use server";
 
-import { mkdir, rm, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { verifyRecordUploadsService } from "@/services/patient/verify-record-uploads-service";
 import { and, eq } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { patient, patientEncounter, patientLabTest, patientLabTestFile } from "@/db/schemas";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { db } from "@/lib/better-auth/auth";
-import { patientLabTestSchema, recordFileExtensions, recordFilesSchema } from "./schemas";
+import { patientLabTestSchema } from "./schemas";
 
 type CreatePatientLabTestResult =
 	| { status: "success"; labTestId: string }
@@ -54,16 +53,6 @@ export async function createPatientLabTestAction(
 		return { status: "failed", error: parsedLabTest.error.issues[0].message };
 	}
 
-	const parsedFiles = recordFilesSchema.safeParse(formData.getAll("files"));
-
-	if (!parsedFiles.success) {
-		return { status: "failed", error: parsedFiles.error.issues[0].message };
-	}
-
-	if (parsedLabTest.data.status === "Completed" && parsedFiles.data.length === 0) {
-		return { status: "failed", error: "Attach the report for a completed lab test." };
-	}
-
 	const [patientRow] = await db
 		.select({ id: patient.id })
 		.from(patient)
@@ -72,6 +61,23 @@ export async function createPatientLabTestAction(
 
 	if (!patientRow) {
 		return { status: "failed", error: "Patient could not be found." };
+	}
+
+	const verifiedUploads = await verifyRecordUploadsService(formData.getAll("files"), {
+		organizationId,
+		userId: session.user.id,
+		patientId: patientId,
+		recordType: "lab",
+	});
+
+	if (verifiedUploads.status === "failed") {
+		return { status: "failed", error: verifiedUploads.error };
+	}
+
+	const uploadedFiles = verifiedUploads.files;
+
+	if (parsedLabTest.data.status === "Completed" && uploadedFiles.length === 0) {
+		return { status: "failed", error: "Attach the report for a completed lab test." };
 	}
 
 	const encounterId = String(formData.get("encounterId") ?? "").trim();
@@ -92,26 +98,8 @@ export async function createPatientLabTestAction(
 	const labTestId = `LAB-${crypto.randomUUID()}`;
 	const { flag, referenceRange, result, interpretation, clinicalNote, orderedAt, ...labTest } =
 		parsedLabTest.data;
-	const fileDirectory = path.resolve("patient-uploads", organizationId, "record-files", labTestId);
-	const files = parsedFiles.data.map((file) => ({
-		id: crypto.randomUUID(),
-		file,
-		extension: recordFileExtensions[file.type as keyof typeof recordFileExtensions],
-	}));
 
 	try {
-		if (files.length > 0) {
-			await mkdir(fileDirectory, { recursive: true });
-			await Promise.all(
-				files.map(async ({ id, file, extension }) =>
-					writeFile(
-						path.join(fileDirectory, `${id}${extension}`),
-						Buffer.from(await file.arrayBuffer()),
-					),
-				),
-			);
-		}
-
 		await db.transaction(async (tx) => {
 			await tx.insert(patientLabTest).values({
 				id: labTestId,
@@ -128,13 +116,13 @@ export async function createPatientLabTestAction(
 				updatedBy: createdBy,
 			});
 
-			if (files.length > 0) {
+			if (uploadedFiles.length > 0) {
 				await tx.insert(patientLabTestFile).values(
-					files.map(({ id, file }) => ({
-						id,
+					uploadedFiles.map((file) => ({
+						id: file.id,
 						parentRecordId: labTestId,
 						name: file.name,
-						url: `/api/patient-record-files/${id}`,
+						url: `/api/patient-record-files/lab/${file.id}`,
 						type: file.type,
 						size:
 							file.size >= 1024 * 1024
@@ -147,9 +135,6 @@ export async function createPatientLabTestAction(
 		});
 	} catch (error) {
 		console.error("Creating patient lab test failed:", error);
-		await rm(fileDirectory, { recursive: true, force: true }).catch((cleanupError) =>
-			console.error("Removing unsaved lab test files failed:", cleanupError),
-		);
 		return { status: "failed", error: "We couldn’t add this lab test. Please try again." };
 	}
 

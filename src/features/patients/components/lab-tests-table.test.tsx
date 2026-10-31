@@ -2,9 +2,11 @@ import { render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { LabTestType } from "@/features/patients/types";
 import { LabTestsTable } from "./lab-tests-table";
+
+const uploadFetch = vi.fn();
 
 const activeMember = vi.hoisted(() => ({ role: "owner" }));
 const { createLabTestMock, updateLabTestMock } = vi.hoisted(() => ({
@@ -59,7 +61,7 @@ const labTests: LabTestType[] = [
 			{
 				id: "FILE-a1c",
 				name: "a1c-report.pdf",
-				url: "/api/patient-record-files/FILE-a1c",
+				url: "/api/patient-record-files/lab/FILE-a1c",
 				type: "application/pdf",
 				size: "120 KB",
 				uploadedAtLabel: "Jan 6, 2020",
@@ -156,7 +158,19 @@ function bulkActionBar() {
 }
 
 describe("Lab tests table", () => {
+	afterEach(() => vi.unstubAllGlobals());
 	beforeEach(() => {
+		uploadFetch.mockReset();
+		uploadFetch.mockImplementation(async (url: string, options: RequestInit) =>
+			url === "/api/patient-record-files/upload"
+				? Response.json({
+						status: "success",
+						signedUrl: "https://storage.test/report",
+						receipt: options.body,
+					})
+				: new Response(null, { status: 200 }),
+		);
+		vi.stubGlobal("fetch", uploadFetch);
 		activeMember.role = "owner";
 		createLabTestMock.mockReset();
 		updateLabTestMock.mockReset();
@@ -268,7 +282,6 @@ describe("Lab tests table", () => {
 		await user.click(screen.getByRole("checkbox", { name: "Critical" }));
 		expect(onFlagFiltersChange).toHaveBeenCalledWith(["high", "critical"]);
 	});
-
 
 	test("applies a creation date preset as a from/to range", async () => {
 		const user = setupSubmenuUser();
@@ -537,7 +550,7 @@ describe("Lab tests table", () => {
 				encounterId: "ENC-1",
 			}),
 		);
-		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual([
+		expect(formData.getAll("files").map((receipt) => JSON.parse(String(receipt)).name)).toEqual([
 			"fbc-request.pdf",
 		]);
 		expect(screen.queryByRole("dialog", { name: "Add lab test" })).not.toBeInTheDocument();
@@ -559,10 +572,9 @@ describe("Lab tests table", () => {
 		await user.type(within(drawer).getByLabelText(/Specimen/), "Serum");
 		await user.click(within(drawer).getByRole("button", { name: "Add lab test" }));
 
-		expect(await within(drawer).findByRole("alert")).toHaveTextContent(
-			"Attach the report for a completed lab test.",
-		);
+		expect(await within(drawer).findByRole("alert")).toHaveTextContent("Select the order date.");
 		expect(within(drawer).getByLabelText(/^Test/)).toHaveValue("Lipid panel");
+		expect(createLabTestMock).not.toHaveBeenCalled();
 	});
 
 	test("opens and downloads a saved lab report from the details drawer", async () => {
@@ -576,11 +588,11 @@ describe("Lab tests table", () => {
 		expect(within(dialog).getByText("a1c-report.pdf")).toBeVisible();
 		expect(within(dialog).getByRole("link", { name: "Open" })).toHaveAttribute(
 			"href",
-			"/api/patient-record-files/FILE-a1c",
+			"/api/patient-record-files/lab/FILE-a1c",
 		);
 		expect(within(dialog).getByRole("link", { name: "Download" })).toHaveAttribute(
 			"href",
-			"/api/patient-record-files/FILE-a1c?download",
+			"/api/patient-record-files/lab/FILE-a1c?download",
 		);
 	});
 
@@ -622,7 +634,9 @@ describe("Lab tests table", () => {
 				removedFileIds: "FILE-a1c",
 			}),
 		);
-		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual(["a1c-repeat.pdf"]);
+		expect(formData.getAll("files").map((receipt) => JSON.parse(String(receipt)).name)).toEqual([
+			"a1c-repeat.pdf",
+		]);
 		expect(await screen.findByRole("dialog", { name: "Lab test details" })).toBeVisible();
 		rerender(
 			<SortableLabTestsTable

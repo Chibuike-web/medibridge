@@ -1,14 +1,13 @@
 "use server";
 
-import { mkdir, rm, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { verifyRecordUploadsService } from "@/services/patient/verify-record-uploads-service";
 import { and, eq } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { patient, patientEncounter, patientImaging, patientImagingFile } from "@/db/schemas";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { db } from "@/lib/better-auth/auth";
-import { patientImagingSchema, recordFileExtensions, recordFilesSchema } from "./schemas";
+import { patientImagingSchema } from "./schemas";
 
 type CreatePatientImagingResult =
 	| { status: "success"; imagingId: string }
@@ -52,12 +51,6 @@ export async function createPatientImagingAction(
 		return { status: "failed", error: parsedImaging.error.issues[0].message };
 	}
 
-	const parsedFiles = recordFilesSchema.safeParse(formData.getAll("files"));
-
-	if (!parsedFiles.success) {
-		return { status: "failed", error: parsedFiles.error.issues[0].message };
-	}
-
 	const [patientRow] = await db
 		.select({ id: patient.id })
 		.from(patient)
@@ -67,6 +60,19 @@ export async function createPatientImagingAction(
 	if (!patientRow) {
 		return { status: "failed", error: "Patient could not be found." };
 	}
+
+	const verifiedUploads = await verifyRecordUploadsService(formData.getAll("files"), {
+		organizationId,
+		userId: session.user.id,
+		patientId: patientId,
+		recordType: "imaging",
+	});
+
+	if (verifiedUploads.status === "failed") {
+		return { status: "failed", error: verifiedUploads.error };
+	}
+
+	const uploadedFiles = verifiedUploads.files;
 
 	const encounterId = String(formData.get("encounterId") ?? "").trim();
 
@@ -85,26 +91,8 @@ export async function createPatientImagingAction(
 	const createdBy = session.user.name || session.user.email;
 	const imagingId = `IMG-${crypto.randomUUID()}`;
 	const { impression, clinicalNote, orderedAt, ...imaging } = parsedImaging.data;
-	const fileDirectory = path.resolve("patient-uploads", organizationId, "record-files", imagingId);
-	const files = parsedFiles.data.map((file) => ({
-		id: crypto.randomUUID(),
-		file,
-		extension: recordFileExtensions[file.type as keyof typeof recordFileExtensions],
-	}));
 
 	try {
-		if (files.length > 0) {
-			await mkdir(fileDirectory, { recursive: true });
-			await Promise.all(
-				files.map(async ({ id, file, extension }) =>
-					writeFile(
-						path.join(fileDirectory, `${id}${extension}`),
-						Buffer.from(await file.arrayBuffer()),
-					),
-				),
-			);
-		}
-
 		await db.transaction(async (tx) => {
 			await tx.insert(patientImaging).values({
 				id: imagingId,
@@ -118,13 +106,13 @@ export async function createPatientImagingAction(
 				updatedBy: createdBy,
 			});
 
-			if (files.length > 0) {
+			if (uploadedFiles.length > 0) {
 				await tx.insert(patientImagingFile).values(
-					files.map(({ id, file }) => ({
-						id,
+					uploadedFiles.map((file) => ({
+						id: file.id,
 						parentRecordId: imagingId,
 						name: file.name,
-						url: `/api/patient-record-files/${id}`,
+						url: `/api/patient-record-files/imaging/${file.id}`,
 						type: file.type,
 						size:
 							file.size >= 1024 * 1024
@@ -137,9 +125,6 @@ export async function createPatientImagingAction(
 		});
 	} catch (error) {
 		console.error("Creating patient imaging failed:", error);
-		await rm(fileDirectory, { recursive: true, force: true }).catch((cleanupError) =>
-			console.error("Removing unsaved imaging files failed:", cleanupError),
-		);
 		return { status: "failed", error: "We couldn’t add this imaging study. Please try again." };
 	}
 

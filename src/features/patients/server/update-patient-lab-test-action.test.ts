@@ -1,3 +1,4 @@
+import { SignJWT } from "jose";
 // @vitest-environment node
 
 import path from "node:path";
@@ -23,6 +24,31 @@ const { getSessionDataMock, getOrganizationIdMock, updateTagMock, database, disk
 
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
+vi.mock("@/lib/utils/env", () => ({ ENV: { BETTER_AUTH_SECRET: "storage-test-secret" } }));
+vi.mock("@/lib/storage/client", () => ({
+	patientUploads: {
+		info: async (key: string) => {
+			const content = disk.files.get(key);
+			return content
+				? {
+						data: {
+							size: content.byteLength,
+							contentType: key.endsWith(".pdf")
+								? "application/pdf"
+								: key.endsWith(".png")
+									? "image/png"
+									: "image/jpeg",
+						},
+						error: null,
+					}
+				: { data: null, error: new Error("Missing object") };
+		},
+		remove: async (keys: string[]) => {
+			for (const key of keys) disk.files.delete(key);
+			return { data: [], error: null };
+		},
+	},
+}));
 vi.mock("next/cache", () => ({ updateTag: updateTagMock }));
 vi.mock("node:fs/promises", async () => {
 	const { sep } = await import("node:path");
@@ -49,7 +75,12 @@ vi.mock("@/lib/better-auth/auth", async () => {
 			select: () => ({
 				from: () => ({
 					innerJoin: () => ({ where: () => ({ limit: async () => database.labTests }) }),
-					where: async () => database.files,
+					where: async (condition: SQL) => {
+						const { params } = new PgDialect().sqlToQuery(condition);
+						return database.files.filter(
+							(file) => params.includes(file.id) || params.includes(file.parentRecordId),
+						);
+					},
 				}),
 			}),
 			transaction: async (write: (tx: object) => Promise<void>) => {
@@ -81,9 +112,9 @@ vi.mock("@/lib/better-auth/auth", async () => {
 	};
 });
 
-const labTestFolder = path.resolve("patient-uploads", "hospital-1", "record-files", "LAB-1");
-const savedCbcPath = path.join(labTestFolder, "file-cbc.pdf");
-const savedFilmPath = path.join(labTestFolder, "file-film.png");
+const labTestFolder = "hospital-1/record-files";
+const savedCbcPath = path.posix.join(labTestFolder, "file-cbc.pdf");
+const savedFilmPath = path.posix.join(labTestFolder, "file-film.png");
 const savedLabTest = {
 	patientId: "patient-1",
 	updatedAt: new Date("2026-10-14T09:00:00.000Z"),
@@ -105,7 +136,7 @@ const savedFiles = [
 const completedLabTest = { status: "Completed", result: "Hb 9.8 g/dL", flag: "Low" };
 const repeatCbc = new File(["%PDF-1.4 repeat cbc"], "cbc-repeat.pdf", { type: "application/pdf" });
 
-function labTestForm(
+async function labTestForm(
 	overrides: Record<string, string> = {},
 	files: File[] = [],
 	removedFileIds: string[] = [],
@@ -126,7 +157,37 @@ function labTestForm(
 		...overrides,
 	}))
 		formData.set(field, value);
-	for (const file of files) formData.append("files", file);
+	for (const file of files) {
+		const id = crypto.randomUUID();
+		const extension =
+			file.type === "application/pdf"
+				? ".pdf"
+				: file.type === "image/png"
+					? ".png"
+					: file.type === "image/jpeg"
+						? ".jpg"
+						: ".docx";
+		disk.files.set(
+			`hospital-1/record-files/${id}${extension}`,
+			Buffer.from(await file.arrayBuffer()),
+		);
+		const receipt = await new SignJWT({
+			id,
+			name: file.name,
+			type: file.type,
+			size: file.size,
+			patientId: "patient-1",
+			organizationId: "hospital-1",
+			userId: "member-1",
+			recordType: "lab",
+		})
+			.setProtectedHeader({ alg: "HS256" })
+			.setAudience("patient-record-upload")
+			.setIssuedAt()
+			.setExpirationTime("2h")
+			.sign(new TextEncoder().encode("storage-test-secret"));
+		formData.append("files", receipt);
+	}
 	for (const fileId of removedFileIds) formData.append("removedFileIds", fileId);
 	return formData;
 }
@@ -152,7 +213,7 @@ describe("editing a patient lab test", () => {
 	test("saves the changes and records each changed field once, with its old and new value", async () => {
 		const result = await updatePatientLabTestAction(
 			"LAB-1",
-			labTestForm({ ...completedLabTest, orderedAt: "2026-03-01" }),
+			await labTestForm({ ...completedLabTest, orderedAt: "2026-03-01" }),
 		);
 
 		expect(result).toEqual({ status: "success" });
@@ -206,7 +267,7 @@ describe("editing a patient lab test", () => {
 	test("replacing a report records one files change, deletes the removed report and stores the new one", async () => {
 		const result = await updatePatientLabTestAction(
 			"LAB-1",
-			labTestForm({}, [repeatCbc], ["file-film"]),
+			await labTestForm({}, [repeatCbc], ["file-film"]),
 		);
 
 		expect(result).toEqual({ status: "success" });
@@ -218,7 +279,7 @@ describe("editing a patient lab test", () => {
 				id: addedFileId,
 				parentRecordId: "LAB-1",
 				name: "cbc-repeat.pdf",
-				url: `/api/patient-record-files/${addedFileId}`,
+				url: `/api/patient-record-files/lab/${addedFileId}`,
 				type: "application/pdf",
 				size: "1 KB",
 				uploadedBy: "Ada Obi",
@@ -235,9 +296,9 @@ describe("editing a patient lab test", () => {
 		]);
 		expect(database.updates).toEqual([expect.objectContaining({ updatedBy: "Ada Obi" })]);
 		expect(new Set(disk.files.keys())).toEqual(
-			new Set([savedCbcPath, path.join(labTestFolder, `${addedFileId}.pdf`)]),
+			new Set([savedCbcPath, path.posix.join(labTestFolder, `${addedFileId}.pdf`)]),
 		);
-		expect(disk.files.get(path.join(labTestFolder, `${addedFileId}.pdf`))?.toString()).toBe(
+		expect(disk.files.get(path.posix.join(labTestFolder, `${addedFileId}.pdf`))?.toString()).toBe(
 			"%PDF-1.4 repeat cbc",
 		);
 		expect(updateTagMock).toHaveBeenCalledWith("patient-lab-tests-hospital-1-patient-1");
@@ -249,7 +310,7 @@ describe("editing a patient lab test", () => {
 		expect(
 			await updatePatientLabTestAction(
 				"LAB-1",
-				labTestForm(completedLabTest, [], ["file-cbc", "file-film"]),
+				await labTestForm(completedLabTest, [], ["file-cbc", "file-film"]),
 			),
 		).toEqual({ status: "failed", error: "Attach the report for a completed lab test." });
 		expect(database.files).toEqual(savedFiles);
@@ -258,7 +319,7 @@ describe("editing a patient lab test", () => {
 	});
 
 	test("saving without any change writes nothing to the record, its files or its history", async () => {
-		expect(await updatePatientLabTestAction("LAB-1", labTestForm())).toEqual({
+		expect(await updatePatientLabTestAction("LAB-1", await labTestForm())).toEqual({
 			status: "success",
 		});
 		expect(database.updates).toEqual([]);
@@ -270,7 +331,10 @@ describe("editing a patient lab test", () => {
 
 	test("ignores a request to remove a file that is not attached to this lab test", async () => {
 		expect(
-			await updatePatientLabTestAction("LAB-1", labTestForm({}, [], ["file-from-another-test"])),
+			await updatePatientLabTestAction(
+				"LAB-1",
+				await labTestForm({}, [], ["file-from-another-test"]),
+			),
 		).toEqual({ status: "success" });
 		expect(database.files).toEqual(savedFiles);
 		expect(database.history).toEqual([]);
@@ -281,7 +345,7 @@ describe("editing a patient lab test", () => {
 		getSessionDataMock.mockResolvedValue(null);
 
 		expect(
-			await updatePatientLabTestAction("LAB-1", labTestForm(completedLabTest, [repeatCbc])),
+			await updatePatientLabTestAction("LAB-1", await labTestForm(completedLabTest, [repeatCbc])),
 		).toEqual({ status: "unauthorized", error: "You must be signed in to edit lab tests." });
 		expect(database.updates).toEqual([]);
 		expect(disk.writes).toEqual([]);
@@ -293,7 +357,7 @@ describe("editing a patient lab test", () => {
 		expect(
 			await updatePatientLabTestAction(
 				"LAB-1",
-				labTestForm(completedLabTest, [repeatCbc], ["file-film"]),
+				await labTestForm(completedLabTest, [repeatCbc], ["file-film"]),
 			),
 		).toEqual({ status: "failed", error: "Lab test could not be found." });
 		expect(database.updates).toEqual([]);
@@ -301,25 +365,26 @@ describe("editing a patient lab test", () => {
 		expect(disk.writes).toEqual([]);
 	});
 
-	test("keeps the saved reports, removes only the new one and shows a plain message when the save fails", async () => {
+	test("keeps the saved reports, retains the pending upload for retry and shows a plain message when the save fails", async () => {
 		database.failWrites = true;
 		vi.spyOn(console, "error").mockImplementation(() => {});
 
 		expect(
 			await updatePatientLabTestAction(
 				"LAB-1",
-				labTestForm(completedLabTest, [repeatCbc], ["file-film"]),
+				await labTestForm(completedLabTest, [repeatCbc], ["file-film"]),
 			),
 		).toEqual({ status: "failed", error: "We couldn’t save these changes. Please try again." });
-		expect(disk.writes).toEqual([expect.stringContaining(labTestFolder)]);
-		expect(new Set(disk.files.keys())).toEqual(new Set([savedCbcPath, savedFilmPath]));
+		expect(disk.writes).toEqual([]);
+		expect([...disk.files.keys()]).toEqual(expect.arrayContaining([savedCbcPath, savedFilmPath]));
+		expect(disk.files.size).toBe(3);
 		expect(database.files).toEqual(savedFiles);
 		expect(updateTagMock).not.toHaveBeenCalled();
 	});
 	test("refuses to save over changes made after the form was opened", async () => {
 		const result = await updatePatientLabTestAction(
 			"LAB-1",
-			labTestForm({
+			await labTestForm({
 				updatedAt: "2026-10-13T09:00:00.000Z",
 				clinicalNote: "Changed in an old tab.",
 			}),

@@ -1,11 +1,17 @@
-import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { z } from "zod";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { getSessionData } from "@/lib/api/get-session-data";
-import type { SavedFileTypes } from "@/lib/types/upload";
+import { patientUploads } from "@/lib/storage/client";
+import { uploadMetadataSchema } from "@/lib/storage/schemas";
 
-const maxSizeInBytes = 50 * 1024 * 1024;
-const allowedTypes = ["pdf", "png", "jpg", "jpeg", "docx"];
+const contentTypes = new Map([
+	["pdf", "application/pdf"],
+	["png", "image/png"],
+	["jpg", "image/jpeg"],
+	["jpeg", "image/jpeg"],
+	["docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+]);
 
 export async function POST(req: Request) {
 	try {
@@ -34,97 +40,65 @@ export async function POST(req: Request) {
 				{ status: 403 },
 			);
 		}
-		const formData = await req.formData();
 
-		const files = formData.getAll("file");
-		const clientIds = formData.getAll("clientId");
-
-		if (files.length === 0) {
-			return Response.json({ status: "failed", error: "No file" }, { status: 400 });
-		}
-		for (const file of files) {
-			if (!(file instanceof File) || file.size === 0) {
-				return Response.json({ status: "failed", error: "No file" }, { status: 400 });
-			}
-			const fileExtension = path.extname(file.name).slice(1).toLowerCase();
-			if (!fileExtension || !allowedTypes.includes(fileExtension)) {
-				return Response.json(
-					{
-						status: "failed",
-						error: "Invalid file type. Only PDF, PNG, JPG, and DOCX are allowed.",
-					},
-					{ status: 400 },
-				);
-			}
-			if (file.size > maxSizeInBytes) {
-				return Response.json(
-					{ status: "failed", error: "File is too large. Maximum allowed size is 50MB." },
-					{ status: 400 },
-				);
-			}
-		}
-		if (
-			clientIds.length !== files.length ||
-			clientIds.some((clientId) => typeof clientId !== "string" || !clientId.trim())
-		) {
+		const parsed = z
+			.object({
+				files: z
+					.array(uploadMetadataSchema.extend({ clientId: z.string().min(1) }))
+					.min(1)
+					.max(20),
+			})
+			.safeParse(await req.json().catch(() => null));
+		if (!parsed.success) {
 			return Response.json(
-				{ status: "failed", error: "Invalid upload client ID." },
+				{ status: "failed", error: "Select up to 20 valid files, each up to 50 MB." },
 				{ status: 400 },
 			);
 		}
-		const uploadDir = path.resolve("patient-uploads", organizationId, session.user.id);
 
-		await mkdir(uploadDir, { recursive: true });
-
-		const uploadedFiles: SavedFileTypes[] = [];
-
-		for (const [index, file] of files.entries()) {
-			const clientId = clientIds[index];
-			if (typeof clientId !== "string" || !clientId.trim()) {
-				return Response.json(
-					{ status: "failed", error: "Invalid upload client ID." },
-					{ status: 400 },
-				);
-			}
-			if (!(file instanceof File)) {
-				return Response.json({ status: "failed", error: "Invalid upload." }, { status: 400 });
-			}
-			const fileUploadId = crypto.randomUUID();
-			const fileExtension = path.extname(file.name).slice(1).toLowerCase();
-			const storedName = `${fileUploadId}.${fileExtension}`;
-			try {
-				const arrayBuffer = await file.arrayBuffer();
-				const buffer = Buffer.from(arrayBuffer);
-				const savePath = path.join(uploadDir, storedName);
-				await writeFile(savePath, buffer);
-
-				uploadedFiles.push({
-					clientId,
-					id: fileUploadId,
-					status: "upload-complete",
-					name: file.name,
-					storedName,
-					type: file.type,
-					size: file.size,
-					url: `patient-uploads/${organizationId}/${session.user.id}/${storedName}`,
-				});
-			} catch (error) {
-				console.error("Uploading patient record failed:", error);
-
-				uploadedFiles.push({
-					clientId,
-					status: "upload-failed",
-					name: file.name,
-				});
-			}
+		if (
+			parsed.data.files.some(
+				(file) => !contentTypes.has(path.extname(file.name).slice(1).toLowerCase()),
+			)
+		) {
+			return Response.json(
+				{ status: "failed", error: "Invalid file type. Only PDF, PNG, JPG, and DOCX are allowed." },
+				{ status: 400 },
+			);
 		}
 
+		const files = await Promise.all(
+			parsed.data.files.map(async (file) => {
+				const id = crypto.randomUUID();
+				const extension = path.extname(file.name).slice(1).toLowerCase();
+				const storedName = `${id}.${extension}`;
+				const key = `${organizationId}/${session.user.id}/${storedName}`;
+				try {
+					const { data, error } = await patientUploads.createSignedUploadUrl(key, {
+						upsert: false,
+					});
+					if (error) throw error;
+					return {
+						...file,
+						id,
+						storedName,
+						type: contentTypes.get(extension),
+						status: "upload-complete" as const,
+						url: `patient-uploads/${key}`,
+						signedUrl: data.signedUrl,
+					};
+				} catch (error) {
+					console.error("Preparing patient upload failed:", error);
+					return { clientId: file.clientId, name: file.name, status: "upload-failed" as const };
+				}
+			}),
+		);
 		return Response.json(
-			{ status: "success", message: "Files successfully uploaded", files: uploadedFiles },
-			{ status: 200 },
+			{ status: "success", files },
+			{ headers: { "Cache-Control": "no-store" } },
 		);
 	} catch (error) {
-		console.error(error);
+		console.error("Preparing patient uploads failed:", error);
 		return Response.json(
 			{ status: "failed", error: "We couldn’t upload your files. Please try again." },
 			{ status: 500 },

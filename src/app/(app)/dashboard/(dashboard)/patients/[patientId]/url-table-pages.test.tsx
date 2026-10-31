@@ -1,3 +1,4 @@
+vi.mock("@/lib/storage/client", () => ({ patientUploads: {}, hospitalUploads: {} }));
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { renderToReadableStream } from "react-dom/server.browser";
 import { JSDOM } from "jsdom";

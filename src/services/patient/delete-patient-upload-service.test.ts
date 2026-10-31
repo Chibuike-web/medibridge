@@ -15,9 +15,18 @@ const { files, getSessionDataMock, getOrganizationIdMock, unlinkMock } = vi.hois
 
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
-vi.mock("node:fs", () => ({
-	existsSync: (file: string) => files.has(file),
-	unlinkSync: unlinkMock,
+vi.mock("@/lib/storage/client", () => ({
+	patientUploads: {
+		remove: async (keys: string[]) => {
+			try {
+				for (const key of keys)
+					await unlinkMock(path.resolve("patient-uploads", ...key.split("/")));
+				return { data: [], error: null };
+			} catch (error) {
+				return { data: null, error };
+			}
+		},
+	},
 }));
 
 import { deletePatientUploadService } from "./delete-patient-upload-service";
@@ -41,6 +50,8 @@ describe("Patient upload deletion", () => {
 	test.each([
 		"patient-uploads/hospital-1/member-2/intake.pdf",
 		"patient-uploads/hospital-2/member-1/intake.pdf",
+		"patient-uploads/hospital-1/member-1/..\\member-2\\intake.pdf",
+		"patient-uploads/hospital-1/member-1/C:intake.pdf",
 		"patient-uploads/intake.pdf",
 		"private.pdf",
 	])("cannot delete an existing upload outside their own folder: %s", async (file) => {

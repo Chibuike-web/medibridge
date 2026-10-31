@@ -73,8 +73,11 @@ import { format, parseISO } from "date-fns";
 import Image from "next/image";
 import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { uploadReportFiles, type UploadedReports } from "@/lib/storage/upload-report-files";
+import { patientImagingSchema } from "@/features/patients/server/schemas";
 
 type ImagingDetailsDrawerProps = {
+	patientId: string;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	imaging: ImagingType | null;
@@ -88,7 +91,12 @@ const imagingDetailsRequiredLabelClassName = "font-normal text-gray-400";
 const imagingDetailsFieldControlClassName =
 	"border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 text-sm h-9";
 
-export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDetailsDrawerProps) {
+export function ImagingDetailsDrawer({
+	open,
+	onOpenChange,
+	imaging,
+	patientId,
+}: ImagingDetailsDrawerProps) {
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
@@ -96,6 +104,7 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 	const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 	const [formError, setFormError] = useState("");
+	const uploadedReportsRef = useRef<UploadedReports>(new Map());
 	const [isPending, startTransition] = useTransition();
 
 	function handleImagingDetailsModeChange(nextMode: "view" | "edit") {
@@ -105,6 +114,7 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 
 	function handleImagingDetailsOpenChange(nextOpen: boolean) {
 		if (!nextOpen) {
+			uploadedReportsRef.current.clear();
 			handleImagingDetailsModeChange("view");
 		}
 
@@ -124,20 +134,66 @@ export function ImagingDetailsDrawer({ open, onOpenChange, imaging }: ImagingDet
 			return;
 		}
 
+		const parsedImaging = patientImagingSchema.safeParse({
+			study: formData.get("study") ?? "",
+			region: formData.get("region") ?? "",
+			modality: formData.get("modality"),
+			orderedAt: formData.get("orderedAt") ?? "",
+			orderedBy: formData.get("orderedBy") ?? "",
+			status: formData.get("status"),
+			impression: formData.get("impression") ?? "",
+			clinicalNote: formData.get("clinicalNote") ?? "",
+		});
+
+		if (!parsedImaging.success) {
+			setFormError(parsedImaging.error.issues[0].message);
+			return;
+		}
+
 		startTransition(async () => {
-			const result = await updatePatientImagingAction(imaging.imagingId, formData);
+			try {
+				const reportFiles = formData
+					.getAll("files")
+					.filter((file): file is File => file instanceof File && file.size > 0);
+				formData.delete("files");
+				const uploadedReports = await uploadReportFiles(
+					reportFiles,
+					patientId,
+					"imaging",
+					uploadedReportsRef.current,
+				);
 
-			if (result.status === "unauthorized") {
-				router.refresh();
-				return;
+				if (uploadedReports.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				if (uploadedReports.status === "failed") {
+					setFormError(uploadedReports.error);
+					return;
+				}
+
+				for (const receipt of uploadedReports.receipts) formData.append("files", receipt);
+
+				const result = await updatePatientImagingAction(imaging.imagingId, formData);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				uploadedReportsRef.current.clear();
+				setImagingDetailsMode("view");
+			} catch (error) {
+				console.error("Saving report files failed:", error);
+				uploadedReportsRef.current.clear();
+				setFormError("We couldn’t save these changes. Please try again.");
 			}
-
-			if (result.status !== "success") {
-				setFormError(result.error);
-				return;
-			}
-
-			setImagingDetailsMode("view");
 		});
 	}
 

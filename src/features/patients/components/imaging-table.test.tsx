@@ -2,9 +2,11 @@ import { render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { ImagingType } from "@/features/patients/types";
 import { ImagingTable } from "./imaging-table";
+
+const uploadFetch = vi.fn();
 
 const activeMember = vi.hoisted(() => ({ role: "owner" }));
 const { createImagingMock, updateImagingMock } = vi.hoisted(() => ({
@@ -50,7 +52,7 @@ const imagingStudies: ImagingType[] = [
 			{
 				id: "FILE-cxr",
 				name: "chest-xray.png",
-				url: "/api/patient-record-files/FILE-cxr",
+				url: "/api/patient-record-files/imaging/FILE-cxr",
 				type: "image/png",
 				size: "2.4 MB",
 				uploadedAtLabel: "Jan 6, 2020",
@@ -151,7 +153,19 @@ function bulkActionBar() {
 }
 
 describe("Imaging table", () => {
+	afterEach(() => vi.unstubAllGlobals());
 	beforeEach(() => {
+		uploadFetch.mockReset();
+		uploadFetch.mockImplementation(async (url: string, options: RequestInit) =>
+			url === "/api/patient-record-files/upload"
+				? Response.json({
+						status: "success",
+						signedUrl: "https://storage.test/report",
+						receipt: options.body,
+					})
+				: new Response(null, { status: 200 }),
+		);
+		vi.stubGlobal("fetch", uploadFetch);
 		activeMember.role = "owner";
 		createImagingMock.mockReset();
 		updateImagingMock.mockReset();
@@ -266,7 +280,6 @@ describe("Imaging table", () => {
 		await user.click(screen.getByRole("checkbox", { name: "X-ray" }));
 		expect(onModalityFiltersChange).toHaveBeenCalledWith(["mri", "x-ray"]);
 	});
-
 
 	test("applies an order date preset to the ordered-at range only", async () => {
 		const user = setupSubmenuUser();
@@ -575,10 +588,9 @@ describe("Imaging table", () => {
 		await user.click(await screen.findByRole("option", { name: "Completed" }));
 		await user.click(within(drawer).getByRole("button", { name: "Add imaging" }));
 
-		expect(await within(drawer).findByRole("alert")).toHaveTextContent(
-			"Enter the impression of a completed study.",
-		);
+		expect(await within(drawer).findByRole("alert")).toHaveTextContent("Select the order date.");
 		expect(within(drawer).getByLabelText(/^Study/)).toHaveValue("MRI Brain");
+		expect(createImagingMock).not.toHaveBeenCalled();
 	});
 
 	test("opens and downloads a saved image from the details drawer", async () => {
@@ -592,11 +604,11 @@ describe("Imaging table", () => {
 		expect(within(dialog).getByText("chest-xray.png")).toBeVisible();
 		expect(within(dialog).getByRole("link", { name: "Open" })).toHaveAttribute(
 			"href",
-			"/api/patient-record-files/FILE-cxr",
+			"/api/patient-record-files/imaging/FILE-cxr",
 		);
 		expect(within(dialog).getByRole("link", { name: "Download" })).toHaveAttribute(
 			"href",
-			"/api/patient-record-files/FILE-cxr?download",
+			"/api/patient-record-files/imaging/FILE-cxr?download",
 		);
 	});
 
@@ -636,7 +648,7 @@ describe("Imaging table", () => {
 				impression: "Small left pleural effusion.",
 			}),
 		);
-		expect(formData.getAll("files").map((file) => (file as File).name)).toEqual([
+		expect(formData.getAll("files").map((receipt) => JSON.parse(String(receipt)).name)).toEqual([
 			"chest-xray-lateral.png",
 		]);
 		expect(formData.getAll("removedFileIds")).toEqual([]);

@@ -8,7 +8,13 @@ import { startTransition, useRef, useState } from "react";
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 
 type UploadFileResponse =
-	| { status: "success"; files: SavedFileTypes[] }
+	| {
+			status: "success";
+			files: (
+				| Extract<SavedFileTypes, { status: "upload-failed" }>
+				| (Extract<SavedFileTypes, { status: "upload-complete" }> & { signedUrl: string })
+			)[];
+	  }
 	| { status: "failed"; error: string };
 
 export function useFileUpload() {
@@ -31,21 +37,21 @@ export function useFileUpload() {
 		);
 
 		try {
-			const formData = new FormData();
-			formData.append("file", failedFile.browserFile);
-			formData.append("clientId", clientId);
-
 			const response = await fetch("/api/file-upload", {
 				method: "POST",
-				body: formData,
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					files: [
+						{
+							clientId,
+							name: failedFile.browserFile.name,
+							size: failedFile.browserFile.size,
+						},
+					],
+				}),
 			});
 			const data: UploadFileResponse = await response.json();
-			const uploadedFile =
-				data.status === "success"
-					? data.files?.find((file) => file.clientId === clientId)
-					: undefined;
-
-			if (!response.ok || !uploadedFile || uploadedFile.status !== "upload-complete") {
+			if (!response.ok || data.status !== "success") {
 				setUploadError(
 					data.status === "failed" ? data.error : "We couldn’t upload this file. Please try again.",
 				);
@@ -57,9 +63,19 @@ export function useFileUpload() {
 				return;
 			}
 
+			const grant = data.files.find((file) => file.clientId === clientId);
+			if (grant?.status !== "upload-complete") throw new Error("Missing upload authorization.");
+
+			const upload = await fetch(grant.signedUrl, {
+				method: "PUT",
+				headers: { "Content-Type": grant.type, "x-upsert": "false" },
+				body: failedFile.browserFile,
+			});
+			if (!upload.ok) throw new Error("Storage rejected upload.");
+
 			setFiles((prev) =>
 				prev.map<SelectedFile>((file) =>
-					file.clientId === clientId ? { ...file, ...uploadedFile } : file,
+					file.clientId === clientId ? { ...file, ...grant } : file,
 				),
 			);
 		} catch (error) {
@@ -162,20 +178,24 @@ export function useFileUpload() {
 		});
 
 		try {
-			const formData = new FormData();
-			for (const file of optimisticItems) {
-				formData.append("file", file.browserFile);
-				formData.append("clientId", file.clientId);
-			}
-
 			const res = await fetch("/api/file-upload", {
 				method: "POST",
-				body: formData,
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					files: optimisticItems.map((item) => ({
+						clientId: item.clientId,
+						name: item.name,
+						size: item.size,
+					})),
+				}),
 			});
-			const data = await res.json();
-			if (!res.ok) {
-				const error = data.error ?? "Issue uploading file";
-				setUploadError(error);
+			const data: UploadFileResponse = await res.json();
+			if (!res.ok || data.status !== "success") {
+				setUploadError(
+					data.status === "failed"
+						? data.error
+						: "We couldn’t upload these files. Please try again.",
+				);
 				setFiles((prev) =>
 					prev.map<SelectedFile>((file) =>
 						optimisticItems.some((item) => item.clientId === file.clientId)
@@ -185,8 +205,26 @@ export function useFileUpload() {
 				);
 				return;
 			}
-
-			const uploadedFiles: SavedFileTypes[] = data.files;
+			const uploadedFiles: SavedFileTypes[] = await Promise.all(
+				optimisticItems.map(async (item): Promise<SavedFileTypes> => {
+					const grant = data.files.find((file) => file.clientId === item.clientId);
+					try {
+						if (grant?.status !== "upload-complete")
+							throw new Error("Missing upload authorization.");
+						const upload = await fetch(grant.signedUrl, {
+							method: "PUT",
+							headers: { "Content-Type": grant.type, "x-upsert": "false" },
+							body: item.browserFile,
+						});
+						if (!upload.ok) throw new Error("Storage rejected upload.");
+						return grant;
+					} catch {
+						return { clientId: item.clientId, name: item.name, status: "upload-failed" };
+					}
+				}),
+			);
+			if (uploadedFiles.some((file) => file.status === "upload-failed"))
+				setUploadError("Some files couldn’t upload. Retry the failed files.");
 
 			startTransition(() => {
 				setFiles((prev) =>

@@ -1,5 +1,3 @@
-import path from "node:path";
-import { existsSync } from "node:fs";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 import { extractPatientDocumentsService } from "@/services/patient/extract-patient-documents-service";
@@ -43,7 +41,7 @@ export async function POST(req: Request) {
 				(filename) =>
 					typeof filename !== "string" ||
 					!filename ||
-					/[\\/:*?"<>|]|[^\u0020-\uffff]/.test(filename) ||
+					/[\\/:*?"<>|%#]|[^\u0020-\uffff]/.test(filename) ||
 					/[. ]$/.test(filename),
 			)
 		) {
@@ -52,13 +50,7 @@ export async function POST(req: Request) {
 				{ status: 400 },
 			);
 		}
-		const uploadDir = path.resolve("patient-uploads", organizationId, session.user.id);
-		if (!existsSync(uploadDir)) {
-			return Response.json(
-				{ status: "failed", error: "No uploaded files were found." },
-				{ status: 400 },
-			);
-		}
+		const uploadPrefix = `${organizationId}/${session.user.id}`;
 		if (typeof extractionId === "string") {
 			const retriedExtraction = await retryPatientExtractionService(extractionId, filenames);
 
@@ -75,7 +67,7 @@ export async function POST(req: Request) {
 			});
 		}
 
-		const documents = await extractPatientDocumentsService(uploadDir, filenames);
+		const documents = await extractPatientDocumentsService(uploadPrefix, filenames);
 		const savedExtraction = await savePatientExtractionService(documents);
 
 		if (savedExtraction.status === "failed") {
