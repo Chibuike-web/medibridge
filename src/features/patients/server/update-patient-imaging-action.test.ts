@@ -75,7 +75,12 @@ vi.mock("@/lib/better-auth/auth", async () => {
 			select: () => ({
 				from: () => ({
 					innerJoin: () => ({ where: () => ({ limit: async () => database.imaging }) }),
-					where: async () => database.files,
+					where: async (condition: SQL) => {
+						const { params } = new PgDialect().sqlToQuery(condition);
+						return database.files.filter(
+							(file) => params.includes(file.id) || params.includes(file.parentRecordId),
+						);
+					},
 				}),
 			}),
 			transaction: async (write: (tx: object) => Promise<void>) => {

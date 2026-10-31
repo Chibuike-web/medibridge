@@ -55,20 +55,6 @@ export async function discardPatientExtractionService(
 				return null;
 			}
 
-			const keys = extraction.extractedData
-				.filter(
-					(document) =>
-						document.documentId === path.posix.basename(document.documentId) &&
-						!/[\\:]/.test(document.documentId) &&
-						document.documentId !== "." &&
-						document.documentId !== "..",
-				)
-				.map((document) => `${organizationId}/${extraction.createdBy}/${document.documentId}`);
-			if (keys.length > 0) {
-				const { error } = await patientUploads.remove(keys);
-				if (error) throw error;
-			}
-
 			await tx.delete(patientExtraction).where(eq(patientExtraction.id, extractionId));
 			return extraction;
 		});
@@ -78,6 +64,23 @@ export async function discardPatientExtractionService(
 		}
 
 		updateTag(`patient-extraction-${organizationId}-${extractionId}`);
+
+		const keys = discardedExtraction.extractedData
+			.filter(
+				(document) =>
+					document.documentId === path.posix.basename(document.documentId) &&
+					!/[\\:]/.test(document.documentId) &&
+					document.documentId !== "." &&
+					document.documentId !== "..",
+			)
+			.map(
+				(document) => `${organizationId}/${discardedExtraction.createdBy}/${document.documentId}`,
+			);
+
+		if (keys.length > 0) {
+			const { error } = await patientUploads.remove(keys);
+			if (error) console.error("Removing discarded patient uploads failed:", error);
+		}
 
 		return { status: "success" };
 	} catch (error) {

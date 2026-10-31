@@ -1,4 +1,5 @@
 import { config } from "dotenv";
+import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
@@ -10,6 +11,12 @@ const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SE
 });
 const sourceIndex = process.argv.indexOf("--source");
 const source = path.resolve(sourceIndex >= 0 ? process.argv[sourceIndex + 1] : process.cwd());
+if (
+	(sourceIndex >= 0 && !process.argv[sourceIndex + 1]) ||
+	!["patient-uploads", "hospital-uploads"].some((bucket) => existsSync(path.join(source, bucket)))
+) {
+	throw new Error(`No upload folders found in ${source}. Check --source.`);
+}
 const apply = process.argv.includes("--apply");
 const contentTypes: Record<string, string> = {
 	".pdf": "application/pdf",

@@ -283,7 +283,6 @@ describe("Lab tests table", () => {
 		expect(onFlagFiltersChange).toHaveBeenCalledWith(["high", "critical"]);
 	});
 
-
 	test("applies a creation date preset as a from/to range", async () => {
 		const user = setupSubmenuUser();
 		const { onCreatedAtRangeApply } = renderLabTestsTable();
@@ -573,10 +572,9 @@ describe("Lab tests table", () => {
 		await user.type(within(drawer).getByLabelText(/Specimen/), "Serum");
 		await user.click(within(drawer).getByRole("button", { name: "Add lab test" }));
 
-		expect(await within(drawer).findByRole("alert")).toHaveTextContent(
-			"Attach the report for a completed lab test.",
-		);
+		expect(await within(drawer).findByRole("alert")).toHaveTextContent("Select the order date.");
 		expect(within(drawer).getByLabelText(/^Test/)).toHaveValue("Lipid panel");
+		expect(createLabTestMock).not.toHaveBeenCalled();
 	});
 
 	test("opens and downloads a saved lab report from the details drawer", async () => {

@@ -190,16 +190,6 @@ export const recordFileExtensions = {
 	"image/jpeg": ".jpg",
 } as const;
 
-export const recordFilesSchema = z.array(
-	z
-		.file()
-		.mime(
-			Object.keys(recordFileExtensions) as (keyof typeof recordFileExtensions)[],
-			"Files must be PDF, PNG or JPG.",
-		)
-		.max(50 * 1024 * 1024, "Each file can be up to 50 MB."),
-);
-
 export const labTestStatuses = ["Pending", "Completed", "Cancelled"] as const;
 
 export const labTestFlags = [

@@ -8,6 +8,9 @@ afterAll(() => consoleLogSpy.mockRestore());
 
 const {
 	signedUploadMock,
+	hospitalSignedUploadMock,
+	hospitalListMock,
+	hospitalRemoveMock,
 	readFileMock,
 	getSessionDataMock,
 	getOrganizationIdMock,
@@ -29,6 +32,9 @@ const {
 	revalidateTagMock,
 } = vi.hoisted(() => ({
 	signedUploadMock: vi.fn(),
+	hospitalSignedUploadMock: vi.fn(),
+	hospitalListMock: vi.fn(),
+	hospitalRemoveMock: vi.fn(),
 	readFileMock: vi.fn(),
 	getSessionDataMock: vi.fn(),
 	getOrganizationIdMock: vi.fn(),
@@ -55,7 +61,11 @@ vi.mock("@/lib/storage/client", () => ({
 		createSignedUploadUrl: signedUploadMock,
 		download: async (key: string) => ({ data: new Blob([await readFileMock(key)]), error: null }),
 	},
-	hospitalUploads: { createSignedUploadUrl: signedUploadMock },
+	hospitalUploads: {
+		createSignedUploadUrl: hospitalSignedUploadMock,
+		list: hospitalListMock,
+		remove: hospitalRemoveMock,
+	},
 }));
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
@@ -167,6 +177,12 @@ describe("Uploads and extraction API", () => {
 			data: { signedUrl: `https://storage.test/${key}?token=upload-only` },
 			error: null,
 		}));
+		hospitalSignedUploadMock.mockImplementation(async (key: string) => ({
+			data: { signedUrl: `https://storage.test/${key}?token=upload-only` },
+			error: null,
+		}));
+		hospitalListMock.mockResolvedValue({ data: [], error: null });
+		hospitalRemoveMock.mockResolvedValue({ data: [], error: null });
 		selectMock.mockReturnValue({
 			from: () => ({ where: () => ({ limit: existingHospitalQueryMock }) }),
 		});
@@ -195,7 +211,7 @@ describe("Uploads and extraction API", () => {
 				`patient-uploads/hospital-1/owner-1/${body.files[0].storedName}`,
 			);
 			expect(body.files[0].signedUrl).toContain("token=upload-only");
-			expect(body.files[0].status).toBeUndefined();
+			expect(body.files[0].status).toBe("upload-complete");
 			expect(signedUploadMock).toHaveBeenCalledWith(
 				`hospital-1/owner-1/${body.files[0].storedName}`,
 				{ upsert: false },
@@ -260,18 +276,46 @@ describe("Uploads and extraction API", () => {
 			getOrganizationIdMock.mockResolvedValue(null);
 			expect((await uploadFile(fileRequest())).status).toBe(403);
 		});
-		test("reports provider failure with a fixed message", async () => {
+		test("fails only the file whose upload could not be authorized", async () => {
 			vi.spyOn(console, "error").mockImplementation(() => {});
 			signedUploadMock.mockResolvedValueOnce({
 				data: null,
 				error: new Error("private provider details"),
 			});
-			const response = await uploadFile(fileRequest());
-			expect(response.status).toBe(500);
-			expect(await response.json()).toEqual({
-				status: "failed",
-				error: "We couldn’t upload your files. Please try again.",
+			const response = await uploadFile(
+				metadataRequest("http://localhost/api/file-upload", {
+					files: [
+						{ clientId: "first", name: "first.pdf", type: "application/pdf", size: 13 },
+						{ clientId: "second", name: "second.pdf", type: "application/pdf", size: 13 },
+					],
+				}),
+			);
+			const body = await response.json();
+			expect(response.status).toBe(200);
+			expect(body.files[0]).toEqual({
+				clientId: "first",
+				name: "first.pdf",
+				status: "upload-failed",
 			});
+			expect(body.files[1]).toMatchObject({ clientId: "second", status: "upload-complete" });
+			expect(JSON.stringify(body)).not.toContain("private provider details");
+		});
+		test("refuses more than 20 files in one request", async () => {
+			const files = Array.from({ length: 21 }, (_, index) => ({
+				clientId: `client-${index}`,
+				name: `record-${index}.pdf`,
+				type: "application/pdf",
+				size: 13,
+			}));
+			const response = await uploadFile(
+				metadataRequest("http://localhost/api/file-upload", { files }),
+			);
+			expect(response.status).toBe(400);
+			expect(signedUploadMock).not.toHaveBeenCalled();
+		});
+		test("refuses an extension that only matches a built-in object key", async () => {
+			expect((await uploadFile(fileRequest("x.constructor"))).status).toBe(400);
+			expect(signedUploadMock).not.toHaveBeenCalled();
 		});
 		test("rejects missing or malformed metadata", async () => {
 			expect(
@@ -300,23 +344,33 @@ describe("Uploads and extraction API", () => {
 			const body = await response.json();
 			expect(response.status).toBe(200);
 			expect(body.key).toMatch(/^owner-1\/[a-f0-9-]{36}\.pdf$/);
-			expect(signedUploadMock).toHaveBeenCalledWith(body.key, { upsert: false });
+			expect(hospitalSignedUploadMock).toHaveBeenCalledWith(body.key, { upsert: false });
+		});
+		test("replaces the owner's earlier uploads", async () => {
+			hospitalListMock.mockResolvedValue({ data: [{ name: "old.pdf" }], error: null });
+			await uploadVerificationFile(request());
+			expect(hospitalListMock).toHaveBeenCalledWith("owner-1", { limit: 100 });
+			expect(hospitalRemoveMock).toHaveBeenCalledWith(["owner-1/old.pdf"]);
+		});
+		test("refuses an extension that only matches a built-in object key", async () => {
+			expect((await uploadVerificationFile(request("x.constructor"))).status).toBe(400);
+			expect(hospitalSignedUploadMock).not.toHaveBeenCalled();
 		});
 		test.each([null, false])("requires a signed-in verified owner: %s", async (verified) => {
 			getSessionDataMock.mockResolvedValue(
 				verified === null ? null : { user: { id: "owner-1", emailVerified: false } },
 			);
 			expect((await uploadVerificationFile(request())).status).toBe(verified === null ? 401 : 403);
-			expect(signedUploadMock).not.toHaveBeenCalled();
+			expect(hospitalSignedUploadMock).not.toHaveBeenCalled();
 		});
 		test("does not grant replacement access after hospital details were submitted", async () => {
 			existingHospitalQueryMock.mockResolvedValue([{ id: "hospital-details-1" }]);
 			expect((await uploadVerificationFile(request())).status).toBe(409);
-			expect(signedUploadMock).not.toHaveBeenCalled();
+			expect(hospitalSignedUploadMock).not.toHaveBeenCalled();
 		});
 		test("rejects an unsupported accreditation file", async () => {
 			expect((await uploadVerificationFile(request("license.html"))).status).toBe(400);
-			expect(signedUploadMock).not.toHaveBeenCalled();
+			expect(hospitalSignedUploadMock).not.toHaveBeenCalled();
 		});
 	});
 

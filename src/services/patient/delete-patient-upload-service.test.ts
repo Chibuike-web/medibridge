@@ -18,8 +18,13 @@ vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganiza
 vi.mock("@/lib/storage/client", () => ({
 	patientUploads: {
 		remove: async (keys: string[]) => {
-			for (const key of keys) await unlinkMock(path.resolve("patient-uploads", ...key.split("/")));
-			return { data: [], error: null };
+			try {
+				for (const key of keys)
+					await unlinkMock(path.resolve("patient-uploads", ...key.split("/")));
+				return { data: [], error: null };
+			} catch (error) {
+				return { data: null, error };
+			}
 		},
 	},
 }));

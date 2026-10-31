@@ -281,7 +281,6 @@ describe("Imaging table", () => {
 		expect(onModalityFiltersChange).toHaveBeenCalledWith(["mri", "x-ray"]);
 	});
 
-
 	test("applies an order date preset to the ordered-at range only", async () => {
 		const user = setupSubmenuUser();
 		const { onOrderedAtRangeApply, onCreatedAtRangeApply } = renderImagingTable();
@@ -589,10 +588,9 @@ describe("Imaging table", () => {
 		await user.click(await screen.findByRole("option", { name: "Completed" }));
 		await user.click(within(drawer).getByRole("button", { name: "Add imaging" }));
 
-		expect(await within(drawer).findByRole("alert")).toHaveTextContent(
-			"Enter the impression of a completed study.",
-		);
+		expect(await within(drawer).findByRole("alert")).toHaveTextContent("Select the order date.");
 		expect(within(drawer).getByLabelText(/^Study/)).toHaveValue("MRI Brain");
+		expect(createImagingMock).not.toHaveBeenCalled();
 	});
 
 	test("opens and downloads a saved image from the details drawer", async () => {

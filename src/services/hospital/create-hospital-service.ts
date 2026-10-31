@@ -8,7 +8,6 @@ import { hospitalDetails, member, organization } from "@/db/schemas";
 import { auth, db } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
-import { hospitalUploads } from "@/lib/storage/client";
 
 function hospitalSlug(name: string) {
 	const nameSlug = name
@@ -61,6 +60,9 @@ export async function createHospitalService(
 			return { status: "failed", error: "Enter the correct details" };
 		}
 
+		// WARNING: keep this import dynamic. Sign-in shares this module, and a static import would
+		// make a missing Supabase env break sign-in as well.
+		const { hospitalUploads } = await import("@/lib/storage/client");
 		const { data: files, error: listError } = await hospitalUploads.list(userId, {
 			limit: 100,
 			sortBy: { column: "created_at", order: "desc" },

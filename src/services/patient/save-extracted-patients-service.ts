@@ -13,6 +13,7 @@ import {
 	patientPhysicalInformation,
 } from "@/db/schemas/patient";
 import { db } from "@/lib/better-auth/auth";
+import { patientUploads } from "@/lib/storage/client";
 import { updateTag } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { SavePatientsResult } from "./types";
@@ -102,7 +103,10 @@ export async function saveExtractedPatientsService(
 
 		const saveResult = await db.transaction(async (tx) => {
 			const [extraction] = await tx
-				.select({ extractedData: patientExtraction.extractedData })
+				.select({
+					createdBy: patientExtraction.createdBy,
+					extractedData: patientExtraction.extractedData,
+				})
 				.from(patientExtraction)
 				.where(
 					and(
@@ -161,7 +165,11 @@ export async function saveExtractedPatientsService(
 					.where(eq(patientExtraction.id, extractionId));
 			}
 
-			return { status: "success", patientId } as const;
+			return {
+				status: "success",
+				patientId,
+				sourceKey: `${organizationId}/${extraction.createdBy}/${documentId}`,
+			} as const;
 		});
 
 		if (saveResult.status !== "success") {
@@ -176,6 +184,9 @@ export async function saveExtractedPatientsService(
 		updateTag(`recent-transfers-${organizationId}`);
 		updateTag(`transfers-list-${organizationId}`);
 		updateTag(`patient-extraction-${organizationId}-${extractionId}`);
+
+		const { error: removeError } = await patientUploads.remove([saveResult.sourceKey]);
+		if (removeError) console.error("Removing saved patient document failed:", removeError);
 
 		return { status: "success", savedCount: 1 };
 	} catch (error) {

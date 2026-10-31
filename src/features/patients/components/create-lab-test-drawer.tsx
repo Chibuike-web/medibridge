@@ -33,6 +33,8 @@ import { authClient } from "@/lib/better-auth/auth.client";
 import { RiAddLine, RiCalendarLine, RiCloseLine, RiErrorWarningFill } from "@remixicon/react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
+import { uploadReportFiles, type UploadedReports } from "@/lib/storage/upload-report-files";
+import { patientLabTestSchema } from "@/features/patients/server/schemas";
 import { useId, useRef, useState, useTransition, type FormEvent } from "react";
 import { ChooseFileCard } from "@/components/choose-file-card";
 import { CreateSelectedFiles } from "@/components/create-selected-files";
@@ -64,6 +66,7 @@ export function CreateLabTestDrawer({
 	const [attachmentRows, setAttachmentRows] = useState<AttachmentFormRow[]>([]);
 	const labTestFileInputRef = useRef<HTMLInputElement>(null);
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+	const uploadedReportsRef = useRef<UploadedReports>(new Map());
 	const [isPending, startTransition] = useTransition();
 
 	function handleOpenChange(isOpen: boolean) {
@@ -72,6 +75,7 @@ export function CreateLabTestDrawer({
 			setOrderedAt(undefined);
 			setAttachmentRows([]);
 			setSelectedFiles([]);
+			uploadedReportsRef.current.clear();
 		}
 		onOpenChange(isOpen);
 	}
@@ -88,38 +92,52 @@ export function CreateLabTestDrawer({
 		const formData = new FormData(event.currentTarget);
 		if (encounterId) formData.set("encounterId", encounterId);
 
+		const parsedLabTest = patientLabTestSchema.safeParse({
+			testName: formData.get("testName") ?? "",
+			status: formData.get("status"),
+			flag: formData.get("flag") || undefined,
+			referenceRange: formData.get("referenceRange") ?? "",
+			orderedBy: formData.get("orderedBy") ?? "",
+			orderedAt: formData.get("orderedAt") ?? "",
+			specimen: formData.get("specimen") ?? "",
+			result: formData.get("result") ?? "",
+			interpretation: formData.get("interpretation") ?? "",
+			clinicalNote: formData.get("clinicalNote") ?? "",
+		});
+
+		if (!parsedLabTest.success) {
+			setFormError(parsedLabTest.error.issues[0].message);
+			return;
+		}
+
+		if (parsedLabTest.data.status === "Completed" && selectedFiles.length === 0) {
+			setFormError("Attach the report for a completed lab test.");
+			return;
+		}
+
 		startTransition(async () => {
 			try {
 				const reportFiles = selectedFiles;
 				formData.delete("files");
-				for (const file of reportFiles) {
-					const response = await fetch("/api/patient-record-files/upload", {
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({
-							name: file.name,
-							size: file.size,
-							type: file.type,
-							patientId: patientId,
-							recordType: "lab",
-						}),
-					});
-					const grant = await response.json();
-					if (!response.ok || grant.status !== "success") {
-						setFormError(grant.error ?? "We couldn’t upload this report. Please try again.");
-						return;
-					}
-					const uploaded = await fetch(grant.signedUrl, {
-						method: "PUT",
-						headers: { "Content-Type": file.type, "x-upsert": "false" },
-						body: file,
-					});
-					if (!uploaded.ok) {
-						setFormError("We couldn’t upload this report. Please try again.");
-						return;
-					}
-					formData.append("files", grant.receipt);
+				const uploadedReports = await uploadReportFiles(
+					reportFiles,
+					patientId,
+					"lab",
+					uploadedReportsRef.current,
+				);
+
+				if (uploadedReports.status === "unauthorized") {
+					router.refresh();
+					return;
 				}
+
+				if (uploadedReports.status === "failed") {
+					setFormError(uploadedReports.error);
+					return;
+				}
+
+				for (const receipt of uploadedReports.receipts) formData.append("files", receipt);
+
 				const result = await createPatientLabTestAction(patientId, formData);
 
 				if (result.status === "unauthorized") {

@@ -80,21 +80,25 @@ export async function GET(
 
 	try {
 		const key = `${organizationId}/record-files/${fileId}${extension}`;
-		const { data: file, error: missingFile } = await patientUploads.info(key);
-		if (missingFile || !file)
-			return Response.json({ status: "failed", error: "File not found." }, { status: 404 });
-		const { data, error } = await patientUploads.createSignedUrl(key, 60, {
-			download: isDownload ? recordFile.name : false,
-		});
+		const { data, error } = await patientUploads.createSignedUrl(key, 60);
 		if (error) throw error;
-		return new Response(null, {
-			status: 302,
-			headers: {
-				Location: data.signedUrl,
-				"Cache-Control": "private, no-store",
-				"X-Content-Type-Options": "nosniff",
-			},
+		const range = request.headers.get("range");
+		const file = await fetch(data.signedUrl, {
+			headers: { "Accept-Encoding": "identity", ...(range && { Range: range }) },
 		});
+		if (!file.ok) throw new Error(`Storage responded with ${file.status}.`);
+		const headers = new Headers({
+			"Content-Type": recordFile.type ?? "application/octet-stream",
+			"Content-Disposition": `${isDownload ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(recordFile.name)}`,
+			"Accept-Ranges": "bytes",
+			"Cache-Control": "private, no-store",
+			"X-Content-Type-Options": "nosniff",
+		});
+		for (const name of ["Content-Length", "Content-Range"]) {
+			const value = file.headers.get(name);
+			if (value) headers.set(name, value);
+		}
+		return new Response(file.body, { status: file.status, headers });
 	} catch (error) {
 		console.error("Reading patient record file failed:", error);
 		return Response.json({ status: "failed", error: "File not found." }, { status: 404 });

@@ -1,10 +1,7 @@
 "use server";
 
-import { jwtVerify } from "jose";
-import type { z } from "zod";
 import { patientUploads } from "@/lib/storage/client";
-import { recordUploadSchema } from "@/lib/storage/schemas";
-import { ENV } from "@/lib/utils/env";
+import { verifyRecordUploadsService } from "@/services/patient/verify-record-uploads-service";
 import { format, parseISO } from "date-fns";
 import { and, eq, gte, lt, inArray } from "drizzle-orm";
 import { updateTag } from "next/cache";
@@ -78,41 +75,18 @@ export async function updatePatientImagingAction(
 		return { status: "failed", error: "Imaging study could not be found." };
 	}
 
-	const uploadedFiles: z.infer<typeof recordUploadSchema>[] = [];
-	try {
-		const receipts = formData.getAll("files");
-		for (const receipt of receipts) {
-			if (typeof receipt !== "string")
-				return { status: "failed", error: "Upload each report before saving." };
-			const { payload } = await jwtVerify(
-				receipt,
-				new TextEncoder().encode(ENV.BETTER_AUTH_SECRET),
-				{ algorithms: ["HS256"], audience: "patient-record-upload" },
-			);
-			const file = recordUploadSchema.parse(payload);
-			if (
-				file.organizationId !== organizationId ||
-				file.userId !== session.user.id ||
-				file.patientId !== currentImaging.patientId ||
-				file.recordType !== "imaging"
-			)
-				return { status: "failed", error: "This report does not belong to this patient." };
-			const { data, error } = await patientUploads.info(
-				`${organizationId}/record-files/${file.id}${recordFileExtensions[file.type]}`,
-			);
-			if (error || data.size !== file.size || data.contentType !== file.type)
-				return { status: "failed", error: "Upload the complete report before saving." };
-			uploadedFiles.push(file);
-		}
-		if (uploadedFiles.reduce((size, file) => size + file.size, 0) > 100 * 1024 * 1024)
-			return { status: "failed", error: "Files can add up to 100 MB per save." };
-	} catch (error) {
-		console.error("Validating report uploads failed:", error);
-		return {
-			status: "failed",
-			error: "We couldn’t verify these uploads. Upload the reports again.",
-		};
+	const verifiedUploads = await verifyRecordUploadsService(formData.getAll("files"), {
+		organizationId,
+		userId: session.user.id,
+		patientId: currentImaging.patientId,
+		recordType: "imaging",
+	});
+
+	if (verifiedUploads.status === "failed") {
+		return { status: "failed", error: verifiedUploads.error };
 	}
+
+	const uploadedFiles = verifiedUploads.files;
 
 	const savedFiles = await db
 		.select({

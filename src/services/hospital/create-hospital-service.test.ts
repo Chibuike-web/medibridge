@@ -28,8 +28,8 @@ const {
 vi.mock("next/headers", () => ({ headers: headersMock }));
 vi.mock("@/lib/storage/client", () => ({
 	hospitalUploads: {
-		list: async () => ({
-			data: (await readdirMock()).map((name: string) => ({
+		list: async (folder: string) => ({
+			data: (await readdirMock(folder)).map((name: string) => ({
 				name,
 				id: name,
 				metadata: { size: 10, mimetype: "application/pdf" },

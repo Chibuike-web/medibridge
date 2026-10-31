@@ -13,7 +13,7 @@ const documentContentTypes: Record<string, string> = {
 };
 
 export async function GET(
-	_request: Request,
+	request: Request,
 	context: RouteContext<"/api/patient-extractions/[extractionId]/documents/[documentId]">,
 ) {
 	const session = await getSessionData();
@@ -61,21 +61,25 @@ export async function GET(
 
 	try {
 		const key = `${organizationId}/${extraction.createdBy}/${documentId}`;
-		const { data: file, error: missingFile } = await patientUploads.info(key);
-		if (missingFile || !file)
-			return Response.json({ status: "failed", error: "Document not found." }, { status: 404 });
-		const { data, error } = await patientUploads.createSignedUrl(key, 60, {
-			download: fileExtension === ".docx",
-		});
+		const { data, error } = await patientUploads.createSignedUrl(key, 60);
 		if (error) throw error;
-		return new Response(null, {
-			status: 302,
-			headers: {
-				Location: data.signedUrl,
-				"Cache-Control": "private, no-store",
-				"X-Content-Type-Options": "nosniff",
-			},
+		const range = request.headers.get("range");
+		const file = await fetch(data.signedUrl, {
+			headers: { "Accept-Encoding": "identity", ...(range && { Range: range }) },
 		});
+		if (!file.ok) throw new Error(`Storage responded with ${file.status}.`);
+		const headers = new Headers({
+			"Content-Type": contentType,
+			"Content-Disposition": fileExtension === ".docx" ? "attachment" : "inline",
+			"Accept-Ranges": "bytes",
+			"Cache-Control": "private, no-store",
+			"X-Content-Type-Options": "nosniff",
+		});
+		for (const name of ["Content-Length", "Content-Range"]) {
+			const value = file.headers.get(name);
+			if (value) headers.set(name, value);
+		}
+		return new Response(file.body, { status: file.status, headers });
 	} catch (error) {
 		console.error(error);
 		return Response.json({ status: "failed", error: "Document not found." }, { status: 404 });

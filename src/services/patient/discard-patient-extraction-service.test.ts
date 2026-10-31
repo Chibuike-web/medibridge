@@ -23,8 +23,12 @@ const {
 vi.mock("@/lib/storage/client", () => ({
 	patientUploads: {
 		remove: async (keys: string[]) => {
-			for (const key of keys) await removeFileMock(key);
-			return { data: [], error: null };
+			try {
+				for (const key of keys) await removeFileMock(key);
+				return { data: [], error: null };
+			} catch (error) {
+				return { data: null, error };
+			}
 		},
 	},
 }));
@@ -109,19 +113,13 @@ describe("discarding a patient extraction", () => {
 		expect(updateTagMock).toHaveBeenCalledWith("patient-extraction-hospital-1-extraction-1");
 	});
 
-	test("keeps the review available for cleanup retry when an uploaded file cannot be deleted", async () => {
+	test("clears the review even when an uploaded file can't be deleted yet", async () => {
 		const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-		removeFileMock.mockRejectedValue(new Error("Private file system detail"));
+		removeFileMock.mockRejectedValue(new Error("Private storage detail"));
 
-		expect(await discardPatientExtractionService("extraction-1")).toEqual({
-			status: "failed",
-			error: "We couldn’t clear this review. Please try again.",
-		});
-		expect(storedExtraction.current?.extractedData).toHaveLength(2);
-		expect(consoleErrorSpy).toHaveBeenCalled();
-		removeFileMock.mockResolvedValue(undefined);
 		expect(await discardPatientExtractionService("extraction-1")).toEqual({ status: "success" });
 		expect(storedExtraction.current).toBeNull();
+		expect(consoleErrorSpy).toHaveBeenCalled();
 	});
 
 	test("lets the member leave without deleting files when the extraction is already gone", async () => {

@@ -10,9 +10,10 @@ const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 type UploadFileResponse =
 	| {
 			status: "success";
-			files: (Omit<Extract<SavedFileTypes, { status: "upload-complete" }>, "status"> & {
-				signedUrl: string;
-			})[];
+			files: (
+				| Extract<SavedFileTypes, { status: "upload-failed" }>
+				| (Extract<SavedFileTypes, { status: "upload-complete" }> & { signedUrl: string })
+			)[];
 	  }
 	| { status: "failed"; error: string };
 
@@ -56,7 +57,7 @@ export function useFileUpload() {
 					? data.files.find((file) => file.clientId === clientId)
 					: undefined;
 			let uploadedFile: SavedFileTypes | undefined;
-			if (response.ok && grant) {
+			if (response.ok && grant?.status === "upload-complete") {
 				const upload = await fetch(grant.signedUrl, {
 					method: "PUT",
 					headers: { "Content-Type": grant.type, "x-upsert": "false" },
@@ -64,7 +65,7 @@ export function useFileUpload() {
 				});
 				if (upload.ok) {
 					const { signedUrl: _signedUrl, ...file } = grant;
-					uploadedFile = { ...file, status: "upload-complete" };
+					uploadedFile = file;
 				}
 			}
 			if (!response.ok || !uploadedFile || uploadedFile.status !== "upload-complete") {
@@ -216,7 +217,8 @@ export function useFileUpload() {
 				optimisticItems.map(async (item): Promise<SavedFileTypes> => {
 					const grant = data.files.find((file) => file.clientId === item.clientId);
 					try {
-						if (!grant) throw new Error("Missing upload authorization.");
+						if (grant?.status !== "upload-complete")
+							throw new Error("Missing upload authorization.");
 						const upload = await fetch(grant.signedUrl, {
 							method: "PUT",
 							headers: { "Content-Type": grant.type, "x-upsert": "false" },
@@ -224,7 +226,7 @@ export function useFileUpload() {
 						});
 						if (!upload.ok) throw new Error("Storage rejected upload.");
 						const { signedUrl: _signedUrl, ...file } = grant;
-						return { ...file, status: "upload-complete" };
+						return file;
 					} catch {
 						return { clientId: item.clientId, name: item.name, status: "upload-failed" };
 					}
