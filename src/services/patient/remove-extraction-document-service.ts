@@ -94,14 +94,10 @@ export async function removeExtractionDocumentService(
 			documentId !== "." &&
 			documentId !== ".."
 		) {
-			try {
-				const { error } = await patientUploads.remove([
-					`${organizationId}/${removal.uploadedBy}/${documentId}`,
-				]);
-				if (error) console.error("Removing patient upload failed:", error);
-			} catch (error) {
-				console.error("Removing patient upload failed:", error);
-			}
+			const { error } = await patientUploads.remove([
+				`${organizationId}/${removal.uploadedBy}/${documentId}`,
+			]);
+			if (error) console.error("Removing patient upload failed:", error);
 		}
 
 		return { status: "success" };

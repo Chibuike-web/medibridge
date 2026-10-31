@@ -221,17 +221,13 @@ export async function updatePatientLabTestAction(
 	}
 
 	if (removedFiles.length > 0) {
-		try {
-			const { error } = await patientUploads.remove(
-				removedFiles.map(
-					(file) =>
-						`${organizationId}/record-files/${file.id}${recordFileExtensions[file.type as keyof typeof recordFileExtensions] ?? ""}`,
-				),
-			);
-			if (error) console.error("Removing replaced report files failed:", error);
-		} catch (error) {
-			console.error("Removing replaced report files failed:", error);
-		}
+		const { error } = await patientUploads.remove(
+			removedFiles.map(
+				(file) =>
+					`${organizationId}/record-files/${file.id}${recordFileExtensions[file.type as keyof typeof recordFileExtensions] ?? ""}`,
+			),
+		);
+		if (error) console.error("Removing replaced report files failed:", error);
 	}
 
 	updateTag(`patient-lab-tests-${organizationId}-${patientId}`);

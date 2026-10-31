@@ -32,7 +32,11 @@ vi.mock("@/lib/storage/client", () => ({
 	},
 }));
 
-describe.skipIf(!testDatabaseUrl)("sweeping unreferenced uploads", () => {
+// WARNING: this test truncates and drops the storage schema. Never let it run on a Supabase database.
+const isLocalDatabase =
+	!!testDatabaseUrl && ["localhost", "127.0.0.1"].includes(new URL(testDatabaseUrl).hostname);
+
+describe.skipIf(!isLocalDatabase)("sweeping unreferenced uploads", () => {
 	let authModule: typeof import("@/lib/better-auth/auth");
 	let cleanupUnreferencedUploadsService: typeof import("@/services/patient/cleanup-unreferenced-uploads-service").cleanupUnreferencedUploadsService;
 

@@ -23,8 +23,12 @@ const {
 vi.mock("@/lib/storage/client", () => ({
 	patientUploads: {
 		remove: async (keys: string[]) => {
-			for (const key of keys) await removeFileMock(key);
-			return { data: [], error: null };
+			try {
+				for (const key of keys) await removeFileMock(key);
+				return { data: [], error: null };
+			} catch (error) {
+				return { data: null, error };
+			}
 		},
 	},
 }));

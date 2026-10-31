@@ -898,6 +898,11 @@ describe("Uploads and extraction API", () => {
 			const response = await extractFile(extractFileRequest({ filenames: ["intake.pdf"] }));
 			expect(response.status).toBe(200);
 			expect(readFileMock).not.toHaveBeenCalled();
+			expect(saveExtractionMock).toHaveBeenCalledWith(
+				expect.objectContaining({
+					extractedData: [{ documentId: "intake.pdf", status: "failed", patient: null }],
+				}),
+			);
 		});
 		test.each(["..%2Fother-hospital%2Frecord.pdf", "record.pdf#fragment.pdf"])(
 			"refuses a filename that could change the storage path: %s",
