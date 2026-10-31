@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const uploadMetadataSchema = z.object({
 	name: z.string().trim().min(1).max(255),
-	type: z.string().min(1),
 	size: z
 		.number()
 		.int()

@@ -30,6 +30,14 @@ test.skipIf(process.env.TEST_STORAGE_INTEGRATION !== "1")(
 				const { data: metadata, error: infoError } = await storage.info(key);
 				expect(infoError).toBeNull();
 				expect(metadata).toMatchObject({ size: bytes.length, contentType: "application/pdf" });
+				const { data: listed, error: listError } = await storage.list("_storage-verification", {
+					search: key.split("/")[1],
+				});
+				expect(listError).toBeNull();
+				expect(listed?.[0].metadata).toMatchObject({
+					size: bytes.length,
+					mimetype: "application/pdf",
+				});
 				const overwrite = await fetch(grant!.signedUrl, {
 					method: "PUT",
 					headers: { "Content-Type": "application/pdf", "x-upsert": "true" },

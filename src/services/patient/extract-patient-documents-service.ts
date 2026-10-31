@@ -33,7 +33,13 @@ export async function extractPatientDocumentsService(
 
 	try {
 		for (const filename of filenames) {
-			const { data, error } = await patientUploads.download(`${uploadPrefix}/${filename}`);
+			const key = `${uploadPrefix}/${filename}`;
+			const { data: storedFile, error: infoError } = await patientUploads.info(key);
+			if (infoError || !storedFile.size || storedFile.size > 50 * 1024 * 1024) {
+				console.error("Patient document is missing or too large:", infoError);
+				continue;
+			}
+			const { data, error } = await patientUploads.download(key);
 			if (error) {
 				console.error("Reading patient document failed:", error);
 				continue;

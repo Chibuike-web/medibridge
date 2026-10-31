@@ -6,12 +6,12 @@ import { uploadReportFiles, type UploadedReports } from "./upload-report-files";
 const fetchMock = vi.fn();
 const report = new File(["%PDF-1.4"], "cbc.pdf", { type: "application/pdf", lastModified: 1 });
 
-function grantResponse(receipt = "receipt-1", expiresAt = Date.now() + 60_000) {
+function grantResponse(receipt = "receipt-1", expiresIn = 7200) {
 	return Response.json({
 		status: "success",
 		signedUrl: "https://storage.test/upload",
 		receipt,
-		expiresAt,
+		expiresIn,
 	});
 }
 
@@ -51,7 +51,7 @@ describe("uploading report files", () => {
 
 	test("uploads again once the earlier receipt has expired", async () => {
 		fetchMock
-			.mockResolvedValueOnce(grantResponse("old-receipt", Date.now() - 1))
+			.mockResolvedValueOnce(grantResponse("old-receipt", 60))
 			.mockResolvedValueOnce(new Response(null))
 			.mockResolvedValueOnce(grantResponse("new-receipt"))
 			.mockResolvedValueOnce(new Response(null));

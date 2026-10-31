@@ -68,15 +68,19 @@ export async function POST(request: Request) {
 		const { data, error } = await patientUploads.createSignedUploadUrl(key, { upsert: false });
 		if (error) throw error;
 
-		const expiresAt = Math.floor(Date.now() / 1000) + receiptLifetimeInSeconds;
 		const receipt = await new SignJWT(file)
 			.setProtectedHeader({ alg: "HS256" })
 			.setAudience("patient-record-upload")
 			.setIssuedAt()
-			.setExpirationTime(expiresAt)
+			.setExpirationTime(`${receiptLifetimeInSeconds}s`)
 			.sign(new TextEncoder().encode(ENV.BETTER_AUTH_SECRET));
 		return Response.json(
-			{ status: "success", signedUrl: data.signedUrl, receipt, expiresAt: expiresAt * 1000 },
+			{
+				status: "success",
+				signedUrl: data.signedUrl,
+				receipt,
+				expiresIn: receiptLifetimeInSeconds,
+			},
 			{ headers: { "Cache-Control": "no-store" } },
 		);
 	} catch (error) {

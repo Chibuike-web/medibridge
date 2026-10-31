@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 				(filename) =>
 					typeof filename !== "string" ||
 					!filename ||
-					/[\\/:*?"<>|]|[^\u0020-\uffff]/.test(filename) ||
+					/[\\/:*?"<>|%#]|[^\u0020-\uffff]/.test(filename) ||
 					/[. ]$/.test(filename),
 			)
 		) {

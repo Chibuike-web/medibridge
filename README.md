@@ -154,9 +154,11 @@ src/
 └── hooks/               # Upload and shared client hooks
 ```
 
-Patient documents, clinical reports, and accreditation files use private Supabase Storage. Browsers upload directly using scoped upload URLs, and application endpoints authorize every download and stream it through the app. A patient's source document is deleted when the patient is saved, and a daily cron job removes reviews older than a day.
+Patient documents, clinical reports, and accreditation files use private Supabase Storage. Browsers upload directly using scoped upload URLs, and application endpoints authorize every download and stream it through the app. A patient's source document is deleted when the patient is saved, and a daily cron job removes what is left behind.
 
-Create two private Supabase buckets before uploading, each with a 50 MB limit: `patient-uploads` allowing PDF, PNG, JPEG and DOCX, and `hospital-uploads` allowing PDF, PNG, JPEG and DOC. Run `bun run storage:cleanup` to count unreferenced files older than a day, and add `-- --apply` to remove them.
+Create two private Supabase buckets before uploading, each with a 50 MB limit: `patient-uploads` allowing PDF, PNG, JPEG and DOCX, and `hospital-uploads` allowing PDF, PNG, JPEG and DOC. Before the first deploy, run `bun run storage:migrate -- --source <checkout>` to preview copying existing local uploads, then add `--apply` to copy them. The app only reads from storage, so files left on disk return 404.
+
+Set `CRON_SECRET` on the host. The daily job in `vercel.json` removes abandoned reviews and any file older than a day that no record points to.
 
 ## Local development
 

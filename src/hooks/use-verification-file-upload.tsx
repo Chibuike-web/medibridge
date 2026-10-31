@@ -80,7 +80,6 @@ export function useVerificationFileUpload() {
 				body: JSON.stringify({
 					name: selectedFile.name,
 					size: selectedFile.size,
-					type: selectedFile.type || "application/octet-stream",
 				}),
 			});
 			const data: { error?: string; signedUrl?: string; type?: string } = await res

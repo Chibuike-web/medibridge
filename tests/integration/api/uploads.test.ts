@@ -8,6 +8,7 @@ afterAll(() => consoleLogSpy.mockRestore());
 
 const {
 	signedUploadMock,
+	infoMock,
 	hospitalSignedUploadMock,
 	hospitalListMock,
 	hospitalRemoveMock,
@@ -32,6 +33,7 @@ const {
 	revalidateTagMock,
 } = vi.hoisted(() => ({
 	signedUploadMock: vi.fn(),
+	infoMock: vi.fn(),
 	hospitalSignedUploadMock: vi.fn(),
 	hospitalListMock: vi.fn(),
 	hospitalRemoveMock: vi.fn(),
@@ -59,6 +61,7 @@ const {
 vi.mock("@/lib/storage/client", () => ({
 	patientUploads: {
 		createSignedUploadUrl: signedUploadMock,
+		info: infoMock,
 		download: async (key: string) => ({ data: new Blob([await readFileMock(key)]), error: null }),
 	},
 	hospitalUploads: {
@@ -177,6 +180,7 @@ describe("Uploads and extraction API", () => {
 			data: { signedUrl: `https://storage.test/${key}?token=upload-only` },
 			error: null,
 		}));
+		infoMock.mockResolvedValue({ data: { size: 100 }, error: null });
 		hospitalSignedUploadMock.mockImplementation(async (key: string) => ({
 			data: { signedUrl: `https://storage.test/${key}?token=upload-only` },
 			error: null,
@@ -888,6 +892,21 @@ describe("Uploads and extraction API", () => {
 			expect(generateTextMock).not.toHaveBeenCalled();
 		});
 
+		test("marks a stored file over 50 MB as failed without downloading it", async () => {
+			vi.spyOn(console, "error").mockImplementation(() => {});
+			infoMock.mockResolvedValue({ data: { size: 50 * 1024 * 1024 + 1 }, error: null });
+			const response = await extractFile(extractFileRequest({ filenames: ["intake.pdf"] }));
+			expect(response.status).toBe(200);
+			expect(readFileMock).not.toHaveBeenCalled();
+		});
+		test.each(["..%2Fother-hospital%2Frecord.pdf", "record.pdf#fragment.pdf"])(
+			"refuses a filename that could change the storage path: %s",
+			async (filename) => {
+				const response = await extractFile(extractFileRequest({ filenames: [filename] }));
+				expect(response.status).toBe(400);
+				expect(infoMock).not.toHaveBeenCalled();
+			},
+		);
 		test("returns 400 when a verified member sends no filenames", async () => {
 			getSessionDataMock.mockResolvedValue({ user: { id: "owner-1", emailVerified: true } });
 			getOrganizationIdMock.mockResolvedValue("hospital-1");

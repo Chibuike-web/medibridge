@@ -55,7 +55,10 @@ export async function uploadReportFiles(
 			return { status: "failed", error: "We couldn’t upload this report. Please try again." };
 		}
 
-		uploadedReports.set(fileKey, { receipt: grant.receipt, expiresAt: grant.expiresAt });
+		uploadedReports.set(fileKey, {
+			receipt: grant.receipt,
+			expiresAt: Date.now() + (grant.expiresIn - 60) * 1000,
+		});
 		receipts.push(grant.receipt);
 	}
 

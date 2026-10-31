@@ -328,7 +328,6 @@ describe("retrying failed patient uploads", () => {
 			expect(JSON.parse(body).files[0]).toMatchObject({
 				name: "failed.pdf",
 				size: "failed contents".length,
-				type: "application/pdf",
 			});
 			return Response.json({
 				status: "success",

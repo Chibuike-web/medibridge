@@ -46,7 +46,6 @@ export function useFileUpload() {
 							clientId,
 							name: failedFile.browserFile.name,
 							size: failedFile.browserFile.size,
-							type: failedFile.browserFile.type || "application/octet-stream",
 						},
 					],
 				}),
@@ -193,7 +192,6 @@ export function useFileUpload() {
 						clientId: item.clientId,
 						name: item.name,
 						size: item.size,
-						type: item.browserFile.type || "application/octet-stream",
 					})),
 				}),
 			});

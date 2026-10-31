@@ -18,7 +18,7 @@
 		"db:studio": "drizzle-kit studio --config=./src/lib/drizzle.config.ts --port=4000",
 		"db:migrate": "drizzle-kit migrate --config=./src/lib/drizzle.config.ts",
 		"db:approve-hospital": "bun run src/db/approve-hospital.ts",
-		"storage:cleanup": "node --no-warnings src/db/cleanup-storage-uploads.ts"
+		"storage:migrate": "node --no-warnings src/db/migrate-local-uploads.ts"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.8.0",
