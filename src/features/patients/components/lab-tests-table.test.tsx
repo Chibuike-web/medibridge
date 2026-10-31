@@ -61,7 +61,7 @@ const labTests: LabTestType[] = [
 			{
 				id: "FILE-a1c",
 				name: "a1c-report.pdf",
-				url: "/api/patient-record-files/FILE-a1c",
+				url: "/api/patient-record-files/lab/FILE-a1c",
 				type: "application/pdf",
 				size: "120 KB",
 				uploadedAtLabel: "Jan 6, 2020",
@@ -588,11 +588,11 @@ describe("Lab tests table", () => {
 		expect(within(dialog).getByText("a1c-report.pdf")).toBeVisible();
 		expect(within(dialog).getByRole("link", { name: "Open" })).toHaveAttribute(
 			"href",
-			"/api/patient-record-files/FILE-a1c",
+			"/api/patient-record-files/lab/FILE-a1c",
 		);
 		expect(within(dialog).getByRole("link", { name: "Download" })).toHaveAttribute(
 			"href",
-			"/api/patient-record-files/FILE-a1c?download",
+			"/api/patient-record-files/lab/FILE-a1c?download",
 		);
 	});
 

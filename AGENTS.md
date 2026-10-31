@@ -9,6 +9,7 @@
 - Keep implementations clear, simple, and easy to follow. Use the least code that fully serves the feature. Every component, hook, helper, state value, and branch must have a clear job in the feature's flow. Avoid unnecessary abstractions, complexity, hacks, and bolted-on behavior.
 - Make every change flow with the feature it touches, as if it had been planned from the start, never bolted on. Check for this when reviewing, not only for correctness.
 - Find the simplest code that guarantees correct behavior. Simple does not mean fewest lines; prefer code that is clear to read over code that is compressed.
+- Prefer plain sequential code over conditional tricks that save a little work. For example, don't skip a query with `const [imagingFile] = labTestFile ? [] : await db.select()...` just to avoid one small lookup. Run `const [labTestFile] = await db.select()...` and `const [imagingFile] = await db.select()...` one after the other, then use `const recordFile = labTestFile ?? imagingFile;`.
 - Write code inline by default. Extract a helper, component, hook, or other abstraction only when it is used in 4 or more places or in 4 different files, and it saves 4 or more lines compared with writing it inline.
 - Keep work cohesive and neat.
 - For spacing, sizing, and other style values, default to rem-based values or Tailwind scale utilities instead of raw pixel values unless exact pixels are required by an external asset or spec.

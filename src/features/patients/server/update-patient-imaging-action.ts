@@ -166,7 +166,7 @@ export async function updatePatientImagingAction(
 						id: file.id,
 						parentRecordId: imagingId,
 						name: file.name,
-						url: `/api/patient-record-files/${file.id}`,
+						url: `/api/patient-record-files/imaging/${file.id}`,
 						type: file.type,
 						size:
 							file.size >= 1024 * 1024

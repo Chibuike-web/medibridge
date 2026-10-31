@@ -122,7 +122,7 @@ export async function createPatientLabTestAction(
 						id: file.id,
 						parentRecordId: labTestId,
 						name: file.name,
-						url: `/api/patient-record-files/${file.id}`,
+						url: `/api/patient-record-files/lab/${file.id}`,
 						type: file.type,
 						size:
 							file.size >= 1024 * 1024

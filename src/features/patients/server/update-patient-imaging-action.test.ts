@@ -275,7 +275,7 @@ describe("editing a patient imaging study", () => {
 				id: addedFileId,
 				parentRecordId: "IMG-1",
 				name: "chest-ct.pdf",
-				url: `/api/patient-record-files/${addedFileId}`,
+				url: `/api/patient-record-files/imaging/${addedFileId}`,
 				type: "application/pdf",
 				size: "1 KB",
 				uploadedBy: "Ada Obi",

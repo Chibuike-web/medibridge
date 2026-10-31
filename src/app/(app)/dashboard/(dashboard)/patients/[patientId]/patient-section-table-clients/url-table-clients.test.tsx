@@ -147,7 +147,7 @@ const imagingStudiesRow = {
 		{
 			id: "FILE-cxr",
 			name: "chest-xray.png",
-			url: "/api/patient-record-files/FILE-cxr",
+			url: "/api/patient-record-files/imaging/FILE-cxr",
 			type: "image/png",
 			size: "2.4 MB",
 			uploadedAtLabel: "Jan 6, 2020",
@@ -197,7 +197,7 @@ const labTestsRow = {
 		{
 			id: "FILE-a1c",
 			name: "a1c-report.pdf",
-			url: "/api/patient-record-files/FILE-a1c",
+			url: "/api/patient-record-files/lab/FILE-a1c",
 			type: "application/pdf",
 			size: "120 KB",
 			uploadedAtLabel: "Jan 6, 2020",

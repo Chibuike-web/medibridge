@@ -102,7 +102,7 @@ describe.skipIf(!isLocalDatabase)("sweeping unreferenced uploads", () => {
 			id: "saved-report",
 			parentRecordId: "LAB-1",
 			name: "report.pdf",
-			url: "/api/patient-record-files/saved-report",
+			url: "/api/patient-record-files/lab/saved-report",
 			type: "application/pdf",
 			size: "10 B",
 		} as typeof patientLabTestFile.$inferInsert);

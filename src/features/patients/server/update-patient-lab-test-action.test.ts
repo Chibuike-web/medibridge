@@ -279,7 +279,7 @@ describe("editing a patient lab test", () => {
 				id: addedFileId,
 				parentRecordId: "LAB-1",
 				name: "cbc-repeat.pdf",
-				url: `/api/patient-record-files/${addedFileId}`,
+				url: `/api/patient-record-files/lab/${addedFileId}`,
 				type: "application/pdf",
 				size: "1 KB",
 				uploadedBy: "Ada Obi",

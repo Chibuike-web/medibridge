@@ -52,7 +52,7 @@ const imagingStudies: ImagingType[] = [
 			{
 				id: "FILE-cxr",
 				name: "chest-xray.png",
-				url: "/api/patient-record-files/FILE-cxr",
+				url: "/api/patient-record-files/imaging/FILE-cxr",
 				type: "image/png",
 				size: "2.4 MB",
 				uploadedAtLabel: "Jan 6, 2020",
@@ -604,11 +604,11 @@ describe("Imaging table", () => {
 		expect(within(dialog).getByText("chest-xray.png")).toBeVisible();
 		expect(within(dialog).getByRole("link", { name: "Open" })).toHaveAttribute(
 			"href",
-			"/api/patient-record-files/FILE-cxr",
+			"/api/patient-record-files/imaging/FILE-cxr",
 		);
 		expect(within(dialog).getByRole("link", { name: "Download" })).toHaveAttribute(
 			"href",
-			"/api/patient-record-files/FILE-cxr?download",
+			"/api/patient-record-files/imaging/FILE-cxr?download",
 		);
 	});
 

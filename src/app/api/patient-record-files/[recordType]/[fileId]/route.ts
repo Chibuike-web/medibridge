@@ -14,7 +14,7 @@ import { db } from "@/lib/better-auth/auth";
 
 export async function GET(
 	request: Request,
-	context: RouteContext<"/api/patient-record-files/[fileId]">,
+	context: RouteContext<"/api/patient-record-files/[recordType]/[fileId]">,
 ) {
 	const session = await getSessionData();
 
@@ -44,30 +44,28 @@ export async function GET(
 		);
 	}
 
-	const { fileId } = await context.params;
-	const [labTestFile] = await db
-		.select({
-			name: patientLabTestFile.name,
-			type: patientLabTestFile.type,
-		})
-		.from(patientLabTestFile)
-		.innerJoin(patientLabTest, eq(patientLabTestFile.parentRecordId, patientLabTest.id))
-		.innerJoin(patient, eq(patientLabTest.patientId, patient.id))
-		.where(and(eq(patientLabTestFile.id, fileId), eq(patient.organizationId, organizationId)))
-		.limit(1);
-	const [imagingFile] = labTestFile
-		? []
-		: await db
-				.select({
-					name: patientImagingFile.name,
-					type: patientImagingFile.type,
-				})
-				.from(patientImagingFile)
-				.innerJoin(patientImaging, eq(patientImagingFile.parentRecordId, patientImaging.id))
-				.innerJoin(patient, eq(patientImaging.patientId, patient.id))
-				.where(and(eq(patientImagingFile.id, fileId), eq(patient.organizationId, organizationId)))
-				.limit(1);
-	const recordFile = labTestFile ?? imagingFile;
+	const { recordType, fileId } = await context.params;
+
+	if (recordType !== "lab" && recordType !== "imaging") {
+		return Response.json({ status: "failed", error: "File not found." }, { status: 404 });
+	}
+
+	const [recordFile] =
+		recordType === "lab"
+			? await db
+					.select({ name: patientLabTestFile.name, type: patientLabTestFile.type })
+					.from(patientLabTestFile)
+					.innerJoin(patientLabTest, eq(patientLabTestFile.parentRecordId, patientLabTest.id))
+					.innerJoin(patient, eq(patientLabTest.patientId, patient.id))
+					.where(and(eq(patientLabTestFile.id, fileId), eq(patient.organizationId, organizationId)))
+					.limit(1)
+			: await db
+					.select({ name: patientImagingFile.name, type: patientImagingFile.type })
+					.from(patientImagingFile)
+					.innerJoin(patientImaging, eq(patientImagingFile.parentRecordId, patientImaging.id))
+					.innerJoin(patient, eq(patientImaging.patientId, patient.id))
+					.where(and(eq(patientImagingFile.id, fileId), eq(patient.organizationId, organizationId)))
+					.limit(1);
 	const extension = recordFileExtensions[recordFile?.type as keyof typeof recordFileExtensions];
 
 	if (!recordFile || !extension) {

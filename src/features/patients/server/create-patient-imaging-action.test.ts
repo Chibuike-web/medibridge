@@ -219,7 +219,7 @@ describe("adding a patient imaging study", () => {
 				id: savedFilm.id,
 				parentRecordId: imagingId,
 				name: "chest-pa.png",
-				url: `/api/patient-record-files/${savedFilm.id}`,
+				url: `/api/patient-record-files/imaging/${savedFilm.id}`,
 				type: "image/png",
 				size: "1 KB",
 				uploadedBy: "Ada Obi",

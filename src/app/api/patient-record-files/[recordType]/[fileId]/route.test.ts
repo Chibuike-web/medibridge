@@ -33,10 +33,13 @@ vi.mock("@/lib/better-auth/auth", async () => {
 		},
 	};
 });
-const request = (query = "", headers: HeadersInit = {}) =>
-	GET(new Request(`http://localhost/api/patient-record-files/f1${query}`, { headers }), {
-		params: Promise.resolve({ fileId: "f1" }),
-	});
+const request = (query = "", headers: HeadersInit = {}, recordType = "lab") =>
+	GET(
+		new Request(`http://localhost/api/patient-record-files/${recordType}/f1${query}`, { headers }),
+		{
+			params: Promise.resolve({ recordType, fileId: "f1" }),
+		},
+	);
 
 describe("private clinical report access", () => {
 	afterEach(() => vi.unstubAllGlobals());
@@ -92,10 +95,14 @@ describe("private clinical report access", () => {
 		expect(response.headers.get("Content-Range")).toBe("bytes 0-3/8");
 		expect(storageFetch.mock.calls[0][1].headers.get("Range")).toBe("bytes=0-3");
 	});
+	test("refuses an unknown record type", async () => {
+		expect((await request("", {}, "other")).status).toBe(404);
+		expect(signedUrl).not.toHaveBeenCalled();
+	});
 	test("opens a scoped imaging report", async () => {
 		rows.lab = [];
 		rows.imaging = [{ name: "Chest.png", type: "image/png", recordId: "IMG-1" }];
-		const response = await request();
+		const response = await request("", {}, "imaging");
 		expect(response.status).toBe(200);
 		expect(response.headers.get("Content-Type")).toBe("image/png");
 		expect(signedUrl).toHaveBeenCalledWith("hospital-1/record-files/f1.png", 60);
