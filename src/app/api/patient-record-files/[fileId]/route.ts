@@ -49,7 +49,6 @@ export async function GET(
 		.select({
 			name: patientLabTestFile.name,
 			type: patientLabTestFile.type,
-			recordId: patientLabTestFile.parentRecordId,
 		})
 		.from(patientLabTestFile)
 		.innerJoin(patientLabTest, eq(patientLabTestFile.parentRecordId, patientLabTest.id))
@@ -62,7 +61,6 @@ export async function GET(
 				.select({
 					name: patientImagingFile.name,
 					type: patientImagingFile.type,
-					recordId: patientImagingFile.parentRecordId,
 				})
 				.from(patientImagingFile)
 				.innerJoin(patientImaging, eq(patientImagingFile.parentRecordId, patientImaging.id))
@@ -83,9 +81,9 @@ export async function GET(
 		const { data, error } = await patientUploads.createSignedUrl(key, 60);
 		if (error) throw error;
 		const range = request.headers.get("range");
-		const file = await fetch(data.signedUrl, {
-			headers: { "Accept-Encoding": "identity", ...(range && { Range: range }) },
-		});
+		const storageHeaders = new Headers({ "Accept-Encoding": "identity" });
+		if (range) storageHeaders.set("Range", range);
+		const file = await fetch(data.signedUrl, { headers: storageHeaders });
 		if (!file.ok) throw new Error(`Storage responded with ${file.status}.`);
 		const headers = new Headers({
 			"Content-Type": recordFile.type ?? "application/octet-stream",

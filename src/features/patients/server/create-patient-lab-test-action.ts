@@ -98,10 +98,6 @@ export async function createPatientLabTestAction(
 	const labTestId = `LAB-${crypto.randomUUID()}`;
 	const { flag, referenceRange, result, interpretation, clinicalNote, orderedAt, ...labTest } =
 		parsedLabTest.data;
-	const files = uploadedFiles.map((file) => ({
-		id: file.id,
-		file,
-	}));
 
 	try {
 		await db.transaction(async (tx) => {
@@ -120,13 +116,13 @@ export async function createPatientLabTestAction(
 				updatedBy: createdBy,
 			});
 
-			if (files.length > 0) {
+			if (uploadedFiles.length > 0) {
 				await tx.insert(patientLabTestFile).values(
-					files.map(({ id, file }) => ({
-						id,
+					uploadedFiles.map((file) => ({
+						id: file.id,
 						parentRecordId: labTestId,
 						name: file.name,
-						url: `/api/patient-record-files/${id}`,
+						url: `/api/patient-record-files/${file.id}`,
 						type: file.type,
 						size:
 							file.size >= 1024 * 1024

@@ -90,7 +90,7 @@ export async function updatePatientLabTestAction(
 		return { status: "failed", error: verifiedUploads.error };
 	}
 
-	const uploadedFiles = verifiedUploads.files;
+	const addedFiles = verifiedUploads.files;
 
 	const savedFiles = await db
 		.select({
@@ -103,10 +103,6 @@ export async function updatePatientLabTestAction(
 	const removedFileIds = formData.getAll("removedFileIds").map(String);
 	const removedFiles = savedFiles.filter((file) => removedFileIds.includes(file.id));
 	const keptFiles = savedFiles.filter((file) => !removedFileIds.includes(file.id));
-	const addedFiles = uploadedFiles.map((file) => ({
-		id: file.id,
-		file,
-	}));
 
 	if (parsedLabTest.data.status === "Completed" && keptFiles.length + addedFiles.length === 0) {
 		return { status: "failed", error: "Attach the report for a completed lab test." };
@@ -178,11 +174,11 @@ export async function updatePatientLabTestAction(
 
 			if (addedFiles.length > 0) {
 				await tx.insert(patientLabTestFile).values(
-					addedFiles.map(({ id, file }) => ({
-						id,
+					addedFiles.map((file) => ({
+						id: file.id,
 						parentRecordId: labTestId,
 						name: file.name,
-						url: `/api/patient-record-files/${id}`,
+						url: `/api/patient-record-files/${file.id}`,
 						type: file.type,
 						size:
 							file.size >= 1024 * 1024
@@ -210,10 +206,7 @@ export async function updatePatientLabTestAction(
 								labTestId,
 								fieldName: "files",
 								oldValue: savedFiles.map((file) => file.name).join(", ") || null,
-								newValue:
-									[...keptFiles, ...addedFiles.map(({ file }) => file)]
-										.map((file) => file.name)
-										.join(", ") || null,
+								newValue: [...keptFiles, ...addedFiles].map((file) => file.name).join(", ") || null,
 								updatedBy,
 								createdAt: updatedAt,
 							},

@@ -343,14 +343,28 @@ describe("Uploads and extraction API", () => {
 			const response = await uploadVerificationFile(request());
 			const body = await response.json();
 			expect(response.status).toBe(200);
-			expect(body.key).toMatch(/^owner-1\/[a-f0-9-]{36}\.pdf$/);
-			expect(hospitalSignedUploadMock).toHaveBeenCalledWith(body.key, { upsert: false });
+			expect(body.signedUrl).toContain("token=upload-only");
+			expect(hospitalSignedUploadMock).toHaveBeenCalledWith(
+				expect.stringMatching(/^owner-1\/[a-f0-9-]{36}\.pdf$/),
+				{ upsert: false },
+			);
 		});
-		test("replaces the owner's earlier uploads", async () => {
-			hospitalListMock.mockResolvedValue({ data: [{ name: "old.pdf" }], error: null });
+		test("keeps the newest upload in case the replacement fails", async () => {
+			hospitalListMock.mockResolvedValue({
+				data: [{ name: "newest.pdf" }, { name: "older.pdf" }, { name: "oldest.pdf" }],
+				error: null,
+			});
 			await uploadVerificationFile(request());
-			expect(hospitalListMock).toHaveBeenCalledWith("owner-1", { limit: 100 });
-			expect(hospitalRemoveMock).toHaveBeenCalledWith(["owner-1/old.pdf"]);
+			expect(hospitalListMock).toHaveBeenCalledWith("owner-1", {
+				limit: 100,
+				sortBy: { column: "created_at", order: "desc" },
+			});
+			expect(hospitalRemoveMock).toHaveBeenCalledWith(["owner-1/older.pdf", "owner-1/oldest.pdf"]);
+		});
+		test("removes nothing when the owner has one earlier upload", async () => {
+			hospitalListMock.mockResolvedValue({ data: [{ name: "only.pdf" }], error: null });
+			await uploadVerificationFile(request());
+			expect(hospitalRemoveMock).not.toHaveBeenCalled();
 		});
 		test("refuses an extension that only matches a built-in object key", async () => {
 			expect((await uploadVerificationFile(request("x.constructor"))).status).toBe(400);

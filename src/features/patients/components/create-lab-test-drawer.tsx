@@ -153,6 +153,7 @@ export function CreateLabTestDrawer({
 				handleOpenChange(false);
 			} catch (error) {
 				console.error("Saving report files failed:", error);
+				uploadedReportsRef.current.clear();
 				setFormError("We couldn’t save these changes. Please try again.");
 			}
 		});

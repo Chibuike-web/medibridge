@@ -66,7 +66,6 @@ for (const bucket of ["patient-uploads", "hospital-uploads"]) {
 				skipped++;
 				continue;
 			}
-			// Older clinical objects nested the file under its record ID; the API now uses the immutable file ID.
 			if (bucket === "patient-uploads" && parts.length === 4 && parts[1] === "record-files")
 				key = `${parts[0]}/record-files/${parts[3]}`;
 			planned++;

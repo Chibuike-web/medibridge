@@ -60,6 +60,7 @@ export async function POST(req: Request) {
 
 		const { data: previousFiles, error: listError } = await hospitalUploads.list(session.user.id, {
 			limit: 100,
+			sortBy: { column: "created_at", order: "desc" },
 		});
 		if (listError) throw listError;
 
@@ -67,15 +68,17 @@ export async function POST(req: Request) {
 		const { data, error } = await hospitalUploads.createSignedUploadUrl(key, { upsert: false });
 		if (error) throw error;
 
-		if (previousFiles.length > 0) {
+		// WARNING: keep the newest file. The new upload hasn't reached storage yet and can still fail.
+		const replacedFiles = previousFiles.slice(1);
+		if (replacedFiles.length > 0) {
 			const { error: removeError } = await hospitalUploads.remove(
-				previousFiles.map((file) => `${session.user.id}/${file.name}`),
+				replacedFiles.map((file) => `${session.user.id}/${file.name}`),
 			);
 			if (removeError) console.error("Removing replaced accreditation files failed:", removeError);
 		}
 
 		return Response.json(
-			{ status: "success", signedUrl: data.signedUrl, key, type },
+			{ status: "success", signedUrl: data.signedUrl, type },
 			{ headers: { "Cache-Control": "no-store" } },
 		);
 	} catch (error) {

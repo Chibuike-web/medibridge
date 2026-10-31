@@ -90,7 +90,7 @@ describe("private clinical report access", () => {
 
 		expect(response.status).toBe(206);
 		expect(response.headers.get("Content-Range")).toBe("bytes 0-3/8");
-		expect(storageFetch.mock.calls[0][1].headers).toMatchObject({ Range: "bytes=0-3" });
+		expect(storageFetch.mock.calls[0][1].headers.get("Range")).toBe("bytes=0-3");
 	});
 	test("opens a scoped imaging report", async () => {
 		rows.lab = [];

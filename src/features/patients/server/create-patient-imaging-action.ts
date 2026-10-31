@@ -91,10 +91,6 @@ export async function createPatientImagingAction(
 	const createdBy = session.user.name || session.user.email;
 	const imagingId = `IMG-${crypto.randomUUID()}`;
 	const { impression, clinicalNote, orderedAt, ...imaging } = parsedImaging.data;
-	const files = uploadedFiles.map((file) => ({
-		id: file.id,
-		file,
-	}));
 
 	try {
 		await db.transaction(async (tx) => {
@@ -110,13 +106,13 @@ export async function createPatientImagingAction(
 				updatedBy: createdBy,
 			});
 
-			if (files.length > 0) {
+			if (uploadedFiles.length > 0) {
 				await tx.insert(patientImagingFile).values(
-					files.map(({ id, file }) => ({
-						id,
+					uploadedFiles.map((file) => ({
+						id: file.id,
 						parentRecordId: imagingId,
 						name: file.name,
-						url: `/api/patient-record-files/${id}`,
+						url: `/api/patient-record-files/${file.id}`,
 						type: file.type,
 						size:
 							file.size >= 1024 * 1024

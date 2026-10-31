@@ -156,6 +156,8 @@ src/
 
 Patient documents, clinical reports, and accreditation files use private Supabase Storage. Browsers upload directly using scoped upload URLs, and application endpoints authorize every download and stream it through the app. A patient's source document is deleted when the patient is saved, and a daily cron job removes reviews older than a day.
 
+Create two private Supabase buckets before uploading, each with a 50 MB limit: `patient-uploads` allowing PDF, PNG, JPEG and DOCX, and `hospital-uploads` allowing PDF, PNG, JPEG and DOC. Run `bun run storage:cleanup` to count unreferenced files older than a day, and add `-- --apply` to remove them.
+
 ## Local development
 
 ### Prerequisites
