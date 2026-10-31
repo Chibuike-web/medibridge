@@ -50,7 +50,7 @@ describe("Patient upload deletion", () => {
 	test.each([
 		"patient-uploads/hospital-1/member-2/intake.pdf",
 		"patient-uploads/hospital-2/member-1/intake.pdf",
-		"patient-uploads/hospital-1/member-1/..\member-2\intake.pdf",
+		"patient-uploads/hospital-1/member-1/..\\member-2\\intake.pdf",
 		"patient-uploads/hospital-1/member-1/C:intake.pdf",
 		"patient-uploads/intake.pdf",
 		"private.pdf",

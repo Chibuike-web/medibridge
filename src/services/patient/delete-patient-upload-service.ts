@@ -40,7 +40,7 @@ export async function deletePatientUploadService(
 		if (
 			!filename ||
 			filename !== path.posix.basename(filename) ||
-			/[\:]/.test(filename) ||
+			/[\\:]/.test(filename) ||
 			filename === "." ||
 			filename === ".."
 		) {
