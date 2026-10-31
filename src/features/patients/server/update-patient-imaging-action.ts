@@ -208,13 +208,18 @@ export async function updatePatientImagingAction(
 		return { status: "failed", error: "We couldn’t save these changes. Please try again." };
 	}
 
-	if (removedFiles.length > 0) {
-		const { error } = await patientUploads.remove(
-			removedFiles.map(
-				(file) =>
-					`${organizationId}/record-files/${file.id}${recordFileExtensions[file.type as keyof typeof recordFileExtensions] ?? ""}`,
-			),
-		);
+	const removedKeys: string[] = [];
+	for (const file of removedFiles) {
+		const extension = recordFileExtensions[file.type as keyof typeof recordFileExtensions];
+		if (!extension) {
+			console.error("Skipped removing a report with an unknown file type:", file.id);
+			continue;
+		}
+		removedKeys.push(`${organizationId}/record-files/${file.id}${extension}`);
+	}
+
+	if (removedKeys.length > 0) {
+		const { error } = await patientUploads.remove(removedKeys);
 		if (error) console.error("Removing replaced report files failed:", error);
 	}
 

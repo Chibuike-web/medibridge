@@ -51,23 +51,7 @@ export function useFileUpload() {
 				}),
 			});
 			const data: UploadFileResponse = await response.json();
-			const grant =
-				data.status === "success"
-					? data.files.find((file) => file.clientId === clientId)
-					: undefined;
-			let uploadedFile: SavedFileTypes | undefined;
-			if (response.ok && grant?.status === "upload-complete") {
-				const upload = await fetch(grant.signedUrl, {
-					method: "PUT",
-					headers: { "Content-Type": grant.type, "x-upsert": "false" },
-					body: failedFile.browserFile,
-				});
-				if (upload.ok) {
-					const { signedUrl: _signedUrl, ...file } = grant;
-					uploadedFile = file;
-				}
-			}
-			if (!response.ok || !uploadedFile) {
+			if (!response.ok || data.status !== "success") {
 				setUploadError(
 					data.status === "failed" ? data.error : "We couldn’t upload this file. Please try again.",
 				);
@@ -79,9 +63,19 @@ export function useFileUpload() {
 				return;
 			}
 
+			const grant = data.files.find((file) => file.clientId === clientId);
+			if (grant?.status !== "upload-complete") throw new Error("Missing upload authorization.");
+
+			const upload = await fetch(grant.signedUrl, {
+				method: "PUT",
+				headers: { "Content-Type": grant.type, "x-upsert": "false" },
+				body: failedFile.browserFile,
+			});
+			if (!upload.ok) throw new Error("Storage rejected upload.");
+
 			setFiles((prev) =>
 				prev.map<SelectedFile>((file) =>
-					file.clientId === clientId ? { ...file, ...uploadedFile } : file,
+					file.clientId === clientId ? { ...file, ...grant } : file,
 				),
 			);
 		} catch (error) {
@@ -223,8 +217,7 @@ export function useFileUpload() {
 							body: item.browserFile,
 						});
 						if (!upload.ok) throw new Error("Storage rejected upload.");
-						const { signedUrl: _signedUrl, ...file } = grant;
-						return file;
+						return grant;
 					} catch {
 						return { clientId: item.clientId, name: item.name, status: "upload-failed" };
 					}

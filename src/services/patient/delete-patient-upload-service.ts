@@ -32,17 +32,23 @@ export async function deletePatientUploadService(
 		}
 
 		const prefix = `patient-uploads/${organizationId}/${session.user.id}/`;
+		if (!relativePath.startsWith(prefix)) {
+			return { status: "failed", error: "Invalid file path" };
+		}
+
 		const filename = relativePath.slice(prefix.length);
 		if (
-			!relativePath.startsWith(prefix) ||
 			!filename ||
 			filename !== path.posix.basename(filename) ||
-			/[\\:]/.test(filename) ||
+			/[\:]/.test(filename) ||
 			filename === "." ||
 			filename === ".."
-		)
+		) {
 			return { status: "failed", error: "Invalid file path" };
-		const { error } = await patientUploads.remove([relativePath.slice("patient-uploads/".length)]);
+		}
+
+		const key = `${organizationId}/${session.user.id}/${filename}`;
+		const { error } = await patientUploads.remove([key]);
 		if (error) throw error;
 
 		return { status: "success" };

@@ -117,7 +117,6 @@ export function CreateLabTestDrawer({
 
 		startTransition(async () => {
 			try {
-				formData.delete("files");
 				const uploadedReports = await uploadReportFiles(
 					selectedFiles,
 					patientId,
