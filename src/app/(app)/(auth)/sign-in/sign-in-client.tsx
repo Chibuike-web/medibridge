@@ -2,6 +2,7 @@
 
 import { getOrganizationAccessAction } from "@/features/auth/server/actions";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -196,7 +197,7 @@ export function SignInClient() {
 					</p>
 				)}
 				<Button className="mt-8 w-full" disabled={isPending} type="submit">
-					{isPending ? "Opening hospital..." : "Continue"}
+					{isPending ? <PixelLoader label="Opening hospital..." /> : "Continue"}
 				</Button>
 			</form>
 		);
@@ -323,14 +324,7 @@ export function SignInClient() {
 				)}
 
 				<Button className="w-full mt-16" type="submit" disabled={isSubmitting || isPending}>
-					{isSubmitting ? (
-						<span className="flex items-center gap-2">
-							<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-							Signing in...
-						</span>
-					) : (
-						"Sign in"
-					)}
+					{isSubmitting ? <PixelLoader label="Signing in..." /> : "Sign in"}
 				</Button>
 			</form>
 			<p className="text-center mt-4 text-sm font-medium">

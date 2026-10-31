@@ -4,6 +4,7 @@ import { useId, useState, useTransition } from "react";
 import { format } from "date-fns";
 import { RiCalendarLine, RiCloseLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
@@ -211,7 +212,7 @@ export function CreateVitalsDrawer({
 						</Button>
 					</DrawerClose>
 					<Button type="submit" form={formId} disabled={isPending}>
-						Add vitals
+						{isPending ? <PixelLoader label="Adding…" /> : "Add vitals"}
 					</Button>
 				</DrawerFooter>
 			</DrawerContent>

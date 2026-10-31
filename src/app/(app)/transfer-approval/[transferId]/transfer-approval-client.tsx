@@ -7,6 +7,7 @@ import { approvePatientTransferAction, rejectPatientTransferAction } from "./act
 import { StatusBadge } from "@/components/status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import {
 	Dialog,
 	DialogClose,
@@ -158,7 +159,7 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 					</Button>
 					<Button type="button" className="sm:flex-1" disabled={isPending} onClick={handleApprove}>
 						{isPending && !isRejectDialogOpen ? (
-							"Approving…"
+							<PixelLoader label="Approving…" />
 						) : (
 							<>
 								<span className="sm:hidden">Approve</span>
@@ -198,7 +199,7 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 							<Button variant="outline">Cancel</Button>
 						</DialogClose>
 						<Button type="button" variant="destructive" disabled={isPending} onClick={handleReject}>
-							{isPending ? "Rejecting…" : "Reject request"}
+							{isPending ? <PixelLoader label="Rejecting…" /> : "Reject request"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

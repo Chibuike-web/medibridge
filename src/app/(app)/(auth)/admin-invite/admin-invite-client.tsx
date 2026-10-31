@@ -2,6 +2,7 @@
 
 import { SuccessModal } from "@/components/success-modal";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -131,14 +132,7 @@ export function AdminInviteClient() {
 				)}
 
 				<Button className="w-full mt-16" type="submit" disabled={isSubmitting || isPending}>
-					{isPending ? (
-						<span className="flex items-center gap-2">
-							<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-							Sending invite...
-						</span>
-					) : (
-						"Send Invite"
-					)}
+					{isPending ? <PixelLoader label="Sending invite..." /> : "Send Invite"}
 				</Button>
 			</form>
 			{isSuccessModalOpen && (

@@ -2,6 +2,7 @@
 
 import { SuccessModal } from "@/components/success-modal";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -151,7 +152,7 @@ function CreateInvitedAdminForm({
 				<FormError message={accountSetupError} onDismiss={() => setAccountSetupError("")} />
 
 				<Button className="mt-16 w-full" type="submit" disabled={isSubmitting}>
-					{isSubmitting ? "Creating account..." : "Create account"}
+					{isSubmitting ? <PixelLoader label="Creating account..." /> : "Create account"}
 				</Button>
 			</form>
 
@@ -238,7 +239,11 @@ function AwaitingEmailVerification({
 					});
 				}}
 			>
-				{isSendingVerificationEmail ? "Sending..." : "Resend verification email"}
+				{isSendingVerificationEmail ? (
+					<PixelLoader label="Sending..." />
+				) : (
+					"Resend verification email"
+				)}
 			</Button>
 			<Button asChild variant="outline" className="mt-4 w-full">
 				<Link href={`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`}>
@@ -292,7 +297,11 @@ function AcceptInvitationButton({
 				disabled={isAcceptingInvitation}
 				onClick={acceptInvitation}
 			>
-				{isAcceptingInvitation ? "Accepting invitation..." : "Accept invitation"}
+				{isAcceptingInvitation ? (
+					<PixelLoader label="Accepting invitation..." />
+				) : (
+					"Accept invitation"
+				)}
 			</Button>
 
 			{isSuccessModalOpen && (
@@ -347,7 +356,7 @@ function SwitchAccountButton() {
 				disabled={isSwitchingAccount}
 				onClick={switchAccount}
 			>
-				{isSwitchingAccount ? "Signing out..." : "Switch account"}
+				{isSwitchingAccount ? <PixelLoader label="Signing out..." /> : "Switch account"}
 			</Button>
 		</>
 	);

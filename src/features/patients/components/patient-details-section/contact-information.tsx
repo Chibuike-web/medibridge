@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { nigerianStates } from "@/features/patients/utils/nigerian-states";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { useOptimistic, useState, useTransition } from "react";
 import type { SyntheticEvent } from "react";
 import { RiCloseLine, RiEditLine, RiMore2Fill, RiShare2Line } from "@remixicon/react";
@@ -285,7 +286,7 @@ export function ContactInformation({
 							</DialogClose>
 
 							<Button type="submit" form={contactInformationFormId} disabled={isPending}>
-								Save changes
+								{isPending ? <PixelLoader label="Saving…" /> : "Save changes"}
 							</Button>
 						</div>
 					</DialogFooter>

@@ -15,6 +15,7 @@ import {
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
@@ -836,7 +837,7 @@ export function ReviewExtractedInfoClient({
 									aria-busy={isPending}
 									onClick={continueToDashboard}
 								>
-									{isPending ? "Discarding…" : "Discard and continue"}
+									{isPending ? <PixelLoader label="Discarding…" /> : "Discard and continue"}
 								</Button>
 							</AlertDialogFooter>
 						</AlertDialogContent>
@@ -848,7 +849,7 @@ export function ReviewExtractedInfoClient({
 						aria-busy={isPending}
 						className="rounded-lg bg-[#222530] hover:bg-[#222530]/90 max-sm:w-full"
 					>
-						{isPending ? "Saving…" : "Save patient & review next"}
+						{isPending ? <PixelLoader label="Saving…" /> : "Save patient & review next"}
 					</Button>
 				</div>
 			</footer>

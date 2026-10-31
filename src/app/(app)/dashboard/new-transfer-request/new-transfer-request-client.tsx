@@ -6,6 +6,7 @@ import { Fragment, use, useEffect, useMemo, useState, useTransition } from "reac
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import {
 	Dialog,
 	DialogContent,
@@ -507,7 +508,11 @@ export function NewTransferRequestClient({
 												disabled={isSubmittingTransferRequests || !isTransferConfirmationChecked}
 												onClick={handleSubmitTransferRequests}
 											>
-												{isSubmittingTransferRequests ? "Sending..." : "Send for Approval"}
+												{isSubmittingTransferRequests ? (
+													<PixelLoader label="Sending..." />
+												) : (
+													"Send for Approval"
+												)}
 											</Button>
 										</DialogFooter>
 									</DialogContent>

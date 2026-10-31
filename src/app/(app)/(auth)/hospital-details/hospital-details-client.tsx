@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { useRouter } from "next/navigation";
 import { useVerificationFileUpload } from "@/hooks/use-verification-file-upload";
 import { useRef, useState, useTransition } from "react";
@@ -192,14 +193,7 @@ export function HospitalDetailsClient() {
 				type="submit"
 				disabled={isPending || status !== "upload-complete"}
 			>
-				{isPending ? (
-					<span className="flex items-center gap-2">
-						<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-						Creating...
-					</span>
-				) : (
-					"Create account"
-				)}
+				{isPending ? <PixelLoader label="Creating..." /> : "Create account"}
 			</Button>
 		</form>
 	);

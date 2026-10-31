@@ -12,6 +12,7 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import {
 	Drawer,
 	DrawerClose,
@@ -224,7 +225,7 @@ export function AllergyDetailsDrawer({
 								Cancel
 							</Button>
 							<Button type="submit" form={allergyDetailsFormId} disabled={isPending}>
-								{isPending ? "Saving…" : "Save changes"}
+								{isPending ? <PixelLoader label="Saving…" /> : "Save changes"}
 							</Button>
 						</div>
 					</DrawerFooter>

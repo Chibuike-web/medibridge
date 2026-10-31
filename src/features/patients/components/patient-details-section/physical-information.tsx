@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -243,7 +244,7 @@ export function PhysicalInformation({
 								<Button variant="outline">Cancel</Button>
 							</DialogClose>
 							<Button type="submit" form={physicalInformationFormId} disabled={isPending}>
-								Save changes
+								{isPending ? <PixelLoader label="Saving…" /> : "Save changes"}
 							</Button>
 						</div>
 					</DialogFooter>

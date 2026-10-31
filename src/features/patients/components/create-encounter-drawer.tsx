@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { RiCalendarLine, RiCloseLine, RiErrorWarningFill } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
@@ -230,7 +231,7 @@ export function CreateEncounterDrawer({
 						</Button>
 					</DrawerClose>
 					<Button type="submit" form={formId} disabled={isPending}>
-						{isPending ? "Creating…" : "Create encounter"}
+						{isPending ? <PixelLoader label="Creating…" /> : "Create encounter"}
 					</Button>
 				</DrawerFooter>
 			</DrawerContent>

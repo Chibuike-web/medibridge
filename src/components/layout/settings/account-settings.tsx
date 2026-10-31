@@ -6,6 +6,7 @@ import { RiEyeLine, RiEyeOffLine, RiMacbookLine } from "@remixicon/react";
 
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/better-auth/auth.client";
@@ -385,7 +386,7 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 				</p>
 			)}
 			<Button type="submit" className="mt-2 self-end" disabled={isPending}>
-				{isPending ? "Changing password..." : "Change password"}
+				{isPending ? <PixelLoader label="Changing password..." /> : "Change password"}
 			</Button>
 		</form>
 	);
