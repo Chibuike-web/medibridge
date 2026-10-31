@@ -158,7 +158,7 @@ Patient documents, clinical reports, and accreditation files use private Supabas
 
 Create two private Supabase buckets before uploading, each with a 50 MB limit: `patient-uploads` allowing PDF, PNG, JPEG and DOCX, and `hospital-uploads` allowing PDF, PNG, JPEG and DOC. Before the first deploy, run `bun run storage:migrate -- --source <checkout>` to preview copying existing local uploads, then add `--apply` to copy them. The app only reads from storage, so files left on disk return 404.
 
-Set `CRON_SECRET` on the host. The daily job in `vercel.json` removes abandoned reviews and any file older than a day that no record points to.
+Set `CRON_SECRET` on the host. The daily job in `vercel.json` removes abandoned reviews and any file older than a day that no record points to, except each owner's newest accreditation upload, which stays until they submit their hospital details.
 
 ## Local development
 

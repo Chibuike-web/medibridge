@@ -67,7 +67,7 @@ export function useFileUpload() {
 					uploadedFile = file;
 				}
 			}
-			if (!response.ok || !uploadedFile || uploadedFile.status !== "upload-complete") {
+			if (!response.ok || !uploadedFile) {
 				setUploadError(
 					data.status === "failed" ? data.error : "We couldn’t upload this file. Please try again.",
 				);

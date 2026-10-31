@@ -111,10 +111,9 @@ export function CreateImagingDrawer({
 
 		startTransition(async () => {
 			try {
-				const reportFiles = selectedFiles;
 				formData.delete("files");
 				const uploadedReports = await uploadReportFiles(
-					reportFiles,
+					selectedFiles,
 					patientId,
 					"imaging",
 					uploadedReportsRef.current,

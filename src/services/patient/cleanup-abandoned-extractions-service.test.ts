@@ -1,12 +1,19 @@
 // @vitest-environment node
 
+import { PgDialect } from "drizzle-orm/pg-core";
+import type { SQL } from "drizzle-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { cleanupAbandonedExtractionsService } from "./cleanup-abandoned-extractions-service";
 
 const { rows, removeMock, revalidateTagMock } = vi.hoisted(() => ({
 	rows: new Map<
 		string,
-		{ organizationId: string; createdBy: string; extractedData: { documentId: string }[] }
+		{
+			organizationId: string;
+			createdBy: string;
+			createdAt: Date;
+			extractedData: { documentId: string }[];
+		}
 	>(),
 	removeMock: vi.fn(),
 	revalidateTagMock: vi.fn(),
@@ -21,7 +28,13 @@ vi.mock("drizzle-orm", async (importOriginal) => ({
 vi.mock("@/lib/better-auth/auth", () => ({
 	db: {
 		select: () => ({
-			from: () => ({ where: async () => [...rows.keys()].map((id) => ({ id })) }),
+			from: () => ({
+				where: async (condition: SQL) => {
+					const { params } = new PgDialect().sqlToQuery(condition);
+					const cutoff = new Date(String(params[0]));
+					return [...rows].filter(([, row]) => row.createdAt < cutoff).map(([id]) => ({ id }));
+				},
+			}),
 		}),
 		transaction: async (remove: (tx: unknown) => Promise<unknown>) =>
 			remove({
@@ -45,6 +58,7 @@ describe("cleaning up abandoned patient reviews", () => {
 		rows.set("extraction-1", {
 			organizationId: "hospital-1",
 			createdBy: "member-1",
+			createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000),
 			extractedData: [{ documentId: "a.pdf" }, { documentId: "b.pdf" }],
 		});
 	});
@@ -62,6 +76,17 @@ describe("cleaning up abandoned patient reviews", () => {
 		expect(revalidateTagMock).toHaveBeenCalledWith("patient-extraction-hospital-1-extraction-1", {
 			expire: 0,
 		});
+	});
+
+	test("leaves a review started less than a day ago alone", async () => {
+		rows.get("extraction-1")!.createdAt = new Date(Date.now() - 23 * 60 * 60 * 1000);
+
+		expect(await cleanupAbandonedExtractionsService()).toEqual({
+			status: "success",
+			removedCount: 0,
+		});
+		expect(rows.size).toBe(1);
+		expect(removeMock).not.toHaveBeenCalled();
 	});
 
 	test("never builds a storage key outside the uploader's folder", async () => {
