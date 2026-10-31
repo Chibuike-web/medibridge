@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/better-auth/auth.client";
@@ -202,7 +203,7 @@ export function CreateNewPasswordClient({ token, isTokenInvalid }: CreateNewPass
 						</p>
 					)}
 					<Button className="mt-16 w-full" type="submit" disabled={isPending}>
-						{isPending ? "Resetting password…" : "Reset Password"}
+						{isPending ? <PixelLoader label="Resetting password…" /> : "Reset Password"}
 					</Button>
 				</form>
 			)}

@@ -23,6 +23,7 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Calendar } from "@/components/ui/calendar";
 import {
 	DropdownMenu,
@@ -332,7 +333,7 @@ export function EncounterOverview({
 							</Button>
 						</DrawerClose>
 						<Button type="submit" form={formId} disabled={isPending}>
-							{isPending ? "Saving…" : "Save changes"}
+							{isPending ? <PixelLoader label="Saving…" /> : "Save changes"}
 						</Button>
 					</DrawerFooter>
 				</DrawerContent>

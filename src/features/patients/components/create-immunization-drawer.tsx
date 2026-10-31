@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Calendar } from "@/components/ui/calendar";
 import {
 	Drawer,
@@ -283,7 +284,7 @@ export function CreateImmunizationDrawer({
 							</Button>
 						</DrawerClose>
 						<Button type="submit" form={generatedFormId} disabled={isPending}>
-							{isPending ? "Adding…" : "Add immunization"}
+							{isPending ? <PixelLoader label="Adding…" /> : "Add immunization"}
 						</Button>
 					</div>
 				</DrawerFooter>

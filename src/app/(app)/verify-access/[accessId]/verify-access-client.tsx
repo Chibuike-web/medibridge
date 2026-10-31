@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import type { AccessVerificationState } from "@/lib/api/get-record-access-verification-state";
 import { useRouter } from "next/navigation";
@@ -81,11 +82,13 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 						});
 					}}
 				>
-					{isRequestingNewAccessCode
-						? "Sending..."
-						: verificationState.status === "code-expired"
-							? "Request new code"
-							: "Request code"}
+					{isRequestingNewAccessCode ? (
+						<PixelLoader label="Sending..." />
+					) : verificationState.status === "code-expired" ? (
+						"Request new code"
+					) : (
+						"Request code"
+					)}
 				</Button>
 			</section>
 		);
@@ -146,7 +149,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 					});
 				}}
 			>
-				{isVerifyingEnteredAccessCode ? "Verifying..." : "Continue"}
+				{isVerifyingEnteredAccessCode ? <PixelLoader label="Verifying..." /> : "Continue"}
 			</Button>
 		</section>
 	);

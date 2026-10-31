@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -217,7 +218,7 @@ export function EmergencyContact({
 							</DialogClose>
 
 							<Button type="submit" form={emergencyContactFormId} disabled={isPending}>
-								Save changes
+								{isPending ? <PixelLoader label="Saving…" /> : "Save changes"}
 							</Button>
 						</div>
 					</DialogFooter>

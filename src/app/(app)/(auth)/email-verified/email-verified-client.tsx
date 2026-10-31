@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RiCloseLine, RiCheckboxCircleFill, RiErrorWarningFill } from "@remixicon/react";
@@ -173,7 +174,7 @@ function InvalidOrExpired({ type }: { type: "INVALID_TOKEN" | "TOKEN_EXPIRED" })
 							</div>
 						)}
 						<Button className="mt-6 w-full" type="submit" disabled={isPending}>
-							{isPending ? "Sending…" : "Resend verification email"}
+							{isPending ? <PixelLoader label="Sending…" /> : "Resend verification email"}
 						</Button>
 					</form>
 

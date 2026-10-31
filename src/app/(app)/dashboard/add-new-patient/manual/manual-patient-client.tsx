@@ -15,6 +15,7 @@ import {
 	RiErrorWarningFill,
 } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -619,7 +620,7 @@ export function ManualPatientClient({ returnTo }: { returnTo: Route }) {
 						aria-busy={isPending}
 						className="rounded-lg bg-[#222530] hover:bg-[#222530]/90 max-sm:w-full"
 					>
-						{isPending ? "Saving…" : "Save patient"}
+						{isPending ? <PixelLoader label="Saving…" /> : "Save patient"}
 					</Button>
 				</div>
 			</footer>

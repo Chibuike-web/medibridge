@@ -2,6 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -140,7 +141,7 @@ export function OwnerClient() {
 					disabled={isPending}
 					onClick={() => resendVerificationEmail(verificationEmailAddress)}
 				>
-					{isPending ? "Sending…" : "Resend link"}
+					{isPending ? <PixelLoader label="Sending…" /> : "Resend link"}
 				</Button>
 				{resendFeedback?.type === "error" && (
 					<div
@@ -309,7 +310,7 @@ export function OwnerClient() {
 					</p>
 				)}
 				<Button className="w-full mt-16" type="submit" disabled={isSubmitting}>
-					{isSubmitting ? "Creating account..." : "Continue"}
+					{isSubmitting ? <PixelLoader label="Creating account..." /> : "Continue"}
 				</Button>
 			</form>
 		</>

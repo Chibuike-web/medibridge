@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import {
 	Drawer,
 	DrawerClose,
@@ -268,7 +269,7 @@ export function CreateAllergyDrawer({
 							</Button>
 						</DrawerClose>
 						<Button type="submit" form={generatedFormId} disabled={isPending}>
-							{isPending ? "Adding…" : "Add allergy"}
+							{isPending ? <PixelLoader label="Adding…" /> : "Add allergy"}
 						</Button>
 					</div>
 				</DrawerFooter>
