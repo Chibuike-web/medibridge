@@ -1,7 +1,8 @@
 "use client";
 
-import { RiArrowDownSLine, RiCloseLine, RiErrorWarningFill } from "@remixicon/react";
+import { RiArrowDownSLine, RiCheckLine, RiCloseLine, RiErrorWarningFill } from "@remixicon/react";
 import { format } from "date-fns";
+import Image from "next/image";
 import { Fragment, useId, useState, useTransition, type ReactNode } from "react";
 import { approvePatientTransferAction, rejectPatientTransferAction } from "./actions";
 import { StatusBadge } from "@/components/status-badge";
@@ -79,6 +80,8 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 				targetHospitalName={transfer.targetHospitalName}
 				accessEndsAt={transfer.accessEndsAt}
 				patientRejectionReason={rejectionReason.trim() || null}
+				sharedDetailSections={transfer.sharedDetailSections}
+				sharedRecordGroups={transfer.sharedRecordGroups}
 			/>
 		);
 	}
@@ -337,14 +340,35 @@ export function TransferApprovalResult({
 	targetHospitalName,
 	accessEndsAt,
 	patientRejectionReason,
+	sharedDetailSections,
+	sharedRecordGroups,
 }: Pick<
 	TransferApprovalRecord,
-	"targetHospitalName" | "accessEndsAt" | "patientRejectionReason"
+	| "targetHospitalName"
+	| "accessEndsAt"
+	| "patientRejectionReason"
+	| "sharedDetailSections"
+	| "sharedRecordGroups"
 > & { patientApprovalStatus: "approved" | "rejected" }) {
+	const isApproved = patientApprovalStatus === "approved";
+	const sharedLabels = [
+		...sharedDetailSections.map((section) => section.title),
+		...sharedRecordGroups.map((group) => group.label),
+	];
+
 	return (
 		<main className="bg-white px-6 py-10">
 			<section className="mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-3xl items-center justify-center text-center">
-				<div>
+				<div className={cn(isApproved && "w-full max-w-md")}>
+					{isApproved ? (
+						<Image
+							src="/assets/success-icon.svg"
+							width={80}
+							height={80}
+							alt=""
+							className="mx-auto mb-2"
+						/>
+					) : null}
 					<h1
 						ref={(heading) => heading?.focus()}
 						tabIndex={-1}
@@ -363,6 +387,19 @@ export function TransferApprovalResult({
 						<p className="mt-2 text-sm text-gray-600 text-pretty">
 							Reason: {patientRejectionReason}
 						</p>
+					) : null}
+					{isApproved && sharedLabels.length > 0 ? (
+						<ul aria-label="Shared records" className="mt-5 flex flex-col gap-2">
+							{sharedLabels.map((label) => (
+								<li
+									key={label}
+									className="flex h-10 items-center justify-between gap-4 rounded-xl bg-gray-50 px-4 text-sm font-semibold text-gray-700 ring-1 ring-gray-200"
+								>
+									{label}
+									<RiCheckLine className="size-4 shrink-0 text-green-700" aria-hidden="true" />
+								</li>
+							))}
+						</ul>
 					) : null}
 				</div>
 			</section>

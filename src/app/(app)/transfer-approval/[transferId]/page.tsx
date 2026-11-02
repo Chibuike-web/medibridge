@@ -54,6 +54,8 @@ async function TransferApprovalContent({ params, searchParams }: TransferApprova
 				targetHospitalName={transfer.targetHospitalName}
 				accessEndsAt={transfer.accessEndsAt}
 				patientRejectionReason={transfer.patientRejectionReason}
+				sharedDetailSections={transfer.sharedDetailSections}
+				sharedRecordGroups={transfer.sharedRecordGroups}
 			/>
 		);
 	}

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderToReadableStream } from "react-dom/server.browser";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -71,10 +71,11 @@ describe("transfer approval page", () => {
 		expect(screen.getByRole("button", { name: /approve/i })).toBeInTheDocument();
 	});
 
-	test("reopening an approved transfer shows only the result, not the shared records", async () => {
+	test("reopening an approved transfer lists what was shared by category, never the records themselves", async () => {
 		getTransferApprovalMock.mockResolvedValue({
 			...waitingTransfer,
 			patientApprovalStatus: "approved",
+			sharedDetailSections: [{ title: "Basic information", fields: [] }],
 		});
 		await renderTransferApprovalPage();
 
@@ -84,6 +85,9 @@ describe("transfer approval page", () => {
 		expect(
 			screen.getByText(/Receiving Hospital can view the records you approved until 24 Oct 2026/),
 		).toBeInTheDocument();
+		const sharedList = screen.getByRole("list", { name: "Shared records" });
+		expect(within(sharedList).getByText("Basic information")).toBeInTheDocument();
+		expect(within(sharedList).getByText("Diagnoses")).toBeInTheDocument();
 		expect(screen.queryByText("Asthma")).not.toBeInTheDocument();
 		expect(screen.queryByRole("button", { name: /approve/i })).not.toBeInTheDocument();
 	});
@@ -103,6 +107,7 @@ describe("transfer approval page", () => {
 		expect(
 			screen.getByText("Your records were not shared with Receiving Hospital."),
 		).toBeInTheDocument();
+		expect(screen.queryByRole("list", { name: "Shared records" })).not.toBeInTheDocument();
 		expect(screen.queryByText("Asthma")).not.toBeInTheDocument();
 	});
 
