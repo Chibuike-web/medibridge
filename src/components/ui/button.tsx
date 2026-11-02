@@ -5,7 +5,7 @@ import type * as React from "react";
 import { cn } from "@/lib/utils/cn";
 
 const buttonVariants = cva(
-	"inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-[scale,background-color,color,border-color] duration-150 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:scale-[0.97] active:focus-visible:scale-100 motion-reduce:transition-colors motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:!size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-gray-400 focus-visible:ring-3 focus-visible:ring-gray-100 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+	"inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-[scale,background-color,color,border-color] duration-150 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] active:scale-[0.97] active:focus-visible:scale-100 motion-reduce:transition-colors motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-50 disabled:has-[[data-slot=pixel-loader]]:opacity-100 [&_svg]:pointer-events-none [&_svg]:!size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-gray-400 focus-visible:ring-3 focus-visible:ring-gray-100 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
 	{
 		variants: {
 			variant: {
