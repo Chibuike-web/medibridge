@@ -1,5 +1,7 @@
 "use client";
 
+import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+
 import {
 	DateRangeMenuItems,
 	SetDateRangeDialog,
@@ -41,17 +43,34 @@ export function FilterButtons({
 	statusFilters: TransferStatusFilter[];
 }) {
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
+	const {
+		align: statusFilterAlign,
+		setTriggerElement: setStatusFilterTrigger,
+		updateAlign: updateStatusFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: requestedAtFilterAlign,
+		setTriggerElement: setRequestedAtFilterTrigger,
+		updateAlign: updateRequestedAtFilterAlign,
+	} = useFilterMenuAlign();
 
 	return (
 		<>
-			<Popover>
+			<Popover onOpenChange={updateStatusFilterAlign}>
 				<PopoverTrigger asChild>
-					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+					<Button
+						ref={setStatusFilterTrigger}
+						variant="outline"
+						className="bg-white text-gray-600 hover:bg-gray-50"
+					>
 						<RiMenLine aria-hidden className="size-4 text-gray-600" />
 						Status
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
+				<PopoverContent
+					align={statusFilterAlign}
+					className="w-[13.75rem] p-1 text-sm text-gray-700"
+				>
 					{transferStatusFilterOptions.map((statusOption) => {
 						const isStatusSelected = statusFilters.includes(statusOption.value);
 						const statusOptionId = `status-${statusOption.value}`;
@@ -83,15 +102,19 @@ export function FilterButtons({
 				</PopoverContent>
 			</Popover>
 
-			<DropdownMenu>
+			<DropdownMenu onOpenChange={updateRequestedAtFilterAlign}>
 				<DropdownMenuTrigger asChild>
-					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+					<Button
+						ref={setRequestedAtFilterTrigger}
+						variant="outline"
+						className="bg-white text-gray-600 hover:bg-gray-50"
+					>
 						<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
 						Requested at
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
-					align="end"
+					align={requestedAtFilterAlign}
 					className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
 				>
 					<DateRangeMenuItems

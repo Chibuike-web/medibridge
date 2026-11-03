@@ -1,5 +1,7 @@
 "use client";
 
+import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+
 import {
 	DateRangeMenuItems,
 	SetDateRangeDialog,
@@ -163,6 +165,21 @@ export function LabTestsTable({
 
 	const [selectedLabTestRows, setSelectedLabTestRows] = useState<RowSelectionState>({});
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
+	const {
+		align: statusFilterAlign,
+		setTriggerElement: setStatusFilterTrigger,
+		updateAlign: updateStatusFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: flagFilterAlign,
+		setTriggerElement: setFlagFilterTrigger,
+		updateAlign: updateFlagFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: createdAtFilterAlign,
+		setTriggerElement: setCreatedAtFilterTrigger,
+		updateAlign: updateCreatedAtFilterAlign,
+	} = useFilterMenuAlign();
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedTest, setSelectedTest] = useState<LabTestType | null>(null);
@@ -197,7 +214,7 @@ export function LabTestsTable({
 		<div className="px-6 py-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-lg font-semibold no-line-height">Lab Tests</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl flex-wrap items-center gap-2">
-				<div className="relative min-w-64 flex-1">
+				<div className="relative min-w-0 grow basis-80">
 					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
@@ -211,68 +228,88 @@ export function LabTestsTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<Popover>
-					<PopoverTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiCheckboxCircleLine aria-hidden className="size-4 text-gray-600" />
-							Status
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
-						<LabTestCheckboxFilterList
-							name="lab-test-status"
-							options={labTestStatusFilterOptions}
-							selectedValues={statusFilters}
-							onSelectedValuesChange={onStatusFiltersChange}
-						/>
-					</PopoverContent>
-				</Popover>
-				<Popover>
-					<PopoverTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiFlagLine aria-hidden className="size-4 text-gray-600" />
-							Flag
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
-						<LabTestCheckboxFilterList
-							name="lab-test-flag"
-							options={labTestFlagFilterOptions}
-							selectedValues={flagFilters}
-							onSelectedValuesChange={onFlagFiltersChange}
-						/>
-					</PopoverContent>
-				</Popover>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
-							Created at
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-					>
-						<DateRangeMenuItems
-							from={createdFrom}
-							to={createdTo}
-							onDateRangeApply={onCreatedAtRangeApply}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<SetDateRangeDialog
-					dateRangeFilter={customDateRangeFilter}
-					onClose={() => setCustomDateRangeFilter(null)}
-				/>
-				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-					Export
-				</Button>
-				<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
-					Add lab test
-				</Button>
+				<div className="flex flex-wrap items-center gap-2">
+					<Popover onOpenChange={updateStatusFilterAlign}>
+						<PopoverTrigger asChild>
+							<Button
+								ref={setStatusFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiCheckboxCircleLine aria-hidden className="size-4 text-gray-600" />
+								Status
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent
+							align={statusFilterAlign}
+							className="w-[13.75rem] p-1 text-sm text-gray-700"
+						>
+							<LabTestCheckboxFilterList
+								name="lab-test-status"
+								options={labTestStatusFilterOptions}
+								selectedValues={statusFilters}
+								onSelectedValuesChange={onStatusFiltersChange}
+							/>
+						</PopoverContent>
+					</Popover>
+					<Popover onOpenChange={updateFlagFilterAlign}>
+						<PopoverTrigger asChild>
+							<Button
+								ref={setFlagFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiFlagLine aria-hidden className="size-4 text-gray-600" />
+								Flag
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent
+							align={flagFilterAlign}
+							className="w-[13.75rem] p-1 text-sm text-gray-700"
+						>
+							<LabTestCheckboxFilterList
+								name="lab-test-flag"
+								options={labTestFlagFilterOptions}
+								selectedValues={flagFilters}
+								onSelectedValuesChange={onFlagFiltersChange}
+							/>
+						</PopoverContent>
+					</Popover>
+					<DropdownMenu onOpenChange={updateCreatedAtFilterAlign}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								ref={setCreatedAtFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
+								Created at
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align={createdAtFilterAlign}
+							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+						>
+							<DateRangeMenuItems
+								from={createdFrom}
+								to={createdTo}
+								onDateRangeApply={onCreatedAtRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<SetDateRangeDialog
+						dateRangeFilter={customDateRangeFilter}
+						onClose={() => setCustomDateRangeFilter(null)}
+					/>
+					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
+						Export
+					</Button>
+					<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
+						Add lab test
+					</Button>
+				</div>
 			</div>
 			<LabTestActiveFilterPills
 				createdFrom={createdFrom}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+
 import {
 	DateRangeMenuItems,
 	SetDateRangeDialog,
@@ -142,6 +144,16 @@ export function VitalsTable({
 		[vitals],
 	);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
+	const {
+		align: dateRecordedFilterAlign,
+		setTriggerElement: setDateRecordedFilterTrigger,
+		updateAlign: updateDateRecordedFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: createdAtFilterAlign,
+		setTriggerElement: setCreatedAtFilterTrigger,
+		updateAlign: updateCreatedAtFilterAlign,
+	} = useFilterMenuAlign();
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedVitalId, setSelectedVitalId] = useState<string | null>(null);
@@ -163,7 +175,7 @@ export function VitalsTable({
 			<h1 className="mx-auto w-full max-w-7xl text-lg font-semibold no-line-height">Vitals</h1>
 			<VitalsChart readings={readings} />
 			<div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-2">
-				<div className="relative min-w-64 flex-1">
+				<div className="relative min-w-0 grow basis-80">
 					<RiSearchLine className="pointer-events-none absolute bottom-0 left-2 flex h-full size-4 items-center justify-center text-gray-400" />
 					<Input
 						type="search"
@@ -174,55 +186,65 @@ export function VitalsTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
-							Date recorded
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-					>
-						<DateRangeMenuItems
-							from={recordedFrom}
-							to={recordedTo}
-							onDateRangeApply={onRecordedAtRangeApply}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
-							Created at
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-					>
-						<DateRangeMenuItems
-							from={createdFrom}
-							to={createdTo}
-							onDateRangeApply={onCreatedAtRangeApply}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<SetDateRangeDialog
-					dateRangeFilter={customDateRangeFilter}
-					onClose={() => setCustomDateRangeFilter(null)}
-				/>
-				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-					Export
-				</Button>
-				<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
-					Add vitals
-				</Button>
+				<div className="flex flex-wrap items-center gap-2">
+					<DropdownMenu onOpenChange={updateDateRecordedFilterAlign}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								ref={setDateRecordedFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
+								Date recorded
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align={dateRecordedFilterAlign}
+							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+						>
+							<DateRangeMenuItems
+								from={recordedFrom}
+								to={recordedTo}
+								onDateRangeApply={onRecordedAtRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<DropdownMenu onOpenChange={updateCreatedAtFilterAlign}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								ref={setCreatedAtFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
+								Created at
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align={createdAtFilterAlign}
+							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+						>
+							<DateRangeMenuItems
+								from={createdFrom}
+								to={createdTo}
+								onDateRangeApply={onCreatedAtRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<SetDateRangeDialog
+						dateRangeFilter={customDateRangeFilter}
+						onClose={() => setCustomDateRangeFilter(null)}
+					/>
+					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
+						Export
+					</Button>
+					<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
+						Add vitals
+					</Button>
+				</div>
 			</div>
 			<VitalActiveFilterPills
 				recordedFrom={recordedFrom}

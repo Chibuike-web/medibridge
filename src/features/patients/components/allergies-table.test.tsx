@@ -288,6 +288,25 @@ describe("Allergies table", () => {
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
+	test("opens a filter menu from whichever edge of its button leaves it room", async () => {
+		const user = userEvent.setup();
+		renderAllergiesTable();
+		const statusButton = screen.getByRole("button", { name: "Status" });
+
+		vi.spyOn(statusButton, "getBoundingClientRect").mockReturnValue(
+			DOMRect.fromRect({ x: window.innerWidth - 100, y: 0, width: 90, height: 36 }),
+		);
+		await user.click(statusButton);
+		expect(await screen.findByRole("dialog")).toHaveAttribute("data-align", "end");
+
+		await user.keyboard("{Escape}");
+		vi.spyOn(statusButton, "getBoundingClientRect").mockReturnValue(
+			DOMRect.fromRect({ x: 20, y: 0, width: 90, height: 36 }),
+		);
+		await user.click(statusButton);
+		expect(await screen.findByRole("dialog")).toHaveAttribute("data-align", "start");
+	});
+
 	test("adds and removes severity filters from the filter menu", async () => {
 		const user = userEvent.setup();
 		const { onSeverityFiltersChange } = renderAllergiesTable({ severityFilters: ["mild"] });

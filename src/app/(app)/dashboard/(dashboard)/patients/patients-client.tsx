@@ -287,7 +287,7 @@ export function PatientsClient({
 						Patients
 					</h1>
 					<div className="flex flex-wrap items-center gap-2">
-						<div className="relative min-w-64 flex-1">
+						<div className="relative min-w-0 grow basis-80">
 							<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 							<Input
 								type="search"
@@ -297,24 +297,25 @@ export function PatientsClient({
 								onChange={(event) => handleQueryChange(event.target.value)}
 							/>
 						</div>
+						<div className="flex flex-wrap items-center gap-2">
+							<FilterButtons
+								ageGroupFilter={optimisticAgeGroupFilter}
+								createdFrom={optimisticCreatedAtRange.createdFrom}
+								createdTo={optimisticCreatedAtRange.createdTo}
+								genderFilter={optimisticGenderFilter}
+								onAgeGroupFilterChange={handleAgeGroupFilterChange}
+								onCreatedAtRangeApply={handleCreatedAtRangeApply}
+								onGenderFilterChange={handleGenderFilterChange}
+							/>
+							<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+								<RiShare2Line aria-hidden className="size-5 text-gray-600" />
+								Export
+							</Button>
 
-						<FilterButtons
-							ageGroupFilter={optimisticAgeGroupFilter}
-							createdFrom={optimisticCreatedAtRange.createdFrom}
-							createdTo={optimisticCreatedAtRange.createdTo}
-							genderFilter={optimisticGenderFilter}
-							onAgeGroupFilterChange={handleAgeGroupFilterChange}
-							onCreatedAtRangeApply={handleCreatedAtRangeApply}
-							onGenderFilterChange={handleGenderFilterChange}
-						/>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-							Export
-						</Button>
-
-						<AddPatientDialog returnTo={getCurrentRoute(pathname, searchParams)}>
-							<Button>Add patient</Button>
-						</AddPatientDialog>
+							<AddPatientDialog returnTo={getCurrentRoute(pathname, searchParams)}>
+								<Button>Add patient</Button>
+							</AddPatientDialog>
+						</div>
 					</div>
 				</header>
 				<PatientActiveFilterPills

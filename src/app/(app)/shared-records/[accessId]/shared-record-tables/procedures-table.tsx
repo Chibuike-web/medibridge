@@ -1,5 +1,7 @@
 "use client";
 
+import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+
 import {
 	DateRangeMenuItems,
 	SetDateRangeDialog,
@@ -258,7 +260,7 @@ export function SharedProceduresTable({
 		<div>
 			<h2 className="text-lg font-semibold text-gray-900">Procedures</h2>
 			<div className="mt-7 mb-4 flex flex-wrap items-center gap-2">
-				<div className="relative min-w-64 flex-1">
+				<div className="relative min-w-0 grow basis-80">
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
 					<Input
 						type="search"
@@ -268,17 +270,23 @@ export function SharedProceduresTable({
 						className="pl-10"
 					/>
 				</div>
-				<ProcedureFilterButtons
-					statusFilters={optimisticStatusFilters}
-					createdFrom={optimisticCreatedFrom}
-					createdTo={optimisticCreatedTo}
-					onStatusFiltersChange={handleStatusFiltersChange}
-					onCreatedAtRangeApply={handleCreatedAtRangeApply}
-				/>
-				<Button type="button" variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-					<RiShare2Line aria-hidden="true" />
-					Export
-				</Button>
+				<div className="flex flex-wrap items-center gap-2">
+					<ProcedureFilterButtons
+						statusFilters={optimisticStatusFilters}
+						createdFrom={optimisticCreatedFrom}
+						createdTo={optimisticCreatedTo}
+						onStatusFiltersChange={handleStatusFiltersChange}
+						onCreatedAtRangeApply={handleCreatedAtRangeApply}
+					/>
+					<Button
+						type="button"
+						variant="outline"
+						className="bg-white text-gray-600 hover:bg-gray-50"
+					>
+						<RiShare2Line aria-hidden="true" />
+						Export
+					</Button>
+				</div>
 			</div>
 			{optimisticStatusFilters.length > 0 || optimisticCreatedFrom || optimisticCreatedTo ? (
 				<div className="mb-4 flex items-start gap-4">
@@ -474,12 +482,23 @@ function ProcedureFilterButtons({
 	onCreatedAtRangeApply: (from: string, to: string) => void;
 }) {
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
+	const {
+		align: statusFilterAlign,
+		setTriggerElement: setStatusFilterTrigger,
+		updateAlign: updateStatusFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: createdAtFilterAlign,
+		setTriggerElement: setCreatedAtFilterTrigger,
+		updateAlign: updateCreatedAtFilterAlign,
+	} = useFilterMenuAlign();
 
 	return (
 		<>
-			<Popover>
+			<Popover onOpenChange={updateStatusFilterAlign}>
 				<PopoverTrigger asChild>
 					<Button
+						ref={setStatusFilterTrigger}
 						type="button"
 						variant="outline"
 						className="bg-white text-gray-600 hover:bg-gray-50"
@@ -488,7 +507,10 @@ function ProcedureFilterButtons({
 						Status
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
+				<PopoverContent
+					align={statusFilterAlign}
+					className="w-[13.75rem] p-1 text-sm text-gray-700"
+				>
 					<CheckboxFilterList
 						name="shared-procedure-status"
 						options={procedureStatusFilterOptions}
@@ -497,9 +519,10 @@ function ProcedureFilterButtons({
 					/>
 				</PopoverContent>
 			</Popover>
-			<DropdownMenu>
+			<DropdownMenu onOpenChange={updateCreatedAtFilterAlign}>
 				<DropdownMenuTrigger asChild>
 					<Button
+						ref={setCreatedAtFilterTrigger}
 						type="button"
 						variant="outline"
 						className="bg-white text-gray-600 hover:bg-gray-50"
@@ -509,7 +532,7 @@ function ProcedureFilterButtons({
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
-					align="end"
+					align={createdAtFilterAlign}
 					className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
 				>
 					<DateRangeMenuItems

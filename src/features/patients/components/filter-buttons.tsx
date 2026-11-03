@@ -1,5 +1,7 @@
 "use client";
 
+import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+
 import {
 	DateRangeMenuItems,
 	SetDateRangeDialog,
@@ -37,17 +39,39 @@ export function FilterButtons({
 	onGenderFilterChange: (genderFilter: PatientGenderFilter) => void;
 }) {
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
+	const {
+		align: genderFilterAlign,
+		setTriggerElement: setGenderFilterTrigger,
+		updateAlign: updateGenderFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: ageFilterAlign,
+		setTriggerElement: setAgeFilterTrigger,
+		updateAlign: updateAgeFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: createdAtFilterAlign,
+		setTriggerElement: setCreatedAtFilterTrigger,
+		updateAlign: updateCreatedAtFilterAlign,
+	} = useFilterMenuAlign();
 
 	return (
 		<>
-			<Popover>
+			<Popover onOpenChange={updateGenderFilterAlign}>
 				<PopoverTrigger asChild>
-					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-100">
+					<Button
+						ref={setGenderFilterTrigger}
+						variant="outline"
+						className="bg-white text-gray-600 hover:bg-gray-100"
+					>
 						<RiMenLine aria-hidden className="size-4 text-gray-600" />
 						Gender
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
+				<PopoverContent
+					align={genderFilterAlign}
+					className="w-[13.75rem] p-1 text-sm text-gray-700"
+				>
 					<RadioGroup
 						value={genderFilter || "all"}
 						onValueChange={(nextGenderFilter) => {
@@ -90,14 +114,18 @@ export function FilterButtons({
 				</PopoverContent>
 			</Popover>
 
-			<Popover>
+			<Popover onOpenChange={updateAgeFilterAlign}>
 				<PopoverTrigger asChild>
-					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-100">
+					<Button
+						ref={setAgeFilterTrigger}
+						variant="outline"
+						className="bg-white text-gray-600 hover:bg-gray-100"
+					>
 						<RiCalendarView aria-hidden className="size-4 text-gray-600" />
 						Age
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
+				<PopoverContent align={ageFilterAlign} className="w-[13.75rem] p-1 text-sm text-gray-700">
 					<RadioGroup
 						value={ageGroupFilter || "any-age"}
 						onValueChange={(nextAgeGroupFilter) => {
@@ -172,15 +200,19 @@ export function FilterButtons({
 				</PopoverContent>
 			</Popover>
 
-			<DropdownMenu>
+			<DropdownMenu onOpenChange={updateCreatedAtFilterAlign}>
 				<DropdownMenuTrigger asChild>
-					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-100">
+					<Button
+						ref={setCreatedAtFilterTrigger}
+						variant="outline"
+						className="bg-white text-gray-600 hover:bg-gray-100"
+					>
 						<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
 						Created at
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
-					align="end"
+					align={createdAtFilterAlign}
 					className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
 				>
 					<DateRangeMenuItems

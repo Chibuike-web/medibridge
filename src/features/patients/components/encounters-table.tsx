@@ -1,5 +1,7 @@
 "use client";
 
+import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+
 import {
 	DateRangeMenuItems,
 	SetDateRangeDialog,
@@ -169,6 +171,26 @@ export function EncountersTable({
 	const [selectedEncounterRows, setSelectedEncounterRows] = useState<RowSelectionState>({});
 	const [isCreateEncounterDrawerOpen, setIsCreateEncounterDrawerOpen] = useState(false);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
+	const {
+		align: encounterDateFilterAlign,
+		setTriggerElement: setEncounterDateFilterTrigger,
+		updateAlign: updateEncounterDateFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: encounterTypeFilterAlign,
+		setTriggerElement: setEncounterTypeFilterTrigger,
+		updateAlign: updateEncounterTypeFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: createdAtFilterAlign,
+		setTriggerElement: setCreatedAtFilterTrigger,
+		updateAlign: updateCreatedAtFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: departmentFilterAlign,
+		setTriggerElement: setDepartmentFilterTrigger,
+		updateAlign: updateDepartmentFilterAlign,
+	} = useFilterMenuAlign();
 	const table = useTable({
 		features: configuredTableFeatures,
 		data: encounters,
@@ -186,7 +208,7 @@ export function EncountersTable({
 		<div className="px-6 py-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-lg font-semibold no-line-height">Encounters</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl flex-wrap items-center gap-2">
-				<div className="relative min-w-64 flex-1">
+				<div className="relative min-w-0 grow basis-80">
 					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
@@ -196,96 +218,120 @@ export function EncountersTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
-							Encounter date
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-					>
-						<DateRangeMenuItems
-							from={encounterFrom}
-							to={encounterTo}
-							onDateRangeApply={onEncounterDateRangeApply}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<Popover>
-					<PopoverTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiFileList2Line aria-hidden className="size-4 text-gray-600" />
-							Encounter type
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
-						<EncounterCheckboxFilterList
-							name="encounter-type"
-							options={encounterTypeFilterOptions}
-							selectedValues={encounterTypeFilters}
-							onSelectedValuesChange={onEncounterTypeFiltersChange}
-						/>
-					</PopoverContent>
-				</Popover>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
-							Created at
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-					>
-						<DateRangeMenuItems
-							from={createdFrom}
-							to={createdTo}
-							onDateRangeApply={onCreatedAtRangeApply}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<Popover>
-					<PopoverTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiBuilding4Line aria-hidden className="size-4 text-gray-600" />
-							Department
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
-						<EncounterCheckboxFilterList
-							name="encounter-department"
-							options={encounterDepartmentFilterOptions}
-							selectedValues={departmentFilters}
-							onSelectedValuesChange={onDepartmentFiltersChange}
-						/>
-					</PopoverContent>
-				</Popover>
-				<SetDateRangeDialog
-					dateRangeFilter={customDateRangeFilter}
-					onClose={() => setCustomDateRangeFilter(null)}
-				/>
-				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-					Export
-				</Button>
-				<Button
-					type="button"
+				<div className="flex flex-wrap items-center gap-2">
+					<DropdownMenu onOpenChange={updateEncounterDateFilterAlign}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								ref={setEncounterDateFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
+								Encounter date
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align={encounterDateFilterAlign}
+							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+						>
+							<DateRangeMenuItems
+								from={encounterFrom}
+								to={encounterTo}
+								onDateRangeApply={onEncounterDateRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<Popover onOpenChange={updateEncounterTypeFilterAlign}>
+						<PopoverTrigger asChild>
+							<Button
+								ref={setEncounterTypeFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiFileList2Line aria-hidden className="size-4 text-gray-600" />
+								Encounter type
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent
+							align={encounterTypeFilterAlign}
+							className="w-[13.75rem] p-1 text-sm text-gray-700"
+						>
+							<EncounterCheckboxFilterList
+								name="encounter-type"
+								options={encounterTypeFilterOptions}
+								selectedValues={encounterTypeFilters}
+								onSelectedValuesChange={onEncounterTypeFiltersChange}
+							/>
+						</PopoverContent>
+					</Popover>
+					<DropdownMenu onOpenChange={updateCreatedAtFilterAlign}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								ref={setCreatedAtFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
+								Created at
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align={createdAtFilterAlign}
+							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+						>
+							<DateRangeMenuItems
+								from={createdFrom}
+								to={createdTo}
+								onDateRangeApply={onCreatedAtRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<Popover onOpenChange={updateDepartmentFilterAlign}>
+						<PopoverTrigger asChild>
+							<Button
+								ref={setDepartmentFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiBuilding4Line aria-hidden className="size-4 text-gray-600" />
+								Department
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent
+							align={departmentFilterAlign}
+							className="w-[13.75rem] p-1 text-sm text-gray-700"
+						>
+							<EncounterCheckboxFilterList
+								name="encounter-department"
+								options={encounterDepartmentFilterOptions}
+								selectedValues={departmentFilters}
+								onSelectedValuesChange={onDepartmentFiltersChange}
+							/>
+						</PopoverContent>
+					</Popover>
+					<SetDateRangeDialog
+						dateRangeFilter={customDateRangeFilter}
+						onClose={() => setCustomDateRangeFilter(null)}
+					/>
+					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
+						Export
+					</Button>
+					<Button
+						type="button"
 
-					onClick={() => setIsCreateEncounterDrawerOpen(true)}
-				>
-					Create encounter
-				</Button>
-				<CreateEncounterDrawer
-					open={isCreateEncounterDrawerOpen}
-					onOpenChange={setIsCreateEncounterDrawerOpen}
-					patientId={patientId}
-				/>
+						onClick={() => setIsCreateEncounterDrawerOpen(true)}
+					>
+						Create encounter
+					</Button>
+					<CreateEncounterDrawer
+						open={isCreateEncounterDrawerOpen}
+						onOpenChange={setIsCreateEncounterDrawerOpen}
+						patientId={patientId}
+					/>
+				</div>
 			</div>
 			<EncounterActiveFilterPills
 				encounterFrom={encounterFrom}

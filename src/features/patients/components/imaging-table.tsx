@@ -1,5 +1,7 @@
 "use client";
 
+import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+
 import {
 	DateRangeMenuItems,
 	SetDateRangeDialog,
@@ -162,6 +164,26 @@ export function ImagingTable({
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [selectedImagingRows, setSelectedImagingRows] = useState<RowSelectionState>({});
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
+	const {
+		align: statusFilterAlign,
+		setTriggerElement: setStatusFilterTrigger,
+		updateAlign: updateStatusFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: modalityFilterAlign,
+		setTriggerElement: setModalityFilterTrigger,
+		updateAlign: updateModalityFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: orderedAtFilterAlign,
+		setTriggerElement: setOrderedAtFilterTrigger,
+		updateAlign: updateOrderedAtFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: createdAtFilterAlign,
+		setTriggerElement: setCreatedAtFilterTrigger,
+		updateAlign: updateCreatedAtFilterAlign,
+	} = useFilterMenuAlign();
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedStudy, setSelectedStudy] = useState<ImagingType | null>(null);
@@ -195,7 +217,7 @@ export function ImagingTable({
 		<div className="px-6 py-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-lg font-semibold no-line-height">Imaging</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl flex-wrap items-center gap-2">
-				<div className="relative min-w-64 flex-1">
+				<div className="relative min-w-0 grow basis-80">
 					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
@@ -209,87 +231,111 @@ export function ImagingTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<Popover>
-					<PopoverTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiCheckboxCircleLine aria-hidden className="size-4 text-gray-600" />
-							Status
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
-						<ImagingCheckboxFilterList
-							name="imaging-status"
-							options={imagingStatusFilterOptions}
-							selectedValues={statusFilters}
-							onSelectedValuesChange={onStatusFiltersChange}
-						/>
-					</PopoverContent>
-				</Popover>
-				<Popover>
-					<PopoverTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiScan2Line aria-hidden className="size-4 text-gray-600" />
-							Modality
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
-						<ImagingCheckboxFilterList
-							name="imaging-modality"
-							options={imagingModalityFilterOptions}
-							selectedValues={modalityFilters}
-							onSelectedValuesChange={onModalityFiltersChange}
-						/>
-					</PopoverContent>
-				</Popover>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
-							Ordered at
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-					>
-						<DateRangeMenuItems
-							from={orderedFrom}
-							to={orderedTo}
-							onDateRangeApply={onOrderedAtRangeApply}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
-							Created at
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-					>
-						<DateRangeMenuItems
-							from={createdFrom}
-							to={createdTo}
-							onDateRangeApply={onCreatedAtRangeApply}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<SetDateRangeDialog
-					dateRangeFilter={customDateRangeFilter}
-					onClose={() => setCustomDateRangeFilter(null)}
-				/>
-				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-					Export
-				</Button>
-				<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
-					Add imaging
-				</Button>
+				<div className="flex flex-wrap items-center gap-2">
+					<Popover onOpenChange={updateStatusFilterAlign}>
+						<PopoverTrigger asChild>
+							<Button
+								ref={setStatusFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiCheckboxCircleLine aria-hidden className="size-4 text-gray-600" />
+								Status
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent
+							align={statusFilterAlign}
+							className="w-[13.75rem] p-1 text-sm text-gray-700"
+						>
+							<ImagingCheckboxFilterList
+								name="imaging-status"
+								options={imagingStatusFilterOptions}
+								selectedValues={statusFilters}
+								onSelectedValuesChange={onStatusFiltersChange}
+							/>
+						</PopoverContent>
+					</Popover>
+					<Popover onOpenChange={updateModalityFilterAlign}>
+						<PopoverTrigger asChild>
+							<Button
+								ref={setModalityFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiScan2Line aria-hidden className="size-4 text-gray-600" />
+								Modality
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent
+							align={modalityFilterAlign}
+							className="w-[13.75rem] p-1 text-sm text-gray-700"
+						>
+							<ImagingCheckboxFilterList
+								name="imaging-modality"
+								options={imagingModalityFilterOptions}
+								selectedValues={modalityFilters}
+								onSelectedValuesChange={onModalityFiltersChange}
+							/>
+						</PopoverContent>
+					</Popover>
+					<DropdownMenu onOpenChange={updateOrderedAtFilterAlign}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								ref={setOrderedAtFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
+								Ordered at
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align={orderedAtFilterAlign}
+							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+						>
+							<DateRangeMenuItems
+								from={orderedFrom}
+								to={orderedTo}
+								onDateRangeApply={onOrderedAtRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<DropdownMenu onOpenChange={updateCreatedAtFilterAlign}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								ref={setCreatedAtFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
+								Created at
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align={createdAtFilterAlign}
+							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+						>
+							<DateRangeMenuItems
+								from={createdFrom}
+								to={createdTo}
+								onDateRangeApply={onCreatedAtRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<SetDateRangeDialog
+						dateRangeFilter={customDateRangeFilter}
+						onClose={() => setCustomDateRangeFilter(null)}
+					/>
+					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
+						Export
+					</Button>
+					<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
+						Add imaging
+					</Button>
+				</div>
 			</div>
 			<ImagingActiveFilterPills
 				orderedFrom={orderedFrom}

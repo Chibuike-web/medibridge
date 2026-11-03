@@ -254,7 +254,7 @@ export function TransfersClient({
 						Transfers
 					</h1>
 					<div className="flex flex-wrap items-center gap-2">
-						<div className="relative min-w-64 flex-1">
+						<div className="relative min-w-0 grow basis-80">
 							<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 							<Input
 								type="search"
@@ -264,24 +264,25 @@ export function TransfersClient({
 								onChange={(event) => handleQueryChange(event.target.value)}
 							/>
 						</div>
+						<div className="flex flex-wrap items-center gap-2">
+							<FilterButtons
+								requestedFrom={optimisticRequestedAtRange.requestedFrom}
+								requestedTo={optimisticRequestedAtRange.requestedTo}
+								onRequestedAtRangeApply={handleRequestedAtRangeApply}
+								onStatusFiltersChange={handleStatusFiltersChange}
+								statusFilters={optimisticStatusFilters}
+							/>
+							<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+								<RiShare2Line aria-hidden className="size-5 text-gray-600" />
+								Export
+							</Button>
 
-						<FilterButtons
-							requestedFrom={optimisticRequestedAtRange.requestedFrom}
-							requestedTo={optimisticRequestedAtRange.requestedTo}
-							onRequestedAtRangeApply={handleRequestedAtRangeApply}
-							onStatusFiltersChange={handleStatusFiltersChange}
-							statusFilters={optimisticStatusFilters}
-						/>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-							Export
-						</Button>
-
-						<Button asChild>
-							<Link href={newTransferRequestHref} prefetch={true}>
-								New transfer request{" "}
-							</Link>
-						</Button>
+							<Button asChild>
+								<Link href={newTransferRequestHref} prefetch={true}>
+									New transfer request{" "}
+								</Link>
+							</Button>
+						</div>
 					</div>
 				</header>
 				<TransferActiveFilterPills

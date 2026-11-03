@@ -1,5 +1,7 @@
 "use client";
 
+import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+
 import { useMemo, useState } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
@@ -161,6 +163,26 @@ export function DiagnosesTable({
 		[diagnoses],
 	);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
+	const {
+		align: statusFilterAlign,
+		setTriggerElement: setStatusFilterTrigger,
+		updateAlign: updateStatusFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: lastUpdatedFilterAlign,
+		setTriggerElement: setLastUpdatedFilterTrigger,
+		updateAlign: updateLastUpdatedFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: diagnosedAtFilterAlign,
+		setTriggerElement: setDiagnosedAtFilterTrigger,
+		updateAlign: updateDiagnosedAtFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: createdAtFilterAlign,
+		setTriggerElement: setCreatedAtFilterTrigger,
+		updateAlign: updateCreatedAtFilterAlign,
+	} = useFilterMenuAlign();
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -193,7 +215,7 @@ export function DiagnosesTable({
 		<div className="px-6 py-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-lg font-semibold no-line-height">Diagnoses</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl flex-wrap items-center gap-2">
-				<div className="relative min-w-64 flex-1">
+				<div className="relative min-w-0 grow basis-80">
 					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
@@ -207,108 +229,129 @@ export function DiagnosesTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<Popover>
-					<PopoverTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiCheckboxCircleLine aria-hidden className="size-4 text-gray-600" />
-							Status
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
-						{diagnosisStatusFilterOptions.map((statusOption) => {
-							const isStatusSelected = statusFilters.includes(statusOption.value);
-							const statusOptionId = `diagnosis-status-${statusOption.value}`;
+				<div className="flex flex-wrap items-center gap-2">
+					<Popover onOpenChange={updateStatusFilterAlign}>
+						<PopoverTrigger asChild>
+							<Button
+								ref={setStatusFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiCheckboxCircleLine aria-hidden className="size-4 text-gray-600" />
+								Status
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent
+							align={statusFilterAlign}
+							className="w-[13.75rem] p-1 text-sm text-gray-700"
+						>
+							{diagnosisStatusFilterOptions.map((statusOption) => {
+								const isStatusSelected = statusFilters.includes(statusOption.value);
+								const statusOptionId = `diagnosis-status-${statusOption.value}`;
 
-							return (
-								<Label
-									key={statusOption.value}
-									htmlFor={statusOptionId}
-									className="h-8 w-full cursor-pointer rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
-								>
-									<Checkbox
-										id={statusOptionId}
-										checked={isStatusSelected}
-										onCheckedChange={(checked) => {
-											onStatusFiltersChange(
-												checked === true
-													? [...statusFilters, statusOption.value]
-													: statusFilters.filter(
-															(statusFilter) => statusFilter !== statusOption.value,
-														),
-											);
-										}}
-										className="[&_svg]:!text-current"
-									/>
-									<span>{statusOption.label}</span>
-								</Label>
-							);
-						})}
-					</PopoverContent>
-				</Popover>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiHistoryLine aria-hidden className="size-4 text-gray-600" />
-							Last updated
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-					>
-						<DateRangeMenuItems
-							from={lastReviewedFrom}
-							to={lastReviewedTo}
-							onDateRangeApply={onLastReviewedRangeApply}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiPulseLine aria-hidden className="size-4 text-gray-600" />
-							Diagnosed At
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-					>
-						<DateRangeMenuItems
-							from={diagnosedFrom}
-							to={diagnosedTo}
-							onDateRangeApply={onDiagnosedAtRangeApply}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
-							Created at
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-					>
-						<DateRangeMenuItems
-							from={createdFrom}
-							to={createdTo}
-							onDateRangeApply={onCreatedAtRangeApply}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-					Export
-				</Button>
-				<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
-					Add diagnosis
-				</Button>
+								return (
+									<Label
+										key={statusOption.value}
+										htmlFor={statusOptionId}
+										className="h-8 w-full cursor-pointer rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
+									>
+										<Checkbox
+											id={statusOptionId}
+											checked={isStatusSelected}
+											onCheckedChange={(checked) => {
+												onStatusFiltersChange(
+													checked === true
+														? [...statusFilters, statusOption.value]
+														: statusFilters.filter(
+																(statusFilter) => statusFilter !== statusOption.value,
+															),
+												);
+											}}
+											className="[&_svg]:!text-current"
+										/>
+										<span>{statusOption.label}</span>
+									</Label>
+								);
+							})}
+						</PopoverContent>
+					</Popover>
+					<DropdownMenu onOpenChange={updateLastUpdatedFilterAlign}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								ref={setLastUpdatedFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiHistoryLine aria-hidden className="size-4 text-gray-600" />
+								Last updated
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align={lastUpdatedFilterAlign}
+							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+						>
+							<DateRangeMenuItems
+								from={lastReviewedFrom}
+								to={lastReviewedTo}
+								onDateRangeApply={onLastReviewedRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<DropdownMenu onOpenChange={updateDiagnosedAtFilterAlign}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								ref={setDiagnosedAtFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiPulseLine aria-hidden className="size-4 text-gray-600" />
+								Diagnosed At
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align={diagnosedAtFilterAlign}
+							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+						>
+							<DateRangeMenuItems
+								from={diagnosedFrom}
+								to={diagnosedTo}
+								onDateRangeApply={onDiagnosedAtRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<DropdownMenu onOpenChange={updateCreatedAtFilterAlign}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								ref={setCreatedAtFilterTrigger}
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
+								Created at
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align={createdAtFilterAlign}
+							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+						>
+							<DateRangeMenuItems
+								from={createdFrom}
+								to={createdTo}
+								onDateRangeApply={onCreatedAtRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
+						Export
+					</Button>
+					<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
+						Add diagnosis
+					</Button>
+				</div>
 			</div>
 			<DiagnosisActiveFilterPills
 				createdFrom={createdFrom}

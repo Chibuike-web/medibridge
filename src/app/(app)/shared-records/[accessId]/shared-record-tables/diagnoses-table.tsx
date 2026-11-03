@@ -1,5 +1,7 @@
 "use client";
 
+import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+
 import {
 	DateRangeMenuItems,
 	SetDateRangeDialog,
@@ -133,6 +135,26 @@ export function SharedDiagnosesTable({
 	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
 	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
+	const {
+		align: statusFilterAlign,
+		setTriggerElement: setStatusFilterTrigger,
+		updateAlign: updateStatusFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: lastUpdatedFilterAlign,
+		setTriggerElement: setLastUpdatedFilterTrigger,
+		updateAlign: updateLastUpdatedFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: diagnosedAtFilterAlign,
+		setTriggerElement: setDiagnosedAtFilterTrigger,
+		updateAlign: updateDiagnosedAtFilterAlign,
+	} = useFilterMenuAlign();
+	const {
+		align: createdAtFilterAlign,
+		setTriggerElement: setCreatedAtFilterTrigger,
+		updateAlign: updateCreatedAtFilterAlign,
+	} = useFilterMenuAlign();
 	const [isPending, startTransition] = useTransition();
 	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
 	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
@@ -309,7 +331,7 @@ export function SharedDiagnosesTable({
 		<div>
 			<h2 className="text-lg font-semibold text-gray-900">Diagnoses</h2>
 			<div className="mt-7 mb-4 flex flex-wrap items-center gap-2">
-				<div className="relative min-w-64 flex-1">
+				<div className="relative min-w-0 grow basis-80">
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
 					<Input
 						type="search"
@@ -319,103 +341,116 @@ export function SharedDiagnosesTable({
 						className="pl-10"
 					/>
 				</div>
-				<Popover>
-					<PopoverTrigger asChild>
-						<Button
-							type="button"
-							variant="outline"
-							className="bg-white text-gray-600 hover:bg-gray-50"
+				<div className="flex flex-wrap items-center gap-2">
+					<Popover onOpenChange={updateStatusFilterAlign}>
+						<PopoverTrigger asChild>
+							<Button
+								ref={setStatusFilterTrigger}
+								type="button"
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiCheckboxCircleLine aria-hidden="true" />
+								Status
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent
+							align={statusFilterAlign}
+							className="w-[13.75rem] p-1 text-sm text-gray-700"
 						>
-							<RiCheckboxCircleLine aria-hidden="true" />
-							Status
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
-						<CheckboxFilterList
-							name="shared-diagnosis-status"
-							options={diagnosisStatusFilterOptions}
-							selectedValues={optimisticStatusFilters}
-							onSelectedValuesChange={handleStatusFiltersChange}
-						/>
-					</PopoverContent>
-				</Popover>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button
-							type="button"
-							variant="outline"
-							className="bg-white text-gray-600 hover:bg-gray-50"
+							<CheckboxFilterList
+								name="shared-diagnosis-status"
+								options={diagnosisStatusFilterOptions}
+								selectedValues={optimisticStatusFilters}
+								onSelectedValuesChange={handleStatusFiltersChange}
+							/>
+						</PopoverContent>
+					</Popover>
+					<DropdownMenu onOpenChange={updateLastUpdatedFilterAlign}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								ref={setLastUpdatedFilterTrigger}
+								type="button"
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiHistoryLine aria-hidden="true" />
+								Last updated
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align={lastUpdatedFilterAlign}
+							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
 						>
-							<RiHistoryLine aria-hidden="true" />
-							Last updated
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+							<DateRangeMenuItems
+								from={optimisticReviewedFrom}
+								to={optimisticReviewedTo}
+								onDateRangeApply={handleReviewedRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<DropdownMenu onOpenChange={updateDiagnosedAtFilterAlign}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								ref={setDiagnosedAtFilterTrigger}
+								type="button"
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiPulseLine aria-hidden="true" />
+								Diagnosed At
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align={diagnosedAtFilterAlign}
+							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+						>
+							<DateRangeMenuItems
+								from={optimisticDiagnosedFrom}
+								to={optimisticDiagnosedTo}
+								onDateRangeApply={handleDiagnosedRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<DropdownMenu onOpenChange={updateCreatedAtFilterAlign}>
+						<DropdownMenuTrigger asChild>
+							<Button
+								ref={setCreatedAtFilterTrigger}
+								type="button"
+								variant="outline"
+								className="bg-white text-gray-600 hover:bg-gray-50"
+							>
+								<RiCalendarLine aria-hidden="true" />
+								Created at
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align={createdAtFilterAlign}
+							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+						>
+							<DateRangeMenuItems
+								from={optimisticCreatedFrom}
+								to={optimisticCreatedTo}
+								onDateRangeApply={handleCreatedRangeApply}
+								onCustomDateRangeSelect={setCustomDateRangeFilter}
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<SetDateRangeDialog
+						dateRangeFilter={customDateRangeFilter}
+						onClose={() => setCustomDateRangeFilter(null)}
+					/>
+					<Button
+						type="button"
+						variant="outline"
+						className="bg-white text-gray-600 hover:bg-gray-50"
 					>
-						<DateRangeMenuItems
-							from={optimisticReviewedFrom}
-							to={optimisticReviewedTo}
-							onDateRangeApply={handleReviewedRangeApply}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button
-							type="button"
-							variant="outline"
-							className="bg-white text-gray-600 hover:bg-gray-50"
-						>
-							<RiPulseLine aria-hidden="true" />
-							Diagnosed At
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-					>
-						<DateRangeMenuItems
-							from={optimisticDiagnosedFrom}
-							to={optimisticDiagnosedTo}
-							onDateRangeApply={handleDiagnosedRangeApply}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button
-							type="button"
-							variant="outline"
-							className="bg-white text-gray-600 hover:bg-gray-50"
-						>
-							<RiCalendarLine aria-hidden="true" />
-							Created at
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-					>
-						<DateRangeMenuItems
-							from={optimisticCreatedFrom}
-							to={optimisticCreatedTo}
-							onDateRangeApply={handleCreatedRangeApply}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<SetDateRangeDialog
-					dateRangeFilter={customDateRangeFilter}
-					onClose={() => setCustomDateRangeFilter(null)}
-				/>
-				<Button type="button" variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-					<RiShare2Line aria-hidden="true" />
-					Export
-				</Button>
+						<RiShare2Line aria-hidden="true" />
+						Export
+					</Button>
+				</div>
 			</div>
 			{optimisticStatusFilters.length > 0 ||
 			optimisticDiagnosedFrom ||
