@@ -11,7 +11,6 @@ import {
 	RiArrowUpSLine,
 	RiShare2Line,
 	RiEyeLine,
-	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
 	RiCloseLine,
@@ -43,11 +42,9 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuSub,
-	DropdownMenuSubContent,
-	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -72,7 +69,6 @@ import { useTableUrlNavigation } from "@/features/patients/components/table-url-
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
-type ImmunizationFilterSubmenu = "status" | "created-at";
 const immunizationStatusFilterOptions = [
 	{ label: "Active", value: "Active" },
 	{ label: "Completed", value: "Completed" },
@@ -121,9 +117,6 @@ export function SharedImmunizationsTable({
 	const [optimisticStatusFilters, setOptimisticStatusFilters] = useOptimistic(statusFilters);
 	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
 	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
-	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<ImmunizationFilterSubmenu | null>(
-		null,
-	);
 	const [isPending, startTransition] = useTransition();
 	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
 	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
@@ -264,8 +257,8 @@ export function SharedImmunizationsTable({
 	return (
 		<div>
 			<h2 className="text-lg font-semibold text-gray-900">Immunizations</h2>
-			<div className="mt-7 mb-4 flex items-center gap-2">
-				<div className="relative min-w-0 flex-1">
+			<div className="mt-7 mb-4 flex flex-wrap items-center gap-2">
+				<div className="relative min-w-64 flex-1">
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
 					<Input
 						type="search"
@@ -275,12 +268,10 @@ export function SharedImmunizationsTable({
 						className="pl-10"
 					/>
 				</div>
-				<ImmunizationFilterMenu
-					activeFilterSubmenu={activeFilterSubmenu}
+				<ImmunizationFilterButtons
 					statusFilters={optimisticStatusFilters}
 					createdFrom={optimisticCreatedFrom}
 					createdTo={optimisticCreatedTo}
-					onActiveFilterSubmenuChange={setActiveFilterSubmenu}
 					onStatusFiltersChange={handleStatusFiltersChange}
 					onCreatedAtRangeApply={handleCreatedAtRangeApply}
 				/>
@@ -469,20 +460,16 @@ export function SharedImmunizationsTable({
 	);
 }
 
-function ImmunizationFilterMenu({
-	activeFilterSubmenu,
+function ImmunizationFilterButtons({
 	statusFilters,
 	createdFrom,
 	createdTo,
-	onActiveFilterSubmenuChange,
 	onStatusFiltersChange,
 	onCreatedAtRangeApply,
 }: {
-	activeFilterSubmenu: ImmunizationFilterSubmenu | null;
 	statusFilters: SharedImmunizationRow["status"][];
 	createdFrom: string;
 	createdTo: string;
-	onActiveFilterSubmenuChange: (submenu: ImmunizationFilterSubmenu | null) => void;
 	onStatusFiltersChange: (values: SharedImmunizationRow["status"][]) => void;
 	onCreatedAtRangeApply: (from: string, to: string) => void;
 }) {
@@ -490,65 +477,47 @@ function ImmunizationFilterMenu({
 
 	return (
 		<>
-			<DropdownMenu
-				onOpenChange={(open) => {
-					if (!open) onActiveFilterSubmenuChange(null);
-				}}
-			>
+			<Popover>
+				<PopoverTrigger asChild>
+					<Button
+						type="button"
+						variant="outline"
+						className="bg-white text-gray-600 hover:bg-gray-50"
+					>
+						<RiCheckboxCircleLine aria-hidden="true" />
+						Status
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
+					<CheckboxFilterList
+						name="shared-immunization-status"
+						options={immunizationStatusFilterOptions}
+						selectedValues={statusFilters}
+						onSelectedValuesChange={onStatusFiltersChange}
+					/>
+				</PopoverContent>
+			</Popover>
+			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button
 						type="button"
 						variant="outline"
 						className="bg-white text-gray-600 hover:bg-gray-50"
 					>
-						<RiFilter3Line aria-hidden="true" />
-						Filter
+						<RiCalendarLine aria-hidden="true" />
+						Created at
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
 					align="end"
 					className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
 				>
-					<DropdownMenuSub
-						open={activeFilterSubmenu === "status"}
-						onOpenChange={(open) => onActiveFilterSubmenuChange(open ? "status" : null)}
-					>
-						<DropdownMenuSubTrigger className="rounded-lg py-2 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-							<RiCheckboxCircleLine className="size-4" />
-							<span className="flex-1">Status</span>
-						</DropdownMenuSubTrigger>
-						<DropdownMenuSubContent
-							alignOffset={-5}
-							className="w-[13.75rem] rounded-xl bg-white p-1 text-sm text-gray-700"
-						>
-							<CheckboxFilterList
-								name="shared-immunization-status"
-								options={immunizationStatusFilterOptions}
-								selectedValues={statusFilters}
-								onSelectedValuesChange={onStatusFiltersChange}
-							/>
-						</DropdownMenuSubContent>
-					</DropdownMenuSub>
-					<DropdownMenuSub
-						open={activeFilterSubmenu === "created-at"}
-						onOpenChange={(open) => onActiveFilterSubmenuChange(open ? "created-at" : null)}
-					>
-						<DropdownMenuSubTrigger className="rounded-lg py-2 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-							<RiCalendarLine className="size-4" />
-							<span className="flex-1">Created at</span>
-						</DropdownMenuSubTrigger>
-						<DropdownMenuSubContent
-							alignOffset={-5}
-							className="w-[13.75rem] rounded-xl bg-white p-1 text-sm text-gray-700"
-						>
-							<DateRangeMenuItems
-								from={createdFrom}
-								to={createdTo}
-								onDateRangeApply={onCreatedAtRangeApply}
-								onCustomDateRangeSelect={setCustomDateRangeFilter}
-							/>
-						</DropdownMenuSubContent>
-					</DropdownMenuSub>
+					<DateRangeMenuItems
+						from={createdFrom}
+						to={createdTo}
+						onDateRangeApply={onCreatedAtRangeApply}
+						onCustomDateRangeSelect={setCustomDateRangeFilter}
+					/>
 				</DropdownMenuContent>
 			</DropdownMenu>
 			<SetDateRangeDialog
@@ -591,30 +560,25 @@ function CheckboxFilterList<TValue extends string>({
 		const selected = selectedValues.includes(option.value);
 		const id = `${name}-${option.value}`;
 		return (
-			<DropdownMenuItem
+			<Label
 				key={option.value}
-				className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
-				onSelect={(event) => event.preventDefault()}
+				htmlFor={id}
+				className="flex h-8 w-full cursor-pointer items-center gap-3 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
 			>
-				<Label
-					htmlFor={id}
-					className="flex w-full cursor-pointer items-center gap-3 px-2 py-2 leading-normal font-normal"
-				>
-					<Checkbox
-						id={id}
-						checked={selected}
-						onCheckedChange={(checked) =>
-							onSelectedValuesChange(
-								checked === true
-									? [...selectedValues, option.value]
-									: selectedValues.filter((value) => value !== option.value),
-							)
-						}
-						className="[&_svg]:!text-current"
-					/>
-					<span>{option.label}</span>
-				</Label>
-			</DropdownMenuItem>
+				<Checkbox
+					id={id}
+					checked={selected}
+					onCheckedChange={(checked) =>
+						onSelectedValuesChange(
+							checked === true
+								? [...selectedValues, option.value]
+								: selectedValues.filter((value) => value !== option.value),
+						)
+					}
+					className="[&_svg]:!text-current"
+				/>
+				<span>{option.label}</span>
+			</Label>
 		);
 	});
 }

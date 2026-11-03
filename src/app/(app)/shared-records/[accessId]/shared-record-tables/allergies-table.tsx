@@ -11,7 +11,6 @@ import {
 	RiArrowUpSLine,
 	RiShare2Line,
 	RiEyeLine,
-	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
 	RiCloseLine,
@@ -44,11 +43,9 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuSub,
-	DropdownMenuSubContent,
-	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -73,7 +70,6 @@ import { useTableUrlNavigation } from "@/features/patients/components/table-url-
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
-type AllergyFilterSubmenu = "status" | "severity" | "created-at";
 const allergyStatusFilterOptions = [
 	{ label: "Active", value: "Active" },
 	{ label: "Inactive", value: "Inactive" },
@@ -129,7 +125,6 @@ export function SharedAllergiesTable({
 	const [optimisticSeverityFilters, setOptimisticSeverityFilters] = useOptimistic(severityFilters);
 	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
 	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
-	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<AllergyFilterSubmenu | null>(null);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isPending, startTransition] = useTransition();
 	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
@@ -280,8 +275,8 @@ export function SharedAllergiesTable({
 	return (
 		<div>
 			<h2 className="text-lg font-semibold text-gray-900">Allergies</h2>
-			<div className="mt-7 mb-4 flex items-center gap-2">
-				<div className="relative min-w-0 flex-1">
+			<div className="mt-7 mb-4 flex flex-wrap items-center gap-2">
+				<div className="relative min-w-64 flex-1">
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
 					<Input
 						type="search"
@@ -291,64 +286,67 @@ export function SharedAllergiesTable({
 						className="pl-10"
 					/>
 				</div>
-				<DropdownMenu
-					onOpenChange={(open) => {
-						if (!open) setActiveFilterSubmenu(null);
-					}}
-				>
+				<Popover>
+					<PopoverTrigger asChild>
+						<Button
+							type="button"
+							variant="outline"
+							className="bg-white text-gray-600 hover:bg-gray-50"
+						>
+							<RiCheckboxCircleLine aria-hidden="true" />
+							Status
+						</Button>
+					</PopoverTrigger>
+					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
+						<CheckboxFilterList
+							name="shared-allergy-status"
+							options={allergyStatusFilterOptions}
+							selectedValues={optimisticStatusFilters}
+							onSelectedValuesChange={handleStatusFiltersChange}
+						/>
+					</PopoverContent>
+				</Popover>
+				<Popover>
+					<PopoverTrigger asChild>
+						<Button
+							type="button"
+							variant="outline"
+							className="bg-white text-gray-600 hover:bg-gray-50"
+						>
+							<RiBarChartBoxLine aria-hidden="true" />
+							Severity
+						</Button>
+					</PopoverTrigger>
+					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
+						<CheckboxFilterList
+							name="shared-allergy-severity"
+							options={allergySeverityFilterOptions}
+							selectedValues={optimisticSeverityFilters}
+							onSelectedValuesChange={handleSeverityFiltersChange}
+						/>
+					</PopoverContent>
+				</Popover>
+				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button
 							type="button"
 							variant="outline"
 							className="bg-white text-gray-600 hover:bg-gray-50"
 						>
-							<RiFilter3Line aria-hidden="true" />
-							Filter
+							<RiCalendarLine aria-hidden="true" />
+							Created at
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
 						align="end"
 						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
 					>
-						<FilterSubmenu
-							open={activeFilterSubmenu === "status"}
-							onOpenChange={(open) => setActiveFilterSubmenu(open ? "status" : null)}
-							icon={<RiCheckboxCircleLine className="size-4.5" />}
-							label="Status"
-						>
-							<CheckboxFilterList
-								name="shared-allergy-status"
-								options={allergyStatusFilterOptions}
-								selectedValues={optimisticStatusFilters}
-								onSelectedValuesChange={handleStatusFiltersChange}
-							/>
-						</FilterSubmenu>
-						<FilterSubmenu
-							open={activeFilterSubmenu === "severity"}
-							onOpenChange={(open) => setActiveFilterSubmenu(open ? "severity" : null)}
-							icon={<RiBarChartBoxLine className="text-lg" />}
-							label="Severity"
-						>
-							<CheckboxFilterList
-								name="shared-allergy-severity"
-								options={allergySeverityFilterOptions}
-								selectedValues={optimisticSeverityFilters}
-								onSelectedValuesChange={handleSeverityFiltersChange}
-							/>
-						</FilterSubmenu>
-						<FilterSubmenu
-							open={activeFilterSubmenu === "created-at"}
-							onOpenChange={(open) => setActiveFilterSubmenu(open ? "created-at" : null)}
-							icon={<RiCalendarLine className="size-4.5" />}
-							label="Created at"
-						>
-							<DateRangeMenuItems
-								from={optimisticCreatedFrom}
-								to={optimisticCreatedTo}
-								onDateRangeApply={handleCreatedAtRangeApply}
-								onCustomDateRangeSelect={setCustomDateRangeFilter}
-							/>
-						</FilterSubmenu>
+						<DateRangeMenuItems
+							from={optimisticCreatedFrom}
+							to={optimisticCreatedTo}
+							onDateRangeApply={handleCreatedAtRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
 					</DropdownMenuContent>
 				</DropdownMenu>
 				<SetDateRangeDialog
@@ -572,35 +570,6 @@ function FilterPill({ label, onRemove }: { label: string; onRemove: () => void }
 	);
 }
 
-function FilterSubmenu({
-	open,
-	onOpenChange,
-	icon,
-	label,
-	children,
-}: {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	icon: React.ReactNode;
-	label: string;
-	children: React.ReactNode;
-}) {
-	return (
-		<DropdownMenuSub open={open} onOpenChange={onOpenChange}>
-			<DropdownMenuSubTrigger className="rounded-lg py-2 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-				{icon}
-				<span className="flex-1">{label}</span>
-			</DropdownMenuSubTrigger>
-			<DropdownMenuSubContent
-				alignOffset={-5}
-				className="w-[13.75rem] rounded-xl bg-white p-1 text-sm text-gray-700"
-			>
-				{children}
-			</DropdownMenuSubContent>
-		</DropdownMenuSub>
-	);
-}
-
 function CheckboxFilterList<TValue extends string>({
 	name,
 	options,
@@ -616,30 +585,25 @@ function CheckboxFilterList<TValue extends string>({
 		const isSelected = selectedValues.includes(option.value);
 		const optionId = `${name}-${option.value}`;
 		return (
-			<DropdownMenuItem
+			<Label
 				key={option.value}
-				className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
-				onSelect={(event) => event.preventDefault()}
+				htmlFor={optionId}
+				className="flex h-8 w-full cursor-pointer items-center gap-3 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
 			>
-				<Label
-					htmlFor={optionId}
-					className="flex w-full cursor-pointer items-center gap-3 px-2 py-2 leading-normal font-normal"
-				>
-					<Checkbox
-						id={optionId}
-						checked={isSelected}
-						onCheckedChange={(checked) =>
-							onSelectedValuesChange(
-								checked === true
-									? [...selectedValues, option.value]
-									: selectedValues.filter((value) => value !== option.value),
-							)
-						}
-						className="[&_svg]:!text-current"
-					/>
-					<span>{option.label}</span>
-				</Label>
-			</DropdownMenuItem>
+				<Checkbox
+					id={optionId}
+					checked={isSelected}
+					onCheckedChange={(checked) =>
+						onSelectedValuesChange(
+							checked === true
+								? [...selectedValues, option.value]
+								: selectedValues.filter((value) => value !== option.value),
+						)
+					}
+					className="[&_svg]:!text-current"
+				/>
+				<span>{option.label}</span>
+			</Label>
 		);
 	});
 }

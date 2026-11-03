@@ -73,7 +73,6 @@ test("shared allergies keep the server's order, and sorting a column asks the se
 	expect(displayedAllergens()).toEqual(rows.map((allergy) => allergy.allergen));
 });
 
-
 test("shows the filter pill and first page while the filtered rows are still loading", async () => {
 	let finishNavigation!: () => void;
 	const route = new Promise<void>((resolve) => {
@@ -106,13 +105,12 @@ test("shows the filter pill and first page while the filtered rows are still loa
 	);
 	expect(screen.queryByText("Status: Inactive")).not.toBeInTheDocument();
 
-	await user.click(screen.getByRole("button", { name: "Filter" }));
-	await user.click(screen.getByRole("menuitem", { name: "Status" }));
+	await user.click(screen.getByRole("button", { name: "Status" }));
 	await user.pointer({
 		keys: "[TouchA]",
 		target: await screen.findByRole("checkbox", { name: "Inactive" }),
 	});
-	await user.keyboard("{Escape}{Escape}");
+	await user.keyboard("{Escape}");
 
 	expect(screen.getByText("Status: Inactive")).toBeVisible();
 	expect(screen.getByText("Page 1 of 4")).toBeVisible();
