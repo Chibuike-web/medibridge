@@ -73,6 +73,7 @@ const listCases = [
 		},
 		filterName: "gender",
 		filterValue: "female",
+		filterPill: "Gender: Female",
 		renderList: (name = "Ada Okafor", query = "Ada") => (
 			<PatientsClient {...patientProps} searchQuery={query} patients={[{ ...patient, name }]} />
 		),
@@ -84,6 +85,7 @@ const listCases = [
 			screen.getByRole("link", { name: "New transfer request" }).getAttribute("href")!,
 		filterName: "status",
 		filterValue: "pending",
+		filterPill: "Status: Pending",
 		renderList: (name = "Ada Okafor", query = "Ada") => (
 			<TransfersClient
 				{...transferProps}
@@ -112,7 +114,7 @@ afterEach(() => {
 
 describe.each(listCases)(
 	"URL-driven $name list",
-	({ name, initialParams, getCreateHref, filterName, filterValue, renderList }) => {
+	({ name, initialParams, getCreateHref, filterName, filterValue, filterPill, renderList }) => {
 		beforeEach(() => {
 			navigation.pathname = `/dashboard/${name}`;
 			navigation.params = initialParams;
@@ -144,6 +146,15 @@ describe.each(listCases)(
 			expect(options).toEqual({ scroll: false });
 			expect(navigation.replace).not.toHaveBeenCalled();
 			expect(within(screen.getByRole("table")).getByText("Ada Okafor")).toBeVisible();
+		});
+
+		test("removes a filter when the user clicks anywhere on its pill", async () => {
+			const user = userEvent.setup();
+			render(renderList());
+			await user.click(screen.getByText(filterPill));
+			const params = new URL(navigation.push.mock.calls[0][0], "http://localhost").searchParams;
+			expect(params.get(filterName)).toBeNull();
+			expect(params.get("query")).toBe("Ada");
 		});
 
 		test("restores the original query when a pending search is cleared", async () => {

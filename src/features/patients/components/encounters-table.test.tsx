@@ -223,6 +223,16 @@ describe("Encounters table", () => {
 		);
 	});
 
+	test("removes a filter when the user clicks anywhere on its pill", async () => {
+		const user = userEvent.setup();
+		const { onEncounterTypeFiltersChange } = renderEncountersTable({
+			encounterTypeFilters: ["follow-up-visit", "routine-checkup"],
+		});
+
+		await user.click(screen.getByText("Type: Follow Up Visit"));
+		expect(onEncounterTypeFiltersChange).toHaveBeenCalledWith(["routine-checkup"]);
+	});
+
 	test("shows active filters as pills the user can remove", async () => {
 		const user = userEvent.setup();
 		const {

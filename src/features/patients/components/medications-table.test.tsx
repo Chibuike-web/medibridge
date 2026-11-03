@@ -318,6 +318,16 @@ describe("Medications table", () => {
 		);
 	});
 
+	test("removes a filter when the user clicks anywhere on its pill", async () => {
+		const user = userEvent.setup();
+		const { onStatusFiltersChange } = renderMedicationsTable({
+			statusFilters: ["completed", "discontinued"],
+		});
+
+		await user.click(screen.getByText("Status: Completed"));
+		expect(onStatusFiltersChange).toHaveBeenCalledWith(["discontinued"]);
+	});
+
 	test("shows active filters as pills that clear the matching filter", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onCreatedAtRangeApply } = renderMedicationsTable({

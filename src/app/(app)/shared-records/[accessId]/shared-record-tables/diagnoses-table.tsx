@@ -609,18 +609,18 @@ export function SharedDiagnosesTable({
 
 function FilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
 	return (
-		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
-			<span>{label}</span>
-			<Button
-				size="icon"
-				type="button"
-				onClick={onRemove}
-				className="flex size-5 rounded-full text-white hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
-				aria-label={`Remove ${label} filter`}
-			>
-				<RiCloseLine className="size-4" aria-hidden="true" />
-			</Button>
-		</span>
+		<Button
+			type="button"
+			variant="outline"
+			onClick={onRemove}
+			className="group h-auto gap-3 rounded-full bg-gray-100 py-1.5 pr-1.5 pl-3 text-gray-600 shadow-xs hover:bg-gray-200"
+			aria-label={`Remove ${label} filter`}
+		>
+			{label}
+			<span className="flex size-5 items-center justify-center rounded-full bg-gray-800 text-white group-hover:bg-gray-500">
+				<RiCloseLine aria-hidden="true" />
+			</span>
+		</Button>
 	);
 }
 

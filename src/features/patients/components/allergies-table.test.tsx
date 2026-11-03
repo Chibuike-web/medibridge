@@ -341,6 +341,16 @@ describe("Allergies table", () => {
 		);
 	});
 
+	test("removes a filter when the user clicks anywhere on its pill", async () => {
+		const user = userEvent.setup();
+		const { onSeverityFiltersChange } = renderAllergiesTable({
+			severityFilters: ["mild", "severe"],
+		});
+
+		await user.click(screen.getByText("Severity: Mild"));
+		expect(onSeverityFiltersChange).toHaveBeenCalledWith(["severe"]);
+	});
+
 	test("shows active filters as pills that clear the matching filter", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onSeverityFiltersChange, onCreatedAtRangeApply } =

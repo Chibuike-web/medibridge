@@ -317,6 +317,16 @@ describe("Diagnoses table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(urlDate(subDays(today, 29)), urlDate(today));
 	});
 
+	test("removes a filter when the user clicks anywhere on its pill", async () => {
+		const user = userEvent.setup();
+		const { onStatusFiltersChange } = renderDiagnosesTable({
+			statusFilters: ["active", "resolved"],
+		});
+
+		await user.click(screen.getByText("Status: Active"));
+		expect(onStatusFiltersChange).toHaveBeenCalledWith(["resolved"]);
+	});
+
 	test("shows active filters as pills that clear the matching filter", async () => {
 		const user = userEvent.setup();
 		const {

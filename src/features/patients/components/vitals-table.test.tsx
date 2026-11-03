@@ -144,6 +144,19 @@ describe("Vitals table", () => {
 		expect(onRecordedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
+	test("removes a filter when the user clicks anywhere on its pill", async () => {
+		const user = userEvent.setup();
+		const { onRecordedAtRangeApply, onCreatedAtRangeApply } = renderVitalsTable({
+			recordedFrom: "2020-01-01",
+			recordedTo: "2020-01-31",
+			createdFrom: "2020-02-01",
+		});
+
+		await user.click(screen.getByText("Recorded: Jan 1, 2020 - Jan 31, 2020"));
+		expect(onRecordedAtRangeApply).toHaveBeenCalledWith("", "");
+		expect(onCreatedAtRangeApply).not.toHaveBeenCalled();
+	});
+
 	test("clears every active filter at once", async () => {
 		const user = userEvent.setup();
 		const { onFiltersClear } = renderVitalsTable({

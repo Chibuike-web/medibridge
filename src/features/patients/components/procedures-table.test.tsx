@@ -300,6 +300,16 @@ describe("Procedures table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(today, today);
 	});
 
+	test("removes a filter when the user clicks anywhere on its pill", async () => {
+		const user = userEvent.setup();
+		const { onStatusFiltersChange } = renderProceduresTable({
+			statusFilters: ["pending", "completed"],
+		});
+
+		await user.click(screen.getByText("Status: Pending"));
+		expect(onStatusFiltersChange).toHaveBeenCalledWith(["completed"]);
+	});
+
 	test("shows active filters as pills the user can remove", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onCreatedAtRangeApply } = renderProceduresTable({

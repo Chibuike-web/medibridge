@@ -285,6 +285,16 @@ describe("Immunizations table", () => {
 		);
 	});
 
+	test("removes a filter when the user clicks anywhere on its pill", async () => {
+		const user = userEvent.setup();
+		const { onStatusFiltersChange } = renderImmunizationsTable({
+			statusFilters: ["active", "discontinued"],
+		});
+
+		await user.click(screen.getByText("Status: Discontinued"));
+		expect(onStatusFiltersChange).toHaveBeenCalledWith(["active"]);
+	});
+
 	test("shows active filters as pills the user can remove", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onCreatedAtRangeApply } = renderImmunizationsTable({

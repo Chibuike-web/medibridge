@@ -308,6 +308,16 @@ describe("Imaging table", () => {
 		expect(onOrderedAtRangeApply).not.toHaveBeenCalled();
 	});
 
+	test("removes a filter when the user clicks anywhere on its pill", async () => {
+		const user = userEvent.setup();
+		const { onStatusFiltersChange } = renderImagingTable({
+			statusFilters: ["pending", "cancelled"],
+		});
+
+		await user.click(screen.getByText("Status: Cancelled"));
+		expect(onStatusFiltersChange).toHaveBeenCalledWith(["pending"]);
+	});
+
 	test("shows active filters as pills that can be removed individually", async () => {
 		const user = userEvent.setup();
 		const {
