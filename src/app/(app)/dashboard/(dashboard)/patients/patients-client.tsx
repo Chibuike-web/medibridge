@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AddPatientDialog } from "@/features/patients/components/add-patient-dialog";
-import { FilterButton } from "@/features/patients/components/filter-button";
+import { FilterButtons } from "@/features/patients/components/filter-buttons";
 import { PatientsTable } from "@/features/patients/components/patients-table";
 import type {
 	PatientAgeGroupFilter,
@@ -286,8 +286,8 @@ export function PatientsClient({
 					<h1 className="text-lg font-semibold text-balance text-gray-800 tracking-[-0.015em]">
 						Patients
 					</h1>
-					<div className="flex items-center gap-2">
-						<div className="relative flex-1">
+					<div className="flex flex-wrap items-center gap-2">
+						<div className="relative min-w-64 flex-1">
 							<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 							<Input
 								type="search"
@@ -298,7 +298,7 @@ export function PatientsClient({
 							/>
 						</div>
 
-						<FilterButton
+						<FilterButtons
 							ageGroupFilter={optimisticAgeGroupFilter}
 							createdFrom={optimisticCreatedAtRange.createdFrom}
 							createdTo={optimisticCreatedAtRange.createdTo}

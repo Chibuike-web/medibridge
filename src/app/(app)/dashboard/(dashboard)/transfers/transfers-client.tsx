@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FilterButton } from "@/features/transfers/components/filter-button";
+import { FilterButtons } from "@/features/transfers/components/filter-buttons";
 import { TransferTable } from "@/features/transfers/components/transfer-table";
 import type { TransferStatusFilter, TransferType } from "@/features/transfers/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
@@ -253,8 +253,8 @@ export function TransfersClient({
 					<h1 className="text-lg font-semibold text-balance text-gray-800 tracking-[-0.015em]">
 						Transfers
 					</h1>
-					<div className="flex items-center gap-2">
-						<div className="relative flex-1">
+					<div className="flex flex-wrap items-center gap-2">
+						<div className="relative min-w-64 flex-1">
 							<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 							<Input
 								type="search"
@@ -265,7 +265,7 @@ export function TransfersClient({
 							/>
 						</div>
 
-						<FilterButton
+						<FilterButtons
 							requestedFrom={optimisticRequestedAtRange.requestedFrom}
 							requestedTo={optimisticRequestedAtRange.requestedTo}
 							onRequestedAtRangeApply={handleRequestedAtRangeApply}
