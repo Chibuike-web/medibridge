@@ -72,7 +72,7 @@ async function OverviewContent() {
 		}
 		return (
 			<div className="h-full overflow-y-auto">
-				<section className="mx-auto flex w-full max-w-7xl flex-col px-6 py-6 lg:px-10">
+				<section className="mx-auto flex w-full max-w-7xl flex-col px-6 pt-4 pb-6 lg:px-10">
 					<h1 className="mb-4 text-lg font-semibold tracking-[-0.015em] text-gray-800 text-balance">
 						Overview
 					</h1>
@@ -100,7 +100,7 @@ async function RecentTransfers() {
 function OverviewPageSkeleton() {
 	return (
 		<div className="h-full overflow-y-auto">
-			<section className="mx-auto flex w-full max-w-7xl flex-col px-6 py-6 lg:px-10">
+			<section className="mx-auto flex w-full max-w-7xl flex-col px-6 pt-4 pb-6 lg:px-10">
 				<div className="mb-4 h-6 w-32 animate-pulse rounded bg-gray-100" />
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 					<CardSkeleton />

@@ -281,7 +281,7 @@ export function PatientsClient({
 
 	return (
 		<div className="h-full overflow-y-auto">
-			<section className="mx-auto flex w-full max-w-7xl flex-col px-6 py-6 lg:px-10">
+			<section className="mx-auto flex w-full max-w-7xl flex-col px-6 pt-4 pb-6 lg:px-10">
 				<header className="mb-4 flex flex-col gap-4 text-sm">
 					<h1 className="text-lg font-semibold text-balance text-gray-800 tracking-[-0.015em]">
 						Patients

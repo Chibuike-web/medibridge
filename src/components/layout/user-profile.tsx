@@ -147,6 +147,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
+						variant="destructive"
 						disabled={isPending}
 						onClick={() => {
 							setSignOutError("");
@@ -165,7 +166,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 								}
 							});
 						}}
-						className="rounded-lg text-gray-600 focus:bg-gray-100 focus:text-gray-900"
+						className="rounded-lg"
 					>
 						<RiLogoutBoxLine />
 						Sign out
