@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { UserProfile } from "./user-profile";
@@ -17,10 +17,45 @@ vi.mock("@/lib/better-auth/auth.client", () => ({
 			data: { user: { name: "Sarah Thompson", email: "sarah@stmary.org", image: null } },
 			isPending: false,
 		}),
+		useActiveMemberRole: () => ({ data: { role: "admin" } }),
 		signOut: signOutMock,
 	},
 }));
 vi.mock("@/components/layout/settings-dialog", () => ({ SettingsDialog: () => null }));
+
+describe("profile menu", () => {
+	test("shows the signed-in email with the member's role", async () => {
+		const user = userEvent.setup();
+		render(<UserProfile isCollapsed={false} />);
+		await user.click(screen.getByRole("button", { name: /Sarah Thompson/ }));
+
+		const menu = await screen.findByRole("menu");
+		expect(within(menu).getByText("sarah@stmary.org")).toBeVisible();
+		expect(within(menu).getByText("admin")).toBeVisible();
+	});
+
+	test("marks the chosen theme, starting from System like the Settings dialog", async () => {
+		const user = userEvent.setup();
+		render(<UserProfile isCollapsed={false} />);
+		await user.click(screen.getByRole("button", { name: /Sarah Thompson/ }));
+		await user.click(await screen.findByRole("menuitem", { name: "Theme" }));
+
+		const system = await screen.findByRole("menuitem", { name: /System/ });
+		expect(within(system).getByLabelText("Selected")).toBeInTheDocument();
+		expect(
+			within(screen.getByRole("menuitem", { name: /Dark/ })).queryByLabelText("Selected"),
+		).toBeNull();
+
+		const dark = screen.getByRole("menuitem", { name: /Dark/ });
+		dark.focus();
+		await user.keyboard("{Enter}");
+
+		expect(within(dark).getByLabelText("Selected")).toBeInTheDocument();
+		expect(
+			within(screen.getByRole("menuitem", { name: /System/ })).queryByLabelText("Selected"),
+		).toBeNull();
+	});
+});
 
 describe("profile sign-out", () => {
 	beforeEach(() => {

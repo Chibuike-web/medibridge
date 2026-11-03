@@ -7,25 +7,45 @@ import {
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SettingsBadge, type SettingsBadgeTone } from "@/components/layout/settings/settings-badge";
 import { SettingsDialog } from "@/components/layout/settings-dialog";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore, useTransition } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import {
+	RiCheckLine,
+	RiContrast2Line,
 	RiExpandUpDownLine,
 	RiLoaderLine,
 	RiLogoutBoxLine,
 	RiSettingsLine,
 } from "@remixicon/react";
 
+const themeOptions = [
+	{ label: "System", value: "system" },
+	{ label: "Dark", value: "dark" },
+	{ label: "Light", value: "light" },
+];
+
+const badgeToneByRole: Record<string, SettingsBadgeTone> = {
+	owner: "premium",
+	admin: "info",
+	member: "neutral",
+};
+
 export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+	const [selectedTheme, setSelectedTheme] = useState("system");
 
 	const router = useRouter();
 	const { data: session, isPending: isLoadingUserSession } = authClient.useSession();
+	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const user = session?.user;
 	const [isPending, startTransition] = useTransition();
 	const [signOutError, setSignOutError] = useState("");
@@ -54,28 +74,24 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 			<DropdownMenu>
 				<DropdownMenuTrigger
 					className={cn(
-						"flex w-full min-w-0 items-center rounded-lg border border-transparent p-3 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
+						"flex w-full min-w-0 items-center rounded-lg border border-transparent p-1.5 focus-visible:border-gray-400 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100",
 						isCollapsed
 							? "justify-center"
-							: "gap-2 cursor-pointer overflow-hidden hover:bg-gray-200",
+							: "gap-2 cursor-pointer overflow-hidden hover:bg-gray-100 data-[state=open]:bg-gray-100",
 					)}
 				>
-					<Avatar>
+					<Avatar className="size-6">
 						<AvatarImage src={user.image ?? undefined} alt={`${user.name} profile image`} />
-						<AvatarFallback>{initials}</AvatarFallback>
+						<AvatarFallback className="text-xs">{initials}</AvatarFallback>
 					</Avatar>
 
 					{!isCollapsed ? (
-						<div className="flex min-w-0 items-center w-full justify-between">
-							<div className="flex min-w-0 flex-1 flex-col items-start">
-								<span className="w-full truncate text-left text-sm font-medium">{user.name}</span>
-								<span className="text-xs text-foreground/60 text-left truncate w-full">
-									{user.email}
-								</span>
-							</div>
-
+						<>
+							<span className="min-w-0 flex-1 truncate text-left text-sm font-medium">
+								{user.name}
+							</span>
 							<RiExpandUpDownLine className="size-4 shrink-0" />
-						</div>
+						</>
 					) : null}
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
@@ -85,22 +101,43 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					)}
 					side={isCollapsed ? "right" : "top"}
 					align="end"
-					sideOffset={isCollapsed ? 17 : 4}
-					alignOffset={isCollapsed ? 13 : 0}
+					sideOffset={isCollapsed ? 8 : 4}
 				>
-					<DropdownMenuLabel className="p-0 font-normal">
-						<div className="flex items-center gap-2 px-2 py-1.5 text-left text-sm">
-							<Avatar className="size-8">
-								<AvatarImage src={user.image ?? undefined} alt={`${user.name} profile image`} />
-								<AvatarFallback>{initials}</AvatarFallback>
-							</Avatar>
-							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-medium text-gray-900">{user.name}</span>
-								<span className="truncate text-xs text-gray-500">{user.email}</span>
-							</div>
-						</div>
+					<DropdownMenuLabel className="flex items-center justify-between gap-2 px-2 py-1.5 font-normal">
+						<span className="min-w-0 truncate text-sm text-gray-600">{user.email}</span>
+						{activeMemberRole?.role ? (
+							<SettingsBadge
+								tone={badgeToneByRole[activeMemberRole.role] ?? "neutral"}
+								className="rounded-full capitalize"
+							>
+								{activeMemberRole.role}
+							</SettingsBadge>
+						) : null}
 					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
+					<DropdownMenuSub>
+						<DropdownMenuSubTrigger className="rounded-lg text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
+							<RiContrast2Line />
+							<span className="flex-1">Theme</span>
+						</DropdownMenuSubTrigger>
+						<DropdownMenuSubContent className="w-48 rounded-xl bg-white text-sm text-gray-700">
+							{themeOptions.map((themeOption) => (
+								<DropdownMenuItem
+									key={themeOption.value}
+									onSelect={(event) => {
+										event.preventDefault();
+										setSelectedTheme(themeOption.value);
+									}}
+									className="rounded-lg text-gray-600 focus:bg-gray-100 focus:text-gray-900"
+								>
+									<span className="flex-1">{themeOption.label}</span>
+									{selectedTheme === themeOption.value ? (
+										<RiCheckLine className="size-4" aria-label="Selected" />
+									) : null}
+								</DropdownMenuItem>
+							))}
+						</DropdownMenuSubContent>
+					</DropdownMenuSub>
 					<DropdownMenuItem
 						onSelect={() => setIsSettingsOpen(true)}
 						className="rounded-lg text-gray-600 focus:bg-gray-100 focus:text-gray-900"
@@ -110,7 +147,6 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
-						variant="destructive"
 						disabled={isPending}
 						onClick={() => {
 							setSignOutError("");
@@ -129,7 +165,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 								}
 							});
 						}}
-						className="rounded-lg"
+						className="rounded-lg text-gray-600 focus:bg-gray-100 focus:text-gray-900"
 					>
 						<RiLogoutBoxLine />
 						Sign out
@@ -160,17 +196,12 @@ function UserProfileSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
 		<div className="mt-auto flex w-full justify-center p-2" aria-hidden="true">
 			<div
 				className={cn(
-					"flex w-full min-w-0 items-center rounded-lg p-3",
+					"flex w-full min-w-0 items-center rounded-lg p-1.5",
 					isCollapsed ? "justify-center" : "gap-2",
 				)}
 			>
-				<div className="size-10 shrink-0 animate-pulse rounded-full bg-gray-200" />
-				{!isCollapsed ? (
-					<div className="flex min-w-0 flex-1 flex-col gap-2">
-						<div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
-						<div className="h-2.5 w-36 animate-pulse rounded bg-gray-100" />
-					</div>
-				) : null}
+				<div className="size-6 shrink-0 animate-pulse rounded-full bg-gray-200" />
+				{!isCollapsed ? <div className="h-3 w-28 animate-pulse rounded bg-gray-200" /> : null}
 			</div>
 		</div>
 	);
