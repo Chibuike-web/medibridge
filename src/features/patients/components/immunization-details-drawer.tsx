@@ -144,9 +144,7 @@ export function ImmunizationDetailsDrawer({
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="flex-1 leading-[1.2] text-gray-800">
-						{isEditingImmunizationDetails
-							? "Edit immunization details"
-							: "Immunization details"}
+						{isEditingImmunizationDetails ? "Edit immunization details" : "Immunization details"}
 					</DrawerTitle>
 					{immunization && !isEditingImmunizationDetails ? (
 						<DropdownMenu>
@@ -314,7 +312,11 @@ export function ImmunizationDetailsDrawer({
 	);
 }
 
-function ImmunizationDetailsOverview({ immunization }: { immunization: ImmunizationDetailsType }) {
+export function ImmunizationDetailsOverview({
+	immunization,
+}: {
+	immunization: ImmunizationDetailsType;
+}) {
 	return (
 		<div className="flex flex-col gap-8">
 			<div className="flex flex-col gap-4">
@@ -610,7 +612,11 @@ function ImmunizationDetailItem({ label, value }: { label: string; value: string
 	);
 }
 
-function ImmunizationHistorySection({ history }: { history: ImmunizationDetailsHistoryEvent[] }) {
+export function ImmunizationHistorySection({
+	history,
+}: {
+	history: ImmunizationDetailsHistoryEvent[];
+}) {
 	if (history.length === 0) {
 		return null;
 	}
@@ -751,7 +757,7 @@ function ImmunizationHistoryCard({
 	);
 }
 
-function ImmunizationDetailsFallback() {
+export function ImmunizationDetailsFallback() {
 	return (
 		<div className="flex flex-col gap-8" aria-busy="true" aria-live="polite">
 			<div className="flex flex-wrap gap-6">

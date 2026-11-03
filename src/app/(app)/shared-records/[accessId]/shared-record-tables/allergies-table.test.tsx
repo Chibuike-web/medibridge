@@ -26,6 +26,7 @@ const penicillin: SharedAllergyRow = {
 	status: "Inactive",
 };
 const tableProps = {
+	accessId: "access-1",
 	page: 1,
 	limit: 14,
 	totalPages: 1,
@@ -72,7 +73,6 @@ test("shared allergies keep the server's order, and sorting a column asks the se
 	expect(params.get("allergiesPage")).toBeNull();
 	expect(displayedAllergens()).toEqual(rows.map((allergy) => allergy.allergen));
 });
-
 
 test("shows the filter pill and first page while the filtered rows are still loading", async () => {
 	let finishNavigation!: () => void;

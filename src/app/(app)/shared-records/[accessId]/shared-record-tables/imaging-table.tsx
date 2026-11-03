@@ -71,6 +71,12 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
 import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
+import type { ImagingType } from "@/features/patients/types";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import { SharedImagingDetailsDrawer } from "./imaging-details-drawer";
+
+type ImagingDetailsRequestError = Error & { status?: number };
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 type ImagingFilterSubmenu = "status" | "modality" | "ordered-at" | "created-at";
@@ -100,6 +106,7 @@ export type SharedImagingRow = {
 };
 
 export function SharedImagingTable({
+	accessId,
 	rows,
 	page,
 	limit,
@@ -114,6 +121,7 @@ export function SharedImagingTable({
 	createdFrom,
 	createdTo,
 }: {
+	accessId: string;
 	rows: SharedImagingRow[];
 	page: number;
 	limit: number;
@@ -247,6 +255,28 @@ export function SharedImagingTable({
 			nextCreatedTo: "",
 		});
 	}
+	const router = useRouter();
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedId, setSelectedId] = useState<string | null>(null);
+	const imagingDetailsQuery = useSWR(
+		isDetailsDrawerOpen && selectedId
+			? (["shared-imaging-details", accessId, selectedId] as const)
+			: null,
+		([, accessId, selectedId]) => fetchSharedImagingDetails(accessId, selectedId),
+		{
+			dedupingInterval: 0,
+			onError: (error: ImagingDetailsRequestError) => {
+				if (error.status === 401) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: ImagingDetailsRequestError) => error.status !== 401,
+		},
+	);
+	function handleViewImagingDetails(imagingId: string) {
+		setSelectedId(imagingId);
+		setIsDetailsDrawerOpen(true);
+	}
 	const columns = useMemo<ColumnDef<typeof configuredTableFeatures, SharedImagingRow>[]>(
 		() => [
 			{
@@ -281,7 +311,9 @@ export function SharedImagingTable({
 			{
 				id: "actions",
 				header: "",
-				cell: () => <RowMenu />,
+				cell: ({ row }) => (
+					<RowMenu onViewDetails={() => handleViewImagingDetails(row.original.imagingId)} />
+				),
 				enableSorting: false,
 				size: 40,
 			},
@@ -597,6 +629,12 @@ export function SharedImagingTable({
 					</div>
 				</div>
 			</div>
+			<SharedImagingDetailsDrawer
+				open={isDetailsDrawerOpen}
+				onOpenChange={setIsDetailsDrawerOpen}
+				imaging={imagingDetailsQuery.data ?? null}
+				isLoading={imagingDetailsQuery.isLoading}
+			/>
 		</div>
 	);
 }
@@ -697,7 +735,7 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 	if (toDate) return `Until ${format(toDate, "MMM d, yyyy")}`;
 	return "Any date";
 }
-function RowMenu() {
+function RowMenu({ onViewDetails }: { onViewDetails: () => void }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
@@ -711,7 +749,10 @@ function RowMenu() {
 				align="end"
 				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
-				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+				<DropdownMenuItem
+					className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+					onSelect={onViewDetails}
+				>
 					<RiEyeLine className="text-white" aria-hidden="true" />
 					<span>View details</span>
 				</DropdownMenuItem>
@@ -722,4 +763,20 @@ function RowMenu() {
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
+}
+
+async function fetchSharedImagingDetails(accessId: string, imagingId: string) {
+	const response = await fetch(
+		`/api/shared-imaging-details/${encodeURIComponent(accessId)}/${encodeURIComponent(imagingId)}`,
+	);
+
+	if (!response.ok) {
+		throw Object.assign(new Error("Unable to load imaging details."), {
+			status: response.status,
+		});
+	}
+
+	const result = (await response.json()) as { imaging: ImagingType | null };
+
+	return result.imaging;
 }

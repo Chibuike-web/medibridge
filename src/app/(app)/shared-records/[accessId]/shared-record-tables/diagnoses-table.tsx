@@ -72,6 +72,12 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
 import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
+import type { DiagnosisDetailsType } from "@/features/patients/types";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import { SharedDiagnosisDetailsDrawer } from "./diagnosis-details-drawer";
+
+type DiagnosisDetailsRequestError = Error & { status?: number };
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 type DiagnosisFilterSubmenu = "status" | "diagnosed-at" | "last-reviewed" | "created-at";
@@ -92,6 +98,7 @@ export type SharedDiagnosisRow = {
 };
 
 export function SharedDiagnosesTable({
+	accessId,
 	rows,
 	page,
 	limit,
@@ -107,6 +114,7 @@ export function SharedDiagnosesTable({
 	createdFrom,
 	createdTo,
 }: {
+	accessId: string;
 	rows: SharedDiagnosisRow[];
 	page: number;
 	limit: number;
@@ -249,6 +257,28 @@ export function SharedDiagnosesTable({
 			nextCreatedTo: "",
 		});
 	}
+	const router = useRouter();
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedId, setSelectedId] = useState<string | null>(null);
+	const diagnosisDetailsQuery = useSWR(
+		isDetailsDrawerOpen && selectedId
+			? (["shared-diagnosis-details", accessId, selectedId] as const)
+			: null,
+		([, accessId, selectedId]) => fetchSharedDiagnosisDetails(accessId, selectedId),
+		{
+			dedupingInterval: 0,
+			onError: (error: DiagnosisDetailsRequestError) => {
+				if (error.status === 401) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: DiagnosisDetailsRequestError) => error.status !== 401,
+		},
+	);
+	function handleViewDiagnosisDetails(diagnosisId: string) {
+		setSelectedId(diagnosisId);
+		setIsDetailsDrawerOpen(true);
+	}
 	const columns = useMemo<ColumnDef<typeof configuredTableFeatures, SharedDiagnosisRow>[]>(
 		() => [
 			{
@@ -290,7 +320,9 @@ export function SharedDiagnosesTable({
 			{
 				id: "actions",
 				header: "",
-				cell: () => <RowMenu />,
+				cell: ({ row }) => (
+					<RowMenu onViewDetails={() => handleViewDiagnosisDetails(row.original.diagnosisId)} />
+				),
 				enableSorting: false,
 				size: 40,
 			},
@@ -603,6 +635,12 @@ export function SharedDiagnosesTable({
 					</div>
 				</div>
 			</div>
+			<SharedDiagnosisDetailsDrawer
+				open={isDetailsDrawerOpen}
+				onOpenChange={setIsDetailsDrawerOpen}
+				diagnosis={diagnosisDetailsQuery.data ?? null}
+				isLoading={diagnosisDetailsQuery.isLoading}
+			/>
 		</div>
 	);
 }
@@ -703,7 +741,7 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 	if (toDate) return `Until ${format(toDate, "MMM d, yyyy")}`;
 	return "Any date";
 }
-function RowMenu() {
+function RowMenu({ onViewDetails }: { onViewDetails: () => void }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
@@ -717,7 +755,10 @@ function RowMenu() {
 				align="end"
 				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
-				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+				<DropdownMenuItem
+					className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+					onSelect={onViewDetails}
+				>
 					<RiEyeLine className="text-white" aria-hidden="true" />
 					<span>View details</span>
 				</DropdownMenuItem>
@@ -728,4 +769,20 @@ function RowMenu() {
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
+}
+
+async function fetchSharedDiagnosisDetails(accessId: string, diagnosisId: string) {
+	const response = await fetch(
+		`/api/shared-diagnosis-details/${encodeURIComponent(accessId)}/${encodeURIComponent(diagnosisId)}`,
+	);
+
+	if (!response.ok) {
+		throw Object.assign(new Error("Unable to load diagnosis details."), {
+			status: response.status,
+		});
+	}
+
+	const result = (await response.json()) as { diagnosis: DiagnosisDetailsType | null };
+
+	return result.diagnosis;
 }

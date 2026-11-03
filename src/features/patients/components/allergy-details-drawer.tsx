@@ -262,7 +262,7 @@ export function AllergyDetailsDrawer({
 	);
 }
 
-function AllergyDetailsOverview({ allergy }: { allergy: AllergyDetailsType }) {
+export function AllergyDetailsOverview({ allergy }: { allergy: AllergyDetailsType }) {
 	return (
 		<div className="flex flex-col gap-8">
 			<div className="flex flex-col gap-4">
@@ -503,7 +503,7 @@ function AllergyDetailItem({ label, value }: { label: string; value: string }) {
 	);
 }
 
-function AllergyHistorySection({ history }: { history: AllergyDetailsHistoryEvent[] }) {
+export function AllergyHistorySection({ history }: { history: AllergyDetailsHistoryEvent[] }) {
 	if (history.length === 0) {
 		return null;
 	}
@@ -640,7 +640,7 @@ function AllergyHistoryCard({ historyEvent }: { historyEvent: AllergyDetailsHist
 	);
 }
 
-function AllergyDetailsFallback() {
+export function AllergyDetailsFallback() {
 	return (
 		<div className="flex flex-col gap-8" aria-busy="true" aria-live="polite">
 			<div className="flex flex-wrap gap-6">

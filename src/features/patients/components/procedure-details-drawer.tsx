@@ -278,7 +278,7 @@ export function ProcedureDetailsDrawer({
 	);
 }
 
-function ProcedureDetailsOverview({ procedure }: { procedure: ProcedureDetailsType }) {
+export function ProcedureDetailsOverview({ procedure }: { procedure: ProcedureDetailsType }) {
 	const dateLabel = procedure.status === "Pending" ? "Planned date" : "Performed on";
 	const physicianLabel = procedure.status === "Pending" ? "Planned physician" : "Performed by";
 	const assistantLabel = procedure.status === "Pending" ? "Planned Assistants" : "Team/Assistants";
@@ -736,7 +736,7 @@ function ProcedureDetailListItem({ label, values }: { label: string; values: str
 	);
 }
 
-function ProcedureRelatedRecords({
+export function ProcedureRelatedRecords({
 	relatedRecords,
 }: {
 	relatedRecords: ProcedureDetailsType["relatedRecords"];
@@ -825,7 +825,7 @@ function ProcedureRelatedRecordSection({
 	);
 }
 
-function ProcedureHistorySection({ history }: { history: ProcedureDetailsHistoryEvent[] }) {
+export function ProcedureHistorySection({ history }: { history: ProcedureDetailsHistoryEvent[] }) {
 	if (history.length === 0) {
 		return null;
 	}
@@ -962,7 +962,7 @@ function ProcedureHistoryCard({ historyEvent }: { historyEvent: ProcedureDetails
 	);
 }
 
-function ProcedureDetailsFallback() {
+export function ProcedureDetailsFallback() {
 	return (
 		<div className="flex flex-col gap-8" aria-busy="true" aria-live="polite">
 			<div className="flex flex-wrap gap-6">

@@ -345,7 +345,7 @@ export function LabTestDetailsDrawer({
 	);
 }
 
-function LabTestDetailsOverview({ labTest }: { labTest: LabTestType }) {
+export function LabTestDetailsOverview({ labTest }: { labTest: LabTestType }) {
 	return (
 		<div className="flex flex-col gap-8">
 			<div className="flex flex-col gap-4">
@@ -391,7 +391,7 @@ function LabTestDetailItem({ label, value }: { label: string; value: string }) {
 	);
 }
 
-function LabTestFilesSection({ files }: { files: LabTestType["files"] }) {
+export function LabTestFilesSection({ files }: { files: LabTestType["files"] }) {
 	const [areLabTestFilesExpanded, setAreLabTestFilesExpanded] = useState(false);
 	const visibleFiles = areLabTestFilesExpanded ? files : files.slice(0, 3);
 
@@ -473,7 +473,7 @@ function getLabTestFileIcon(fileName: string, fileType: string) {
 	return docFileIcon;
 }
 
-function LabTestHistorySection({ history }: { history: LabTestDetailsHistoryEvent[] }) {
+export function LabTestHistorySection({ history }: { history: LabTestDetailsHistoryEvent[] }) {
 	if (history.length === 0) {
 		return null;
 	}

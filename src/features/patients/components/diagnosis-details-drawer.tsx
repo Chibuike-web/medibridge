@@ -271,7 +271,7 @@ export function DiagnosisDetailsDrawer({
 	);
 }
 
-function DiagnosisDetailsOverview({ diagnosis }: { diagnosis: DiagnosisDetailsType }) {
+export function DiagnosisDetailsOverview({ diagnosis }: { diagnosis: DiagnosisDetailsType }) {
 	return (
 		<div className="flex flex-col gap-8">
 			<div className="flex flex-col gap-4">
@@ -588,7 +588,7 @@ function DiagnosisDetailItem({ label, value }: { label: string; value: string })
 	);
 }
 
-function DiagnosisHistorySection({ history }: { history: DiagnosisDetailsHistoryEvent[] }) {
+export function DiagnosisHistorySection({ history }: { history: DiagnosisDetailsHistoryEvent[] }) {
 	if (history.length === 0) {
 		return null;
 	}
@@ -727,7 +727,7 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 	);
 }
 
-function DiagnosisRelatedRecords({
+export function DiagnosisRelatedRecords({
 	relatedRecords,
 }: {
 	relatedRecords: DiagnosisDetailsType["relatedRecords"];
@@ -830,7 +830,7 @@ function DiagnosisRelatedRecordSection({
 	);
 }
 
-function DiagnosisDetailsFallback() {
+export function DiagnosisDetailsFallback() {
 	return (
 		<div className="flex flex-col gap-8" aria-busy="true" aria-live="polite">
 			<div className="flex flex-wrap gap-6">
