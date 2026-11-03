@@ -141,18 +141,6 @@ function displayedLabIds() {
 	return bodyRows().map((row) => within(row).getAllByRole("cell")[2].textContent);
 }
 
-// jsdom has no layout, so the hover "grace area" Radix uses to keep a submenu
-// open while the pointer travels into it closes the submenu on every simulated
-// hover. Skipping the hover step keeps clicks inside submenus meaningful.
-function setupSubmenuUser() {
-	return userEvent.setup({ skipHover: true });
-}
-
-async function openFilterSubmenu(user: ReturnType<typeof userEvent.setup>, name: string) {
-	await user.click(screen.getByRole("button", { name: "Filter" }));
-	await user.click(await screen.findByRole("menuitem", { name }));
-}
-
 function bulkActionBar() {
 	return screen.getByText(/items? selected/).parentElement as HTMLElement;
 }
@@ -236,10 +224,10 @@ describe("Lab tests table", () => {
 	});
 
 	test("adds a status filter when its checkbox is ticked", async () => {
-		const user = setupSubmenuUser();
+		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderLabTestsTable({ statusFilters: ["completed"] });
 
-		await openFilterSubmenu(user, "Status");
+		await user.click(screen.getByRole("button", { name: "Status" }));
 
 		expect(await screen.findByRole("checkbox", { name: "Completed" })).toBeChecked();
 		expect(screen.getByRole("checkbox", { name: "Cancelled" })).not.toBeChecked();
@@ -248,19 +236,19 @@ describe("Lab tests table", () => {
 	});
 
 	test("removes a status filter when its checkbox is unticked", async () => {
-		const user = setupSubmenuUser();
+		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderLabTestsTable({ statusFilters: ["completed"] });
 
-		await openFilterSubmenu(user, "Status");
+		await user.click(screen.getByRole("button", { name: "Status" }));
 		await user.click(await screen.findByRole("checkbox", { name: "Completed" }));
 		expect(onStatusFiltersChange).toHaveBeenCalledWith([]);
 	});
 
 	test("offers every flag option and reports the chosen flags", async () => {
-		const user = setupSubmenuUser();
+		const user = userEvent.setup();
 		const { onFlagFiltersChange } = renderLabTestsTable({ flagFilters: ["high"] });
 
-		await openFilterSubmenu(user, "Flag");
+		await user.click(screen.getByRole("button", { name: "Flag" }));
 
 		const flagLabels = [
 			"Within range",
@@ -284,10 +272,10 @@ describe("Lab tests table", () => {
 	});
 
 	test("applies a creation date preset as a from/to range", async () => {
-		const user = setupSubmenuUser();
+		const user = userEvent.setup();
 		const { onCreatedAtRangeApply } = renderLabTestsTable();
 
-		await openFilterSubmenu(user, "Created at");
+		await user.click(screen.getByRole("button", { name: "Created at" }));
 		await user.click(await screen.findByRole("menuitem", { name: "Last 7 days" }));
 
 		const today = new Date();

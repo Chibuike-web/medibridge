@@ -136,18 +136,6 @@ function displayedImagingIds() {
 	return bodyRows().map((row) => within(row).getAllByRole("cell")[2].textContent);
 }
 
-// jsdom has no layout, so the hover "grace area" Radix uses to keep a submenu
-// open while the pointer travels into it closes the submenu on every simulated
-// hover. Skipping the hover step keeps clicks inside submenus meaningful.
-function setupSubmenuUser() {
-	return userEvent.setup({ skipHover: true });
-}
-
-async function openFilterSubmenu(user: ReturnType<typeof userEvent.setup>, name: string) {
-	await user.click(screen.getByRole("button", { name: "Filter" }));
-	await user.click(await screen.findByRole("menuitem", { name }));
-}
-
 function bulkActionBar() {
 	return screen.getByText(/items? selected/).parentElement as HTMLElement;
 }
@@ -251,10 +239,10 @@ describe("Imaging table", () => {
 	});
 
 	test("adds and removes status filters from the checkbox list", async () => {
-		const user = setupSubmenuUser();
+		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderImagingTable({ statusFilters: ["completed"] });
 
-		await openFilterSubmenu(user, "Status");
+		await user.click(screen.getByRole("button", { name: "Status" }));
 
 		expect(await screen.findByRole("checkbox", { name: "Completed" })).toBeChecked();
 		expect(screen.getByRole("checkbox", { name: "Cancelled" })).not.toBeChecked();
@@ -267,10 +255,10 @@ describe("Imaging table", () => {
 	});
 
 	test("offers every modality and reports the chosen modalities", async () => {
-		const user = setupSubmenuUser();
+		const user = userEvent.setup();
 		const { onModalityFiltersChange } = renderImagingTable({ modalityFilters: ["mri"] });
 
-		await openFilterSubmenu(user, "Modality");
+		await user.click(screen.getByRole("button", { name: "Modality" }));
 
 		for (const label of ["CT", "MRI", "Ultrasound", "X-ray"]) {
 			expect(await screen.findByRole("checkbox", { name: label })).toBeVisible();
@@ -282,10 +270,10 @@ describe("Imaging table", () => {
 	});
 
 	test("applies an order date preset to the ordered-at range only", async () => {
-		const user = setupSubmenuUser();
+		const user = userEvent.setup();
 		const { onOrderedAtRangeApply, onCreatedAtRangeApply } = renderImagingTable();
 
-		await openFilterSubmenu(user, "Ordered at");
+		await user.click(screen.getByRole("button", { name: "Ordered at" }));
 		await user.click(await screen.findByRole("menuitem", { name: "Last 30 days" }));
 
 		const today = new Date();
@@ -297,10 +285,10 @@ describe("Imaging table", () => {
 	});
 
 	test("applies a creation date preset to the created-at range only", async () => {
-		const user = setupSubmenuUser();
+		const user = userEvent.setup();
 		const { onOrderedAtRangeApply, onCreatedAtRangeApply } = renderImagingTable();
 
-		await openFilterSubmenu(user, "Created at");
+		await user.click(screen.getByRole("button", { name: "Created at" }));
 		await user.click(await screen.findByRole("menuitem", { name: "Today" }));
 
 		const today = format(new Date(), "yyyy-MM-dd");

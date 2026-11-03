@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format } from "date-fns";
@@ -180,18 +180,6 @@ function rowsPerPagePicker() {
 	);
 }
 
-// Controls inside a filter submenu are clicked without a pointer move: jsdom has no
-// layout, so the menu's "pointer is heading toward the submenu" check fails and the
-// submenu dismisses before a userEvent click (which moves the pointer first) lands.
-function clickInSubmenu(element: HTMLElement) {
-	fireEvent.click(element);
-}
-
-async function openFilterSubmenu(user: ReturnType<typeof userEvent.setup>, label: string) {
-	await user.click(screen.getByRole("button", { name: "Filter" }));
-	await user.click(screen.getByRole("menuitem", { name: label }));
-}
-
 describe("Procedures table", () => {
 	let savedProcedureDetails: typeof procedureDetailsById;
 
@@ -271,21 +259,21 @@ describe("Procedures table", () => {
 		expect(screen.getByRole("columnheader", { name: "Status" })).not.toHaveAttribute("aria-sort");
 	});
 
-	test("adds and removes status filters from the Status submenu", async () => {
+	test("adds and removes status filters from the Status filter", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderProceduresTable({ statusFilters: ["pending"] });
 
-		await openFilterSubmenu(user, "Status");
+		await user.click(screen.getByRole("button", { name: "Status" }));
 
 		const pending = await screen.findByRole("checkbox", { name: "Pending" });
 		expect(pending).toBeChecked();
 		expect(screen.getByRole("checkbox", { name: "Completed" })).not.toBeChecked();
 		expect(screen.getByRole("checkbox", { name: "Cancelled" })).not.toBeChecked();
 
-		clickInSubmenu(screen.getByRole("checkbox", { name: "Cancelled" }));
+		await user.click(screen.getByRole("checkbox", { name: "Cancelled" }));
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith(["pending", "cancelled"]);
 
-		clickInSubmenu(pending);
+		await user.click(pending);
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
@@ -293,8 +281,8 @@ describe("Procedures table", () => {
 		const user = userEvent.setup();
 		const { onCreatedAtRangeApply } = renderProceduresTable();
 
-		await openFilterSubmenu(user, "Created at");
-		clickInSubmenu(await screen.findByRole("menuitem", { name: "Today" }));
+		await user.click(screen.getByRole("button", { name: "Created at" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Today" }));
 
 		const today = format(new Date(), "yyyy-MM-dd");
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(today, today);

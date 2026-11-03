@@ -26,11 +26,9 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
-	DropdownMenuSub,
-	DropdownMenuSubContent,
-	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -77,7 +75,6 @@ import {
 	RiCheckLine,
 	RiCloseLine,
 	RiEyeLine,
-	RiFilter3Line,
 	RiMore2Fill,
 	RiScan2Line,
 	RiSearchLine,
@@ -86,8 +83,6 @@ import {
 import { format } from "date-fns";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
-
-type ImagingFilterSubmenu = "status" | "modality" | "ordered-at" | "created-at";
 
 const imagingStatusFilterOptions: {
 	label: string;
@@ -166,7 +161,6 @@ export function ImagingTable({
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
 	const [selectedImagingRows, setSelectedImagingRows] = useState<RowSelectionState>({});
-	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<ImagingFilterSubmenu | null>(null);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
@@ -200,8 +194,8 @@ export function ImagingTable({
 	return (
 		<div className="px-6 py-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-lg font-semibold no-line-height">Imaging</h1>
-			<div className="mx-auto mt-7 mb-4 flex max-w-7xl items-center gap-2">
-				<div className="relative w-full">
+			<div className="mx-auto mt-7 mb-4 flex max-w-7xl flex-wrap items-center gap-2">
+				<div className="relative min-w-64 flex-1">
 					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
@@ -215,130 +209,74 @@ export function ImagingTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<DropdownMenu
-					onOpenChange={(isImagingFilterMenuOpen) => {
-						if (!isImagingFilterMenuOpen) {
-							setActiveFilterSubmenu(null);
-						}
-					}}
-				>
+				<Popover>
+					<PopoverTrigger asChild>
+						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+							<RiCheckboxCircleLine aria-hidden className="size-4 text-gray-600" />
+							Status
+						</Button>
+					</PopoverTrigger>
+					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
+						<ImagingCheckboxFilterList
+							name="imaging-status"
+							options={imagingStatusFilterOptions}
+							selectedValues={statusFilters}
+							onSelectedValuesChange={onStatusFiltersChange}
+						/>
+					</PopoverContent>
+				</Popover>
+				<Popover>
+					<PopoverTrigger asChild>
+						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+							<RiScan2Line aria-hidden className="size-4 text-gray-600" />
+							Modality
+						</Button>
+					</PopoverTrigger>
+					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
+						<ImagingCheckboxFilterList
+							name="imaging-modality"
+							options={imagingModalityFilterOptions}
+							selectedValues={modalityFilters}
+							onSelectedValuesChange={onModalityFiltersChange}
+						/>
+					</PopoverContent>
+				</Popover>
+				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
-							Filter
+							<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
+							Ordered at
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
 						align="end"
 						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
 					>
-						<DropdownMenuSub
-							open={activeFilterSubmenu === "status"}
-							onOpenChange={(isStatusSubmenuOpen) => {
-								setActiveFilterSubmenu((prev) => {
-									if (isStatusSubmenuOpen) return "status";
-									if (prev === "status") return null;
-									return prev;
-								});
-							}}
-						>
-							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiCheckboxCircleLine className="size-4" />
-								<span className="flex-1">Status</span>
-							</DropdownMenuSubTrigger>
-							<DropdownMenuSubContent
-								alignOffset={-5}
-								className="w-[13.75rem] rounded-xl bg-white p-1 text-sm text-gray-700"
-							>
-								<ImagingCheckboxFilterList
-									name="imaging-status"
-									options={imagingStatusFilterOptions}
-									selectedValues={statusFilters}
-									onSelectedValuesChange={onStatusFiltersChange}
-								/>
-							</DropdownMenuSubContent>
-						</DropdownMenuSub>
-
-						<DropdownMenuSub
-							open={activeFilterSubmenu === "modality"}
-							onOpenChange={(isModalitySubmenuOpen) => {
-								setActiveFilterSubmenu((prev) => {
-									if (isModalitySubmenuOpen) return "modality";
-									if (prev === "modality") return null;
-									return prev;
-								});
-							}}
-						>
-							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiScan2Line className="size-4" />
-								<span className="flex-1">Modality</span>
-							</DropdownMenuSubTrigger>
-							<DropdownMenuSubContent
-								alignOffset={-5}
-								className="w-[13.75rem] rounded-xl bg-white p-1 text-sm text-gray-700"
-							>
-								<ImagingCheckboxFilterList
-									name="imaging-modality"
-									options={imagingModalityFilterOptions}
-									selectedValues={modalityFilters}
-									onSelectedValuesChange={onModalityFiltersChange}
-								/>
-							</DropdownMenuSubContent>
-						</DropdownMenuSub>
-
-						<DropdownMenuSub
-							open={activeFilterSubmenu === "ordered-at"}
-							onOpenChange={(isOrderedAtSubmenuOpen) => {
-								setActiveFilterSubmenu((prev) => {
-									if (isOrderedAtSubmenuOpen) return "ordered-at";
-									if (prev === "ordered-at") return null;
-									return prev;
-								});
-							}}
-						>
-							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiCalendarLine className="size-4" />
-								<span className="flex-1">Ordered at</span>
-							</DropdownMenuSubTrigger>
-							<DropdownMenuSubContent
-								alignOffset={-5}
-								className="w-[13.75rem] rounded-xl bg-white p-1 text-sm text-gray-700"
-							>
-								<DateRangeMenuItems
-									from={orderedFrom}
-									to={orderedTo}
-									onDateRangeApply={onOrderedAtRangeApply}
-									onCustomDateRangeSelect={setCustomDateRangeFilter}
-								/>
-							</DropdownMenuSubContent>
-						</DropdownMenuSub>
-
-						<DropdownMenuSub
-							open={activeFilterSubmenu === "created-at"}
-							onOpenChange={(isCreatedAtSubmenuOpen) => {
-								setActiveFilterSubmenu((prev) => {
-									if (isCreatedAtSubmenuOpen) return "created-at";
-									if (prev === "created-at") return null;
-									return prev;
-								});
-							}}
-						>
-							<DropdownMenuSubTrigger className="rounded-lg focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100 py-2">
-								<RiCalendarLine className="size-4" />
-								<span className="flex-1">Created at</span>
-							</DropdownMenuSubTrigger>
-							<DropdownMenuSubContent
-								alignOffset={-5}
-								className="w-[13.75rem] rounded-xl bg-white p-1 text-sm text-gray-700"
-							>
-								<DateRangeMenuItems
-									from={createdFrom}
-									to={createdTo}
-									onDateRangeApply={onCreatedAtRangeApply}
-									onCustomDateRangeSelect={setCustomDateRangeFilter}
-								/>
-							</DropdownMenuSubContent>
-						</DropdownMenuSub>
+						<DateRangeMenuItems
+							from={orderedFrom}
+							to={orderedTo}
+							onDateRangeApply={onOrderedAtRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
+					</DropdownMenuContent>
+				</DropdownMenu>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+							<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
+							Created at
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="end"
+						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+					>
+						<DateRangeMenuItems
+							from={createdFrom}
+							to={createdTo}
+							onDateRangeApply={onCreatedAtRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
 					</DropdownMenuContent>
 				</DropdownMenu>
 				<SetDateRangeDialog
@@ -643,32 +581,25 @@ function ImagingCheckboxFilterList<TValue extends string>({
 				const optionId = `${name}-${option.value}`;
 
 				return (
-					<DropdownMenuItem
+					<Label
 						key={option.value}
-						className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
-						onSelect={(event) => {
-							event.preventDefault();
-						}}
+						htmlFor={optionId}
+						className="flex h-8 w-full cursor-pointer items-center gap-3 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
 					>
-						<Label
-							htmlFor={optionId}
-							className="flex w-full cursor-pointer items-center gap-3 px-2 py-2 leading-normal font-normal"
-						>
-							<Checkbox
-								id={optionId}
-								checked={isSelected}
-								onCheckedChange={(checked) => {
-									onSelectedValuesChange(
-										checked === true
-											? [...selectedValues, option.value]
-											: selectedValues.filter((selectedValue) => selectedValue !== option.value),
-									);
-								}}
-								className="[&_svg]:!text-current"
-							/>
-							<span>{option.label}</span>
-						</Label>
-					</DropdownMenuItem>
+						<Checkbox
+							id={optionId}
+							checked={isSelected}
+							onCheckedChange={(checked) => {
+								onSelectedValuesChange(
+									checked === true
+										? [...selectedValues, option.value]
+										: selectedValues.filter((selectedValue) => selectedValue !== option.value),
+								);
+							}}
+							className="[&_svg]:!text-current"
+						/>
+						<span>{option.label}</span>
+					</Label>
 				);
 			})}
 		</>

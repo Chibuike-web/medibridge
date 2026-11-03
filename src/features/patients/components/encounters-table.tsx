@@ -29,6 +29,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -69,12 +70,10 @@ const configuredTableFeatures = tableFeatures({
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
-	RiArrowRightSLine,
 	RiArrowUpSLine,
 	RiCalendarLine,
 	RiCloseLine,
 	RiEyeLine,
-	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
 	RiShare2Line,
@@ -84,8 +83,6 @@ import {
 import { format } from "date-fns";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
-
-type EncounterFilterSubmenu = "type" | "department" | "encounter-date" | "created-at";
 
 const encounterTypeFilterOptions: {
 	label: string;
@@ -171,11 +168,7 @@ export function EncountersTable({
 	);
 	const [selectedEncounterRows, setSelectedEncounterRows] = useState<RowSelectionState>({});
 	const [isCreateEncounterDrawerOpen, setIsCreateEncounterDrawerOpen] = useState(false);
-	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<EncounterFilterSubmenu | null>(
-		null,
-	);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
-	const [isEncounterFilterMenuOpen, setIsEncounterFilterMenuOpen] = useState(false);
 	const table = useTable({
 		features: configuredTableFeatures,
 		data: encounters,
@@ -192,8 +185,8 @@ export function EncountersTable({
 	return (
 		<div className="px-6 py-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-lg font-semibold no-line-height">Encounters</h1>
-			<div className="mx-auto mt-7 mb-4 flex max-w-7xl items-center gap-2">
-				<div className="relative w-full">
+			<div className="mx-auto mt-7 mb-4 flex max-w-7xl flex-wrap items-center gap-2">
+				<div className="relative min-w-64 flex-1">
 					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
@@ -203,128 +196,76 @@ export function EncountersTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<DropdownMenu
-					open={isEncounterFilterMenuOpen}
-					onOpenChange={(nextIsEncounterFilterMenuOpen) => {
-						setIsEncounterFilterMenuOpen(nextIsEncounterFilterMenuOpen);
-
-						if (!nextIsEncounterFilterMenuOpen) {
-							setActiveFilterSubmenu(null);
-						}
-					}}
-				>
+				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
-							Filter
+							<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
+							Encounter date
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
-						onPointerLeave={() => setActiveFilterSubmenu(null)}
 						align="end"
-						className="relative w-[13.75rem] overflow-visible rounded-xl bg-white text-sm text-gray-700"
+						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
 					>
-						<DropdownMenuItem
-							data-active={activeFilterSubmenu === "encounter-date"}
-							onFocus={() => setActiveFilterSubmenu("encounter-date")}
-							onPointerEnter={() => setActiveFilterSubmenu("encounter-date")}
-							onSelect={(event) => event.preventDefault()}
-							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
-						>
-							<RiCalendarLine className="size-4" />
-							<span className="flex-1">Encounter date</span>
-							<RiArrowRightSLine className="size-4" aria-hidden="true" />
-						</DropdownMenuItem>
-
-						<DropdownMenuItem
-							data-active={activeFilterSubmenu === "type"}
-							onFocus={() => setActiveFilterSubmenu("type")}
-							onPointerEnter={() => setActiveFilterSubmenu("type")}
-							onSelect={(event) => event.preventDefault()}
-							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
-						>
-							<RiFileList2Line className="size-4" />
-							<span className="flex-1">Encounter type</span>
-							<RiArrowRightSLine className="size-4" aria-hidden="true" />
-						</DropdownMenuItem>
-
-						<DropdownMenuItem
-							data-active={activeFilterSubmenu === "created-at"}
-							onFocus={() => setActiveFilterSubmenu("created-at")}
-							onPointerEnter={() => setActiveFilterSubmenu("created-at")}
-							onSelect={(event) => event.preventDefault()}
-							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
-						>
-							<RiCalendarLine className="size-4" />
-							<span className="flex-1">Created at</span>
-							<RiArrowRightSLine className="size-4" aria-hidden="true" />
-						</DropdownMenuItem>
-
-						<DropdownMenuItem
-							data-active={activeFilterSubmenu === "department"}
-							onFocus={() => setActiveFilterSubmenu("department")}
-							onPointerEnter={() => setActiveFilterSubmenu("department")}
-							onSelect={(event) => event.preventDefault()}
-							className="mb-0 h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
-						>
-							<RiBuilding4Line className="size-4" />
-							<span className="flex-1">Department</span>
-							<RiArrowRightSLine className="size-4" aria-hidden="true" />
-						</DropdownMenuItem>
-
-						<div
-							id="encounter-filter-submenu-panel"
-							aria-hidden={activeFilterSubmenu === null}
-							className={cn(
-								"absolute top-0 right-[100%] z-50 w-[13.75rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl bg-white text-sm text-gray-700 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_1px_2px_-1px_rgba(0,0,0,0.06),0_0.5rem_1.5rem_-0.25rem_rgba(0,0,0,0.12)] transition-[translate,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-								activeFilterSubmenu === "type"
-									? "translate-y-10"
-									: activeFilterSubmenu === "created-at"
-										? "translate-y-20"
-										: activeFilterSubmenu === "department"
-											? "translate-y-30"
-											: "translate-y-0",
-								activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
-							)}
-						>
-							<div hidden={activeFilterSubmenu !== "encounter-date"} className="p-1">
-								<DateRangeMenuItems
-									from={encounterFrom}
-									to={encounterTo}
-									onDateRangeApply={onEncounterDateRangeApply}
-									onCustomDateRangeSelect={setCustomDateRangeFilter}
-								/>
-							</div>
-
-							<div hidden={activeFilterSubmenu !== "type"} className="p-1">
-								<EncounterCheckboxFilterList
-									name="encounter-type"
-									options={encounterTypeFilterOptions}
-									selectedValues={encounterTypeFilters}
-									onSelectedValuesChange={onEncounterTypeFiltersChange}
-								/>
-							</div>
-
-							<div hidden={activeFilterSubmenu !== "created-at"} className="p-1">
-								<DateRangeMenuItems
-									from={createdFrom}
-									to={createdTo}
-									onDateRangeApply={onCreatedAtRangeApply}
-									onCustomDateRangeSelect={setCustomDateRangeFilter}
-								/>
-							</div>
-
-							<div hidden={activeFilterSubmenu !== "department"} className="p-1">
-								<EncounterCheckboxFilterList
-									name="encounter-department"
-									options={encounterDepartmentFilterOptions}
-									selectedValues={departmentFilters}
-									onSelectedValuesChange={onDepartmentFiltersChange}
-								/>
-							</div>
-						</div>
+						<DateRangeMenuItems
+							from={encounterFrom}
+							to={encounterTo}
+							onDateRangeApply={onEncounterDateRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
 					</DropdownMenuContent>
 				</DropdownMenu>
+				<Popover>
+					<PopoverTrigger asChild>
+						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+							<RiFileList2Line aria-hidden className="size-4 text-gray-600" />
+							Encounter type
+						</Button>
+					</PopoverTrigger>
+					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
+						<EncounterCheckboxFilterList
+							name="encounter-type"
+							options={encounterTypeFilterOptions}
+							selectedValues={encounterTypeFilters}
+							onSelectedValuesChange={onEncounterTypeFiltersChange}
+						/>
+					</PopoverContent>
+				</Popover>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+							<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
+							Created at
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="end"
+						className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
+					>
+						<DateRangeMenuItems
+							from={createdFrom}
+							to={createdTo}
+							onDateRangeApply={onCreatedAtRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
+					</DropdownMenuContent>
+				</DropdownMenu>
+				<Popover>
+					<PopoverTrigger asChild>
+						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
+							<RiBuilding4Line aria-hidden className="size-4 text-gray-600" />
+							Department
+						</Button>
+					</PopoverTrigger>
+					<PopoverContent align="end" className="w-[13.75rem] p-1 text-sm text-gray-700">
+						<EncounterCheckboxFilterList
+							name="encounter-department"
+							options={encounterDepartmentFilterOptions}
+							selectedValues={departmentFilters}
+							onSelectedValuesChange={onDepartmentFiltersChange}
+						/>
+					</PopoverContent>
+				</Popover>
 				<SetDateRangeDialog
 					dateRangeFilter={customDateRangeFilter}
 					onClose={() => setCustomDateRangeFilter(null)}
