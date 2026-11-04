@@ -1,6 +1,6 @@
 "use client";
 
-import { RiDeleteBin2Line, RiEdit2Line, RiUpload2Line } from "@remixicon/react";
+import { RiDeleteBin2Line, RiUpload2Line } from "@remixicon/react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -17,16 +17,13 @@ export function PatientAvatarMenu({ patientName }: { patientName: string }) {
 			<DropdownMenuTrigger asChild>
 				<Button
 					variant="ghost"
-					className="relative h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0 [&_svg]:!size-3"
+					className="h-auto rounded-none border-0 p-0 font-normal hover:bg-transparent hover:text-inherit focus-visible:border-0"
 				>
 					<Avatar className="size-16 border border-gray-200 bg-gray-100 text-gray-700">
 						<AvatarFallback className="bg-gray-100 text-lg font-semibold text-gray-700">
 							{getInitials(patientName ?? "")}
 						</AvatarFallback>
 					</Avatar>
-					<div className="absolute right-[3px] bottom-[3px] size-4.5 border border-white/20 text-white bg-gray-800 flex items-center justify-center rounded-full ring ring-gray-800">
-						<RiEdit2Line className="size-3" />
-					</div>
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
