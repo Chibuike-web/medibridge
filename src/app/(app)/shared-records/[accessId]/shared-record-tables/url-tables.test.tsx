@@ -342,18 +342,6 @@ describe.each(tableCases)(
 			expect(screen.getByText("Page 3 of 4")).toBeVisible();
 		});
 
-		test("removes a filter when the user clicks anywhere on its pill", async () => {
-			const user = userEvent.setup();
-			navigation.params += `&otherQuery=keep&${prefix}CreatedFrom=2026-10-01`;
-			render(renderTable({ page: 1, limit: 14, searchQuery: "", createdFrom: "2026-10-01" }), {
-				wrapper: TableUrlNavigation,
-			});
-			await user.click(screen.getByText("Created: From Oct 1, 2026"));
-			const params = new URL(navigation.push.mock.calls[0][0], "http://localhost").searchParams;
-			expect(params.get(`${prefix}CreatedFrom`)).toBeNull();
-			expect(params.get("otherQuery")).toBe("keep");
-		});
-
 		test("debounces search into the URL and restores the input when revisiting URL history", async () => {
 			vi.useFakeTimers();
 			navigation.params += `&${prefix}Page=2`;

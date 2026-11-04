@@ -19,6 +19,7 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
+import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -303,7 +304,7 @@ export function MedicationsTable({
 					Add medication
 				</Button>
 			</div>
-			<MedicationActiveFilterPills
+			<MedicationActiveFilterChips
 				createdFrom={createdFrom}
 				createdTo={createdTo}
 				statusFilters={statusFilters}
@@ -633,7 +634,7 @@ function MedicationCheckboxFilterList<TValue extends string>({
 	);
 }
 
-function MedicationActiveFilterPills({
+function MedicationActiveFilterChips({
 	createdFrom,
 	createdTo,
 	statusFilters,
@@ -656,34 +657,29 @@ function MedicationActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
-			<div className="flex flex-1 flex-wrap gap-2">
-				{statusFilters.map((statusFilter) => {
-					const statusOption = medicationStatusFilterOptions.find(
-						(option) => option.value === statusFilter,
-					);
+		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+			{hasStatusFilters ? (
+				<FilterChip
+					name="Status"
+					value={formatChecklistFilterLabel(
+						statusFilters.map((statusFilter) => {
+							const statusOption = medicationStatusFilterOptions.find(
+								(option) => option.value === statusFilter,
+							);
 
-					return (
-						<MedicationFilterPill
-							key={statusFilter}
-							label={`Status: ${statusOption?.label ?? formatMedicationFilterValue(statusFilter)}`}
-							onRemove={() => {
-								onStatusFiltersChange(
-									statusFilters.filter(
-										(currentStatusFilter) => currentStatusFilter !== statusFilter,
-									),
-								);
-							}}
-						/>
-					);
-				})}
-				{hasCreatedAtFilter ? (
-					<MedicationFilterPill
-						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-						onRemove={() => onCreatedAtRangeApply("", "")}
-					/>
-				) : null}
-			</div>
+							return statusOption?.label ?? formatMedicationFilterValue(statusFilter);
+						}),
+					)}
+					onRemove={() => onStatusFiltersChange([])}
+				/>
+			) : null}
+			{hasCreatedAtFilter ? (
+				<FilterChip
+					name="Created"
+					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
 			<Button
 				type="button"
 				variant="ghost"
@@ -694,23 +690,6 @@ function MedicationActiveFilterPills({
 				Clear all
 			</Button>
 		</div>
-	);
-}
-
-function MedicationFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<Button
-			type="button"
-			variant="outline"
-			onClick={onRemove}
-			className="group h-auto gap-3 rounded-full bg-gray-100 py-1.5 pr-1.5 pl-3 text-gray-600 shadow-xs hover:bg-gray-200"
-			aria-label={`Remove ${label} filter`}
-		>
-			{label}
-			<span className="flex size-5 items-center justify-center rounded-full bg-gray-800 text-white group-hover:bg-gray-500">
-				<RiCloseLine aria-hidden="true" />
-			</span>
-		</Button>
 	);
 }
 

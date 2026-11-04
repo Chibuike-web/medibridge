@@ -285,17 +285,7 @@ describe("Immunizations table", () => {
 		);
 	});
 
-	test("removes a filter when the user clicks anywhere on its pill", async () => {
-		const user = userEvent.setup();
-		const { onStatusFiltersChange } = renderImmunizationsTable({
-			statusFilters: ["active", "discontinued"],
-		});
-
-		await user.click(screen.getByText("Status: Discontinued"));
-		expect(onStatusFiltersChange).toHaveBeenCalledWith(["active"]);
-	});
-
-	test("shows active filters as pills the user can remove", async () => {
+	test("shows active filters as chips the user can remove", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onCreatedAtRangeApply } = renderImmunizationsTable({
 			statusFilters: ["active", "discontinued"],
@@ -303,14 +293,14 @@ describe("Immunizations table", () => {
 			createdTo: "2024-01-31",
 		});
 
-		expect(screen.getByText("Status: Active")).toBeVisible();
-		expect(screen.getByText("Status: Discontinued")).toBeVisible();
-		expect(screen.getByText("Created: Jan 1, 2024 - Jan 31, 2024")).toBeVisible();
+		await user.click(
+			screen.getByRole("button", { name: "Remove Status: Active, Discontinued filter" }),
+		);
+		expect(onStatusFiltersChange).toHaveBeenCalledWith([]);
 
-		await user.click(screen.getByRole("button", { name: "Remove Status: Discontinued filter" }));
-		expect(onStatusFiltersChange).toHaveBeenCalledWith(["active"]);
-
-		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
+		await user.click(
+			screen.getByRole("button", { name: "Remove Created: Jan 1, 2024 - Jan 31, 2024 filter" }),
+		);
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 

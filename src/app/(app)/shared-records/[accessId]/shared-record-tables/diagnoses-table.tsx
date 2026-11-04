@@ -14,7 +14,6 @@ import {
 	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
-	RiCloseLine,
 	RiCalendarLine,
 	RiCheckboxCircleLine,
 	RiHistoryLine,
@@ -39,6 +38,7 @@ const configuredTableFeatures = tableFeatures({
 });
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
+import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -415,38 +415,35 @@ export function SharedDiagnosesTable({
 			optimisticReviewedTo ||
 			optimisticCreatedFrom ||
 			optimisticCreatedTo ? (
-				<div className="mb-4 flex items-start gap-4">
-					<div className="flex flex-1 flex-wrap gap-2">
-						{optimisticStatusFilters.map((status) => (
-							<FilterPill
-								key={status}
-								label={`Status: ${status}`}
-								onRemove={() =>
-									handleStatusFiltersChange(
-										optimisticStatusFilters.filter((value) => value !== status),
-									)
-								}
-							/>
-						))}
-						{optimisticDiagnosedFrom || optimisticDiagnosedTo ? (
-							<FilterPill
-								label={`Diagnosed: ${formatDateRangeFilterLabel(optimisticDiagnosedFrom, optimisticDiagnosedTo)}`}
-								onRemove={() => handleDiagnosedRangeApply("", "")}
-							/>
-						) : null}
-						{optimisticReviewedFrom || optimisticReviewedTo ? (
-							<FilterPill
-								label={`Reviewed: ${formatDateRangeFilterLabel(optimisticReviewedFrom, optimisticReviewedTo)}`}
-								onRemove={() => handleReviewedRangeApply("", "")}
-							/>
-						) : null}
-						{optimisticCreatedFrom || optimisticCreatedTo ? (
-							<FilterPill
-								label={`Created: ${formatDateRangeFilterLabel(optimisticCreatedFrom, optimisticCreatedTo)}`}
-								onRemove={() => handleCreatedRangeApply("", "")}
-							/>
-						) : null}
-					</div>
+				<div className="mb-4 flex flex-wrap gap-2">
+					{optimisticStatusFilters.length > 0 ? (
+						<FilterChip
+							name="Status"
+							value={formatChecklistFilterLabel(optimisticStatusFilters)}
+							onRemove={() => handleStatusFiltersChange([])}
+						/>
+					) : null}
+					{optimisticDiagnosedFrom || optimisticDiagnosedTo ? (
+						<FilterChip
+							name="Diagnosed"
+							value={formatDateRangeFilterLabel(optimisticDiagnosedFrom, optimisticDiagnosedTo)}
+							onRemove={() => handleDiagnosedRangeApply("", "")}
+						/>
+					) : null}
+					{optimisticReviewedFrom || optimisticReviewedTo ? (
+						<FilterChip
+							name="Reviewed"
+							value={formatDateRangeFilterLabel(optimisticReviewedFrom, optimisticReviewedTo)}
+							onRemove={() => handleReviewedRangeApply("", "")}
+						/>
+					) : null}
+					{optimisticCreatedFrom || optimisticCreatedTo ? (
+						<FilterChip
+							name="Created"
+							value={formatDateRangeFilterLabel(optimisticCreatedFrom, optimisticCreatedTo)}
+							onRemove={() => handleCreatedRangeApply("", "")}
+						/>
+					) : null}
 					<Button
 						type="button"
 						variant="ghost"
@@ -604,23 +601,6 @@ export function SharedDiagnosesTable({
 				</div>
 			</div>
 		</div>
-	);
-}
-
-function FilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<Button
-			type="button"
-			variant="outline"
-			onClick={onRemove}
-			className="group h-auto gap-3 rounded-full bg-gray-100 py-1.5 pr-1.5 pl-3 text-gray-600 shadow-xs hover:bg-gray-200"
-			aria-label={`Remove ${label} filter`}
-		>
-			{label}
-			<span className="flex size-5 items-center justify-center rounded-full bg-gray-800 text-white group-hover:bg-gray-500">
-				<RiCloseLine aria-hidden="true" />
-			</span>
-		</Button>
 	);
 }
 

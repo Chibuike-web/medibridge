@@ -171,8 +171,8 @@ test("opens a patient section with its bookmarked page, search, and filters", as
 	expect(within(screen.getByRole("table")).getByText("Penicillin")).toBeVisible();
 	expect(screen.getByRole("searchbox")).toHaveValue("pen");
 	expect(screen.getByText("Page 2 of 2")).toBeVisible();
-	expect(screen.getByText("Status: Active")).toBeVisible();
-	expect(screen.getByText("Severity: Severe")).toBeVisible();
+	expect(screen.getByRole("button", { name: "Remove Status: Active filter" })).toBeVisible();
+	expect(screen.getByRole("button", { name: "Remove Severity: Severe filter" })).toBeVisible();
 	expect(getAllergies).toHaveBeenCalledWith(
 		"patient-1",
 		2,
@@ -287,7 +287,7 @@ test.each(["patient", "encounter"])(
 			),
 		);
 		expect(screen.getByDisplayValue("no match")).toBeVisible();
-		expect(screen.getByText("Status: Inactive")).toBeVisible();
+		expect(screen.getByRole("button", { name: "Remove Status: Inactive filter" })).toBeVisible();
 		expect(screen.getByRole("button", { name: "Clear all" })).toBeVisible();
 		expect(screen.getAllByRole("table").length).toBeGreaterThan(0);
 	},

@@ -43,6 +43,7 @@ import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
+import { FilterChip } from "@/components/filter-chip";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -330,7 +331,7 @@ export function VitalsTable({
 					Add vitals
 				</Button>
 			</div>
-			<VitalActiveFilterPills
+			<VitalActiveFilterChips
 				recordedFrom={recordedFrom}
 				recordedTo={recordedTo}
 				createdFrom={createdFrom}
@@ -676,7 +677,7 @@ function VitalsBulkActionBar({
 	);
 }
 
-function VitalActiveFilterPills({
+function VitalActiveFilterChips({
 	recordedFrom,
 	recordedTo,
 	createdFrom,
@@ -699,21 +700,21 @@ function VitalActiveFilterPills({
 	if (!hasRecordedAtFilter && !hasCreatedAtFilter) return null;
 
 	return (
-		<div className="mx-auto flex w-full max-w-7xl items-start gap-4">
-			<div className="flex flex-1 flex-wrap gap-2">
-				{hasRecordedAtFilter ? (
-					<VitalFilterPill
-						label={`Recorded: ${formatDateRangeFilterLabel(recordedFrom, recordedTo)}`}
-						onRemove={() => onRecordedAtRangeApply("", "")}
-					/>
-				) : null}
-				{hasCreatedAtFilter ? (
-					<VitalFilterPill
-						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-						onRemove={() => onCreatedAtRangeApply("", "")}
-					/>
-				) : null}
-			</div>
+		<div className="mx-auto flex w-full max-w-7xl flex-wrap gap-2">
+			{hasRecordedAtFilter ? (
+				<FilterChip
+					name="Recorded"
+					value={formatDateRangeFilterLabel(recordedFrom, recordedTo)}
+					onRemove={() => onRecordedAtRangeApply("", "")}
+				/>
+			) : null}
+			{hasCreatedAtFilter ? (
+				<FilterChip
+					name="Created"
+					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
 			<Button
 				type="button"
 				variant="ghost"
@@ -724,23 +725,6 @@ function VitalActiveFilterPills({
 				Clear all
 			</Button>
 		</div>
-	);
-}
-
-function VitalFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<Button
-			type="button"
-			variant="outline"
-			onClick={onRemove}
-			className="group h-auto gap-3 rounded-full bg-gray-100 py-1.5 pr-1.5 pl-3 text-gray-600 shadow-xs hover:bg-gray-200"
-			aria-label={`Remove ${label} filter`}
-		>
-			{label}
-			<span className="flex size-5 items-center justify-center rounded-full bg-gray-800 text-white group-hover:bg-gray-500">
-				<RiCloseLine aria-hidden="true" />
-			</span>
-		</Button>
 	);
 }
 

@@ -19,6 +19,7 @@ import { LabTestDetailsDrawer } from "@/features/patients/components/lab-test-de
 import { StatusBadge } from "@/components/status-badge";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
+import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -328,7 +329,7 @@ export function LabTestsTable({
 					Add lab test
 				</Button>
 			</div>
-			<LabTestActiveFilterPills
+			<LabTestActiveFilterChips
 				createdFrom={createdFrom}
 				createdTo={createdTo}
 				statusFilters={statusFilters}
@@ -651,7 +652,7 @@ function LabTestsBulkActionBar({
 	);
 }
 
-function LabTestActiveFilterPills({
+function LabTestActiveFilterChips({
 	createdFrom,
 	createdTo,
 	statusFilters,
@@ -679,37 +680,32 @@ function LabTestActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
-			<div className="flex flex-1 flex-wrap gap-2">
-				{statusFilters.map((statusFilter) => (
-					<LabTestFilterPill
-						key={statusFilter}
-						label={`Status: ${formatLabTestFilterValue(statusFilter)}`}
-						onRemove={() => {
-							onStatusFiltersChange(
-								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
-							);
-						}}
-					/>
-				))}
-				{flagFilters.map((flagFilter) => (
-					<LabTestFilterPill
-						key={flagFilter}
-						label={`Flag: ${formatLabTestFilterValue(flagFilter)}`}
-						onRemove={() => {
-							onFlagFiltersChange(
-								flagFilters.filter((currentFlagFilter) => currentFlagFilter !== flagFilter),
-							);
-						}}
-					/>
-				))}
-				{hasCreatedAtFilter ? (
-					<LabTestFilterPill
-						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-						onRemove={() => onCreatedAtRangeApply("", "")}
-					/>
-				) : null}
-			</div>
+		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+			{hasStatusFilters ? (
+				<FilterChip
+					name="Status"
+					value={formatChecklistFilterLabel(
+						statusFilters.map((statusFilter) => formatLabTestFilterValue(statusFilter)),
+					)}
+					onRemove={() => onStatusFiltersChange([])}
+				/>
+			) : null}
+			{hasFlagFilters ? (
+				<FilterChip
+					name="Flag"
+					value={formatChecklistFilterLabel(
+						flagFilters.map((flagFilter) => formatLabTestFilterValue(flagFilter)),
+					)}
+					onRemove={() => onFlagFiltersChange([])}
+				/>
+			) : null}
+			{hasCreatedAtFilter ? (
+				<FilterChip
+					name="Created"
+					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
 			<Button
 				type="button"
 				variant="ghost"
@@ -720,23 +716,6 @@ function LabTestActiveFilterPills({
 				Clear all
 			</Button>
 		</div>
-	);
-}
-
-function LabTestFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<Button
-			type="button"
-			variant="outline"
-			onClick={onRemove}
-			className="group h-auto gap-3 rounded-full bg-gray-100 py-1.5 pr-1.5 pl-3 text-gray-600 shadow-xs hover:bg-gray-200"
-			aria-label={`Remove ${label} filter`}
-		>
-			{label}
-			<span className="flex size-5 items-center justify-center rounded-full bg-gray-800 text-white group-hover:bg-gray-500">
-				<RiCloseLine aria-hidden="true" />
-			</span>
-		</Button>
 	);
 }
 

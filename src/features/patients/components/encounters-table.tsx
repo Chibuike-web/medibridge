@@ -20,6 +20,7 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
 import { CreateEncounterDrawer } from "@/features/patients/components/create-encounter-drawer";
+import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -346,7 +347,7 @@ export function EncountersTable({
 					patientId={patientId}
 				/>
 			</div>
-			<EncounterActiveFilterPills
+			<EncounterActiveFilterChips
 				encounterFrom={encounterFrom}
 				encounterTo={encounterTo}
 				createdFrom={createdFrom}
@@ -658,7 +659,7 @@ function EncounterCheckboxFilterList<T extends string>({
 	});
 }
 
-function EncounterActiveFilterPills({
+function EncounterActiveFilterChips({
 	encounterFrom,
 	encounterTo,
 	createdFrom,
@@ -698,48 +699,43 @@ function EncounterActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
-			<div className="flex flex-1 flex-wrap gap-2">
-				{encounterTypeFilters.map((encounterTypeFilter) => (
-					<EncounterFilterPill
-						key={encounterTypeFilter}
-						label={`Type: ${formatEncounterFilterValue(encounterTypeFilter)}`}
-						onRemove={() => {
-							onEncounterTypeFiltersChange(
-								encounterTypeFilters.filter(
-									(currentEncounterTypeFilter) =>
-										currentEncounterTypeFilter !== encounterTypeFilter,
-								),
-							);
-						}}
-					/>
-				))}
-				{departmentFilters.map((departmentFilter) => (
-					<EncounterFilterPill
-						key={departmentFilter}
-						label={`Department: ${formatEncounterFilterValue(departmentFilter)}`}
-						onRemove={() => {
-							onDepartmentFiltersChange(
-								departmentFilters.filter(
-									(currentDepartmentFilter) => currentDepartmentFilter !== departmentFilter,
-								),
-							);
-						}}
-					/>
-				))}
-				{hasEncounterDateFilter ? (
-					<EncounterFilterPill
-						label={`Encounter: ${formatDateRangeFilterLabel(encounterFrom, encounterTo)}`}
-						onRemove={() => onEncounterDateRangeApply("", "")}
-					/>
-				) : null}
-				{hasCreatedAtFilter ? (
-					<EncounterFilterPill
-						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-						onRemove={() => onCreatedAtRangeApply("", "")}
-					/>
-				) : null}
-			</div>
+		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+			{hasEncounterTypeFilters ? (
+				<FilterChip
+					name="Type"
+					value={formatChecklistFilterLabel(
+						encounterTypeFilters.map((encounterTypeFilter) =>
+							formatEncounterFilterValue(encounterTypeFilter),
+						),
+					)}
+					onRemove={() => onEncounterTypeFiltersChange([])}
+				/>
+			) : null}
+			{hasDepartmentFilters ? (
+				<FilterChip
+					name="Department"
+					value={formatChecklistFilterLabel(
+						departmentFilters.map((departmentFilter) =>
+							formatEncounterFilterValue(departmentFilter),
+						),
+					)}
+					onRemove={() => onDepartmentFiltersChange([])}
+				/>
+			) : null}
+			{hasEncounterDateFilter ? (
+				<FilterChip
+					name="Encounter"
+					value={formatDateRangeFilterLabel(encounterFrom, encounterTo)}
+					onRemove={() => onEncounterDateRangeApply("", "")}
+				/>
+			) : null}
+			{hasCreatedAtFilter ? (
+				<FilterChip
+					name="Created"
+					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
 			<Button
 				type="button"
 				variant="ghost"
@@ -750,23 +746,6 @@ function EncounterActiveFilterPills({
 				Clear all
 			</Button>
 		</div>
-	);
-}
-
-function EncounterFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<Button
-			type="button"
-			variant="outline"
-			onClick={onRemove}
-			className="group h-auto gap-3 rounded-full bg-gray-100 py-1.5 pr-1.5 pl-3 text-gray-600 shadow-xs hover:bg-gray-200"
-			aria-label={`Remove ${label} filter`}
-		>
-			{label}
-			<span className="flex size-5 items-center justify-center rounded-full bg-gray-800 text-white group-hover:bg-gray-500">
-				<RiCloseLine aria-hidden="true" />
-			</span>
-		</Button>
 	);
 }
 

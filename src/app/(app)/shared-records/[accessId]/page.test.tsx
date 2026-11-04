@@ -153,6 +153,8 @@ test("loads the open section with the page, search and filters from the URL", as
 		createdTo: "",
 	});
 	expect(screen.getByRole("searchbox")).toHaveValue("amox");
-	expect(screen.getByText("Status: Discontinued")).toBeInTheDocument();
+	expect(
+		screen.getByRole("button", { name: "Remove Status: Discontinued filter" }),
+	).toBeInTheDocument();
 	expect(screen.getByText("Page 2 of 3")).toBeInTheDocument();
 });
