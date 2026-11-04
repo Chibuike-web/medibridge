@@ -1,5 +1,6 @@
 "use client";
 
+import { FilterChip } from "@/components/filter-chip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AddPatientDialog } from "@/features/patients/components/add-patient-dialog";
@@ -13,7 +14,7 @@ import type {
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
-import { RiCloseLine, RiSearchLine, RiShare2Line } from "@remixicon/react";
+import { RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useOptimistic, useState, useTransition } from "react";
@@ -317,7 +318,7 @@ export function PatientsClient({
 						</AddPatientDialog>
 					</div>
 				</header>
-				<PatientActiveFilterPills
+				<PatientActiveFilterChips
 					ageGroupFilter={optimisticAgeGroupFilter}
 					createdFrom={optimisticCreatedAtRange.createdFrom}
 					createdTo={optimisticCreatedAtRange.createdTo}
@@ -342,7 +343,7 @@ export function PatientsClient({
 	);
 }
 
-function PatientActiveFilterPills({
+function PatientActiveFilterChips({
 	ageGroupFilter,
 	createdFrom,
 	createdTo,
@@ -368,27 +369,28 @@ function PatientActiveFilterPills({
 	}
 
 	return (
-		<div className="mb-4 flex items-start gap-4">
-			<div className="flex flex-1 flex-wrap gap-2">
-				{genderFilter ? (
-					<PatientFilterPill
-						label={`Gender: ${patientGenderFilterLabels[genderFilter]}`}
-						onRemove={() => onGenderFilterChange("")}
-					/>
-				) : null}
-				{ageGroupFilter ? (
-					<PatientFilterPill
-						label={`Age: ${patientAgeGroupFilterLabels[ageGroupFilter]}`}
-						onRemove={() => onAgeGroupFilterChange("")}
-					/>
-				) : null}
-				{hasCreatedAtFilter ? (
-					<PatientFilterPill
-						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-						onRemove={() => onCreatedAtRangeApply("", "")}
-					/>
-				) : null}
-			</div>
+		<div className="mb-4 flex flex-wrap gap-2">
+			{genderFilter ? (
+				<FilterChip
+					name="Gender"
+					value={patientGenderFilterLabels[genderFilter]}
+					onRemove={() => onGenderFilterChange("")}
+				/>
+			) : null}
+			{ageGroupFilter ? (
+				<FilterChip
+					name="Age"
+					value={patientAgeGroupFilterLabels[ageGroupFilter]}
+					onRemove={() => onAgeGroupFilterChange("")}
+				/>
+			) : null}
+			{hasCreatedAtFilter ? (
+				<FilterChip
+					name="Created"
+					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
 			<Button
 				type="button"
 				variant="ghost"
@@ -399,23 +401,6 @@ function PatientActiveFilterPills({
 				Clear all
 			</Button>
 		</div>
-	);
-}
-
-function PatientFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
-			<span>{label}</span>
-			<Button
-				size="icon"
-				type="button"
-				onClick={onRemove}
-				className="flex size-5 rounded-full text-white hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
-				aria-label={`Remove ${label} filter`}
-			>
-				<RiCloseLine className="size-4" aria-hidden={true} />
-			</Button>
-		</span>
 	);
 }
 

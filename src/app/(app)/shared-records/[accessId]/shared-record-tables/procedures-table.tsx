@@ -14,7 +14,6 @@ import {
 	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
-	RiCloseLine,
 	RiCalendarLine,
 	RiCheckboxCircleLine,
 } from "@remixicon/react";
@@ -37,6 +36,7 @@ const configuredTableFeatures = tableFeatures({
 });
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
+import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -290,26 +290,21 @@ export function SharedProceduresTable({
 				</Button>
 			</div>
 			{optimisticStatusFilters.length > 0 || optimisticCreatedFrom || optimisticCreatedTo ? (
-				<div className="mb-4 flex items-start gap-4">
-					<div className="flex flex-1 flex-wrap gap-2">
-						{optimisticStatusFilters.map((status) => (
-							<FilterPill
-								key={status}
-								label={`Status: ${status}`}
-								onRemove={() =>
-									handleStatusFiltersChange(
-										optimisticStatusFilters.filter((value) => value !== status),
-									)
-								}
-							/>
-						))}
-						{optimisticCreatedFrom || optimisticCreatedTo ? (
-							<FilterPill
-								label={`Created: ${formatDateRangeFilterLabel(optimisticCreatedFrom, optimisticCreatedTo)}`}
-								onRemove={() => handleCreatedAtRangeApply("", "")}
-							/>
-						) : null}
-					</div>
+				<div className="mb-4 flex flex-wrap gap-2">
+					{optimisticStatusFilters.length > 0 ? (
+						<FilterChip
+							name="Status"
+							value={formatChecklistFilterLabel(optimisticStatusFilters)}
+							onRemove={() => handleStatusFiltersChange([])}
+						/>
+					) : null}
+					{optimisticCreatedFrom || optimisticCreatedTo ? (
+						<FilterChip
+							name="Created"
+							value={formatDateRangeFilterLabel(optimisticCreatedFrom, optimisticCreatedTo)}
+							onRemove={() => handleCreatedAtRangeApply("", "")}
+						/>
+					) : null}
 					<Button
 						type="button"
 						variant="ghost"
@@ -556,23 +551,6 @@ function ProcedureFilterMenu({
 				onClose={() => setCustomDateRangeFilter(null)}
 			/>
 		</>
-	);
-}
-
-function FilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
-			<span>{label}</span>
-			<Button
-				size="icon"
-				type="button"
-				onClick={onRemove}
-				className="flex size-5 rounded-full text-white hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
-				aria-label={`Remove ${label} filter`}
-			>
-				<RiCloseLine className="size-4" aria-hidden="true" />
-			</Button>
-		</span>
 	);
 }
 

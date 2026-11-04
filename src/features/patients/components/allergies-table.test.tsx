@@ -341,7 +341,7 @@ describe("Allergies table", () => {
 		);
 	});
 
-	test("shows active filters as pills that clear the matching filter", async () => {
+	test("shows active filters as chips that clear the matching filter", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onSeverityFiltersChange, onCreatedAtRangeApply } =
 			renderAllergiesTable({
@@ -351,16 +351,13 @@ describe("Allergies table", () => {
 				createdTo: "2020-01-31",
 			});
 
-		expect(screen.getByText("Status: Inactive")).toBeVisible();
-		expect(screen.getByText("Severity: Mild")).toBeVisible();
-		expect(screen.getByText("Severity: Severe")).toBeVisible();
-		expect(screen.getByText("Created: Jan 1, 2020 - Jan 31, 2020")).toBeVisible();
-
 		await user.click(screen.getByRole("button", { name: "Remove Status: Inactive filter" }));
 		expect(onStatusFiltersChange).toHaveBeenCalledWith([]);
-		await user.click(screen.getByRole("button", { name: "Remove Severity: Mild filter" }));
-		expect(onSeverityFiltersChange).toHaveBeenCalledWith(["severe"]);
-		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
+		await user.click(screen.getByRole("button", { name: "Remove Severity: Mild, Severe filter" }));
+		expect(onSeverityFiltersChange).toHaveBeenCalledWith([]);
+		await user.click(
+			screen.getByRole("button", { name: "Remove Created: Jan 1, 2020 - Jan 31, 2020 filter" }),
+		);
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 

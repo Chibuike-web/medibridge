@@ -300,7 +300,7 @@ describe("Procedures table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(today, today);
 	});
 
-	test("shows active filters as pills the user can remove", async () => {
+	test("shows active filters as chips the user can remove", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onCreatedAtRangeApply } = renderProceduresTable({
 			statusFilters: ["pending", "completed"],
@@ -308,14 +308,14 @@ describe("Procedures table", () => {
 			createdTo: "2024-02-29",
 		});
 
-		expect(screen.getByText("Status: Pending")).toBeVisible();
-		expect(screen.getByText("Status: Completed")).toBeVisible();
-		expect(screen.getByText("Created: Until Feb 29, 2024")).toBeVisible();
+		await user.click(
+			screen.getByRole("button", { name: "Remove Status: Pending, Completed filter" }),
+		);
+		expect(onStatusFiltersChange).toHaveBeenCalledWith([]);
 
-		await user.click(screen.getByRole("button", { name: "Remove Status: Pending filter" }));
-		expect(onStatusFiltersChange).toHaveBeenCalledWith(["completed"]);
-
-		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
+		await user.click(
+			screen.getByRole("button", { name: "Remove Created: Until Feb 29, 2024 filter" }),
+		);
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FilterButton } from "@/features/transfers/components/filter-button";
@@ -8,7 +9,7 @@ import type { TransferStatusFilter, TransferType } from "@/features/transfers/ty
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
-import { RiCloseLine, RiSearchLine, RiShare2Line } from "@remixicon/react";
+import { RiSearchLine, RiShare2Line } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -284,7 +285,7 @@ export function TransfersClient({
 						</Button>
 					</div>
 				</header>
-				<TransferActiveFilterPills
+				<TransferActiveFilterChips
 					requestedFrom={optimisticRequestedAtRange.requestedFrom}
 					requestedTo={optimisticRequestedAtRange.requestedTo}
 					statusFilters={optimisticStatusFilters}
@@ -307,7 +308,7 @@ export function TransfersClient({
 	);
 }
 
-function TransferActiveFilterPills({
+function TransferActiveFilterChips({
 	requestedFrom,
 	requestedTo,
 	statusFilters,
@@ -330,26 +331,23 @@ function TransferActiveFilterPills({
 	}
 
 	return (
-		<div className="mb-4 flex items-start gap-4">
-			<div className="flex flex-1 flex-wrap gap-2">
-				{statusFilters.map((statusFilter) => (
-					<TransferFilterPill
-						key={statusFilter}
-						label={`Status: ${transferStatusFilterLabels[statusFilter]}`}
-						onRemove={() => {
-							onStatusFiltersChange(
-								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
-							);
-						}}
-					/>
-				))}
-				{hasRequestedAtFilter ? (
-					<TransferFilterPill
-						label={`Requested: ${formatDateRangeFilterLabel(requestedFrom, requestedTo)}`}
-						onRemove={() => onRequestedAtRangeApply("", "")}
-					/>
-				) : null}
-			</div>
+		<div className="mb-4 flex flex-wrap gap-2">
+			{hasStatusFilters ? (
+				<FilterChip
+					name="Status"
+					value={formatChecklistFilterLabel(
+						statusFilters.map((statusFilter) => transferStatusFilterLabels[statusFilter]),
+					)}
+					onRemove={() => onStatusFiltersChange([])}
+				/>
+			) : null}
+			{hasRequestedAtFilter ? (
+				<FilterChip
+					name="Requested"
+					value={formatDateRangeFilterLabel(requestedFrom, requestedTo)}
+					onRemove={() => onRequestedAtRangeApply("", "")}
+				/>
+			) : null}
 			<Button
 				type="button"
 				variant="ghost"
@@ -360,23 +358,6 @@ function TransferActiveFilterPills({
 				Clear all
 			</Button>
 		</div>
-	);
-}
-
-function TransferFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
-			<span>{label}</span>
-			<Button
-				size="icon"
-				type="button"
-				onClick={onRemove}
-				className="flex size-5 rounded-full text-white hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
-				aria-label={`Remove ${label} filter`}
-			>
-				<RiCloseLine className="size-4" aria-hidden={true} />
-			</Button>
-		</span>
 	);
 }
 

@@ -131,16 +131,16 @@ describe("Vitals table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("V-olde");
 	});
 
-	test("shows active date filters as removable pills", async () => {
+	test("shows active date filters as removable chips", async () => {
 		const user = userEvent.setup();
 		const { onRecordedAtRangeApply } = renderVitalsTable({
 			recordedFrom: "2020-01-01",
 			recordedTo: "2020-01-31",
 		});
 
-		const pill = screen.getByText("Recorded: Jan 1, 2020 - Jan 31, 2020");
-		expect(pill).toBeVisible();
-		await user.click(screen.getByRole("button", { name: /Remove Recorded/ }));
+		await user.click(
+			screen.getByRole("button", { name: "Remove Recorded: Jan 1, 2020 - Jan 31, 2020 filter" }),
+		);
 		expect(onRecordedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 

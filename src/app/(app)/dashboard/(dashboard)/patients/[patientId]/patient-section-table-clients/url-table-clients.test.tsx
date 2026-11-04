@@ -562,8 +562,9 @@ test("shows the filter pill and pending page immediately while navigation waits 
 	expect(screen.getByRole("checkbox", { name: "Active" })).toBeChecked();
 	expect(screen.getByRole("checkbox", { name: "Inactive" })).toBeChecked();
 	await user.keyboard("{Escape}{Escape}");
-	expect(screen.getByText("Status: Active")).toBeVisible();
-	expect(screen.getByText("Status: Inactive")).toBeVisible();
+	expect(
+		screen.getByRole("button", { name: "Remove Status: Active, Inactive filter" }),
+	).toBeVisible();
 	expect(screen.getByText("Page 1 of 4")).toBeVisible();
 	expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "true");
 	expect(within(screen.getByRole("table")).getByText("Peanuts")).toBeVisible();
@@ -576,14 +577,16 @@ test("shows the filter pill and pending page immediately while navigation waits 
 	});
 });
 
-test("settles the filter pill and page on the URL's values once the server responds", async () => {
+test("settles the filter chip and page on the URL's values once the server responds", async () => {
 	navigation.params += "&allergiesPage=2";
 	const user = userEvent.setup();
 	const props = { patientId: "patient-1", allergies: [allergiesRow], limit: 14, totalPages: 4 };
 	const { rerender } = render(<AllergiesClient {...props} page={2} />, {
 		wrapper: TableUrlNavigation,
 	});
-	expect(screen.queryByText("Status: Active")).not.toBeInTheDocument();
+	expect(
+		screen.queryByRole("button", { name: "Remove Status: Active filter" }),
+	).not.toBeInTheDocument();
 	expect(screen.getByText("Page 2 of 4")).toBeVisible();
 	await user.click(screen.getByRole("button", { name: "Filter" }));
 	await user.click(screen.getByRole("menuitem", { name: "Status" }));
@@ -596,7 +599,7 @@ test("settles the filter pill and page on the URL's values once the server respo
 	expect(params.get("allergiesStatus")).toBe("active");
 	expect(params.get("allergiesPage")).toBeNull();
 	rerender(<AllergiesClient {...props} page={1} statusFilters={["active"]} />);
-	expect(screen.getByText("Status: Active")).toBeVisible();
+	expect(screen.getByRole("button", { name: "Remove Status: Active filter" })).toBeVisible();
 	expect(screen.getByText("Page 1 of 4")).toBeVisible();
 	expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "false");
 });

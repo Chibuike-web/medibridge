@@ -23,7 +23,7 @@ vi.mock("next/navigation", () => ({
 	useSearchParams: () => new URLSearchParams(navigation.params),
 }));
 
-type NavigationProps = { page: number; limit: number; searchQuery: string };
+type NavigationProps = { page: number; limit: number; searchQuery: string; createdFrom?: string };
 
 const createdAt = { createdAt: "1st Oct 2026", createdAtValue: "2026-10-01T09:00:00.000Z" };
 const tableCases = [

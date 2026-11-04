@@ -6,6 +6,7 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
+import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
 import { Button } from "@/components/ui/button";
 import { CreateDiagnosisDrawer } from "@/features/patients/components/create-diagnosis-drawer";
 import { DiagnosisDetailsDrawer } from "@/features/patients/components/diagnosis-details-drawer";
@@ -373,7 +374,7 @@ export function DiagnosesTable({
 					Add diagnosis
 				</Button>
 			</div>
-			<DiagnosisActiveFilterPills
+			<DiagnosisActiveFilterChips
 				createdFrom={createdFrom}
 				createdTo={createdTo}
 				diagnosedFrom={diagnosedFrom}
@@ -729,7 +730,7 @@ function DiagnosesBulkActionBar({
 	);
 }
 
-function DiagnosisActiveFilterPills({
+function DiagnosisActiveFilterChips({
 	createdFrom,
 	createdTo,
 	diagnosedFrom,
@@ -766,46 +767,43 @@ function DiagnosisActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
-			<div className="flex flex-1 flex-wrap gap-2">
-				{statusFilters.map((statusFilter) => {
-					const statusOption = diagnosisStatusFilterOptions.find(
-						(option) => option.value === statusFilter,
-					);
+		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+			{hasStatusFilters ? (
+				<FilterChip
+					name="Status"
+					value={formatChecklistFilterLabel(
+						statusFilters.map((statusFilter) => {
+							const statusOption = diagnosisStatusFilterOptions.find(
+								(option) => option.value === statusFilter,
+							);
 
-					return (
-						<DiagnosisFilterPill
-							key={statusFilter}
-							label={`Status: ${statusOption?.label ?? statusFilter}`}
-							onRemove={() => {
-								onStatusFiltersChange(
-									statusFilters.filter(
-										(currentStatusFilter) => currentStatusFilter !== statusFilter,
-									),
-								);
-							}}
-						/>
-					);
-				})}
-				{hasDiagnosedAtFilter ? (
-					<DiagnosisFilterPill
-						label={`Diagnosed: ${formatDateRangeFilterLabel(diagnosedFrom, diagnosedTo)}`}
-						onRemove={() => onDiagnosedAtRangeApply("", "")}
-					/>
-				) : null}
-				{hasLastReviewedFilter ? (
-					<DiagnosisFilterPill
-						label={`Last reviewed: ${formatDateRangeFilterLabel(lastReviewedFrom, lastReviewedTo)}`}
-						onRemove={() => onLastReviewedRangeApply("", "")}
-					/>
-				) : null}
-				{hasCreatedAtFilter ? (
-					<DiagnosisFilterPill
-						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-						onRemove={() => onCreatedAtRangeApply("", "")}
-					/>
-				) : null}
-			</div>
+							return statusOption?.label ?? statusFilter;
+						}),
+					)}
+					onRemove={() => onStatusFiltersChange([])}
+				/>
+			) : null}
+			{hasDiagnosedAtFilter ? (
+				<FilterChip
+					name="Diagnosed"
+					value={formatDateRangeFilterLabel(diagnosedFrom, diagnosedTo)}
+					onRemove={() => onDiagnosedAtRangeApply("", "")}
+				/>
+			) : null}
+			{hasLastReviewedFilter ? (
+				<FilterChip
+					name="Last reviewed"
+					value={formatDateRangeFilterLabel(lastReviewedFrom, lastReviewedTo)}
+					onRemove={() => onLastReviewedRangeApply("", "")}
+				/>
+			) : null}
+			{hasCreatedAtFilter ? (
+				<FilterChip
+					name="Created"
+					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
 			<Button
 				type="button"
 				variant="ghost"
@@ -816,23 +814,6 @@ function DiagnosisActiveFilterPills({
 				Clear all
 			</Button>
 		</div>
-	);
-}
-
-function DiagnosisFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
-			<span>{label}</span>
-			<Button
-				type="button"
-				onClick={onRemove}
-				size="icon"
-				className="flex text-white size-5 rounded-full hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
-				aria-label={`Remove ${label} filter`}
-			>
-				<RiCloseLine className="size-4" aria-hidden={true} />
-			</Button>
-		</span>
 	);
 }
 

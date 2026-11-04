@@ -223,7 +223,7 @@ describe("Encounters table", () => {
 		);
 	});
 
-	test("shows active filters as pills the user can remove", async () => {
+	test("shows active filters as chips the user can remove", async () => {
 		const user = userEvent.setup();
 		const {
 			onEncounterTypeFiltersChange,
@@ -239,22 +239,22 @@ describe("Encounters table", () => {
 			createdTo: "",
 		});
 
-		expect(screen.getByText("Type: Follow Up Visit")).toBeVisible();
-		expect(screen.getByText("Type: Routine Checkup")).toBeVisible();
-		expect(screen.getByText("Department: Nephrology")).toBeVisible();
-		expect(screen.getByText("Encounter: Jan 1, 2024 - Jan 31, 2024")).toBeVisible();
-		expect(screen.getByText("Created: From Feb 1, 2024")).toBeVisible();
-
-		await user.click(screen.getByRole("button", { name: "Remove Type: Follow Up Visit filter" }));
-		expect(onEncounterTypeFiltersChange).toHaveBeenCalledWith(["routine-checkup"]);
+		await user.click(
+			screen.getByRole("button", { name: "Remove Type: Follow Up Visit, Routine Checkup filter" }),
+		);
+		expect(onEncounterTypeFiltersChange).toHaveBeenCalledWith([]);
 
 		await user.click(screen.getByRole("button", { name: "Remove Department: Nephrology filter" }));
 		expect(onDepartmentFiltersChange).toHaveBeenCalledWith([]);
 
-		await user.click(screen.getByRole("button", { name: /Remove Encounter:/ }));
+		await user.click(
+			screen.getByRole("button", { name: "Remove Encounter: Jan 1, 2024 - Jan 31, 2024 filter" }),
+		);
 		expect(onEncounterDateRangeApply).toHaveBeenCalledWith("", "");
 
-		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
+		await user.click(
+			screen.getByRole("button", { name: "Remove Created: From Feb 1, 2024 filter" }),
+		);
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
