@@ -44,7 +44,7 @@ import {
 	useTable,
 	rowSortingFeature,
 	rowSelectionFeature,
-	sortFn_alphanumeric,
+	sortFn_basic,
 	sortFn_datetime,
 	sortFn_text,
 } from "@tanstack/react-table";
@@ -67,7 +67,6 @@ const configuredTableFeatures = tableFeatures({
 	columnVisibilityFeature,
 	rowSortingFeature,
 	rowSelectionFeature,
-	sortFns: { text: sortFn_text, alphanumeric: sortFn_alphanumeric, datetime: sortFn_datetime },
 	sortedRowModel: createSortedRowModel(),
 });
 
@@ -468,6 +467,7 @@ function getPatientsColumns(
 			header: "Patient name",
 			accessorKey: "name",
 			enableSorting: true,
+			sortFn: sortFn_text,
 			cell: ({ row }) => (
 				<div className="flex items-center gap-3 w-max" onClick={(e) => e.stopPropagation()}>
 					<Avatar className="size-9 border border-gray-200 bg-gray-100 text-gray-700">
@@ -499,6 +499,7 @@ function getPatientsColumns(
 			header: "Age",
 			accessorKey: "age",
 			enableSorting: true,
+			sortFn: sortFn_basic,
 			cell: ({ row }) => (
 				<div
 					onClick={(e) => {
@@ -514,6 +515,7 @@ function getPatientsColumns(
 			header: "Created at",
 			accessorKey: "createdAt",
 			enableSorting: true,
+			sortFn: sortFn_datetime,
 			cell: ({ row }) => (
 				<div
 					onClick={(e) => {

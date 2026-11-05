@@ -15,7 +15,7 @@ import {
 	useTable,
 	rowSortingFeature,
 	rowPaginationFeature,
-	sortFn_alphanumeric,
+	sortFn_basic,
 	sortFn_datetime,
 	sortFn_text,
 } from "@tanstack/react-table";
@@ -48,7 +48,6 @@ const configuredTableFeatures = tableFeatures({
 	columnVisibilityFeature,
 	rowSortingFeature,
 	rowPaginationFeature,
-	sortFns: { text: sortFn_text, alphanumeric: sortFn_alphanumeric, datetime: sortFn_datetime },
 	sortedRowModel: createSortedRowModel(),
 	paginatedRowModel: createPaginatedRowModel(),
 });
@@ -230,6 +229,7 @@ const recentPatientColumns: ColumnDef<typeof configuredTableFeatures, RecentPati
 		header: "Patient Name",
 		accessorKey: "name",
 		enableSorting: true,
+		sortFn: sortFn_text,
 		cell: ({ row }) => (
 			<div className="flex items-center gap-3">
 				<Avatar className="size-9 border border-gray-200 bg-gray-100 text-gray-700">
@@ -257,11 +257,13 @@ const recentPatientColumns: ColumnDef<typeof configuredTableFeatures, RecentPati
 		header: "Age",
 		accessorKey: "age",
 		enableSorting: true,
+		sortFn: sortFn_basic,
 	},
 	{
 		header: "Created At",
 		accessorKey: "createdAt",
 		enableSorting: true,
+		sortFn: sortFn_datetime,
 		cell: ({ row }) => formatDate(row.original.createdAt),
 	},
 ];

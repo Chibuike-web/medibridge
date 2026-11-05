@@ -55,7 +55,6 @@ import {
 	useTable,
 	rowSortingFeature,
 	rowSelectionFeature,
-	sortFn_alphanumeric,
 	sortFn_datetime,
 	sortFn_text,
 } from "@tanstack/react-table";
@@ -85,7 +84,6 @@ const configuredTableFeatures = tableFeatures({
 	columnVisibilityFeature,
 	rowSortingFeature,
 	rowSelectionFeature,
-	sortFns: { text: sortFn_text, alphanumeric: sortFn_alphanumeric, datetime: sortFn_datetime },
 	sortedRowModel: createSortedRowModel(),
 });
 
@@ -749,6 +747,7 @@ function getTransferColumns({
 			header: "Patient Name",
 			accessorKey: "patientName",
 			enableSorting: true,
+			sortFn: sortFn_text,
 			cell: ({ row }) => (
 				<div className="flex items-center gap-3">
 					<Avatar className="size-9 border border-gray-200 bg-gray-100 text-gray-700">
@@ -770,6 +769,7 @@ function getTransferColumns({
 			header: "Target Hospital",
 			accessorKey: "targetHospitalName",
 			enableSorting: true,
+			sortFn: sortFn_text,
 			cell: ({ row }) => (
 				<span className="block max-w-[21.25rem] whitespace-normal text-pretty">
 					{row.original.targetHospitalName}
@@ -780,6 +780,7 @@ function getTransferColumns({
 			header: "Requested At",
 			accessorKey: "requestedAt",
 			enableSorting: true,
+			sortFn: sortFn_datetime,
 			cell: ({ row }) => formatDate(row.original.requestedAt),
 		},
 		{
