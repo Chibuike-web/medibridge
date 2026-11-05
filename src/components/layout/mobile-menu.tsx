@@ -51,8 +51,8 @@ export function MobileMenu({ menus }: { menus: Menu[] }) {
 						<RiMenuLine aria-hidden="true" />
 					</Button>
 				</DrawerTrigger>
-				<DrawerContent className="overflow-hidden border text-sm data-[vaul-drawer-direction=bottom]:inset-x-6 data-[vaul-drawer-direction=bottom]:bottom-6 data-[vaul-drawer-direction=bottom]:rounded-3xl">
-					<DrawerHeader className="flex-row items-center justify-between text-left">
+				<DrawerContent className="max-w-none overflow-hidden border text-sm data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-3xl">
+					<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 						<DrawerTitle className="leading-[1.2] text-gray-800">Menu</DrawerTitle>
 						<DrawerClose asChild>
 							<Button variant="ghost" size="icon" aria-label="Close menu">
@@ -63,7 +63,7 @@ export function MobileMenu({ menus }: { menus: Menu[] }) {
 							Go to another page, open settings, or sign out.
 						</DrawerDescription>
 					</DrawerHeader>
-					<div className="flex flex-col gap-1 px-2 pb-6">
+					<div className="flex flex-col gap-1 p-2">
 						<nav aria-label="Primary" className="flex flex-col gap-1">
 							{menus.map(({ id, href, label, icon: Icon, activeIcon: ActiveIcon }) => {
 								const isActive = pathname.startsWith(href);
