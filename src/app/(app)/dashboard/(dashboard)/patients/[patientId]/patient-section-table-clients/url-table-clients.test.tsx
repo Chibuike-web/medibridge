@@ -546,8 +546,7 @@ test("shows the filter pill and pending page immediately while navigation waits 
 			</RouterHarness>
 		</Suspense>,
 	);
-	await user.click(screen.getByRole("button", { name: "Filter" }));
-	await user.click(screen.getByRole("menuitem", { name: "Status" }));
+	await user.click(screen.getByRole("button", { name: "Status" }));
 	await user.pointer({
 		keys: "[TouchA]",
 		target: screen.getByRole("checkbox", { name: "Active" }),
@@ -561,7 +560,7 @@ test("shows the filter pill and pending page immediately while navigation waits 
 	});
 	expect(screen.getByRole("checkbox", { name: "Active" })).toBeChecked();
 	expect(screen.getByRole("checkbox", { name: "Inactive" })).toBeChecked();
-	await user.keyboard("{Escape}{Escape}");
+	await user.keyboard("{Escape}");
 	expect(
 		screen.getByRole("button", { name: "Remove Status: Active, Inactive filter" }),
 	).toBeVisible();
@@ -588,13 +587,12 @@ test("settles the filter chip and page on the URL's values once the server respo
 		screen.queryByRole("button", { name: "Remove Status: Active filter" }),
 	).not.toBeInTheDocument();
 	expect(screen.getByText("Page 2 of 4")).toBeVisible();
-	await user.click(screen.getByRole("button", { name: "Filter" }));
-	await user.click(screen.getByRole("menuitem", { name: "Status" }));
+	await user.click(screen.getByRole("button", { name: "Status" }));
 	await user.pointer({
 		keys: "[TouchA]",
 		target: screen.getByRole("checkbox", { name: "Active" }),
 	});
-	await user.keyboard("{Escape}{Escape}");
+	await user.keyboard("{Escape}");
 	const params = new URL(navigation.push.mock.calls[0][0], "http://localhost").searchParams;
 	expect(params.get("allergiesStatus")).toBe("active");
 	expect(params.get("allergiesPage")).toBeNull();

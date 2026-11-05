@@ -1,10 +1,11 @@
 "use client";
 
 import { FilterChip } from "@/components/filter-chip";
+import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AddPatientDialog } from "@/features/patients/components/add-patient-dialog";
-import { FilterButton } from "@/features/patients/components/filter-button";
+import { FilterButtons } from "@/features/patients/components/filter-buttons";
 import { PatientsTable } from "@/features/patients/components/patients-table";
 import type {
 	PatientAgeGroupFilter,
@@ -14,7 +15,7 @@ import type {
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
-import { RiSearchLine, RiShare2Line } from "@remixicon/react";
+import { RiSearchLine } from "@remixicon/react";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useOptimistic, useState, useTransition } from "react";
@@ -287,8 +288,8 @@ export function PatientsClient({
 					<h1 className="text-lg font-semibold text-balance text-gray-800 tracking-[-0.015em]">
 						Patients
 					</h1>
-					<div className="flex items-center gap-2">
-						<div className="relative flex-1">
+					<div className="flex flex-wrap items-center gap-2">
+						<div className="relative min-w-0 grow-[999] basis-80">
 							<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 							<Input
 								type="search"
@@ -298,24 +299,22 @@ export function PatientsClient({
 								onChange={(event) => handleQueryChange(event.target.value)}
 							/>
 						</div>
+						<div className="flex grow flex-wrap items-center gap-2 max-md:w-full">
+							<FilterButtons
+								ageGroupFilter={optimisticAgeGroupFilter}
+								createdFrom={optimisticCreatedAtRange.createdFrom}
+								createdTo={optimisticCreatedAtRange.createdTo}
+								genderFilter={optimisticGenderFilter}
+								onAgeGroupFilterChange={handleAgeGroupFilterChange}
+								onCreatedAtRangeApply={handleCreatedAtRangeApply}
+								onGenderFilterChange={handleGenderFilterChange}
+							/>
+							<ExportButton />
 
-						<FilterButton
-							ageGroupFilter={optimisticAgeGroupFilter}
-							createdFrom={optimisticCreatedAtRange.createdFrom}
-							createdTo={optimisticCreatedAtRange.createdTo}
-							genderFilter={optimisticGenderFilter}
-							onAgeGroupFilterChange={handleAgeGroupFilterChange}
-							onCreatedAtRangeApply={handleCreatedAtRangeApply}
-							onGenderFilterChange={handleGenderFilterChange}
-						/>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-							Export
-						</Button>
-
-						<AddPatientDialog returnTo={getCurrentRoute(pathname, searchParams)}>
-							<Button>Add patient</Button>
-						</AddPatientDialog>
+							<AddPatientDialog returnTo={getCurrentRoute(pathname, searchParams)}>
+								<Button className="flex-1">Add patient</Button>
+							</AddPatientDialog>
+						</div>
 					</div>
 				</header>
 				<PatientActiveFilterChips
@@ -407,6 +406,10 @@ function PatientActiveFilterChips({
 function formatDateRangeFilterLabel(from: string, to: string) {
 	const parsedFromDate = parseDateParam(from);
 	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate && from === to) {
+		return format(parsedFromDate, "MMM d, yyyy");
+	}
 
 	if (parsedFromDate && parsedToDate) {
 		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;

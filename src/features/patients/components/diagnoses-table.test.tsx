@@ -174,18 +174,6 @@ function urlDate(date: Date) {
 
 type User = ReturnType<typeof userEvent.setup>;
 
-async function openFilterSubmenu(user: User, name: string) {
-	await user.click(screen.getByRole("button", { name: "Filter" }));
-	await user.click(screen.getByRole("menuitem", { name }));
-}
-
-// jsdom has no layout, so a mouse move from a submenu trigger into its content reads as the
-// pointer leaving the menu and the submenu closes. A tap has no move phase, so it behaves like
-// a real click inside the submenu.
-async function tap(user: User, target: Element) {
-	await user.pointer({ keys: "[TouchA]", target });
-}
-
 describe("Diagnoses table", () => {
 	let savedDiagnosisDetails: Record<string, DiagnosisDetailsType>;
 
@@ -281,17 +269,17 @@ describe("Diagnoses table", () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderDiagnosesTable({ statusFilters: ["active"] });
 
-		await openFilterSubmenu(user, "Status");
+		await user.click(screen.getByRole("button", { name: "Status" }));
 
 		const activeOption = await screen.findByRole("checkbox", { name: "Active" });
 		const resolvedOption = screen.getByRole("checkbox", { name: "Resolved" });
 		expect(activeOption).toBeChecked();
 		expect(resolvedOption).not.toBeChecked();
 
-		await tap(user, resolvedOption);
+		await user.click(resolvedOption);
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith(["active", "resolved"]);
 
-		await tap(user, activeOption);
+		await user.click(activeOption);
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
@@ -301,19 +289,21 @@ describe("Diagnoses table", () => {
 		const { onDiagnosedAtRangeApply, onLastReviewedRangeApply, onCreatedAtRangeApply } =
 			renderDiagnosesTable();
 
-		await openFilterSubmenu(user, "Diagnosed At");
-		await tap(user, await screen.findByRole("menuitem", { name: "Today" }));
+		await user.click(screen.getByRole("button", { name: "Diagnosed At" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Today" }));
 		expect(onDiagnosedAtRangeApply).toHaveBeenCalledWith(urlDate(today), urlDate(today));
 
-		await user.click(screen.getByRole("menuitem", { name: "Last updated" }));
-		await tap(user, await screen.findByRole("menuitem", { name: "Last 7 days" }));
+		await user.keyboard("{Escape}");
+		await user.click(screen.getByRole("button", { name: "Last updated" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Last 7 days" }));
 		expect(onLastReviewedRangeApply).toHaveBeenCalledWith(
 			urlDate(subDays(today, 6)),
 			urlDate(today),
 		);
 
-		await user.click(screen.getByRole("menuitem", { name: "Created at" }));
-		await tap(user, await screen.findByRole("menuitem", { name: "Last 30 days" }));
+		await user.keyboard("{Escape}");
+		await user.click(screen.getByRole("button", { name: "Created at" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Last 30 days" }));
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(urlDate(subDays(today, 29)), urlDate(today));
 	});
 

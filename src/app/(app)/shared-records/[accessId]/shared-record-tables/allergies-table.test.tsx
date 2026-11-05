@@ -107,13 +107,12 @@ test("shows the filter chip and first page while the filtered rows are still loa
 		screen.queryByRole("button", { name: "Remove Status: Inactive filter" }),
 	).not.toBeInTheDocument();
 
-	await user.click(screen.getByRole("button", { name: "Filter" }));
-	await user.click(screen.getByRole("menuitem", { name: "Status" }));
+	await user.click(screen.getByRole("button", { name: "Status" }));
 	await user.pointer({
 		keys: "[TouchA]",
 		target: await screen.findByRole("checkbox", { name: "Inactive" }),
 	});
-	await user.keyboard("{Escape}{Escape}");
+	await user.keyboard("{Escape}");
 
 	expect(screen.getByRole("button", { name: "Remove Status: Inactive filter" })).toBeVisible();
 	expect(screen.getByText("Page 1 of 4")).toBeVisible();

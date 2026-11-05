@@ -163,20 +163,6 @@ function urlDate(date: Date) {
 	return format(date, "yyyy-MM-dd");
 }
 
-type User = ReturnType<typeof userEvent.setup>;
-
-async function openFilterSubmenu(user: User, name: string) {
-	await user.click(screen.getByRole("button", { name: "Filter" }));
-	await user.click(screen.getByRole("menuitem", { name }));
-}
-
-// jsdom has no layout, so a mouse move from a submenu trigger into its content reads as the
-// pointer leaving the menu and the submenu closes. A tap has no move phase, so it behaves like
-// a real click inside the submenu.
-async function tap(user: User, target: Element) {
-	await user.pointer({ keys: "[TouchA]", target });
-}
-
 describe("Allergies table", () => {
 	let savedAllergyDetails: typeof allergyDetails;
 
@@ -288,34 +274,53 @@ describe("Allergies table", () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderAllergiesTable({ statusFilters: ["active"] });
 
-		await openFilterSubmenu(user, "Status");
+		await user.click(screen.getByRole("button", { name: "Status" }));
 
 		const activeOption = await screen.findByRole("checkbox", { name: "Active" });
 		const inactiveOption = screen.getByRole("checkbox", { name: "Inactive" });
 		expect(activeOption).toBeChecked();
 		expect(inactiveOption).not.toBeChecked();
 
-		await tap(user, inactiveOption);
+		await user.click(inactiveOption);
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith(["active", "inactive"]);
 
-		await tap(user, activeOption);
+		await user.click(activeOption);
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
+	});
+
+	test("opens a filter menu from whichever edge of its button leaves it room", async () => {
+		const user = userEvent.setup();
+		renderAllergiesTable();
+		const statusButton = screen.getByRole("button", { name: "Status" });
+
+		vi.spyOn(statusButton, "getBoundingClientRect").mockReturnValue(
+			DOMRect.fromRect({ x: window.innerWidth - 100, y: 0, width: 90, height: 36 }),
+		);
+		await user.click(statusButton);
+		expect(await screen.findByRole("dialog")).toHaveAttribute("data-align", "end");
+
+		await user.keyboard("{Escape}");
+		vi.spyOn(statusButton, "getBoundingClientRect").mockReturnValue(
+			DOMRect.fromRect({ x: 20, y: 0, width: 90, height: 36 }),
+		);
+		await user.click(statusButton);
+		expect(await screen.findByRole("dialog")).toHaveAttribute("data-align", "start");
 	});
 
 	test("adds and removes severity filters from the filter menu", async () => {
 		const user = userEvent.setup();
 		const { onSeverityFiltersChange } = renderAllergiesTable({ severityFilters: ["mild"] });
 
-		await openFilterSubmenu(user, "Severity");
+		await user.click(screen.getByRole("button", { name: "Severity" }));
 
 		const mildOption = await screen.findByRole("checkbox", { name: "Mild" });
 		expect(mildOption).toBeChecked();
 		expect(screen.getByRole("checkbox", { name: "Moderate" })).not.toBeChecked();
 
-		await tap(user, screen.getByRole("checkbox", { name: "Severe" }));
+		await user.click(screen.getByRole("checkbox", { name: "Severe" }));
 		expect(onSeverityFiltersChange).toHaveBeenLastCalledWith(["mild", "severe"]);
 
-		await tap(user, mildOption);
+		await user.click(mildOption);
 		expect(onSeverityFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
@@ -324,17 +329,17 @@ describe("Allergies table", () => {
 		const today = new Date();
 		const { onCreatedAtRangeApply } = renderAllergiesTable();
 
-		await openFilterSubmenu(user, "Created at");
-		await tap(user, await screen.findByRole("menuitem", { name: "Today" }));
+		await user.click(screen.getByRole("button", { name: "Created at" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Today" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(urlDate(today), urlDate(today));
 
-		await tap(user, screen.getByRole("menuitem", { name: "Last 7 days" }));
+		await user.click(screen.getByRole("menuitem", { name: "Last 7 days" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
 			urlDate(subDays(today, 6)),
 			urlDate(today),
 		);
 
-		await tap(user, screen.getByRole("menuitem", { name: "Last 30 days" }));
+		await user.click(screen.getByRole("menuitem", { name: "Last 30 days" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
 			urlDate(subDays(today, 29)),
 			urlDate(today),

@@ -281,8 +281,7 @@ describe.each(tableCases)(
 			);
 
 			const table = screen.getByRole("table");
-			await user.click(screen.getByRole("button", { name: "Filter" }));
-			await user.click(await screen.findByRole("menuitem", { name: "Status" }));
+			await user.click(screen.getByRole("button", { name: "Status" }));
 			const firstOption = await screen.findByRole("checkbox", { name: firstStatus });
 			const secondOption = screen.getByRole("checkbox", { name: secondStatus });
 			expect(firstOption).not.toBeChecked();

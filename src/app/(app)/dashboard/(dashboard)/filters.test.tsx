@@ -34,7 +34,7 @@ const filterCases = [
 	{
 		name: "transfer status",
 		pathname: "/dashboard/transfers",
-		submenu: "Status",
+		filterButton: "Status",
 		role: "checkbox" as const,
 		firstOption: "Pending",
 		secondOption: "Rejected",
@@ -56,7 +56,7 @@ const filterCases = [
 	{
 		name: "patient gender",
 		pathname: "/dashboard/patients",
-		submenu: "Gender",
+		filterButton: "Gender",
 		role: "radio" as const,
 		firstOption: "Male",
 		secondOption: "Female",
@@ -112,8 +112,7 @@ describe.each(filterCases)("$name filters", (scenario) => {
 			</Suspense>,
 		);
 		const table = screen.getByRole("table");
-		await user.click(screen.getByRole("button", { name: "Filter" }));
-		await user.click(screen.getByRole("menuitem", { name: scenario.submenu }));
+		await user.click(screen.getByRole("button", { name: scenario.filterButton }));
 		const firstOption = await screen.findByRole(scenario.role, { name: scenario.firstOption });
 		const secondOption = screen.getByRole(scenario.role, { name: scenario.secondOption });
 		expect(firstOption).not.toBeChecked();

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
@@ -159,18 +159,6 @@ function rowsPerPagePicker() {
 	);
 }
 
-// Controls inside a filter submenu are clicked without a pointer move: jsdom has no
-// layout, so the menu's "pointer is heading toward the submenu" check fails and the
-// submenu dismisses before a userEvent click (which moves the pointer first) lands.
-function clickInSubmenu(element: HTMLElement) {
-	fireEvent.click(element);
-}
-
-async function openFilterSubmenu(user: ReturnType<typeof userEvent.setup>, label: string) {
-	await user.click(screen.getByRole("button", { name: "Filter" }));
-	await user.click(screen.getByRole("menuitem", { name: label }));
-}
-
 describe("Immunizations table", () => {
 	let savedImmunizationDetails: typeof immunizationDetailsById;
 
@@ -252,11 +240,11 @@ describe("Immunizations table", () => {
 		}
 	});
 
-	test("adds and removes status filters from the Status submenu", async () => {
+	test("adds and removes status filters from the Status filter", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderImmunizationsTable({ statusFilters: ["active"] });
 
-		await openFilterSubmenu(user, "Status");
+		await user.click(screen.getByRole("button", { name: "Status" }));
 
 		const active = await screen.findByRole("checkbox", { name: "Active" });
 		expect(active).toBeChecked();
@@ -264,10 +252,10 @@ describe("Immunizations table", () => {
 			expect(screen.getByRole("checkbox", { name: label })).not.toBeChecked();
 		}
 
-		clickInSubmenu(screen.getByRole("checkbox", { name: "Discontinued" }));
+		await user.click(screen.getByRole("checkbox", { name: "Discontinued" }));
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith(["active", "discontinued"]);
 
-		clickInSubmenu(active);
+		await user.click(active);
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
@@ -275,8 +263,8 @@ describe("Immunizations table", () => {
 		const user = userEvent.setup();
 		const { onCreatedAtRangeApply } = renderImmunizationsTable();
 
-		await openFilterSubmenu(user, "Created at");
-		clickInSubmenu(await screen.findByRole("menuitem", { name: "Last 30 days" }));
+		await user.click(screen.getByRole("button", { name: "Created at" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Last 30 days" }));
 
 		const today = new Date();
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(

@@ -13,14 +13,14 @@ export function FilterChip({
 }) {
 	return (
 		<div className="flex divide-x divide-gray-200 rounded-md border border-gray-200 bg-background text-sm font-medium text-gray-600">
-			<span className="px-2.5 py-1.5">{name}</span>
-			<span className="px-2.5 py-1.5">{value}</span>
+			<span className="flex items-center px-2.5 py-1.5">{name}</span>
+			<span className="flex items-center px-2.5 py-1.5">{value}</span>
 			<Button
 				type="button"
 				variant="ghost"
 				size="icon"
 				onClick={onRemove}
-				className="rounded-l-none text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+				className="h-auto rounded-l-none text-gray-500 hover:bg-gray-100 hover:text-gray-800"
 				aria-label={`Remove ${name}: ${value} filter`}
 			>
 				<RiCloseLine aria-hidden="true" />
