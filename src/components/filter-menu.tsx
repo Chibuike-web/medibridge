@@ -45,6 +45,10 @@ export function FilterGroup({
 	const isMobile = useMediaQuery("(width < 48rem)");
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+	if (!isMobile && isDrawerOpen) {
+		setIsDrawerOpen(false);
+	}
+
 	if (!isMobile) {
 		return children;
 	}
