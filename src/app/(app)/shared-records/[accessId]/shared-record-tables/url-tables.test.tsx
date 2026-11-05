@@ -23,7 +23,7 @@ vi.mock("next/navigation", () => ({
 	useSearchParams: () => new URLSearchParams(navigation.params),
 }));
 
-type NavigationProps = { page: number; limit: number; searchQuery: string };
+type NavigationProps = { page: number; limit: number; searchQuery: string; createdFrom?: string };
 
 const createdAt = { createdAt: "1st Oct 2026", createdAtValue: "2026-10-01T09:00:00.000Z" };
 const tableCases = [
@@ -281,8 +281,7 @@ describe.each(tableCases)(
 			);
 
 			const table = screen.getByRole("table");
-			await user.click(screen.getByRole("button", { name: "Filter" }));
-			await user.click(await screen.findByRole("menuitem", { name: "Status" }));
+			await user.click(screen.getByRole("button", { name: "Status" }));
 			const firstOption = await screen.findByRole("checkbox", { name: firstStatus });
 			const secondOption = screen.getByRole("checkbox", { name: secondStatus });
 			expect(firstOption).not.toBeChecked();

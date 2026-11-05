@@ -1,10 +1,8 @@
 "use client";
 
-import {
-	DateRangeMenuItems,
-	SetDateRangeDialog,
-	type DateRangeFilter,
-} from "@/components/date-range-filter";
+import { DateFilterMenu, FilterGroup } from "@/components/filter-menu";
+
+import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
 import {
 	type ColumnDef,
@@ -28,13 +26,10 @@ import { format } from "date-fns";
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
-	RiArrowRightSLine,
 	RiArrowUpSLine,
 	RiCalendarLine,
 	RiCloseLine,
 	RiEyeLine,
-	RiFileList2Line,
-	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
 	RiShare2Line,
@@ -43,8 +38,9 @@ import { CopyIdButton } from "@/components/copy-id-button";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
+import { FilterChip } from "@/components/filter-chip";
+import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -53,7 +49,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -72,16 +67,10 @@ import {
 import { CreateVitalsDrawer } from "@/features/patients/components/create-vitals-drawer";
 import { VitalDetailsDrawer } from "@/features/patients/components/vital-details-drawer";
 import { VitalsChart } from "@/features/patients/components/vitals-chart";
-import type {
-	EncounterTypeFilter,
-	VitalEncounterOption,
-	VitalType,
-} from "@/features/patients/types";
+import type { VitalEncounterOption, VitalType } from "@/features/patients/types";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
-
-type VitalFilterSubmenu = "date-recorded" | "encounter-type" | "created-at";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
@@ -94,16 +83,6 @@ const numericVitalColumnIds = new Set([
 	"weight",
 	"bmi",
 ]);
-
-const vitalEncounterTypeFilterOptions: {
-	label: string;
-	value: EncounterTypeFilter;
-}[] = [
-	{ label: "Emergency Visit", value: "emergency-visit" },
-	{ label: "Routine Checkup", value: "routine-checkup" },
-	{ label: "Follow-up Visit", value: "follow-up-visit" },
-	{ label: "Outpatient Visit", value: "outpatient-visit" },
-];
 
 type VitalsTableProps = {
 	patientId: string;
@@ -162,12 +141,7 @@ export function VitalsTable({
 		() => vitals.map((vital) => vital.vitalId).join(","),
 		[vitals],
 	);
-	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<VitalFilterSubmenu | null>(null);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
-	const [isVitalsFilterMenuOpen, setIsVitalsFilterMenuOpen] = useState(false);
-	const [selectedEncounterTypeFilters, setSelectedEncounterTypeFilters] = useState<
-		EncounterTypeFilter[]
-	>([]);
 	const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
 	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
 	const [selectedVitalId, setSelectedVitalId] = useState<string | null>(null);
@@ -188,8 +162,8 @@ export function VitalsTable({
 		<div className="flex flex-col gap-5 px-6 py-8 text-sm">
 			<h1 className="mx-auto w-full max-w-7xl text-lg font-semibold no-line-height">Vitals</h1>
 			<VitalsChart readings={readings} />
-			<div className="mx-auto flex w-full max-w-7xl items-center gap-2">
-				<div className="relative w-full">
+			<div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-2">
+				<div className="relative min-w-0 grow-[999] basis-80">
 					<RiSearchLine className="pointer-events-none absolute bottom-0 left-2 flex h-full size-4 items-center justify-center text-gray-400" />
 					<Input
 						type="search"
@@ -200,137 +174,40 @@ export function VitalsTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<DropdownMenu
-					open={isVitalsFilterMenuOpen}
-					onOpenChange={(nextIsVitalsFilterMenuOpen) => {
-						setIsVitalsFilterMenuOpen(nextIsVitalsFilterMenuOpen);
-
-						if (!nextIsVitalsFilterMenuOpen) {
-							setActiveFilterSubmenu(null);
+				<div className="flex grow flex-wrap items-center gap-2 max-md:w-full">
+					<FilterGroup
+						activeFilterCount={
+							(recordedFrom || recordedTo ? 1 : 0) + (createdFrom || createdTo ? 1 : 0)
 						}
-					}}
-				>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
-							Filter
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						onPointerLeave={() => setActiveFilterSubmenu(null)}
-						align="end"
-						className="relative w-[13.75rem] overflow-visible rounded-xl bg-white text-sm text-gray-700"
 					>
-						<DropdownMenuItem
-							data-active={activeFilterSubmenu === "date-recorded"}
-							onFocus={() => setActiveFilterSubmenu("date-recorded")}
-							onPointerEnter={() => setActiveFilterSubmenu("date-recorded")}
-							onSelect={(event) => event.preventDefault()}
-							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
-						>
-							<RiCalendarLine className="size-4" />
-							<span className="flex-1">Date recorded</span>
-							<RiArrowRightSLine className="size-4" aria-hidden="true" />
-						</DropdownMenuItem>
-
-						<DropdownMenuItem
-							data-active={activeFilterSubmenu === "encounter-type"}
-							onFocus={() => setActiveFilterSubmenu("encounter-type")}
-							onPointerEnter={() => setActiveFilterSubmenu("encounter-type")}
-							onSelect={(event) => event.preventDefault()}
-							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
-						>
-							<RiFileList2Line className="size-4" />
-							<span className="flex-1">Encounter type</span>
-							<RiArrowRightSLine className="size-4" aria-hidden="true" />
-						</DropdownMenuItem>
-
-						<DropdownMenuItem
-							data-active={activeFilterSubmenu === "created-at"}
-							onFocus={() => setActiveFilterSubmenu("created-at")}
-							onPointerEnter={() => setActiveFilterSubmenu("created-at")}
-							onSelect={(event) => event.preventDefault()}
-							className="mb-0 h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
-						>
-							<RiCalendarLine className="size-4" />
-							<span className="flex-1">Created at</span>
-							<RiArrowRightSLine className="size-4" aria-hidden="true" />
-						</DropdownMenuItem>
-
-						<div
-							id="vitals-filter-submenu-panel"
-							aria-hidden={activeFilterSubmenu === null}
-							className={cn(
-								"absolute top-0 right-[100%] z-50 w-[13.75rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl bg-white text-sm text-gray-700 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_1px_2px_-1px_rgba(0,0,0,0.06),0_0.5rem_1.5rem_-0.25rem_rgba(0,0,0,0.12)] transition-[translate,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-								activeFilterSubmenu === "encounter-type"
-									? "translate-y-10"
-									: activeFilterSubmenu === "created-at"
-										? "translate-y-20"
-										: "translate-y-0",
-								activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
-							)}
-						>
-							<div hidden={activeFilterSubmenu !== "date-recorded"} className="p-1">
-								<DateRangeMenuItems
-									from={recordedFrom}
-									to={recordedTo}
-									onDateRangeApply={onRecordedAtRangeApply}
-									onCustomDateRangeSelect={setCustomDateRangeFilter}
-								/>
-							</div>
-
-							<div hidden={activeFilterSubmenu !== "encounter-type"} className="p-1">
-								{vitalEncounterTypeFilterOptions.map((option) => {
-									const inputId = `vital-encounter-type-${option.value}`;
-									const isSelected = selectedEncounterTypeFilters.includes(option.value);
-
-									return (
-										<Label
-											key={option.value}
-											htmlFor={inputId}
-											className="flex h-9 cursor-pointer items-center gap-2 rounded-lg px-2 text-sm font-normal text-gray-600 hover:bg-gray-100"
-										>
-											<Checkbox
-												id={inputId}
-												checked={isSelected}
-												onCheckedChange={(isChecked) => {
-													setSelectedEncounterTypeFilters((previousFilters) =>
-														isChecked
-															? [...previousFilters, option.value]
-															: previousFilters.filter((filter) => filter !== option.value),
-													);
-												}}
-											/>
-											{option.label}
-										</Label>
-									);
-								})}
-							</div>
-
-							<div hidden={activeFilterSubmenu !== "created-at"} className="p-1">
-								<DateRangeMenuItems
-									from={createdFrom}
-									to={createdTo}
-									onDateRangeApply={onCreatedAtRangeApply}
-									onCustomDateRangeSelect={setCustomDateRangeFilter}
-								/>
-							</div>
-						</div>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<SetDateRangeDialog
-					dateRangeFilter={customDateRangeFilter}
-					onClose={() => setCustomDateRangeFilter(null)}
-				/>
-				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-					Export
-				</Button>
-				<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
-					Add vitals
-				</Button>
+						<DateFilterMenu
+							label="Date recorded"
+							icon={RiCalendarLine}
+							from={recordedFrom}
+							to={recordedTo}
+							onDateRangeApply={onRecordedAtRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
+						<DateFilterMenu
+							label="Created at"
+							icon={RiCalendarLine}
+							from={createdFrom}
+							to={createdTo}
+							onDateRangeApply={onCreatedAtRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
+					</FilterGroup>
+					<SetDateRangeDialog
+						dateRangeFilter={customDateRangeFilter}
+						onClose={() => setCustomDateRangeFilter(null)}
+					/>
+					<ExportButton />
+					<Button className="flex-1" type="button" onClick={() => setIsCreateDrawerOpen(true)}>
+						Add vitals
+					</Button>
+				</div>
 			</div>
-			<VitalActiveFilterPills
+			<VitalActiveFilterChips
 				recordedFrom={recordedFrom}
 				recordedTo={recordedTo}
 				createdFrom={createdFrom}
@@ -547,7 +424,7 @@ function VitalsTableContent({
 						)}
 					</TableBody>
 				</Table>
-				<div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500">
+				<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select
@@ -676,7 +553,7 @@ function VitalsBulkActionBar({
 	);
 }
 
-function VitalActiveFilterPills({
+function VitalActiveFilterChips({
 	recordedFrom,
 	recordedTo,
 	createdFrom,
@@ -699,21 +576,21 @@ function VitalActiveFilterPills({
 	if (!hasRecordedAtFilter && !hasCreatedAtFilter) return null;
 
 	return (
-		<div className="mx-auto flex w-full max-w-7xl items-start gap-4">
-			<div className="flex flex-1 flex-wrap gap-2">
-				{hasRecordedAtFilter ? (
-					<VitalFilterPill
-						label={`Recorded: ${formatDateRangeFilterLabel(recordedFrom, recordedTo)}`}
-						onRemove={() => onRecordedAtRangeApply("", "")}
-					/>
-				) : null}
-				{hasCreatedAtFilter ? (
-					<VitalFilterPill
-						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-						onRemove={() => onCreatedAtRangeApply("", "")}
-					/>
-				) : null}
-			</div>
+		<div className="mx-auto flex w-full max-w-7xl flex-wrap gap-2">
+			{hasRecordedAtFilter ? (
+				<FilterChip
+					name="Recorded"
+					value={formatDateRangeFilterLabel(recordedFrom, recordedTo)}
+					onRemove={() => onRecordedAtRangeApply("", "")}
+				/>
+			) : null}
+			{hasCreatedAtFilter ? (
+				<FilterChip
+					name="Created"
+					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
 			<Button
 				type="button"
 				variant="ghost"
@@ -727,34 +604,25 @@ function VitalActiveFilterPills({
 	);
 }
 
-function VitalFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
-			<span>{label}</span>
-			<Button
-				type="button"
-				onClick={onRemove}
-				size="icon"
-				className="flex size-5 rounded-full text-white hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
-				aria-label={`Remove ${label} filter`}
-			>
-				<RiCloseLine className="size-4" aria-hidden="true" />
-			</Button>
-		</span>
-	);
-}
-
 function formatDateRangeFilterLabel(from: string, to: string) {
 	const parsedFromDate = parseDateParam(from);
 	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate && from === to) {
+		return format(parsedFromDate, "MMM d, yyyy");
+	}
 
 	if (parsedFromDate && parsedToDate) {
 		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;
 	}
 
-	if (parsedFromDate) return `From ${format(parsedFromDate, "MMM d, yyyy")}`;
+	if (parsedFromDate) {
+		return `From ${format(parsedFromDate, "MMM d, yyyy")}`;
+	}
 
-	if (parsedToDate) return `Until ${format(parsedToDate, "MMM d, yyyy")}`;
+	if (parsedToDate) {
+		return `Until ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
 
 	return "Any date";
 }

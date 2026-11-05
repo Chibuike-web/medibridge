@@ -18,3 +18,13 @@ if (typeof HTMLElement !== "undefined") {
 }
 
 afterEach(cleanup);
+
+if (typeof window !== "undefined") {
+	window.matchMedia = (query) =>
+		({
+			matches: false,
+			media: query,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+		}) as unknown as MediaQueryList;
+}
