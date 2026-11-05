@@ -65,6 +65,12 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
 import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
+import type { ProcedureDetailsType } from "@/features/patients/types";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import { SharedProcedureDetailsDrawer } from "./procedure-details-drawer";
+
+type ProcedureDetailsRequestError = Error & { status?: number };
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 const procedureStatusFilterOptions = [
@@ -83,6 +89,7 @@ export type SharedProcedureRow = {
 };
 
 export function SharedProceduresTable({
+	accessId,
 	rows,
 	page,
 	limit,
@@ -94,6 +101,7 @@ export function SharedProceduresTable({
 	createdFrom,
 	createdTo,
 }: {
+	accessId: string;
 	rows: SharedProcedureRow[];
 	page: number;
 	limit: number;
@@ -199,6 +207,28 @@ export function SharedProceduresTable({
 			nextCreatedTo: "",
 		});
 	}
+	const router = useRouter();
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedId, setSelectedId] = useState<string | null>(null);
+	const procedureDetailsQuery = useSWR(
+		isDetailsDrawerOpen && selectedId
+			? (["shared-procedure-details", accessId, selectedId] as const)
+			: null,
+		([, accessId, selectedId]) => fetchSharedProcedureDetails(accessId, selectedId),
+		{
+			dedupingInterval: 0,
+			onError: (error: ProcedureDetailsRequestError) => {
+				if (error.status === 401) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: ProcedureDetailsRequestError) => error.status !== 401,
+		},
+	);
+	function handleViewProcedureDetails(procedureId: string) {
+		setSelectedId(procedureId);
+		setIsDetailsDrawerOpen(true);
+	}
 	const columns = useMemo<ColumnDef<typeof configuredTableFeatures, SharedProcedureRow>[]>(
 		() => [
 			{
@@ -232,7 +262,9 @@ export function SharedProceduresTable({
 			{
 				id: "actions",
 				header: "",
-				cell: () => <RowMenu />,
+				cell: ({ row }) => (
+					<RowMenu onViewDetails={() => handleViewProcedureDetails(row.original.procedureId)} />
+				),
 				enableSorting: false,
 				size: 40,
 			},
@@ -469,6 +501,12 @@ export function SharedProceduresTable({
 					</div>
 				</div>
 			</div>
+			<SharedProcedureDetailsDrawer
+				open={isDetailsDrawerOpen}
+				onOpenChange={setIsDetailsDrawerOpen}
+				procedure={procedureDetailsQuery.data ?? null}
+				isLoading={procedureDetailsQuery.isLoading}
+			/>
 		</div>
 	);
 }
@@ -495,7 +533,7 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 
 	return "Any date";
 }
-function RowMenu() {
+function RowMenu({ onViewDetails }: { onViewDetails: () => void }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
@@ -509,7 +547,10 @@ function RowMenu() {
 				align="end"
 				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
-				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+				<DropdownMenuItem
+					className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+					onSelect={onViewDetails}
+				>
 					<RiEyeLine className="text-white" aria-hidden="true" />
 					<span>View details</span>
 				</DropdownMenuItem>
@@ -520,6 +561,22 @@ function RowMenu() {
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
+}
+
+async function fetchSharedProcedureDetails(accessId: string, procedureId: string) {
+	const response = await fetch(
+		`/api/shared-procedure-details/${encodeURIComponent(accessId)}/${encodeURIComponent(procedureId)}`,
+	);
+
+	if (!response.ok) {
+		throw Object.assign(new Error("Unable to load procedure details."), {
+			status: response.status,
+		});
+	}
+
+	const result = (await response.json()) as { procedure: ProcedureDetailsType | null };
+
+	return result.procedure;
 }
 
 function CheckboxFilterList<TValue extends string>({

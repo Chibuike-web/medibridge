@@ -35,6 +35,7 @@ const tableCases = [
 		rowText: "Asthma",
 		renderTable: (props: NavigationProps) => (
 			<SharedDiagnosesTable
+				accessId="access-1"
 				rows={[
 					{
 						name: "Asthma",
@@ -69,6 +70,7 @@ const tableCases = [
 		rowText: "Penicillin",
 		renderTable: (props: NavigationProps) => (
 			<SharedAllergiesTable
+				accessId="access-1"
 				rows={[
 					{
 						allergen: "Penicillin",
@@ -98,6 +100,7 @@ const tableCases = [
 		rowText: "Hepatitis B",
 		renderTable: (props: NavigationProps) => (
 			<SharedImmunizationsTable
+				accessId="access-1"
 				rows={[
 					{
 						vaccineName: "Hepatitis B",
@@ -125,6 +128,7 @@ const tableCases = [
 		rowText: "Appendectomy",
 		renderTable: (props: NavigationProps) => (
 			<SharedProceduresTable
+				accessId="access-1"
 				rows={[
 					{
 						procedure: "Appendectomy",
@@ -153,6 +157,7 @@ const tableCases = [
 		rowText: "Amoxicillin",
 		renderTable: (props: NavigationProps) => (
 			<SharedMedicationsTable
+				accessId="access-1"
 				rows={[
 					{
 						medication: "Amoxicillin",
@@ -184,6 +189,7 @@ const tableCases = [
 		rowText: "Full Blood Count",
 		renderTable: (props: NavigationProps) => (
 			<SharedLabTestsTable
+				accessId="access-1"
 				rows={[
 					{
 						test: "Full Blood Count",
@@ -214,6 +220,7 @@ const tableCases = [
 		rowText: "Chest X-ray",
 		renderTable: (props: NavigationProps) => (
 			<SharedImagingTable
+				accessId="access-1"
 				rows={[
 					{
 						study: "Chest X-ray",

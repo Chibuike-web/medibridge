@@ -1,5 +1,7 @@
 "use client";
 
+import { useIsBelowMd } from "@/hooks/use-is-below-md";
+
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
 import {
@@ -89,6 +91,7 @@ export function ImmunizationDetailsDrawer({
 	isLoading,
 	onImmunizationUpdated,
 }: ImmunizationDetailsDrawerProps) {
+	const isBelowMd = useIsBelowMd();
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
@@ -140,13 +143,15 @@ export function ImmunizationDetailsDrawer({
 	const isEditingImmunizationDetails = immunizationDetailsMode === "edit" && Boolean(immunization);
 
 	return (
-		<Drawer open={open} onOpenChange={handleImmunizationDetailsOpenChange} direction="right">
-			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
+		<Drawer
+			open={open}
+			onOpenChange={handleImmunizationDetailsOpenChange}
+			direction={isBelowMd ? "bottom" : "right"}
+		>
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem] max-w-none data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-3xl data-[vaul-drawer-direction=bottom]:border">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="flex-1 leading-[1.2] text-gray-800">
-						{isEditingImmunizationDetails
-							? "Edit immunization details"
-							: "Immunization details"}
+						{isEditingImmunizationDetails ? "Edit immunization details" : "Immunization details"}
 					</DrawerTitle>
 					{immunization && !isEditingImmunizationDetails ? (
 						<DropdownMenu>
@@ -314,7 +319,11 @@ export function ImmunizationDetailsDrawer({
 	);
 }
 
-function ImmunizationDetailsOverview({ immunization }: { immunization: ImmunizationDetailsType }) {
+export function ImmunizationDetailsOverview({
+	immunization,
+}: {
+	immunization: ImmunizationDetailsType;
+}) {
 	return (
 		<div className="flex flex-col gap-8">
 			<div className="flex flex-col gap-4">
@@ -610,7 +619,11 @@ function ImmunizationDetailItem({ label, value }: { label: string; value: string
 	);
 }
 
-function ImmunizationHistorySection({ history }: { history: ImmunizationDetailsHistoryEvent[] }) {
+export function ImmunizationHistorySection({
+	history,
+}: {
+	history: ImmunizationDetailsHistoryEvent[];
+}) {
 	if (history.length === 0) {
 		return null;
 	}
@@ -751,7 +764,7 @@ function ImmunizationHistoryCard({
 	);
 }
 
-function ImmunizationDetailsFallback() {
+export function ImmunizationDetailsFallback() {
 	return (
 		<div className="flex flex-col gap-8" aria-busy="true" aria-live="polite">
 			<div className="flex flex-wrap gap-6">

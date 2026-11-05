@@ -15,6 +15,7 @@ export const getSharedRecord = cache(async (accessId: string) => {
 	const [access] = await db
 		.select({
 			patientId: patientRecordAccess.patientId,
+			organizationId: patient.organizationId,
 			status: patientRecordAccess.status,
 			expiresAt: patientRecordAccess.expiresAt,
 			revokedAt: patientRecordAccess.revokedAt,
@@ -43,6 +44,7 @@ export const getSharedRecord = cache(async (accessId: string) => {
 
 	return {
 		patientId: access.patientId,
+		organizationId: access.organizationId,
 		selectedRecordIds: access.selectedRecordIds,
 		sourceOrganizationName: access.sourceOrganizationName,
 		expiresAt: access.expiresAt.toISOString(),

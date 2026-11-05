@@ -1,5 +1,7 @@
 "use client";
 
+import { useIsBelowMd } from "@/hooks/use-is-below-md";
+
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
 import {
@@ -100,6 +102,7 @@ export function LabTestDetailsDrawer({
 	labTest,
 	patientId,
 }: LabTestDetailsDrawerProps) {
+	const isBelowMd = useIsBelowMd();
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
@@ -214,8 +217,12 @@ export function LabTestDetailsDrawer({
 	const isEditingLabTestDetails = labTestDetailsMode === "edit" && Boolean(labTest);
 
 	return (
-		<Drawer open={open} onOpenChange={handleLabTestDetailsOpenChange} direction="right">
-			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
+		<Drawer
+			open={open}
+			onOpenChange={handleLabTestDetailsOpenChange}
+			direction={isBelowMd ? "bottom" : "right"}
+		>
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem] max-w-none data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-3xl data-[vaul-drawer-direction=bottom]:border">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="flex-1 leading-[1.2] text-gray-800">
 						{isEditingLabTestDetails ? "Edit lab test details" : "Lab test details"}
@@ -345,7 +352,7 @@ export function LabTestDetailsDrawer({
 	);
 }
 
-function LabTestDetailsOverview({ labTest }: { labTest: LabTestType }) {
+export function LabTestDetailsOverview({ labTest }: { labTest: LabTestType }) {
 	return (
 		<div className="flex flex-col gap-8">
 			<div className="flex flex-col gap-4">
@@ -391,7 +398,7 @@ function LabTestDetailItem({ label, value }: { label: string; value: string }) {
 	);
 }
 
-function LabTestFilesSection({ files }: { files: LabTestType["files"] }) {
+export function LabTestFilesSection({ files }: { files: LabTestType["files"] }) {
 	const [areLabTestFilesExpanded, setAreLabTestFilesExpanded] = useState(false);
 	const visibleFiles = areLabTestFilesExpanded ? files : files.slice(0, 3);
 
@@ -473,7 +480,7 @@ function getLabTestFileIcon(fileName: string, fileType: string) {
 	return docFileIcon;
 }
 
-function LabTestHistorySection({ history }: { history: LabTestDetailsHistoryEvent[] }) {
+export function LabTestHistorySection({ history }: { history: LabTestDetailsHistoryEvent[] }) {
 	if (history.length === 0) {
 		return null;
 	}

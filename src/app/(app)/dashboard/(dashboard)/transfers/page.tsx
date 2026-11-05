@@ -134,7 +134,7 @@ async function TransfersContent({ searchParams }: TransfersPageProps) {
 function TransfersPageSkeleton() {
 	return (
 		<div className="h-full overflow-y-auto">
-			<section className="mx-auto flex w-full max-w-7xl flex-col px-6 py-6 lg:px-10">
+			<section className="mx-auto flex w-full max-w-7xl flex-col px-6 pt-4 pb-6 lg:px-10">
 				<header className="mb-4 flex items-center gap-4 text-sm">
 					<div className="h-6 w-32 animate-pulse rounded bg-gray-100" />
 

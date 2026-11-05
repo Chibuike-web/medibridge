@@ -1,5 +1,7 @@
 "use client";
 
+import { useIsBelowMd } from "@/hooks/use-is-below-md";
+
 import { Button } from "@/components/ui/button";
 import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Calendar } from "@/components/ui/calendar";
@@ -59,6 +61,7 @@ export function CreateImagingDrawer({
 	patientId,
 	encounterId,
 }: CreateImagingDrawerProps) {
+	const isBelowMd = useIsBelowMd();
 	const router = useRouter();
 	const generatedFormId = useId();
 	const nextAttachmentRowNumberRef = useRef(0);
@@ -184,8 +187,8 @@ export function CreateImagingDrawer({
 	}
 
 	return (
-		<Drawer open={open} onOpenChange={handleOpenChange} direction="right">
-			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
+		<Drawer open={open} onOpenChange={handleOpenChange} direction={isBelowMd ? "bottom" : "right"}>
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem] max-w-none data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-3xl data-[vaul-drawer-direction=bottom]:border">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="leading-[1.2] text-gray-800">Add imaging</DrawerTitle>
 					<DrawerClose asChild>

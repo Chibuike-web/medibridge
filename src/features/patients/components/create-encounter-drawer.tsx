@@ -1,5 +1,7 @@
 "use client";
 
+import { useIsBelowMd } from "@/hooks/use-is-below-md";
+
 import { useId, useState, useTransition, type FormEvent } from "react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
@@ -47,6 +49,7 @@ export function CreateEncounterDrawer({
 	onOpenChange: (open: boolean) => void;
 	patientId: string;
 }) {
+	const isBelowMd = useIsBelowMd();
 	const router = useRouter();
 	const formId = useId();
 	const { data: session } = authClient.useSession();
@@ -85,7 +88,7 @@ export function CreateEncounterDrawer({
 
 	return (
 		<Drawer
-			direction="right"
+			direction={isBelowMd ? "bottom" : "right"}
 			open={open}
 			onOpenChange={(isOpen) => {
 				if (!isOpen) {
@@ -95,7 +98,7 @@ export function CreateEncounterDrawer({
 				onOpenChange(isOpen);
 			}}
 		>
-			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem] max-w-none data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-3xl data-[vaul-drawer-direction=bottom]:border">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="leading-[1.2] text-gray-800">Create encounter</DrawerTitle>
 					<DrawerClose asChild>

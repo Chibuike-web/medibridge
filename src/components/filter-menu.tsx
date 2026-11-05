@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, use, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, use, useRef, useState, type ReactNode } from "react";
 import { RiCloseLine, RiFilter3Line, type RemixiconComponentType } from "@remixicon/react";
 
 import {
@@ -23,23 +23,11 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useIsBelowMd } from "@/hooks/use-is-below-md";
 
 const FILTER_MENU_WIDTH_REM = 13.75;
-const BELOW_MD_QUERY = "(width < 48rem)";
 
 const CloseFilterDrawerContext = createContext<(() => void) | null>(null);
-
-function useIsBelowMd() {
-	return useSyncExternalStore(
-		(onChange) => {
-			const mediaQuery = window.matchMedia(BELOW_MD_QUERY);
-			mediaQuery.addEventListener("change", onChange);
-			return () => mediaQuery.removeEventListener("change", onChange);
-		},
-		() => window.matchMedia(BELOW_MD_QUERY).matches,
-		() => false,
-	);
-}
 
 function getFilterMenuAlign(trigger: HTMLButtonElement) {
 	const remInPixels = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -76,7 +64,7 @@ export function FilterGroup({
 				aria-describedby={undefined}
 				className="max-w-none overflow-hidden text-sm text-gray-700 shadow-[0_2rem_2rem_-1.25rem_rgba(0,0,0,0.25)] data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-3xl data-[vaul-drawer-direction=bottom]:border"
 			>
-				<DrawerHeader className="h-auto flex-row items-center justify-between border-b border-gray-200 pt-1 pb-3 text-left">
+				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="leading-[1.2] text-gray-800">Filters</DrawerTitle>
 					<DrawerClose asChild>
 						<Button variant="ghost" size="icon" aria-label="Close filters">

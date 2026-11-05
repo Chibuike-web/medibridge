@@ -65,6 +65,12 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
 import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
+import type { ImmunizationDetailsType } from "@/features/patients/types";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import { SharedImmunizationDetailsDrawer } from "./immunization-details-drawer";
+
+type ImmunizationDetailsRequestError = Error & { status?: number };
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 const immunizationStatusFilterOptions = [
@@ -83,6 +89,7 @@ export type SharedImmunizationRow = {
 };
 
 export function SharedImmunizationsTable({
+	accessId,
 	rows,
 	page,
 	limit,
@@ -94,6 +101,7 @@ export function SharedImmunizationsTable({
 	createdFrom,
 	createdTo,
 }: {
+	accessId: string;
 	rows: SharedImmunizationRow[];
 	page: number;
 	limit: number;
@@ -199,6 +207,28 @@ export function SharedImmunizationsTable({
 			nextCreatedTo: "",
 		});
 	}
+	const router = useRouter();
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedId, setSelectedId] = useState<string | null>(null);
+	const immunizationDetailsQuery = useSWR(
+		isDetailsDrawerOpen && selectedId
+			? (["shared-immunization-details", accessId, selectedId] as const)
+			: null,
+		([, accessId, selectedId]) => fetchSharedImmunizationDetails(accessId, selectedId),
+		{
+			dedupingInterval: 0,
+			onError: (error: ImmunizationDetailsRequestError) => {
+				if (error.status === 401) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: ImmunizationDetailsRequestError) => error.status !== 401,
+		},
+	);
+	function handleViewImmunizationDetails(immunizationId: string) {
+		setSelectedId(immunizationId);
+		setIsDetailsDrawerOpen(true);
+	}
 	const columns = useMemo<ColumnDef<typeof configuredTableFeatures, SharedImmunizationRow>[]>(
 		() => [
 			{
@@ -231,7 +261,11 @@ export function SharedImmunizationsTable({
 			{
 				id: "actions",
 				header: "",
-				cell: () => <RowMenu />,
+				cell: ({ row }) => (
+					<RowMenu
+						onViewDetails={() => handleViewImmunizationDetails(row.original.immunizationId)}
+					/>
+				),
 				enableSorting: false,
 				size: 40,
 			},
@@ -469,6 +503,12 @@ export function SharedImmunizationsTable({
 					</div>
 				</div>
 			</div>
+			<SharedImmunizationDetailsDrawer
+				open={isDetailsDrawerOpen}
+				onOpenChange={setIsDetailsDrawerOpen}
+				immunization={immunizationDetailsQuery.data ?? null}
+				isLoading={immunizationDetailsQuery.isLoading}
+			/>
 		</div>
 	);
 }
@@ -495,7 +535,7 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 
 	return "Any date";
 }
-function RowMenu() {
+function RowMenu({ onViewDetails }: { onViewDetails: () => void }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
@@ -509,7 +549,10 @@ function RowMenu() {
 				align="end"
 				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
-				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+				<DropdownMenuItem
+					className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+					onSelect={onViewDetails}
+				>
 					<RiEyeLine className="text-white" aria-hidden="true" />
 					<span>View details</span>
 				</DropdownMenuItem>
@@ -520,6 +563,22 @@ function RowMenu() {
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
+}
+
+async function fetchSharedImmunizationDetails(accessId: string, immunizationId: string) {
+	const response = await fetch(
+		`/api/shared-immunization-details/${encodeURIComponent(accessId)}/${encodeURIComponent(immunizationId)}`,
+	);
+
+	if (!response.ok) {
+		throw Object.assign(new Error("Unable to load immunization details."), {
+			status: response.status,
+		});
+	}
+
+	const result = (await response.json()) as { immunization: ImmunizationDetailsType | null };
+
+	return result.immunization;
 }
 
 function CheckboxFilterList<TValue extends string>({

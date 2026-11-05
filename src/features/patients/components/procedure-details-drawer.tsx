@@ -1,5 +1,7 @@
 "use client";
 
+import { useIsBelowMd } from "@/hooks/use-is-below-md";
+
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
 import {
@@ -95,6 +97,7 @@ export function ProcedureDetailsDrawer({
 	isLoading,
 	onProcedureUpdated,
 }: ProcedureDetailsDrawerProps) {
+	const isBelowMd = useIsBelowMd();
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
@@ -145,8 +148,12 @@ export function ProcedureDetailsDrawer({
 	const isEditingProcedureDetails = procedureDetailsMode === "edit" && Boolean(procedure);
 
 	return (
-		<Drawer open={open} onOpenChange={handleProcedureDetailsOpenChange} direction="right">
-			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
+		<Drawer
+			open={open}
+			onOpenChange={handleProcedureDetailsOpenChange}
+			direction={isBelowMd ? "bottom" : "right"}
+		>
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem] max-w-none data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-3xl data-[vaul-drawer-direction=bottom]:border">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="flex-1 leading-[1.2] text-gray-800">
 						{isEditingProcedureDetails ? "Edit procedure details" : "Procedure details"}
@@ -278,7 +285,7 @@ export function ProcedureDetailsDrawer({
 	);
 }
 
-function ProcedureDetailsOverview({ procedure }: { procedure: ProcedureDetailsType }) {
+export function ProcedureDetailsOverview({ procedure }: { procedure: ProcedureDetailsType }) {
 	const dateLabel = procedure.status === "Pending" ? "Planned date" : "Performed on";
 	const physicianLabel = procedure.status === "Pending" ? "Planned physician" : "Performed by";
 	const assistantLabel = procedure.status === "Pending" ? "Planned Assistants" : "Team/Assistants";
@@ -736,7 +743,7 @@ function ProcedureDetailListItem({ label, values }: { label: string; values: str
 	);
 }
 
-function ProcedureRelatedRecords({
+export function ProcedureRelatedRecords({
 	relatedRecords,
 }: {
 	relatedRecords: ProcedureDetailsType["relatedRecords"];
@@ -825,7 +832,7 @@ function ProcedureRelatedRecordSection({
 	);
 }
 
-function ProcedureHistorySection({ history }: { history: ProcedureDetailsHistoryEvent[] }) {
+export function ProcedureHistorySection({ history }: { history: ProcedureDetailsHistoryEvent[] }) {
 	if (history.length === 0) {
 		return null;
 	}
@@ -962,7 +969,7 @@ function ProcedureHistoryCard({ historyEvent }: { historyEvent: ProcedureDetails
 	);
 }
 
-function ProcedureDetailsFallback() {
+export function ProcedureDetailsFallback() {
 	return (
 		<div className="flex flex-col gap-8" aria-busy="true" aria-live="polite">
 			<div className="flex flex-wrap gap-6">

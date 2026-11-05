@@ -65,6 +65,12 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
 import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
+import type { MedicationDetailsType } from "@/features/patients/types";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import { SharedMedicationDetailsDrawer } from "./medication-details-drawer";
+
+type MedicationDetailsRequestError = Error & { status?: number };
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 const medicationStatusFilterOptions = [
@@ -86,6 +92,7 @@ export type SharedMedicationRow = {
 };
 
 export function SharedMedicationsTable({
+	accessId,
 	rows,
 	page,
 	limit,
@@ -97,6 +104,7 @@ export function SharedMedicationsTable({
 	createdFrom,
 	createdTo,
 }: {
+	accessId: string;
 	rows: SharedMedicationRow[];
 	page: number;
 	limit: number;
@@ -202,6 +210,28 @@ export function SharedMedicationsTable({
 			nextCreatedTo: "",
 		});
 	}
+	const router = useRouter();
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedId, setSelectedId] = useState<string | null>(null);
+	const medicationDetailsQuery = useSWR(
+		isDetailsDrawerOpen && selectedId
+			? (["shared-medication-details", accessId, selectedId] as const)
+			: null,
+		([, accessId, selectedId]) => fetchSharedMedicationDetails(accessId, selectedId),
+		{
+			dedupingInterval: 0,
+			onError: (error: MedicationDetailsRequestError) => {
+				if (error.status === 401) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: MedicationDetailsRequestError) => error.status !== 401,
+		},
+	);
+	function handleViewMedicationDetails(medicationId: string) {
+		setSelectedId(medicationId);
+		setIsDetailsDrawerOpen(true);
+	}
 	const columns = useMemo<ColumnDef<typeof configuredTableFeatures, SharedMedicationRow>[]>(
 		() => [
 			{
@@ -238,7 +268,9 @@ export function SharedMedicationsTable({
 			{
 				id: "actions",
 				header: "",
-				cell: () => <RowMenu />,
+				cell: ({ row }) => (
+					<RowMenu onViewDetails={() => handleViewMedicationDetails(row.original.medicationId)} />
+				),
 				enableSorting: false,
 				size: 40,
 			},
@@ -485,6 +517,12 @@ export function SharedMedicationsTable({
 					</div>
 				</div>
 			</div>
+			<SharedMedicationDetailsDrawer
+				open={isDetailsDrawerOpen}
+				onOpenChange={setIsDetailsDrawerOpen}
+				medication={medicationDetailsQuery.data ?? null}
+				isLoading={medicationDetailsQuery.isLoading}
+			/>
 		</div>
 	);
 }
@@ -511,7 +549,7 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 
 	return "Any date";
 }
-function RowMenu() {
+function RowMenu({ onViewDetails }: { onViewDetails: () => void }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
@@ -525,7 +563,10 @@ function RowMenu() {
 				align="end"
 				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
-				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+				<DropdownMenuItem
+					className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+					onSelect={onViewDetails}
+				>
 					<RiEyeLine className="text-white" aria-hidden="true" />
 					<span>View details</span>
 				</DropdownMenuItem>
@@ -536,6 +577,22 @@ function RowMenu() {
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
+}
+
+async function fetchSharedMedicationDetails(accessId: string, medicationId: string) {
+	const response = await fetch(
+		`/api/shared-medication-details/${encodeURIComponent(accessId)}/${encodeURIComponent(medicationId)}`,
+	);
+
+	if (!response.ok) {
+		throw Object.assign(new Error("Unable to load medication details."), {
+			status: response.status,
+		});
+	}
+
+	const result = (await response.json()) as { medication: MedicationDetailsType | null };
+
+	return result.medication;
 }
 
 function CheckboxFilterList<TValue extends string>({

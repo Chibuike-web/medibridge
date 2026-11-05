@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MobileMenu } from "@/components/layout/mobile-menu";
 import { UserProfile } from "@/components/layout/user-profile";
 import {
 	RiAddLine,
@@ -20,7 +21,14 @@ import {
 	RiFunctionLine,
 	RiSearchLine,
 } from "@remixicon/react";
-import { ComponentType, useCallback, useEffect, useRef, useState } from "react";
+import {
+	ComponentType,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from "react";
 import { Tabs } from "radix-ui";
 import {
 	CommandDialog,
@@ -39,8 +47,21 @@ import { AddPatientDialog } from "@/features/patients/components/add-patient-dia
 const MIN_WIDTH = 56;
 const MAX_WIDTH = 272;
 const COLLAPSE_THRESHOLD = 200;
+const TABLET_MEDIA_QUERY = "(min-width: 48rem) and (max-width: 63.9375rem)";
 
-export function Sidebar({ initialWidth }: { initialWidth?: string }) {
+function subscribeToTabletWidth(onChange: () => void) {
+	const tabletMediaQuery = window.matchMedia(TABLET_MEDIA_QUERY);
+	tabletMediaQuery.addEventListener("change", onChange);
+	return () => tabletMediaQuery.removeEventListener("change", onChange);
+}
+
+export function Sidebar({
+	initialWidth,
+	hospitalName,
+}: {
+	initialWidth?: string;
+	hospitalName: string;
+}) {
 	const parsedWidth = Number(initialWidth ?? MAX_WIDTH);
 	const [width, setWidth] = useState(
 		parsedWidth >= MIN_WIDTH && parsedWidth <= MAX_WIDTH ? parsedWidth : MAX_WIDTH,
@@ -84,7 +105,18 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 	);
 	const startXRef = useRef(0);
 	const startWidthRef = useRef(0);
-	const isCollapsed = width < COLLAPSE_THRESHOLD;
+	const isTabletWidth = useSyncExternalStore(
+		subscribeToTabletWidth,
+		() => window.matchMedia(TABLET_MEDIA_QUERY).matches,
+		() => false,
+	);
+	const isCollapsed = isTabletWidth || width < COLLAPSE_THRESHOLD;
+	const isExpandButtonShown = isHovered && !isTabletWidth;
+	const hospitalInitials = hospitalName
+		.split(" ")
+		.map((namePart) => namePart.charAt(0).toUpperCase())
+		.join("")
+		.slice(0, 2);
 
 	useEffect(
 		function saveSidebarWidth() {
@@ -156,16 +188,33 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 
 	return (
 		<TooltipProvider>
+			<header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-gray-200 bg-white px-4 md:hidden">
+				<p className="min-w-0 truncate text-lg font-bold tracking-[-0.02em] text-gray-800">
+					{hospitalName}
+				</p>
+				<div className="flex shrink-0 items-center gap-1">
+					<Button
+						variant="ghost"
+						size="icon"
+						aria-label="Search"
+						className="rounded-lg hover:bg-gray-100"
+						onClick={() => setIsSearchOpen(true)}
+					>
+						<RiSearchLine aria-hidden />
+					</Button>
+					<MobileMenu menus={menus} />
+				</div>
+			</header>
 			<aside
 				className={cn(
-					"group/sidebar relative flex h-full shrink-0 flex-col overflow-x-hidden overflow-y-auto border-r border-gray-200",
+					"group/sidebar relative flex h-full shrink-0 flex-col overflow-x-hidden overflow-y-auto border-r border-gray-200 max-lg:w-14! max-md:hidden",
 					isResizing ? "" : "transition-[width] duration-300 ease-in-out",
 				)}
 				style={{ width }}
 			>
 				<div
 					className={cn(
-						"relative flex shrink-0 items-center p-4 transition-[padding] duration-300 ease-in-out",
+						"relative flex h-15 shrink-0 items-center px-4 transition-[padding] duration-300 ease-in-out",
 						isCollapsed ? "justify-center px-2" : "justify-between",
 					)}
 				>
@@ -176,51 +225,54 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 							onMouseLeave={() => setIsHovered(false)}
 						>
 							<h1
+								aria-label={hospitalName}
 								className={cn(
-									"text-lg font-bold absolute inset-0 flex items-center justify-center transition-[opacity,filter] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none motion-reduce:blur-0",
-									isHovered ? "opacity-0 blur-sm" : "opacity-100 blur-0",
+									"text-lg font-bold text-gray-800 absolute inset-0 flex items-center justify-center transition-[opacity,filter] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none motion-reduce:blur-0",
+									isExpandButtonShown ? "opacity-0 blur-sm" : "opacity-100 blur-0",
 								)}
 							>
-								MB
+								{hospitalInitials}
 							</h1>
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<Button
-										variant="ghost"
-										size="icon"
-										onClick={toggleSidebar}
-										aria-label="Expand sidebar"
-										className={cn(
-											"absolute inset-0 flex rounded-lg hover:bg-gray-100 transition-[scale,background-color,color,border-color,opacity,filter] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none motion-reduce:blur-0 size-auto hover:text-inherit",
-											isHovered ? "opacity-100 blur-0" : "opacity-0 blur-sm",
-										)}
-									>
-										<RiContractLeftLine className="size-4 shrink-0" aria-hidden />
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent side="right" sideOffset={16}>
-									Expand sidebar
-								</TooltipContent>
-							</Tooltip>
+							{isTabletWidth ? null : (
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={toggleSidebar}
+											aria-label="Expand sidebar"
+											className={cn(
+												"absolute inset-0 flex rounded-lg hover:bg-gray-100 [&_svg]:!size-4.5 transition-[scale,background-color,color,border-color,opacity,filter] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none motion-reduce:blur-0 size-auto hover:text-inherit",
+												isExpandButtonShown ? "opacity-100 blur-0" : "opacity-0 blur-sm",
+											)}
+										>
+											<RiContractLeftLine className="size-4.5 shrink-0" aria-hidden />
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent side="right" sideOffset={8}>
+										Expand sidebar
+									</TooltipContent>
+								</Tooltip>
+							)}
 						</div>
 					) : (
 						<>
 							<h1
 								className={cn(
-									"overflow-hidden font-bold tracking-[-0.02em] whitespace-nowrap transition-[opacity,width] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+									"min-w-0 truncate font-bold text-gray-800 tracking-[-0.02em] transition-[opacity,width] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 									"w-auto opacity-100 text-lg",
 								)}
 							>
-								Medibridge
+								{hospitalName}
 							</h1>
 							<Button
 								variant="ghost"
 								size="icon"
 								onClick={toggleSidebar}
 								aria-label="Collapse sidebar"
-								className="flex size-8 rounded-lg hover:bg-gray-100 hover:text-inherit"
+								className="flex size-8 rounded-lg hover:bg-gray-100 hover:text-inherit [&_svg]:!size-4.5"
 							>
-								<RiContractLeftLine className="size-4 shrink-0" aria-hidden />
+								<RiContractLeftLine className="size-4.5 shrink-0" aria-hidden />
 							</Button>
 						</>
 					)}
@@ -231,7 +283,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 						{isCollapsed ? (
 							<Tooltip>
 								<TooltipTrigger asChild>{searchButton}</TooltipTrigger>
-								<TooltipContent side="right" sideOffset={12}>
+								<TooltipContent side="right" sideOffset={8}>
 									Search
 								</TooltipContent>
 							</Tooltip>
@@ -458,7 +510,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 								{isCollapsed ? (
 									<Tooltip>
 										<TooltipTrigger asChild>{menuLink}</TooltipTrigger>
-										<TooltipContent side="right" sideOffset={12}>
+										<TooltipContent side="right" sideOffset={8}>
 											{label}
 										</TooltipContent>
 									</Tooltip>
@@ -473,7 +525,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 				<UserProfile isCollapsed={isCollapsed} />
 				<div
 					className={cn(
-						"absolute right-0 top-0 bottom-0 w-1 cursor-col-resize",
+						"absolute right-0 top-0 bottom-0 w-1 cursor-col-resize max-lg:hidden",
 						"hover:bg-gray-100",
 						isResizing ? "bg-gray-100" : "",
 					)}
@@ -486,7 +538,7 @@ export function Sidebar({ initialWidth }: { initialWidth?: string }) {
 
 type MenuId = "overview" | "patients" | "transfers";
 
-type Menu = {
+export type Menu = {
 	id: MenuId;
 	label: string;
 	href: Route;

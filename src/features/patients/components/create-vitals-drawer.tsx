@@ -1,5 +1,7 @@
 "use client";
 
+import { useIsBelowMd } from "@/hooks/use-is-below-md";
+
 import { useId, useState, useTransition } from "react";
 import { format } from "date-fns";
 import { RiCalendarLine, RiCloseLine } from "@remixicon/react";
@@ -57,6 +59,7 @@ export function CreateVitalsDrawer({
 	encounterId?: string;
 	encounterOptions: VitalEncounterOption[];
 }) {
+	const isBelowMd = useIsBelowMd();
 	const formId = useId();
 	const [formError, setFormError] = useState("");
 	const [selectedRecordedDate, setSelectedRecordedDate] = useState<Date>();
@@ -85,14 +88,14 @@ export function CreateVitalsDrawer({
 
 	return (
 		<Drawer
-			direction="right"
+			direction={isBelowMd ? "bottom" : "right"}
 			open={open}
 			onOpenChange={(isOpen) => {
 				if (!isOpen) setSelectedRecordedDate(undefined);
 				onOpenChange(isOpen);
 			}}
 		>
-			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem] max-w-none data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-3xl data-[vaul-drawer-direction=bottom]:border">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="leading-[1.2] text-gray-800">Add vitals</DrawerTitle>
 					<DrawerClose asChild>
