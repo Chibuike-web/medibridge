@@ -222,8 +222,8 @@ body {
 
 /* Base Scrollbar */
 ::-webkit-scrollbar {
-	width: 0.5rem;
-	height: 0.5rem;
+	width: 0.75rem;
+	height: 0.75rem;
 }
 
 ::-webkit-scrollbar-track {
@@ -233,7 +233,7 @@ body {
 ::-webkit-scrollbar-thumb {
 	background: rgba(0, 0, 0, 0.3);
 	border-radius: 6.25rem;
-	border: 0.125rem solid transparent;
+	border: 0.1875rem solid transparent;
 	background-clip: content-box;
 	transition: background 0.3s ease;
 }
