@@ -23,7 +23,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useIsBelowMd } from "@/hooks/use-is-below-md";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 const FILTER_MENU_WIDTH_REM = 13.75;
 
@@ -42,10 +42,10 @@ export function FilterGroup({
 	activeFilterCount: number;
 	children: ReactNode;
 }) {
-	const isBelowMd = useIsBelowMd();
+	const isMobile = useMediaQuery("(width < 48rem)");
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-	if (!isBelowMd) {
+	if (!isMobile) {
 		return children;
 	}
 

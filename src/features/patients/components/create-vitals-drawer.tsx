@@ -1,6 +1,6 @@
 "use client";
 
-import { useIsBelowMd } from "@/hooks/use-is-below-md";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 import { useId, useState, useTransition } from "react";
 import { format } from "date-fns";
@@ -59,7 +59,7 @@ export function CreateVitalsDrawer({
 	encounterId?: string;
 	encounterOptions: VitalEncounterOption[];
 }) {
-	const isBelowMd = useIsBelowMd();
+	const isMobile = useMediaQuery("(width < 48rem)");
 	const formId = useId();
 	const [formError, setFormError] = useState("");
 	const [selectedRecordedDate, setSelectedRecordedDate] = useState<Date>();
@@ -88,7 +88,7 @@ export function CreateVitalsDrawer({
 
 	return (
 		<Drawer
-			direction={isBelowMd ? "bottom" : "right"}
+			direction={isMobile ? "bottom" : "right"}
 			open={open}
 			onOpenChange={(isOpen) => {
 				if (!isOpen) setSelectedRecordedDate(undefined);

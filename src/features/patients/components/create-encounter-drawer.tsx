@@ -1,6 +1,6 @@
 "use client";
 
-import { useIsBelowMd } from "@/hooks/use-is-below-md";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 import { useId, useState, useTransition, type FormEvent } from "react";
 import type { Route } from "next";
@@ -49,7 +49,7 @@ export function CreateEncounterDrawer({
 	onOpenChange: (open: boolean) => void;
 	patientId: string;
 }) {
-	const isBelowMd = useIsBelowMd();
+	const isMobile = useMediaQuery("(width < 48rem)");
 	const router = useRouter();
 	const formId = useId();
 	const { data: session } = authClient.useSession();
@@ -88,7 +88,7 @@ export function CreateEncounterDrawer({
 
 	return (
 		<Drawer
-			direction={isBelowMd ? "bottom" : "right"}
+			direction={isMobile ? "bottom" : "right"}
 			open={open}
 			onOpenChange={(isOpen) => {
 				if (!isOpen) {

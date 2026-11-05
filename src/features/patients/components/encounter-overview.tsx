@@ -1,6 +1,6 @@
 "use client";
 
-import { useIsBelowMd } from "@/hooks/use-is-below-md";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 import { useId, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -83,7 +83,7 @@ export function EncounterOverview({
 	};
 	encounterDayLabel: string;
 }) {
-	const isBelowMd = useIsBelowMd();
+	const isMobile = useMediaQuery("(width < 48rem)");
 	const router = useRouter();
 	const formId = useId();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
@@ -193,7 +193,7 @@ export function EncounterOverview({
 				<DetailItem label="Created at" value={encounter.createdAtLabel} />
 			</DetailsSection>
 			<Drawer
-				direction={isBelowMd ? "bottom" : "right"}
+				direction={isMobile ? "bottom" : "right"}
 				open={isEditEncounterDrawerOpen}
 				onOpenChange={setIsEditEncounterDrawerOpen}
 			>

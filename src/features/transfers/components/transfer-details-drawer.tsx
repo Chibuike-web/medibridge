@@ -1,6 +1,6 @@
 "use client";
 
-import { useIsBelowMd } from "@/hooks/use-is-below-md";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 import {
 	AlertDialog,
@@ -78,11 +78,11 @@ export function TransferDetailsDrawer({
 	onRetryTransfer,
 	onCancelTransfer,
 }: TransferDetailsDrawerProps) {
-	const isBelowMd = useIsBelowMd();
+	const isMobile = useMediaQuery("(width < 48rem)");
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 
 	return (
-		<Drawer open={open} onOpenChange={onOpenChange} direction={isBelowMd ? "bottom" : "right"}>
+		<Drawer open={open} onOpenChange={onOpenChange} direction={isMobile ? "bottom" : "right"}>
 			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem] max-w-none data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:h-[80vh] data-[vaul-drawer-direction=bottom]:rounded-3xl data-[vaul-drawer-direction=bottom]:border">
 				<DrawerHeader className="border-b border-gray-200 text-left flex-row gap-4 items-center">
 					<DrawerTitle className="text-gray-800 leading-[1.2] flex-1">Transfer details</DrawerTitle>

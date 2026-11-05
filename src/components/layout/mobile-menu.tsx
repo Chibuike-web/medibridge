@@ -13,6 +13,7 @@ import {
 	DrawerTrigger,
 } from "@/components/ui/drawer";
 import { PixelLoader } from "@/components/ui/pixel-loader";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import type { Menu } from "@/components/layout/sidebar";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { cn } from "@/lib/utils/cn";
@@ -37,6 +38,11 @@ export function MobileMenu({ menus }: { menus: Menu[] }) {
 	const { data: session } = authClient.useSession();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const user = session?.user;
+	const isMobile = useMediaQuery("(width < 48rem)");
+
+	if (!isMobile && isMenuOpen) {
+		setIsMenuOpen(false);
+	}
 
 	return (
 		<>

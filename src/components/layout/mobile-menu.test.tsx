@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { RiFileList3Fill, RiFileList3Line, RiFunctionFill, RiFunctionLine } from "@remixicon/react";
 import { beforeEach, expect, test, vi } from "vitest";
@@ -42,13 +42,34 @@ const menus: Menu[] = [
 	},
 ];
 
+let isPhoneWidth = true;
+let widthChangeListeners: (() => void)[] = [];
+
 beforeEach(() => {
 	signOutMock.mockResolvedValue({ error: null });
+	isPhoneWidth = true;
+	widthChangeListeners = [];
 	vi.stubGlobal("matchMedia", () => ({
-		matches: false,
-		addEventListener: vi.fn(),
+		matches: isPhoneWidth,
+		addEventListener: (_event: string, listener: () => void) => widthChangeListeners.push(listener),
 		removeEventListener: vi.fn(),
 	}));
+});
+
+test("closes when the screen grows past phone width", async () => {
+	const user = userEvent.setup();
+	render(<MobileMenu menus={menus} />);
+	await user.click(screen.getByRole("button", { name: "Open menu" }));
+	expect(await screen.findByRole("dialog", { name: "Menu" })).toBeVisible();
+
+	act(() => {
+		isPhoneWidth = false;
+		for (const listener of widthChangeListeners) listener();
+	});
+
+	await vi.waitFor(() =>
+		expect(screen.queryByRole("dialog", { name: "Menu" })).not.toBeInTheDocument(),
+	);
 });
 
 test("shows the signed-in name, email and the member's role", async () => {
