@@ -32,8 +32,7 @@ const dateRangePresets = [
 	{ label: "Last 5 years", getFrom: (today: Date) => subYears(today, 5) },
 ];
 
-const menuItemClassName =
-	"h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 [&_svg]:text-gray-500";
+const menuItemClassName = "h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900";
 
 function formatUrlDate(date: Date) {
 	return format(date, "yyyy-MM-dd");
@@ -98,7 +97,7 @@ export function DateRangeButtons({
 					<button
 						key={preset.label}
 						type="button"
-						className="flex h-10 w-full items-center gap-2 rounded-lg px-2 text-left text-gray-600 hover:bg-gray-100 [&_svg]:text-gray-500"
+						className="flex h-10 w-full items-center gap-2 rounded-lg px-2 text-left text-gray-600 hover:bg-gray-100"
 						onClick={() => onDateRangeApply(presetFrom, today)}
 					>
 						<RiCalendarLine className="size-4" aria-hidden="true" />
@@ -111,7 +110,7 @@ export function DateRangeButtons({
 			})}
 			<button
 				type="button"
-				className="flex h-10 w-full items-center gap-2 rounded-lg px-2 text-left text-gray-600 hover:bg-gray-100 [&_svg]:text-gray-500"
+				className="flex h-10 w-full items-center gap-2 rounded-lg px-2 text-left text-gray-600 hover:bg-gray-100"
 				onClick={() => onCustomDateRangeSelect({ from, to, onDateRangeApply })}
 			>
 				<RiCalendarLine className="size-4" aria-hidden="true" />
