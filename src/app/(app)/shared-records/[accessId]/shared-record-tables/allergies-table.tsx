@@ -1,12 +1,8 @@
 "use client";
 
-import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
 
-import {
-	DateRangeMenuItems,
-	SetDateRangeDialog,
-	type DateRangeFilter,
-} from "@/components/date-range-filter";
+import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import {
 	RiArrowDownSLine,
@@ -15,7 +11,6 @@ import {
 	RiEyeLine,
 	RiMore2Fill,
 	RiSearchLine,
-	RiCloseLine,
 	RiBarChartBoxLine,
 	RiCalendarLine,
 	RiCheckboxCircleLine,
@@ -39,7 +34,10 @@ const configuredTableFeatures = tableFeatures({
 });
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
+import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
+import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
@@ -47,9 +45,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -128,21 +124,6 @@ export function SharedAllergiesTable({
 	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
 	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
-	const {
-		align: statusFilterAlign,
-		setTriggerElement: setStatusFilterTrigger,
-		updateAlign: updateStatusFilterAlign,
-	} = useFilterMenuAlign();
-	const {
-		align: severityFilterAlign,
-		setTriggerElement: setSeverityFilterTrigger,
-		updateAlign: updateSeverityFilterAlign,
-	} = useFilterMenuAlign();
-	const {
-		align: createdAtFilterAlign,
-		setTriggerElement: setCreatedAtFilterTrigger,
-		updateAlign: updateCreatedAtFilterAlign,
-	} = useFilterMenuAlign();
 	const [isPending, startTransition] = useTransition();
 	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
 	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
@@ -293,7 +274,7 @@ export function SharedAllergiesTable({
 		<div>
 			<h2 className="text-lg font-semibold text-gray-900">Allergies</h2>
 			<div className="mt-7 mb-4 flex flex-wrap items-center gap-2">
-				<div className="relative min-w-0 grow basis-80">
+				<div className="relative min-w-0 grow-[999] basis-80">
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
 					<Input
 						type="search"
@@ -303,128 +284,72 @@ export function SharedAllergiesTable({
 						className="pl-10"
 					/>
 				</div>
-				<div className="flex flex-wrap items-center gap-2">
-					<Popover onOpenChange={updateStatusFilterAlign}>
-						<PopoverTrigger asChild>
-							<Button
-								ref={setStatusFilterTrigger}
-								type="button"
-								variant="outline"
-								className="bg-white text-gray-600 hover:bg-gray-50"
-							>
-								<RiCheckboxCircleLine aria-hidden="true" />
-								Status
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent
-							align={statusFilterAlign}
-							className="w-[13.75rem] p-1 text-sm text-gray-700"
-						>
+				<div className="flex grow flex-wrap items-center gap-2 max-md:w-full">
+					<FilterGroup
+						activeFilterCount={
+							(optimisticStatusFilters.length > 0 ? 1 : 0) +
+							(optimisticSeverityFilters.length > 0 ? 1 : 0) +
+							(optimisticCreatedFrom || optimisticCreatedTo ? 1 : 0)
+						}
+					>
+						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
 							<CheckboxFilterList
 								name="shared-allergy-status"
 								options={allergyStatusFilterOptions}
 								selectedValues={optimisticStatusFilters}
 								onSelectedValuesChange={handleStatusFiltersChange}
 							/>
-						</PopoverContent>
-					</Popover>
-					<Popover onOpenChange={updateSeverityFilterAlign}>
-						<PopoverTrigger asChild>
-							<Button
-								ref={setSeverityFilterTrigger}
-								type="button"
-								variant="outline"
-								className="bg-white text-gray-600 hover:bg-gray-50"
-							>
-								<RiBarChartBoxLine aria-hidden="true" />
-								Severity
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent
-							align={severityFilterAlign}
-							className="w-[13.75rem] p-1 text-sm text-gray-700"
-						>
+						</FilterPopover>
+						<FilterPopover label="Severity" icon={RiBarChartBoxLine}>
 							<CheckboxFilterList
 								name="shared-allergy-severity"
 								options={allergySeverityFilterOptions}
 								selectedValues={optimisticSeverityFilters}
 								onSelectedValuesChange={handleSeverityFiltersChange}
 							/>
-						</PopoverContent>
-					</Popover>
-					<DropdownMenu onOpenChange={updateCreatedAtFilterAlign}>
-						<DropdownMenuTrigger asChild>
-							<Button
-								ref={setCreatedAtFilterTrigger}
-								type="button"
-								variant="outline"
-								className="bg-white text-gray-600 hover:bg-gray-50"
-							>
-								<RiCalendarLine aria-hidden="true" />
-								Created at
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent
-							align={createdAtFilterAlign}
-							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-						>
-							<DateRangeMenuItems
-								from={optimisticCreatedFrom}
-								to={optimisticCreatedTo}
-								onDateRangeApply={handleCreatedAtRangeApply}
-								onCustomDateRangeSelect={setCustomDateRangeFilter}
-							/>
-						</DropdownMenuContent>
-					</DropdownMenu>
+						</FilterPopover>
+						<DateFilterMenu
+							label="Created at"
+							icon={RiCalendarLine}
+							from={optimisticCreatedFrom}
+							to={optimisticCreatedTo}
+							onDateRangeApply={handleCreatedAtRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
+					</FilterGroup>
 					<SetDateRangeDialog
 						dateRangeFilter={customDateRangeFilter}
 						onClose={() => setCustomDateRangeFilter(null)}
 					/>
-					<Button
-						type="button"
-						variant="outline"
-						className="bg-white text-gray-600 hover:bg-gray-50"
-					>
-						<RiShare2Line aria-hidden="true" />
-						Export
-					</Button>
+					<ExportButton />
 				</div>
 			</div>
 			{optimisticStatusFilters.length > 0 ||
 			optimisticSeverityFilters.length > 0 ||
 			optimisticCreatedFrom ||
 			optimisticCreatedTo ? (
-				<div className="mb-4 flex items-start gap-4">
-					<div className="flex flex-1 flex-wrap gap-2">
-						{optimisticStatusFilters.map((status) => (
-							<FilterPill
-								key={status}
-								label={`Status: ${status}`}
-								onRemove={() =>
-									handleStatusFiltersChange(
-										optimisticStatusFilters.filter((value) => value !== status),
-									)
-								}
-							/>
-						))}
-						{optimisticSeverityFilters.map((severity) => (
-							<FilterPill
-								key={severity}
-								label={`Severity: ${severity}`}
-								onRemove={() =>
-									handleSeverityFiltersChange(
-										optimisticSeverityFilters.filter((value) => value !== severity),
-									)
-								}
-							/>
-						))}
-						{optimisticCreatedFrom || optimisticCreatedTo ? (
-							<FilterPill
-								label={`Created: ${formatDateRangeFilterLabel(optimisticCreatedFrom, optimisticCreatedTo)}`}
-								onRemove={() => handleCreatedAtRangeApply("", "")}
-							/>
-						) : null}
-					</div>
+				<div className="mb-4 flex flex-wrap gap-2">
+					{optimisticStatusFilters.length > 0 ? (
+						<FilterChip
+							name="Status"
+							value={formatChecklistFilterLabel(optimisticStatusFilters)}
+							onRemove={() => handleStatusFiltersChange([])}
+						/>
+					) : null}
+					{optimisticSeverityFilters.length > 0 ? (
+						<FilterChip
+							name="Severity"
+							value={formatChecklistFilterLabel(optimisticSeverityFilters)}
+							onRemove={() => handleSeverityFiltersChange([])}
+						/>
+					) : null}
+					{optimisticCreatedFrom || optimisticCreatedTo ? (
+						<FilterChip
+							name="Created"
+							value={formatDateRangeFilterLabel(optimisticCreatedFrom, optimisticCreatedTo)}
+							onRemove={() => handleCreatedAtRangeApply("", "")}
+						/>
+					) : null}
 					<Button
 						type="button"
 						variant="ghost"
@@ -530,7 +455,7 @@ export function SharedAllergiesTable({
 						)}
 					</TableBody>
 				</Table>
-				<div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500">
+				<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select
@@ -585,20 +510,53 @@ export function SharedAllergiesTable({
 	);
 }
 
-function FilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
+function formatDateRangeFilterLabel(from: string, to: string) {
+	const parsedFromDate = parseDateParam(from);
+	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate && from === to) {
+		return format(parsedFromDate, "MMM d, yyyy");
+	}
+
+	if (parsedFromDate && parsedToDate) {
+		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedFromDate) {
+		return `From ${format(parsedFromDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedToDate) {
+		return `Until ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	return "Any date";
+}
+
+function RowMenu() {
 	return (
-		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
-			<span>{label}</span>
-			<Button
-				size="icon"
+		<DropdownMenu>
+			<DropdownMenuTrigger
 				type="button"
-				onClick={onRemove}
-				className="flex size-5 rounded-full text-white hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
-				aria-label={`Remove ${label} filter`}
+				className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+				aria-label="Open allergy actions"
 			>
-				<RiCloseLine className="size-4" aria-hidden="true" />
-			</Button>
-		</span>
+				<RiMore2Fill className="size-5" aria-hidden="true" />
+			</DropdownMenuTrigger>
+			<DropdownMenuContent
+				align="end"
+				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+			>
+				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+					<RiEyeLine className="text-white" aria-hidden="true" />
+					<span>View details</span>
+				</DropdownMenuItem>
+				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+					<RiShare2Line className="text-white" aria-hidden="true" />
+					<span>Export</span>
+				</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 }
 
@@ -638,41 +596,4 @@ function CheckboxFilterList<TValue extends string>({
 			</Label>
 		);
 	});
-}
-
-function formatDateRangeFilterLabel(from: string, to: string) {
-	const fromDate = parseDateParam(from);
-	const toDate = parseDateParam(to);
-	if (fromDate && toDate)
-		return `${format(fromDate, "MMM d, yyyy")} - ${format(toDate, "MMM d, yyyy")}`;
-	if (fromDate) return `From ${format(fromDate, "MMM d, yyyy")}`;
-	if (toDate) return `Until ${format(toDate, "MMM d, yyyy")}`;
-	return "Any date";
-}
-
-function RowMenu() {
-	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger
-				type="button"
-				className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-				aria-label="Open allergy actions"
-			>
-				<RiMore2Fill className="size-5" aria-hidden="true" />
-			</DropdownMenuTrigger>
-			<DropdownMenuContent
-				align="end"
-				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
-			>
-				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-					<RiEyeLine className="text-white" aria-hidden="true" />
-					<span>View details</span>
-				</DropdownMenuItem>
-				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-					<RiShare2Line className="text-white" aria-hidden="true" />
-					<span>Export</span>
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
-	);
 }

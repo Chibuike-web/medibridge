@@ -1,12 +1,8 @@
 "use client";
 
-import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
 
-import {
-	DateRangeMenuItems,
-	SetDateRangeDialog,
-	type DateRangeFilter,
-} from "@/components/date-range-filter";
+import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import Link from "next/link";
@@ -22,7 +18,10 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
 import { CreateEncounterDrawer } from "@/features/patients/components/create-encounter-drawer";
+import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
+import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
@@ -31,9 +30,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -171,26 +168,6 @@ export function EncountersTable({
 	const [selectedEncounterRows, setSelectedEncounterRows] = useState<RowSelectionState>({});
 	const [isCreateEncounterDrawerOpen, setIsCreateEncounterDrawerOpen] = useState(false);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
-	const {
-		align: encounterDateFilterAlign,
-		setTriggerElement: setEncounterDateFilterTrigger,
-		updateAlign: updateEncounterDateFilterAlign,
-	} = useFilterMenuAlign();
-	const {
-		align: encounterTypeFilterAlign,
-		setTriggerElement: setEncounterTypeFilterTrigger,
-		updateAlign: updateEncounterTypeFilterAlign,
-	} = useFilterMenuAlign();
-	const {
-		align: createdAtFilterAlign,
-		setTriggerElement: setCreatedAtFilterTrigger,
-		updateAlign: updateCreatedAtFilterAlign,
-	} = useFilterMenuAlign();
-	const {
-		align: departmentFilterAlign,
-		setTriggerElement: setDepartmentFilterTrigger,
-		updateAlign: updateDepartmentFilterAlign,
-	} = useFilterMenuAlign();
 	const table = useTable({
 		features: configuredTableFeatures,
 		data: encounters,
@@ -208,7 +185,7 @@ export function EncountersTable({
 		<div className="px-6 py-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-lg font-semibold no-line-height">Encounters</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl flex-wrap items-center gap-2">
-				<div className="relative min-w-0 grow basis-80">
+				<div className="relative min-w-0 grow-[999] basis-80">
 					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
@@ -218,108 +195,55 @@ export function EncountersTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<div className="flex flex-wrap items-center gap-2">
-					<DropdownMenu onOpenChange={updateEncounterDateFilterAlign}>
-						<DropdownMenuTrigger asChild>
-							<Button
-								ref={setEncounterDateFilterTrigger}
-								variant="outline"
-								className="bg-white text-gray-600 hover:bg-gray-50"
-							>
-								<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
-								Encounter date
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent
-							align={encounterDateFilterAlign}
-							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-						>
-							<DateRangeMenuItems
-								from={encounterFrom}
-								to={encounterTo}
-								onDateRangeApply={onEncounterDateRangeApply}
-								onCustomDateRangeSelect={setCustomDateRangeFilter}
-							/>
-						</DropdownMenuContent>
-					</DropdownMenu>
-					<Popover onOpenChange={updateEncounterTypeFilterAlign}>
-						<PopoverTrigger asChild>
-							<Button
-								ref={setEncounterTypeFilterTrigger}
-								variant="outline"
-								className="bg-white text-gray-600 hover:bg-gray-50"
-							>
-								<RiFileList2Line aria-hidden className="size-4 text-gray-600" />
-								Encounter type
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent
-							align={encounterTypeFilterAlign}
-							className="w-[13.75rem] p-1 text-sm text-gray-700"
-						>
+				<div className="flex grow flex-wrap items-center gap-2 max-md:w-full">
+					<FilterGroup
+						activeFilterCount={
+							(encounterFrom || encounterTo ? 1 : 0) +
+							(encounterTypeFilters.length > 0 ? 1 : 0) +
+							(createdFrom || createdTo ? 1 : 0) +
+							(departmentFilters.length > 0 ? 1 : 0)
+						}
+					>
+						<DateFilterMenu
+							label="Encounter date"
+							icon={RiCalendarLine}
+							from={encounterFrom}
+							to={encounterTo}
+							onDateRangeApply={onEncounterDateRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
+						<FilterPopover label="Encounter type" icon={RiFileList2Line}>
 							<EncounterCheckboxFilterList
 								name="encounter-type"
 								options={encounterTypeFilterOptions}
 								selectedValues={encounterTypeFilters}
 								onSelectedValuesChange={onEncounterTypeFiltersChange}
 							/>
-						</PopoverContent>
-					</Popover>
-					<DropdownMenu onOpenChange={updateCreatedAtFilterAlign}>
-						<DropdownMenuTrigger asChild>
-							<Button
-								ref={setCreatedAtFilterTrigger}
-								variant="outline"
-								className="bg-white text-gray-600 hover:bg-gray-50"
-							>
-								<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
-								Created at
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent
-							align={createdAtFilterAlign}
-							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-						>
-							<DateRangeMenuItems
-								from={createdFrom}
-								to={createdTo}
-								onDateRangeApply={onCreatedAtRangeApply}
-								onCustomDateRangeSelect={setCustomDateRangeFilter}
-							/>
-						</DropdownMenuContent>
-					</DropdownMenu>
-					<Popover onOpenChange={updateDepartmentFilterAlign}>
-						<PopoverTrigger asChild>
-							<Button
-								ref={setDepartmentFilterTrigger}
-								variant="outline"
-								className="bg-white text-gray-600 hover:bg-gray-50"
-							>
-								<RiBuilding4Line aria-hidden className="size-4 text-gray-600" />
-								Department
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent
-							align={departmentFilterAlign}
-							className="w-[13.75rem] p-1 text-sm text-gray-700"
-						>
+						</FilterPopover>
+						<DateFilterMenu
+							label="Created at"
+							icon={RiCalendarLine}
+							from={createdFrom}
+							to={createdTo}
+							onDateRangeApply={onCreatedAtRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
+						<FilterPopover label="Department" icon={RiBuilding4Line}>
 							<EncounterCheckboxFilterList
 								name="encounter-department"
 								options={encounterDepartmentFilterOptions}
 								selectedValues={departmentFilters}
 								onSelectedValuesChange={onDepartmentFiltersChange}
 							/>
-						</PopoverContent>
-					</Popover>
+						</FilterPopover>
+					</FilterGroup>
 					<SetDateRangeDialog
 						dateRangeFilter={customDateRangeFilter}
 						onClose={() => setCustomDateRangeFilter(null)}
 					/>
-					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-						Export
-					</Button>
+					<ExportButton />
 					<Button
+						className="flex-1"
 						type="button"
 
 						onClick={() => setIsCreateEncounterDrawerOpen(true)}
@@ -333,7 +257,7 @@ export function EncountersTable({
 					/>
 				</div>
 			</div>
-			<EncounterActiveFilterPills
+			<EncounterActiveFilterChips
 				encounterFrom={encounterFrom}
 				encounterTo={encounterTo}
 				createdFrom={createdFrom}
@@ -475,7 +399,7 @@ export function EncountersTable({
 						)}
 					</TableBody>
 				</Table>
-				<div className="flex gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 items-center justify-between">
+				<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select
@@ -606,46 +530,7 @@ function EncountersBulkActionBar({
 	);
 }
 
-function EncounterCheckboxFilterList<T extends string>({
-	name,
-	options,
-	selectedValues,
-	onSelectedValuesChange,
-}: {
-	name: string;
-	options: { label: string; value: T }[];
-	selectedValues: T[];
-	onSelectedValuesChange: (selectedValues: T[]) => void;
-}) {
-	return options.map((option) => {
-		const isSelected = selectedValues.includes(option.value);
-		const optionId = `${name}-${option.value}`;
-
-		return (
-			<Label
-				key={option.value}
-				htmlFor={optionId}
-				className="flex h-9 w-full cursor-pointer items-center gap-2 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
-			>
-				<Checkbox
-					id={optionId}
-					checked={isSelected}
-					onCheckedChange={(checked) => {
-						onSelectedValuesChange(
-							checked === true
-								? [...selectedValues, option.value]
-								: selectedValues.filter((selectedValue) => selectedValue !== option.value),
-						);
-					}}
-					className="[&_svg]:!text-current"
-				/>
-				<span>{option.label}</span>
-			</Label>
-		);
-	});
-}
-
-function EncounterActiveFilterPills({
+function EncounterActiveFilterChips({
 	encounterFrom,
 	encounterTo,
 	createdFrom,
@@ -685,48 +570,43 @@ function EncounterActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
-			<div className="flex flex-1 flex-wrap gap-2">
-				{encounterTypeFilters.map((encounterTypeFilter) => (
-					<EncounterFilterPill
-						key={encounterTypeFilter}
-						label={`Type: ${formatEncounterFilterValue(encounterTypeFilter)}`}
-						onRemove={() => {
-							onEncounterTypeFiltersChange(
-								encounterTypeFilters.filter(
-									(currentEncounterTypeFilter) =>
-										currentEncounterTypeFilter !== encounterTypeFilter,
-								),
-							);
-						}}
-					/>
-				))}
-				{departmentFilters.map((departmentFilter) => (
-					<EncounterFilterPill
-						key={departmentFilter}
-						label={`Department: ${formatEncounterFilterValue(departmentFilter)}`}
-						onRemove={() => {
-							onDepartmentFiltersChange(
-								departmentFilters.filter(
-									(currentDepartmentFilter) => currentDepartmentFilter !== departmentFilter,
-								),
-							);
-						}}
-					/>
-				))}
-				{hasEncounterDateFilter ? (
-					<EncounterFilterPill
-						label={`Encounter: ${formatDateRangeFilterLabel(encounterFrom, encounterTo)}`}
-						onRemove={() => onEncounterDateRangeApply("", "")}
-					/>
-				) : null}
-				{hasCreatedAtFilter ? (
-					<EncounterFilterPill
-						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-						onRemove={() => onCreatedAtRangeApply("", "")}
-					/>
-				) : null}
-			</div>
+		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+			{hasEncounterTypeFilters ? (
+				<FilterChip
+					name="Type"
+					value={formatChecklistFilterLabel(
+						encounterTypeFilters.map((encounterTypeFilter) =>
+							formatEncounterFilterValue(encounterTypeFilter),
+						),
+					)}
+					onRemove={() => onEncounterTypeFiltersChange([])}
+				/>
+			) : null}
+			{hasDepartmentFilters ? (
+				<FilterChip
+					name="Department"
+					value={formatChecklistFilterLabel(
+						departmentFilters.map((departmentFilter) =>
+							formatEncounterFilterValue(departmentFilter),
+						),
+					)}
+					onRemove={() => onDepartmentFiltersChange([])}
+				/>
+			) : null}
+			{hasEncounterDateFilter ? (
+				<FilterChip
+					name="Encounter"
+					value={formatDateRangeFilterLabel(encounterFrom, encounterTo)}
+					onRemove={() => onEncounterDateRangeApply("", "")}
+				/>
+			) : null}
+			{hasCreatedAtFilter ? (
+				<FilterChip
+					name="Created"
+					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
 			<Button
 				type="button"
 				variant="ghost"
@@ -740,26 +620,13 @@ function EncounterActiveFilterPills({
 	);
 }
 
-function EncounterFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
-			<span>{label}</span>
-			<Button
-				type="button"
-				onClick={onRemove}
-				size="icon"
-				className="flex size-5 rounded-full text-white hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
-				aria-label={`Remove ${label} filter`}
-			>
-				<RiCloseLine className="size-4" aria-hidden="true" />
-			</Button>
-		</span>
-	);
-}
-
 function formatDateRangeFilterLabel(from: string, to: string) {
 	const parsedFromDate = parseDateParam(from);
 	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate && from === to) {
+		return format(parsedFromDate, "MMM d, yyyy");
+	}
 
 	if (parsedFromDate && parsedToDate) {
 		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;
@@ -896,4 +763,43 @@ function getEncountersColumns(
 			),
 		},
 	];
+}
+
+function EncounterCheckboxFilterList<T extends string>({
+	name,
+	options,
+	selectedValues,
+	onSelectedValuesChange,
+}: {
+	name: string;
+	options: { label: string; value: T }[];
+	selectedValues: T[];
+	onSelectedValuesChange: (selectedValues: T[]) => void;
+}) {
+	return options.map((option) => {
+		const isSelected = selectedValues.includes(option.value);
+		const optionId = `${name}-${option.value}`;
+
+		return (
+			<Label
+				key={option.value}
+				htmlFor={optionId}
+				className="flex h-9 w-full cursor-pointer items-center gap-2 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
+			>
+				<Checkbox
+					id={optionId}
+					checked={isSelected}
+					onCheckedChange={(checked) => {
+						onSelectedValuesChange(
+							checked === true
+								? [...selectedValues, option.value]
+								: selectedValues.filter((selectedValue) => selectedValue !== option.value),
+						);
+					}}
+					className="[&_svg]:!text-current"
+				/>
+				<span>{option.label}</span>
+			</Label>
+		);
+	});
 }

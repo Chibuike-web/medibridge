@@ -73,7 +73,7 @@ test("shared allergies keep the server's order, and sorting a column asks the se
 	expect(displayedAllergens()).toEqual(rows.map((allergy) => allergy.allergen));
 });
 
-test("shows the filter pill and first page while the filtered rows are still loading", async () => {
+test("shows the filter chip and first page while the filtered rows are still loading", async () => {
 	let finishNavigation!: () => void;
 	const route = new Promise<void>((resolve) => {
 		finishNavigation = resolve;
@@ -103,7 +103,9 @@ test("shows the filter pill and first page while the filtered rows are still loa
 			</RouterHarness>
 		</Suspense>,
 	);
-	expect(screen.queryByText("Status: Inactive")).not.toBeInTheDocument();
+	expect(
+		screen.queryByRole("button", { name: "Remove Status: Inactive filter" }),
+	).not.toBeInTheDocument();
 
 	await user.click(screen.getByRole("button", { name: "Status" }));
 	await user.pointer({
@@ -112,7 +114,7 @@ test("shows the filter pill and first page while the filtered rows are still loa
 	});
 	await user.keyboard("{Escape}");
 
-	expect(screen.getByText("Status: Inactive")).toBeVisible();
+	expect(screen.getByRole("button", { name: "Remove Status: Inactive filter" })).toBeVisible();
 	expect(screen.getByText("Page 1 of 4")).toBeVisible();
 	expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "true");
 	expect(within(screen.getByRole("table")).getByText("Penicillin")).toBeVisible();
@@ -126,7 +128,7 @@ test("shows the filter pill and first page while the filtered rows are still loa
 	});
 });
 
-test("Clear all drops every filter from the URL and the pills once the server responds", async () => {
+test("Clear all drops every filter from the URL and the chips once the server responds", async () => {
 	const user = userEvent.setup();
 	navigation.params += "&allergiesStatus=Inactive&allergiesSeverity=Mild&allergiesQuery=pen";
 	const filteredProps = {
@@ -142,8 +144,8 @@ test("Clear all drops every filter from the URL and the pills once the server re
 		/>,
 		{ wrapper: TableUrlNavigation },
 	);
-	expect(screen.getByText("Status: Inactive")).toBeVisible();
-	expect(screen.getByText("Severity: Mild")).toBeVisible();
+	expect(screen.getByRole("button", { name: "Remove Status: Inactive filter" })).toBeVisible();
+	expect(screen.getByRole("button", { name: "Remove Severity: Mild filter" })).toBeVisible();
 
 	await user.click(screen.getByRole("button", { name: "Clear all" }));
 
@@ -152,7 +154,11 @@ test("Clear all drops every filter from the URL and the pills once the server re
 	expect(params.get("allergiesSeverity")).toBeNull();
 	expect(params.get("allergiesQuery")).toBe("pen");
 	rerender(<SharedAllergiesTable {...filteredProps} />);
-	expect(screen.queryByText("Status: Inactive")).not.toBeInTheDocument();
-	expect(screen.queryByText("Severity: Mild")).not.toBeInTheDocument();
+	expect(
+		screen.queryByRole("button", { name: "Remove Status: Inactive filter" }),
+	).not.toBeInTheDocument();
+	expect(
+		screen.queryByRole("button", { name: "Remove Severity: Mild filter" }),
+	).not.toBeInTheDocument();
 	expect(screen.queryByRole("button", { name: "Clear all" })).not.toBeInTheDocument();
 });

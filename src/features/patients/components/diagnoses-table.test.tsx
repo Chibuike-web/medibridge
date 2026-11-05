@@ -307,7 +307,7 @@ describe("Diagnoses table", () => {
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(urlDate(subDays(today, 29)), urlDate(today));
 	});
 
-	test("shows active filters as pills that clear the matching filter", async () => {
+	test("shows active filters as chips that clear the matching filter", async () => {
 		const user = userEvent.setup();
 		const {
 			onStatusFiltersChange,
@@ -324,19 +324,21 @@ describe("Diagnoses table", () => {
 			createdTo: "2020-03-15",
 		});
 
-		expect(screen.getByText("Status: Active")).toBeVisible();
-		expect(screen.getByText("Status: Resolved")).toBeVisible();
-		expect(screen.getByText("Diagnosed: Jan 1, 2020 - Jan 31, 2020")).toBeVisible();
-		expect(screen.getByText("Last reviewed: From Feb 1, 2020")).toBeVisible();
-		expect(screen.getByText("Created: Until Mar 15, 2020")).toBeVisible();
-
-		await user.click(screen.getByRole("button", { name: "Remove Status: Active filter" }));
-		expect(onStatusFiltersChange).toHaveBeenCalledWith(["resolved"]);
-		await user.click(screen.getByRole("button", { name: /Remove Diagnosed:/ }));
+		await user.click(
+			screen.getByRole("button", { name: "Remove Status: Active, Resolved filter" }),
+		);
+		expect(onStatusFiltersChange).toHaveBeenCalledWith([]);
+		await user.click(
+			screen.getByRole("button", { name: "Remove Diagnosed: Jan 1, 2020 - Jan 31, 2020 filter" }),
+		);
 		expect(onDiagnosedAtRangeApply).toHaveBeenCalledWith("", "");
-		await user.click(screen.getByRole("button", { name: /Remove Last reviewed:/ }));
+		await user.click(
+			screen.getByRole("button", { name: "Remove Last reviewed: From Feb 1, 2020 filter" }),
+		);
 		expect(onLastReviewedRangeApply).toHaveBeenCalledWith("", "");
-		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
+		await user.click(
+			screen.getByRole("button", { name: "Remove Created: Until Mar 15, 2020 filter" }),
+		);
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 

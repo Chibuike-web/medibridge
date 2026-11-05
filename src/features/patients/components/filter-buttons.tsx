@@ -1,20 +1,9 @@
 "use client";
 
-import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
 
-import {
-	DateRangeMenuItems,
-	SetDateRangeDialog,
-	type DateRangeFilter,
-} from "@/components/date-range-filter";
-import { Button } from "@/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState } from "react";
 import type { PatientAgeGroupFilter, PatientGenderFilter } from "../types";
@@ -39,39 +28,15 @@ export function FilterButtons({
 	onGenderFilterChange: (genderFilter: PatientGenderFilter) => void;
 }) {
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
-	const {
-		align: genderFilterAlign,
-		setTriggerElement: setGenderFilterTrigger,
-		updateAlign: updateGenderFilterAlign,
-	} = useFilterMenuAlign();
-	const {
-		align: ageFilterAlign,
-		setTriggerElement: setAgeFilterTrigger,
-		updateAlign: updateAgeFilterAlign,
-	} = useFilterMenuAlign();
-	const {
-		align: createdAtFilterAlign,
-		setTriggerElement: setCreatedAtFilterTrigger,
-		updateAlign: updateCreatedAtFilterAlign,
-	} = useFilterMenuAlign();
 
 	return (
 		<>
-			<Popover onOpenChange={updateGenderFilterAlign}>
-				<PopoverTrigger asChild>
-					<Button
-						ref={setGenderFilterTrigger}
-						variant="outline"
-						className="bg-white text-gray-600 hover:bg-gray-100"
-					>
-						<RiMenLine aria-hidden className="size-4 text-gray-600" />
-						Gender
-					</Button>
-				</PopoverTrigger>
-				<PopoverContent
-					align={genderFilterAlign}
-					className="w-[13.75rem] p-1 text-sm text-gray-700"
-				>
+			<FilterGroup
+				activeFilterCount={
+					(genderFilter ? 1 : 0) + (ageGroupFilter ? 1 : 0) + (createdFrom || createdTo ? 1 : 0)
+				}
+			>
+				<FilterPopover label="Gender" icon={RiMenLine}>
 					<RadioGroup
 						value={genderFilter || "all"}
 						onValueChange={(nextGenderFilter) => {
@@ -111,21 +76,9 @@ export function FilterButtons({
 							</Label>
 						</div>
 					</RadioGroup>
-				</PopoverContent>
-			</Popover>
+				</FilterPopover>
 
-			<Popover onOpenChange={updateAgeFilterAlign}>
-				<PopoverTrigger asChild>
-					<Button
-						ref={setAgeFilterTrigger}
-						variant="outline"
-						className="bg-white text-gray-600 hover:bg-gray-100"
-					>
-						<RiCalendarView aria-hidden className="size-4 text-gray-600" />
-						Age
-					</Button>
-				</PopoverTrigger>
-				<PopoverContent align={ageFilterAlign} className="w-[13.75rem] p-1 text-sm text-gray-700">
+				<FilterPopover label="Age" icon={RiCalendarView}>
 					<RadioGroup
 						value={ageGroupFilter || "any-age"}
 						onValueChange={(nextAgeGroupFilter) => {
@@ -197,32 +150,17 @@ export function FilterButtons({
 							</Label>
 						</div>
 					</RadioGroup>
-				</PopoverContent>
-			</Popover>
+				</FilterPopover>
 
-			<DropdownMenu onOpenChange={updateCreatedAtFilterAlign}>
-				<DropdownMenuTrigger asChild>
-					<Button
-						ref={setCreatedAtFilterTrigger}
-						variant="outline"
-						className="bg-white text-gray-600 hover:bg-gray-100"
-					>
-						<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
-						Created at
-					</Button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent
-					align={createdAtFilterAlign}
-					className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-				>
-					<DateRangeMenuItems
-						from={createdFrom}
-						to={createdTo}
-						onDateRangeApply={onCreatedAtRangeApply}
-						onCustomDateRangeSelect={setCustomDateRangeFilter}
-					/>
-				</DropdownMenuContent>
-			</DropdownMenu>
+				<DateFilterMenu
+					label="Created at"
+					icon={RiCalendarLine}
+					from={createdFrom}
+					to={createdTo}
+					onDateRangeApply={onCreatedAtRangeApply}
+					onCustomDateRangeSelect={setCustomDateRangeFilter}
+				/>
+			</FilterGroup>
 			<SetDateRangeDialog
 				dateRangeFilter={customDateRangeFilter}
 				onClose={() => setCustomDateRangeFilter(null)}

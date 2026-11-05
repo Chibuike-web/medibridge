@@ -285,7 +285,7 @@ describe("Lab tests table", () => {
 		);
 	});
 
-	test("shows active filters as pills that can be removed individually", async () => {
+	test("shows active filters as chips that can be removed individually", async () => {
 		const user = userEvent.setup();
 		const { onCreatedAtRangeApply, onStatusFiltersChange, onFlagFiltersChange } =
 			renderLabTestsTable({
@@ -295,13 +295,10 @@ describe("Lab tests table", () => {
 				flagFilters: ["within-range"],
 			});
 
-		expect(screen.getByText("Status: Pending")).toBeVisible();
-		expect(screen.getByText("Status: Completed")).toBeVisible();
-		expect(screen.getByText("Flag: Within Range")).toBeVisible();
-		expect(screen.getByText("Created: Jan 1, 2020 - Jan 31, 2020")).toBeVisible();
-
-		await user.click(screen.getByRole("button", { name: "Remove Status: Pending filter" }));
-		expect(onStatusFiltersChange).toHaveBeenCalledWith(["completed"]);
+		await user.click(
+			screen.getByRole("button", { name: "Remove Status: Pending, Completed filter" }),
+		);
+		expect(onStatusFiltersChange).toHaveBeenCalledWith([]);
 
 		await user.click(screen.getByRole("button", { name: "Remove Flag: Within Range filter" }));
 		expect(onFlagFiltersChange).toHaveBeenCalledWith([]);
@@ -323,10 +320,13 @@ describe("Lab tests table", () => {
 		expect(onFiltersClear).toHaveBeenCalledTimes(1);
 	});
 
-	test("describes a one-sided date filter in the pill", () => {
+	test("describes a one-sided date filter in the chip", () => {
 		renderLabTestsTable({ createdFrom: "2020-01-01" });
 
-		expect(screen.getByText("Created: From Jan 1, 2020")).toBeVisible();
+		expect(screen.getByText("From Jan 1, 2020")).toBeVisible();
+		expect(
+			screen.getByRole("button", { name: "Remove Created: From Jan 1, 2020 filter" }),
+		).toBeVisible();
 	});
 
 	test("moves between pages through the callbacks", async () => {

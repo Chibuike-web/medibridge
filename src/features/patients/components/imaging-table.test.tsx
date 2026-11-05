@@ -296,7 +296,7 @@ describe("Imaging table", () => {
 		expect(onOrderedAtRangeApply).not.toHaveBeenCalled();
 	});
 
-	test("shows active filters as pills that can be removed individually", async () => {
+	test("shows active filters as chips that can be removed individually", async () => {
 		const user = userEvent.setup();
 		const {
 			onOrderedAtRangeApply,
@@ -311,14 +311,10 @@ describe("Imaging table", () => {
 			modalityFilters: ["ultrasound"],
 		});
 
-		expect(screen.getByText("Status: Pending")).toBeVisible();
-		expect(screen.getByText("Status: Cancelled")).toBeVisible();
-		expect(screen.getByText("Modality: Ultrasound")).toBeVisible();
-		expect(screen.getByText("Ordered: Jan 1, 2020 - Jan 31, 2020")).toBeVisible();
-		expect(screen.getByText("Created: From Feb 1, 2020")).toBeVisible();
-
-		await user.click(screen.getByRole("button", { name: "Remove Status: Cancelled filter" }));
-		expect(onStatusFiltersChange).toHaveBeenCalledWith(["pending"]);
+		await user.click(
+			screen.getByRole("button", { name: "Remove Status: Pending, Cancelled filter" }),
+		);
+		expect(onStatusFiltersChange).toHaveBeenCalledWith([]);
 
 		await user.click(screen.getByRole("button", { name: "Remove Modality: Ultrasound filter" }));
 		expect(onModalityFiltersChange).toHaveBeenCalledWith([]);

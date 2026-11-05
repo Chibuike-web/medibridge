@@ -1,12 +1,8 @@
 "use client";
 
-import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
 
-import {
-	DateRangeMenuItems,
-	SetDateRangeDialog,
-	type DateRangeFilter,
-} from "@/components/date-range-filter";
+import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import type {
@@ -21,7 +17,11 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
+import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
+import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -29,10 +29,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -151,16 +148,6 @@ export function MedicationsTable({
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [selectedMedicationRows, setSelectedMedicationRows] = useState<RowSelectionState>({});
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
-	const {
-		align: statusFilterAlign,
-		setTriggerElement: setStatusFilterTrigger,
-		updateAlign: updateStatusFilterAlign,
-	} = useFilterMenuAlign();
-	const {
-		align: createdAtFilterAlign,
-		setTriggerElement: setCreatedAtFilterTrigger,
-		updateAlign: updateCreatedAtFilterAlign,
-	} = useFilterMenuAlign();
 	const medicationDetailsQuery = useSWR(
 		isDetailsDrawerOpen && selectedId
 			? (["patient-medication-details", selectedId] as const)
@@ -209,7 +196,7 @@ export function MedicationsTable({
 		<div className="px-6 py-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-lg font-semibold no-line-height">Medications</h1>
 			<div className="mx-auto mt-7 mb-4 flex max-w-7xl flex-wrap items-center gap-2">
-				<div className="relative min-w-0 grow basis-80">
+				<div className="relative min-w-0 grow-[999] basis-80">
 					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
@@ -223,67 +210,40 @@ export function MedicationsTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<div className="flex flex-wrap items-center gap-2">
-					<Popover onOpenChange={updateStatusFilterAlign}>
-						<PopoverTrigger asChild>
-							<Button
-								ref={setStatusFilterTrigger}
-								variant="outline"
-								className="bg-white text-gray-600 hover:bg-gray-50"
-							>
-								<RiCheckboxCircleLine aria-hidden className="size-4 text-gray-600" />
-								Status
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent
-							align={statusFilterAlign}
-							className="w-[13.75rem] p-1 text-sm text-gray-700"
-						>
+				<div className="flex grow flex-wrap items-center gap-2 max-md:w-full">
+					<FilterGroup
+						activeFilterCount={
+							(statusFilters.length > 0 ? 1 : 0) + (createdFrom || createdTo ? 1 : 0)
+						}
+					>
+						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
 							<MedicationCheckboxFilterList
 								name="medication-status"
 								options={medicationStatusFilterOptions}
 								selectedValues={statusFilters}
 								onSelectedValuesChange={onStatusFiltersChange}
 							/>
-						</PopoverContent>
-					</Popover>
-					<DropdownMenu onOpenChange={updateCreatedAtFilterAlign}>
-						<DropdownMenuTrigger asChild>
-							<Button
-								ref={setCreatedAtFilterTrigger}
-								variant="outline"
-								className="bg-white text-gray-600 hover:bg-gray-50"
-							>
-								<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
-								Created at
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent
-							align={createdAtFilterAlign}
-							className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-						>
-							<DateRangeMenuItems
-								from={createdFrom}
-								to={createdTo}
-								onDateRangeApply={onCreatedAtRangeApply}
-								onCustomDateRangeSelect={setCustomDateRangeFilter}
-							/>
-						</DropdownMenuContent>
-					</DropdownMenu>
+						</FilterPopover>
+						<DateFilterMenu
+							label="Created at"
+							icon={RiCalendarLine}
+							from={createdFrom}
+							to={createdTo}
+							onDateRangeApply={onCreatedAtRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
+					</FilterGroup>
 					<SetDateRangeDialog
 						dateRangeFilter={customDateRangeFilter}
 						onClose={() => setCustomDateRangeFilter(null)}
 					/>
-					<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-						<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-						Export
-					</Button>
-					<Button type="button" onClick={() => setIsCreateDrawerOpen(true)}>
+					<ExportButton />
+					<Button className="flex-1" type="button" onClick={() => setIsCreateDrawerOpen(true)}>
 						Add medication
 					</Button>
 				</div>
 			</div>
-			<MedicationActiveFilterPills
+			<MedicationActiveFilterChips
 				createdFrom={createdFrom}
 				createdTo={createdTo}
 				statusFilters={statusFilters}
@@ -419,7 +379,7 @@ export function MedicationsTable({
 						)}
 					</TableBody>
 				</Table>
-				<div className="flex gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 items-center justify-between">
+				<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select
@@ -563,50 +523,8 @@ function MedicationsBulkActionBar({
 		</AnimatedBulkBar>
 	);
 }
-function MedicationCheckboxFilterList<TValue extends string>({
-	name,
-	options,
-	selectedValues,
-	onSelectedValuesChange,
-}: {
-	name: string;
-	options: { label: string; value: TValue }[];
-	selectedValues: TValue[];
-	onSelectedValuesChange: (selectedValues: TValue[]) => void;
-}) {
-	return (
-		<>
-			{options.map((option) => {
-				const isSelected = selectedValues.includes(option.value);
-				const optionId = `${name}-${option.value}`;
 
-				return (
-					<Label
-						key={option.value}
-						htmlFor={optionId}
-						className="flex h-8 w-full cursor-pointer items-center gap-3 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
-					>
-						<Checkbox
-							id={optionId}
-							checked={isSelected}
-							onCheckedChange={(checked) => {
-								onSelectedValuesChange(
-									checked === true
-										? [...selectedValues, option.value]
-										: selectedValues.filter((selectedValue) => selectedValue !== option.value),
-								);
-							}}
-							className="[&_svg]:!text-current"
-						/>
-						<span>{option.label}</span>
-					</Label>
-				);
-			})}
-		</>
-	);
-}
-
-function MedicationActiveFilterPills({
+function MedicationActiveFilterChips({
 	createdFrom,
 	createdTo,
 	statusFilters,
@@ -629,34 +547,29 @@ function MedicationActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
-			<div className="flex flex-1 flex-wrap gap-2">
-				{statusFilters.map((statusFilter) => {
-					const statusOption = medicationStatusFilterOptions.find(
-						(option) => option.value === statusFilter,
-					);
+		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+			{hasStatusFilters ? (
+				<FilterChip
+					name="Status"
+					value={formatChecklistFilterLabel(
+						statusFilters.map((statusFilter) => {
+							const statusOption = medicationStatusFilterOptions.find(
+								(option) => option.value === statusFilter,
+							);
 
-					return (
-						<MedicationFilterPill
-							key={statusFilter}
-							label={`Status: ${statusOption?.label ?? formatMedicationFilterValue(statusFilter)}`}
-							onRemove={() => {
-								onStatusFiltersChange(
-									statusFilters.filter(
-										(currentStatusFilter) => currentStatusFilter !== statusFilter,
-									),
-								);
-							}}
-						/>
-					);
-				})}
-				{hasCreatedAtFilter ? (
-					<MedicationFilterPill
-						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-						onRemove={() => onCreatedAtRangeApply("", "")}
-					/>
-				) : null}
-			</div>
+							return statusOption?.label ?? formatMedicationFilterValue(statusFilter);
+						}),
+					)}
+					onRemove={() => onStatusFiltersChange([])}
+				/>
+			) : null}
+			{hasCreatedAtFilter ? (
+				<FilterChip
+					name="Created"
+					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
 			<Button
 				type="button"
 				variant="ghost"
@@ -670,26 +583,13 @@ function MedicationActiveFilterPills({
 	);
 }
 
-function MedicationFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
-			<span>{label}</span>
-			<Button
-				type="button"
-				onClick={onRemove}
-				size="icon"
-				className="flex text-white size-5 rounded-full hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
-				aria-label={`Remove ${label} filter`}
-			>
-				<RiCloseLine className="size-4" aria-hidden="true" />
-			</Button>
-		</span>
-	);
-}
-
 function formatDateRangeFilterLabel(from: string, to: string) {
 	const parsedFromDate = parseDateParam(from);
 	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate && from === to) {
+		return format(parsedFromDate, "MMM d, yyyy");
+	}
 
 	if (parsedFromDate && parsedToDate) {
 		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;
@@ -867,4 +767,47 @@ function getMedicationsColumns({
 			},
 		},
 	];
+}
+
+function MedicationCheckboxFilterList<TValue extends string>({
+	name,
+	options,
+	selectedValues,
+	onSelectedValuesChange,
+}: {
+	name: string;
+	options: { label: string; value: TValue }[];
+	selectedValues: TValue[];
+	onSelectedValuesChange: (selectedValues: TValue[]) => void;
+}) {
+	return (
+		<>
+			{options.map((option) => {
+				const isSelected = selectedValues.includes(option.value);
+				const optionId = `${name}-${option.value}`;
+
+				return (
+					<Label
+						key={option.value}
+						htmlFor={optionId}
+						className="flex h-8 w-full cursor-pointer items-center gap-3 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
+					>
+						<Checkbox
+							id={optionId}
+							checked={isSelected}
+							onCheckedChange={(checked) => {
+								onSelectedValuesChange(
+									checked === true
+										? [...selectedValues, option.value]
+										: selectedValues.filter((selectedValue) => selectedValue !== option.value),
+								);
+							}}
+							className="[&_svg]:!text-current"
+						/>
+						<span>{option.label}</span>
+					</Label>
+				);
+			})}
+		</>
+	);
 }

@@ -304,7 +304,7 @@ describe("Medications table", () => {
 		);
 	});
 
-	test("shows active filters as pills that clear the matching filter", async () => {
+	test("shows active filters as chips that clear the matching filter", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onCreatedAtRangeApply } = renderMedicationsTable({
 			statusFilters: ["completed", "discontinued"],
@@ -312,13 +312,13 @@ describe("Medications table", () => {
 			createdTo: "",
 		});
 
-		expect(screen.getByText("Status: Completed")).toBeVisible();
-		expect(screen.getByText("Status: Discontinued")).toBeVisible();
-		expect(screen.getByText("Created: From Jan 1, 2020")).toBeVisible();
-
-		await user.click(screen.getByRole("button", { name: "Remove Status: Completed filter" }));
-		expect(onStatusFiltersChange).toHaveBeenCalledWith(["discontinued"]);
-		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
+		await user.click(
+			screen.getByRole("button", { name: "Remove Status: Completed, Discontinued filter" }),
+		);
+		expect(onStatusFiltersChange).toHaveBeenCalledWith([]);
+		await user.click(
+			screen.getByRole("button", { name: "Remove Created: From Jan 1, 2020 filter" }),
+		);
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 

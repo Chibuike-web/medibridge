@@ -164,7 +164,7 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 						))}
 					</TableBody>
 				</Table>
-				<div className="flex gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 items-center justify-between">
+				<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select

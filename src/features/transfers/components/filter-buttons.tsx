@@ -1,21 +1,10 @@
 "use client";
 
-import { useFilterMenuAlign } from "@/hooks/use-filter-menu-align";
+import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
 
-import {
-	DateRangeMenuItems,
-	SetDateRangeDialog,
-	type DateRangeFilter,
-} from "@/components/date-range-filter";
-import { Button } from "@/components/ui/button";
+import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useState } from "react";
 import type { TransferStatusFilter } from "../types";
 
@@ -43,34 +32,15 @@ export function FilterButtons({
 	statusFilters: TransferStatusFilter[];
 }) {
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
-	const {
-		align: statusFilterAlign,
-		setTriggerElement: setStatusFilterTrigger,
-		updateAlign: updateStatusFilterAlign,
-	} = useFilterMenuAlign();
-	const {
-		align: requestedAtFilterAlign,
-		setTriggerElement: setRequestedAtFilterTrigger,
-		updateAlign: updateRequestedAtFilterAlign,
-	} = useFilterMenuAlign();
 
 	return (
 		<>
-			<Popover onOpenChange={updateStatusFilterAlign}>
-				<PopoverTrigger asChild>
-					<Button
-						ref={setStatusFilterTrigger}
-						variant="outline"
-						className="bg-white text-gray-600 hover:bg-gray-50"
-					>
-						<RiMenLine aria-hidden className="size-4 text-gray-600" />
-						Status
-					</Button>
-				</PopoverTrigger>
-				<PopoverContent
-					align={statusFilterAlign}
-					className="w-[13.75rem] p-1 text-sm text-gray-700"
-				>
+			<FilterGroup
+				activeFilterCount={
+					(statusFilters.length > 0 ? 1 : 0) + (requestedFrom || requestedTo ? 1 : 0)
+				}
+			>
+				<FilterPopover label="Status" icon={RiMenLine}>
 					{transferStatusFilterOptions.map((statusOption) => {
 						const isStatusSelected = statusFilters.includes(statusOption.value);
 						const statusOptionId = `status-${statusOption.value}`;
@@ -99,32 +69,17 @@ export function FilterButtons({
 							</Label>
 						);
 					})}
-				</PopoverContent>
-			</Popover>
+				</FilterPopover>
 
-			<DropdownMenu onOpenChange={updateRequestedAtFilterAlign}>
-				<DropdownMenuTrigger asChild>
-					<Button
-						ref={setRequestedAtFilterTrigger}
-						variant="outline"
-						className="bg-white text-gray-600 hover:bg-gray-50"
-					>
-						<RiCalendarLine aria-hidden className="size-4 text-gray-600" />
-						Requested at
-					</Button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent
-					align={requestedAtFilterAlign}
-					className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-				>
-					<DateRangeMenuItems
-						from={requestedFrom}
-						to={requestedTo}
-						onDateRangeApply={onRequestedAtRangeApply}
-						onCustomDateRangeSelect={setCustomDateRangeFilter}
-					/>
-				</DropdownMenuContent>
-			</DropdownMenu>
+				<DateFilterMenu
+					label="Requested at"
+					icon={RiCalendarLine}
+					from={requestedFrom}
+					to={requestedTo}
+					onDateRangeApply={onRequestedAtRangeApply}
+					onCustomDateRangeSelect={setCustomDateRangeFilter}
+				/>
+			</FilterGroup>
 			<SetDateRangeDialog
 				dateRangeFilter={customDateRangeFilter}
 				onClose={() => setCustomDateRangeFilter(null)}

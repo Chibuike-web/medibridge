@@ -81,6 +81,47 @@ export function DateRangeMenuItems({
 	);
 }
 
+export function DateRangeButtons({
+	from,
+	to,
+	onDateRangeApply,
+	onCustomDateRangeSelect,
+}: DateRangeFilter & { onCustomDateRangeSelect: (dateRangeFilter: DateRangeFilter) => void }) {
+	const today = formatUrlDate(new Date());
+
+	return (
+		<>
+			{dateRangePresets.map((preset) => {
+				const presetFrom = formatUrlDate(preset.getFrom(new Date()));
+
+				return (
+					<button
+						key={preset.label}
+						type="button"
+						className="flex h-10 w-full items-center gap-2 rounded-lg px-2 text-left text-gray-600 hover:bg-gray-100 [&_svg]:text-gray-500"
+						onClick={() => onDateRangeApply(presetFrom, today)}
+					>
+						<RiCalendarLine className="size-4" aria-hidden="true" />
+						<span className="flex-1">{preset.label}</span>
+						{from === presetFrom && to === today ? (
+							<RiCheckLine className="size-4" aria-label="Selected" />
+						) : null}
+					</button>
+				);
+			})}
+			<button
+				type="button"
+				className="flex h-10 w-full items-center gap-2 rounded-lg px-2 text-left text-gray-600 hover:bg-gray-100 [&_svg]:text-gray-500"
+				onClick={() => onCustomDateRangeSelect({ from, to, onDateRangeApply })}
+			>
+				<RiCalendarLine className="size-4" aria-hidden="true" />
+				<span className="flex-1">Custom date range</span>
+				<RiArrowRightSLine className="size-4" aria-hidden="true" />
+			</button>
+		</>
+	);
+}
+
 export function SetDateRangeDialog({
 	dateRangeFilter,
 	onClose,
