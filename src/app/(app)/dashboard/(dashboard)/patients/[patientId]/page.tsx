@@ -1224,7 +1224,7 @@ function TableSectionSkeleton() {
 		<div className="p-8">
 			<div className="mx-auto max-w-7xl">
 				<div className="h-7 w-40 animate-pulse rounded bg-gray-200" />
-				<div className="mt-7 mb-4 flex items-center gap-2">
+				<div className="mt-4 mb-4 flex items-center gap-2">
 					<div className="h-10 flex-1 animate-pulse rounded-md bg-gray-200" />
 					<div className="h-10 w-24 shrink-0 animate-pulse rounded-md bg-gray-200" />
 					<div className="h-10 w-24 shrink-0 animate-pulse rounded-md bg-gray-200" />
