@@ -49,23 +49,18 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {
+	columnVisibilityFeature,
 	type ColumnDef,
 	flexRender,
-	createSortedRowModel,
-	stockFeatures,
-	sortFns,
 	tableFeatures,
 	type RowSelectionState,
 	type OnChangeFn,
 	type SortingState,
 	useTable,
+	rowSortingFeature,
+	rowSelectionFeature,
 } from "@tanstack/react-table";
 
-const configuredTableFeatures = tableFeatures({
-	...stockFeatures,
-	sortFns,
-	sortedRowModel: createSortedRowModel(),
-});
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
@@ -80,6 +75,12 @@ import {
 	RiFileList2Line,
 } from "@remixicon/react";
 import { format } from "date-fns";
+
+const configuredTableFeatures = tableFeatures({
+	columnVisibilityFeature,
+	rowSortingFeature,
+	rowSelectionFeature,
+});
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 

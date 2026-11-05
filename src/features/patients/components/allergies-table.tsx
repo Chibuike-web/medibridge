@@ -50,23 +50,18 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import {
+	columnVisibilityFeature,
 	type ColumnDef,
 	flexRender,
-	createSortedRowModel,
-	stockFeatures,
-	sortFns,
 	tableFeatures,
 	type OnChangeFn,
 	type RowSelectionState,
 	type SortingState,
 	useTable,
+	rowSortingFeature,
+	rowSelectionFeature,
 } from "@tanstack/react-table";
 
-const configuredTableFeatures = tableFeatures({
-	...stockFeatures,
-	sortFns,
-	sortedRowModel: createSortedRowModel(),
-});
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
@@ -83,6 +78,12 @@ import {
 import { format } from "date-fns";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
+
+const configuredTableFeatures = tableFeatures({
+	columnVisibilityFeature,
+	rowSortingFeature,
+	rowSelectionFeature,
+});
 
 type AllergyDetailsRequestError = Error & { status?: number };
 

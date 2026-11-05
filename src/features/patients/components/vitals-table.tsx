@@ -5,23 +5,18 @@ import { DateFilterMenu, FilterGroup } from "@/components/filter-menu";
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
 import {
+	columnVisibilityFeature,
 	type ColumnDef,
 	flexRender,
-	createSortedRowModel,
-	stockFeatures,
-	sortFns,
 	tableFeatures,
 	type OnChangeFn,
 	type RowSelectionState,
 	type SortingState,
 	useTable,
+	rowSortingFeature,
+	rowSelectionFeature,
 } from "@tanstack/react-table";
 
-const configuredTableFeatures = tableFeatures({
-	...stockFeatures,
-	sortFns,
-	sortedRowModel: createSortedRowModel(),
-});
 import { format } from "date-fns";
 import {
 	RiArchiveLine,
@@ -71,6 +66,12 @@ import type { VitalEncounterOption, VitalType } from "@/features/patients/types"
 import { authClient } from "@/lib/better-auth/auth.client";
 import { cn } from "@/lib/utils/cn";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
+
+const configuredTableFeatures = tableFeatures({
+	columnVisibilityFeature,
+	rowSortingFeature,
+	rowSelectionFeature,
+});
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 

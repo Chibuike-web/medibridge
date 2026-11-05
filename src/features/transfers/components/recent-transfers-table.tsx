@@ -24,27 +24,36 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
 import {
+	columnOrderingFeature,
+	columnVisibilityFeature,
 	ColumnDef,
 	flexRender,
 	createPaginatedRowModel,
 	createSortedRowModel,
-	stockFeatures,
-	sortFns,
 	tableFeatures,
 	type PaginationState,
 	type SortingState,
 	useTable,
+	rowSortingFeature,
+	rowPaginationFeature,
+	sortFn_alphanumeric,
+	sortFn_datetime,
+	sortFn_text,
 } from "@tanstack/react-table";
 
-const configuredTableFeatures = tableFeatures({
-	...stockFeatures,
-	sortFns,
-	paginatedRowModel: createPaginatedRowModel(),
-	sortedRowModel: createSortedRowModel(),
-});
 import { TransferType } from "../types";
 import { useState } from "react";
 import { getInitials } from "@/lib/utils/get-initials";
+
+const configuredTableFeatures = tableFeatures({
+	columnOrderingFeature,
+	columnVisibilityFeature,
+	rowSortingFeature,
+	rowPaginationFeature,
+	sortFns: { text: sortFn_text, alphanumeric: sortFn_alphanumeric, datetime: sortFn_datetime },
+	sortedRowModel: createSortedRowModel(),
+	paginatedRowModel: createPaginatedRowModel(),
+});
 
 export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 	const [sorting, setSorting] = useState<SortingState>([{ id: "patientName", desc: false }]);

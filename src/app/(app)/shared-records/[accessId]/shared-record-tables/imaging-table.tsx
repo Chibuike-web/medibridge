@@ -16,22 +16,17 @@ import {
 	RiScan2Line,
 } from "@remixicon/react";
 import {
+	columnVisibilityFeature,
 	type ColumnDef,
 	flexRender,
 	functionalUpdate,
-	createSortedRowModel,
-	stockFeatures,
-	sortFns,
 	tableFeatures,
 	type SortingState,
 	useTable,
+	rowSortingFeature,
+	columnSizingFeature,
 } from "@tanstack/react-table";
 
-const configuredTableFeatures = tableFeatures({
-	...stockFeatures,
-	sortFns,
-	sortedRowModel: createSortedRowModel(),
-});
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
 import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
@@ -70,6 +65,12 @@ import type { ImagingType } from "@/features/patients/types";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { SharedImagingDetailsDrawer } from "./imaging-details-drawer";
+
+const configuredTableFeatures = tableFeatures({
+	columnVisibilityFeature,
+	rowSortingFeature,
+	columnSizingFeature,
+});
 
 type ImagingDetailsRequestError = Error & { status?: number };
 

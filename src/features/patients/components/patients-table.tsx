@@ -33,23 +33,22 @@ import { cn } from "@/lib/utils/cn";
 import { formatDate } from "@/lib/utils/format-date";
 import { getInitials } from "@/lib/utils/get-initials";
 import {
+	columnVisibilityFeature,
 	ColumnDef,
 	flexRender,
 	createSortedRowModel,
-	stockFeatures,
-	sortFns,
 	tableFeatures,
 	type OnChangeFn,
 	type RowSelectionState,
 	type SortingState,
 	useTable,
+	rowSortingFeature,
+	rowSelectionFeature,
+	sortFn_alphanumeric,
+	sortFn_datetime,
+	sortFn_text,
 } from "@tanstack/react-table";
 
-const configuredTableFeatures = tableFeatures({
-	...stockFeatures,
-	sortFns,
-	sortedRowModel: createSortedRowModel(),
-});
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
@@ -63,6 +62,14 @@ import {
 import { PatientListItemType } from "../types";
 import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { authClient } from "@/lib/better-auth/auth.client";
+
+const configuredTableFeatures = tableFeatures({
+	columnVisibilityFeature,
+	rowSortingFeature,
+	rowSelectionFeature,
+	sortFns: { text: sortFn_text, alphanumeric: sortFn_alphanumeric, datetime: sortFn_datetime },
+	sortedRowModel: createSortedRowModel(),
+});
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 

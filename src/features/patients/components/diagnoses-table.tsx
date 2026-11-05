@@ -46,23 +46,18 @@ import {
 } from "@/features/patients/types";
 import { format } from "date-fns";
 import {
+	columnVisibilityFeature,
 	type ColumnDef,
 	flexRender,
-	createSortedRowModel,
-	stockFeatures,
-	sortFns,
 	tableFeatures,
 	type OnChangeFn,
 	type RowSelectionState,
 	type SortingState,
 	useTable,
+	rowSortingFeature,
+	rowSelectionFeature,
 } from "@tanstack/react-table";
 
-const configuredTableFeatures = tableFeatures({
-	...stockFeatures,
-	sortFns,
-	sortedRowModel: createSortedRowModel(),
-});
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
 
@@ -84,6 +79,12 @@ import {
 import { CopyIdButton } from "@/components/copy-id-button";
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { Input } from "@/components/ui/input";
+
+const configuredTableFeatures = tableFeatures({
+	columnVisibilityFeature,
+	rowSortingFeature,
+	rowSelectionFeature,
+});
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
