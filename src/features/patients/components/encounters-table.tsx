@@ -1,10 +1,8 @@
 "use client";
 
-import {
-	DateRangeMenuItems,
-	SetDateRangeDialog,
-	type DateRangeFilter,
-} from "@/components/date-range-filter";
+import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+
+import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
 import Link from "next/link";
@@ -20,7 +18,10 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
 import { CreateEncounterDrawer } from "@/features/patients/components/create-encounter-drawer";
+import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
+import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
@@ -30,7 +31,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -69,12 +69,10 @@ const configuredTableFeatures = tableFeatures({
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
-	RiArrowRightSLine,
 	RiArrowUpSLine,
 	RiCalendarLine,
 	RiCloseLine,
 	RiEyeLine,
-	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
 	RiShare2Line,
@@ -84,8 +82,6 @@ import {
 import { format } from "date-fns";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
-
-type EncounterFilterSubmenu = "type" | "department" | "encounter-date" | "created-at";
 
 const encounterTypeFilterOptions: {
 	label: string;
@@ -171,11 +167,7 @@ export function EncountersTable({
 	);
 	const [selectedEncounterRows, setSelectedEncounterRows] = useState<RowSelectionState>({});
 	const [isCreateEncounterDrawerOpen, setIsCreateEncounterDrawerOpen] = useState(false);
-	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<EncounterFilterSubmenu | null>(
-		null,
-	);
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
-	const [isEncounterFilterMenuOpen, setIsEncounterFilterMenuOpen] = useState(false);
 	const table = useTable({
 		features: configuredTableFeatures,
 		data: encounters,
@@ -192,8 +184,8 @@ export function EncountersTable({
 	return (
 		<div className="px-6 py-8 text-sm">
 			<h1 className="mx-auto max-w-7xl text-lg font-semibold no-line-height">Encounters</h1>
-			<div className="mx-auto mt-7 mb-4 flex max-w-7xl items-center gap-2">
-				<div className="relative w-full">
+			<div className="mx-auto mt-7 mb-4 flex max-w-7xl flex-wrap items-center gap-2">
+				<div className="relative min-w-0 grow-[999] basis-80">
 					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
@@ -203,150 +195,69 @@ export function EncountersTable({
 						onChange={(event) => onQueryChange(event.target.value)}
 					/>
 				</div>
-				<DropdownMenu
-					open={isEncounterFilterMenuOpen}
-					onOpenChange={(nextIsEncounterFilterMenuOpen) => {
-						setIsEncounterFilterMenuOpen(nextIsEncounterFilterMenuOpen);
-
-						if (!nextIsEncounterFilterMenuOpen) {
-							setActiveFilterSubmenu(null);
+				<div className="flex grow flex-wrap items-center gap-2 max-md:w-full">
+					<FilterGroup
+						activeFilterCount={
+							(encounterFrom || encounterTo ? 1 : 0) +
+							(encounterTypeFilters.length > 0 ? 1 : 0) +
+							(createdFrom || createdTo ? 1 : 0) +
+							(departmentFilters.length > 0 ? 1 : 0)
 						}
-					}}
-				>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiFilter3Line aria-hidden className="size-5 text-gray-600" />
-							Filter
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						onPointerLeave={() => setActiveFilterSubmenu(null)}
-						align="end"
-						className="relative w-[13.75rem] overflow-visible rounded-xl bg-white text-sm text-gray-700"
 					>
-						<DropdownMenuItem
-							data-active={activeFilterSubmenu === "encounter-date"}
-							onFocus={() => setActiveFilterSubmenu("encounter-date")}
-							onPointerEnter={() => setActiveFilterSubmenu("encounter-date")}
-							onSelect={(event) => event.preventDefault()}
-							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
-						>
-							<RiCalendarLine className="size-4" />
-							<span className="flex-1">Encounter date</span>
-							<RiArrowRightSLine className="size-4" aria-hidden="true" />
-						</DropdownMenuItem>
+						<DateFilterMenu
+							label="Encounter date"
+							icon={RiCalendarLine}
+							from={encounterFrom}
+							to={encounterTo}
+							onDateRangeApply={onEncounterDateRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
+						<FilterPopover label="Encounter type" icon={RiFileList2Line}>
+							<EncounterCheckboxFilterList
+								name="encounter-type"
+								options={encounterTypeFilterOptions}
+								selectedValues={encounterTypeFilters}
+								onSelectedValuesChange={onEncounterTypeFiltersChange}
+							/>
+						</FilterPopover>
+						<DateFilterMenu
+							label="Created at"
+							icon={RiCalendarLine}
+							from={createdFrom}
+							to={createdTo}
+							onDateRangeApply={onCreatedAtRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
+						<FilterPopover label="Department" icon={RiBuilding4Line}>
+							<EncounterCheckboxFilterList
+								name="encounter-department"
+								options={encounterDepartmentFilterOptions}
+								selectedValues={departmentFilters}
+								onSelectedValuesChange={onDepartmentFiltersChange}
+							/>
+						</FilterPopover>
+					</FilterGroup>
+					<SetDateRangeDialog
+						dateRangeFilter={customDateRangeFilter}
+						onClose={() => setCustomDateRangeFilter(null)}
+					/>
+					<ExportButton />
+					<Button
+						className="flex-1"
+						type="button"
 
-						<DropdownMenuItem
-							data-active={activeFilterSubmenu === "type"}
-							onFocus={() => setActiveFilterSubmenu("type")}
-							onPointerEnter={() => setActiveFilterSubmenu("type")}
-							onSelect={(event) => event.preventDefault()}
-							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
-						>
-							<RiFileList2Line className="size-4" />
-							<span className="flex-1">Encounter type</span>
-							<RiArrowRightSLine className="size-4" aria-hidden="true" />
-						</DropdownMenuItem>
-
-						<DropdownMenuItem
-							data-active={activeFilterSubmenu === "created-at"}
-							onFocus={() => setActiveFilterSubmenu("created-at")}
-							onPointerEnter={() => setActiveFilterSubmenu("created-at")}
-							onSelect={(event) => event.preventDefault()}
-							className="h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
-						>
-							<RiCalendarLine className="size-4" />
-							<span className="flex-1">Created at</span>
-							<RiArrowRightSLine className="size-4" aria-hidden="true" />
-						</DropdownMenuItem>
-
-						<DropdownMenuItem
-							data-active={activeFilterSubmenu === "department"}
-							onFocus={() => setActiveFilterSubmenu("department")}
-							onPointerEnter={() => setActiveFilterSubmenu("department")}
-							onSelect={(event) => event.preventDefault()}
-							className="mb-0 h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900 data-[active=true]:bg-gray-100"
-						>
-							<RiBuilding4Line className="size-4" />
-							<span className="flex-1">Department</span>
-							<RiArrowRightSLine className="size-4" aria-hidden="true" />
-						</DropdownMenuItem>
-
-						<div
-							id="encounter-filter-submenu-panel"
-							aria-hidden={activeFilterSubmenu === null}
-							className={cn(
-								"absolute top-0 right-[100%] z-50 w-[13.75rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl bg-white text-sm text-gray-700 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_1px_2px_-1px_rgba(0,0,0,0.06),0_0.5rem_1.5rem_-0.25rem_rgba(0,0,0,0.12)] transition-[translate,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-								activeFilterSubmenu === "type"
-									? "translate-y-10"
-									: activeFilterSubmenu === "created-at"
-										? "translate-y-20"
-										: activeFilterSubmenu === "department"
-											? "translate-y-30"
-											: "translate-y-0",
-								activeFilterSubmenu === null ? "pointer-events-none opacity-0" : "opacity-100",
-							)}
-						>
-							<div hidden={activeFilterSubmenu !== "encounter-date"} className="p-1">
-								<DateRangeMenuItems
-									from={encounterFrom}
-									to={encounterTo}
-									onDateRangeApply={onEncounterDateRangeApply}
-									onCustomDateRangeSelect={setCustomDateRangeFilter}
-								/>
-							</div>
-
-							<div hidden={activeFilterSubmenu !== "type"} className="p-1">
-								<EncounterCheckboxFilterList
-									name="encounter-type"
-									options={encounterTypeFilterOptions}
-									selectedValues={encounterTypeFilters}
-									onSelectedValuesChange={onEncounterTypeFiltersChange}
-								/>
-							</div>
-
-							<div hidden={activeFilterSubmenu !== "created-at"} className="p-1">
-								<DateRangeMenuItems
-									from={createdFrom}
-									to={createdTo}
-									onDateRangeApply={onCreatedAtRangeApply}
-									onCustomDateRangeSelect={setCustomDateRangeFilter}
-								/>
-							</div>
-
-							<div hidden={activeFilterSubmenu !== "department"} className="p-1">
-								<EncounterCheckboxFilterList
-									name="encounter-department"
-									options={encounterDepartmentFilterOptions}
-									selectedValues={departmentFilters}
-									onSelectedValuesChange={onDepartmentFiltersChange}
-								/>
-							</div>
-						</div>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<SetDateRangeDialog
-					dateRangeFilter={customDateRangeFilter}
-					onClose={() => setCustomDateRangeFilter(null)}
-				/>
-				<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-					<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-					Export
-				</Button>
-				<Button
-					type="button"
-
-					onClick={() => setIsCreateEncounterDrawerOpen(true)}
-				>
-					Create encounter
-				</Button>
-				<CreateEncounterDrawer
-					open={isCreateEncounterDrawerOpen}
-					onOpenChange={setIsCreateEncounterDrawerOpen}
-					patientId={patientId}
-				/>
+						onClick={() => setIsCreateEncounterDrawerOpen(true)}
+					>
+						Create encounter
+					</Button>
+					<CreateEncounterDrawer
+						open={isCreateEncounterDrawerOpen}
+						onOpenChange={setIsCreateEncounterDrawerOpen}
+						patientId={patientId}
+					/>
+				</div>
 			</div>
-			<EncounterActiveFilterPills
+			<EncounterActiveFilterChips
 				encounterFrom={encounterFrom}
 				encounterTo={encounterTo}
 				createdFrom={createdFrom}
@@ -488,7 +399,7 @@ export function EncountersTable({
 						)}
 					</TableBody>
 				</Table>
-				<div className="flex gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500 items-center justify-between">
+				<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select
@@ -619,46 +530,7 @@ function EncountersBulkActionBar({
 	);
 }
 
-function EncounterCheckboxFilterList<T extends string>({
-	name,
-	options,
-	selectedValues,
-	onSelectedValuesChange,
-}: {
-	name: string;
-	options: { label: string; value: T }[];
-	selectedValues: T[];
-	onSelectedValuesChange: (selectedValues: T[]) => void;
-}) {
-	return options.map((option) => {
-		const isSelected = selectedValues.includes(option.value);
-		const optionId = `${name}-${option.value}`;
-
-		return (
-			<Label
-				key={option.value}
-				htmlFor={optionId}
-				className="flex h-9 w-full cursor-pointer items-center gap-2 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
-			>
-				<Checkbox
-					id={optionId}
-					checked={isSelected}
-					onCheckedChange={(checked) => {
-						onSelectedValuesChange(
-							checked === true
-								? [...selectedValues, option.value]
-								: selectedValues.filter((selectedValue) => selectedValue !== option.value),
-						);
-					}}
-					className="[&_svg]:!text-current"
-				/>
-				<span>{option.label}</span>
-			</Label>
-		);
-	});
-}
-
-function EncounterActiveFilterPills({
+function EncounterActiveFilterChips({
 	encounterFrom,
 	encounterTo,
 	createdFrom,
@@ -698,48 +570,43 @@ function EncounterActiveFilterPills({
 	}
 
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl items-start gap-4">
-			<div className="flex flex-1 flex-wrap gap-2">
-				{encounterTypeFilters.map((encounterTypeFilter) => (
-					<EncounterFilterPill
-						key={encounterTypeFilter}
-						label={`Type: ${formatEncounterFilterValue(encounterTypeFilter)}`}
-						onRemove={() => {
-							onEncounterTypeFiltersChange(
-								encounterTypeFilters.filter(
-									(currentEncounterTypeFilter) =>
-										currentEncounterTypeFilter !== encounterTypeFilter,
-								),
-							);
-						}}
-					/>
-				))}
-				{departmentFilters.map((departmentFilter) => (
-					<EncounterFilterPill
-						key={departmentFilter}
-						label={`Department: ${formatEncounterFilterValue(departmentFilter)}`}
-						onRemove={() => {
-							onDepartmentFiltersChange(
-								departmentFilters.filter(
-									(currentDepartmentFilter) => currentDepartmentFilter !== departmentFilter,
-								),
-							);
-						}}
-					/>
-				))}
-				{hasEncounterDateFilter ? (
-					<EncounterFilterPill
-						label={`Encounter: ${formatDateRangeFilterLabel(encounterFrom, encounterTo)}`}
-						onRemove={() => onEncounterDateRangeApply("", "")}
-					/>
-				) : null}
-				{hasCreatedAtFilter ? (
-					<EncounterFilterPill
-						label={`Created: ${formatDateRangeFilterLabel(createdFrom, createdTo)}`}
-						onRemove={() => onCreatedAtRangeApply("", "")}
-					/>
-				) : null}
-			</div>
+		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+			{hasEncounterTypeFilters ? (
+				<FilterChip
+					name="Type"
+					value={formatChecklistFilterLabel(
+						encounterTypeFilters.map((encounterTypeFilter) =>
+							formatEncounterFilterValue(encounterTypeFilter),
+						),
+					)}
+					onRemove={() => onEncounterTypeFiltersChange([])}
+				/>
+			) : null}
+			{hasDepartmentFilters ? (
+				<FilterChip
+					name="Department"
+					value={formatChecklistFilterLabel(
+						departmentFilters.map((departmentFilter) =>
+							formatEncounterFilterValue(departmentFilter),
+						),
+					)}
+					onRemove={() => onDepartmentFiltersChange([])}
+				/>
+			) : null}
+			{hasEncounterDateFilter ? (
+				<FilterChip
+					name="Encounter"
+					value={formatDateRangeFilterLabel(encounterFrom, encounterTo)}
+					onRemove={() => onEncounterDateRangeApply("", "")}
+				/>
+			) : null}
+			{hasCreatedAtFilter ? (
+				<FilterChip
+					name="Created"
+					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+					onRemove={() => onCreatedAtRangeApply("", "")}
+				/>
+			) : null}
 			<Button
 				type="button"
 				variant="ghost"
@@ -753,26 +620,13 @@ function EncounterActiveFilterPills({
 	);
 }
 
-function EncounterFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
-			<span>{label}</span>
-			<Button
-				type="button"
-				onClick={onRemove}
-				size="icon"
-				className="flex size-5 rounded-full text-white hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
-				aria-label={`Remove ${label} filter`}
-			>
-				<RiCloseLine className="size-4" aria-hidden="true" />
-			</Button>
-		</span>
-	);
-}
-
 function formatDateRangeFilterLabel(from: string, to: string) {
 	const parsedFromDate = parseDateParam(from);
 	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate && from === to) {
+		return format(parsedFromDate, "MMM d, yyyy");
+	}
 
 	if (parsedFromDate && parsedToDate) {
 		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;
@@ -909,4 +763,43 @@ function getEncountersColumns(
 			),
 		},
 	];
+}
+
+function EncounterCheckboxFilterList<T extends string>({
+	name,
+	options,
+	selectedValues,
+	onSelectedValuesChange,
+}: {
+	name: string;
+	options: { label: string; value: T }[];
+	selectedValues: T[];
+	onSelectedValuesChange: (selectedValues: T[]) => void;
+}) {
+	return options.map((option) => {
+		const isSelected = selectedValues.includes(option.value);
+		const optionId = `${name}-${option.value}`;
+
+		return (
+			<Label
+				key={option.value}
+				htmlFor={optionId}
+				className="flex h-9 w-full cursor-pointer items-center gap-2 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
+			>
+				<Checkbox
+					id={optionId}
+					checked={isSelected}
+					onCheckedChange={(checked) => {
+						onSelectedValuesChange(
+							checked === true
+								? [...selectedValues, option.value]
+								: selectedValues.filter((selectedValue) => selectedValue !== option.value),
+						);
+					}}
+					className="[&_svg]:!text-current"
+				/>
+				<span>{option.label}</span>
+			</Label>
+		);
+	});
 }

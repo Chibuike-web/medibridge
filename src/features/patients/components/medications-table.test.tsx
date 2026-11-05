@@ -197,20 +197,6 @@ function urlDate(date: Date) {
 	return format(date, "yyyy-MM-dd");
 }
 
-type User = ReturnType<typeof userEvent.setup>;
-
-async function openFilterSubmenu(user: User, name: string) {
-	await user.click(screen.getByRole("button", { name: "Filter" }));
-	await user.click(screen.getByRole("menuitem", { name }));
-}
-
-// jsdom has no layout, so a mouse move from a submenu trigger into its content reads as the
-// pointer leaving the menu and the submenu closes. A tap has no move phase, so it behaves like
-// a real click inside the submenu.
-async function tap(user: User, target: Element) {
-	await user.pointer({ keys: "[TouchA]", target });
-}
-
 describe("Medications table", () => {
 	let savedMedicationDetails: typeof medicationDetails;
 
@@ -282,17 +268,17 @@ describe("Medications table", () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderMedicationsTable({ statusFilters: ["active"] });
 
-		await openFilterSubmenu(user, "Status");
+		await user.click(screen.getByRole("button", { name: "Status" }));
 
 		const activeOption = await screen.findByRole("checkbox", { name: "Active" });
 		expect(activeOption).toBeChecked();
 		expect(screen.getByRole("checkbox", { name: "Completed" })).not.toBeChecked();
 		expect(screen.getByRole("checkbox", { name: "Discontinued" })).not.toBeChecked();
 
-		await tap(user, screen.getByRole("checkbox", { name: "Discontinued" }));
+		await user.click(screen.getByRole("checkbox", { name: "Discontinued" }));
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith(["active", "discontinued"]);
 
-		await tap(user, activeOption);
+		await user.click(activeOption);
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
@@ -301,24 +287,24 @@ describe("Medications table", () => {
 		const today = new Date();
 		const { onCreatedAtRangeApply } = renderMedicationsTable();
 
-		await openFilterSubmenu(user, "Created at");
-		await tap(user, await screen.findByRole("menuitem", { name: "Today" }));
+		await user.click(screen.getByRole("button", { name: "Created at" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Today" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(urlDate(today), urlDate(today));
 
-		await tap(user, screen.getByRole("menuitem", { name: "Last 7 days" }));
+		await user.click(screen.getByRole("menuitem", { name: "Last 7 days" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
 			urlDate(subDays(today, 6)),
 			urlDate(today),
 		);
 
-		await tap(user, screen.getByRole("menuitem", { name: "Last 30 days" }));
+		await user.click(screen.getByRole("menuitem", { name: "Last 30 days" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
 			urlDate(subDays(today, 29)),
 			urlDate(today),
 		);
 	});
 
-	test("shows active filters as pills that clear the matching filter", async () => {
+	test("shows active filters as chips that clear the matching filter", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange, onCreatedAtRangeApply } = renderMedicationsTable({
 			statusFilters: ["completed", "discontinued"],
@@ -326,13 +312,13 @@ describe("Medications table", () => {
 			createdTo: "",
 		});
 
-		expect(screen.getByText("Status: Completed")).toBeVisible();
-		expect(screen.getByText("Status: Discontinued")).toBeVisible();
-		expect(screen.getByText("Created: From Jan 1, 2020")).toBeVisible();
-
-		await user.click(screen.getByRole("button", { name: "Remove Status: Completed filter" }));
-		expect(onStatusFiltersChange).toHaveBeenCalledWith(["discontinued"]);
-		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
+		await user.click(
+			screen.getByRole("button", { name: "Remove Status: Completed, Discontinued filter" }),
+		);
+		expect(onStatusFiltersChange).toHaveBeenCalledWith([]);
+		await user.click(
+			screen.getByRole("button", { name: "Remove Created: From Jan 1, 2020 filter" }),
+		);
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 

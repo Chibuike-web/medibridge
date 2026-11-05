@@ -1,20 +1,16 @@
 "use client";
 
-import {
-	DateRangeMenuItems,
-	SetDateRangeDialog,
-	type DateRangeFilter,
-} from "@/components/date-range-filter";
+import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+
+import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import {
 	RiArrowDownSLine,
 	RiArrowUpSLine,
 	RiShare2Line,
 	RiEyeLine,
-	RiFilter3Line,
 	RiMore2Fill,
 	RiSearchLine,
-	RiCloseLine,
 	RiCalendarLine,
 	RiCheckboxCircleLine,
 } from "@remixicon/react";
@@ -37,19 +33,18 @@ const configuredTableFeatures = tableFeatures({
 });
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
+import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
+import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuSub,
-	DropdownMenuSubContent,
-	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -78,7 +73,6 @@ import { SharedMedicationDetailsDrawer } from "./medication-details-drawer";
 type MedicationDetailsRequestError = Error & { status?: number };
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
-type MedicationFilterSubmenu = "status" | "created-at";
 const medicationStatusFilterOptions = [
 	{ label: "Active", value: "Active" },
 	{ label: "Completed", value: "Completed" },
@@ -132,9 +126,7 @@ export function SharedMedicationsTable({
 	const [optimisticStatusFilters, setOptimisticStatusFilters] = useOptimistic(statusFilters);
 	const [optimisticCreatedFrom, setOptimisticCreatedFrom] = useOptimistic(createdFrom);
 	const [optimisticCreatedTo, setOptimisticCreatedTo] = useOptimistic(createdTo);
-	const [activeFilterSubmenu, setActiveFilterSubmenu] = useState<MedicationFilterSubmenu | null>(
-		null,
-	);
+	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
 	const [isPending, startTransition] = useTransition();
 	const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
 	const [optimisticOrder, setOptimisticOrder] = useOptimistic(order);
@@ -303,8 +295,8 @@ export function SharedMedicationsTable({
 	return (
 		<div>
 			<h2 className="text-lg font-semibold text-gray-900">Medications</h2>
-			<div className="mt-7 mb-4 flex items-center gap-2">
-				<div className="relative min-w-0 flex-1">
+			<div className="mt-7 mb-4 flex flex-wrap items-center gap-2">
+				<div className="relative min-w-0 grow-[999] basis-80">
 					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
 					<Input
 						type="search"
@@ -314,41 +306,53 @@ export function SharedMedicationsTable({
 						className="pl-10"
 					/>
 				</div>
-				<MedicationFilterMenu
-					activeFilterSubmenu={activeFilterSubmenu}
-					statusFilters={optimisticStatusFilters}
-					createdFrom={optimisticCreatedFrom}
-					createdTo={optimisticCreatedTo}
-					onActiveFilterSubmenuChange={setActiveFilterSubmenu}
-					onStatusFiltersChange={handleStatusFiltersChange}
-					onCreatedAtRangeApply={handleCreatedAtRangeApply}
-				/>
-				<Button type="button" variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-					<RiShare2Line aria-hidden="true" />
-					Export
-				</Button>
+				<div className="flex grow flex-wrap items-center gap-2 max-md:w-full">
+					<FilterGroup
+						activeFilterCount={
+							(optimisticStatusFilters.length > 0 ? 1 : 0) +
+							(optimisticCreatedFrom || optimisticCreatedTo ? 1 : 0)
+						}
+					>
+						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
+							<CheckboxFilterList
+								name="shared-medication-status"
+								options={medicationStatusFilterOptions}
+								selectedValues={optimisticStatusFilters}
+								onSelectedValuesChange={handleStatusFiltersChange}
+							/>
+						</FilterPopover>
+						<DateFilterMenu
+							label="Created at"
+							icon={RiCalendarLine}
+							from={optimisticCreatedFrom}
+							to={optimisticCreatedTo}
+							onDateRangeApply={handleCreatedAtRangeApply}
+							onCustomDateRangeSelect={setCustomDateRangeFilter}
+						/>
+					</FilterGroup>
+					<SetDateRangeDialog
+						dateRangeFilter={customDateRangeFilter}
+						onClose={() => setCustomDateRangeFilter(null)}
+					/>
+					<ExportButton />
+				</div>
 			</div>
 			{optimisticStatusFilters.length > 0 || optimisticCreatedFrom || optimisticCreatedTo ? (
-				<div className="mb-4 flex items-start gap-4">
-					<div className="flex flex-1 flex-wrap gap-2">
-						{optimisticStatusFilters.map((status) => (
-							<FilterPill
-								key={status}
-								label={`Status: ${status}`}
-								onRemove={() =>
-									handleStatusFiltersChange(
-										optimisticStatusFilters.filter((value) => value !== status),
-									)
-								}
-							/>
-						))}
-						{optimisticCreatedFrom || optimisticCreatedTo ? (
-							<FilterPill
-								label={`Created: ${formatDateRangeFilterLabel(optimisticCreatedFrom, optimisticCreatedTo)}`}
-								onRemove={() => handleCreatedAtRangeApply("", "")}
-							/>
-						) : null}
-					</div>
+				<div className="mb-4 flex flex-wrap gap-2">
+					{optimisticStatusFilters.length > 0 ? (
+						<FilterChip
+							name="Status"
+							value={formatChecklistFilterLabel(optimisticStatusFilters)}
+							onRemove={() => handleStatusFiltersChange([])}
+						/>
+					) : null}
+					{optimisticCreatedFrom || optimisticCreatedTo ? (
+						<FilterChip
+							name="Created"
+							value={formatDateRangeFilterLabel(optimisticCreatedFrom, optimisticCreatedTo)}
+							onRemove={() => handleCreatedAtRangeApply("", "")}
+						/>
+					) : null}
 					<Button
 						type="button"
 						variant="ghost"
@@ -462,7 +466,7 @@ export function SharedMedicationsTable({
 						)}
 					</TableBody>
 				</Table>
-				<div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white p-3 text-sm text-gray-500">
+				<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
 					<div className="flex items-center gap-3">
 						<span>Rows per page</span>
 						<Select
@@ -523,162 +527,26 @@ export function SharedMedicationsTable({
 	);
 }
 
-function MedicationFilterMenu({
-	activeFilterSubmenu,
-	statusFilters,
-	createdFrom,
-	createdTo,
-	onActiveFilterSubmenuChange,
-	onStatusFiltersChange,
-	onCreatedAtRangeApply,
-}: {
-	activeFilterSubmenu: MedicationFilterSubmenu | null;
-	statusFilters: SharedMedicationRow["status"][];
-	createdFrom: string;
-	createdTo: string;
-	onActiveFilterSubmenuChange: (submenu: MedicationFilterSubmenu | null) => void;
-	onStatusFiltersChange: (values: SharedMedicationRow["status"][]) => void;
-	onCreatedAtRangeApply: (from: string, to: string) => void;
-}) {
-	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
-
-	return (
-		<>
-			<DropdownMenu
-				onOpenChange={(open) => {
-					if (!open) onActiveFilterSubmenuChange(null);
-				}}
-			>
-				<DropdownMenuTrigger asChild>
-					<Button
-						type="button"
-						variant="outline"
-						className="bg-white text-gray-600 hover:bg-gray-50"
-					>
-						<RiFilter3Line aria-hidden="true" />
-						Filter
-					</Button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent
-					align="end"
-					className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-				>
-					<DropdownMenuSub
-						open={activeFilterSubmenu === "status"}
-						onOpenChange={(open) => onActiveFilterSubmenuChange(open ? "status" : null)}
-					>
-						<DropdownMenuSubTrigger className="rounded-lg py-2 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-							<RiCheckboxCircleLine className="size-4" />
-							<span className="flex-1">Status</span>
-						</DropdownMenuSubTrigger>
-						<DropdownMenuSubContent
-							alignOffset={-5}
-							className="w-[13.75rem] rounded-xl bg-white p-1 text-sm text-gray-700"
-						>
-							<CheckboxFilterList
-								name="shared-medication-status"
-								options={medicationStatusFilterOptions}
-								selectedValues={statusFilters}
-								onSelectedValuesChange={onStatusFiltersChange}
-							/>
-						</DropdownMenuSubContent>
-					</DropdownMenuSub>
-					<DropdownMenuSub
-						open={activeFilterSubmenu === "created-at"}
-						onOpenChange={(open) => onActiveFilterSubmenuChange(open ? "created-at" : null)}
-					>
-						<DropdownMenuSubTrigger className="rounded-lg py-2 focus:bg-gray-100 focus:text-gray-900 data-[state=open]:bg-gray-100">
-							<RiCalendarLine className="size-4" />
-							<span className="flex-1">Created at</span>
-						</DropdownMenuSubTrigger>
-						<DropdownMenuSubContent
-							alignOffset={-5}
-							className="w-[13.75rem] rounded-xl bg-white p-1 text-sm text-gray-700"
-						>
-							<DateRangeMenuItems
-								from={createdFrom}
-								to={createdTo}
-								onDateRangeApply={onCreatedAtRangeApply}
-								onCustomDateRangeSelect={setCustomDateRangeFilter}
-							/>
-						</DropdownMenuSubContent>
-					</DropdownMenuSub>
-				</DropdownMenuContent>
-			</DropdownMenu>
-			<SetDateRangeDialog
-				dateRangeFilter={customDateRangeFilter}
-				onClose={() => setCustomDateRangeFilter(null)}
-			/>
-		</>
-	);
-}
-
-function FilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
-			<span>{label}</span>
-			<Button
-				size="icon"
-				type="button"
-				onClick={onRemove}
-				className="flex size-5 rounded-full text-white hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
-				aria-label={`Remove ${label} filter`}
-			>
-				<RiCloseLine className="size-4" aria-hidden="true" />
-			</Button>
-		</span>
-	);
-}
-
-function CheckboxFilterList<TValue extends string>({
-	name,
-	options,
-	selectedValues,
-	onSelectedValuesChange,
-}: {
-	name: string;
-	options: readonly { label: string; value: TValue }[];
-	selectedValues: TValue[];
-	onSelectedValuesChange: (values: TValue[]) => void;
-}) {
-	return options.map((option) => {
-		const selected = selectedValues.includes(option.value);
-		const id = `${name}-${option.value}`;
-		return (
-			<DropdownMenuItem
-				key={option.value}
-				className="rounded-lg p-0 focus:bg-gray-100 focus:text-gray-900"
-				onSelect={(event) => event.preventDefault()}
-			>
-				<Label
-					htmlFor={id}
-					className="flex w-full cursor-pointer items-center gap-3 px-2 py-2 leading-normal font-normal"
-				>
-					<Checkbox
-						id={id}
-						checked={selected}
-						onCheckedChange={(checked) =>
-							onSelectedValuesChange(
-								checked === true
-									? [...selectedValues, option.value]
-									: selectedValues.filter((value) => value !== option.value),
-							)
-						}
-						className="[&_svg]:!text-current"
-					/>
-					<span>{option.label}</span>
-				</Label>
-			</DropdownMenuItem>
-		);
-	});
-}
 function formatDateRangeFilterLabel(from: string, to: string) {
-	const fromDate = parseDateParam(from);
-	const toDate = parseDateParam(to);
-	if (fromDate && toDate)
-		return `${format(fromDate, "MMM d, yyyy")} - ${format(toDate, "MMM d, yyyy")}`;
-	if (fromDate) return `From ${format(fromDate, "MMM d, yyyy")}`;
-	if (toDate) return `Until ${format(toDate, "MMM d, yyyy")}`;
+	const parsedFromDate = parseDateParam(from);
+	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate && from === to) {
+		return format(parsedFromDate, "MMM d, yyyy");
+	}
+
+	if (parsedFromDate && parsedToDate) {
+		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedFromDate) {
+		return `From ${format(parsedFromDate, "MMM d, yyyy")}`;
+	}
+
+	if (parsedToDate) {
+		return `Until ${format(parsedToDate, "MMM d, yyyy")}`;
+	}
+
 	return "Any date";
 }
 function RowMenu({ onViewDetails }: { onViewDetails: () => void }) {
@@ -725,4 +593,42 @@ async function fetchSharedMedicationDetails(accessId: string, medicationId: stri
 	const result = (await response.json()) as { medication: MedicationDetailsType | null };
 
 	return result.medication;
+}
+
+function CheckboxFilterList<TValue extends string>({
+	name,
+	options,
+	selectedValues,
+	onSelectedValuesChange,
+}: {
+	name: string;
+	options: readonly { label: string; value: TValue }[];
+	selectedValues: TValue[];
+	onSelectedValuesChange: (values: TValue[]) => void;
+}) {
+	return options.map((option) => {
+		const selected = selectedValues.includes(option.value);
+		const id = `${name}-${option.value}`;
+		return (
+			<Label
+				key={option.value}
+				htmlFor={id}
+				className="flex h-8 w-full cursor-pointer items-center gap-3 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
+			>
+				<Checkbox
+					id={id}
+					checked={selected}
+					onCheckedChange={(checked) =>
+						onSelectedValuesChange(
+							checked === true
+								? [...selectedValues, option.value]
+								: selectedValues.filter((value) => value !== option.value),
+						)
+					}
+					className="[&_svg]:!text-current"
+				/>
+				<span>{option.label}</span>
+			</Label>
+		);
+	});
 }

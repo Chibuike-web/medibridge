@@ -1,14 +1,16 @@
 "use client";
 
+import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
+import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FilterButton } from "@/features/transfers/components/filter-button";
+import { FilterButtons } from "@/features/transfers/components/filter-buttons";
 import { TransferTable } from "@/features/transfers/components/transfer-table";
 import type { TransferStatusFilter, TransferType } from "@/features/transfers/types";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
-import { RiCloseLine, RiSearchLine, RiShare2Line } from "@remixicon/react";
+import { RiSearchLine } from "@remixicon/react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -248,13 +250,13 @@ export function TransfersClient({
 
 	return (
 		<div className="h-full overflow-y-auto">
-			<section className="mx-auto flex w-full max-w-7xl flex-col px-6 py-6 lg:px-10">
+			<section className="mx-auto flex w-full max-w-7xl flex-col px-6 pt-4 pb-6 lg:px-10">
 				<header className="mb-4 flex flex-col gap-4 text-sm">
 					<h1 className="text-lg font-semibold text-balance text-gray-800 tracking-[-0.015em]">
 						Transfers
 					</h1>
-					<div className="flex items-center gap-2">
-						<div className="relative flex-1">
+					<div className="flex flex-wrap items-center gap-2">
+						<div className="relative min-w-0 grow-[999] basis-80">
 							<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 							<Input
 								type="search"
@@ -264,27 +266,25 @@ export function TransfersClient({
 								onChange={(event) => handleQueryChange(event.target.value)}
 							/>
 						</div>
+						<div className="flex grow flex-wrap items-center gap-2 max-md:w-full">
+							<FilterButtons
+								requestedFrom={optimisticRequestedAtRange.requestedFrom}
+								requestedTo={optimisticRequestedAtRange.requestedTo}
+								onRequestedAtRangeApply={handleRequestedAtRangeApply}
+								onStatusFiltersChange={handleStatusFiltersChange}
+								statusFilters={optimisticStatusFilters}
+							/>
+							<ExportButton />
 
-						<FilterButton
-							requestedFrom={optimisticRequestedAtRange.requestedFrom}
-							requestedTo={optimisticRequestedAtRange.requestedTo}
-							onRequestedAtRangeApply={handleRequestedAtRangeApply}
-							onStatusFiltersChange={handleStatusFiltersChange}
-							statusFilters={optimisticStatusFilters}
-						/>
-						<Button variant="outline" className="bg-white text-gray-600 hover:bg-gray-50">
-							<RiShare2Line aria-hidden className="size-5 text-gray-600" />
-							Export
-						</Button>
-
-						<Button asChild>
-							<Link href={newTransferRequestHref} prefetch={true}>
-								New transfer request{" "}
-							</Link>
-						</Button>
+							<Button className="flex-1" asChild>
+								<Link href={newTransferRequestHref} prefetch={true}>
+									New transfer request{" "}
+								</Link>
+							</Button>
+						</div>
 					</div>
 				</header>
-				<TransferActiveFilterPills
+				<TransferActiveFilterChips
 					requestedFrom={optimisticRequestedAtRange.requestedFrom}
 					requestedTo={optimisticRequestedAtRange.requestedTo}
 					statusFilters={optimisticStatusFilters}
@@ -307,7 +307,7 @@ export function TransfersClient({
 	);
 }
 
-function TransferActiveFilterPills({
+function TransferActiveFilterChips({
 	requestedFrom,
 	requestedTo,
 	statusFilters,
@@ -330,26 +330,23 @@ function TransferActiveFilterPills({
 	}
 
 	return (
-		<div className="mb-4 flex items-start gap-4">
-			<div className="flex flex-1 flex-wrap gap-2">
-				{statusFilters.map((statusFilter) => (
-					<TransferFilterPill
-						key={statusFilter}
-						label={`Status: ${transferStatusFilterLabels[statusFilter]}`}
-						onRemove={() => {
-							onStatusFiltersChange(
-								statusFilters.filter((currentStatusFilter) => currentStatusFilter !== statusFilter),
-							);
-						}}
-					/>
-				))}
-				{hasRequestedAtFilter ? (
-					<TransferFilterPill
-						label={`Requested: ${formatDateRangeFilterLabel(requestedFrom, requestedTo)}`}
-						onRemove={() => onRequestedAtRangeApply("", "")}
-					/>
-				) : null}
-			</div>
+		<div className="mb-4 flex flex-wrap gap-2">
+			{hasStatusFilters ? (
+				<FilterChip
+					name="Status"
+					value={formatChecklistFilterLabel(
+						statusFilters.map((statusFilter) => transferStatusFilterLabels[statusFilter]),
+					)}
+					onRemove={() => onStatusFiltersChange([])}
+				/>
+			) : null}
+			{hasRequestedAtFilter ? (
+				<FilterChip
+					name="Requested"
+					value={formatDateRangeFilterLabel(requestedFrom, requestedTo)}
+					onRemove={() => onRequestedAtRangeApply("", "")}
+				/>
+			) : null}
 			<Button
 				type="button"
 				variant="ghost"
@@ -363,26 +360,13 @@ function TransferActiveFilterPills({
 	);
 }
 
-function TransferFilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
-	return (
-		<span className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-gray-100 py-1.5 pr-1.5 pl-3 text-sm font-medium text-gray-600 shadow-xs">
-			<span>{label}</span>
-			<Button
-				size="icon"
-				type="button"
-				onClick={onRemove}
-				className="flex size-5 rounded-full text-white hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-gray-300"
-				aria-label={`Remove ${label} filter`}
-			>
-				<RiCloseLine className="size-4" aria-hidden={true} />
-			</Button>
-		</span>
-	);
-}
-
 function formatDateRangeFilterLabel(from: string, to: string) {
 	const parsedFromDate = parseDateParam(from);
 	const parsedToDate = parseDateParam(to);
+
+	if (parsedFromDate && parsedToDate && from === to) {
+		return format(parsedFromDate, "MMM d, yyyy");
+	}
 
 	if (parsedFromDate && parsedToDate) {
 		return `${format(parsedFromDate, "MMM d, yyyy")} - ${format(parsedToDate, "MMM d, yyyy")}`;

@@ -58,7 +58,7 @@ function DrawerContent({
 				)}
 				{...props}
 			>
-				<div className="mx-auto mt-4 hidden h-2 w-[6.25rem] shrink-0 rounded-full bg-muted group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />
+				<div className="absolute inset-x-0 top-2 mx-auto hidden h-1 w-10 rounded-full bg-muted group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />
 				{children}
 			</DrawerPrimitive.Content>
 		</DrawerPortal>
@@ -70,7 +70,7 @@ function DrawerHeader({ className, ...props }: React.ComponentProps<"div">) {
 		<div
 			data-slot="drawer-header"
 			className={cn(
-				"flex h-14 shrink-0 flex-col p-4 group-data-[vaul-drawer-direction=bottom]/drawer-content:text-center group-data-[vaul-drawer-direction=top]/drawer-content:text-center md:text-left",
+				"flex h-14 shrink-0 flex-col p-4",
 				className,
 			)}
 			{...props}

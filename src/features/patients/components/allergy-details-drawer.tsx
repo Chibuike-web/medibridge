@@ -1,5 +1,7 @@
 "use client";
 
+import { useIsBelowMd } from "@/hooks/use-is-below-md";
+
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
 import {
@@ -86,6 +88,7 @@ export function AllergyDetailsDrawer({
 	isLoading,
 	onAllergyUpdated,
 }: AllergyDetailsDrawerProps) {
+	const isBelowMd = useIsBelowMd();
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
@@ -136,8 +139,12 @@ export function AllergyDetailsDrawer({
 	const isEditingAllergyDetails = allergyDetailsMode === "edit" && Boolean(allergy);
 
 	return (
-		<Drawer open={open} onOpenChange={handleAllergyDetailsOpenChange} direction="right">
-			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
+		<Drawer
+			open={open}
+			onOpenChange={handleAllergyDetailsOpenChange}
+			direction={isBelowMd ? "bottom" : "right"}
+		>
+			<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem] max-w-none data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-3xl data-[vaul-drawer-direction=bottom]:border">
 				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 					<DrawerTitle className="flex-1 leading-[1.2] text-gray-800">
 						{isEditingAllergyDetails ? "Edit allergies details" : "Allergy details"}

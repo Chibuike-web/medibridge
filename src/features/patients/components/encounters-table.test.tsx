@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format, subDays } from "date-fns";
@@ -108,17 +108,6 @@ function rowsPerPagePicker() {
 	);
 }
 
-// jsdom has no layout geometry, so moving a synthetic pointer into the positioned
-// side panel can fire the root menu's leave handler before the intended control is clicked.
-function clickInSubmenu(element: HTMLElement) {
-	fireEvent.click(element);
-}
-
-async function openFilterSubmenu(user: ReturnType<typeof userEvent.setup>, label: string) {
-	await user.click(screen.getByRole("button", { name: "Filter" }));
-	await user.click(screen.getByRole("menuitem", { name: label }));
-}
-
 describe("Encounters table", () => {
 	beforeEach(() => {
 		authState.role = "owner";
@@ -177,35 +166,35 @@ describe("Encounters table", () => {
 		);
 	});
 
-	test("adds and removes encounter type filters from the Encounter type submenu", async () => {
+	test("adds and removes encounter type filters from the Encounter type filter", async () => {
 		const user = userEvent.setup();
 		const { onEncounterTypeFiltersChange } = renderEncountersTable({
 			encounterTypeFilters: ["emergency-visit"],
 		});
 
-		await openFilterSubmenu(user, "Encounter type");
+		await user.click(screen.getByRole("button", { name: "Encounter type" }));
 
 		const emergency = await screen.findByRole("checkbox", { name: "Emergency Visit" });
 		expect(emergency).toBeChecked();
 		expect(screen.getByRole("checkbox", { name: "Routine Checkup" })).not.toBeChecked();
 
-		clickInSubmenu(screen.getByRole("checkbox", { name: "Routine Checkup" }));
+		await user.click(screen.getByRole("checkbox", { name: "Routine Checkup" }));
 		expect(onEncounterTypeFiltersChange).toHaveBeenLastCalledWith([
 			"emergency-visit",
 			"routine-checkup",
 		]);
 
-		clickInSubmenu(emergency);
+		await user.click(emergency);
 		expect(onEncounterTypeFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
-	test("adds department filters from the Department submenu", async () => {
+	test("adds department filters from the Department filter", async () => {
 		const user = userEvent.setup();
 		const { onDepartmentFiltersChange } = renderEncountersTable();
 
-		await openFilterSubmenu(user, "Department");
+		await user.click(screen.getByRole("button", { name: "Department" }));
 
-		clickInSubmenu(await screen.findByRole("checkbox", { name: "Cardiology" }));
+		await user.click(await screen.findByRole("checkbox", { name: "Cardiology" }));
 		expect(onDepartmentFiltersChange).toHaveBeenCalledWith(["cardiology"]);
 	});
 
@@ -213,8 +202,8 @@ describe("Encounters table", () => {
 		const user = userEvent.setup();
 		const { onEncounterDateRangeApply } = renderEncountersTable();
 
-		await openFilterSubmenu(user, "Encounter date");
-		clickInSubmenu(await screen.findByRole("menuitem", { name: "Last 7 days" }));
+		await user.click(screen.getByRole("button", { name: "Encounter date" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Last 7 days" }));
 
 		const today = new Date();
 		expect(onEncounterDateRangeApply).toHaveBeenCalledWith(
@@ -223,7 +212,7 @@ describe("Encounters table", () => {
 		);
 	});
 
-	test("shows active filters as pills the user can remove", async () => {
+	test("shows active filters as chips the user can remove", async () => {
 		const user = userEvent.setup();
 		const {
 			onEncounterTypeFiltersChange,
@@ -239,22 +228,22 @@ describe("Encounters table", () => {
 			createdTo: "",
 		});
 
-		expect(screen.getByText("Type: Follow Up Visit")).toBeVisible();
-		expect(screen.getByText("Type: Routine Checkup")).toBeVisible();
-		expect(screen.getByText("Department: Nephrology")).toBeVisible();
-		expect(screen.getByText("Encounter: Jan 1, 2024 - Jan 31, 2024")).toBeVisible();
-		expect(screen.getByText("Created: From Feb 1, 2024")).toBeVisible();
-
-		await user.click(screen.getByRole("button", { name: "Remove Type: Follow Up Visit filter" }));
-		expect(onEncounterTypeFiltersChange).toHaveBeenCalledWith(["routine-checkup"]);
+		await user.click(
+			screen.getByRole("button", { name: "Remove Type: Follow Up Visit, Routine Checkup filter" }),
+		);
+		expect(onEncounterTypeFiltersChange).toHaveBeenCalledWith([]);
 
 		await user.click(screen.getByRole("button", { name: "Remove Department: Nephrology filter" }));
 		expect(onDepartmentFiltersChange).toHaveBeenCalledWith([]);
 
-		await user.click(screen.getByRole("button", { name: /Remove Encounter:/ }));
+		await user.click(
+			screen.getByRole("button", { name: "Remove Encounter: Jan 1, 2024 - Jan 31, 2024 filter" }),
+		);
 		expect(onEncounterDateRangeApply).toHaveBeenCalledWith("", "");
 
-		await user.click(screen.getByRole("button", { name: /Remove Created:/ }));
+		await user.click(
+			screen.getByRole("button", { name: "Remove Created: From Feb 1, 2024 filter" }),
+		);
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith("", "");
 	});
 
