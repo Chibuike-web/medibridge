@@ -295,7 +295,7 @@ export function SharedMedicationsTable({
 	return (
 		<div>
 			<h2 className="text-lg font-semibold text-gray-900">Medications</h2>
-			<div className="mt-7 mb-4 flex flex-wrap items-center gap-2">
+			<div className="mt-4 mb-4 flex flex-wrap items-center gap-2">
 				<div className="relative min-w-0 grow-[999] basis-80">
 					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
@@ -443,13 +443,31 @@ export function SharedMedicationsTable({
 					>
 						{table.getRowModel().rows.length > 0 ? (
 							table.getRowModel().rows.map((row) => (
-								<TableRow key={row.id}>
+								<TableRow
+									key={row.id}
+									role="button"
+									tabIndex={0}
+									onClick={() => handleViewMedicationDetails(row.original.medicationId)}
+									onKeyDown={(event) => {
+										if (event.key === "Enter" || event.key === " ") {
+											event.preventDefault();
+											handleViewMedicationDetails(row.original.medicationId);
+										}
+									}}
+									className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-400"
+								>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell
 											key={cell.id}
 											className={cn(cell.column.id === "dose" && "text-right")}
 										>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											<div
+												className="inline-block max-w-full"
+												onClick={(event) => event.stopPropagation()}
+												onKeyDown={(event) => event.stopPropagation()}
+											>
+												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											</div>
 										</TableCell>
 									))}
 								</TableRow>
