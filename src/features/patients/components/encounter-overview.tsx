@@ -1,5 +1,7 @@
 "use client";
 
+import { useIsBelowMd } from "@/hooks/use-is-below-md";
+
 import { useId, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -81,6 +83,7 @@ export function EncounterOverview({
 	};
 	encounterDayLabel: string;
 }) {
+	const isBelowMd = useIsBelowMd();
 	const router = useRouter();
 	const formId = useId();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
@@ -190,11 +193,11 @@ export function EncounterOverview({
 				<DetailItem label="Created at" value={encounter.createdAtLabel} />
 			</DetailsSection>
 			<Drawer
-				direction="right"
+				direction={isBelowMd ? "bottom" : "right"}
 				open={isEditEncounterDrawerOpen}
 				onOpenChange={setIsEditEncounterDrawerOpen}
 			>
-				<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem]">
+				<DrawerContent className="overflow-hidden rounded-3xl text-sm data-[vaul-drawer-direction=right]:top-4 data-[vaul-drawer-direction=right]:right-4 data-[vaul-drawer-direction=right]:bottom-4 data-[vaul-drawer-direction=right]:h-auto data-[vaul-drawer-direction=right]:w-[37.5rem] max-w-none data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-3xl data-[vaul-drawer-direction=bottom]:border">
 					<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 						<DrawerTitle className="leading-[1.2] text-gray-800">Edit encounter</DrawerTitle>
 						<DrawerClose asChild>
@@ -353,8 +356,8 @@ export function EncounterOverview({
 						</Button>
 					</AlertDialogHeader>
 					<AlertDialogDescription>
-						This encounter will be removed from the patient’s encounter list. Its vitals, records and
-						details are retained and can be restored at any time.
+						This encounter will be removed from the patient’s encounter list. Its vitals, records
+						and details are retained and can be restored at any time.
 					</AlertDialogDescription>
 					<AlertDialogFooter className="sm:justify-end">
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
