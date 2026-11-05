@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 export default function AppError({
@@ -9,6 +10,10 @@ export default function AppError({
 	error: Error & { digest?: string };
 	retry: () => void;
 }) {
+	useEffect(() => {
+		console.error(error);
+	}, [error]);
+
 	return (
 		<main className="grid min-h-dvh place-items-center px-6 py-10">
 			<section className="w-full max-w-[31.25rem] text-center">
@@ -21,9 +26,6 @@ export default function AppError({
 				<Button className="mt-12" onClick={() => retry()}>
 					Try again
 				</Button>
-				{error.digest && (
-					<p className="mt-6 text-xs text-gray-400">Error reference: {error.digest}</p>
-				)}
 			</section>
 		</main>
 	);

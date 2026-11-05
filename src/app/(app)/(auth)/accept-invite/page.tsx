@@ -74,16 +74,9 @@ async function AcceptInviteContent({ searchParams }: AcceptInvitePageProps) {
 
 	return (
 		<div className="w-full">
-			<div className="mb-10">
-				<h1 className="text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
-					{pageContent.heading}
-				</h1>
-				<p className="mt-4 text-pretty text-center text-sm font-normal text-gray-600">
-					{pageContent.description}
-				</p>
-			</div>
-
 			<AcceptInviteClient
+				heading={pageContent.heading}
+				description={pageContent.description}
 				email={invitationPreview.email}
 				invitationId={invitationId ?? ""}
 				mode={mode}

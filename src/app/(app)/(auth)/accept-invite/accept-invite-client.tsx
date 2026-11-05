@@ -29,6 +29,8 @@ import { useForm } from "react-hook-form";
 export type AcceptInviteMode = "create-account" | "verify-email" | "accept" | "wrong-account";
 
 type AcceptInviteClientProps = {
+	heading: string;
+	description: string;
 	email: string;
 	invitationId: string;
 	mode: AcceptInviteMode;
@@ -41,20 +43,22 @@ export function AcceptInviteClient(props: AcceptInviteClientProps) {
 	}
 
 	if (props.mode === "verify-email") {
-		return <AwaitingEmailVerification email={props.email} invitationId={props.invitationId} />;
+		return <AwaitingEmailVerification {...props} />;
 	}
 
 	if (props.mode === "wrong-account") {
-		return <SwitchAccountButton />;
+		return <SwitchAccountButton {...props} />;
 	}
 
 	return <AcceptInvitationButton {...props} />;
 }
 
 function CreateInvitedAdminForm({
+	heading,
+	description,
 	email,
 	invitationId,
-}: Pick<AcceptInviteClientProps, "email" | "invitationId">) {
+}: Pick<AcceptInviteClientProps, "heading" | "description" | "email" | "invitationId">) {
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const [accountSetupError, setAccountSetupError] = useState("");
 	const { isSuccessModalOpen, setIsSuccessModalOpen } = useShowSuccess();
@@ -98,6 +102,8 @@ function CreateInvitedAdminForm({
 
 	return (
 		<>
+			<FormError message={accountSetupError} onDismiss={() => setAccountSetupError("")} />
+			<InvitationHeading heading={heading} description={description} />
 			<form
 				method="post"
 				className="mt-12 text-gray-800"
@@ -149,8 +155,6 @@ function CreateInvitedAdminForm({
 					)}
 				</div>
 
-				<FormError message={accountSetupError} onDismiss={() => setAccountSetupError("")} />
-
 				<Button className="mt-16 w-full" type="submit" disabled={isSubmitting}>
 					{isSubmitting ? <PixelLoader label="Creating account..." /> : "Create account"}
 				</Button>
@@ -185,79 +189,83 @@ function CreateInvitedAdminForm({
 }
 
 function AwaitingEmailVerification({
+	heading,
+	description,
 	email,
 	invitationId,
-}: {
-	email: string;
-	invitationId: string;
-}) {
+}: Pick<AcceptInviteClientProps, "heading" | "description" | "email" | "invitationId">) {
 	const [verificationFeedback, setVerificationFeedback] = useState("");
 	const [verificationError, setVerificationError] = useState("");
 	const [isSendingVerificationEmail, startSendVerificationEmailTransition] = useTransition();
 	const callbackUrl = `/accept-invite?invitationId=${encodeURIComponent(invitationId)}`;
 
 	return (
-		<div className="mt-12 text-gray-800">
-			<ReadOnlyEmailField email={email} />
-			<p className="mt-6 text-center text-sm font-normal text-gray-600">
-				Verify your email, then sign in to accept this invitation. If you already verified your
-				email, sign in now.
-			</p>
+		<>
 			<FormError message={verificationError} onDismiss={() => setVerificationError("")} />
-			{verificationFeedback && (
-				<p role="status" className="mt-4 text-sm text-green-700">
-					{verificationFeedback}
+			<InvitationHeading heading={heading} description={description} />
+			<div className="mt-12 text-gray-800">
+				<ReadOnlyEmailField email={email} />
+				<p className="mt-6 text-center text-sm font-normal text-gray-600">
+					Verify your email, then sign in to accept this invitation. If you already verified your
+					email, sign in now.
 				</p>
-			)}
-			<Button
-				className="mt-8 w-full"
-				disabled={isSendingVerificationEmail}
-				onClick={() => {
-					setVerificationError("");
-					setVerificationFeedback("");
-					startSendVerificationEmailTransition(async () => {
-						try {
-							const { error } = await authClient.sendVerificationEmail({
-								email,
-								callbackURL: callbackUrl,
-							});
-							if (error) {
-								setVerificationError(
-									error.status === 429
-										? "Too many attempts. Wait a moment and try again."
-										: "We couldn’t send a new link. Please try again.",
-								);
-								return;
-							}
-							setVerificationFeedback(
-								"If your account is unverified, we sent a new verification link.",
-							);
-						} catch (error) {
-							console.error(error);
-							setVerificationError("We couldn’t send a new link. Please try again.");
-						}
-					});
-				}}
-			>
-				{isSendingVerificationEmail ? (
-					<PixelLoader label="Sending..." />
-				) : (
-					"Resend verification email"
+				{verificationFeedback && (
+					<p role="status" className="mt-4 text-sm text-green-700">
+						{verificationFeedback}
+					</p>
 				)}
-			</Button>
-			<Button asChild variant="outline" className="mt-4 w-full">
-				<Link href={`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`}>
-					Sign in to accept invitation
-				</Link>
-			</Button>
-		</div>
+				<Button
+					className="mt-8 w-full"
+					disabled={isSendingVerificationEmail}
+					onClick={() => {
+						setVerificationError("");
+						setVerificationFeedback("");
+						startSendVerificationEmailTransition(async () => {
+							try {
+								const { error } = await authClient.sendVerificationEmail({
+									email,
+									callbackURL: callbackUrl,
+								});
+								if (error) {
+									setVerificationError(
+										error.status === 429
+											? "Too many attempts. Wait a moment and try again."
+											: "We couldn’t send a new link. Please try again.",
+									);
+									return;
+								}
+								setVerificationFeedback(
+									"If your account is unverified, we sent a new verification link.",
+								);
+							} catch (error) {
+								console.error(error);
+								setVerificationError("We couldn’t send a new link. Please try again.");
+							}
+						});
+					}}
+				>
+					{isSendingVerificationEmail ? (
+						<PixelLoader label="Sending..." />
+					) : (
+						"Resend verification email"
+					)}
+				</Button>
+				<Button asChild variant="outline" className="mt-4 w-full">
+					<Link href={`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`}>
+						Sign in to accept invitation
+					</Link>
+				</Button>
+			</div>
+		</>
 	);
 }
 
 function AcceptInvitationButton({
+	heading,
+	description,
 	invitationId,
 	organizationName,
-}: Pick<AcceptInviteClientProps, "invitationId" | "organizationName">) {
+}: Pick<AcceptInviteClientProps, "heading" | "description" | "invitationId" | "organizationName">) {
 	const router = useRouter();
 	const [acceptInvitationError, setAcceptInvitationError] = useState("");
 	const [isAcceptingInvitation, startAcceptInvitationTransition] = useTransition();
@@ -291,6 +299,7 @@ function AcceptInvitationButton({
 	return (
 		<>
 			<FormError message={acceptInvitationError} onDismiss={() => setAcceptInvitationError("")} />
+			<InvitationHeading heading={heading} description={description} />
 			<Button
 				className="mt-16 w-full"
 				type="button"
@@ -322,7 +331,10 @@ function AcceptInvitationButton({
 	);
 }
 
-function SwitchAccountButton() {
+function SwitchAccountButton({
+	heading,
+	description,
+}: Pick<AcceptInviteClientProps, "heading" | "description">) {
 	const router = useRouter();
 	const [switchAccountError, setSwitchAccountError] = useState("");
 	const [isSwitchingAccount, startSwitchAccountTransition] = useTransition();
@@ -350,6 +362,7 @@ function SwitchAccountButton() {
 	return (
 		<>
 			<FormError message={switchAccountError} onDismiss={() => setSwitchAccountError("")} />
+			<InvitationHeading heading={heading} description={description} />
 			<Button
 				className="mt-16 w-full"
 				type="button"
@@ -359,6 +372,22 @@ function SwitchAccountButton() {
 				{isSwitchingAccount ? <PixelLoader label="Signing out..." /> : "Switch account"}
 			</Button>
 		</>
+	);
+}
+
+function InvitationHeading({
+	heading,
+	description,
+}: Pick<AcceptInviteClientProps, "heading" | "description">) {
+	return (
+		<div className="mb-10">
+			<h1 className="text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
+				{heading}
+			</h1>
+			<p className="mt-4 text-pretty text-center text-sm font-normal text-gray-600">
+				{description}
+			</p>
+		</div>
 	);
 }
 
@@ -417,7 +446,7 @@ function FormError({ message, onDismiss }: { message: string; onDismiss: () => v
 
 	return (
 		<div
-			className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+			className="mb-6 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
 			role="alert"
 		>
 			<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />

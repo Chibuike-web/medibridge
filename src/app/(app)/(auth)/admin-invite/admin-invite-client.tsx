@@ -59,6 +59,32 @@ export function AdminInviteClient() {
 
 	return (
 		<>
+			{invitationError && (
+				<div
+					className="mb-6 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+					role="alert"
+				>
+					<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
+					<span className="min-w-0 flex-1">{invitationError}</span>
+					<Button
+						type="button"
+						variant="ghost"
+						size="icon"
+						className="ml-auto -my-1 size-6 rounded-full"
+						aria-label="Dismiss error message"
+						onClick={() => setInvitationError("")}
+					>
+						<RiCloseLine aria-hidden="true" />
+					</Button>
+				</div>
+			)}
+			<h1 className="mt-10 text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
+				Invite Administrator
+			</h1>
+			<p className="text-gray-600 text-sm font-normal text-center text-pretty mt-4">
+				Invite your hospital’s administrator. They will be assigned an admin role to manage and add
+				new members.
+			</p>
 			<form
 				method="post"
 				className="text-gray-800 mt-12"
@@ -110,26 +136,6 @@ export function AdminInviteClient() {
 						</p>
 					)}
 				</div>
-
-				{invitationError && (
-					<div
-						className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
-						role="alert"
-					>
-						<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
-						<span className="min-w-0 flex-1">{invitationError}</span>
-						<Button
-							type="button"
-							variant="ghost"
-							size="icon"
-							className="ml-auto -my-1 size-6 rounded-full"
-							aria-label="Dismiss error message"
-							onClick={() => setInvitationError("")}
-						>
-							<RiCloseLine aria-hidden="true" />
-						</Button>
-					</div>
-				)}
 
 				<Button className="w-full mt-16" type="submit" disabled={isSubmitting || isPending}>
 					{isPending ? <PixelLoader label="Sending invite..." /> : "Send Invite"}

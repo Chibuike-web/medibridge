@@ -1,6 +1,7 @@
 "use client";
 
 import { FileExtensionType, VerificationUploadStatus } from "@/lib/types/verification-upload";
+import { useRouter } from "next/navigation";
 import { ChangeEvent, useState } from "react";
 
 const MAXSIZEINBYTES = 50 * 1024 * 1024;
@@ -10,10 +11,10 @@ type VerificationFileState = {
 	status: VerificationUploadStatus;
 	uploadedType: FileExtensionType;
 	error: string;
-	resStatus?: number;
 };
 
 export function useVerificationFileUpload() {
+	const router = useRouter();
 	const [verificationFile, setVerificationFile] = useState<VerificationFileState>({
 		file: null,
 		status: "idle",
@@ -82,9 +83,15 @@ export function useVerificationFileUpload() {
 					size: selectedFile.size,
 				}),
 			});
-			const data: { error?: string; signedUrl?: string; type?: string } = await res
+			const data: { status?: string; error?: string; signedUrl?: string; type?: string } = await res
 				.json()
 				.catch(() => ({}));
+
+			if (data.status === "unauthorized") {
+				setVerificationFile({ file: null, status: "idle", uploadedType: "", error: "" });
+				router.refresh();
+				return;
+			}
 
 			if (!res.ok) {
 				setVerificationFile({
@@ -92,7 +99,6 @@ export function useVerificationFileUpload() {
 					status: "idle",
 					uploadedType: "",
 					error: data.error ?? "We couldn’t upload your file. Please try again",
-					resStatus: res.status,
 				});
 				return;
 			}

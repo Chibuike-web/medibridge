@@ -54,6 +54,10 @@ export function HospitalDetailsClient() {
 		startTransition(async () => {
 			try {
 				const res = await createHospitalAction(data);
+				if (res?.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
 				if (res?.status === "failed") {
 					setHospitalDetailsFeedback({
 						type: "error",
@@ -79,77 +83,11 @@ export function HospitalDetailsClient() {
 	}
 
 	return (
-		<form className="w-full" onSubmit={handleSubmit(onSubmit)}>
-			<div className="mb-6">
-				<Label htmlFor="hospitalName" className="block mb-2 text-sm">
-					Hospital Name
-				</Label>
-				<Input
-					id="hospitalName"
-					type="text"
-					placeholder="eg., St. Mary's General Hospital"
-					{...register("hospitalName")}
-					aria-describedby={errors.hospitalName ? "hospital-name-error" : undefined}
-					aria-invalid={!!errors.hospitalName}
-				/>
-				{errors.hospitalName && (
-					<p id="hospital-name-error" className="font-medium text-red-500 mt-1.5 text-sm">
-						{errors.hospitalName.message}
-					</p>
-				)}
-			</div>
-			<div className="mb-6">
-				<Label htmlFor="hospitalAddress" className="block mb-2 text-sm">
-					Hospital Address
-				</Label>
-				<Input
-					id="hospitalAddress"
-					type="text"
-					placeholder="eg., 123 Healthway Blvd, Springfield, IL"
-					{...register("hospitalAddress")}
-					aria-describedby={errors.hospitalAddress ? "hospital-address-error" : undefined}
-					aria-invalid={!!errors.hospitalAddress}
-				/>
-				{errors.hospitalAddress && (
-					<p id="hospital-address-error" className="font-medium text-red-500 mt-1.5 text-sm">
-						{errors.hospitalAddress.message}
-					</p>
-				)}
-			</div>
-			<p className="mb-2 text-sm font-medium">
-				Upload hospital accreditation or official license document
-			</p>
-
-			{file ? (
-				<FileUploadCard
-					name={file.name}
-					size={file.size}
-					onRemove={onClear}
-					uploadStatus={status}
-					extension={uploadedType}
-				/>
-			) : (
-				<ChooseFileCard
-					onFilesSelected={handleFileChange}
-					title="Choose a file or drag & drop it here."
-					description="PDF, PNG, JPG, and DOC, up to 50 MB."
-					browseLabel="Browse File"
-					fileInputRef={fileInputRef}
-					error={uploadError}
-					accept="application/pdf,image/png,.jpg,.doc"
-					inputId="hospital-file"
-				/>
-			)}
-			{file && uploadError && (
-				<p id="file-upload-error" className="text-red-500 font-medium text-sm mt-1.5" role="alert">
-					{uploadError}
-				</p>
-			)}
-
+		<>
 			{hospitalDetailsFeedback?.type === "error" && (
 				<div
 					role="alert"
-					className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+					className="mb-6 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
 				>
 					<span className="shrink-0">
 						<RiErrorWarningFill className="size-4" aria-hidden="true" />
@@ -170,7 +108,7 @@ export function HospitalDetailsClient() {
 			{hospitalDetailsFeedback?.type === "success" && (
 				<div
 					role="status"
-					className="mt-4 flex items-center gap-2 rounded-xl bg-green-50 px-3 py-2 text-sm font-medium text-green-700"
+					className="mb-6 flex items-center gap-2 rounded-xl bg-green-50 px-3 py-2 text-sm font-medium text-green-700"
 				>
 					<span>
 						<RiCheckboxCircleFill className="size-4" aria-hidden="true" />
@@ -188,13 +126,94 @@ export function HospitalDetailsClient() {
 					</Button>
 				</div>
 			)}
-			<Button
-				className="w-full mt-16"
-				type="submit"
-				disabled={isPending || status !== "upload-complete"}
-			>
-				{isPending ? <PixelLoader label="Creating..." /> : "Create account"}
-			</Button>
-		</form>
+			<div className="mb-10">
+				<h1 className="text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
+					Hospital Details
+				</h1>
+				<p className="text-gray-600 text-sm font-normal text-center text-pretty mt-4">
+					Fill in your hospital’s registered details and provide an accreditation or license for
+					verification.
+				</p>
+			</div>
+			<form className="w-full" onSubmit={handleSubmit(onSubmit)}>
+				<div className="mb-6">
+					<Label htmlFor="hospitalName" className="block mb-2 text-sm">
+						Hospital Name
+					</Label>
+					<Input
+						id="hospitalName"
+						type="text"
+						placeholder="eg., St. Mary's General Hospital"
+						{...register("hospitalName")}
+						aria-describedby={errors.hospitalName ? "hospital-name-error" : undefined}
+						aria-invalid={!!errors.hospitalName}
+					/>
+					{errors.hospitalName && (
+						<p id="hospital-name-error" className="font-medium text-red-500 mt-1.5 text-sm">
+							{errors.hospitalName.message}
+						</p>
+					)}
+				</div>
+				<div className="mb-6">
+					<Label htmlFor="hospitalAddress" className="block mb-2 text-sm">
+						Hospital Address
+					</Label>
+					<Input
+						id="hospitalAddress"
+						type="text"
+						placeholder="eg., 123 Healthway Blvd, Springfield, IL"
+						{...register("hospitalAddress")}
+						aria-describedby={errors.hospitalAddress ? "hospital-address-error" : undefined}
+						aria-invalid={!!errors.hospitalAddress}
+					/>
+					{errors.hospitalAddress && (
+						<p id="hospital-address-error" className="font-medium text-red-500 mt-1.5 text-sm">
+							{errors.hospitalAddress.message}
+						</p>
+					)}
+				</div>
+				<p className="mb-2 text-sm font-medium">
+					Upload hospital accreditation or official license document
+				</p>
+
+				{file ? (
+					<FileUploadCard
+						name={file.name}
+						size={file.size}
+						onRemove={onClear}
+						uploadStatus={status}
+						extension={uploadedType}
+					/>
+				) : (
+					<ChooseFileCard
+						onFilesSelected={handleFileChange}
+						title="Choose a file or drag & drop it here."
+						description="PDF, PNG, JPG, and DOC, up to 50 MB."
+						browseLabel="Browse File"
+						fileInputRef={fileInputRef}
+						error={uploadError}
+						accept="application/pdf,image/png,.jpg,.doc"
+						inputId="hospital-file"
+					/>
+				)}
+				{file && uploadError && (
+					<p
+						id="file-upload-error"
+						className="text-red-500 font-medium text-sm mt-1.5"
+						role="alert"
+					>
+						{uploadError}
+					</p>
+				)}
+
+				<Button
+					className="w-full mt-16"
+					type="submit"
+					disabled={isPending || status !== "upload-complete"}
+				>
+					{isPending ? <PixelLoader label="Creating..." /> : "Create account"}
+				</Button>
+			</form>
+		</>
 	);
 }

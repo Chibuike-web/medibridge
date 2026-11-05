@@ -101,48 +101,19 @@ describe("Configured authentication endpoints", () => {
 		selectRowsMock.mockReset().mockResolvedValue([]);
 	});
 
-	test("lets a development owner verify and sign in using the server-console link", async () => {
-		vi.stubEnv("NODE_ENV", "development");
-		const consoleInfoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
-		try {
-			const registeredUser = await registerAccount("local-owner@example.org", "/email-verified");
-			expect((await signIn(registeredUser.email, "password-before-verification")).status).toBe(403);
-			const verificationUrl = consoleInfoSpy.mock.calls.find(
-				([message]) => message === "Email verification link (development only):",
-			)?.[1] as string;
-			expect(verificationUrl).toEqual(expect.any(String));
-			expect(sendEmailMock).not.toHaveBeenCalled();
+	test("emails the verification link, which verifies the owner and lets them sign in", async () => {
+		const registeredUser = await registerAccount("owner@example.org", "/email-verified");
+		expect((await signIn(registeredUser.email, "password-before-verification")).status).toBe(403);
+		const verificationUrl = sendEmailMock.mock.calls[0][1] as string;
+		expect(sendEmailMock).toHaveBeenCalledWith(registeredUser.email, verificationUrl);
 
-			const verifiedResponse = await auth.handler(new Request(verificationUrl));
-			expect(verifiedResponse.status).toBe(302);
-			const sessionResponse = await requestAuth("/get-session", {
-				cookie: responseCookies(verifiedResponse),
-			});
-			expect((await sessionResponse.json()).user.emailVerified).toBe(true);
-			expect((await signIn(registeredUser.email, "password-before-verification")).status).toBe(200);
-		} finally {
-			consoleInfoSpy.mockRestore();
-			vi.unstubAllEnvs();
-		}
-	});
-
-	test("delivers production verification by email without logging the verification link", async () => {
-		vi.stubEnv("NODE_ENV", "production");
-		const consoleInfoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
-		try {
-			const registeredUser = await registerAccount();
-			const verificationUrl = sendEmailMock.mock.calls[0][1] as string;
-			expect(sendEmailMock).toHaveBeenCalledWith(registeredUser.email, verificationUrl);
-			const verifiedResponse = await auth.handler(new Request(verificationUrl));
-			expect(verifiedResponse.status).toBe(302);
-			expect(consoleInfoSpy).not.toHaveBeenCalledWith(
-				"Email verification link (development only):",
-				expect.anything(),
-			);
-		} finally {
-			consoleInfoSpy.mockRestore();
-			vi.unstubAllEnvs();
-		}
+		const verifiedResponse = await auth.handler(new Request(verificationUrl));
+		expect(verifiedResponse.status).toBe(302);
+		const sessionResponse = await requestAuth("/get-session", {
+			cookie: responseCookies(verifiedResponse),
+		});
+		expect((await sessionResponse.json()).user.emailVerified).toBe(true);
+		expect((await signIn(registeredUser.email, "password-before-verification")).status).toBe(200);
 	});
 
 	test("returns an invited person to their invitation, signed in, when they verify their email", async () => {
@@ -231,10 +202,19 @@ describe("Configured authentication endpoints", () => {
 		selectRowsMock.mockResolvedValue([{ role: "member" }]);
 		const allowedResponse = await requestAuth("/delete-user", { body: {}, cookie });
 		expect(allowedResponse.status).toBe(200);
-		expect(await (await requestAuth("/get-session", { cookie })).json()).toBeNull();
+		expect(
+			await (await requestAuth("/get-session?disableCookieCache=true", { cookie })).json(),
+		).toBeNull();
+		vi.useFakeTimers({ toFake: ["Date"] });
+		try {
+			vi.setSystemTime(Date.now() + 5 * 60_000 + 1_000);
+			expect(await (await requestAuth("/get-session", { cookie })).json()).toBeNull();
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 
-	test("revokes an already-read browser session immediately when the password is reset", async () => {
+	test("revokes the session when the password is reset, and the browser's cached session lapses within 5 minutes", async () => {
 		const registeredUser = await registerAccount();
 		const context = await auth.$context;
 		await context.internalAdapter.updateUser(registeredUser.id, { emailVerified: true });
@@ -255,8 +235,20 @@ describe("Configured authentication endpoints", () => {
 		});
 		expect(resetResponse.status).toBe(200);
 
-		const revokedSessionResponse = await requestAuth("/get-session", { cookie: readSessionCookie });
+		const revokedSessionResponse = await requestAuth("/get-session?disableCookieCache=true", {
+			cookie: readSessionCookie,
+		});
 		expect(await revokedSessionResponse.json()).toBeNull();
+		vi.useFakeTimers({ toFake: ["Date"] });
+		try {
+			vi.setSystemTime(Date.now() + 5 * 60_000 + 1_000);
+			const lapsedSessionResponse = await requestAuth("/get-session", {
+				cookie: readSessionCookie,
+			});
+			expect(await lapsedSessionResponse.json()).toBeNull();
+		} finally {
+			vi.useRealTimers();
+		}
 		expect((await signIn(registeredUser.email, "password-before-verification")).status).toBe(401);
 		expect((await signIn(registeredUser.email, "password-after-reset")).status).toBe(200);
 	});

@@ -15,78 +15,88 @@ export function ForgotPasswordClient() {
 	const [isPending, startTransition] = useTransition();
 
 	return (
-		<form
-			method="post"
-			onSubmit={(e) => {
-				e.preventDefault();
-				setRequestFeedback("");
-
-				const formData = new FormData(e.currentTarget);
-				const email = String(formData.get("email") ?? "").trim();
-
-				startTransition(async () => {
-					try {
-						const { error } = await authClient.requestPasswordReset({
-							email,
-							redirectTo: new URL("/create-new-password", window.location.origin).toString(),
-						});
-
-						if (error) {
-							setRequestFeedback("We couldn’t process that request. Please try again.");
-							return;
-						}
-
-						router.push("/forgot-password/verify");
-					} catch {
-						setRequestFeedback("We couldn’t process that request. Please try again.");
-					}
-				});
-			}}
-			aria-busy={isPending}
-			className="text-gray-800 mt-12"
-		>
-			<div className="mb-6">
-				<Label htmlFor="email" className="block mb-2 text-sm">
-					Email Address
-				</Label>
-				<Input
-					id="email"
-					name="email"
-					type="email"
-					autoComplete="email"
-					required
-					placeholder="sarah.thompson@stmaryhospital.org"
-					aria-describedby={requestFeedback ? "email-info reset-feedback" : "email-info"}
-					onChange={() => setRequestFeedback("")}
-				/>
-				<p id="email-info" className="flex gap-1 items-center mt-2">
-					<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
-					<span className="text-sm text-gray-400">Use the email you sign in with</span>
-				</p>
-				{requestFeedback && (
-					<div
-						id="reset-feedback"
-						role="alert"
-						className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+		<>
+			{requestFeedback && (
+				<div
+					id="reset-feedback"
+					role="alert"
+					className="mb-6 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+				>
+					<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
+					<span className="min-w-0 flex-1">{requestFeedback}</span>
+					<Button
+						type="button"
+						variant="ghost"
+						size="icon"
+						className="ml-auto -my-1 size-6 rounded-full"
+						aria-label="Dismiss error message"
+						onClick={() => setRequestFeedback("")}
 					>
-						<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
-						<span className="min-w-0 flex-1">{requestFeedback}</span>
-						<Button
-							type="button"
-							variant="ghost"
-							size="icon"
-							className="ml-auto -my-1 size-6 rounded-full"
-							aria-label="Dismiss error message"
-							onClick={() => setRequestFeedback("")}
-						>
-							<RiCloseLine aria-hidden="true" />
-						</Button>
-					</div>
-				)}
+						<RiCloseLine aria-hidden="true" />
+					</Button>
+				</div>
+			)}
+			<div>
+				<h1 className="text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
+					Forgot Your Password?
+				</h1>
+				<p className="text-gray-600 text-sm font-normal text-center text-pretty mt-4">
+					We’ll send a link to reset your password.
+				</p>
 			</div>
-			<Button className="mt-16 w-full" type="submit" disabled={isPending}>
-				{isPending ? <PixelLoader label="Sending…" /> : "Send Reset Link"}
-			</Button>
-		</form>
+			<form
+				method="post"
+				onSubmit={(e) => {
+					e.preventDefault();
+					setRequestFeedback("");
+
+					const formData = new FormData(e.currentTarget);
+					const email = String(formData.get("email") ?? "").trim();
+
+					startTransition(async () => {
+						try {
+							const { error } = await authClient.requestPasswordReset({
+								email,
+								redirectTo: new URL("/create-new-password", window.location.origin).toString(),
+							});
+
+							if (error) {
+								setRequestFeedback("We couldn’t process that request. Please try again.");
+								return;
+							}
+
+							router.push("/forgot-password/verify");
+						} catch {
+							setRequestFeedback("We couldn’t process that request. Please try again.");
+						}
+					});
+				}}
+				aria-busy={isPending}
+				className="text-gray-800 mt-12"
+			>
+				<div className="mb-6">
+					<Label htmlFor="email" className="block mb-2 text-sm">
+						Email Address
+					</Label>
+					<Input
+						id="email"
+						name="email"
+						type="email"
+						autoComplete="email"
+						required
+						placeholder="sarah.thompson@stmaryhospital.org"
+						aria-describedby={requestFeedback ? "email-info reset-feedback" : "email-info"}
+						onChange={() => setRequestFeedback("")}
+					/>
+					<p id="email-info" className="flex gap-1 items-center mt-2">
+						<RiInformationLine className="text-gray-400 size-4" aria-hidden="true" />
+						<span className="text-sm text-gray-400">Use the email you sign in with</span>
+					</p>
+				</div>
+				<Button className="mt-16 w-full" type="submit" disabled={isPending}>
+					{isPending ? <PixelLoader label="Sending…" /> : "Send Reset Link"}
+				</Button>
+			</form>
+		</>
 	);
 }

@@ -205,6 +205,27 @@ export function SignInClient() {
 
 	return (
 		<>
+			{signInError && (
+				<div
+					role="alert"
+					className="mb-6 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+				>
+					<span className="shrink-0">
+						<RiErrorWarningFill className="size-4" aria-hidden="true" />
+					</span>
+					<span className="min-w-0 flex-1">{signInError}</span>
+					<Button
+						type="button"
+						variant="ghost"
+						size="icon"
+						className="ml-auto -my-1 size-6 rounded-full"
+						aria-label="Dismiss error message"
+						onClick={() => setSignInError("")}
+					>
+						<RiCloseLine aria-hidden="true" />
+					</Button>
+				</div>
+			)}
 			<h1 className="mt-10 text-center text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
 				Welcome Back to Medibridge
 			</h1>
@@ -300,28 +321,6 @@ export function SignInClient() {
 				<p id="sign-in-note" className="text-sm">
 					Use your verified hospital credentials. Access is monitored for compliance and security.
 				</p>
-
-				{signInError && (
-					<div
-						role="alert"
-						className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
-					>
-						<span className="shrink-0">
-							<RiErrorWarningFill className="size-4" aria-hidden="true" />
-						</span>
-						<span className="min-w-0 flex-1">{signInError}</span>
-						<Button
-							type="button"
-							variant="ghost"
-							size="icon"
-							className="ml-auto -my-1 size-6 rounded-full"
-							aria-label="Dismiss error message"
-							onClick={() => setSignInError("")}
-						>
-							<RiCloseLine aria-hidden="true" />
-						</Button>
-					</div>
-				)}
 
 				<Button className="w-full mt-16" type="submit" disabled={isSubmitting || isPending}>
 					{isSubmitting ? <PixelLoader label="Signing in..." /> : "Sign in"}

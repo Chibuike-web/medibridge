@@ -23,6 +23,26 @@ export function EmailVerifiedClient() {
 	return <InvalidOrExpired type={error === "TOKEN_EXPIRED" ? "TOKEN_EXPIRED" : "INVALID_TOKEN"} />;
 }
 
+function Valid() {
+	return (
+		<main className="h-dvh overflow-y-auto bg-white">
+			<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
+				<div className="w-full text-center">
+					<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
+						Email verified
+					</h1>
+					<p className="text-gray-600 text-sm font-normal text-pretty mt-4">
+						Your email has been successfully verified. You can now continue.
+					</p>
+					<Button asChild className="mt-12">
+						<Link href="/hospital-details">Continue</Link>
+					</Button>
+				</div>
+			</div>
+		</main>
+	);
+}
+
 function Unverified() {
 	return (
 		<main className="h-dvh overflow-y-auto bg-white">
@@ -65,6 +85,46 @@ function InvalidOrExpired({ type }: { type: "INVALID_TOKEN" | "TOKEN_EXPIRED" })
 		<main className="h-dvh overflow-y-auto bg-white">
 			<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
 				<div className="w-full">
+					{resendFeedback?.type === "error" && (
+						<div
+							id="resend-feedback"
+							role="alert"
+							className="mb-6 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+						>
+							<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
+							<span className="min-w-0 flex-1">{resendFeedback.message}</span>
+							<Button
+								type="button"
+								variant="ghost"
+								size="icon"
+								className="ml-auto -my-1 size-6 rounded-full"
+								aria-label="Dismiss error message"
+								onClick={() => setResendFeedback(null)}
+							>
+								<RiCloseLine aria-hidden="true" />
+							</Button>
+						</div>
+					)}
+					{resendFeedback?.type === "success" && (
+						<div
+							id="resend-feedback"
+							role="status"
+							className="mb-6 flex items-center gap-2 rounded-xl bg-green-50 px-3 py-2 text-sm font-medium text-green-700"
+						>
+							<RiCheckboxCircleFill className="size-4 shrink-0" aria-hidden="true" />
+							<span className="min-w-0 flex-1">{resendFeedback.message}</span>
+							<Button
+								type="button"
+								variant="ghost"
+								size="icon"
+								className="ml-auto -my-1 size-6 rounded-full"
+								aria-label="Dismiss success message"
+								onClick={() => setResendFeedback(null)}
+							>
+								<RiCloseLine aria-hidden="true" />
+							</Button>
+						</div>
+					)}
 					<div className="text-center">
 						<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-red-600 text-balance">
 							{title}
@@ -133,46 +193,6 @@ function InvalidOrExpired({ type }: { type: "INVALID_TOKEN" | "TOKEN_EXPIRED" })
 							aria-describedby={resendFeedback ? "resend-feedback" : undefined}
 							onChange={() => setResendFeedback(null)}
 						/>
-						{resendFeedback?.type === "error" && (
-							<div
-								id="resend-feedback"
-								role="alert"
-								className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
-							>
-								<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
-								<span className="min-w-0 flex-1">{resendFeedback.message}</span>
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon"
-									className="ml-auto -my-1 size-6 rounded-full"
-									aria-label="Dismiss error message"
-									onClick={() => setResendFeedback(null)}
-								>
-									<RiCloseLine aria-hidden="true" />
-								</Button>
-							</div>
-						)}
-						{resendFeedback?.type === "success" && (
-							<div
-								id="resend-feedback"
-								role="status"
-								className="mt-4 flex items-center gap-2 rounded-xl bg-green-50 px-3 py-2 text-sm font-medium text-green-700"
-							>
-								<RiCheckboxCircleFill className="size-4 shrink-0" aria-hidden="true" />
-								<span className="min-w-0 flex-1">{resendFeedback.message}</span>
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon"
-									className="ml-auto -my-1 size-6 rounded-full"
-									aria-label="Dismiss success message"
-									onClick={() => setResendFeedback(null)}
-								>
-									<RiCloseLine aria-hidden="true" />
-								</Button>
-							</div>
-						)}
 						<Button className="mt-6 w-full" type="submit" disabled={isPending}>
 							{isPending ? <PixelLoader label="Sending…" /> : "Resend verification email"}
 						</Button>
@@ -208,23 +228,3 @@ function NoSession() {
 		</main>
 	);
 }
-
-const Valid = () => {
-	return (
-		<main className="h-dvh overflow-y-auto bg-white">
-			<div className="max-w-[31.25rem] min-h-full grid place-items-center mx-auto px-6 md:px-0 py-10">
-				<div className="w-full text-center">
-					<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
-						Email verified
-					</h1>
-					<p className="text-gray-600 text-sm font-normal text-pretty mt-4">
-						Your email has been successfully verified. You can now continue.
-					</p>
-					<Button asChild className="mt-12">
-						<Link href="/hospital-details">Continue</Link>
-					</Button>
-				</div>
-			</div>
-		</main>
-	);
-};
