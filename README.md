@@ -63,6 +63,7 @@ The intended end-to-end journey is:
 | Transfers                              | The request builder reads organization-scoped patients and clinical records, validates record ownership, and atomically creates transfer, content, and progress rows. The target hospital is a name and email entered by staff. Transfer details show who requested it, the patient's answer, and whether the access code was sent. Resend, retry, cancel, and archive are not connected yet.                                                                                                                       |
 | Patient approval and delivery          | Patients receive a signed, expiring approval link. A transfer can be answered once: approval and rejection run in one transaction that only updates a waiting transfer, and each transfer has at most one access grant. Approval records the selected records, then sends the receiving hospital an OTP-protected access link.                                                                                                                                                                                      |
 | Shared record portal                   | OTP verification creates a signed, expiring external session. Patient details and clinical tables are loaded from PostgreSQL and restricted to the patient and record IDs captured in the approved access grant.                                                                                                                                                                                                                                                                                                    |
+| Phone layout                           | Below 48rem the sidebar becomes a top bar with a Menu drawer, each table's filters collapse into one Filters drawer, and every drawer, including record details and Add forms, opens from the bottom. `useMediaQuery` switches these layouts and closes the Menu once the screen grows past phone width.                                                                                                                                                                                                            |
 
 ## Patient record model
 
@@ -151,7 +152,7 @@ src/
 │   ├── better-auth/     # Auth server and client configuration
 │   └── utils/           # Environment, email, formatting, and shared helpers
 ├── services/            # Auth, hospital, and patient application services
-└── hooks/               # Upload and shared client hooks
+└── hooks/               # Upload, media-query, and other shared client hooks
 ```
 
 Patient documents, clinical reports, and accreditation files use private Supabase Storage. Browsers upload directly using scoped upload URLs, and application endpoints authorize every download and stream it through the app. A patient's source document is deleted when the patient is saved, and a daily cron job removes what is left behind.
