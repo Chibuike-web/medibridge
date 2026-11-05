@@ -329,6 +329,9 @@ export function SharedImagingTable({
 		state: { sorting },
 	});
 
+	const fitsOnSmallestPage =
+		totalPages === 1 && table.getRowModel().rows.length <= ROWS_PER_PAGE_OPTIONS[0];
+
 	return (
 		<div>
 			<h2 className="text-lg font-semibold text-gray-900">Imaging</h2>
@@ -549,56 +552,58 @@ export function SharedImagingTable({
 						)}
 					</TableBody>
 				</Table>
-				<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
-					<div className="flex items-center gap-3">
-						<span>Rows per page</span>
-						<Select
-							value={String(optimisticLimit)}
-							onValueChange={(value) => navigateTable({ nextLimit: Number(value) })}
-							disabled={isPending}
-						>
-							<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
-								<SelectValue aria-label="Rows per page" placeholder="Rows" />
-							</SelectTrigger>
-							<SelectContent className="w-20" align="start">
-								{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
-									<SelectItem key={pageSize} value={String(pageSize)}>
-										{pageSize}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-					<div className="flex items-center gap-3">
-						<span>
-							Page {optimisticPage} of {totalPages}
-						</span>
-						<div className="flex items-center gap-2">
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={() => navigateTable({ nextPage: Math.max(optimisticPage - 1, 1) })}
-								disabled={optimisticPage <= 1 || isPending}
-								className="text-gray-700 shadow-none"
+				{fitsOnSmallestPage ? null : (
+					<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
+						<div className="flex items-center gap-3">
+							<span>Rows per page</span>
+							<Select
+								value={String(optimisticLimit)}
+								onValueChange={(value) => navigateTable({ nextLimit: Number(value) })}
+								disabled={isPending}
 							>
-								Previous
-							</Button>
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={() =>
-									navigateTable({ nextPage: Math.min(optimisticPage + 1, totalPages) })
-								}
-								disabled={optimisticPage >= totalPages || isPending}
-								className="text-gray-700 shadow-none"
-							>
-								Next
-							</Button>
+								<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
+									<SelectValue aria-label="Rows per page" placeholder="Rows" />
+								</SelectTrigger>
+								<SelectContent className="w-20" align="start">
+									{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
+										<SelectItem key={pageSize} value={String(pageSize)}>
+											{pageSize}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex items-center gap-3">
+							<span>
+								Page {optimisticPage} of {totalPages}
+							</span>
+							<div className="flex items-center gap-2">
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() => navigateTable({ nextPage: Math.max(optimisticPage - 1, 1) })}
+									disabled={optimisticPage <= 1 || isPending}
+									className="text-gray-700 shadow-none"
+								>
+									Previous
+								</Button>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() =>
+										navigateTable({ nextPage: Math.min(optimisticPage + 1, totalPages) })
+									}
+									disabled={optimisticPage >= totalPages || isPending}
+									className="text-gray-700 shadow-none"
+								>
+									Next
+								</Button>
+							</div>
 						</div>
 					</div>
-				</div>
+				)}
 			</div>
 			<SharedImagingDetailsDrawer
 				open={isDetailsDrawerOpen}

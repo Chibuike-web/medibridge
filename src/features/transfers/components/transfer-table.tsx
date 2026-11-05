@@ -449,6 +449,9 @@ function TransferTableContent({
 
 	const selectedTransfers = table.getSelectedRowModel().rows.map((row) => row.original);
 
+	const fitsOnSmallestPage =
+		totalPages === 1 && table.getRowModel().rows.length <= ROWS_PER_PAGE_OPTIONS[0];
+
 	return (
 		<>
 			<div className="overflow-x-auto rounded-xl border border-gray-200 text-sm">
@@ -572,50 +575,52 @@ function TransferTableContent({
 						)}
 					</TableBody>
 				</Table>
-				<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
-					<div className="flex items-center gap-3">
-						<span>Rows per page</span>
-						<Select value={limit.toString()} onValueChange={onLimitChange} disabled={isPending}>
-							<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
-								<SelectValue aria-label="Rows per page" placeholder="Rows" />
-							</SelectTrigger>
-							<SelectContent className="w-20" align="start">
-								{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
-									<SelectItem key={pageSize} value={String(pageSize)}>
-										{pageSize}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-					<div className="flex items-center gap-3">
-						<span>
-							Page {page} of {totalPages}
-						</span>
-						<div className="flex items-center gap-2">
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={onPreviousPage}
-								disabled={page <= 1 || isPending}
-								className="text-gray-700 shadow-none"
-							>
-								Previous
-							</Button>
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={onNextPage}
-								disabled={page >= totalPages || isPending}
-								className="text-gray-700 shadow-none"
-							>
-								Next
-							</Button>
+				{fitsOnSmallestPage ? null : (
+					<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
+						<div className="flex items-center gap-3">
+							<span>Rows per page</span>
+							<Select value={limit.toString()} onValueChange={onLimitChange} disabled={isPending}>
+								<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
+									<SelectValue aria-label="Rows per page" placeholder="Rows" />
+								</SelectTrigger>
+								<SelectContent className="w-20" align="start">
+									{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
+										<SelectItem key={pageSize} value={String(pageSize)}>
+											{pageSize}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex items-center gap-3">
+							<span>
+								Page {page} of {totalPages}
+							</span>
+							<div className="flex items-center gap-2">
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={onPreviousPage}
+									disabled={page <= 1 || isPending}
+									className="text-gray-700 shadow-none"
+								>
+									Previous
+								</Button>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={onNextPage}
+									disabled={page >= totalPages || isPending}
+									className="text-gray-700 shadow-none"
+								>
+									Next
+								</Button>
+							</div>
 						</div>
 					</div>
-				</div>
+				)}
 			</div>
 			<TransferBulkActionBar
 				selectedTransfers={selectedTransfers}

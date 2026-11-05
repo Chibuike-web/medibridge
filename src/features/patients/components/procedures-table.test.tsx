@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import { format } from "date-fns";
@@ -330,9 +330,13 @@ describe("Procedures table", () => {
 	});
 
 	test("disables Previous on the first page and Next on the last page", () => {
-		renderProceduresTable({ page: 1, totalPages: 1 });
-
+		renderProceduresTable({ page: 1, totalPages: 2 });
 		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
+		expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
+
+		cleanup();
+		renderProceduresTable({ page: 2, totalPages: 2 });
+		expect(screen.getByRole("button", { name: "Previous" })).toBeEnabled();
 		expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 	});
 
@@ -346,7 +350,7 @@ describe("Procedures table", () => {
 
 	test("lets the user change the rows per page", async () => {
 		const user = userEvent.setup();
-		const { onLimitChange } = renderProceduresTable({ limit: 28 });
+		const { onLimitChange } = renderProceduresTable({ limit: 28, totalPages: 2 });
 
 		const picker = rowsPerPagePicker();
 		expect(picker).toHaveTextContent("28");

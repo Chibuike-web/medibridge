@@ -406,7 +406,7 @@ describe("Allergies table", () => {
 
 	test("lets the user change the rows per page", async () => {
 		const user = userEvent.setup();
-		const { onLimitChange } = renderAllergiesTable({ limit: 14 });
+		const { onLimitChange } = renderAllergiesTable({ limit: 14, totalPages: 2 });
 
 		const rowsPerPage = screen.getByRole("combobox");
 		expect(rowsPerPage).toHaveTextContent("14");

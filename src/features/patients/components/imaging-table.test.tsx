@@ -380,7 +380,7 @@ describe("Imaging table", () => {
 
 	test("lets the user change the rows per page", async () => {
 		const user = userEvent.setup();
-		const { onLimitChange } = renderImagingTable({ limit: 28 });
+		const { onLimitChange } = renderImagingTable({ limit: 28, totalPages: 2 });
 
 		const rowsPerPage = screen.getByRole("combobox");
 		expect(rowsPerPage).toHaveTextContent("28");

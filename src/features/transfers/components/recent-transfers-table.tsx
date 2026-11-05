@@ -73,6 +73,8 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 	});
 	const pageCount = Math.max(table.getPageCount(), 1);
 
+	const fitsOnSmallestPage = data.length <= 4;
+
 	return (
 		<div className="mt-12 max-w-7xl">
 			<h1 className="mb-4 text-base font-semibold">Recent Transfers</h1>
@@ -163,53 +165,55 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 						))}
 					</TableBody>
 				</Table>
-				<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
-					<div className="flex items-center gap-3">
-						<span>Rows per page</span>
-						<Select
-							value={String(table.state.pagination.pageSize)}
-							onValueChange={(value) => table.setPageSize(Number(value))}
-						>
-							<SelectTrigger className="h-8 w-16 bg-white px-2 text-gray-700">
-								<SelectValue aria-label="Rows per page" placeholder="Rows" />
-							</SelectTrigger>
-							<SelectContent className="w-20" align="start">
-								{[4, 8, 12].map((pageSize) => (
-									<SelectItem key={pageSize} value={String(pageSize)}>
-										{pageSize}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-					<div className="flex items-center gap-3">
-						<span>
-							Page {table.state.pagination.pageIndex + 1} of {pageCount}
-						</span>
-						<div className="flex items-center gap-2">
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={() => table.previousPage()}
-								disabled={!table.getCanPreviousPage()}
-								className="text-gray-700 shadow-none"
+				{fitsOnSmallestPage ? null : (
+					<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
+						<div className="flex items-center gap-3">
+							<span>Rows per page</span>
+							<Select
+								value={String(table.state.pagination.pageSize)}
+								onValueChange={(value) => table.setPageSize(Number(value))}
 							>
-								Previous
-							</Button>
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={() => table.nextPage()}
-								disabled={!table.getCanNextPage()}
-								className="text-gray-700 shadow-none"
-							>
-								Next
-							</Button>
+								<SelectTrigger className="h-8 w-16 bg-white px-2 text-gray-700">
+									<SelectValue aria-label="Rows per page" placeholder="Rows" />
+								</SelectTrigger>
+								<SelectContent className="w-20" align="start">
+									{[4, 8, 12].map((pageSize) => (
+										<SelectItem key={pageSize} value={String(pageSize)}>
+											{pageSize}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex items-center gap-3">
+							<span>
+								Page {table.state.pagination.pageIndex + 1} of {pageCount}
+							</span>
+							<div className="flex items-center gap-2">
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() => table.previousPage()}
+									disabled={!table.getCanPreviousPage()}
+									className="text-gray-700 shadow-none"
+								>
+									Previous
+								</Button>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() => table.nextPage()}
+									disabled={!table.getCanNextPage()}
+									className="text-gray-700 shadow-none"
+								>
+									Next
+								</Button>
+							</div>
 						</div>
 					</div>
-				</div>
+				)}
 			</div>
 		</div>
 	);
