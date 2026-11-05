@@ -39,6 +39,7 @@ import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip
 import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
@@ -327,12 +328,44 @@ export function SharedDiagnosesTable({
 						}
 					>
 						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
-							<CheckboxFilterList
-								name="shared-diagnosis-status"
-								options={diagnosisStatusFilterOptions}
-								selectedValues={optimisticStatusFilters}
-								onSelectedValuesChange={handleStatusFiltersChange}
-							/>
+							<RadioGroup
+								value={optimisticStatusFilters[0] ?? "all"}
+								onValueChange={(nextStatusFilter) => {
+									handleStatusFiltersChange(
+										nextStatusFilter === "all"
+											? []
+											: [nextStatusFilter as SharedDiagnosisRow["status"]],
+									);
+								}}
+								className="flex flex-col gap-0.5"
+							>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="all" id="shared-diagnosis-status-all" />
+									<Label
+										htmlFor="shared-diagnosis-status-all"
+										className="cursor-pointer w-full leading-normal font-normal"
+									>
+										All
+									</Label>
+								</div>
+								{diagnosisStatusFilterOptions.map((statusOption) => (
+									<div
+										key={statusOption.value}
+										className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100"
+									>
+										<RadioGroupItem
+											value={statusOption.value}
+											id={`shared-diagnosis-status-${statusOption.value}`}
+										/>
+										<Label
+											htmlFor={`shared-diagnosis-status-${statusOption.value}`}
+											className="cursor-pointer w-full leading-normal font-normal"
+										>
+											{statusOption.label}
+										</Label>
+									</div>
+								))}
+							</RadioGroup>
 						</FilterPopover>
 						<DateFilterMenu
 							label="Last updated"
@@ -609,42 +642,4 @@ function RowMenu() {
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
-}
-
-function CheckboxFilterList<TValue extends string>({
-	name,
-	options,
-	selectedValues,
-	onSelectedValuesChange,
-}: {
-	name: string;
-	options: readonly { label: string; value: TValue }[];
-	selectedValues: TValue[];
-	onSelectedValuesChange: (values: TValue[]) => void;
-}) {
-	return options.map((option) => {
-		const selected = selectedValues.includes(option.value);
-		const id = `${name}-${option.value}`;
-		return (
-			<Label
-				key={option.value}
-				htmlFor={id}
-				className="flex h-8 w-full cursor-pointer items-center gap-3 rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
-			>
-				<Checkbox
-					id={id}
-					checked={selected}
-					onCheckedChange={(checked) =>
-						onSelectedValuesChange(
-							checked === true
-								? [...selectedValues, option.value]
-								: selectedValues.filter((value) => value !== option.value),
-						)
-					}
-					className="[&_svg]:!text-current"
-				/>
-				<span>{option.label}</span>
-			</Label>
-		);
-	});
 }

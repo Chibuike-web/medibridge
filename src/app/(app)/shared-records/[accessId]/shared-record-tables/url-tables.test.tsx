@@ -30,6 +30,7 @@ const tableCases = [
 	{
 		name: "diagnoses",
 		statusOptions: ["Active", "Resolved"] as const,
+		statusChoice: "single",
 		prefix: "diagnoses",
 		rowText: "Asthma",
 		renderTable: (props: NavigationProps) => (
@@ -63,6 +64,7 @@ const tableCases = [
 	{
 		name: "allergies",
 		statusOptions: ["Active", "Inactive"] as const,
+		statusChoice: "single",
 		prefix: "allergies",
 		rowText: "Penicillin",
 		renderTable: (props: NavigationProps) => (
@@ -91,6 +93,7 @@ const tableCases = [
 	{
 		name: "immunizations",
 		statusOptions: ["Active", "Completed"] as const,
+		statusChoice: "multiple",
 		prefix: "immunizations",
 		rowText: "Hepatitis B",
 		renderTable: (props: NavigationProps) => (
@@ -117,6 +120,7 @@ const tableCases = [
 	{
 		name: "procedures",
 		statusOptions: ["Pending", "Completed"] as const,
+		statusChoice: "multiple",
 		prefix: "procedures",
 		rowText: "Appendectomy",
 		renderTable: (props: NavigationProps) => (
@@ -144,6 +148,7 @@ const tableCases = [
 	{
 		name: "medications",
 		statusOptions: ["Active", "Completed"] as const,
+		statusChoice: "multiple",
 		prefix: "medications",
 		rowText: "Amoxicillin",
 		renderTable: (props: NavigationProps) => (
@@ -174,6 +179,7 @@ const tableCases = [
 	{
 		name: "lab tests",
 		statusOptions: ["Pending", "Completed"] as const,
+		statusChoice: "multiple",
 		prefix: "labTests",
 		rowText: "Full Blood Count",
 		renderTable: (props: NavigationProps) => (
@@ -203,6 +209,7 @@ const tableCases = [
 	{
 		name: "imaging",
 		statusOptions: ["Pending", "Completed"] as const,
+		statusChoice: "multiple",
 		prefix: "imaging",
 		rowText: "Chest X-ray",
 		renderTable: (props: NavigationProps) => (
@@ -246,7 +253,7 @@ afterEach(() => {
 
 describe.each(tableCases)(
 	"URL-driven shared $name table",
-	({ prefix, rowText, statusOptions, renderTable }) => {
+	({ prefix, rowText, statusOptions, statusChoice, renderTable }) => {
 		test("keeps filter options interactive and preserves rapid status changes while results load", async () => {
 			let finishNavigation!: () => void;
 			const route = new Promise<void>((resolve) => {
@@ -282,8 +289,9 @@ describe.each(tableCases)(
 
 			const table = screen.getByRole("table");
 			await user.click(screen.getByRole("button", { name: "Status" }));
-			const firstOption = await screen.findByRole("checkbox", { name: firstStatus });
-			const secondOption = screen.getByRole("checkbox", { name: secondStatus });
+			const optionRole = statusChoice === "single" ? "radio" : "checkbox";
+			const firstOption = await screen.findByRole(optionRole, { name: firstStatus });
+			const secondOption = screen.getByRole(optionRole, { name: secondStatus });
 			expect(firstOption).not.toBeChecked();
 			expect(secondOption).not.toBeChecked();
 
@@ -296,19 +304,25 @@ describe.each(tableCases)(
 				expect(secondOption).toBeEnabled();
 
 				await user.pointer({ keys: "[TouchA]", target: secondOption });
-				expect(firstOption).toBeChecked();
 				expect(secondOption).toBeChecked();
 				let params = new URL(navigation.push.mock.lastCall![0], "http://localhost").searchParams;
-				expect(params.get(`${prefix}Status`)?.split(",")).toEqual([firstStatus, secondStatus]);
 				expect(params.get(`${prefix}Page`)).toBeNull();
 				expect(params.get("otherQuery")).toBe("keep");
 				expect(params.get("section")).toBe(section);
 
-				await user.pointer({ keys: "[TouchA]", target: firstOption });
-				expect(firstOption).not.toBeChecked();
-				expect(secondOption).toBeChecked();
-				params = new URL(navigation.push.mock.lastCall![0], "http://localhost").searchParams;
-				expect(params.get(`${prefix}Status`)).toBe(secondStatus);
+				if (statusChoice === "single") {
+					expect(firstOption).not.toBeChecked();
+					expect(params.get(`${prefix}Status`)).toBe(secondStatus);
+				} else {
+					expect(firstOption).toBeChecked();
+					expect(params.get(`${prefix}Status`)?.split(",")).toEqual([firstStatus, secondStatus]);
+
+					await user.pointer({ keys: "[TouchA]", target: firstOption });
+					expect(firstOption).not.toBeChecked();
+					expect(secondOption).toBeChecked();
+					params = new URL(navigation.push.mock.lastCall![0], "http://localhost").searchParams;
+					expect(params.get(`${prefix}Status`)).toBe(secondStatus);
+				}
 				expect(within(table).getByText(rowText)).toBeVisible();
 			} finally {
 				await act(async () => {

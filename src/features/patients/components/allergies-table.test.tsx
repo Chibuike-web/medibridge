@@ -270,21 +270,21 @@ describe("Allergies table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Pean");
 	});
 
-	test("adds and removes status filters from the filter menu", async () => {
+	test("picks one status from the filter menu, or All to clear it", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderAllergiesTable({ statusFilters: ["active"] });
 
 		await user.click(screen.getByRole("button", { name: "Status" }));
 
-		const activeOption = await screen.findByRole("checkbox", { name: "Active" });
-		const inactiveOption = screen.getByRole("checkbox", { name: "Inactive" });
+		const activeOption = await screen.findByRole("radio", { name: "Active" });
+		const inactiveOption = screen.getByRole("radio", { name: "Inactive" });
 		expect(activeOption).toBeChecked();
 		expect(inactiveOption).not.toBeChecked();
 
 		await user.click(inactiveOption);
-		expect(onStatusFiltersChange).toHaveBeenLastCalledWith(["active", "inactive"]);
+		expect(onStatusFiltersChange).toHaveBeenLastCalledWith(["inactive"]);
 
-		await user.click(activeOption);
+		await user.click(screen.getByRole("radio", { name: "All" }));
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 

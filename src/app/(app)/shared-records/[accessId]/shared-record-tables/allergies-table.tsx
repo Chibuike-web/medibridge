@@ -38,6 +38,7 @@ import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip
 import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
@@ -293,12 +294,44 @@ export function SharedAllergiesTable({
 						}
 					>
 						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
-							<CheckboxFilterList
-								name="shared-allergy-status"
-								options={allergyStatusFilterOptions}
-								selectedValues={optimisticStatusFilters}
-								onSelectedValuesChange={handleStatusFiltersChange}
-							/>
+							<RadioGroup
+								value={optimisticStatusFilters[0] ?? "all"}
+								onValueChange={(nextStatusFilter) => {
+									handleStatusFiltersChange(
+										nextStatusFilter === "all"
+											? []
+											: [nextStatusFilter as SharedAllergyRow["status"]],
+									);
+								}}
+								className="flex flex-col gap-0.5"
+							>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="all" id="shared-allergy-status-all" />
+									<Label
+										htmlFor="shared-allergy-status-all"
+										className="cursor-pointer w-full leading-normal font-normal"
+									>
+										All
+									</Label>
+								</div>
+								{allergyStatusFilterOptions.map((statusOption) => (
+									<div
+										key={statusOption.value}
+										className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100"
+									>
+										<RadioGroupItem
+											value={statusOption.value}
+											id={`shared-allergy-status-${statusOption.value}`}
+										/>
+										<Label
+											htmlFor={`shared-allergy-status-${statusOption.value}`}
+											className="cursor-pointer w-full leading-normal font-normal"
+										>
+											{statusOption.label}
+										</Label>
+									</div>
+								))}
+							</RadioGroup>
 						</FilterPopover>
 						<FilterPopover label="Severity" icon={RiBarChartBoxLine}>
 							<CheckboxFilterList
