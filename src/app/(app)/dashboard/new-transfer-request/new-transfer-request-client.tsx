@@ -504,15 +504,25 @@ export function NewTransferRequestClient({
 												</Button>
 											</DialogClose>
 											<Button
+												className="grid place-items-center"
 												type="button"
 												disabled={isSubmittingTransferRequests || !isTransferConfirmationChecked}
 												onClick={handleSubmitTransferRequests}
 											>
+												<span
+													className={
+														isSubmittingTransferRequests
+															? "invisible col-start-1 row-start-1"
+															: "col-start-1 row-start-1"
+													}
+												>
+													Send for Approval
+												</span>
 												{isSubmittingTransferRequests ? (
-													<PixelLoader label="Sending..." />
-												) : (
-													"Send for Approval"
-												)}
+													<span className="col-start-1 row-start-1 flex">
+														<PixelLoader label="Sending..." />
+													</span>
+												) : null}
 											</Button>
 										</DialogFooter>
 									</DialogContent>

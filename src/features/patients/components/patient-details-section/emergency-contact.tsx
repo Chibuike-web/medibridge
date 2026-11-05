@@ -217,8 +217,24 @@ export function EmergencyContact({
 								<Button variant="outline">Cancel</Button>
 							</DialogClose>
 
-							<Button type="submit" form={emergencyContactFormId} disabled={isPending}>
-								{isPending ? <PixelLoader label="Saving…" /> : "Save changes"}
+							<Button
+								className="grid place-items-center"
+								type="submit"
+								form={emergencyContactFormId}
+								disabled={isPending}
+							>
+								<span
+									className={
+										isPending ? "invisible col-start-1 row-start-1" : "col-start-1 row-start-1"
+									}
+								>
+									Save changes
+								</span>
+								{isPending ? (
+									<span className="col-start-1 row-start-1 flex">
+										<PixelLoader label="Saving…" />
+									</span>
+								) : null}
 							</Button>
 						</div>
 					</DialogFooter>

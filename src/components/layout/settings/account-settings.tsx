@@ -385,8 +385,17 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 					{changePasswordError}
 				</p>
 			)}
-			<Button type="submit" className="mt-2 self-end" disabled={isPending}>
-				{isPending ? <PixelLoader label="Changing password..." /> : "Change password"}
+			<Button type="submit" className="grid place-items-center mt-2 self-end" disabled={isPending}>
+				<span
+					className={isPending ? "invisible col-start-1 row-start-1" : "col-start-1 row-start-1"}
+				>
+					Change password
+				</span>
+				{isPending ? (
+					<span className="col-start-1 row-start-1 flex">
+						<PixelLoader label="Changing password..." />
+					</span>
+				) : null}
 			</Button>
 		</form>
 	);

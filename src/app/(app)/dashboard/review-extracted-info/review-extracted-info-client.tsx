@@ -831,13 +831,25 @@ export function ReviewExtractedInfoClient({
 							<AlertDialogFooter>
 								<AlertDialogCancel disabled={isPending}>Keep reviewing</AlertDialogCancel>
 								<Button
+									className="grid place-items-center"
 									type="button"
 									variant="destructive"
 									disabled={isPending}
 									aria-busy={isPending}
 									onClick={continueToDashboard}
 								>
-									{isPending ? <PixelLoader label="Discarding…" /> : "Discard and continue"}
+									<span
+										className={
+											isPending ? "invisible col-start-1 row-start-1" : "col-start-1 row-start-1"
+										}
+									>
+										Discard and continue
+									</span>
+									{isPending ? (
+										<span className="col-start-1 row-start-1 flex">
+											<PixelLoader label="Discarding…" />
+										</span>
+									) : null}
 								</Button>
 							</AlertDialogFooter>
 						</AlertDialogContent>
