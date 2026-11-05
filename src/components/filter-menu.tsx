@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, use, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, use, useRef, useState, type ReactNode } from "react";
 import { RiCloseLine, RiFilter3Line, type RemixiconComponentType } from "@remixicon/react";
 
 import {
@@ -23,23 +23,11 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useIsBelowMd } from "@/hooks/use-is-below-md";
 
 const FILTER_MENU_WIDTH_REM = 13.75;
-const BELOW_MD_QUERY = "(width < 48rem)";
 
 const CloseFilterDrawerContext = createContext<(() => void) | null>(null);
-
-function useIsBelowMd() {
-	return useSyncExternalStore(
-		(onChange) => {
-			const mediaQuery = window.matchMedia(BELOW_MD_QUERY);
-			mediaQuery.addEventListener("change", onChange);
-			return () => mediaQuery.removeEventListener("change", onChange);
-		},
-		() => window.matchMedia(BELOW_MD_QUERY).matches,
-		() => false,
-	);
-}
 
 function getFilterMenuAlign(trigger: HTMLButtonElement) {
 	const remInPixels = parseFloat(getComputedStyle(document.documentElement).fontSize);
