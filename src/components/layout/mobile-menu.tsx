@@ -57,7 +57,7 @@ export function MobileMenu({ menus }: { menus: Menu[] }) {
 						<RiMenuLine aria-hidden="true" />
 					</Button>
 				</DrawerTrigger>
-				<DrawerContent className="max-w-none overflow-hidden border text-sm data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-3xl">
+				<DrawerContent className="max-w-none overflow-hidden border text-sm data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-2xl">
 					<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
 						<DrawerTitle className="leading-[1.2] text-gray-800">Menu</DrawerTitle>
 						<DrawerClose asChild>
