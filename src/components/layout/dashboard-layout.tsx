@@ -1,15 +1,16 @@
 import { Suspense, type ReactNode } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
+import { getOrganizationContext } from "@/lib/api/get-organization-id";
 import { cookies } from "next/headers";
 
 export async function DashboardLayout({ children }: { children: ReactNode }) {
 	return (
-		<div className="flex h-dvh items-start">
+		<div className="flex h-dvh items-start max-md:flex-col max-md:items-stretch">
 			<Suspense fallback={<DashboardSidebarFallback />}>
 				<DashboardSidebar />
 			</Suspense>
 
-			<div className="flex h-full flex-1 flex-col overflow-x-auto overflow-y-hidden">
+			<div className="flex h-full min-h-0 flex-1 flex-col overflow-x-auto overflow-y-hidden">
 				{children}
 			</div>
 		</div>
@@ -19,14 +20,20 @@ export async function DashboardLayout({ children }: { children: ReactNode }) {
 async function DashboardSidebar() {
 	const cookieStore = await cookies();
 	const initialWidth = cookieStore.get("sidebarWidth")?.value;
+	const organizationContext = await getOrganizationContext();
 
-	return <Sidebar initialWidth={initialWidth} />;
+	return (
+		<Sidebar
+			initialWidth={initialWidth}
+			hospitalName={organizationContext?.organizationName ?? "Medibridge"}
+		/>
+	);
 }
 
 function DashboardSidebarFallback() {
 	return (
-		<aside className="flex h-full w-68 shrink-0 flex-col overflow-hidden border-r border-gray-200">
-			<div className="relative flex shrink-0 items-center justify-between p-4">
+		<aside className="flex h-full w-68 shrink-0 flex-col overflow-hidden border-r border-gray-200 max-lg:w-14 max-md:hidden">
+			<div className="relative flex h-15 shrink-0 items-center justify-between px-4">
 				<div className="h-5 w-28 animate-pulse rounded bg-muted" />
 				<div className="size-8 animate-pulse rounded-lg bg-muted/80" />
 			</div>
@@ -43,15 +50,9 @@ function DashboardSidebarFallback() {
 			</ul>
 
 			<div className="mt-auto flex w-full justify-center p-2">
-				<div className="flex w-full min-w-0 items-center gap-2 rounded-lg p-3">
-					<div className="size-8 shrink-0 animate-pulse rounded-full bg-muted" />
-					<div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-						<div className="flex min-w-0 flex-1 flex-col gap-2">
-							<div className="h-3 w-24 animate-pulse rounded bg-muted" />
-							<div className="h-2.5 w-36 animate-pulse rounded bg-muted/70" />
-						</div>
-						<div className="size-5 shrink-0 animate-pulse rounded bg-muted/80" />
-					</div>
+				<div className="flex w-full min-w-0 items-center gap-2 rounded-lg p-1.5">
+					<div className="size-6 shrink-0 animate-pulse rounded-full bg-muted" />
+					<div className="h-3 w-28 animate-pulse rounded bg-muted" />
 				</div>
 			</div>
 		</aside>
