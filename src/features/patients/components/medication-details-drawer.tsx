@@ -324,7 +324,7 @@ export function MedicationDetailsDrawer({
 	);
 }
 
-function MedicationDetailsOverview({ medication }: { medication: MedicationDetailsType }) {
+export function MedicationDetailsOverview({ medication }: { medication: MedicationDetailsType }) {
 	return (
 		<div className="flex flex-col gap-8">
 			<div className="flex flex-col gap-4">
@@ -677,7 +677,11 @@ function MedicationDetailItem({ label, value }: { label: string; value: string }
 	);
 }
 
-function MedicationHistorySection({ history }: { history: MedicationDetailsHistoryEvent[] }) {
+export function MedicationHistorySection({
+	history,
+}: {
+	history: MedicationDetailsHistoryEvent[];
+}) {
 	if (history.length === 0) {
 		return null;
 	}
@@ -814,7 +818,7 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 	);
 }
 
-function MedicationDetailsFallback() {
+export function MedicationDetailsFallback() {
 	return (
 		<div className="flex flex-col gap-8" aria-busy="true" aria-live="polite">
 			<div className="flex flex-wrap gap-6">

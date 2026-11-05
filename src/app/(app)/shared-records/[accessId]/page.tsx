@@ -194,6 +194,7 @@ async function SharedDiagnoses({
 
 	return (
 		<SharedDiagnosesTable
+			accessId={accessId}
 			rows={rows}
 			page={page}
 			limit={limit}
@@ -260,6 +261,7 @@ async function SharedAllergies({
 
 	return (
 		<SharedAllergiesTable
+			accessId={accessId}
 			rows={rows}
 			page={page}
 			limit={limit}
@@ -319,6 +321,7 @@ async function SharedImmunizations({
 
 	return (
 		<SharedImmunizationsTable
+			accessId={accessId}
 			rows={rows}
 			page={page}
 			limit={limit}
@@ -377,6 +380,7 @@ async function SharedProcedures({
 
 	return (
 		<SharedProceduresTable
+			accessId={accessId}
 			rows={rows}
 			page={page}
 			limit={limit}
@@ -435,6 +439,7 @@ async function SharedMedications({
 
 	return (
 		<SharedMedicationsTable
+			accessId={accessId}
 			rows={rows}
 			page={page}
 			limit={limit}
@@ -510,6 +515,7 @@ async function SharedLabTests({
 
 	return (
 		<SharedLabTestsTable
+			accessId={accessId}
 			rows={rows}
 			page={page}
 			limit={limit}
@@ -579,6 +585,7 @@ async function SharedImaging({
 
 	return (
 		<SharedImagingTable
+			accessId={accessId}
 			rows={rows}
 			page={page}
 			limit={limit}

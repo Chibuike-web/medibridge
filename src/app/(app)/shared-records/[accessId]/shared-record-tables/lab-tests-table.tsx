@@ -66,6 +66,12 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { format } from "date-fns";
 import { useTableUrlNavigation } from "@/features/patients/components/table-url-navigation";
 import { useDebouncedCallback } from "@/hooks/use-debounced";
+import type { LabTestType } from "@/features/patients/types";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import { SharedLabTestDetailsDrawer } from "./lab-test-details-drawer";
+
+type LabTestDetailsRequestError = Error & { status?: number };
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 const labTestStatusFilterOptions = [
@@ -103,6 +109,7 @@ export type SharedLabTestRow = {
 };
 
 export function SharedLabTestsTable({
+	accessId,
 	rows,
 	page,
 	limit,
@@ -115,6 +122,7 @@ export function SharedLabTestsTable({
 	createdFrom,
 	createdTo,
 }: {
+	accessId: string;
 	rows: SharedLabTestRow[];
 	page: number;
 	limit: number;
@@ -231,6 +239,28 @@ export function SharedLabTestsTable({
 			nextCreatedTo: "",
 		});
 	}
+	const router = useRouter();
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedId, setSelectedId] = useState<string | null>(null);
+	const labTestDetailsQuery = useSWR(
+		isDetailsDrawerOpen && selectedId
+			? (["shared-lab-test-details", accessId, selectedId] as const)
+			: null,
+		([, accessId, selectedId]) => fetchSharedLabTestDetails(accessId, selectedId),
+		{
+			dedupingInterval: 0,
+			onError: (error: LabTestDetailsRequestError) => {
+				if (error.status === 401) {
+					router.refresh();
+				}
+			},
+			shouldRetryOnError: (error: LabTestDetailsRequestError) => error.status !== 401,
+		},
+	);
+	function handleViewLabTestDetails(labId: string) {
+		setSelectedId(labId);
+		setIsDetailsDrawerOpen(true);
+	}
 	const columns = useMemo<ColumnDef<typeof configuredTableFeatures, SharedLabTestRow>[]>(
 		() => [
 			{
@@ -268,7 +298,9 @@ export function SharedLabTestsTable({
 			{
 				id: "actions",
 				header: "",
-				cell: () => <RowMenu />,
+				cell: ({ row }) => (
+					<RowMenu onViewDetails={() => handleViewLabTestDetails(row.original.labId)} />
+				),
 				enableSorting: false,
 				size: 40,
 			},
@@ -533,6 +565,12 @@ export function SharedLabTestsTable({
 					</div>
 				</div>
 			</div>
+			<SharedLabTestDetailsDrawer
+				open={isDetailsDrawerOpen}
+				onOpenChange={setIsDetailsDrawerOpen}
+				labTest={labTestDetailsQuery.data ?? null}
+				isLoading={labTestDetailsQuery.isLoading}
+			/>
 		</div>
 	);
 }
@@ -559,7 +597,7 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 
 	return "Any date";
 }
-function RowMenu() {
+function RowMenu({ onViewDetails }: { onViewDetails: () => void }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
@@ -573,7 +611,10 @@ function RowMenu() {
 				align="end"
 				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
 			>
-				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
+				<DropdownMenuItem
+					className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+					onSelect={onViewDetails}
+				>
 					<RiEyeLine className="text-white" aria-hidden="true" />
 					<span>View details</span>
 				</DropdownMenuItem>
@@ -584,6 +625,22 @@ function RowMenu() {
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
+}
+
+async function fetchSharedLabTestDetails(accessId: string, labId: string) {
+	const response = await fetch(
+		`/api/shared-lab-test-details/${encodeURIComponent(accessId)}/${encodeURIComponent(labId)}`,
+	);
+
+	if (!response.ok) {
+		throw Object.assign(new Error("Unable to load lab test details."), {
+			status: response.status,
+		});
+	}
+
+	const result = (await response.json()) as { labTest: LabTestType | null };
+
+	return result.labTest;
 }
 
 function CheckboxFilterList<TValue extends string>({

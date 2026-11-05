@@ -26,6 +26,7 @@ const penicillin: SharedAllergyRow = {
 	status: "Inactive",
 };
 const tableProps = {
+	accessId: "access-1",
 	page: 1,
 	limit: 14,
 	totalPages: 1,

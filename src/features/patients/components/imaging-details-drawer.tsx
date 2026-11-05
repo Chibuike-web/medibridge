@@ -379,7 +379,7 @@ export function ImagingDetailsDrawer({
 	);
 }
 
-function ImagingDetailsOverview({ imaging }: { imaging: ImagingType }) {
+export function ImagingDetailsOverview({ imaging }: { imaging: ImagingType }) {
 	return (
 		<div className="flex flex-col gap-8">
 			<div className="flex flex-col gap-4">
@@ -430,7 +430,7 @@ function ImagingDetailItem({ label, value }: { label: string; value: string }) {
 	);
 }
 
-function ImagingFilesSection({ files }: { files: ImagingType["files"] }) {
+export function ImagingFilesSection({ files }: { files: ImagingType["files"] }) {
 	const [areImagingFilesExpanded, setAreImagingFilesExpanded] = useState(false);
 	const visibleFiles = areImagingFilesExpanded ? files : files.slice(0, 3);
 
@@ -502,7 +502,7 @@ function ImagingFilesSection({ files }: { files: ImagingType["files"] }) {
 	);
 }
 
-function ImagingHistorySection({ history }: { history: ImagingDetailsHistoryEvent[] }) {
+export function ImagingHistorySection({ history }: { history: ImagingDetailsHistoryEvent[] }) {
 	if (history.length === 0) {
 		return null;
 	}

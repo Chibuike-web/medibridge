@@ -319,7 +319,11 @@ export function ImmunizationDetailsDrawer({
 	);
 }
 
-function ImmunizationDetailsOverview({ immunization }: { immunization: ImmunizationDetailsType }) {
+export function ImmunizationDetailsOverview({
+	immunization,
+}: {
+	immunization: ImmunizationDetailsType;
+}) {
 	return (
 		<div className="flex flex-col gap-8">
 			<div className="flex flex-col gap-4">
@@ -615,7 +619,11 @@ function ImmunizationDetailItem({ label, value }: { label: string; value: string
 	);
 }
 
-function ImmunizationHistorySection({ history }: { history: ImmunizationDetailsHistoryEvent[] }) {
+export function ImmunizationHistorySection({
+	history,
+}: {
+	history: ImmunizationDetailsHistoryEvent[];
+}) {
 	if (history.length === 0) {
 		return null;
 	}
@@ -756,7 +764,7 @@ function ImmunizationHistoryCard({
 	);
 }
 
-function ImmunizationDetailsFallback() {
+export function ImmunizationDetailsFallback() {
 	return (
 		<div className="flex flex-col gap-8" aria-busy="true" aria-live="polite">
 			<div className="flex flex-wrap gap-6">
