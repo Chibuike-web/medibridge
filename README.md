@@ -203,7 +203,7 @@ Open [http://localhost:4300](http://localhost:4300).
 
 Create your hospital owner account through the registration flow, then complete email verification and hospital onboarding. Populate patient records through the application.
 
-In development, emails are not sent. Email verification and password-reset links, transfer approval links, and shared-record access codes are printed to the `bun run dev` terminal, so the whole transfer flow can be tested with placeholder addresses.
+Emails are sent through Resend in development too, so `RESEND_API_KEY` must be set. To test without real inboxes, use Resend test addresses such as `delivered+owner@resend.dev` and open each email's link from the Resend dashboard.
 
 ### Useful commands
 

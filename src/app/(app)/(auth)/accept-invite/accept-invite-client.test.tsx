@@ -30,6 +30,8 @@ vi.mock("@/lib/better-auth/auth.client", () => ({
 }));
 
 const invitation = {
+	heading: "Accept Hospital Invitation",
+	description: "Accept the invitation to join St Mary.",
 	email: "sarah@stmary.org",
 	invitationId: "invitation-1",
 	organizationName: "St Mary",

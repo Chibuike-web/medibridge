@@ -1,6 +1,7 @@
 "use client";
 
 import "@/styles/globals.css";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 export default function GlobalError({
@@ -10,6 +11,10 @@ export default function GlobalError({
 	error: Error & { digest?: string };
 	retry: () => void;
 }) {
+	useEffect(() => {
+		console.error(error);
+	}, [error]);
+
 	return (
 		<html lang="en">
 			<body className="antialiased">
@@ -25,9 +30,6 @@ export default function GlobalError({
 						<Button className="mt-12" onClick={() => retry()}>
 							Try again
 						</Button>
-						{error.digest && (
-							<p className="mt-6 text-xs text-gray-400">Error reference: {error.digest}</p>
-						)}
 					</section>
 				</main>
 			</body>

@@ -199,7 +199,7 @@ function VerificationStepIcon({ status }: { status: VerificationStep["status"] }
 	if (status === "complete") {
 		return (
 			<span className="relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-600 ring-4 ring-white">
-				<RiCheckboxCircleFill className="size-5" aria-hidden="true" />
+				<RiCheckboxCircleFill className="size-4" aria-hidden="true" />
 				<span className="sr-only">Complete</span>
 			</span>
 		);
@@ -216,7 +216,7 @@ function VerificationStepIcon({ status }: { status: VerificationStep["status"] }
 
 	return (
 		<span className="relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 ring-4 ring-white">
-			<RiTimeLine className="size-5" aria-hidden="true" />
+			<RiTimeLine className="size-4" aria-hidden="true" />
 			<span className="sr-only">Pending</span>
 		</span>
 	);

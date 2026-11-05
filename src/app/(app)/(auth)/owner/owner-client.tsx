@@ -125,28 +125,10 @@ export function OwnerClient() {
 	if (verificationEmailAddress) {
 		return (
 			<div className="text-center">
-				<div role="status">
-					<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
-						Check your email
-					</h1>
-					<p className="text-gray-600 text-sm font-normal text-pretty mt-4">
-						We sent a verification link to{" "}
-						<span className="text-gray-800">{verificationEmailAddress}</span>. Open it to add your
-						hospital details.
-					</p>
-				</div>
-
-				<Button
-					className="w-full mt-10"
-					disabled={isPending}
-					onClick={() => resendVerificationEmail(verificationEmailAddress)}
-				>
-					{isPending ? <PixelLoader label="Sending…" /> : "Resend link"}
-				</Button>
 				{resendFeedback?.type === "error" && (
 					<div
 						role="alert"
-						className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-left text-sm font-medium text-red-700"
+						className="mb-6 flex items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-left text-sm font-medium text-red-700"
 					>
 						<RiErrorWarningFill className="size-4 shrink-0" aria-hidden="true" />
 						<span className="min-w-0 flex-1">{resendFeedback.message}</span>
@@ -165,7 +147,7 @@ export function OwnerClient() {
 				{resendFeedback?.type === "success" && (
 					<div
 						role="status"
-						className="mt-4 flex items-center gap-2 rounded-xl bg-green-50 px-3 py-2 text-left text-sm font-medium text-green-700"
+						className="mb-6 flex items-center gap-2 rounded-xl bg-green-50 px-3 py-2 text-left text-sm font-medium text-green-700"
 					>
 						<RiCheckboxCircleFill className="size-4 shrink-0" aria-hidden="true" />
 						<span className="min-w-0 flex-1">{resendFeedback.message}</span>
@@ -181,6 +163,25 @@ export function OwnerClient() {
 						</Button>
 					</div>
 				)}
+
+				<div role="status">
+					<h1 className="text-lg font-semibold leading-[1.2] tracking-[-0.02em] text-gray-800 text-balance">
+						Check your email
+					</h1>
+					<p className="text-gray-600 text-sm font-normal text-pretty mt-4">
+						We sent a verification link to{" "}
+						<span className="text-gray-800">{verificationEmailAddress}</span>. Open it to add your
+						hospital details.
+					</p>
+				</div>
+
+				<Button
+					className="w-full mt-10"
+					disabled={isPending}
+					onClick={() => resendVerificationEmail(verificationEmailAddress)}
+				>
+					{isPending ? <PixelLoader label="Sending…" /> : "Resend link"}
+				</Button>
 
 				<div className="mt-6 flex flex-col items-center gap-2 text-sm text-gray-600">
 					<p>

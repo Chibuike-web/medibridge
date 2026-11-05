@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 export default function DashboardError({
@@ -9,6 +10,10 @@ export default function DashboardError({
 	error: Error & { digest?: string };
 	retry: () => void;
 }) {
+	useEffect(() => {
+		console.error(error);
+	}, [error]);
+
 	return (
 		<section className="mx-auto grid w-full max-w-[31.25rem] place-items-center px-6 py-20 text-center">
 			<h1 className="text-lg font-semibold tracking-[-0.015em] text-gray-800 text-balance">
@@ -20,9 +25,6 @@ export default function DashboardError({
 			<Button className="mt-12" onClick={() => retry()}>
 				Try again
 			</Button>
-			{error.digest && (
-				<p className="mt-6 text-xs text-gray-400">Error reference: {error.digest}</p>
-			)}
 		</section>
 	);
 }

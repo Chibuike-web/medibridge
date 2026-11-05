@@ -27,7 +27,7 @@ export const sql =
 	globalForDb.sql ??
 	postgres(ENV.DATABASE_URL!, {
 		max: Number(process.env.POSTGRES_POOL_MAX ?? 5),
-		idle_timeout: 300,
+		idle_timeout: 20,
 		connect_timeout: 10,
 		// Timestamp columns have no time zone and Drizzle reads them as UTC, so defaultNow() must write UTC too.
 		connection: { TimeZone: "UTC" },
@@ -59,11 +59,6 @@ export const auth = betterAuth({
 		requireEmailVerification: true,
 		revokeSessionsOnPasswordReset: true,
 		sendResetPassword: async ({ user, url }) => {
-			if (process.env.NODE_ENV === "development") {
-				console.info("Password reset link (development only):", url);
-				return;
-			}
-
 			after(async () => {
 				try {
 					await sendPasswordResetEmail(user.email, url);
@@ -79,11 +74,6 @@ export const auth = betterAuth({
 	emailVerification: {
 		autoSignInAfterVerification: true,
 		sendVerificationEmail: async ({ user, url }) => {
-			if (process.env.NODE_ENV === "development") {
-				console.info("Email verification link (development only):", url);
-				return;
-			}
-
 			after(async () => {
 				try {
 					await sendEmail(user.email, url);

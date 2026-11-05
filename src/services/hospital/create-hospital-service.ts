@@ -20,6 +20,7 @@ function hospitalSlug(name: string) {
 
 type CreateHospitalResult =
 	| { status: "success"; message: string }
+	| { status: "unauthorized"; error: string }
 	| { status: "failed"; error: string };
 
 export async function createHospitalService(
@@ -28,7 +29,7 @@ export async function createHospitalService(
 	try {
 		const session = await auth.api.getSession({ headers: await headers() });
 		if (!session?.user?.id)
-			return { status: "failed", error: "You must sign in to submit hospital details." };
+			return { status: "unauthorized", error: "You must sign in to submit hospital details." };
 		if (!session.user.emailVerified) {
 			return { status: "failed", error: "Verify your email before submitting hospital details." };
 		}

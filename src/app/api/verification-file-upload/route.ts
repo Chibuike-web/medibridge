@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 		const session = await getSessionData();
 		if (!session?.user?.id) {
 			return Response.json(
-				{ status: "failed", error: "Sign in to upload a file." },
+				{ status: "unauthorized", error: "Sign in to upload a file." },
 				{ status: 401 },
 			);
 		}

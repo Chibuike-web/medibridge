@@ -71,7 +71,7 @@ describe("createHospitalService", () => {
 		});
 
 		expect(result).toEqual({
-			status: "failed",
+			status: "unauthorized",
 			error: "You must sign in to submit hospital details.",
 		});
 		expect(createOrganizationMock).not.toHaveBeenCalled();
