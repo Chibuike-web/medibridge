@@ -333,13 +333,13 @@ export function SharedImagingTable({
 			<h2 className="text-lg font-semibold text-gray-900">Imaging</h2>
 			<div className="mt-7 mb-4 flex flex-wrap items-center gap-2">
 				<div className="relative min-w-0 grow-[999] basis-80">
-					<RiSearchLine className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-gray-400" />
+					<RiSearchLine className="size-4 pointer-events-none absolute bottom-0 left-2 flex h-full items-center justify-center text-gray-400" />
 					<Input
 						type="search"
 						value={query}
 						onChange={(event) => handleQueryChange(event.target.value)}
 						placeholder="Search by study, modality, region, impression, or imaging ID"
-						className="pl-10"
+						className="pl-8"
 					/>
 				</div>
 				<div className="flex grow flex-wrap items-center gap-2 max-md:w-full">
