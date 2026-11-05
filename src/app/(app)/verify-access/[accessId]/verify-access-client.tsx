@@ -66,7 +66,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 				) : null}
 				<Button
 					type="button"
-					className="mt-12"
+					className="mt-12 w-full"
 					disabled={isRequestingNewAccessCode}
 					onClick={() => {
 						setRequestAccessCodeError("");
@@ -130,7 +130,7 @@ export function VerifyAccessClient({ accessId, verificationState }: VerifyAccess
 
 			<Button
 				type="button"
-				className="mt-12"
+				className="mt-12 w-full"
 				disabled={isVerifyingEnteredAccessCode || enteredVerificationCode.length < 6}
 				onClick={() => {
 					setVerifyAccessCodeError("");
