@@ -111,7 +111,7 @@ test("shows the filter chip and first page while the filtered rows are still loa
 	await user.click(screen.getByRole("button", { name: "Status" }));
 	await user.pointer({
 		keys: "[TouchA]",
-		target: await screen.findByRole("checkbox", { name: "Inactive" }),
+		target: await screen.findByRole("radio", { name: "Inactive" }),
 	});
 	await user.keyboard("{Escape}");
 

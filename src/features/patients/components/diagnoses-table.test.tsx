@@ -265,21 +265,21 @@ describe("Diagnoses table", () => {
 		expect(onQueryChange).toHaveBeenCalledWith("Hypert");
 	});
 
-	test("adds and removes status filters from the filter menu", async () => {
+	test("picks one status from the filter menu, or All to clear it", async () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderDiagnosesTable({ statusFilters: ["active"] });
 
 		await user.click(screen.getByRole("button", { name: "Status" }));
 
-		const activeOption = await screen.findByRole("checkbox", { name: "Active" });
-		const resolvedOption = screen.getByRole("checkbox", { name: "Resolved" });
+		const activeOption = await screen.findByRole("radio", { name: "Active" });
+		const resolvedOption = screen.getByRole("radio", { name: "Resolved" });
 		expect(activeOption).toBeChecked();
 		expect(resolvedOption).not.toBeChecked();
 
 		await user.click(resolvedOption);
-		expect(onStatusFiltersChange).toHaveBeenLastCalledWith(["active", "resolved"]);
+		expect(onStatusFiltersChange).toHaveBeenLastCalledWith(["resolved"]);
 
-		await user.click(activeOption);
+		await user.click(screen.getByRole("radio", { name: "All" }));
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 

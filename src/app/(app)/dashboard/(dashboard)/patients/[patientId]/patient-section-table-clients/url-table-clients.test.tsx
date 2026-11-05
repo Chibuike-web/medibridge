@@ -549,26 +549,24 @@ test("shows the filter pill and pending page immediately while navigation waits 
 	await user.click(screen.getByRole("button", { name: "Status" }));
 	await user.pointer({
 		keys: "[TouchA]",
-		target: screen.getByRole("checkbox", { name: "Active" }),
+		target: screen.getByRole("radio", { name: "Active" }),
 	});
-	expect(screen.getByRole("checkbox", { name: "Active" })).toBeChecked();
-	expect(screen.getByRole("checkbox", { name: "Active" })).toBeEnabled();
-	expect(screen.getByRole("checkbox", { name: "Inactive" })).toBeEnabled();
+	expect(screen.getByRole("radio", { name: "Active" })).toBeChecked();
+	expect(screen.getByRole("radio", { name: "Active" })).toBeEnabled();
+	expect(screen.getByRole("radio", { name: "Inactive" })).toBeEnabled();
 	await user.pointer({
 		keys: "[TouchA]",
-		target: screen.getByRole("checkbox", { name: "Inactive" }),
+		target: screen.getByRole("radio", { name: "Inactive" }),
 	});
-	expect(screen.getByRole("checkbox", { name: "Active" })).toBeChecked();
-	expect(screen.getByRole("checkbox", { name: "Inactive" })).toBeChecked();
+	expect(screen.getByRole("radio", { name: "Active" })).not.toBeChecked();
+	expect(screen.getByRole("radio", { name: "Inactive" })).toBeChecked();
 	await user.keyboard("{Escape}");
-	expect(
-		screen.getByRole("button", { name: "Remove Status: Active, Inactive filter" }),
-	).toBeVisible();
+	expect(screen.getByRole("button", { name: "Remove Status: Inactive filter" })).toBeVisible();
 	expect(screen.getByText("Page 1 of 4")).toBeVisible();
 	expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "true");
 	expect(within(screen.getByRole("table")).getByText("Peanuts")).toBeVisible();
 	const params = new URL(navigation.push.mock.lastCall![0], "http://localhost").searchParams;
-	expect(params.get("allergiesStatus")).toBe("active,inactive");
+	expect(params.get("allergiesStatus")).toBe("inactive");
 	expect(params.get("medicationsQuery")).toBe("aspirin");
 	await act(async () => {
 		finishNavigation();
@@ -590,7 +588,7 @@ test("settles the filter chip and page on the URL's values once the server respo
 	await user.click(screen.getByRole("button", { name: "Status" }));
 	await user.pointer({
 		keys: "[TouchA]",
-		target: screen.getByRole("checkbox", { name: "Active" }),
+		target: screen.getByRole("radio", { name: "Active" }),
 	});
 	await user.keyboard("{Escape}");
 	const params = new URL(navigation.push.mock.calls[0][0], "http://localhost").searchParams;

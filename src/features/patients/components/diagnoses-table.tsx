@@ -12,7 +12,7 @@ import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip
 import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CreateDiagnosisDrawer } from "@/features/patients/components/create-diagnosis-drawer";
 import { DiagnosisDetailsDrawer } from "@/features/patients/components/diagnosis-details-drawer";
 import {
@@ -216,34 +216,42 @@ export function DiagnosesTable({
 						}
 					>
 						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
-							{diagnosisStatusFilterOptions.map((statusOption) => {
-								const isStatusSelected = statusFilters.includes(statusOption.value);
-								const statusOptionId = `diagnosis-status-${statusOption.value}`;
-
-								return (
+							<RadioGroup
+								value={statusFilters[0] ?? "all"}
+								onValueChange={(nextStatusFilter) => {
+									onStatusFiltersChange(
+										nextStatusFilter === "all" ? [] : [nextStatusFilter as DiagnosisStatusFilter],
+									);
+								}}
+								className="flex flex-col gap-0.5"
+							>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="all" id="diagnosis-status-all" />
 									<Label
-										key={statusOption.value}
-										htmlFor={statusOptionId}
-										className="h-8 w-full cursor-pointer rounded-lg px-2 leading-normal font-normal hover:bg-gray-100"
+										htmlFor="diagnosis-status-all"
+										className="cursor-pointer w-full leading-normal font-normal"
 									>
-										<Checkbox
-											id={statusOptionId}
-											checked={isStatusSelected}
-											onCheckedChange={(checked) => {
-												onStatusFiltersChange(
-													checked === true
-														? [...statusFilters, statusOption.value]
-														: statusFilters.filter(
-																(statusFilter) => statusFilter !== statusOption.value,
-															),
-												);
-											}}
-											className="[&_svg]:!text-current"
-										/>
-										<span>{statusOption.label}</span>
+										All
 									</Label>
-								);
-							})}
+								</div>
+								{diagnosisStatusFilterOptions.map((statusOption) => (
+									<div
+										key={statusOption.value}
+										className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100"
+									>
+										<RadioGroupItem
+											value={statusOption.value}
+											id={`diagnosis-status-${statusOption.value}`}
+										/>
+										<Label
+											htmlFor={`diagnosis-status-${statusOption.value}`}
+											className="cursor-pointer w-full leading-normal font-normal"
+										>
+											{statusOption.label}
+										</Label>
+									</div>
+								))}
+							</RadioGroup>
 						</FilterPopover>
 						<DateFilterMenu
 							label="Last updated"
