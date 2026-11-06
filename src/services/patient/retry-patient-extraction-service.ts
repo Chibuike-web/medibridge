@@ -50,16 +50,17 @@ export async function retryPatientExtractionService(
 			return { status: "invalid", error: "This document was already removed." };
 		}
 
-		const failedDocumentIds = requestedDocuments
-			.filter((document) => document.status === "failed")
-			.map((document) => document.documentId);
-		if (failedDocumentIds.length === 0) {
+		const failedDocuments = requestedDocuments.filter((document) => document.status === "failed");
+		if (failedDocuments.length === 0) {
 			return { status: "success", documents: requestedDocuments };
 		}
 
 		const retriedDocuments = await extractPatientDocumentsService(
 			`${organizationId}/${extraction.createdBy}`,
-			failedDocumentIds,
+			failedDocuments.map((document) => ({
+				storedName: document.documentId,
+				name: document.fileName,
+			})),
 		);
 
 		const isUpdated = await db.transaction(async (tx) => {

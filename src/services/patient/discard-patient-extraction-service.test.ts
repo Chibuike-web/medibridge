@@ -97,8 +97,8 @@ describe("discarding a patient extraction", () => {
 		storedExtraction.current = {
 			createdBy: "uploader-1",
 			extractedData: [
-				{ documentId: "ready.pdf", status: "ready", patient },
-				{ documentId: "failed.pdf", status: "failed", patient: null },
+				{ documentId: "ready.pdf", fileName: "referral.pdf", status: "ready", patient },
+				{ documentId: "failed.pdf", fileName: "referral.pdf", status: "failed", patient: null },
 			],
 		};
 	});

@@ -45,10 +45,16 @@ export async function savePatientExtractionService(
 				z.discriminatedUnion("status", [
 					z.object({
 						documentId: z.string(),
+						fileName: z.string(),
 						status: z.literal("ready"),
 						patient: PatientRecordSchema,
 					}),
-					z.object({ documentId: z.string(), status: z.literal("failed"), patient: z.null() }),
+					z.object({
+						documentId: z.string(),
+						fileName: z.string(),
+						status: z.literal("failed"),
+						patient: z.null(),
+					}),
 				]),
 			)
 			.min(1)

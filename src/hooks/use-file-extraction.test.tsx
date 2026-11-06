@@ -84,7 +84,10 @@ describe("file extraction", () => {
 		await extract();
 
 		expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
-			filenames: ["saved-first.pdf", "saved-second.pdf"],
+			files: [
+				{ storedName: "saved-first.pdf", name: "first.pdf" },
+				{ storedName: "saved-second.pdf", name: "second.pdf" },
+			],
 		});
 		expect(pushMock).toHaveBeenCalledWith(
 			"/dashboard/review-extracted-info?extractionId=saved-extraction",
@@ -145,7 +148,7 @@ describe("file extraction", () => {
 		);
 		await extract();
 		expect(JSON.parse(fetchMock.mock.lastCall![1].body)).toEqual({
-			filenames: ["saved-ready.pdf"],
+			files: [{ storedName: "saved-ready.pdf", name: "ready.pdf" }],
 			extractionId: "saved-extraction",
 		});
 		expect(pushMock).toHaveBeenCalledWith(

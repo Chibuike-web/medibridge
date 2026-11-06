@@ -281,7 +281,12 @@ test("retries a failed document in the saved extraction and opens its patient fo
 	retryExtractionMock.mockResolvedValueOnce({
 		status: "success",
 		documents: [
-			{ documentId: "emeka.pdf", status: "ready", patient: patient("Emeka", "Obi", "PAT-003") },
+			{
+				documentId: "emeka.pdf",
+				fileName: "referral.pdf",
+				status: "ready",
+				patient: patient("Emeka", "Obi", "PAT-003"),
+			},
 		],
 	});
 	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
@@ -299,7 +304,9 @@ test("keeps a document failed and retryable when it still cannot be extracted", 
 	const user = userEvent.setup();
 	retryExtractionMock.mockResolvedValueOnce({
 		status: "success",
-		documents: [{ documentId: "emeka.pdf", status: "failed", patient: null }],
+		documents: [
+			{ documentId: "emeka.pdf", fileName: "referral.pdf", status: "failed", patient: null },
+		],
 	});
 	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);
 	const card = within(screen.getByRole("article", { name: "Document 3" }));
@@ -626,7 +633,12 @@ test("restores retry controls after a rejected extraction request and can retry 
 	retryExtractionMock.mockResolvedValueOnce({
 		status: "success",
 		documents: [
-			{ documentId: "emeka.pdf", status: "ready", patient: patient("Emeka", "Okafor", "PAT-003") },
+			{
+				documentId: "emeka.pdf",
+				fileName: "referral.pdf",
+				status: "ready",
+				patient: patient("Emeka", "Okafor", "PAT-003"),
+			},
 		],
 	});
 	render(<ReviewExtractedInfoClient extractionId="extraction-1" initialDocuments={documents} />);

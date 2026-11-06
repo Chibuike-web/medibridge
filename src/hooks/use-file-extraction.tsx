@@ -41,7 +41,10 @@ export function useFileExtraction(files: SelectedFile[]) {
 		const data: ExtractFileResponse = await fetch("/api/extract-file", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ filenames: targetFiles.map((file) => file.storedName), extractionId }),
+			body: JSON.stringify({
+				files: targetFiles.map((file) => ({ storedName: file.storedName, name: file.name })),
+				extractionId,
+			}),
 		})
 			.then((response) => response.json())
 			.catch((error) => {

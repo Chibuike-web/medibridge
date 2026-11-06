@@ -21,6 +21,7 @@ const {
 	updatedRows: [] as Record<string, unknown>[],
 	extractionRow: {
 		createdBy: "uploader-1",
+		createdAt: new Date("2026-11-02T09:30:00Z"),
 		extractedData: [] as PatientExtractionDocument[],
 		isDeleted: false,
 	},
@@ -73,6 +74,7 @@ function createPatientRecord(patientId: string | null, firstName: string): Patie
 
 const failedDocument: PatientExtractionDocument = {
 	documentId: "scan.pdf",
+	fileName: "referral.pdf",
 	status: "failed",
 	patient: null,
 };
@@ -84,7 +86,12 @@ describe("saveExtractedPatientsService", () => {
 		getSessionDataMock.mockResolvedValue({ user: { id: "member-1", emailVerified: true } });
 		getOrganizationIdMock.mockResolvedValue("hospital-1");
 		extractionRow.extractedData = [
-			{ documentId: "ada.pdf", status: "ready", patient: createPatientRecord("P-0001", "Ada") },
+			{
+				documentId: "ada.pdf",
+				fileName: "referral.pdf",
+				status: "ready",
+				patient: createPatientRecord("P-0001", "Ada"),
+			},
 			failedDocument,
 		];
 		extractionRow.isDeleted = false;
@@ -160,33 +167,34 @@ describe("saveExtractedPatientsService", () => {
 		expect(updateTagMock).toHaveBeenCalledWith(`patient-by-id-hospital-1-${generatedId}`);
 	});
 
-	test("deletes the source document once its patient is saved", async () => {
+	test("keeps the source document and links it to the saved patient by its original name and upload time", async () => {
 		await saveExtractedPatientsService(
 			"extraction-1",
 			"ada.pdf",
 			createPatientRecord("P-0001", "Ada"),
 		);
 
-		expect(removeUploadMock).toHaveBeenCalledWith(["hospital-1/uploader-1/ada.pdf"]);
-	});
-
-	test("keeps the saved patient when the source document can't be deleted yet", async () => {
-		const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-		removeUploadMock.mockResolvedValue({ data: null, error: new Error("Private storage detail") });
-
-		const result = await saveExtractedPatientsService(
-			"extraction-1",
-			"ada.pdf",
-			createPatientRecord("P-0001", "Ada"),
+		const createdPatient = insertedRows.find((row) => "organizationId" in row);
+		expect(insertedRows).toContainEqual(
+			expect.objectContaining({
+				patientId: createdPatient?.id,
+				name: "referral.pdf",
+				storageKey: "hospital-1/uploader-1/ada.pdf",
+				uploadedBy: "uploader-1",
+				uploadedAt: new Date("2026-11-02T09:30:00Z"),
+			}),
 		);
-
-		expect(result).toEqual({ status: "success", savedCount: 1 });
-		expect(consoleError).toHaveBeenCalled();
+		expect(removeUploadMock).not.toHaveBeenCalled();
 	});
 
 	test("deletes the extraction once its last document is saved", async () => {
 		extractionRow.extractedData = [
-			{ documentId: "ada.pdf", status: "ready", patient: createPatientRecord(null, "Ada") },
+			{
+				documentId: "ada.pdf",
+				fileName: "referral.pdf",
+				status: "ready",
+				patient: createPatientRecord(null, "Ada"),
+			},
 		];
 
 		expect(
@@ -207,7 +215,12 @@ describe("saveExtractedPatientsService", () => {
 			createPatientRecord("ID-FROM-DOCUMENT", "Ada"),
 		);
 		extractionRow.extractedData = [
-			{ documentId: "bola.pdf", status: "ready", patient: createPatientRecord(null, "Bola") },
+			{
+				documentId: "bola.pdf",
+				fileName: "referral.pdf",
+				status: "ready",
+				patient: createPatientRecord(null, "Bola"),
+			},
 		];
 		await saveExtractedPatientsService(
 			"extraction-1",
