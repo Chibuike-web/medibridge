@@ -106,6 +106,7 @@ export async function saveExtractedPatientsService(
 				.select({
 					createdBy: patientExtraction.createdBy,
 					extractedData: patientExtraction.extractedData,
+					createdAt: patientExtraction.createdAt,
 				})
 				.from(patientExtraction)
 				.where(
@@ -158,6 +159,7 @@ export async function saveExtractedPatientsService(
 				name: document.fileName,
 				storageKey: `${organizationId}/${extraction.createdBy}/${documentId}`,
 				uploadedBy: extraction.createdBy,
+				uploadedAt: extraction.createdAt,
 			});
 
 			const remainingDocuments = extraction.extractedData.filter(

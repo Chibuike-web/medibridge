@@ -21,6 +21,7 @@ const {
 	updatedRows: [] as Record<string, unknown>[],
 	extractionRow: {
 		createdBy: "uploader-1",
+		createdAt: new Date("2026-11-02T09:30:00Z"),
 		extractedData: [] as PatientExtractionDocument[],
 		isDeleted: false,
 	},
@@ -166,7 +167,7 @@ describe("saveExtractedPatientsService", () => {
 		expect(updateTagMock).toHaveBeenCalledWith(`patient-by-id-hospital-1-${generatedId}`);
 	});
 
-	test("keeps the source document and links it to the saved patient by its original name", async () => {
+	test("keeps the source document and links it to the saved patient by its original name and upload time", async () => {
 		await saveExtractedPatientsService(
 			"extraction-1",
 			"ada.pdf",
@@ -180,6 +181,7 @@ describe("saveExtractedPatientsService", () => {
 				name: "referral.pdf",
 				storageKey: "hospital-1/uploader-1/ada.pdf",
 				uploadedBy: "uploader-1",
+				uploadedAt: new Date("2026-11-02T09:30:00Z"),
 			}),
 		);
 		expect(removeUploadMock).not.toHaveBeenCalled();
