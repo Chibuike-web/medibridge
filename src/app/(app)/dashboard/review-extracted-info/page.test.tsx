@@ -40,6 +40,7 @@ vi.mock("next/navigation", () => ({
 function readyDocument(firstName: string): PatientExtractionDocument {
 	return {
 		documentId: `${firstName}.pdf`,
+		fileName: `${firstName}-referral.pdf`,
 		status: "ready",
 		patient: {
 			personalInfo: {
@@ -109,7 +110,7 @@ describe("review saved patient extractions", () => {
 			id: "saved",
 			extractedData: [
 				readyDocument("Ada"),
-				{ documentId: "Chi.pdf", status: "failed", patient: null },
+				{ documentId: "Chi.pdf", fileName: "referral.pdf", status: "failed", patient: null },
 			],
 		});
 		await renderReviewPage();

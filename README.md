@@ -155,7 +155,7 @@ src/
 └── hooks/               # Upload, media-query, and other shared client hooks
 ```
 
-Patient documents, clinical reports, and accreditation files use private Supabase Storage. Browsers upload directly using scoped upload URLs, and application endpoints authorize every download and stream it through the app. A patient's source document is deleted when the patient is saved, and a daily cron job removes what is left behind.
+Patient documents, clinical reports, and accreditation files use private Supabase Storage. Browsers upload directly using scoped upload URLs, and application endpoints authorize every download and stream it through the app. A patient's source document is kept, linked to the patient it created under its original file name, and removed with that patient. A daily cron job removes what is left behind.
 
 Create two private Supabase buckets before uploading, each with a 50 MB limit: `patient-uploads` allowing PDF, PNG, JPEG and DOCX, and `hospital-uploads` allowing PDF, PNG, JPEG and DOC. Before the first deploy, run `bun run storage:migrate -- --source <checkout>` to preview copying existing local uploads, then add `--apply` to copy them. The app only reads from storage, so files left on disk return 404.
 

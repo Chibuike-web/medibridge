@@ -71,6 +71,9 @@ export async function cleanupUnreferencedUploadsService(): Promise<CleanupUnrefe
 							jsonb_build_object('documentId', split_part(object.name, '/', 3))
 						)
 					)
+					and not exists (
+						select 1 from patient_source_document where storage_key = object.name
+					)
 				)
 			)
 			limit 500

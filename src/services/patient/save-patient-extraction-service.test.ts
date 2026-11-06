@@ -21,6 +21,7 @@ vi.mock("@/lib/better-auth/auth", () => ({
 
 const extractedRecord: PatientExtractionDocument = {
 	documentId: "intake.docx",
+	fileName: "referral.pdf",
 	status: "ready",
 	patient: {
 		personalInfo: {
@@ -54,6 +55,7 @@ const extractedRecord: PatientExtractionDocument = {
 
 const failedRecord: PatientExtractionDocument = {
 	documentId: "scan.pdf",
+	fileName: "referral.pdf",
 	status: "failed",
 	patient: null,
 };

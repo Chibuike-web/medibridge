@@ -3,7 +3,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { sql } from "drizzle-orm";
 import { hospitalDetails, organization, patient } from "@/db/schemas";
-import { patientExtraction } from "@/db/schemas/patient";
+import { patientExtraction, patientSourceDocument } from "@/db/schemas/patient";
 import { patientLabTest, patientLabTestFile } from "@/db/schemas/patient/lab-test";
 import {
 	migrateTestDatabase,
@@ -110,7 +110,9 @@ describe.skipIf(!isLocalDatabase)("sweeping unreferenced uploads", () => {
 			id: "extraction-1",
 			organizationId: "hospital-1",
 			createdBy: "member-1",
-			extractedData: [{ documentId: "in-review.pdf", status: "failed", patient: null }],
+			extractedData: [
+				{ documentId: "in-review.pdf", fileName: "referral.pdf", status: "failed", patient: null },
+			],
 		});
 	});
 
@@ -154,6 +156,22 @@ describe.skipIf(!isLocalDatabase)("sweeping unreferenced uploads", () => {
 		await cleanupUnreferencedUploadsService();
 
 		expect(removedPatientFiles).toEqual(["hospital-1/member-1/no-review.pdf"]);
+	});
+
+	test("keeps a source document linked to a saved patient and removes one that isn't", async () => {
+		await authModule.db.insert(patientSourceDocument).values({
+			id: "source-1",
+			patientId: "patient-1",
+			name: "ada-referral.pdf",
+			storageKey: "hospital-1/member-1/saved-patient.pdf",
+			uploadedBy: "member-1",
+		});
+		await storeObject("patient-uploads", "hospital-1/member-1/saved-patient.pdf", 48);
+		await storeObject("patient-uploads", "hospital-1/member-1/discarded.pdf", 48);
+
+		await cleanupUnreferencedUploadsService();
+
+		expect(removedPatientFiles).toEqual(["hospital-1/member-1/discarded.pdf"]);
 	});
 
 	test("doesn't let another member's review protect a file with the same name", async () => {

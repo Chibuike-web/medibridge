@@ -26,14 +26,14 @@ const model =
 
 export async function extractPatientDocumentsService(
 	uploadPrefix: string,
-	filenames: string[],
+	files: { storedName: string; name: string }[],
 ): Promise<PatientExtractionDocument[]> {
 	const worker = await createWorker("eng", 1, { cachePath: tmpdir() });
 	const documents: { id: string; filename: string; content: string }[] = [];
 
 	try {
-		for (const filename of filenames) {
-			const key = `${uploadPrefix}/${filename}`;
+		for (const file of files) {
+			const key = `${uploadPrefix}/${file.storedName}`;
 			const { data: storedFile, error: infoError } = await patientUploads.info(key);
 			if (infoError || !storedFile.size || storedFile.size > 50 * 1024 * 1024) {
 				console.error("Patient document is missing or too large:", infoError);
@@ -45,7 +45,7 @@ export async function extractPatientDocumentsService(
 				continue;
 			}
 			const buffer = Buffer.from(await data.arrayBuffer());
-			const fileExtension = path.extname(filename).toLowerCase();
+			const fileExtension = path.extname(file.storedName).toLowerCase();
 			let extractionResult: ExtractTextResult;
 
 			if ([".png", ".jpg", ".jpeg", ".webp"].includes(fileExtension)) {
@@ -59,7 +59,11 @@ export async function extractPatientDocumentsService(
 			}
 
 			if (extractionResult.status === "success") {
-				documents.push({ id: filename, filename, content: extractionResult.text });
+				documents.push({
+					id: file.storedName,
+					filename: file.storedName,
+					content: extractionResult.text,
+				});
 			}
 		}
 	} finally {
@@ -94,13 +98,13 @@ export async function extractPatientDocumentsService(
 		}
 	}
 
-	return filenames.map((filename) => {
-		const record = records.find((record) => record.documentId === filename);
+	return files.map((file) => {
+		const record = records.find((record) => record.documentId === file.storedName);
 		if (!record) {
-			return { documentId: filename, status: "failed", patient: null };
+			return { documentId: file.storedName, fileName: file.name, status: "failed", patient: null };
 		}
 		const { documentId, ...patient } = record;
-		return { documentId, status: "ready", patient };
+		return { documentId, fileName: file.name, status: "ready", patient };
 	});
 }
 

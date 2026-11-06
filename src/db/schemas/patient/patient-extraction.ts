@@ -2,7 +2,7 @@ import { index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { organization } from "../auth";
 import type { PatientRecord } from "@/features/patients/schemas/patient-schema";
 
-export type PatientExtractionDocument = { documentId: string } & (
+export type PatientExtractionDocument = { documentId: string; fileName: string } & (
 	| { status: "ready"; patient: PatientRecord }
 	| { status: "failed"; patient: null }
 );

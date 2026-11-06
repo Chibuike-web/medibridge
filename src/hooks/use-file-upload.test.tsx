@@ -125,7 +125,7 @@ async function selectFiles(files: File[]) {
 function extractionRequests() {
 	return fetchMock.mock.calls
 		.filter(([url]) => url === "/api/extract-file")
-		.map(([, options]) => JSON.parse(options.body).filenames);
+		.map(([, options]) => JSON.parse(options.body).files);
 }
 
 describe("Patient uploads with generated storage names", () => {
@@ -177,7 +177,12 @@ describe("Patient uploads with generated storage names", () => {
 		await act(async () => {
 			fireEvent.click(screen.getByRole("button", { name: "Extract all" }));
 		});
-		expect(extractionRequests()).toEqual([[firstStoredName, secondStoredName]]);
+		expect(extractionRequests()).toEqual([
+			[
+				{ storedName: firstStoredName, name: "report.pdf" },
+				{ storedName: secondStoredName, name: "report.pdf" },
+			],
+		]);
 		expect(pushMock).toHaveBeenCalledWith(
 			"/dashboard/review-extracted-info?extractionId=saved-extraction",
 		);

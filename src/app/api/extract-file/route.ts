@@ -33,16 +33,19 @@ export async function POST(req: Request) {
 		);
 	}
 	try {
-		const { filenames, extractionId } = await req.json();
-		if (!Array.isArray(filenames) || filenames.length === 0)
+		const { files, extractionId } = await req.json();
+		if (!Array.isArray(files) || files.length === 0)
 			return Response.json({ status: "failed", error: "Missing file" }, { status: 400 });
 		if (
-			filenames.some(
-				(filename) =>
-					typeof filename !== "string" ||
-					!filename ||
-					/[\\/:*?"<>|%#]|[^\u0020-\uffff]/.test(filename) ||
-					/[. ]$/.test(filename),
+			files.some(
+				(file) =>
+					typeof file?.storedName !== "string" ||
+					!file.storedName ||
+					/[\\/:*?"<>|%#]|[^\u0020-\uffff]/.test(file.storedName) ||
+					/[. ]$/.test(file.storedName) ||
+					typeof file.name !== "string" ||
+					!file.name ||
+					file.name.length > 255,
 			)
 		) {
 			return Response.json(
@@ -52,7 +55,10 @@ export async function POST(req: Request) {
 		}
 		const uploadPrefix = `${organizationId}/${session.user.id}`;
 		if (typeof extractionId === "string") {
-			const retriedExtraction = await retryPatientExtractionService(extractionId, filenames);
+			const retriedExtraction = await retryPatientExtractionService(
+				extractionId,
+				files.map((file) => file.storedName),
+			);
 
 			if (retriedExtraction.status !== "success") {
 				return Response.json(retriedExtraction, { status: 400 });
@@ -67,7 +73,7 @@ export async function POST(req: Request) {
 			});
 		}
 
-		const documents = await extractPatientDocumentsService(uploadPrefix, filenames);
+		const documents = await extractPatientDocumentsService(uploadPrefix, files);
 		const savedExtraction = await savePatientExtractionService(documents);
 
 		if (savedExtraction.status === "failed") {

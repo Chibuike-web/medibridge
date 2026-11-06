@@ -98,7 +98,10 @@ describe("continue to review saved patient extractions", () => {
 		);
 
 		expect(JSON.parse(fetchMock.mock.lastCall![1].body)).toEqual({
-			filenames: [firstStoredName, secondStoredName],
+			files: [
+				{ storedName: firstStoredName, name: "record-1.pdf" },
+				{ storedName: secondStoredName, name: "record-2.pdf" },
+			],
 		});
 		expect(pushMock).toHaveBeenCalledWith(
 			"/dashboard/review-extracted-info?extractionId=saved-extraction",
@@ -127,7 +130,10 @@ describe("continue to review saved patient extractions", () => {
 			fireEvent.click(screen.getByRole("button", { name: "Retry all" }));
 		});
 		expect(JSON.parse(fetchMock.mock.lastCall![1].body)).toEqual({
-			filenames: [firstStoredName, secondStoredName],
+			files: [
+				{ storedName: firstStoredName, name: "record-1.pdf" },
+				{ storedName: secondStoredName, name: "record-2.pdf" },
+			],
 			extractionId: "saved-extraction",
 		});
 		expect(pushMock).toHaveBeenCalledWith(
@@ -159,7 +165,7 @@ describe("continue to review saved patient extractions", () => {
 			);
 		});
 		expect(JSON.parse(fetchMock.mock.lastCall![1].body)).toEqual({
-			filenames: [firstStoredName],
+			files: [{ storedName: firstStoredName, name: "record-1.pdf" }],
 			extractionId: "saved-extraction",
 		});
 		for (const name of ["record-1.pdf", "record-2.pdf"]) {
@@ -244,7 +250,9 @@ describe("continue to review saved patient extractions", () => {
 				}),
 			);
 		});
-		expect(JSON.parse(fetchMock.mock.lastCall![1].body)).toEqual({ filenames: [firstStoredName] });
+		expect(JSON.parse(fetchMock.mock.lastCall![1].body)).toEqual({
+			files: [{ storedName: firstStoredName, name: "record-1.pdf" }],
+		});
 		expect(screen.getByRole("alert")).toHaveTextContent("Extraction service is still unavailable.");
 		expect(
 			within(screen.getByRole("group", { name: "record-2.pdf" })).getByText("Extraction failed"),

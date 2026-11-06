@@ -127,9 +127,13 @@ function fileRequest(name = "record.pdf", size = 13) {
 		files: [{ clientId: "client-record", name, type: "application/pdf", size }],
 	});
 }
+function uploadedFiles(...storedNames: string[]) {
+	return storedNames.map((storedName) => ({ storedName, name: "referral.pdf" }));
+}
+
 function readyDocument(documentId: string) {
 	const { documentId: _, ...patient } = createExtractedPatient(documentId);
-	return { documentId, status: "ready", patient };
+	return { documentId, fileName: "referral.pdf", status: "ready", patient };
 }
 
 function modelDocuments() {
@@ -405,7 +409,9 @@ describe("Uploads and extraction API", () => {
 			mammothExtractRawTextMock.mockResolvedValue({ value: "Patient information" });
 			generateTextMock.mockResolvedValue({ output: [createExtractedPatient("intake.docx")] });
 
-			const response = await extractFile(extractFileRequest({ filenames: ["intake.docx"] }));
+			const response = await extractFile(
+				extractFileRequest({ files: uploadedFiles("intake.docx") }),
+			);
 			const payload = await response.json();
 
 			expect(response.status).toBe(200);
@@ -431,7 +437,9 @@ describe("Uploads and extraction API", () => {
 			saveExtractionMock.mockRejectedValue(new Error("Private database connection details"));
 
 			try {
-				const response = await extractFile(extractFileRequest({ filenames: ["intake.docx"] }));
+				const response = await extractFile(
+					extractFileRequest({ files: uploadedFiles("intake.docx") }),
+				);
 
 				expect(response.status).toBe(500);
 				expect(await response.json()).toEqual({
@@ -450,13 +458,22 @@ describe("Uploads and extraction API", () => {
 			});
 			generateTextMock.mockResolvedValue({ output: [] });
 
-			const response = await extractFile(extractFileRequest({ filenames: ["intake.docx"] }));
+			const response = await extractFile(
+				extractFileRequest({ files: uploadedFiles("intake.docx") }),
+			);
 
 			expect(response.status).toBe(200);
 			expect(await response.json()).toMatchObject({ status: "success", hasReadyDocument: false });
 			expect(savedExtractions).toEqual([
 				expect.objectContaining({
-					extractedData: [{ documentId: "intake.docx", status: "failed", patient: null }],
+					extractedData: [
+						{
+							documentId: "intake.docx",
+							fileName: "referral.pdf",
+							status: "failed",
+							patient: null,
+						},
+					],
 				}),
 			]);
 		});
@@ -468,7 +485,7 @@ describe("Uploads and extraction API", () => {
 
 			try {
 				const response = await extractFile(
-					extractFileRequest({ filenames: ["first.docx", "second.docx"] }),
+					extractFileRequest({ files: uploadedFiles("first.docx", "second.docx") }),
 				);
 
 				expect(response.status).toBe(200);
@@ -482,8 +499,18 @@ describe("Uploads and extraction API", () => {
 					expect.objectContaining({
 						id: payload.extractionId,
 						extractedData: [
-							{ documentId: "first.docx", status: "failed", patient: null },
-							{ documentId: "second.docx", status: "failed", patient: null },
+							{
+								documentId: "first.docx",
+								fileName: "referral.pdf",
+								status: "failed",
+								patient: null,
+							},
+							{
+								documentId: "second.docx",
+								fileName: "referral.pdf",
+								status: "failed",
+								patient: null,
+							},
 						],
 					}),
 				]);
@@ -511,7 +538,7 @@ describe("Uploads and extraction API", () => {
 				const filename = `intake.${extension}`;
 				generateTextMock.mockResolvedValue({ output: [createExtractedPatient(filename)] });
 
-				const response = await extractFile(extractFileRequest({ filenames: [filename] }));
+				const response = await extractFile(extractFileRequest({ files: uploadedFiles(filename) }));
 
 				expect(response.status).toBe(200);
 				expect(modelDocuments()).toEqual([
@@ -541,7 +568,7 @@ describe("Uploads and extraction API", () => {
 			});
 			generateTextMock.mockResolvedValue({ output: [createExtractedPatient("mixed.pdf")] });
 
-			const response = await extractFile(extractFileRequest({ filenames: ["mixed.pdf"] }));
+			const response = await extractFile(extractFileRequest({ files: uploadedFiles("mixed.pdf") }));
 
 			expect(response.status).toBe(200);
 			expect(modelDocuments()).toEqual([
@@ -580,7 +607,7 @@ describe("Uploads and extraction API", () => {
 
 				try {
 					const response = await extractFile(
-						extractFileRequest({ filenames: [filename, "readable.docx"] }),
+						extractFileRequest({ files: uploadedFiles(filename, "readable.docx") }),
 					);
 					expect(response.status).toBe(200);
 					expect(await response.json()).toEqual({
@@ -594,7 +621,7 @@ describe("Uploads and extraction API", () => {
 					expect(savedExtractions).toEqual([
 						expect.objectContaining({
 							extractedData: [
-								{ documentId: filename, status: "failed", patient: null },
+								{ documentId: filename, fileName: "referral.pdf", status: "failed", patient: null },
 								readyDocument("readable.docx"),
 							],
 						}),
@@ -614,14 +641,14 @@ describe("Uploads and extraction API", () => {
 			generateTextMock.mockResolvedValue({ output: [createExtractedPatient("readable.docx")] });
 
 			const response = await extractFile(
-				extractFileRequest({ filenames: ["intake.txt", "readable.docx"] }),
+				extractFileRequest({ files: uploadedFiles("intake.txt", "readable.docx") }),
 			);
 
 			expect(response.status).toBe(200);
 			expect(savedExtractions).toEqual([
 				expect.objectContaining({
 					extractedData: [
-						{ documentId: "intake.txt", status: "failed", patient: null },
+						{ documentId: "intake.txt", fileName: "referral.pdf", status: "failed", patient: null },
 						readyDocument("readable.docx"),
 					],
 				}),
@@ -632,8 +659,8 @@ describe("Uploads and extraction API", () => {
 			const savedPatient = { ...readyDocument("saved.docx"), status: "saved" };
 			storedExtraction.extractedData = [
 				savedPatient,
-				{ documentId: "first.docx", status: "failed", patient: null },
-				{ documentId: "second.docx", status: "failed", patient: null },
+				{ documentId: "first.docx", fileName: "referral.pdf", status: "failed", patient: null },
+				{ documentId: "second.docx", fileName: "referral.pdf", status: "failed", patient: null },
 			];
 			getPatientExtractionByIdMock.mockResolvedValue({
 				id: "saved-extraction",
@@ -645,7 +672,7 @@ describe("Uploads and extraction API", () => {
 
 			const response = await extractFile(
 				extractFileRequest({
-					filenames: ["first.docx", "second.docx"],
+					files: uploadedFiles("first.docx", "second.docx"),
 					extractionId: "saved-extraction",
 				}),
 			);
@@ -660,7 +687,7 @@ describe("Uploads and extraction API", () => {
 			expect(storedExtraction.extractedData).toEqual([
 				savedPatient,
 				readyDocument("first.docx"),
-				{ documentId: "second.docx", status: "failed", patient: null },
+				{ documentId: "second.docx", fileName: "referral.pdf", status: "failed", patient: null },
 			]);
 			expect(savedExtractions).toEqual([]);
 			expect(revalidateTagMock).toHaveBeenCalledWith(
@@ -670,7 +697,12 @@ describe("Uploads and extraction API", () => {
 		});
 
 		test("explains the retry cannot finish when the upload was removed while it was extracting", async () => {
-			const failedDocument = { documentId: "first.docx", status: "failed", patient: null };
+			const failedDocument = {
+				documentId: "first.docx",
+				fileName: "referral.pdf",
+				status: "failed",
+				patient: null,
+			};
 			storedExtraction.extractedData = [failedDocument];
 			getPatientExtractionByIdMock.mockResolvedValue({
 				id: "saved-extraction",
@@ -684,7 +716,10 @@ describe("Uploads and extraction API", () => {
 			});
 
 			const response = await extractFile(
-				extractFileRequest({ filenames: ["first.docx"], extractionId: "saved-extraction" }),
+				extractFileRequest({
+					files: uploadedFiles("first.docx"),
+					extractionId: "saved-extraction",
+				}),
 			);
 
 			expect(generateTextMock).toHaveBeenCalled();
@@ -705,7 +740,10 @@ describe("Uploads and extraction API", () => {
 			});
 
 			const response = await extractFile(
-				extractFileRequest({ filenames: ["first.docx"], extractionId: "saved-extraction" }),
+				extractFileRequest({
+					files: uploadedFiles("first.docx"),
+					extractionId: "saved-extraction",
+				}),
 			);
 
 			expect(response.status).toBe(200);
@@ -726,7 +764,10 @@ describe("Uploads and extraction API", () => {
 			});
 
 			const response = await extractFile(
-				extractFileRequest({ filenames: ["first.docx"], extractionId: "saved-extraction" }),
+				extractFileRequest({
+					files: uploadedFiles("first.docx"),
+					extractionId: "saved-extraction",
+				}),
 			);
 
 			expect(response.status).toBe(400);
@@ -784,7 +825,9 @@ describe("Uploads and extraction API", () => {
 			outputArrayMock.mockImplementationOnce(ai.Output.array);
 			generateTextMock.mockImplementationOnce((options) => ai.generateText({ ...options, model }));
 
-			const response = await extractFile(extractFileRequest({ filenames: ["intake.docx"] }));
+			const response = await extractFile(
+				extractFileRequest({ files: uploadedFiles("intake.docx") }),
+			);
 
 			expect(response.status).toBe(200);
 			const payload = await response.json();
@@ -792,7 +835,9 @@ describe("Uploads and extraction API", () => {
 			expect(savedExtractions).toEqual([
 				expect.objectContaining({
 					id: payload.extractionId,
-					extractedData: [{ documentId, status: "ready", patient: extractedPatient }],
+					extractedData: [
+						{ documentId, fileName: "referral.pdf", status: "ready", patient: extractedPatient },
+					],
 				}),
 			]);
 		});
@@ -800,7 +845,7 @@ describe("Uploads and extraction API", () => {
 		test.each(["../hospital-2/private.pdf", "..\\private.pdf", "C:\\private.pdf"])(
 			"denies extraction of a supplied path %s",
 			async (filename) => {
-				const response = await extractFile(extractFileRequest({ filenames: [filename] }));
+				const response = await extractFile(extractFileRequest({ files: uploadedFiles(filename) }));
 				expect(response.status).toBe(400);
 				expect(readFileMock).not.toHaveBeenCalled();
 				expect(createWorkerMock).not.toHaveBeenCalled();
@@ -810,7 +855,9 @@ describe("Uploads and extraction API", () => {
 		test("extracts only the signed-in member's own hospital upload", async () => {
 			mammothExtractRawTextMock.mockResolvedValue({ value: "patient information" });
 			generateTextMock.mockResolvedValue({ output: [createExtractedPatient("intake.docx")] });
-			const response = await extractFile(extractFileRequest({ filenames: ["intake.docx"] }));
+			const response = await extractFile(
+				extractFileRequest({ files: uploadedFiles("intake.docx") }),
+			);
 			expect(response.status).toBe(200);
 			expect(readFileMock).toHaveBeenCalledWith("hospital-1/owner-1/intake.docx");
 			expect(mammothExtractRawTextMock).toHaveBeenCalledWith({ buffer: expect.any(Buffer) });
@@ -831,7 +878,7 @@ describe("Uploads and extraction API", () => {
 				output: [createExtractedPatient(uploadedFile.storedName)],
 			});
 			const response = await extractFile(
-				extractFileRequest({ filenames: [uploadedFile.storedName] }),
+				extractFileRequest({ files: uploadedFiles(uploadedFile.storedName) }),
 			);
 			expect(response.status).toBe(200);
 			expect(modelDocuments()).toEqual([
@@ -850,7 +897,9 @@ describe("Uploads and extraction API", () => {
 			"rejects extraction when email verification is %s",
 			async (emailVerified) => {
 				getSessionDataMock.mockResolvedValue({ user: { id: "owner-1", emailVerified } });
-				const response = await extractFile(extractFileRequest({ filenames: ["intake.pdf"] }));
+				const response = await extractFile(
+					extractFileRequest({ files: uploadedFiles("intake.pdf") }),
+				);
 				expect(response.status).toBe(403);
 				expect(await response.json()).toEqual({
 					status: "failed",
@@ -866,7 +915,9 @@ describe("Uploads and extraction API", () => {
 		test("rejects signed-out requests before reading any files", async () => {
 			getSessionDataMock.mockResolvedValue(null);
 
-			const response = await extractFile(extractFileRequest({ filenames: ["intake.pdf"] }));
+			const response = await extractFile(
+				extractFileRequest({ files: uploadedFiles("intake.pdf") }),
+			);
 
 			expect(response.status).toBe(401);
 			expect(await response.json()).toEqual({
@@ -881,7 +932,9 @@ describe("Uploads and extraction API", () => {
 			getSessionDataMock.mockResolvedValue({ user: { id: "owner-1", emailVerified: true } });
 			getOrganizationIdMock.mockResolvedValue(null);
 
-			const response = await extractFile(extractFileRequest({ filenames: ["intake.pdf"] }));
+			const response = await extractFile(
+				extractFileRequest({ files: uploadedFiles("intake.pdf") }),
+			);
 
 			expect(response.status).toBe(403);
 			expect(await response.json()).toEqual({
@@ -895,19 +948,23 @@ describe("Uploads and extraction API", () => {
 		test("marks a stored file over 50 MB as failed without downloading it", async () => {
 			vi.spyOn(console, "error").mockImplementation(() => {});
 			infoMock.mockResolvedValue({ data: { size: 50 * 1024 * 1024 + 1 }, error: null });
-			const response = await extractFile(extractFileRequest({ filenames: ["intake.pdf"] }));
+			const response = await extractFile(
+				extractFileRequest({ files: uploadedFiles("intake.pdf") }),
+			);
 			expect(response.status).toBe(200);
 			expect(readFileMock).not.toHaveBeenCalled();
 			expect(saveExtractionMock).toHaveBeenCalledWith(
 				expect.objectContaining({
-					extractedData: [{ documentId: "intake.pdf", status: "failed", patient: null }],
+					extractedData: [
+						{ documentId: "intake.pdf", fileName: "referral.pdf", status: "failed", patient: null },
+					],
 				}),
 			);
 		});
 		test.each(["..%2Fother-hospital%2Frecord.pdf", "record.pdf#fragment.pdf"])(
 			"refuses a filename that could change the storage path: %s",
 			async (filename) => {
-				const response = await extractFile(extractFileRequest({ filenames: [filename] }));
+				const response = await extractFile(extractFileRequest({ files: uploadedFiles(filename) }));
 				expect(response.status).toBe(400);
 				expect(infoMock).not.toHaveBeenCalled();
 			},
