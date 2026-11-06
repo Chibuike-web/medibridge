@@ -1,7 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react";
+import {
+	RiArrowDownSLine,
+	RiArrowLeftSLine,
+	RiArrowRightSLine,
+	RiArrowUpSLine,
+} from "@remixicon/react";
 import {
 	columnOrderingFeature,
 	columnVisibilityFeature,
@@ -202,22 +207,24 @@ export function RecentPatientsTable({ data }: { data: RecentPatientType[] }) {
 								<Button
 									type="button"
 									variant="outline"
-									size="sm"
+									size="icon"
+									aria-label="Previous"
 									onClick={() => table.previousPage()}
 									disabled={!table.getCanPreviousPage()}
 									className="text-gray-700 shadow-none"
 								>
-									Previous
+									<RiArrowLeftSLine aria-hidden="true" />
 								</Button>
 								<Button
 									type="button"
 									variant="outline"
-									size="sm"
+									size="icon"
+									aria-label="Next"
 									onClick={() => table.nextPage()}
 									disabled={!table.getCanNextPage()}
 									className="text-gray-700 shadow-none"
 								>
-									Next
+									<RiArrowRightSLine aria-hidden="true" />
 								</Button>
 							</div>
 						</div>

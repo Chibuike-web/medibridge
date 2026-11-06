@@ -19,7 +19,12 @@ import { StatusBadge } from "@/components/status-badge";
 import { cn } from "@/lib/utils/cn";
 import { formatDate } from "@/lib/utils/format-date";
 import { CopyIdButton } from "@/components/copy-id-button";
-import { RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react";
+import {
+	RiArrowDownSLine,
+	RiArrowLeftSLine,
+	RiArrowRightSLine,
+	RiArrowUpSLine,
+} from "@remixicon/react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
@@ -193,22 +198,24 @@ export function RecentTransfersTable({ data }: { data: TransferType[] }) {
 								<Button
 									type="button"
 									variant="outline"
-									size="sm"
+									size="icon"
+									aria-label="Previous"
 									onClick={() => table.previousPage()}
 									disabled={!table.getCanPreviousPage()}
 									className="text-gray-700 shadow-none"
 								>
-									Previous
+									<RiArrowLeftSLine aria-hidden="true" />
 								</Button>
 								<Button
 									type="button"
 									variant="outline"
-									size="sm"
+									size="icon"
+									aria-label="Next"
 									onClick={() => table.nextPage()}
 									disabled={!table.getCanNextPage()}
 									className="text-gray-700 shadow-none"
 								>
-									Next
+									<RiArrowRightSLine aria-hidden="true" />
 								</Button>
 							</div>
 						</div>

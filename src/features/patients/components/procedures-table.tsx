@@ -62,6 +62,8 @@ import {
 import {
 	RiArchiveLine,
 	RiArrowDownSLine,
+	RiArrowLeftSLine,
+	RiArrowRightSLine,
 	RiArrowUpSLine,
 	RiCalendarLine,
 	RiCheckLine,
@@ -424,22 +426,24 @@ export function ProceduresTable({
 								<Button
 									type="button"
 									variant="outline"
-									size="sm"
+									size="icon"
+									aria-label="Previous"
 									onClick={onPreviousPage}
 									disabled={page <= 1 || isPending}
 									className="text-gray-700 shadow-none"
 								>
-									Previous
+									<RiArrowLeftSLine aria-hidden="true" />
 								</Button>
 								<Button
 									type="button"
 									variant="outline"
-									size="sm"
+									size="icon"
+									aria-label="Next"
 									onClick={onNextPage}
 									disabled={page >= totalPages || isPending}
 									className="text-gray-700 shadow-none"
 								>
-									Next
+									<RiArrowRightSLine aria-hidden="true" />
 								</Button>
 							</div>
 						</div>

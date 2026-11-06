@@ -6,6 +6,8 @@ import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-rang
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import {
 	RiArrowDownSLine,
+	RiArrowLeftSLine,
+	RiArrowRightSLine,
 	RiArrowUpSLine,
 	RiShare2Line,
 	RiEyeLine,
@@ -517,24 +519,26 @@ export function SharedMedicationsTable({
 								<Button
 									type="button"
 									variant="outline"
-									size="sm"
+									size="icon"
+									aria-label="Previous"
 									onClick={() => navigateTable({ nextPage: Math.max(optimisticPage - 1, 1) })}
 									disabled={optimisticPage <= 1 || isPending}
 									className="text-gray-700 shadow-none"
 								>
-									Previous
+									<RiArrowLeftSLine aria-hidden="true" />
 								</Button>
 								<Button
 									type="button"
 									variant="outline"
-									size="sm"
+									size="icon"
+									aria-label="Next"
 									onClick={() =>
 										navigateTable({ nextPage: Math.min(optimisticPage + 1, totalPages) })
 									}
 									disabled={optimisticPage >= totalPages || isPending}
 									className="text-gray-700 shadow-none"
 								>
-									Next
+									<RiArrowRightSLine aria-hidden="true" />
 								</Button>
 							</div>
 						</div>
