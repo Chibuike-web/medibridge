@@ -27,7 +27,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 
 const FILTER_MENU_WIDTH_REM = 13.75;
 
-const CloseFilterDrawerContext = createContext<(() => void) | null>(null);
+const IsInFilterDrawerContext = createContext(false);
 
 function getFilterMenuAlign(trigger: HTMLButtonElement) {
 	const remInPixels = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -77,9 +77,7 @@ export function FilterGroup({
 					</DrawerClose>
 				</DrawerHeader>
 				<div className="flex flex-col gap-3 overflow-y-auto p-2">
-					<CloseFilterDrawerContext value={() => setIsDrawerOpen(false)}>
-						{children}
-					</CloseFilterDrawerContext>
+					<IsInFilterDrawerContext value={true}>{children}</IsInFilterDrawerContext>
 				</div>
 			</DrawerContent>
 		</Drawer>
@@ -95,11 +93,11 @@ export function FilterPopover({
 	icon: RemixiconComponentType;
 	children: ReactNode;
 }) {
-	const closeFilterDrawer = use(CloseFilterDrawerContext);
+	const isInFilterDrawer = use(IsInFilterDrawerContext);
 	const triggerRef = useRef<HTMLButtonElement>(null);
 	const [align, setAlign] = useState<"start" | "end">("start");
 
-	if (closeFilterDrawer) {
+	if (isInFilterDrawer) {
 		return (
 			<div>
 				<h3 className="px-2 py-1.5 font-medium text-gray-800">{label}</h3>
@@ -143,11 +141,11 @@ export function DateFilterMenu({
 	icon: RemixiconComponentType;
 	onCustomDateRangeSelect: (dateRangeFilter: DateRangeFilter) => void;
 }) {
-	const closeFilterDrawer = use(CloseFilterDrawerContext);
+	const isInFilterDrawer = use(IsInFilterDrawerContext);
 	const triggerRef = useRef<HTMLButtonElement>(null);
 	const [align, setAlign] = useState<"start" | "end">("start");
 
-	if (closeFilterDrawer) {
+	if (isInFilterDrawer) {
 		return (
 			<div>
 				<h3 className="px-2 py-1.5 font-medium text-gray-800">{label}</h3>
@@ -155,10 +153,7 @@ export function DateFilterMenu({
 					from={from}
 					to={to}
 					onDateRangeApply={onDateRangeApply}
-					onCustomDateRangeSelect={(dateRangeFilter) => {
-						closeFilterDrawer();
-						onCustomDateRangeSelect(dateRangeFilter);
-					}}
+					onCustomDateRangeSelect={onCustomDateRangeSelect}
 				/>
 			</div>
 		);

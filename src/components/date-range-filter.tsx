@@ -16,6 +16,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 
 export type DateRangeFilter = {
@@ -130,7 +131,7 @@ export function SetDateRangeDialog({
 }) {
 	return (
 		<Dialog open={dateRangeFilter !== null} onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="max-w-[40rem] gap-0 p-0">
+			<DialogContent className="max-w-[40rem] gap-0 p-0 max-md:flex max-md:h-full max-md:flex-col">
 				<DialogHeader className="py-4">
 					<DialogTitle>Set date range</DialogTitle>
 					<DialogClose asChild>
@@ -156,13 +157,14 @@ function DateRangeFields({
 	onClose: () => void;
 }) {
 	const today = new Date();
+	const isPhone = useMediaQuery("(width < 48rem)");
 	const [draftDateRange, setDraftDateRange] = useState<DateRange | undefined>(() => {
 		const from = parseDateParam(dateRangeFilter?.from ?? "");
 		const to = parseDateParam(dateRangeFilter?.to ?? "");
 		return from ? { from, to } : undefined;
 	});
 	const [calendarMonth, setCalendarMonth] = useState(() =>
-		startOfMonth(subMonths(draftDateRange?.to ?? today, 1)),
+		startOfMonth(subMonths(draftDateRange?.to ?? today, isPhone ? 0 : 1)),
 	);
 	const dateRangeHintId = useId();
 	const hasDateRange = Boolean(draftDateRange?.from && draftDateRange.to);
@@ -173,7 +175,7 @@ function DateRangeFields({
 
 	return (
 		<>
-			<div className="py-5">
+			<div className="py-5 max-md:flex-1 max-md:overflow-y-auto">
 				<div className="grid gap-3.5 px-4 pb-4 sm:grid-cols-2">
 					{dateFields.map((dateField) => (
 						<div key={dateField.label} className="flex min-w-0 flex-col gap-3.5">
@@ -188,7 +190,7 @@ function DateRangeFields({
 				</div>
 				<Calendar
 					mode="range"
-					numberOfMonths={2}
+					numberOfMonths={isPhone ? 1 : 2}
 					showOutsideDays={false}
 					resetOnSelect
 					selected={draftDateRange}
@@ -199,11 +201,11 @@ function DateRangeFields({
 					endMonth={today}
 				/>
 			</div>
-			<DialogFooter className="gap-3 p-4 sm:items-center sm:justify-end">
+			<DialogFooter className="flex-row flex-wrap items-center gap-3 p-4 sm:justify-end">
 				{hasDateRange ? null : (
 					<p
 						id={dateRangeHintId}
-						className="order-last text-sm text-gray-500 sm:order-none sm:mr-auto"
+						className="basis-full text-sm text-gray-500 md:mr-auto md:basis-auto"
 					>
 						Pick a start date and an end date to apply.
 					</p>
@@ -211,6 +213,7 @@ function DateRangeFields({
 				<Button
 					type="button"
 					variant="outline"
+					className="max-md:flex-1"
 					onClick={() => {
 						setDraftDateRange(undefined);
 						dateRangeFilter?.onDateRangeApply("", "");
@@ -220,6 +223,7 @@ function DateRangeFields({
 				</Button>
 				<Button
 					type="button"
+					className="max-md:flex-1"
 					disabled={!hasDateRange}
 					aria-describedby={hasDateRange ? undefined : dateRangeHintId}
 					onClick={() => {
