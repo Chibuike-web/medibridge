@@ -24,20 +24,24 @@ vi.mock("@/lib/better-auth/auth.client", () => ({
 vi.mock("@/components/layout/settings-dialog", () => ({ SettingsDialog: () => null }));
 
 describe("profile menu", () => {
-	test("shows the signed-in email with the member's role", async () => {
+	test("shows the first name with the member's role on the button, and the email in the menu", async () => {
 		const user = userEvent.setup();
 		render(<UserProfile isCollapsed={false} />);
-		await user.click(screen.getByRole("button", { name: /Sarah Thompson/ }));
+		const profileButton = screen.getByRole("button", { name: /Sarah/ });
+		expect(profileButton).toHaveTextContent("Sarah · admin");
+		expect(profileButton).not.toHaveTextContent("Thompson");
+
+		await user.click(profileButton);
 
 		const menu = await screen.findByRole("menu");
 		expect(within(menu).getByText("sarah@stmary.org")).toBeVisible();
-		expect(within(menu).getByText("admin")).toBeVisible();
+		expect(within(menu).queryByText("admin")).not.toBeInTheDocument();
 	});
 
 	test("marks the chosen theme, starting from System like the Settings dialog", async () => {
 		const user = userEvent.setup();
 		render(<UserProfile isCollapsed={false} />);
-		await user.click(screen.getByRole("button", { name: /Sarah Thompson/ }));
+		await user.click(screen.getByRole("button", { name: /Sarah/ }));
 		await user.click(await screen.findByRole("menuitem", { name: "Theme" }));
 
 		const system = await screen.findByRole("menuitem", { name: /System/ });
@@ -65,7 +69,7 @@ describe("profile sign-out", () => {
 	test("opens sign-in after ending the session", async () => {
 		const user = userEvent.setup();
 		render(<UserProfile isCollapsed={false} />);
-		await user.click(screen.getByRole("button", { name: /Sarah Thompson/ }));
+		await user.click(screen.getByRole("button", { name: /Sarah/ }));
 		await user.click(await screen.findByRole("menuitem", { name: "Sign out" }));
 
 		await vi.waitFor(() => expect(replaceMock).toHaveBeenCalledWith("/sign-in"));
@@ -76,7 +80,7 @@ describe("profile sign-out", () => {
 		const user = userEvent.setup();
 		signOutMock.mockResolvedValue({ error: { message: "Could not delete session" } });
 		render(<UserProfile isCollapsed={false} />);
-		await user.click(screen.getByRole("button", { name: /Sarah Thompson/ }));
+		await user.click(screen.getByRole("button", { name: /Sarah/ }));
 		await user.click(await screen.findByRole("menuitem", { name: "Sign out" }));
 
 		expect(await screen.findByRole("alert")).toHaveTextContent(

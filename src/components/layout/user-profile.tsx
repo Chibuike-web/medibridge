@@ -13,7 +13,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SettingsBadge, type SettingsBadgeTone } from "@/components/layout/settings/settings-badge";
 import { SettingsDialog } from "@/components/layout/settings-dialog";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore, useTransition } from "react";
@@ -32,12 +31,6 @@ const themeOptions = [
 	{ label: "Dark", value: "dark" },
 	{ label: "Light", value: "light" },
 ];
-
-const badgeToneByRole: Record<string, SettingsBadgeTone> = {
-	owner: "premium",
-	admin: "info",
-	member: "neutral",
-};
 
 export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -80,7 +73,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 							: "gap-2 cursor-pointer overflow-hidden hover:bg-gray-100 data-[state=open]:bg-gray-100",
 					)}
 				>
-					<Avatar className="size-6">
+					<Avatar className="size-8">
 						<AvatarImage src={user.image ?? undefined} alt={`${user.name} profile image`} />
 						<AvatarFallback className="text-xs">{initials}</AvatarFallback>
 					</Avatar>
@@ -88,7 +81,13 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					{!isCollapsed ? (
 						<>
 							<span className="min-w-0 flex-1 truncate text-left text-sm font-medium">
-								{user.name}
+								{user.name.split(" ")[0]}
+								{activeMemberRole?.role ? (
+									<span className="font-normal text-gray-600 capitalize">
+										{" "}
+										· {activeMemberRole.role}
+									</span>
+								) : null}
 							</span>
 							<RiExpandUpDownLine className="size-4 shrink-0" />
 						</>
@@ -103,16 +102,8 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 					align={isCollapsed ? "end" : "start"}
 					sideOffset={isCollapsed ? 8 : 4}
 				>
-					<DropdownMenuLabel className="flex items-center justify-between gap-2 px-2 py-1.5 font-normal">
-						<span className="min-w-0 truncate text-sm text-gray-600">{user.email}</span>
-						{activeMemberRole?.role ? (
-							<SettingsBadge
-								tone={badgeToneByRole[activeMemberRole.role] ?? "neutral"}
-								className="rounded-full capitalize"
-							>
-								{activeMemberRole.role}
-							</SettingsBadge>
-						) : null}
+					<DropdownMenuLabel className="truncate px-2 py-1.5 text-sm font-normal text-gray-600">
+						{user.email}
 					</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					<DropdownMenuSub>
@@ -201,7 +192,7 @@ function UserProfileSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
 					isCollapsed ? "justify-center" : "gap-2",
 				)}
 			>
-				<div className="size-6 shrink-0 animate-pulse rounded-full bg-gray-200" />
+				<div className="size-8 shrink-0 animate-pulse rounded-full bg-gray-200" />
 				{!isCollapsed ? <div className="h-3 w-28 animate-pulse rounded bg-gray-200" /> : null}
 			</div>
 		</div>
