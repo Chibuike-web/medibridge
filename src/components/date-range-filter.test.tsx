@@ -96,6 +96,7 @@ describe("date range filter", () => {
 		]);
 		const apply = within(dialog).getByRole("button", { name: "Apply date range" });
 		expect(apply).toBeDisabled();
+		expect(apply).toHaveAccessibleDescription("Pick a start date and an end date to apply.");
 
 		await user.click(
 			within(dialog).getByRole("button", { name: new RegExp(format(start, "MMMM do, yyyy")) }),
@@ -105,6 +106,8 @@ describe("date range filter", () => {
 				name: new RegExp(format(addDays(end, 1), "MMMM do, yyyy")),
 			}),
 		);
+		expect(apply).toBeEnabled();
+		expect(apply).not.toHaveAccessibleDescription();
 		await user.click(apply);
 
 		expect(onDateRangeApply).toHaveBeenCalledWith(

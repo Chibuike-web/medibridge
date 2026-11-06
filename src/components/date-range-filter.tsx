@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { format, startOfMonth, subDays, subMonths, subYears } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { RiArrowRightSLine, RiCalendarLine, RiCheckLine, RiCloseLine } from "@remixicon/react";
@@ -142,9 +142,7 @@ export function SetDateRangeDialog({
 				<DialogDescription className="sr-only">
 					Choose a start date and an end date to filter by.
 				</DialogDescription>
-				{dateRangeFilter ? (
-					<DateRangeFields dateRangeFilter={dateRangeFilter} onClose={onClose} />
-				) : null}
+				<DateRangeFields dateRangeFilter={dateRangeFilter} onClose={onClose} />
 			</DialogContent>
 		</Dialog>
 	);
@@ -154,18 +152,20 @@ function DateRangeFields({
 	dateRangeFilter,
 	onClose,
 }: {
-	dateRangeFilter: DateRangeFilter;
+	dateRangeFilter: DateRangeFilter | null;
 	onClose: () => void;
 }) {
 	const today = new Date();
 	const [draftDateRange, setDraftDateRange] = useState<DateRange | undefined>(() => {
-		const from = parseDateParam(dateRangeFilter.from) ?? undefined;
-		const to = parseDateParam(dateRangeFilter.to) ?? undefined;
+		const from = parseDateParam(dateRangeFilter?.from ?? "");
+		const to = parseDateParam(dateRangeFilter?.to ?? "");
 		return from ? { from, to } : undefined;
 	});
 	const [calendarMonth, setCalendarMonth] = useState(() =>
 		startOfMonth(subMonths(draftDateRange?.to ?? today, 1)),
 	);
+	const dateRangeHintId = useId();
+	const hasDateRange = Boolean(draftDateRange?.from && draftDateRange.to);
 	const dateFields = [
 		{ label: "Start date", date: draftDateRange?.from },
 		{ label: "End date", date: draftDateRange?.to },
@@ -181,9 +181,7 @@ function DateRangeFields({
 							<p
 								className={`flex h-9 items-center rounded-lg border border-gray-200 px-3 text-sm ${dateField.date ? "text-gray-800" : "text-gray-400"}`}
 							>
-								{dateField.date
-									? format(dateField.date, "do MMMM, yyyy")
-									: "Eg. 22nd December, 2026"}
+								{dateField.date ? format(dateField.date, "do MMMM, yyyy") : "Not picked yet"}
 							</p>
 						</div>
 					))}
@@ -201,23 +199,32 @@ function DateRangeFields({
 					endMonth={today}
 				/>
 			</div>
-			<DialogFooter className="gap-3 p-4 sm:justify-end">
+			<DialogFooter className="gap-3 p-4 sm:items-center sm:justify-end">
+				{hasDateRange ? null : (
+					<p
+						id={dateRangeHintId}
+						className="order-last text-sm text-gray-500 sm:order-none sm:mr-auto"
+					>
+						Pick a start date and an end date to apply.
+					</p>
+				)}
 				<Button
 					type="button"
 					variant="outline"
 					onClick={() => {
 						setDraftDateRange(undefined);
-						dateRangeFilter.onDateRangeApply("", "");
+						dateRangeFilter?.onDateRangeApply("", "");
 					}}
 				>
 					Reset
 				</Button>
 				<Button
 					type="button"
-					disabled={!draftDateRange?.from || !draftDateRange.to}
+					disabled={!hasDateRange}
+					aria-describedby={hasDateRange ? undefined : dateRangeHintId}
 					onClick={() => {
 						if (!draftDateRange?.from || !draftDateRange.to) return;
-						dateRangeFilter.onDateRangeApply(
+						dateRangeFilter?.onDateRangeApply(
 							formatUrlDate(draftDateRange.from),
 							formatUrlDate(draftDateRange.to),
 						);
