@@ -52,7 +52,7 @@ export function FilterGroup({
 				</PopoverTrigger>
 				<PopoverContent
 					aria-label="Filters"
-					className="flex max-h-[min(25rem,var(--radix-popover-content-available-height))] no-scrollbar w-72 flex-col gap-3 overflow-y-auto p-2 text-sm text-gray-700 max-md:hidden"
+					className="flex max-h-[min(25rem,var(--radix-popover-content-available-height))] w-72 flex-col gap-3 overflow-y-auto py-2 pr-0.5 pl-2 text-sm text-gray-700 max-md:hidden"
 				>
 					{children}
 				</PopoverContent>
