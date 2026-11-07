@@ -108,7 +108,7 @@ test("shows the filter chip and first page while the filtered rows are still loa
 		screen.queryByRole("button", { name: "Remove Status: Inactive filter" }),
 	).not.toBeInTheDocument();
 
-	await user.click(screen.getByRole("button", { name: "Status" }));
+	await user.click(screen.getByRole("button", { name: /^Filters/ }));
 	await user.pointer({
 		keys: "[TouchA]",
 		target: await screen.findByRole("radio", { name: "Inactive" }),

@@ -244,7 +244,7 @@ describe("Immunizations table", () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderImmunizationsTable({ statusFilters: ["active"] });
 
-		await user.click(screen.getByRole("button", { name: "Status" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
 
 		const active = await screen.findByRole("checkbox", { name: "Active" });
 		expect(active).toBeChecked();
@@ -263,8 +263,8 @@ describe("Immunizations table", () => {
 		const user = userEvent.setup();
 		const { onCreatedAtRangeApply } = renderImmunizationsTable();
 
-		await user.click(screen.getByRole("button", { name: "Created at" }));
-		await user.click(await screen.findByRole("menuitem", { name: "Last 30 days" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
+		await user.click(await screen.findByRole("button", { name: "Last 30 days" }));
 
 		const today = new Date();
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(

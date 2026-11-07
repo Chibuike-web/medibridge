@@ -1,14 +1,12 @@
 "use client";
 
-import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { DateFilterSection, FilterGroup, FilterSection } from "@/components/filter-menu";
 
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState } from "react";
 import type { PatientAgeGroupFilter, PatientGenderFilter } from "../types";
-
-import { RiCalendarLine, RiCalendarView, RiMenLine } from "@remixicon/react";
 
 export function FilterButtons({
 	ageGroupFilter,
@@ -36,7 +34,7 @@ export function FilterButtons({
 					(genderFilter ? 1 : 0) + (ageGroupFilter ? 1 : 0) + (createdFrom || createdTo ? 1 : 0)
 				}
 			>
-				<FilterPopover label="Gender" icon={RiMenLine}>
+				<FilterSection label="Gender">
 					<RadioGroup
 						value={genderFilter || "all"}
 						onValueChange={(nextGenderFilter) => {
@@ -76,9 +74,9 @@ export function FilterButtons({
 							</Label>
 						</div>
 					</RadioGroup>
-				</FilterPopover>
+				</FilterSection>
 
-				<FilterPopover label="Age" icon={RiCalendarView}>
+				<FilterSection label="Age">
 					<RadioGroup
 						value={ageGroupFilter || "any-age"}
 						onValueChange={(nextAgeGroupFilter) => {
@@ -150,11 +148,10 @@ export function FilterButtons({
 							</Label>
 						</div>
 					</RadioGroup>
-				</FilterPopover>
+				</FilterSection>
 
-				<DateFilterMenu
+				<DateFilterSection
 					label="Created at"
-					icon={RiCalendarLine}
 					from={createdFrom}
 					to={createdTo}
 					onDateRangeApply={onCreatedAtRangeApply}

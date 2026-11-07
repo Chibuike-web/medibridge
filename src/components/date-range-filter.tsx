@@ -15,7 +15,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
 
@@ -33,52 +32,8 @@ const dateRangePresets = [
 	{ label: "Last 5 years", getFrom: (today: Date) => subYears(today, 5) },
 ];
 
-const menuItemClassName = "h-9 rounded-lg py-0 text-gray-600 focus:bg-gray-100 focus:text-gray-900";
-
 function formatUrlDate(date: Date) {
 	return format(date, "yyyy-MM-dd");
-}
-
-export function DateRangeMenuItems({
-	from,
-	to,
-	onDateRangeApply,
-	onCustomDateRangeSelect,
-}: DateRangeFilter & { onCustomDateRangeSelect: (dateRangeFilter: DateRangeFilter) => void }) {
-	const today = formatUrlDate(new Date());
-
-	return (
-		<>
-			{dateRangePresets.map((preset) => {
-				const presetFrom = formatUrlDate(preset.getFrom(new Date()));
-
-				return (
-					<DropdownMenuItem
-						key={preset.label}
-						className={menuItemClassName}
-						onSelect={(event) => {
-							event.preventDefault();
-							onDateRangeApply(presetFrom, today);
-						}}
-					>
-						<RiCalendarLine className="size-4" aria-hidden="true" />
-						<span className="flex-1">{preset.label}</span>
-						{from === presetFrom && to === today ? (
-							<RiCheckLine className="size-4" aria-label="Selected" />
-						) : null}
-					</DropdownMenuItem>
-				);
-			})}
-			<DropdownMenuItem
-				className={menuItemClassName}
-				onSelect={() => onCustomDateRangeSelect({ from, to, onDateRangeApply })}
-			>
-				<RiCalendarLine className="size-4" aria-hidden="true" />
-				<span className="flex-1">Custom date range</span>
-				<RiArrowRightSLine className="size-4" aria-hidden="true" />
-			</DropdownMenuItem>
-		</>
-	);
 }
 
 export function DateRangeButtons({

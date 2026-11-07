@@ -1,13 +1,9 @@
 "use client";
 
-import { createContext, use, useRef, useState, type ReactNode } from "react";
-import { RiCloseLine, RiFilter3Line, type RemixiconComponentType } from "@remixicon/react";
+import { useState, type ReactNode } from "react";
+import { RiCloseLine, RiFilter3Line } from "@remixicon/react";
 
-import {
-	DateRangeButtons,
-	DateRangeMenuItems,
-	type DateRangeFilter,
-} from "@/components/date-range-filter";
+import { DateRangeButtons, type DateRangeFilter } from "@/components/date-range-filter";
 import { Button } from "@/components/ui/button";
 import {
 	Drawer,
@@ -15,24 +11,9 @@ import {
 	DrawerContent,
 	DrawerHeader,
 	DrawerTitle,
-	DrawerTrigger,
 } from "@/components/ui/drawer";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-
-const FILTER_MENU_WIDTH_REM = 12.5;
-
-const IsInFilterDrawerContext = createContext(false);
-
-function getFilterMenuAlign(trigger: HTMLButtonElement) {
-	const remInPixels = parseFloat(getComputedStyle(document.documentElement).fontSize);
-	const menuWidth = FILTER_MENU_WIDTH_REM * remInPixels;
-	return trigger.getBoundingClientRect().left + menuWidth <= window.innerWidth ? "start" : "end";
-}
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 export function FilterGroup({
 	activeFilterCount,
@@ -41,14 +22,26 @@ export function FilterGroup({
 	activeFilterCount: number;
 	children: ReactNode;
 }) {
+	const isMobile = useMediaQuery("(width < 48rem)");
+	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+	if (!isMobile && isDrawerOpen) {
+		setIsDrawerOpen(false);
+	}
+
 	return (
 		<>
-			<div className="contents max-md:hidden">{children}</div>
-			<Drawer>
-				<DrawerTrigger asChild>
+			<Popover>
+				<PopoverTrigger asChild>
 					<Button
 						variant="outline"
-						className="flex-1 bg-white text-gray-600 hover:bg-gray-50 active:scale-100 md:hidden"
+						className="bg-white text-gray-600 hover:bg-gray-50 active:scale-100 max-md:flex-1"
+						onClick={(event) => {
+							if (isMobile) {
+								event.preventDefault();
+								setIsDrawerOpen(true);
+							}
+						}}
 					>
 						<RiFilter3Line aria-hidden className="size-4 text-gray-600" />
 						Filters
@@ -56,7 +49,15 @@ export function FilterGroup({
 							<span className="text-gray-500">({activeFilterCount})</span>
 						) : null}
 					</Button>
-				</DrawerTrigger>
+				</PopoverTrigger>
+				<PopoverContent
+					aria-label="Filters"
+					className="flex max-h-[min(25rem,var(--radix-popover-content-available-height))] w-72 flex-col gap-3 overflow-y-auto py-2 pr-0.5 pl-2 text-sm text-gray-700 max-md:hidden"
+				>
+					{children}
+				</PopoverContent>
+			</Popover>
+			<Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
 				<DrawerContent
 					aria-describedby={undefined}
 					className="max-w-none overflow-hidden text-sm text-gray-700 shadow-[0_2rem_2rem_-1.25rem_rgba(0,0,0,0.25)] data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-2xl data-[vaul-drawer-direction=bottom]:border"
@@ -69,114 +70,40 @@ export function FilterGroup({
 							</Button>
 						</DrawerClose>
 					</DrawerHeader>
-					<div className="flex flex-col gap-3 overflow-y-auto p-2">
-						<IsInFilterDrawerContext value={true}>{children}</IsInFilterDrawerContext>
-					</div>
+					<div className="flex flex-col gap-3 overflow-y-auto py-2 pr-0.5 pl-2">{children}</div>
 				</DrawerContent>
 			</Drawer>
 		</>
 	);
 }
 
-export function FilterPopover({
-	label,
-	icon: Icon,
-	children,
-}: {
-	label: string;
-	icon: RemixiconComponentType;
-	children: ReactNode;
-}) {
-	const isInFilterDrawer = use(IsInFilterDrawerContext);
-	const triggerRef = useRef<HTMLButtonElement>(null);
-	const [align, setAlign] = useState<"start" | "end">("start");
-
-	if (isInFilterDrawer) {
-		return (
-			<div>
-				<h3 className="px-2 py-1.5 font-medium text-gray-800">{label}</h3>
-				{children}
-			</div>
-		);
-	}
-
+export function FilterSection({ label, children }: { label: string; children: ReactNode }) {
 	return (
-		<Popover
-			onOpenChange={(isOpen) => {
-				if (isOpen && triggerRef.current) setAlign(getFilterMenuAlign(triggerRef.current));
-			}}
-		>
-			<PopoverTrigger asChild>
-				<Button
-					ref={triggerRef}
-					variant="outline"
-					className="w-max bg-white text-gray-600 hover:bg-gray-50 active:scale-100"
-				>
-					<Icon aria-hidden className="size-4 text-gray-600" />
-					{label}
-				</Button>
-			</PopoverTrigger>
-			<PopoverContent align={align} className="min-w-50 p-1 text-sm text-gray-700">
-				{children}
-			</PopoverContent>
-		</Popover>
+		<div role="group" aria-label={label}>
+			<h3 className="px-2 py-1.5 font-medium text-gray-800">{label}</h3>
+			{children}
+		</div>
 	);
 }
 
-export function DateFilterMenu({
+export function DateFilterSection({
 	label,
-	icon: Icon,
 	from,
 	to,
 	onDateRangeApply,
 	onCustomDateRangeSelect,
 }: DateRangeFilter & {
 	label: string;
-	icon: RemixiconComponentType;
 	onCustomDateRangeSelect: (dateRangeFilter: DateRangeFilter) => void;
 }) {
-	const isInFilterDrawer = use(IsInFilterDrawerContext);
-	const triggerRef = useRef<HTMLButtonElement>(null);
-	const [align, setAlign] = useState<"start" | "end">("start");
-
-	if (isInFilterDrawer) {
-		return (
-			<div>
-				<h3 className="px-2 py-1.5 font-medium text-gray-800">{label}</h3>
-				<DateRangeButtons
-					from={from}
-					to={to}
-					onDateRangeApply={onDateRangeApply}
-					onCustomDateRangeSelect={onCustomDateRangeSelect}
-				/>
-			</div>
-		);
-	}
-
 	return (
-		<DropdownMenu
-			onOpenChange={(isOpen) => {
-				if (isOpen && triggerRef.current) setAlign(getFilterMenuAlign(triggerRef.current));
-			}}
-		>
-			<DropdownMenuTrigger asChild>
-				<Button
-					ref={triggerRef}
-					variant="outline"
-					className="w-max bg-white text-gray-600 hover:bg-gray-50 active:scale-100"
-				>
-					<Icon aria-hidden className="size-4 text-gray-600" />
-					{label}
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align={align} className="rounded-xl bg-white text-sm text-gray-700">
-				<DateRangeMenuItems
-					from={from}
-					to={to}
-					onDateRangeApply={onDateRangeApply}
-					onCustomDateRangeSelect={onCustomDateRangeSelect}
-				/>
-			</DropdownMenuContent>
-		</DropdownMenu>
+		<FilterSection label={label}>
+			<DateRangeButtons
+				from={from}
+				to={to}
+				onDateRangeApply={onDateRangeApply}
+				onCustomDateRangeSelect={onCustomDateRangeSelect}
+			/>
+		</FilterSection>
 	);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { DateFilterSection, FilterGroup, FilterSection } from "@/components/filter-menu";
 
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useOptimistic, useState, useTransition } from "react";
@@ -13,9 +13,6 @@ import {
 	RiEyeLine,
 	RiMore2Fill,
 	RiSearchLine,
-	RiCalendarLine,
-	RiCheckboxCircleLine,
-	RiScan2Line,
 } from "@remixicon/react";
 import {
 	columnVisibilityFeature,
@@ -357,33 +354,31 @@ export function SharedImagingTable({
 							(optimisticCreatedFrom || optimisticCreatedTo ? 1 : 0)
 						}
 					>
-						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
+						<FilterSection label="Status">
 							<CheckboxFilterList
 								name="shared-imaging-status"
 								options={imagingStatusFilterOptions}
 								selectedValues={optimisticStatusFilters}
 								onSelectedValuesChange={handleStatusFiltersChange}
 							/>
-						</FilterPopover>
-						<FilterPopover label="Modality" icon={RiScan2Line}>
+						</FilterSection>
+						<FilterSection label="Modality">
 							<CheckboxFilterList
 								name="shared-imaging-modality"
 								options={imagingModalityFilterOptions}
 								selectedValues={optimisticModalityFilters}
 								onSelectedValuesChange={handleModalityFiltersChange}
 							/>
-						</FilterPopover>
-						<DateFilterMenu
+						</FilterSection>
+						<DateFilterSection
 							label="Ordered at"
-							icon={RiCalendarLine}
 							from={optimisticOrderedFrom}
 							to={optimisticOrderedTo}
 							onDateRangeApply={handleOrderedRangeApply}
 							onCustomDateRangeSelect={setCustomDateRangeFilter}
 						/>
-						<DateFilterMenu
+						<DateFilterSection
 							label="Created at"
-							icon={RiCalendarLine}
 							from={optimisticCreatedFrom}
 							to={optimisticCreatedTo}
 							onDateRangeApply={handleCreatedRangeApply}

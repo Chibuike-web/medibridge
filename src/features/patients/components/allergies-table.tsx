@@ -1,6 +1,6 @@
 "use client";
 
-import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { DateFilterSection, FilterGroup, FilterSection } from "@/components/filter-menu";
 
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
@@ -68,9 +68,6 @@ import {
 	RiArrowLeftSLine,
 	RiArrowRightSLine,
 	RiArrowUpSLine,
-	RiBarChartBoxLine,
-	RiCalendarLine,
-	RiCheckboxCircleLine,
 	RiCloseLine,
 	RiEyeLine,
 	RiMore2Fill,
@@ -216,7 +213,7 @@ export function AllergiesTable({
 							(createdFrom || createdTo ? 1 : 0)
 						}
 					>
-						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
+						<FilterSection label="Status">
 							<RadioGroup
 								value={statusFilters[0] ?? "all"}
 								onValueChange={(nextStatusFilter) => {
@@ -253,18 +250,17 @@ export function AllergiesTable({
 									</div>
 								))}
 							</RadioGroup>
-						</FilterPopover>
-						<FilterPopover label="Severity" icon={RiBarChartBoxLine}>
+						</FilterSection>
+						<FilterSection label="Severity">
 							<AllergyCheckboxFilterList
 								name="allergy-severity"
 								options={allergySeverityFilterOptions}
 								selectedValues={severityFilters}
 								onSelectedValuesChange={onSeverityFiltersChange}
 							/>
-						</FilterPopover>
-						<DateFilterMenu
+						</FilterSection>
+						<DateFilterSection
 							label="Created at"
-							icon={RiCalendarLine}
 							from={createdFrom}
 							to={createdTo}
 							onDateRangeApply={onCreatedAtRangeApply}

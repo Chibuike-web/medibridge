@@ -295,10 +295,11 @@ describe.each(tableCases)(
 			);
 
 			const table = screen.getByRole("table");
-			await user.click(screen.getByRole("button", { name: "Status" }));
+			await user.click(screen.getByRole("button", { name: /^Filters/ }));
 			const optionRole = statusChoice === "single" ? "radio" : "checkbox";
-			const firstOption = await screen.findByRole(optionRole, { name: firstStatus });
-			const secondOption = screen.getByRole(optionRole, { name: secondStatus });
+			const statusGroup = await screen.findByRole("group", { name: "Status" });
+			const firstOption = within(statusGroup).getByRole(optionRole, { name: firstStatus });
+			const secondOption = within(statusGroup).getByRole(optionRole, { name: secondStatus });
 			expect(firstOption).not.toBeChecked();
 			expect(secondOption).not.toBeChecked();
 

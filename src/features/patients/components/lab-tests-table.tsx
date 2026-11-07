@@ -1,6 +1,6 @@
 "use client";
 
-import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { DateFilterSection, FilterGroup, FilterSection } from "@/components/filter-menu";
 
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
@@ -66,12 +66,9 @@ import {
 	RiArrowLeftSLine,
 	RiArrowRightSLine,
 	RiArrowUpSLine,
-	RiCalendarLine,
-	RiCheckboxCircleLine,
 	RiCheckLine,
 	RiCloseLine,
 	RiEyeLine,
-	RiFlagLine,
 	RiMore2Fill,
 	RiSearchLine,
 	RiShare2Line,
@@ -223,25 +220,24 @@ export function LabTestsTable({
 							(createdFrom || createdTo ? 1 : 0)
 						}
 					>
-						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
+						<FilterSection label="Status">
 							<LabTestCheckboxFilterList
 								name="lab-test-status"
 								options={labTestStatusFilterOptions}
 								selectedValues={statusFilters}
 								onSelectedValuesChange={onStatusFiltersChange}
 							/>
-						</FilterPopover>
-						<FilterPopover label="Flag" icon={RiFlagLine}>
+						</FilterSection>
+						<FilterSection label="Flag">
 							<LabTestCheckboxFilterList
 								name="lab-test-flag"
 								options={labTestFlagFilterOptions}
 								selectedValues={flagFilters}
 								onSelectedValuesChange={onFlagFiltersChange}
 							/>
-						</FilterPopover>
-						<DateFilterMenu
+						</FilterSection>
+						<DateFilterSection
 							label="Created at"
-							icon={RiCalendarLine}
 							from={createdFrom}
 							to={createdTo}
 							onDateRangeApply={onCreatedAtRangeApply}

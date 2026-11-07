@@ -1,10 +1,9 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { RiCalendarLine } from "@remixicon/react";
 import { useState } from "react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { SetDateRangeDialog, type DateRangeFilter } from "./date-range-filter";
-import { DateFilterMenu, FilterGroup } from "./filter-menu";
+import { DateFilterSection, FilterGroup } from "./filter-menu";
 
 function DateFilterInGroup() {
 	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
@@ -12,9 +11,8 @@ function DateFilterInGroup() {
 	return (
 		<>
 			<FilterGroup activeFilterCount={0}>
-				<DateFilterMenu
+				<DateFilterSection
 					label="Created at"
-					icon={RiCalendarLine}
 					from=""
 					to=""
 					onDateRangeApply={() => {}}

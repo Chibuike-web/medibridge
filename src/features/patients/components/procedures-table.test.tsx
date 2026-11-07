@@ -263,7 +263,7 @@ describe("Procedures table", () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderProceduresTable({ statusFilters: ["pending"] });
 
-		await user.click(screen.getByRole("button", { name: "Status" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
 
 		const pending = await screen.findByRole("checkbox", { name: "Pending" });
 		expect(pending).toBeChecked();
@@ -281,8 +281,8 @@ describe("Procedures table", () => {
 		const user = userEvent.setup();
 		const { onCreatedAtRangeApply } = renderProceduresTable();
 
-		await user.click(screen.getByRole("button", { name: "Created at" }));
-		await user.click(await screen.findByRole("menuitem", { name: "Today" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
+		await user.click(await screen.findByRole("button", { name: "Today" }));
 
 		const today = format(new Date(), "yyyy-MM-dd");
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(today, today);

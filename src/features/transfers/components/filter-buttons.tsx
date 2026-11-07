@@ -1,14 +1,12 @@
 "use client";
 
-import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { DateFilterSection, FilterGroup, FilterSection } from "@/components/filter-menu";
 
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import type { TransferStatusFilter } from "../types";
-
-import { RiCalendarLine, RiMenLine } from "@remixicon/react";
 
 const transferStatusFilterOptions: { label: string; value: TransferStatusFilter }[] = [
 	{ label: "Pending", value: "pending" },
@@ -40,7 +38,7 @@ export function FilterButtons({
 					(statusFilters.length > 0 ? 1 : 0) + (requestedFrom || requestedTo ? 1 : 0)
 				}
 			>
-				<FilterPopover label="Status" icon={RiMenLine}>
+				<FilterSection label="Status">
 					{transferStatusFilterOptions.map((statusOption) => {
 						const isStatusSelected = statusFilters.includes(statusOption.value);
 						const statusOptionId = `status-${statusOption.value}`;
@@ -69,11 +67,10 @@ export function FilterButtons({
 							</Label>
 						);
 					})}
-				</FilterPopover>
+				</FilterSection>
 
-				<DateFilterMenu
+				<DateFilterSection
 					label="Requested at"
-					icon={RiCalendarLine}
 					from={requestedFrom}
 					to={requestedTo}
 					onDateRangeApply={onRequestedAtRangeApply}

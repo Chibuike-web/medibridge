@@ -124,7 +124,7 @@ describe("MembersSettings", () => {
 			/>,
 		);
 
-		await user.click(screen.getByRole("button", { name: "Role" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
 		await user.click(screen.getByRole("radio", { name: "Admin" }));
 		await user.keyboard("{Escape}");
 
