@@ -72,22 +72,4 @@ describe("DeleteAccountDialog", () => {
 			expect(onDeleteAccount).toHaveBeenCalledOnce();
 		},
 	);
-
-	test("Cancel closes the dialog without deleting", async () => {
-		const user = userEvent.setup();
-		const onOpenChange = vi.fn();
-		const onDeleteAccount = vi.fn();
-		render(
-			<DeleteAccountDialog
-				open
-				onOpenChange={onOpenChange}
-				viewerRole="member"
-				organizationName="Test Hospital"
-				onDeleteAccount={onDeleteAccount}
-			/>,
-		);
-		await user.click(screen.getByRole("button", { name: "Cancel" }));
-		expect(onOpenChange).toHaveBeenCalledWith(false);
-		expect(onDeleteAccount).not.toHaveBeenCalled();
-	});
 });

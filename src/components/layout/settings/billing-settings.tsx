@@ -1,6 +1,14 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import Image from "next/image";
+import {
+	RiArrowLeftSLine,
+	RiArrowRightSLine,
+	RiCloseLine,
+	RiDownloadLine,
+	RiSearchLine,
+} from "@remixicon/react";
 
+import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -11,11 +19,25 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { RiCloseLine } from "@remixicon/react";
+import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils/cn";
 
-import { BillingHistoryCard } from "./billing-history-card";
 import { SettingsBadge } from "./settings-badge";
-import type { SettingsSubView } from "./types";
 
 type BillingPlan =
 	| {
@@ -32,6 +54,7 @@ type BillingPlan =
 
 const PRO_MONTHLY_PRICE = "₦20,000 / month";
 const PRO_OVERAGE_PRICE = "₦25";
+const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 const planToShow = "paid" as BillingPlan["kind"];
 
 const billingPlans = {
@@ -41,164 +64,370 @@ const billingPlans = {
 
 const activeBillingPlan = billingPlans[planToShow];
 
-export function BillingSettings({
-	activeSettingsSubView,
-	onSettingsSubViewChange,
-}: {
-	activeSettingsSubView: SettingsSubView | null;
-	onSettingsSubViewChange: (view: SettingsSubView | null) => void;
-}) {
-	switch (activeSettingsSubView) {
-		case "payment-method":
-			return <PaymentMethodSettings />;
-		case "billing-history":
-			return (
-				<div className="flex flex-col gap-4 px-4 py-5">
-					{[
-						{
-							amount: "₦2,100",
-							date: "Aug 31, 2026",
-							cardBrand: "visa" as const,
-							cardLastFour: "4242",
-							expires: "08/28",
-							status: "Paid" as const,
-							breakdown: {
-								billingPeriod: "Aug 1–31, 2026",
-								includedCases: "1,000",
-								billableOverage: "84",
-								ratePerAdditionalCase: "₦25",
-								total: "₦2,100",
-							},
-						},
-						{
-							amount: "₦500",
-							date: "Jul 31, 2026",
-							cardBrand: "mastercard" as const,
-							cardLastFour: "5555",
-							expires: "11/27",
-							status: "Paid" as const,
-							breakdown: {
-								billingPeriod: "Jul 1–31, 2026",
-								includedCases: "1,000",
-								billableOverage: "20",
-								ratePerAdditionalCase: "₦25",
-								total: "₦500",
-							},
-						},
-						{
-							amount: "₦5,000",
-							date: "Jun 30, 2026",
-							cardBrand: "verve" as const,
-							cardLastFour: "7788",
-							expires: "09/27",
-							status: "Paid" as const,
-							breakdown: {
-								billingPeriod: "Jun 1–30, 2026",
-								includedCases: "1,000",
-								billableOverage: "200",
-								ratePerAdditionalCase: "₦25",
-								total: "₦5,000",
-							},
-						},
-						{
-							amount: "₦1,000",
-							date: "May 31, 2026",
-							cardBrand: "mastercard" as const,
-							cardLastFour: "9012",
-							expires: "04/28",
-							status: "Paid" as const,
-							breakdown: {
-								billingPeriod: "May 1–31, 2026",
-								includedCases: "1,000",
-								billableOverage: "40",
-								ratePerAdditionalCase: "₦25",
-								total: "₦1,000",
-							},
-						},
-						{
-							amount: "₦4,500",
-							date: "Apr 30, 2026",
-							cardBrand: "verve" as const,
-							cardLastFour: "3344",
-							expires: "12/27",
-							status: "Paid" as const,
-							breakdown: {
-								billingPeriod: "Apr 1–30, 2026",
-								includedCases: "1,000",
-								billableOverage: "180",
-								ratePerAdditionalCase: "₦25",
-								total: "₦4,500",
-							},
-						},
-						{
-							amount: "₦1,750",
-							date: "Mar 31, 2026",
-							cardBrand: "visa" as const,
-							cardLastFour: "2468",
-							expires: "06/29",
-							status: "Paid" as const,
-							breakdown: {
-								billingPeriod: "Mar 1–31, 2026",
-								includedCases: "1,000",
-								billableOverage: "70",
-								ratePerAdditionalCase: "₦25",
-								total: "₦1,750",
-							},
-						},
-					].map((billingHistoryEntry) => (
-						<BillingHistoryCard
-							key={`${billingHistoryEntry.date}-${billingHistoryEntry.cardLastFour}`}
-							{...billingHistoryEntry}
-						/>
-					))}
-				</div>
-			);
-		case null:
-			return (
-				<div className="flex flex-col gap-6 px-4 py-5">
-					<BillingPlanCard plan={activeBillingPlan} />
-					{planToShow === "paid" ? (
-						<PaidBillingDetails onSettingsSubViewChange={onSettingsSubViewChange} />
-					) : null}
-				</div>
-			);
-		default:
-			return null;
-	}
-}
+const invoices = [
+	{
+		id: "invoice-2026-08",
+		date: "Aug 31, 2026",
+		total: "₦2,100",
+		status: "Paid",
+		billingPeriod: "Aug 1–31, 2026",
+		includedCases: "1,000",
+		billableOverage: "84",
+		ratePerAdditionalCase: "₦25",
+	},
+	{
+		id: "invoice-2026-07",
+		date: "Jul 31, 2026",
+		total: "₦500",
+		status: "Paid",
+		billingPeriod: "Jul 1–31, 2026",
+		includedCases: "1,000",
+		billableOverage: "20",
+		ratePerAdditionalCase: "₦25",
+	},
+	{
+		id: "invoice-2026-06",
+		date: "Jun 30, 2026",
+		total: "₦5,000",
+		status: "Paid",
+		billingPeriod: "Jun 1–30, 2026",
+		includedCases: "1,000",
+		billableOverage: "200",
+		ratePerAdditionalCase: "₦25",
+	},
+	{
+		id: "invoice-2026-05",
+		date: "May 31, 2026",
+		total: "₦1,000",
+		status: "Paid",
+		billingPeriod: "May 1–31, 2026",
+		includedCases: "1,000",
+		billableOverage: "40",
+		ratePerAdditionalCase: "₦25",
+	},
+	{
+		id: "invoice-2026-04",
+		date: "Apr 30, 2026",
+		total: "₦4,500",
+		status: "Paid",
+		billingPeriod: "Apr 1–30, 2026",
+		includedCases: "1,000",
+		billableOverage: "180",
+		ratePerAdditionalCase: "₦25",
+	},
+	{
+		id: "invoice-2026-03",
+		date: "Mar 31, 2026",
+		total: "₦1,750",
+		status: "Paid",
+		billingPeriod: "Mar 1–31, 2026",
+		includedCases: "1,000",
+		billableOverage: "70",
+		ratePerAdditionalCase: "₦25",
+	},
+];
 
-function PaymentMethodSettings() {
+export function BillingSettings() {
 	const [isChangePaymentMethodOpen, setIsChangePaymentMethodOpen] = useState(false);
+	const [invoiceQuery, setInvoiceQuery] = useState("");
+	const [invoicePage, setInvoicePage] = useState(1);
+	const [invoiceLimit, setInvoiceLimit] = useState(ROWS_PER_PAGE_OPTIONS[0]);
+	const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
+	const matchingInvoices = invoices.filter((invoice) =>
+		`${invoice.date} ${invoice.total}`.toLowerCase().includes(invoiceQuery.trim().toLowerCase()),
+	);
+	const invoicePageCount = Math.max(1, Math.ceil(matchingInvoices.length / invoiceLimit));
+	const visibleInvoices = matchingInvoices.slice(
+		(invoicePage - 1) * invoiceLimit,
+		invoicePage * invoiceLimit,
+	);
+	const fitsOnSmallestPage = matchingInvoices.length <= ROWS_PER_PAGE_OPTIONS[0];
 
 	return (
 		<>
-			<div className="flex min-h-full flex-col gap-6 px-4 py-5">
-				<section
-					aria-labelledby="current-payment-method-heading"
-					className="rounded-2xl border border-gray-200 p-4"
-				>
-					<h3 id="current-payment-method-heading" className="text-base font-semibold text-gray-800">
-						Current payment method
+			<div className="flex flex-col gap-10 px-4 py-5">
+				<BillingPlanCard plan={activeBillingPlan} />
+
+				<section aria-labelledby="payment-heading">
+					<h3 id="payment-heading" className="font-semibold">
+						Payment
 					</h3>
-					<div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-2">
-						<Image src="/assets/visa-logo.svg" width={40} height={13} alt="Visa" />
-						<span className="text-sm font-medium text-gray-600" aria-label="Card ending in 4242">
-							******** 4242
-						</span>
-						<span className="text-sm font-medium text-gray-400">Expires 08/28</span>
+					<div className="flex items-center justify-between gap-4 border-b py-3">
+						<div className="flex min-w-0 flex-col gap-1">
+							<div className="flex items-center gap-2">
+								<Image
+									src="/assets/visa-logo.svg"
+									width={40}
+									height={13}
+									alt="Visa"
+									className="shrink-0"
+								/>
+								<span
+									className="text-sm font-medium whitespace-nowrap text-gray-600"
+									aria-label="Card ending in 4242"
+								>
+									******** 4242
+								</span>
+								<SettingsBadge tone="info">Default</SettingsBadge>
+							</div>
+							<span className="text-sm text-gray-400">Expires 08/28</span>
+						</div>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => setIsChangePaymentMethodOpen(true)}
+						>
+							Update
+						</Button>
 					</div>
-					<p className="mt-4 text-sm font-medium text-gray-600">
-						Used for your Pro subscription and additional case charges.
-					</p>
 				</section>
 
-				<Button
-					type="button"
-					className="self-end"
-					onClick={() => setIsChangePaymentMethodOpen(true)}
+				<section aria-labelledby="billing-history-heading" className="flex flex-col gap-4">
+					<div className="flex flex-wrap items-center justify-between gap-2">
+						<div>
+							<h3 id="billing-history-heading" className="font-semibold">
+								Billing history
+							</h3>
+							<p className="text-sm text-gray-600">{invoices.length} invoices</p>
+						</div>
+						<div className="flex flex-wrap items-center gap-2 max-md:w-full">
+							<div className="relative w-72 max-md:w-full">
+								<RiSearchLine className="pointer-events-none absolute bottom-0 left-2 flex h-full size-4 items-center justify-center text-gray-400" />
+								<Input
+									type="search"
+									className="pl-8"
+									aria-label="Search invoices"
+									placeholder="Search invoices"
+									value={invoiceQuery}
+									onChange={(event) => {
+										setInvoiceQuery(event.target.value);
+										setInvoicePage(1);
+									}}
+								/>
+							</div>
+							<Button type="button" variant="outline" className="max-md:w-full">
+								<RiDownloadLine aria-hidden="true" />
+								Download all
+							</Button>
+						</div>
+					</div>
+					<div className="overflow-x-auto rounded-xl border border-gray-200">
+						<Table className="min-w-[40rem] border-separate border-spacing-0 bg-gray-50 text-left">
+							<TableHeader className="text-sm font-semibold text-gray-500">
+								<TableRow>
+									<TableHead className="h-10 w-1/4 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
+										Date
+									</TableHead>
+									<TableHead className="h-10 w-1/4 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
+										Total
+									</TableHead>
+									<TableHead className="h-10 w-1/4 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
+										Status
+									</TableHead>
+									<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
+										Actions
+									</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
+								{visibleInvoices.length ? (
+									visibleInvoices.map((invoice, rowPosition) => (
+										<Fragment key={invoice.id}>
+											<TableRow className="h-14">
+												<TableCell
+													className={cn(
+														"h-14 bg-white px-3 py-0 text-sm text-gray-600",
+														rowPosition === 0 && "rounded-tl-lg",
+													)}
+												>
+													{invoice.date}
+												</TableCell>
+												<TableCell className="h-14 bg-white px-3 py-0 text-sm text-gray-600">
+													{invoice.total}
+												</TableCell>
+												<TableCell className="h-14 bg-white px-3 py-0 text-sm text-gray-600">
+													<StatusBadge status={invoice.status} />
+												</TableCell>
+												<TableCell
+													className={cn(
+														"h-14 bg-white px-3 py-0",
+														rowPosition === 0 && "rounded-tr-lg",
+													)}
+												>
+													<div className="flex items-center gap-2">
+														<Button type="button" variant="outline" size="sm">
+															Download PDF
+														</Button>
+														<Button
+															type="button"
+															variant="ghost"
+															size="sm"
+															className="text-gray-400 hover:text-gray-600"
+															aria-expanded={expandedInvoiceId === invoice.id}
+															aria-controls={`invoice-details-${invoice.id}`}
+															onClick={() =>
+																setExpandedInvoiceId((prev) =>
+																	prev === invoice.id ? null : invoice.id,
+																)
+															}
+														>
+															{expandedInvoiceId === invoice.id ? "View less" : "View more"}
+															<RiArrowRightSLine
+																className={cn(
+																	"transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+																	expandedInvoiceId === invoice.id && "rotate-90",
+																)}
+																aria-hidden="true"
+															/>
+														</Button>
+													</div>
+												</TableCell>
+											</TableRow>
+											<TableRow>
+												<TableCell
+													colSpan={4}
+													className={cn(
+														"border-b border-gray-200 bg-white p-0",
+														rowPosition === visibleInvoices.length - 1 && "border-b-0",
+													)}
+												>
+													<div
+														id={`invoice-details-${invoice.id}`}
+														className={cn(
+															"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+															expandedInvoiceId === invoice.id
+																? "grid-rows-[1fr]"
+																: "grid-rows-[0fr]",
+														)}
+														inert={expandedInvoiceId !== invoice.id}
+													>
+														<div className="min-h-0">
+															<dl className="flex flex-col gap-3 px-3 pb-4 text-sm">
+																<div className="flex items-center justify-between gap-4">
+																	<dt className="text-gray-400">Billing period</dt>
+																	<dd className="font-semibold text-gray-600">
+																		{invoice.billingPeriod}
+																	</dd>
+																</div>
+																<div className="flex items-center justify-between gap-4">
+																	<dt className="text-gray-400">Included with Pro</dt>
+																	<dd className="font-semibold text-gray-600">
+																		{invoice.includedCases}
+																	</dd>
+																</div>
+																<div className="flex items-center justify-between gap-4">
+																	<dt className="text-gray-400">Billable overage</dt>
+																	<dd className="font-semibold text-gray-600">
+																		{invoice.billableOverage}
+																	</dd>
+																</div>
+																<div className="flex items-center justify-between gap-4">
+																	<dt className="text-gray-400">Rate per additional case</dt>
+																	<dd className="font-semibold text-gray-600">
+																		{invoice.ratePerAdditionalCase}
+																	</dd>
+																</div>
+																<div className="flex items-center justify-between gap-4 border-t border-gray-200 pt-3">
+																	<dt className="text-gray-400">Total</dt>
+																	<dd className="font-semibold text-gray-600">{invoice.total}</dd>
+																</div>
+															</dl>
+														</div>
+													</div>
+												</TableCell>
+											</TableRow>
+										</Fragment>
+									))
+								) : (
+									<TableRow>
+										<TableCell
+											colSpan={4}
+											className="h-32 rounded-t-lg bg-white px-3 py-0 text-center text-sm text-gray-500"
+										>
+											No matching invoices found.
+										</TableCell>
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
+						{fitsOnSmallestPage ? null : (
+							<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
+								<div className="flex items-center gap-3">
+									<span>Rows per page</span>
+									<Select
+										value={String(invoiceLimit)}
+										onValueChange={(value) => {
+											setInvoiceLimit(Number(value));
+											setInvoicePage(1);
+										}}
+									>
+										<SelectTrigger className="h-8 w-16 bg-white px-2 text-gray-700">
+											<SelectValue aria-label="Rows per page" placeholder="Rows" />
+										</SelectTrigger>
+										<SelectContent className="w-20" align="start">
+											{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
+												<SelectItem key={pageSize} value={String(pageSize)}>
+													{pageSize}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+								<div className="flex items-center gap-3">
+									<span>
+										Page {invoicePage} of {invoicePageCount}
+									</span>
+									<div className="flex items-center gap-2">
+										<Button
+											type="button"
+											variant="outline"
+											size="icon"
+											aria-label="Previous"
+											onClick={() => setInvoicePage((prev) => prev - 1)}
+											disabled={invoicePage <= 1}
+											className="text-gray-700 shadow-none"
+										>
+											<RiArrowLeftSLine aria-hidden="true" />
+										</Button>
+										<Button
+											type="button"
+											variant="outline"
+											size="icon"
+											aria-label="Next"
+											onClick={() => setInvoicePage((prev) => prev + 1)}
+											disabled={invoicePage >= invoicePageCount}
+											className="text-gray-700 shadow-none"
+										>
+											<RiArrowRightSLine aria-hidden="true" />
+										</Button>
+									</div>
+								</div>
+							</div>
+						)}
+					</div>
+				</section>
+
+				<section
+					aria-labelledby="cancel-plan-heading"
+					className="flex items-center justify-between gap-12"
 				>
-					Change payment method
-				</Button>
+					<div className="min-w-0">
+						<h3 id="cancel-plan-heading" className="font-semibold text-gray-800">
+							Cancel plan
+						</h3>
+						<p className="mt-1 max-w-md text-sm text-gray-600 text-pretty">
+							If you cancel, you&apos;ll keep full access to your plan features until the end of
+							your billing period.
+						</p>
+					</div>
+					<Button
+						type="button"
+						variant="destructive"
+						className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive dark:bg-transparent dark:hover:bg-destructive/10"
+					>
+						Cancel
+					</Button>
+				</section>
 			</div>
 
 			<Dialog open={isChangePaymentMethodOpen} onOpenChange={setIsChangePaymentMethodOpen}>
@@ -216,11 +445,7 @@ function PaymentMethodSettings() {
 						method.
 					</DialogDescription>
 					<DialogFooter className="sm:justify-end">
-						<Button
-							type="button"
-
-							onClick={() => setIsChangePaymentMethodOpen(false)}
-						>
+						<Button type="button" onClick={() => setIsChangePaymentMethodOpen(false)}>
 							Continue
 						</Button>
 					</DialogFooter>
@@ -289,80 +514,5 @@ function BillingPlanCard({ plan }: { plan: BillingPlan }) {
 				</div>
 			)}
 		</section>
-	);
-}
-
-function PaidBillingDetails({
-	onSettingsSubViewChange,
-}: {
-	onSettingsSubViewChange: (view: SettingsSubView | null) => void;
-}) {
-	return (
-		<>
-			<section aria-labelledby="payment-method-heading">
-				<h3 id="payment-method-heading" className="font-semibold text-gray-800 no-line-height">
-					Payment method
-				</h3>
-				<div className="flex h-16 items-center justify-between gap-4 border-b border-gray-200">
-					<p className="min-w-0 truncate text-sm font-medium text-gray-600">
-						<Image
-							src="/assets/visa-logo.svg"
-							width={40}
-							height={13}
-							alt="Visa"
-							className="inline-block align-middle"
-						/>
-						<span aria-hidden="true">••••••</span> <span>4242</span>
-					</p>
-					<Button
-						type="button"
-						variant="ghost"
-						className="text-gray-400"
-						onClick={() => onSettingsSubViewChange("payment-method")}
-					>
-						Manage
-					</Button>
-				</div>
-			</section>
-
-			<section aria-labelledby="billing-history-heading">
-				<h3 id="billing-history-heading" className="font-semibold text-gray-800 no-line-height">
-					Billing history
-				</h3>
-				<div className="flex h-16 items-center justify-between gap-4 border-b border-gray-200">
-					<p className="text-sm font-medium text-gray-600">10 invoices</p>
-					<Button
-						type="button"
-						variant="ghost"
-						className="text-gray-400"
-						onClick={() => onSettingsSubViewChange("billing-history")}
-					>
-						View
-					</Button>
-				</div>
-			</section>
-
-			<section
-				aria-labelledby="cancel-plan-heading"
-				className="flex items-center justify-between gap-12 pt-2"
-			>
-				<div className="min-w-0">
-					<h3 id="cancel-plan-heading" className="font-semibold text-gray-800">
-						Cancel plan
-					</h3>
-					<p className="mt-1 max-w-md text-sm text-gray-600 text-pretty">
-						If you cancel, you&apos;ll keep full access to your plan features until the end of your
-						billing period.
-					</p>
-				</div>
-				<Button
-					type="button"
-					variant="destructive"
-					className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive dark:bg-transparent dark:hover:bg-destructive/10"
-				>
-					Cancel
-				</Button>
-			</section>
-		</>
 	);
 }

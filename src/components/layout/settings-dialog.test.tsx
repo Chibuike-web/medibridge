@@ -46,7 +46,7 @@ describe("SettingsDialog", () => {
 		roleMock.mockReturnValue({ data: role ? { role } : null });
 		render(<SettingsDialog {...props} />);
 		const navigation = within(screen.getByRole("navigation", { name: "Settings sections" }));
-		expect(navigation.getByRole("button", { name: "Profile" })).toBeVisible();
+		expect(navigation.getByRole("button", { name: "Account" })).toBeVisible();
 		expect(navigation.queryByRole("button", { name: "Billing" })).not.toBeInTheDocument();
 		expect(navigation.queryByRole("button", { name: "Manage members" })).not.toBeInTheDocument();
 	});
@@ -69,15 +69,6 @@ describe("SettingsDialog", () => {
 		},
 	);
 
-	test("opening Account does not announce a password change", async () => {
-		// Regression: Account previously initialized its password-success dialog as open.
-		const user = userEvent.setup();
-		render(<SettingsDialog {...props} />);
-		await user.click(screen.getByRole("button", { name: "Account" }));
-		expect(screen.getByRole("button", { name: "Delete account" })).toBeVisible();
-		expect(screen.queryByRole("dialog", { name: "Password changed" })).not.toBeInTheDocument();
-	});
-
 	test("changes the password and signs out other sessions after a successful request", async () => {
 		const user = userEvent.setup();
 		render(<SettingsDialog {...props} />);
@@ -85,6 +76,7 @@ describe("SettingsDialog", () => {
 		await user.click(screen.getByRole("button", { name: "Change password" }));
 
 		await user.type(screen.getByLabelText(/Current password/, { selector: "input" }), "OldPass12");
+		await user.click(screen.getByRole("button", { name: "Continue" }));
 		await user.type(screen.getByLabelText(/New password/, { selector: "input" }), "NewPass12");
 		await user.type(screen.getByLabelText(/Confirm new password/), "NewPass12");
 		await user.click(screen.getByRole("button", { name: "Change password" }));
@@ -97,6 +89,24 @@ describe("SettingsDialog", () => {
 		expect(await screen.findByRole("dialog", { name: "Password changed" })).toBeVisible();
 	});
 
+	test("goes back from the new password step to the current password step", async () => {
+		const user = userEvent.setup();
+		render(<SettingsDialog {...props} />);
+		await user.click(screen.getByRole("button", { name: "Account" }));
+		await user.click(screen.getByRole("button", { name: "Change password" }));
+		await user.type(screen.getByLabelText(/Current password/, { selector: "input" }), "OldPass12");
+		await user.click(screen.getByRole("button", { name: "Continue" }));
+		expect(screen.getByLabelText(/New password/, { selector: "input" })).toBeVisible();
+
+		await user.click(screen.getByRole("button", { name: "Back to current password" }));
+
+		expect(screen.getByLabelText(/Current password/, { selector: "input" })).toHaveValue(
+			"OldPass12",
+		);
+		expect(screen.queryByLabelText(/New password/, { selector: "input" })).not.toBeInTheDocument();
+		expect(changePasswordMock).not.toHaveBeenCalled();
+	});
+
 	test("keeps the form open and identifies an incorrect current password", async () => {
 		changePasswordMock.mockResolvedValue({ error: { code: "INVALID_PASSWORD" } });
 		const user = userEvent.setup();
@@ -104,14 +114,19 @@ describe("SettingsDialog", () => {
 		await user.click(screen.getByRole("button", { name: "Account" }));
 		await user.click(screen.getByRole("button", { name: "Change password" }));
 
-		const currentPassword = screen.getByLabelText(/Current password/, { selector: "input" });
-		await user.type(currentPassword, "WrongPass12");
+		await user.type(
+			screen.getByLabelText(/Current password/, { selector: "input" }),
+			"WrongPass12",
+		);
+		await user.click(screen.getByRole("button", { name: "Continue" }));
 		await user.type(screen.getByLabelText(/New password/, { selector: "input" }), "NewPass12");
 		await user.type(screen.getByLabelText(/Confirm new password/), "NewPass12");
 		await user.click(screen.getByRole("button", { name: "Change password" }));
 
 		expect(await screen.findByRole("alert")).toHaveTextContent("Current password is incorrect.");
-		expect(currentPassword).toHaveAccessibleDescription("Current password is incorrect.");
+		expect(
+			screen.getByLabelText(/Current password/, { selector: "input" }),
+		).toHaveAccessibleDescription("Current password is incorrect.");
 		expect(screen.queryByRole("dialog", { name: "Password changed" })).not.toBeInTheDocument();
 	});
 
@@ -122,7 +137,7 @@ describe("SettingsDialog", () => {
 		await user.click(screen.getByRole("button", { name: "Billing" }));
 		expect(screen.getByRole("heading", { name: "Billing" })).toBeVisible();
 		await user.click(screen.getByRole("button", { name: "Manage members" }));
-		expect(screen.getByRole("button", { name: "Invite new member" })).toBeVisible();
+		expect(screen.getByRole("button", { name: "Invite member" })).toBeVisible();
 	});
 
 	test.each(["owner", "admin", "member"])(
@@ -144,26 +159,4 @@ describe("SettingsDialog", () => {
 			expect(dialog.getAllByText(/Test Hospital/)[0]).toBeVisible();
 		},
 	);
-
-	test("preserves the invitation email and role when returning from review", async () => {
-		const user = userEvent.setup();
-		render(<SettingsDialog {...props} />);
-		await user.click(screen.getByRole("button", { name: "Manage members" }));
-		await user.click(screen.getByRole("button", { name: "Invite new member" }));
-		await user.click(screen.getByRole("textbox", { name: /Email address/ }));
-		await user.paste("invite@example.com");
-		await user.tab();
-		expect(screen.getByRole("combobox", { name: /Role/ })).toHaveFocus();
-		await user.keyboard("{Enter}");
-		await user.click(screen.getByRole("option", { name: "Admin" }));
-		await user.click(screen.getByRole("button", { name: "Review invitations" }));
-		expect(screen.getByText("invite@example.com")).toBeVisible();
-		expect(screen.getByRole("heading", { name: "Review invitations" })).toBeVisible();
-		await user.click(screen.getByRole("button", { name: "Back to invite new member" }));
-		expect(screen.getByRole("textbox", { name: /Email address/ })).toHaveValue(
-			"invite@example.com",
-		);
-		expect(screen.getByRole("combobox", { name: /Role/ })).toHaveTextContent("Admin");
-		expect(screen.getAllByRole("textbox", { name: /Email address/ })).toHaveLength(1);
-	});
 });

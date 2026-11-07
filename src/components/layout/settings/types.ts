@@ -1,4 +1,4 @@
-export type SettingsSectionId = "profile" | "account" | "appearance" | "billing" | "members";
+export type SettingsSectionId = "account" | "appearance" | "billing" | "members";
 
 export type OrganizationRole = "owner" | "admin" | "member";
 
@@ -9,25 +9,6 @@ export type InviteMemberRow = {
 	email: string;
 	role: Exclude<OrganizationRole, "owner"> | "";
 };
-
-export type PendingInvitation = {
-	id: string;
-	name?: string;
-	email: string;
-	role: Exclude<OrganizationRole, "owner">;
-	status: "pending" | "expired";
-	sentAt: string;
-	expiresAt: string;
-};
-
-export type SettingsSubView =
-	| "organization"
-	| "active-session"
-	| "change-password"
-	| "payment-method"
-	| "billing-history"
-	| "invite-member"
-	| "review-invitations";
 
 export type SettingsDialogUser = {
 	name: string;

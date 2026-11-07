@@ -186,7 +186,10 @@ export function MobileMenu({ menus }: { menus: Menu[] }) {
 						<Button
 							variant="ghost"
 							disabled={isPending}
-							className="justify-start font-normal text-destructive hover:bg-destructive/10 hover:text-destructive"
+							className={cn(
+								"font-normal text-destructive hover:bg-destructive/10 hover:text-destructive",
+								isPending ? "justify-center" : "justify-start",
+							)}
 							onClick={() => {
 								setSignOutError("");
 								startTransition(async () => {

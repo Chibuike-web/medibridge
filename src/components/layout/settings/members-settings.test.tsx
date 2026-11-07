@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, test, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 
 import { MembersSettings } from "./members-settings";
 
@@ -10,138 +10,176 @@ const currentUser = {
 };
 
 describe("MembersSettings", () => {
-	test("lets an owner manage admins and members", async () => {
-		const user = userEvent.setup();
+	const scrollIntoViewDescriptor = Object.getOwnPropertyDescriptor(
+		HTMLElement.prototype,
+		"scrollIntoView",
+	);
+
+	beforeAll(() => {
+		// jsdom has no scrolling layout; Radix calls this when focusing an option.
+		Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+			configurable: true,
+			value: vi.fn(),
+		});
+	});
+
+	afterAll(() => {
+		if (scrollIntoViewDescriptor) {
+			Object.defineProperty(HTMLElement.prototype, "scrollIntoView", scrollIntoViewDescriptor);
+		} else {
+			Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+		}
+	});
+
+	test("lets an owner manage other members but not their own row", () => {
 		render(
 			<MembersSettings
-				activeSettingsSubView={null}
 				currentUser={currentUser}
-				onSettingsSubViewChange={vi.fn()}
-				pendingInvitations={[]}
+				organizationName="Lagos General"
 				viewerRole="owner"
 			/>,
 		);
 
-		const adminSummaryButton = screen.getByRole("button", { name: /Sarah Williams/i });
-		const adminDetailsId = adminSummaryButton.getAttribute("aria-controls");
-		const adminDetails = document.getElementById(adminDetailsId!);
+		const ownRow = screen.getByRole("row", { name: /Current User/ });
+		expect(ownRow).toBeVisible();
+		expect(within(ownRow).queryByRole("button")).not.toBeInTheDocument();
+		expect(within(ownRow).queryByRole("combobox")).not.toBeInTheDocument();
 
-		const currentUserName = screen.getByText("Current User");
-		expect(currentUserName).toBeVisible();
-		const currentUserCard = currentUserName.closest("article");
-		expect(currentUserCard).not.toBeNull();
+		const adminRow = screen.getByRole("row", { name: /Sarah Williams/ });
 		expect(
-			within(currentUserCard!).queryByRole("button", { hidden: true }),
-		).not.toBeInTheDocument();
-		expect(screen.getAllByRole("combobox", { name: /^Role for / })).toHaveLength(2);
-		expect(screen.getByRole("combobox", { name: "Role for Sarah Williams" })).toHaveTextContent(
-			"Admin",
-		);
-		expect(screen.getByRole("combobox", { name: "Role for David Okafor" })).toHaveTextContent(
-			"Member",
-		);
-		expect(screen.getAllByRole("button", { name: "Remove member" })).toHaveLength(2);
-		expect(adminSummaryButton).toHaveAttribute("aria-expanded", "true");
-		expect(adminDetails).toHaveAttribute("aria-hidden", "false");
-
-		await user.click(adminSummaryButton);
-
-		expect(adminSummaryButton).toHaveAccessibleName(/View more/i);
-		expect(adminSummaryButton).toHaveAttribute("aria-expanded", "false");
-		expect(adminDetails).toHaveAttribute("aria-hidden", "true");
-		expect(adminDetails).toHaveAttribute("inert");
+			within(adminRow).getByRole("combobox", { name: "Role for Sarah Williams" }),
+		).toHaveTextContent("Admin");
+		expect(
+			within(adminRow).getByRole("button", { name: "Open actions for Sarah Williams" }),
+		).toBeEnabled();
 	});
 
 	test("lets an admin manage other admins and members, but not the owner or themselves", () => {
 		render(
 			<MembersSettings
-				activeSettingsSubView={null}
 				currentUser={currentUser}
-				onSettingsSubViewChange={vi.fn()}
-				pendingInvitations={[]}
+				organizationName="Lagos General"
 				viewerRole="admin"
 			/>,
 		);
 
-		for (const name of ["John Doe", "Current User"]) {
-			const memberName = screen.getByText(name);
-			expect(memberName).toBeVisible();
-			const memberCard = memberName.closest("article");
-			expect(memberCard).not.toBeNull();
-			expect(within(memberCard!).queryByRole("button", { hidden: true })).not.toBeInTheDocument();
+		for (const name of [/John Doe/, /Current User/]) {
+			const row = screen.getByRole("row", { name });
+			expect(row).toBeVisible();
+			expect(within(row).queryByRole("button")).not.toBeInTheDocument();
+			expect(within(row).queryByRole("combobox")).not.toBeInTheDocument();
 		}
-		expect(screen.getByRole("combobox", { name: "Role for Michael Chen" })).toHaveTextContent(
-			"Admin",
-		);
-		expect(screen.getByRole("combobox", { name: "Role for David Okafor" })).toHaveTextContent(
-			"Member",
-		);
-		expect(screen.getAllByRole("button", { name: "Remove member" })).toHaveLength(2);
-	});
 
-	test("lets an admin manage admin and member invitations", () => {
-		render(
-			<MembersSettings
-				activeSettingsSubView={null}
-				currentUser={currentUser}
-				onSettingsSubViewChange={vi.fn()}
-				viewerRole="admin"
-				pendingInvitations={[
-					{
-						id: "admin-invitation",
-						email: "invited-admin@example.com",
-						role: "admin",
-						status: "pending",
-						sentAt: "Aug 15, 2026",
-						expiresAt: "Aug 24, 2026",
-					},
-					{
-						id: "member-invitation",
-						email: "invited-member@example.com",
-						role: "member",
-						status: "pending",
-						sentAt: "Aug 15, 2026",
-						expiresAt: "Aug 24, 2026",
-					},
-				]}
-			/>,
-		);
-
-		const adminEmail = screen.getByText("invited-admin@example.com");
-		const memberEmail = screen.getByText("invited-member@example.com");
-		expect(adminEmail).toBeVisible();
-		expect(memberEmail).toBeVisible();
-
-		const adminCard = adminEmail.closest("article");
-		const memberCard = memberEmail.closest("article");
-		expect(adminCard).not.toBeNull();
-		expect(memberCard).not.toBeNull();
-		for (const invitationCard of [adminCard!, memberCard!]) {
-			expect(
-				within(invitationCard).getByRole("button", { name: "Resend invitation" }),
-			).toBeEnabled();
-			expect(
-				within(invitationCard).getByRole("button", { name: "Cancel invitation" }),
-			).toBeEnabled();
+		for (const name of ["Sarah Williams", "David Okafor"]) {
+			const row = screen.getByRole("row", { name: new RegExp(name) });
+			expect(within(row).getByRole("combobox", { name: `Role for ${name}` })).toBeEnabled();
+			expect(within(row).getByRole("button", { name: `Open actions for ${name}` })).toBeEnabled();
 		}
 	});
 
-	test("opens the invite-member view from the footer action", async () => {
+	test.each([
+		["David Okafor", ["Remove member"]],
+		["grace@example.com", ["Copy link", "Resend invitation", "Cancel invitation"]],
+		["tunde@example.com", ["Remove invitation"]],
+	])("offers the actions that fit %s's invite status", async (rowLabel, actions) => {
 		const user = userEvent.setup();
-		const onSettingsSubViewChange = vi.fn();
 		render(
 			<MembersSettings
-				activeSettingsSubView={null}
 				currentUser={currentUser}
-				onSettingsSubViewChange={onSettingsSubViewChange}
-				pendingInvitations={[]}
+				organizationName="Lagos General"
 				viewerRole="owner"
 			/>,
 		);
 
-		await user.click(screen.getByRole("button", { name: "Invite new member" }));
+		await user.click(screen.getByRole("button", { name: `Open actions for ${rowLabel}` }));
 
-		expect(onSettingsSubViewChange).toHaveBeenCalledOnce();
-		expect(onSettingsSubViewChange).toHaveBeenCalledWith("invite-member");
+		expect(screen.getAllByRole("menuitem").map((menuItem) => menuItem.textContent)).toEqual(
+			actions,
+		);
+	});
+
+	test("finds a member by email", async () => {
+		const user = userEvent.setup();
+		render(
+			<MembersSettings
+				currentUser={currentUser}
+				organizationName="Lagos General"
+				viewerRole="owner"
+			/>,
+		);
+
+		await user.type(screen.getByRole("searchbox", { name: "Search members" }), "david@");
+
+		expect(screen.getByRole("row", { name: /David Okafor/ })).toBeVisible();
+		expect(screen.queryByRole("row", { name: /Sarah Williams/ })).not.toBeInTheDocument();
+	});
+
+	test("shows a role filter as a pill that brings every member back when removed", async () => {
+		const user = userEvent.setup();
+		render(
+			<MembersSettings
+				currentUser={currentUser}
+				organizationName="Lagos General"
+				viewerRole="owner"
+			/>,
+		);
+
+		await user.click(screen.getByRole("button", { name: "Role" }));
+		await user.click(screen.getByRole("radio", { name: "Admin" }));
+		await user.keyboard("{Escape}");
+
+		expect(screen.getByRole("row", { name: /Sarah Williams/ })).toBeVisible();
+		expect(screen.queryByRole("row", { name: /David Okafor/ })).not.toBeInTheDocument();
+
+		await user.click(screen.getByRole("button", { name: "Remove Role: Admin filter" }));
+
+		expect(screen.getByRole("row", { name: /David Okafor/ })).toBeVisible();
+		expect(
+			screen.queryByRole("button", { name: "Remove Role: Admin filter" }),
+		).not.toBeInTheDocument();
+	});
+
+	test("does not review an invitation with an invalid email", async () => {
+		const user = userEvent.setup();
+		render(
+			<MembersSettings
+				currentUser={currentUser}
+				organizationName="Lagos General"
+				viewerRole="owner"
+			/>,
+		);
+
+		await user.click(screen.getByRole("button", { name: "Invite member" }));
+		const emailInput = screen.getByRole("textbox", { name: /Email address/ });
+		await user.type(emailInput, "not-an-email");
+		await user.click(screen.getByRole("button", { name: "Continue" }));
+
+		expect(emailInput).toBeInvalid();
+		expect(screen.queryByRole("dialog", { name: "Review invitations" })).not.toBeInTheDocument();
+	});
+
+	test("reviews and sends an invitation", async () => {
+		const user = userEvent.setup();
+		render(
+			<MembersSettings
+				currentUser={currentUser}
+				organizationName="Lagos General"
+				viewerRole="owner"
+			/>,
+		);
+
+		await user.click(screen.getByRole("button", { name: "Invite member" }));
+		await user.type(screen.getByRole("textbox", { name: /Email address/ }), "new@example.com");
+		await user.click(screen.getByRole("combobox", { name: /Role/ }));
+		await user.click(screen.getByRole("option", { name: "Member" }));
+		await user.click(screen.getByRole("button", { name: "Continue" }));
+
+		const reviewDialog = await screen.findByRole("dialog", { name: "Review invitations" });
+		expect(within(reviewDialog).getByText("new@example.com")).toBeVisible();
+		expect(within(reviewDialog).getByText("member")).toBeVisible();
+
+		await user.click(within(reviewDialog).getByRole("button", { name: "Send 1 invitation" }));
+
+		expect(await screen.findByRole("dialog", { name: "Invitation sent" })).toBeVisible();
 	});
 });

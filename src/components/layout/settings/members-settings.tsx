@@ -1,9 +1,37 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
-import { RiArrowRightSLine } from "@remixicon/react";
+import { useState } from "react";
+import { format, parseISO, subDays, subMonths, subYears } from "date-fns";
+import {
+	RiArrowLeftSLine,
+	RiArrowRightSLine,
+	RiCalendarLine,
+	RiCloseLine,
+	RiDeleteBin2Line,
+	RiLinkM,
+	RiMailLine,
+	RiMailSendLine,
+	RiMore2Fill,
+	RiSearchLine,
+	RiShieldUserLine,
+} from "@remixicon/react";
 
+import { ExportButton } from "@/components/export-button";
+import { FilterChip } from "@/components/filter-chip";
+import { FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { StatusBadge } from "@/components/status-badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
 	Select,
 	SelectContent,
@@ -11,394 +39,665 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import { cn } from "@/lib/utils/cn";
+import { formatLabel } from "@/lib/utils/format-label";
+import { getInitials } from "@/lib/utils/get-initials";
 
-import { InviteMembersSettings } from "./invite-members-settings";
-import { ReviewInvitationsSettings } from "./review-invitations-settings";
-import { SettingsBadge, type SettingsBadgeTone } from "./settings-badge";
+import { InviteMembersDialog } from "./invite-members-dialog";
+import { ReviewInvitationsDialog } from "./review-invitations-dialog";
 import type {
 	InviteMemberRow,
 	MemberManagerRole,
 	OrganizationRole,
-	PendingInvitation,
 	SettingsDialogUser,
-	SettingsSubView,
 } from "./types";
 
-type OrganizationMember = {
+const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
+
+type InviteStatus = "pending" | "accepted" | "cancelled";
+
+type OrganizationMemberRow = {
 	id: string;
-	name: string;
+	name: string | null;
 	email: string;
+	inviteStatus: InviteStatus;
 	role: OrganizationRole;
-	joinedAt: string;
-	lastActiveAt: string;
+	joinedOn: string | null;
+	lastActiveOn: string | null;
 	isCurrentUser?: boolean;
 };
 
-type MembersSettingsProps = {
-	activeSettingsSubView: SettingsSubView | null;
-	currentUser: SettingsDialogUser;
-	onSettingsSubViewChange: (view: SettingsSubView | null) => void;
-	pendingInvitations: PendingInvitation[];
-	viewerRole: MemberManagerRole;
+const ownerRow: OrganizationMemberRow = {
+	id: "john-doe",
+	name: "John Doe",
+	email: "john@example.com",
+	inviteStatus: "accepted",
+	role: "owner",
+	joinedOn: "2025-09-10",
+	lastActiveOn: "2026-11-07",
 };
 
-const badgeToneByRole = {
-	owner: "premium",
-	admin: "info",
-	member: "neutral",
-} satisfies Record<OrganizationRole, SettingsBadgeTone>;
-
-const ownerPreviewMembers: OrganizationMember[] = [
+const otherMemberRows: OrganizationMemberRow[] = [
 	{
 		id: "sarah-williams",
 		name: "Sarah Williams",
 		email: "sarah@example.com",
+		inviteStatus: "accepted",
 		role: "admin",
-		joinedAt: "Aug 12, 2026",
-		lastActiveAt: "Aug 24, 2026",
+		joinedOn: "2026-08-12",
+		lastActiveOn: "2026-11-04",
 	},
 	{
 		id: "david-okafor",
 		name: "David Okafor",
 		email: "david@example.com",
+		inviteStatus: "accepted",
 		role: "member",
-		joinedAt: "Aug 15, 2026",
-		lastActiveAt: "Aug 24, 2026",
-	},
-];
-
-const adminPreviewMembers: OrganizationMember[] = [
-	{
-		id: "john-doe",
-		name: "John Doe",
-		email: "john@example.com",
-		role: "owner",
-		joinedAt: "Aug 10, 2026",
-		lastActiveAt: "Aug 24, 2026",
+		joinedOn: "2026-10-28",
+		lastActiveOn: "2026-10-20",
 	},
 	{
-		id: "michael-chen",
-		name: "Michael Chen",
-		email: "michael@example.com",
+		id: "grace-nwosu-invitation",
+		name: null,
+		email: "grace@example.com",
+		inviteStatus: "pending",
+		role: "member",
+		joinedOn: null,
+		lastActiveOn: null,
+	},
+	{
+		id: "tunde-bello-invitation",
+		name: null,
+		email: "tunde@example.com",
+		inviteStatus: "cancelled",
 		role: "admin",
-		joinedAt: "Aug 13, 2026",
-		lastActiveAt: "Aug 23, 2026",
-	},
-	{
-		id: "david-okafor",
-		name: "David Okafor",
-		email: "david@example.com",
-		role: "member",
-		joinedAt: "Aug 15, 2026",
-		lastActiveAt: "Aug 24, 2026",
+		joinedOn: null,
+		lastActiveOn: null,
 	},
 ];
 
 export function MembersSettings({
-	activeSettingsSubView,
 	currentUser,
-	onSettingsSubViewChange,
-	pendingInvitations,
+	organizationName,
 	viewerRole,
-}: MembersSettingsProps) {
-	const inviteRowsId = useId();
-	const nextInviteMemberNumberRef = useRef(4);
-	const [inviteMemberRows, setInviteMemberRows] = useState<InviteMemberRow[]>([
-		{ id: "invite-member-1", email: "", role: "" },
-	]);
+}: {
+	currentUser: SettingsDialogUser;
+	organizationName: string;
+	viewerRole: MemberManagerRole;
+}) {
+	const [memberQuery, setMemberQuery] = useState("");
+	const [inviteStatusFilter, setInviteStatusFilter] = useState<InviteStatus | "">("");
+	const [roleFilter, setRoleFilter] = useState<OrganizationRole | "">("");
+	const [lastActiveSince, setLastActiveSince] = useState("");
+	const [joinedSince, setJoinedSince] = useState("");
+	const [memberPage, setMemberPage] = useState(1);
+	const [memberLimit, setMemberLimit] = useState(ROWS_PER_PAGE_OPTIONS[0]);
+	const [isInviteMembersDialogOpen, setIsInviteMembersDialogOpen] = useState(false);
+	const [isReviewInvitationsDialogOpen, setIsReviewInvitationsDialogOpen] = useState(false);
+	const [inviteMemberRows, setInviteMemberRows] = useState<InviteMemberRow[]>([]);
 
-	const handleAddInvitationRow = () => {
-		const memberId = `${inviteRowsId}-member-${nextInviteMemberNumberRef.current++}`;
-		setInviteMemberRows((prev) => [...prev, { id: memberId, email: "", role: "" }]);
-	};
-
-	if (activeSettingsSubView === "invite-member") {
-		return (
-			<InviteMembersSettings
-				inviteMemberRows={inviteMemberRows}
-				setInviteMemberRows={setInviteMemberRows}
-				onAddInvitationRow={handleAddInvitationRow}
-				onSettingsSubViewChange={onSettingsSubViewChange}
-			/>
-		);
-	}
-
-	if (activeSettingsSubView === "review-invitations") {
-		return (
-			<ReviewInvitationsSettings
-				inviteMemberRows={inviteMemberRows}
-				onCancel={() => onSettingsSubViewChange(null)}
-			/>
-		);
-	}
-
-	const currentMember: OrganizationMember = {
+	const currentUserRow: OrganizationMemberRow = {
 		id: "current-user",
 		name: currentUser.name,
 		email: currentUser.email,
+		inviteStatus: "accepted",
 		role: viewerRole,
-		joinedAt: "Aug 12, 2026",
-		lastActiveAt: "Aug 24, 2026",
+		joinedOn: "2026-06-02",
+		lastActiveOn: "2026-11-07",
 		isCurrentUser: true,
 	};
-	const members =
+	const memberRows =
 		viewerRole === "owner"
-			? [currentMember, ...ownerPreviewMembers]
-			: [adminPreviewMembers[0], currentMember, ...adminPreviewMembers.slice(1)];
+			? [currentUserRow, ...otherMemberRows]
+			: [ownerRow, currentUserRow, ...otherMemberRows];
+	const lastActivePresets = [
+		{ label: "Today", since: format(new Date(), "yyyy-MM-dd") },
+		{ label: "Last 7 days", since: format(subDays(new Date(), 6), "yyyy-MM-dd") },
+		{ label: "Last 30 days", since: format(subDays(new Date(), 29), "yyyy-MM-dd") },
+		{ label: "Last 90 days", since: format(subDays(new Date(), 89), "yyyy-MM-dd") },
+	];
+	const joinedPresets = [
+		{ label: "Last 30 days", since: format(subDays(new Date(), 29), "yyyy-MM-dd") },
+		{ label: "Last 3 months", since: format(subMonths(new Date(), 3), "yyyy-MM-dd") },
+		{ label: "Last 6 months", since: format(subMonths(new Date(), 6), "yyyy-MM-dd") },
+		{ label: "Last year", since: format(subYears(new Date(), 1), "yyyy-MM-dd") },
+	];
+	const normalizedMemberQuery = memberQuery.trim().toLowerCase();
+	const matchingMemberRows = memberRows.filter(
+		(row) =>
+			`${row.name ?? ""} ${row.email}`.toLowerCase().includes(normalizedMemberQuery) &&
+			(!inviteStatusFilter || row.inviteStatus === inviteStatusFilter) &&
+			(!roleFilter || row.role === roleFilter) &&
+			(!lastActiveSince || (row.lastActiveOn !== null && row.lastActiveOn >= lastActiveSince)) &&
+			(!joinedSince || (row.joinedOn !== null && row.joinedOn >= joinedSince)),
+	);
+	const memberPageCount = Math.max(1, Math.ceil(matchingMemberRows.length / memberLimit));
+	const visibleMemberRows = matchingMemberRows.slice(
+		(memberPage - 1) * memberLimit,
+		memberPage * memberLimit,
+	);
+	const fitsOnSmallestPage = matchingMemberRows.length <= ROWS_PER_PAGE_OPTIONS[0];
 
 	return (
-		<div className="flex h-full min-h-0 flex-col">
-			<div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-5">
-				{members.map((member) => (
-					<MemberCard key={member.id} member={member} />
-				))}
-				{pendingInvitations.map((pendingInvitation) => (
-					<PendingInvitationCard key={pendingInvitation.id} pendingInvitation={pendingInvitation} />
-				))}
-			</div>
-			<div className="flex shrink-0 justify-end border-t p-4">
-				<Button type="button" onClick={() => onSettingsSubViewChange("invite-member")}>
-					Invite new member
-				</Button>
-			</div>
-		</div>
-	);
-}
-
-function MemberCard({ member }: { member: OrganizationMember }) {
-	const canManageMember = !member.isCurrentUser && member.role !== "owner";
-
-	const [isMemberDetailsExpanded, setIsMemberDetailsExpanded] = useState(canManageMember);
-	const memberDetailsId = useId();
-
-	const memberSummary = (
-		<>
-			<div className="flex items-center justify-between gap-4">
-				<p className="truncate text-base font-semibold">{member.name}</p>
-				<SettingsBadge
-					tone={badgeToneByRole[member.role]}
-					muted={!canManageMember}
-					className="capitalize"
-				>
-					{member.role}
-				</SettingsBadge>
-			</div>
-			<div className="mt-3 flex items-center justify-between gap-4">
-				<p className="min-w-0 truncate text-sm font-medium">{member.email}</p>
-				{member.isCurrentUser ? (
-					<span className="shrink-0 text-sm font-medium">You</span>
-				) : canManageMember ? (
-					<span className="inline-flex shrink-0 items-center gap-0.5 text-sm w-full max-w-[90px] font-medium text-gray-400">
-						<span className="flex flex-1 items-center">
-							<span
-								aria-hidden={isMemberDetailsExpanded}
-								className={cn("flex-1", isMemberDetailsExpanded && "hidden")}
-							>
-								View more
-							</span>
-							<span
-								aria-hidden={!isMemberDetailsExpanded}
-								className={cn("flex-1", !isMemberDetailsExpanded && "hidden")}
-							>
-								View less
-							</span>
-						</span>
-						<RiArrowRightSLine
-							className={cn(
-								"size-4 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-								isMemberDetailsExpanded ? "rotate-90" : "group-hover/member-card:translate-x-0.5",
-							)}
-							aria-hidden="true"
-						/>
-					</span>
-				) : null}
-			</div>
-		</>
-	);
-
-	return (
-		<article
-			className={cn(
-				"group/member-card shrink-0 rounded-2xl border",
-				canManageMember
-					? cn(
-							"transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-							isMemberDetailsExpanded ? "border-gray-400" : "border-gray-200 hover:border-gray-400",
-						)
-					: "border-gray-200",
-			)}
-		>
-			{canManageMember ? (
-				<Button
-					variant="ghost"
-					type="button"
-					className={cn(
-						"block w-full rounded-2xl text-left text-gray-600 h-auto whitespace-normal font-normal hover:bg-transparent hover:text-gray-600 active:scale-100",
-						"p-4",
-					)}
-					aria-expanded={isMemberDetailsExpanded}
-					aria-controls={memberDetailsId}
-					onClick={() => setIsMemberDetailsExpanded((prev) => !prev)}
-				>
-					{memberSummary}
-				</Button>
-			) : (
-				<div className={cn("p-4 text-gray-400", member.isCurrentUser && "opacity-50")}>
-					{memberSummary}
+		<section aria-labelledby="members-heading" className="flex flex-col gap-4 px-4 py-5">
+			<h3 id="members-heading" className="font-semibold">
+				Members
+			</h3>
+			<div className="flex flex-wrap items-center gap-2">
+				<div className="relative min-w-40 grow basis-40">
+					<RiSearchLine className="pointer-events-none absolute bottom-0 left-2 flex h-full size-4 items-center justify-center text-gray-400" />
+					<Input
+						type="search"
+						className="pl-8"
+						aria-label="Search members"
+						placeholder="Search by name or email"
+						value={memberQuery}
+						onChange={(event) => {
+							setMemberQuery(event.target.value);
+							setMemberPage(1);
+						}}
+					/>
 				</div>
-			)}
+				<div className="flex flex-wrap items-center gap-2 max-md:w-full">
+					<FilterGroup
+						activeFilterCount={
+							(inviteStatusFilter ? 1 : 0) +
+							(roleFilter ? 1 : 0) +
+							(lastActiveSince ? 1 : 0) +
+							(joinedSince ? 1 : 0)
+						}
+					>
+						<FilterPopover label="Invite status" icon={RiMailLine}>
+							<RadioGroup
+								value={inviteStatusFilter || "all"}
+								onValueChange={(nextInviteStatus) => {
+									setInviteStatusFilter(
+										nextInviteStatus === "all" ? "" : (nextInviteStatus as InviteStatus),
+									);
+									setMemberPage(1);
+								}}
+								className="flex flex-col gap-0.5"
+							>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="all" id="member-invite-status-all" />
+									<Label
+										htmlFor="member-invite-status-all"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										All
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="pending" id="member-invite-status-pending" />
+									<Label
+										htmlFor="member-invite-status-pending"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Pending
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="accepted" id="member-invite-status-accepted" />
+									<Label
+										htmlFor="member-invite-status-accepted"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Accepted
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="cancelled" id="member-invite-status-cancelled" />
+									<Label
+										htmlFor="member-invite-status-cancelled"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Cancelled
+									</Label>
+								</div>
+							</RadioGroup>
+						</FilterPopover>
+						<FilterPopover label="Role" icon={RiShieldUserLine}>
+							<RadioGroup
+								value={roleFilter || "all"}
+								onValueChange={(nextRole) => {
+									setRoleFilter(nextRole === "all" ? "" : (nextRole as OrganizationRole));
+									setMemberPage(1);
+								}}
+								className="flex flex-col gap-0.5"
+							>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="all" id="member-role-all" />
+									<Label
+										htmlFor="member-role-all"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										All
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="owner" id="member-role-owner" />
+									<Label
+										htmlFor="member-role-owner"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Owner
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="admin" id="member-role-admin" />
+									<Label
+										htmlFor="member-role-admin"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Admin
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="member" id="member-role-member" />
+									<Label
+										htmlFor="member-role-member"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Member
+									</Label>
+								</div>
+							</RadioGroup>
+						</FilterPopover>
+						<FilterPopover label="Last active" icon={RiCalendarLine}>
+							<RadioGroup
+								value={lastActiveSince || "any"}
+								onValueChange={(nextStartDate) => {
+									setLastActiveSince(nextStartDate === "any" ? "" : nextStartDate);
+									setMemberPage(1);
+								}}
+								className="flex flex-col gap-0.5"
+							>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="any" id="member-last-active-any" />
+									<Label
+										htmlFor="member-last-active-any"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Any time
+									</Label>
+								</div>
+								{lastActivePresets.map((preset) => (
+									<div
+										key={preset.label}
+										className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100"
+									>
+										<RadioGroupItem
+											value={preset.since}
+											id={`member-last-active-${preset.since}`}
+										/>
+										<Label
+											htmlFor={`member-last-active-${preset.since}`}
+											className="w-full cursor-pointer leading-normal font-normal"
+										>
+											{preset.label}
+										</Label>
+									</div>
+								))}
+							</RadioGroup>
+						</FilterPopover>
+						<FilterPopover label="Joined" icon={RiCalendarLine}>
+							<RadioGroup
+								value={joinedSince || "any"}
+								onValueChange={(nextStartDate) => {
+									setJoinedSince(nextStartDate === "any" ? "" : nextStartDate);
+									setMemberPage(1);
+								}}
+								className="flex flex-col gap-0.5"
+							>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="any" id="member-joined-any" />
+									<Label
+										htmlFor="member-joined-any"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Any time
+									</Label>
+								</div>
+								{joinedPresets.map((preset) => (
+									<div
+										key={preset.label}
+										className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100"
+									>
+										<RadioGroupItem value={preset.since} id={`member-joined-${preset.since}`} />
+										<Label
+											htmlFor={`member-joined-${preset.since}`}
+											className="w-full cursor-pointer leading-normal font-normal"
+										>
+											{preset.label}
+										</Label>
+									</div>
+								))}
+							</RadioGroup>
+						</FilterPopover>
+					</FilterGroup>
+					<ExportButton />
+					<Button
+						type="button"
+						className="flex-1"
+						onClick={() => {
+							setInviteMemberRows([{ id: "invite-member-1", email: "", role: "" }]);
+							setIsInviteMembersDialogOpen(true);
+						}}
+					>
+						Invite member
+					</Button>
+				</div>
+			</div>
 
-			{canManageMember ? (
-				<div
-					id={memberDetailsId}
-					className={cn(
-						"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
-						isMemberDetailsExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
-					)}
-					aria-hidden={!isMemberDetailsExpanded}
-					inert={!isMemberDetailsExpanded}
-				>
-					<div className="min-h-0 overflow-hidden">
-						<div className="px-4 pb-4">
-							<dl className="flex flex-col gap-3 text-sm">
-								<div className="flex items-center justify-between gap-4">
-									<dt className="text-gray-400">Joined</dt>
-									<dd className="font-semibold text-gray-600">{member.joinedAt}</dd>
-								</div>
-								<div className="flex items-center justify-between gap-4">
-									<dt className="text-gray-400">Last active</dt>
-									<dd className="font-semibold text-gray-600">{member.lastActiveAt}</dd>
-								</div>
-							</dl>
-							<div className="flex justify-end gap-2 pt-5">
-								<Select defaultValue={member.role}>
-									<SelectTrigger aria-label={`Role for ${member.name}`}>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent align="end" className="min-w-35">
-										<SelectItem value="admin">Admin</SelectItem>
-										<SelectItem value="member">Member</SelectItem>
-									</SelectContent>
-								</Select>
+			{inviteStatusFilter || roleFilter || lastActiveSince || joinedSince ? (
+				<div className="flex flex-wrap gap-2">
+					{inviteStatusFilter ? (
+						<FilterChip
+							name="Invite status"
+							value={formatLabel(inviteStatusFilter)}
+							onRemove={() => setInviteStatusFilter("")}
+						/>
+					) : null}
+					{roleFilter ? (
+						<FilterChip
+							name="Role"
+							value={formatLabel(roleFilter)}
+							onRemove={() => setRoleFilter("")}
+						/>
+					) : null}
+					{lastActiveSince ? (
+						<FilterChip
+							name="Last active"
+							value={lastActivePresets.find(({ since }) => since === lastActiveSince)?.label ?? ""}
+							onRemove={() => setLastActiveSince("")}
+						/>
+					) : null}
+					{joinedSince ? (
+						<FilterChip
+							name="Joined"
+							value={joinedPresets.find(({ since }) => since === joinedSince)?.label ?? ""}
+							onRemove={() => setJoinedSince("")}
+						/>
+					) : null}
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="h-8.5 text-gray-600"
+						onClick={() => {
+							setInviteStatusFilter("");
+							setRoleFilter("");
+							setLastActiveSince("");
+							setJoinedSince("");
+						}}
+					>
+						Clear all
+					</Button>
+				</div>
+			) : null}
+			<div className="overflow-x-auto rounded-xl border border-gray-200">
+				<Table className="min-w-[56rem] border-separate border-spacing-0 bg-gray-50 text-left">
+					<TableHeader className="text-sm font-semibold text-gray-500">
+						<TableRow>
+							<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
+								Name
+							</TableHead>
+							<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
+								Email
+							</TableHead>
+							<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
+								Invite status
+							</TableHead>
+							<TableHead className="h-10 bg-gray-50 py-0 pr-3 pl-6.25 whitespace-nowrap text-gray-600">
+								Role
+							</TableHead>
+							<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
+								Joined
+							</TableHead>
+							<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
+								Last active
+							</TableHead>
+							<TableHead className="h-10 w-14 bg-gray-50 px-3 py-0">
+								<span className="sr-only">Actions</span>
+							</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody className="overflow-hidden rounded-t-xl outline outline-gray-200">
+						{visibleMemberRows.length ? (
+							visibleMemberRows.map((row, rowPosition) => {
+								const canManageRow = !row.isCurrentUser && row.role !== "owner";
+								const rowLabel = row.name ?? row.email;
+
+								return (
+									<TableRow key={row.id} className="h-14">
+										<TableCell
+											className={cn(
+												"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
+												rowPosition === visibleMemberRows.length - 1 && "border-b-0",
+												rowPosition === 0 && "rounded-tl-lg",
+											)}
+										>
+											{row.name ? (
+												<div className="flex w-max items-center gap-3">
+													<Avatar className="size-8 border border-gray-200 bg-gray-100 text-gray-700">
+														<AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
+															{getInitials(row.name)}
+														</AvatarFallback>
+													</Avatar>
+													<span className="font-medium text-gray-800">
+														{row.name}
+														{row.isCurrentUser ? (
+															<span className="font-normal text-gray-400"> (You)</span>
+														) : null}
+													</span>
+												</div>
+											) : (
+												"—"
+											)}
+										</TableCell>
+										<TableCell
+											className={cn(
+												"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
+												rowPosition === visibleMemberRows.length - 1 && "border-b-0",
+											)}
+										>
+											{row.email}
+										</TableCell>
+										<TableCell
+											className={cn(
+												"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
+												rowPosition === visibleMemberRows.length - 1 && "border-b-0",
+											)}
+										>
+											<StatusBadge status={row.inviteStatus} />
+										</TableCell>
+										<TableCell
+											className={cn(
+												"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm text-gray-600",
+												rowPosition === visibleMemberRows.length - 1 && "border-b-0",
+											)}
+										>
+											{canManageRow && row.inviteStatus !== "cancelled" ? (
+												<Select defaultValue={row.role}>
+													<SelectTrigger
+														aria-label={`Role for ${rowLabel}`}
+														className="border-transparent font-semibold text-gray-800 hover:bg-gray-100"
+													>
+														<SelectValue />
+													</SelectTrigger>
+													<SelectContent align="start" className="min-w-50">
+														<SelectItem value="admin">Admin</SelectItem>
+														<SelectItem value="member">Member</SelectItem>
+													</SelectContent>
+												</Select>
+											) : (
+												<span className="pl-3.25 capitalize">{row.role}</span>
+											)}
+										</TableCell>
+										<TableCell
+											className={cn(
+												"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm whitespace-nowrap text-gray-600",
+												rowPosition === visibleMemberRows.length - 1 && "border-b-0",
+											)}
+										>
+											{row.joinedOn ? format(parseISO(row.joinedOn), "MMM d, yyyy") : "—"}
+										</TableCell>
+										<TableCell
+											className={cn(
+												"h-14 border-b border-gray-200 bg-white px-3 py-0 text-sm whitespace-nowrap text-gray-600",
+												rowPosition === visibleMemberRows.length - 1 && "border-b-0",
+											)}
+										>
+											{row.lastActiveOn ? format(parseISO(row.lastActiveOn), "MMM d, yyyy") : "—"}
+										</TableCell>
+										<TableCell
+											className={cn(
+												"h-14 border-b border-gray-200 bg-white px-3 py-0 text-right",
+												rowPosition === visibleMemberRows.length - 1 && "border-b-0",
+												rowPosition === 0 && "rounded-tr-lg",
+											)}
+										>
+											{canManageRow ? (
+												<DropdownMenu>
+													<DropdownMenuTrigger
+														type="button"
+														className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-800 data-[state=open]:bg-gray-200 data-[state=open]:text-gray-800"
+														aria-label={`Open actions for ${rowLabel}`}
+													>
+														<RiMore2Fill className="size-5" aria-hidden />
+													</DropdownMenuTrigger>
+													<DropdownMenuContent
+														align="end"
+														className="rounded-xl bg-white text-sm text-gray-700"
+													>
+														{row.inviteStatus === "pending" ? (
+															<>
+																<DropdownMenuItem className="rounded-lg">
+																	<RiLinkM aria-hidden="true" />
+																	<span>Copy link</span>
+																</DropdownMenuItem>
+																<DropdownMenuItem className="rounded-lg">
+																	<RiMailSendLine aria-hidden="true" />
+																	<span>Resend invitation</span>
+																</DropdownMenuItem>
+																<DropdownMenuSeparator />
+																<DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600">
+																	<RiCloseLine className="text-current" aria-hidden="true" />
+																	<span>Cancel invitation</span>
+																</DropdownMenuItem>
+															</>
+														) : null}
+														{row.inviteStatus === "cancelled" ? (
+															<DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600">
+																<RiDeleteBin2Line className="text-current" aria-hidden="true" />
+																<span>Remove invitation</span>
+															</DropdownMenuItem>
+														) : null}
+														{row.inviteStatus === "accepted" ? (
+															<DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600">
+																<RiDeleteBin2Line className="text-current" aria-hidden="true" />
+																<span>Remove member</span>
+															</DropdownMenuItem>
+														) : null}
+													</DropdownMenuContent>
+												</DropdownMenu>
+											) : null}
+										</TableCell>
+									</TableRow>
+								);
+							})
+						) : (
+							<TableRow>
+								<TableCell
+									colSpan={7}
+									className="h-32 rounded-t-lg bg-white px-3 py-0 text-center text-sm text-gray-500"
+								>
+									No matching members found.
+								</TableCell>
+							</TableRow>
+						)}
+					</TableBody>
+				</Table>
+				{fitsOnSmallestPage ? null : (
+					<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
+						<div className="flex items-center gap-3">
+							<span>Rows per page</span>
+							<Select
+								value={String(memberLimit)}
+								onValueChange={(value) => {
+									setMemberLimit(Number(value));
+									setMemberPage(1);
+								}}
+							>
+								<SelectTrigger className="h-8 w-16 bg-white px-2 text-gray-700">
+									<SelectValue aria-label="Rows per page" placeholder="Rows" />
+								</SelectTrigger>
+								<SelectContent className="w-20" align="start">
+									{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
+										<SelectItem key={pageSize} value={String(pageSize)}>
+											{pageSize}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex items-center gap-3">
+							<span>
+								Page {memberPage} of {memberPageCount}
+							</span>
+							<div className="flex items-center gap-2">
 								<Button
 									type="button"
-									variant="destructive"
-									className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive dark:bg-transparent dark:hover:bg-destructive/10"
+									variant="outline"
+									size="icon"
+									aria-label="Previous"
+									onClick={() => setMemberPage((prev) => prev - 1)}
+									disabled={memberPage <= 1}
+									className="text-gray-700 shadow-none"
 								>
-									Remove member
+									<RiArrowLeftSLine aria-hidden="true" />
+								</Button>
+								<Button
+									type="button"
+									variant="outline"
+									size="icon"
+									aria-label="Next"
+									onClick={() => setMemberPage((prev) => prev + 1)}
+									disabled={memberPage >= memberPageCount}
+									className="text-gray-700 shadow-none"
+								>
+									<RiArrowRightSLine aria-hidden="true" />
 								</Button>
 							</div>
 						</div>
 					</div>
-				</div>
-			) : null}
-		</article>
-	);
-}
-
-function PendingInvitationCard({ pendingInvitation }: { pendingInvitation: PendingInvitation }) {
-	const [isInvitationDetailsExpanded, setIsInvitationDetailsExpanded] = useState(true);
-	const invitationDetailsId = useId();
-	const invitationStatusTone = pendingInvitation.status === "pending" ? "warning" : "danger";
-
-	return (
-		<article
-			className={cn(
-				"group/pending-invitation-card shrink-0 rounded-2xl border transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-				isInvitationDetailsExpanded ? "border-gray-400" : "border-gray-200 hover:border-gray-400",
-			)}
-		>
-			<Button
-				variant="ghost"
-				type="button"
-				className="block w-full rounded-2xl p-4 text-left text-gray-600 h-auto whitespace-normal font-normal hover:bg-transparent hover:text-gray-600 active:scale-100"
-				aria-expanded={isInvitationDetailsExpanded}
-				aria-controls={invitationDetailsId}
-				onClick={() => setIsInvitationDetailsExpanded((prev) => !prev)}
-			>
-				<div className="flex items-center justify-between gap-4">
-					<p className="truncate text-base font-semibold">
-						{pendingInvitation.name ?? pendingInvitation.email}
-					</p>
-					<SettingsBadge tone={invitationStatusTone} className="capitalize">
-						{pendingInvitation.status}
-					</SettingsBadge>
-				</div>
-				<div className="mt-3 flex items-center justify-between gap-4">
-					{pendingInvitation.name ? (
-						<p className="min-w-0 truncate text-sm font-medium">{pendingInvitation.email}</p>
-					) : (
-						<span aria-hidden="true" />
-					)}
-					<span className="inline-flex shrink-0 items-center gap-0.5 text-sm w-full max-w-[90px] font-medium text-gray-400">
-						<span className="flex flex-1 items-center">
-							<span
-								aria-hidden={isInvitationDetailsExpanded}
-								className={cn("flex-1", isInvitationDetailsExpanded && "hidden")}
-							>
-								View more
-							</span>
-							<span
-								aria-hidden={!isInvitationDetailsExpanded}
-								className={cn("flex-1", !isInvitationDetailsExpanded && "hidden")}
-							>
-								View less
-							</span>
-						</span>
-						<RiArrowRightSLine
-							className={cn(
-								"size-4 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-								isInvitationDetailsExpanded
-									? "rotate-90"
-									: "group-hover/pending-invitation-card:translate-x-0.5",
-							)}
-							aria-hidden="true"
-						/>
-					</span>
-				</div>
-			</Button>
-
-			<div
-				id={invitationDetailsId}
-				className={cn(
-					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
-					isInvitationDetailsExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
 				)}
-				aria-hidden={!isInvitationDetailsExpanded}
-				inert={!isInvitationDetailsExpanded}
-			>
-				<div className="min-h-0 overflow-hidden">
-					<div className="px-4 pb-4">
-						<dl className="flex flex-col gap-3 text-sm">
-							<div className="flex items-center justify-between gap-4">
-								<dt className="text-gray-400">Role</dt>
-								<dd className="font-semibold text-gray-600 capitalize">{pendingInvitation.role}</dd>
-							</div>
-							<div className="flex items-center justify-between gap-4">
-								<dt className="text-gray-400">Invitation sent</dt>
-								<dd className="font-semibold text-gray-600">{pendingInvitation.sentAt}</dd>
-							</div>
-							<div className="flex items-center justify-between gap-4">
-								<dt className="text-gray-400">Expires</dt>
-								<dd className="font-semibold text-gray-600">{pendingInvitation.expiresAt}</dd>
-							</div>
-						</dl>
-						<div className="flex justify-end gap-2 pt-5">
-							<Button type="button" variant="outline">
-								Resend invitation
-							</Button>
-							<Button
-								type="button"
-								variant="destructive"
-								className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive dark:bg-transparent dark:hover:bg-destructive/10"
-							>
-								Cancel invitation
-							</Button>
-						</div>
-					</div>
-				</div>
 			</div>
-		</article>
+
+			<InviteMembersDialog
+				open={isInviteMembersDialogOpen}
+				onOpenChange={setIsInviteMembersDialogOpen}
+				inviteMemberRows={inviteMemberRows}
+				setInviteMemberRows={setInviteMemberRows}
+				onContinue={() => {
+					setIsInviteMembersDialogOpen(false);
+					setIsReviewInvitationsDialogOpen(true);
+				}}
+			/>
+			<ReviewInvitationsDialog
+				open={isReviewInvitationsDialogOpen}
+				onOpenChange={setIsReviewInvitationsDialogOpen}
+				inviteMemberRows={inviteMemberRows}
+				organizationName={organizationName}
+			/>
+		</section>
 	);
 }

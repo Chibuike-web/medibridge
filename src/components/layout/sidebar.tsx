@@ -31,6 +31,7 @@ import {
 } from "react";
 import { Tabs } from "radix-ui";
 import {
+	Command,
 	CommandDialog,
 	CommandEmpty,
 	CommandGroup,
@@ -39,6 +40,8 @@ import {
 	CommandList,
 } from "../ui/command";
 import { DialogClose, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Drawer, DrawerContent } from "../ui/drawer";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import type { Route } from "next";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
@@ -67,18 +70,26 @@ export function Sidebar({
 		parsedWidth >= MIN_WIDTH && parsedWidth <= MAX_WIDTH ? parsedWidth : MAX_WIDTH,
 	);
 	const pathname = usePathname();
+	const isMobile = useMediaQuery("(width < 48rem)");
 	const [isResizing, setIsResizing] = useState(false);
 	const [isHovered, setIsHovered] = useState(false);
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
 	const [isAddPatientDialogOpen, setIsAddPatientDialogOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedSearchTab, setSelectedSearchTab] = useState<SearchTab>("All");
-	const [searchTabsClipPath, setSearchTabsClipPath] = useState<string | null>(null);
+	const [searchTabsIndicator, setSearchTabsIndicator] = useState<{
+		clipPath: string;
+		isAnimated: boolean;
+	} | null>(null);
+	const searchTabsListRef = useRef<HTMLDivElement | null>(null);
 	const measureSearchTabs = useCallback(
 		(node: HTMLDivElement | null) => {
 			if (!node) return;
 
-			const updateClipPath = () => {
+			const isSameTabList = searchTabsListRef.current === node;
+			searchTabsListRef.current = node;
+			let measuredClipPath = "";
+			const updateClipPath = (isAnimated: boolean) => {
 				const selectedTab = node.querySelector<HTMLElement>(
 					`[data-pill-tab="${selectedSearchTab}"]`,
 				);
@@ -89,12 +100,15 @@ export function Sidebar({
 				const right = Math.max(0, 1 - (offsetLeft + offsetWidth) / node.clientWidth) * 100;
 				const bottom = Math.max(0, 1 - (offsetTop + offsetHeight) / node.clientHeight) * 100;
 				const left = (offsetLeft / node.clientWidth) * 100;
-				setSearchTabsClipPath(`inset(${top}% ${right}% ${bottom}% ${left}% round 9999rem)`);
+				const clipPath = `inset(${top}% ${right}% ${bottom}% ${left}% round 9999rem)`;
+				if (clipPath === measuredClipPath) return;
+				measuredClipPath = clipPath;
+				setSearchTabsIndicator({ clipPath, isAnimated });
 			};
-			updateClipPath();
+			updateClipPath(isSameTabList);
 			if (typeof ResizeObserver === "undefined") return;
 
-			const resizeObserver = new ResizeObserver(updateClipPath);
+			const resizeObserver = new ResizeObserver(() => updateClipPath(false));
 			resizeObserver.observe(node);
 			node
 				.querySelectorAll<HTMLElement>("[data-pill-tab]")
@@ -169,6 +183,194 @@ export function Sidebar({
 		document.addEventListener("mousemove", handleMouseMove);
 		document.addEventListener("mouseup", handleMouseUp);
 	}
+
+	const handleSearchOpenChange = (open: boolean) => {
+		setIsSearchOpen(open);
+		if (!open) {
+			setSearchQuery("");
+			setSelectedSearchTab("All");
+		}
+	};
+	const searchContent = (
+		<>
+			<DialogHeader>
+				<DialogTitle className="sr-only">Search chats</DialogTitle>
+				<DialogDescription className="sr-only">
+					Search patients, IDs, diagnoses, and other patient records.
+				</DialogDescription>
+				<CommandInput
+					value={searchQuery}
+					onValueChange={setSearchQuery}
+					placeholder="Search patients, IDs, diagnoses..."
+				/>
+				{searchQuery.trim() ? (
+					<Button
+						variant="ghost"
+						type="button"
+						onClick={() => {
+							setSearchQuery("");
+							setSelectedSearchTab("All");
+						}}
+					>
+						Clear
+					</Button>
+				) : null}
+				<DialogClose asChild>
+					<Button variant="ghost" type="button" size="icon" aria-label="Close search">
+						<RiCloseLine aria-hidden="true" />
+					</Button>
+				</DialogClose>
+			</DialogHeader>
+			<CommandList className="max-h-[31.25rem] min-h-0 flex-1 pb-5">
+				{!searchQuery.trim() ? (
+					<div className="flex flex-col items-center gap-3 px-6 py-8 text-center text-sm">
+						<p className="text-gray-600">No recent activity</p>
+						<p className="text-gray-400">
+							Search by patient name, record ID, diagnosis, or transfer.
+						</p>
+					</div>
+				) : null}
+				{searchQuery.trim() ? (
+					<Tabs.Root
+						value={selectedSearchTab}
+						onValueChange={(value) => setSelectedSearchTab(value as SearchTab)}
+						className="px-4 pt-4 pb-2"
+					>
+						<Tabs.List
+							ref={measureSearchTabs}
+							className="relative flex flex-wrap gap-1.5"
+							aria-label="Search result types"
+						>
+							{searchTabs.map((tab) => {
+								const isActive = selectedSearchTab === tab;
+
+								return (
+									<Tabs.Trigger key={tab} value={tab} asChild>
+										<Button
+											variant="ghost"
+											type="button"
+											data-pill-tab={tab}
+											className={cn(
+												"relative rounded-full px-2.5 h-8 text-gray-600 py-0 font-normal hover:bg-transparent hover:text-gray-600",
+												!searchTabsIndicator &&
+													isActive &&
+													"bg-gray-800 text-white hover:bg-gray-800 hover:text-white",
+											)}
+										>
+											{tab}
+										</Button>
+									</Tabs.Trigger>
+								);
+							})}
+							{searchTabsIndicator && (
+								<div
+									aria-hidden="true"
+									inert
+									className={cn(
+										"pointer-events-none absolute inset-0 flex flex-wrap gap-1.5 bg-gray-800 text-white",
+										searchTabsIndicator.isAnimated &&
+											"motion-safe:transition-[clip-path] motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.645,0.045,0.355,1)]",
+									)}
+									style={{ clipPath: searchTabsIndicator.clipPath }}
+								>
+									{searchTabs.map((tab) => (
+										<span
+											key={tab}
+											className="inline-flex h-8 shrink-0 items-center justify-center rounded-full border border-transparent px-2.5 text-sm font-normal whitespace-nowrap"
+										>
+											{tab}
+										</span>
+									))}
+								</div>
+							)}
+						</Tabs.List>
+					</Tabs.Root>
+				) : null}
+				<CommandEmpty>No matching results.</CommandEmpty>
+				{searchSections.map((section) => {
+					const isNavigation = section.label === "Go to";
+					const sectionItems = section.items.filter((entry) =>
+						isSearchEntryInTab(entry.id, selectedSearchTab),
+					);
+					if (!sectionItems.length) return null;
+
+					return (
+						<CommandGroup key={section.label} heading={section.label}>
+							{sectionItems.map((entry) => {
+								const Icon = isNavigation ? RiArrowRightLine : RiAddLine;
+								const entryContent = (
+									<>
+										<Icon className="shrink-0 text-gray-600 size-4" aria-hidden="true" />
+
+										<div className="min-w-0">
+											<p className="font-medium text-gray-700">{entry.title}</p>
+
+											<p className="text-sm text-gray-400">{entry.description}</p>
+										</div>
+									</>
+								);
+
+								if (!entry.href) {
+									return (
+										<CommandItem
+											key={entry.id}
+											value={`${entry.title} ${entry.description}`}
+											onSelect={() => {
+												setIsSearchOpen(false);
+												setSearchQuery("");
+												setSelectedSearchTab("All");
+												setIsAddPatientDialogOpen(true);
+											}}
+										>
+											{entryContent}
+										</CommandItem>
+									);
+								}
+
+								return (
+									<DialogClose asChild key={entry.id}>
+										<CommandItem asChild value={`${entry.title} ${entry.description}`}>
+											<Link href={entry.href} prefetch={true}>
+												{entryContent}
+											</Link>
+										</CommandItem>
+									</DialogClose>
+								);
+							})}
+						</CommandGroup>
+					);
+				})}
+			</CommandList>
+			<div className="hidden h-14 shrink-0 items-center justify-between gap-4 border-t border-gray-200 px-4 text-sm text-gray-400 md:flex">
+				<div className="flex items-center gap-2">
+					<kbd className="flex size-6 items-center justify-center rounded bg-gray-100 font-[inherit] text-gray-600">
+						<RiArrowDownLine className="size-4" aria-hidden="true" />
+						<span className="sr-only">Down arrow</span>
+					</kbd>
+					<kbd className="flex size-6 items-center justify-center rounded bg-gray-100 font-[inherit] text-gray-600">
+						<RiArrowUpLine className="size-4" aria-hidden="true" />
+						<span className="sr-only">Up arrow</span>
+					</kbd>
+					<span>Navigate</span>
+				</div>
+				<div className="flex items-center gap-4">
+					<div className="flex items-center gap-2">
+						<kbd className="flex size-6 items-center justify-center rounded bg-gray-100 font-[inherit] text-gray-600">
+							<RiCornerDownLeftLine className="size-4" aria-hidden="true" />
+							<span className="sr-only">Enter</span>
+						</kbd>
+						<span>Select</span>
+					</div>
+					<div className="flex items-center gap-2">
+						<kbd className="flex h-6 w-9 items-center justify-center rounded bg-gray-100 font-[inherit] font-medium text-gray-600">
+							esc
+						</kbd>
+						<span>Close</span>
+					</div>
+				</div>
+			</div>
+		</>
+	);
 
 	const searchButton = (
 		<Button
@@ -290,191 +492,24 @@ export function Sidebar({
 						) : (
 							searchButton
 						)}
-						<CommandDialog
-							open={isSearchOpen}
-							onOpenChange={(open) => {
-								setIsSearchOpen(open);
-								if (!open) {
-									setSearchQuery("");
-									setSelectedSearchTab("All");
-								}
-							}}
-							label="Search chats"
-							contentClassName="h-auto max-w-[43.75rem] overflow-hidden p-0 text-sm md:h-[35.875rem]"
-						>
-							<DialogHeader>
-								<DialogTitle className="sr-only">Search chats</DialogTitle>
-								<DialogDescription className="sr-only">
-									Search patients, IDs, diagnoses, and other patient records.
-								</DialogDescription>
-								<CommandInput
-									value={searchQuery}
-									onValueChange={setSearchQuery}
-									placeholder="Search patients, IDs, diagnoses..."
-								/>
-								{searchQuery.trim() ? (
-									<Button
-										variant="ghost"
-										type="button"
-										onClick={() => {
-											setSearchQuery("");
-											setSelectedSearchTab("All");
-										}}
-									>
-										Clear
-									</Button>
-								) : null}
-								<DialogClose asChild>
-									<Button variant="ghost" type="button" size="icon" aria-label="Close search">
-										<RiCloseLine aria-hidden="true" />
-									</Button>
-								</DialogClose>
-							</DialogHeader>
-							<CommandList className="max-h-[31.25rem] min-h-0 flex-1 pb-5">
-								{!searchQuery.trim() ? (
-									<div className="flex flex-col items-center gap-3 px-6 py-8 text-center text-sm">
-										<p className="text-gray-600">No recent activity</p>
-										<p className="text-gray-400">
-											Search by patient name, record ID, diagnosis, or transfer.
-										</p>
-									</div>
-								) : null}
-								{searchQuery.trim() ? (
-									<Tabs.Root
-										value={selectedSearchTab}
-										onValueChange={(value) => setSelectedSearchTab(value as SearchTab)}
-										className="px-4 pt-4 pb-2"
-									>
-										<Tabs.List
-											ref={measureSearchTabs}
-											className="relative flex flex-wrap gap-1.5"
-											aria-label="Search result types"
-										>
-											{searchTabs.map((tab) => {
-												const isActive = selectedSearchTab === tab;
-
-												return (
-													<Tabs.Trigger key={tab} value={tab} asChild>
-														<Button
-															variant="ghost"
-															type="button"
-															data-pill-tab={tab}
-															className={cn(
-																"relative rounded-full px-2.5 h-8 text-gray-600 py-0 font-normal hover:bg-transparent hover:text-gray-600",
-																!searchTabsClipPath &&
-																	isActive &&
-																	"bg-gray-800 text-white hover:bg-gray-800 hover:text-white",
-															)}
-														>
-															{tab}
-														</Button>
-													</Tabs.Trigger>
-												);
-											})}
-											{searchTabsClipPath && (
-												<div
-													aria-hidden="true"
-													inert
-													className="pointer-events-none absolute inset-0 flex flex-wrap gap-1.5 bg-gray-800 text-white motion-safe:transition-[clip-path] motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.645,0.045,0.355,1)] motion-reduce:transition-none"
-													style={{ clipPath: searchTabsClipPath }}
-												>
-													{searchTabs.map((tab) => (
-														<span
-															key={tab}
-															className="inline-flex h-8 shrink-0 items-center justify-center rounded-full border border-transparent px-2.5 text-sm font-normal whitespace-nowrap"
-														>
-															{tab}
-														</span>
-													))}
-												</div>
-											)}
-										</Tabs.List>
-									</Tabs.Root>
-								) : null}
-								<CommandEmpty>No matching results.</CommandEmpty>
-								{searchSections.map((section) => {
-									const isNavigation = section.label === "Go to";
-									const sectionItems = section.items.filter((entry) =>
-										isSearchEntryInTab(entry.id, selectedSearchTab),
-									);
-									if (!sectionItems.length) return null;
-
-									return (
-										<CommandGroup key={section.label} heading={section.label}>
-											{sectionItems.map((entry) => {
-												const Icon = isNavigation ? RiArrowRightLine : RiAddLine;
-												const entryContent = (
-													<>
-														<Icon className="shrink-0 text-gray-600 size-4" aria-hidden="true" />
-
-														<div className="min-w-0">
-															<p className="font-medium text-gray-700">{entry.title}</p>
-
-															<p className="text-sm text-gray-400">{entry.description}</p>
-														</div>
-													</>
-												);
-
-												if (!entry.href) {
-													return (
-														<CommandItem
-															key={entry.id}
-															value={`${entry.title} ${entry.description}`}
-															onSelect={() => {
-																setIsSearchOpen(false);
-																setSearchQuery("");
-																setSelectedSearchTab("All");
-																setIsAddPatientDialogOpen(true);
-															}}
-														>
-															{entryContent}
-														</CommandItem>
-													);
-												}
-
-												return (
-													<DialogClose asChild key={entry.id}>
-														<CommandItem asChild value={`${entry.title} ${entry.description}`}>
-															<Link href={entry.href} prefetch={true}>
-																{entryContent}
-															</Link>
-														</CommandItem>
-													</DialogClose>
-												);
-											})}
-										</CommandGroup>
-									);
-								})}
-							</CommandList>
-							<div className="hidden h-14 shrink-0 items-center justify-between gap-4 border-t border-gray-200 px-4 text-sm text-gray-400 md:flex">
-								<div className="flex items-center gap-2">
-									<kbd className="flex size-6 items-center justify-center rounded bg-gray-100 font-[inherit] text-gray-600">
-										<RiArrowDownLine className="size-4" aria-hidden="true" />
-										<span className="sr-only">Down arrow</span>
-									</kbd>
-									<kbd className="flex size-6 items-center justify-center rounded bg-gray-100 font-[inherit] text-gray-600">
-										<RiArrowUpLine className="size-4" aria-hidden="true" />
-										<span className="sr-only">Up arrow</span>
-									</kbd>
-									<span>Navigate</span>
-								</div>
-								<div className="flex items-center gap-4">
-									<div className="flex items-center gap-2">
-										<kbd className="flex size-6 items-center justify-center rounded bg-gray-100 font-[inherit] text-gray-600">
-											<RiCornerDownLeftLine className="size-4" aria-hidden="true" />
-											<span className="sr-only">Enter</span>
-										</kbd>
-										<span>Select</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<kbd className="flex h-6 w-9 items-center justify-center rounded bg-gray-100 font-[inherit] font-medium text-gray-600">
-											esc
-										</kbd>
-										<span>Close</span>
-									</div>
-								</div>
-							</div>
-						</CommandDialog>
+						{isMobile ? (
+							<Drawer open={isSearchOpen} onOpenChange={handleSearchOpenChange}>
+								<DrawerContent className="max-w-none overflow-hidden border text-sm data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:rounded-2xl data-[vaul-drawer-direction=bottom]:top-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
+									<Command className="flex min-h-0 flex-1 flex-col bg-white text-gray-800">
+										{searchContent}
+									</Command>
+								</DrawerContent>
+							</Drawer>
+						) : (
+							<CommandDialog
+								open={isSearchOpen}
+								onOpenChange={handleSearchOpenChange}
+								label="Search chats"
+								contentClassName="h-auto max-w-[43.75rem] overflow-hidden p-0 text-sm md:h-[35.875rem]"
+							>
+								{searchContent}
+							</CommandDialog>
+						)}
 						<AddPatientDialog
 							returnTo={pathname}
 							open={isAddPatientDialogOpen}

@@ -3,10 +3,9 @@
 import { useState, type ComponentType } from "react";
 import {
 	RiArrowLeftLine,
+	RiArrowRightSLine,
 	RiBankCardFill,
 	RiBankCardLine,
-	RiBuildingFill,
-	RiBuildingLine,
 	RiCloseLine,
 	RiMoonFill,
 	RiMoonLine,
@@ -20,13 +19,7 @@ import { AccountSettings } from "@/components/layout/settings/account-settings";
 import { AppearanceSettings } from "@/components/layout/settings/appearance-settings";
 import { BillingSettings } from "@/components/layout/settings/billing-settings";
 import { MembersSettings } from "@/components/layout/settings/members-settings";
-import { ProfileSettings } from "@/components/layout/settings/profile-settings";
-import type {
-	PendingInvitation,
-	SettingsDialogUser,
-	SettingsSectionId,
-	SettingsSubView,
-} from "@/components/layout/settings/types";
+import type { SettingsDialogUser, SettingsSectionId } from "@/components/layout/settings/types";
 import {
 	Dialog,
 	DialogClose,
@@ -48,19 +41,8 @@ type SettingsSection = {
 	}>;
 };
 
-const settingsSubViewLabels: Record<SettingsSubView, string> = {
-	organization: "Organization",
-	"active-session": "Active sessions",
-	"change-password": "Change password",
-	"payment-method": "Payment method",
-	"billing-history": "Billing History",
-	"invite-member": "Invite new member",
-	"review-invitations": "Review invitations",
-};
-
 const settingsSections: SettingsSection[] = [
-	{ id: "profile", label: "Profile", icon: RiUserLine, activeIcon: RiUserFill },
-	{ id: "account", label: "Account", icon: RiBuildingLine, activeIcon: RiBuildingFill },
+	{ id: "account", label: "Account", icon: RiUserLine, activeIcon: RiUserFill },
 	{ id: "appearance", label: "Appearance", icon: RiMoonLine, activeIcon: RiMoonFill },
 	{ id: "billing", label: "Billing", icon: RiBankCardLine, activeIcon: RiBankCardFill },
 	{ id: "members", label: "Manage members", icon: RiTeamLine, activeIcon: RiTeamFill },
@@ -70,18 +52,6 @@ function isOrganizationSettingsSection(sectionId: SettingsSectionId) {
 	return sectionId === "billing" || sectionId === "members";
 }
 
-const pendingInvitations: PendingInvitation[] = [
-	{
-		id: "invitation-grace-nwosu",
-		name: "Grace Nwosu",
-		email: "grace@example.com",
-		role: "member",
-		status: "pending",
-		sentAt: "Aug 15, 2026",
-		expiresAt: "Aug 24, 2026",
-	},
-];
-
 type SettingsDialogProps = {
 	user: SettingsDialogUser;
 	open: boolean;
@@ -90,7 +60,7 @@ type SettingsDialogProps = {
 
 export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps) {
 	const [selectedSettingsSection, setSelectedSettingsSection] =
-		useState<SettingsSectionId>("profile");
+		useState<SettingsSectionId>("account");
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const { data: activeOrganization } = authClient.useActiveOrganization();
 	const manageableOrganizationRole =
@@ -101,71 +71,55 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 	const visibleSettingsSections = settingsSections.filter(
 		({ id }) => canManageOrganization || !isOrganizationSettingsSection(id),
 	);
-	const [activeSettingsSubView, setActiveSettingsSubView] = useState<SettingsSubView | null>(null);
-	const handleSettingsSubViewBack = () => {
-		if (activeSettingsSubView === "review-invitations") {
-			setActiveSettingsSubView("invite-member");
-			return;
-		}
-
-		setActiveSettingsSubView(null);
-	};
+	const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+	const [isPhoneSectionOpen, setIsPhoneSectionOpen] = useState(false);
 	const selectedSettingsSectionLabel = visibleSettingsSections.find(
 		({ id }) => id === selectedSettingsSection,
 	)?.label;
 
-	function getSettingsBackButtonLabel() {
-		if (activeSettingsSubView === "change-password") {
-			return "Back to account settings";
-		}
-		if (activeSettingsSubView === "active-session") {
-			return "Back to account settings";
-		}
-
-		if (activeSettingsSubView === "billing-history" || activeSettingsSubView === "payment-method") {
-			return "Back to billing settings";
-		}
-
-		if (activeSettingsSubView === "invite-member") {
-			return "Back to manage members";
-		}
-		if (activeSettingsSubView === "organization") {
-			return "Back to account settings";
-		}
-
-		if (activeSettingsSubView === "review-invitations") {
-			return "Back to invite new member";
-		}
-
-		return "Back to settings";
-	}
-
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="h-[43.75rem] max-h-[calc(100vh-2rem)] max-w-[50rem] overflow-hidden p-0">
-				<div className="flex h-full min-h-0">
-					<aside className="w-[12.5rem] shrink-0 border-r bg-white p-2">
-						<div className="flex h-10 items-center px-2">
-							<DialogTitle>Settings</DialogTitle>
-							<DialogDescription className="sr-only">
-								Manage your Medibridge profile and organization settings.
-							</DialogDescription>
-						</div>
-						<nav aria-label="Settings sections" className="mt-3 flex flex-col gap-px">
+		<Dialog
+			open={open}
+			onOpenChange={(nextOpen) => {
+				if (!nextOpen) setIsPhoneSectionOpen(false);
+				onOpenChange(nextOpen);
+			}}
+		>
+			<DialogContent className="flex h-full max-h-[56.25rem] max-w-[80rem] flex-col overflow-hidden p-0">
+				<div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
+					<DialogTitle>Settings</DialogTitle>
+					<DialogDescription className="sr-only">
+						Manage your Medibridge account and organization settings.
+					</DialogDescription>
+					<DialogClose asChild>
+						<Button variant="ghost" size="icon" aria-label="Close settings">
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</DialogClose>
+				</div>
+				<div className="flex min-h-0 flex-1">
+					<aside
+						className={cn(
+							"w-[12.5rem] shrink-0 border-r bg-white p-2 max-md:w-full max-md:border-r-0",
+							isPhoneSectionOpen && "max-md:hidden",
+						)}
+					>
+						<nav aria-label="Settings sections" className="flex flex-col gap-px">
 							{visibleSettingsSections.map(({ id, label, icon: Icon, activeIcon: ActiveIcon }) => (
 								<Button
 									variant="ghost"
 									key={id}
 									type="button"
 									className={cn(
-										"flex h-8 w-full rounded-lg px-2.5 text-left justify-start py-0 font-normal has-[>svg:first-child]:pl-2.5",
+										"flex h-8 w-full rounded-lg px-2.5 text-left justify-start py-0 font-normal has-[>svg:first-child]:pl-2.5 max-md:h-10",
 										selectedSettingsSection === id
 											? "bg-gray-200 font-medium text-gray-800 hover:bg-gray-200 hover:text-gray-800"
 											: "text-gray-600 hover:bg-gray-100 hover:text-gray-800",
 									)}
 									onClick={() => {
 										setSelectedSettingsSection(id);
-										setActiveSettingsSubView(null);
+										setIsChangePasswordOpen(false);
+										setIsPhoneSectionOpen(true);
 									}}
 								>
 									{selectedSettingsSection === id ? (
@@ -174,42 +128,40 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 										<Icon className="size-4 shrink-0" aria-hidden={true} />
 									)}
 									<span>{label}</span>
+									<RiArrowRightSLine className="ml-auto size-4 md:hidden" aria-hidden={true} />
 								</Button>
 							))}
 						</nav>
 					</aside>
 
-					<section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-						<div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
-							{activeSettingsSubView ? (
-								<div className="flex items-center gap-2">
+					<section
+						className={cn(
+							"flex h-full min-w-0 flex-1 flex-col overflow-hidden",
+							!isPhoneSectionOpen && "max-md:hidden",
+						)}
+					>
+						<h2 className="sr-only">
+							{isChangePasswordOpen ? "Change password" : selectedSettingsSectionLabel}
+						</h2>
+						<div className="flex-1 overflow-y-auto">
+							{isChangePasswordOpen ? null : (
+								<div className="px-4 pt-5 md:hidden">
 									<Button
 										variant="ghost"
-										size="icon"
+										size="sm"
 										type="button"
-										className="text-gray-800 hover:bg-gray-100 hover:text-gray-800"
-										aria-label={getSettingsBackButtonLabel()}
-										onClick={handleSettingsSubViewBack}
+										className="text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+										aria-label="Back to settings sections"
+										onClick={() => setIsPhoneSectionOpen(false)}
 									>
-										<RiArrowLeftLine className="size-5" aria-hidden="true" />
+										<RiArrowLeftLine aria-hidden="true" />
+										Back
 									</Button>
-									<h2 className="text-base font-semibold">
-										{settingsSubViewLabels[activeSettingsSubView]}
-									</h2>
 								</div>
-							) : (
-								<h2 className="text-base font-semibold">{selectedSettingsSectionLabel}</h2>
 							)}
-							<DialogClose asChild>
-								<Button variant="ghost" size="icon" aria-label="Close settings">
-									<RiCloseLine aria-hidden="true" />
-								</Button>
-							</DialogClose>
-						</div>
-						<div className="flex-1 overflow-y-auto">
-							{selectedSettingsSection === "profile" ? <ProfileSettings user={user} /> : null}
 							{selectedSettingsSection === "account" ? (
 								<AccountSettings
+									user={user}
 									viewerRole={
 										activeMemberRole?.role === "owner" ||
 										activeMemberRole?.role === "admin" ||
@@ -218,23 +170,17 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 											: null
 									}
 									organizationName={activeOrganization?.name ?? null}
-									activeSettingsSubView={activeSettingsSubView}
-									onSettingsSubViewChange={setActiveSettingsSubView}
+									organizationId={activeOrganization?.id ?? null}
+									isChangePasswordOpen={isChangePasswordOpen}
+									onChangePasswordOpenChange={setIsChangePasswordOpen}
 								/>
 							) : null}
 							{selectedSettingsSection === "appearance" ? <AppearanceSettings /> : null}
-							{selectedSettingsSection === "billing" ? (
-								<BillingSettings
-									activeSettingsSubView={activeSettingsSubView}
-									onSettingsSubViewChange={setActiveSettingsSubView}
-								/>
-							) : null}
+							{selectedSettingsSection === "billing" ? <BillingSettings /> : null}
 							{selectedSettingsSection === "members" && manageableOrganizationRole ? (
 								<MembersSettings
-									activeSettingsSubView={activeSettingsSubView}
 									currentUser={user}
-									onSettingsSubViewChange={setActiveSettingsSubView}
-									pendingInvitations={pendingInvitations}
+									organizationName={activeOrganization?.name ?? "your hospital"}
 									viewerRole={manageableOrganizationRole}
 								/>
 							) : null}

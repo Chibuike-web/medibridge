@@ -23,7 +23,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useMediaQuery } from "@/hooks/use-media-query";
 
 const FILTER_MENU_WIDTH_REM = 12.5;
 
@@ -42,48 +41,40 @@ export function FilterGroup({
 	activeFilterCount: number;
 	children: ReactNode;
 }) {
-	const isMobile = useMediaQuery("(width < 48rem)");
-	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-	if (!isMobile && isDrawerOpen) {
-		setIsDrawerOpen(false);
-	}
-
-	if (!isMobile) {
-		return children;
-	}
-
 	return (
-		<Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-			<DrawerTrigger asChild>
-				<Button
-					variant="outline"
-					className="flex-1 bg-white text-gray-600 hover:bg-gray-50 active:scale-100"
+		<>
+			<div className="contents max-md:hidden">{children}</div>
+			<Drawer>
+				<DrawerTrigger asChild>
+					<Button
+						variant="outline"
+						className="flex-1 bg-white text-gray-600 hover:bg-gray-50 active:scale-100 md:hidden"
+					>
+						<RiFilter3Line aria-hidden className="size-4 text-gray-600" />
+						Filters
+						{activeFilterCount > 0 ? (
+							<span className="text-gray-500">({activeFilterCount})</span>
+						) : null}
+					</Button>
+				</DrawerTrigger>
+				<DrawerContent
+					aria-describedby={undefined}
+					className="max-w-none overflow-hidden text-sm text-gray-700 shadow-[0_2rem_2rem_-1.25rem_rgba(0,0,0,0.25)] data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-2xl data-[vaul-drawer-direction=bottom]:border"
 				>
-					<RiFilter3Line aria-hidden className="size-4 text-gray-600" />
-					Filters
-					{activeFilterCount > 0 ? (
-						<span className="text-gray-500">({activeFilterCount})</span>
-					) : null}
-				</Button>
-			</DrawerTrigger>
-			<DrawerContent
-				aria-describedby={undefined}
-				className="max-w-none overflow-hidden text-sm text-gray-700 shadow-[0_2rem_2rem_-1.25rem_rgba(0,0,0,0.25)] data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:rounded-2xl data-[vaul-drawer-direction=bottom]:border"
-			>
-				<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
-					<DrawerTitle className="leading-[1.2] text-gray-800">Filters</DrawerTitle>
-					<DrawerClose asChild>
-						<Button variant="ghost" size="icon" aria-label="Close filters">
-							<RiCloseLine aria-hidden="true" />
-						</Button>
-					</DrawerClose>
-				</DrawerHeader>
-				<div className="flex flex-col gap-3 overflow-y-auto p-2">
-					<IsInFilterDrawerContext value={true}>{children}</IsInFilterDrawerContext>
-				</div>
-			</DrawerContent>
-		</Drawer>
+					<DrawerHeader className="flex-row items-center justify-between border-b border-gray-200 text-left">
+						<DrawerTitle className="leading-[1.2] text-gray-800">Filters</DrawerTitle>
+						<DrawerClose asChild>
+							<Button variant="ghost" size="icon" aria-label="Close filters">
+								<RiCloseLine aria-hidden="true" />
+							</Button>
+						</DrawerClose>
+					</DrawerHeader>
+					<div className="flex flex-col gap-3 overflow-y-auto p-2">
+						<IsInFilterDrawerContext value={true}>{children}</IsInFilterDrawerContext>
+					</div>
+				</DrawerContent>
+			</Drawer>
+		</>
 	);
 }
 
