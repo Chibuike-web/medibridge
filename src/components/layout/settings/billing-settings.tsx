@@ -208,16 +208,16 @@ export function BillingSettings() {
 						<Table className="min-w-[40rem] border-separate border-spacing-0 bg-gray-50 text-left">
 							<TableHeader className="text-sm font-semibold text-gray-500">
 								<TableRow>
-									<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
+									<TableHead className="h-10 w-1/4 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
 										Date
 									</TableHead>
-									<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
+									<TableHead className="h-10 w-1/4 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
 										Total
 									</TableHead>
-									<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
+									<TableHead className="h-10 w-1/4 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
 										Status
 									</TableHead>
-									<TableHead className="h-10 bg-gray-50 px-3 py-0 text-right whitespace-nowrap text-gray-600">
+									<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
 										Actions
 									</TableHead>
 								</TableRow>
@@ -247,7 +247,7 @@ export function BillingSettings() {
 														rowPosition === 0 && "rounded-tr-lg",
 													)}
 												>
-													<div className="flex items-center justify-end gap-2">
+													<div className="flex items-center gap-2">
 														<Button type="button" variant="outline" size="sm">
 															Download PDF
 														</Button>
