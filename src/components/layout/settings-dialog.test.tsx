@@ -89,6 +89,24 @@ describe("SettingsDialog", () => {
 		expect(await screen.findByRole("dialog", { name: "Password changed" })).toBeVisible();
 	});
 
+	test("goes back from the new password step to the current password step", async () => {
+		const user = userEvent.setup();
+		render(<SettingsDialog {...props} />);
+		await user.click(screen.getByRole("button", { name: "Account" }));
+		await user.click(screen.getByRole("button", { name: "Change password" }));
+		await user.type(screen.getByLabelText(/Current password/, { selector: "input" }), "OldPass12");
+		await user.click(screen.getByRole("button", { name: "Continue" }));
+		expect(screen.getByLabelText(/New password/, { selector: "input" })).toBeVisible();
+
+		await user.click(screen.getByRole("button", { name: "Back to current password" }));
+
+		expect(screen.getByLabelText(/Current password/, { selector: "input" })).toHaveValue(
+			"OldPass12",
+		);
+		expect(screen.queryByLabelText(/New password/, { selector: "input" })).not.toBeInTheDocument();
+		expect(changePasswordMock).not.toHaveBeenCalled();
+	});
+
 	test("keeps the form open and identifies an incorrect current password", async () => {
 		changePasswordMock.mockResolvedValue({ error: { code: "INVALID_PASSWORD" } });
 		const user = userEvent.setup();

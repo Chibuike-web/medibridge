@@ -19,11 +19,7 @@ import { AccountSettings } from "@/components/layout/settings/account-settings";
 import { AppearanceSettings } from "@/components/layout/settings/appearance-settings";
 import { BillingSettings } from "@/components/layout/settings/billing-settings";
 import { MembersSettings } from "@/components/layout/settings/members-settings";
-import type {
-	SettingsDialogUser,
-	SettingsSectionId,
-	SettingsSubView,
-} from "@/components/layout/settings/types";
+import type { SettingsDialogUser, SettingsSectionId } from "@/components/layout/settings/types";
 import {
 	Dialog,
 	DialogClose,
@@ -43,10 +39,6 @@ type SettingsSection = {
 		className?: string;
 		"aria-hidden"?: boolean | "true" | "false";
 	}>;
-};
-
-const settingsSubViewLabels: Record<SettingsSubView, string> = {
-	"change-password": "Change password",
 };
 
 const settingsSections: SettingsSection[] = [
@@ -79,14 +71,20 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 	const visibleSettingsSections = settingsSections.filter(
 		({ id }) => canManageOrganization || !isOrganizationSettingsSection(id),
 	);
-	const [activeSettingsSubView, setActiveSettingsSubView] = useState<SettingsSubView | null>(null);
+	const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 	const [isPhoneSectionOpen, setIsPhoneSectionOpen] = useState(false);
 	const selectedSettingsSectionLabel = visibleSettingsSections.find(
 		({ id }) => id === selectedSettingsSection,
 	)?.label;
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
+		<Dialog
+			open={open}
+			onOpenChange={(nextOpen) => {
+				if (!nextOpen) setIsPhoneSectionOpen(false);
+				onOpenChange(nextOpen);
+			}}
+		>
 			<DialogContent className="flex h-full max-h-[56.25rem] max-w-[80rem] flex-col overflow-hidden p-0">
 				<div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
 					<DialogTitle>Settings</DialogTitle>
@@ -120,7 +118,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 									)}
 									onClick={() => {
 										setSelectedSettingsSection(id);
-										setActiveSettingsSubView(null);
+										setIsChangePasswordOpen(false);
 										setIsPhoneSectionOpen(true);
 									}}
 								>
@@ -143,26 +141,10 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 						)}
 					>
 						<h2 className="sr-only">
-							{activeSettingsSubView
-								? settingsSubViewLabels[activeSettingsSubView]
-								: selectedSettingsSectionLabel}
+							{isChangePasswordOpen ? "Change password" : selectedSettingsSectionLabel}
 						</h2>
 						<div className="flex-1 overflow-y-auto">
-							{activeSettingsSubView ? (
-								<div className="px-4 pt-5">
-									<Button
-										variant="ghost"
-										size="sm"
-										type="button"
-										className="text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-										aria-label="Back to account settings"
-										onClick={() => setActiveSettingsSubView(null)}
-									>
-										<RiArrowLeftLine aria-hidden="true" />
-										Back
-									</Button>
-								</div>
-							) : (
+							{isChangePasswordOpen ? null : (
 								<div className="px-4 pt-5 md:hidden">
 									<Button
 										variant="ghost"
@@ -189,8 +171,8 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 									}
 									organizationName={activeOrganization?.name ?? null}
 									organizationId={activeOrganization?.id ?? null}
-									activeSettingsSubView={activeSettingsSubView}
-									onSettingsSubViewChange={setActiveSettingsSubView}
+									isChangePasswordOpen={isChangePasswordOpen}
+									onChangePasswordOpenChange={setIsChangePasswordOpen}
 								/>
 							) : null}
 							{selectedSettingsSection === "appearance" ? <AppearanceSettings /> : null}

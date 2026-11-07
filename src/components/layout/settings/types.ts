@@ -10,8 +10,6 @@ export type InviteMemberRow = {
 	role: Exclude<OrganizationRole, "owner"> | "";
 };
 
-export type SettingsSubView = "change-password";
-
 export type SettingsDialogUser = {
 	name: string;
 	email: string;

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import {
+	RiArrowLeftLine,
 	RiArrowLeftSLine,
 	RiArrowRightSLine,
 	RiDeleteBin2Line,
@@ -15,8 +16,10 @@ import {
 } from "@remixicon/react";
 
 import { StatusBadge } from "@/components/status-badge";
+import { SuccessModal } from "@/components/success-modal";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -45,11 +48,8 @@ import { authClient } from "@/lib/better-auth/auth.client";
 import { cn } from "@/lib/utils/cn";
 import { getInitials } from "@/lib/utils/get-initials";
 
-import type { SettingsDialogUser, SettingsSubView } from "./types";
-import { SuccessModal } from "@/components/success-modal";
-import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { DeleteAccountDialog } from "./delete-account-dialog";
-import type { OrganizationRole } from "./types";
+import type { OrganizationRole, SettingsDialogUser } from "./types";
 
 const ROWS_PER_PAGE_OPTIONS = [14, 28, 42];
 
@@ -79,8 +79,8 @@ const activeSessions = [
 
 export function AccountSettings({
 	user,
-	activeSettingsSubView,
-	onSettingsSubViewChange,
+	isChangePasswordOpen,
+	onChangePasswordOpenChange,
 	viewerRole,
 	organizationName,
 	organizationId,
@@ -89,8 +89,8 @@ export function AccountSettings({
 	viewerRole: OrganizationRole | null;
 	organizationName: string | null;
 	organizationId: string | null;
-	activeSettingsSubView: SettingsSubView | null;
-	onSettingsSubViewChange: (view: SettingsSubView | null) => void;
+	isChangePasswordOpen: boolean;
+	onChangePasswordOpenChange: (open: boolean) => void;
 }) {
 	const [isPasswordChangeSuccessOpen, setIsPasswordChangeSuccessOpen] = useState(false);
 	const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
@@ -107,11 +107,12 @@ export function AccountSettings({
 	);
 	const fitsOnSmallestPage = matchingSessions.length <= ROWS_PER_PAGE_OPTIONS[0];
 
-	if (activeSettingsSubView === "change-password") {
+	if (isChangePasswordOpen) {
 		return (
 			<ChangePasswordForm
+				onBack={() => onChangePasswordOpenChange(false)}
 				onSuccess={() => {
-					onSettingsSubViewChange(null);
+					onChangePasswordOpenChange(false);
 					setIsPasswordChangeSuccessOpen(true);
 				}}
 			/>
@@ -400,7 +401,7 @@ export function AccountSettings({
 									className="text-gray-400"
 									variant="ghost"
 									aria-label="Change password"
-									onClick={() => onSettingsSubViewChange("change-password")}
+									onClick={() => onChangePasswordOpenChange(true)}
 								>
 									Change
 								</Button>
@@ -458,7 +459,7 @@ For your security, all other active sessions have been signed out."
 	);
 }
 
-function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
+function ChangePasswordForm({ onBack, onSuccess }: { onBack: () => void; onSuccess: () => void }) {
 	const [passwordStep, setPasswordStep] = useState<"current" | "new">("current");
 	const [currentPassword, setCurrentPassword] = useState("");
 	const [newPassword, setNewPassword] = useState("");
@@ -472,165 +473,155 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 
 	if (passwordStep === "current") {
 		return (
-			<form
-				method="post"
-				className="mx-auto flex w-full max-w-[31.25rem] flex-col gap-8 px-4 py-10"
-				onSubmit={(event) => {
-					event.preventDefault();
-					setChangePasswordError("");
-					setPasswordStep("new");
-				}}
-			>
-				<h3 className="text-center text-base font-semibold text-gray-800 text-balance">
-					Enter your current password
-				</h3>
-				<div className="flex flex-col gap-3">
-					<div className="flex items-center justify-between gap-4">
-						<Label htmlFor="current-password" className="text-sm font-medium text-gray-600">
-							Current password <span className="font-normal text-gray-400">(required)</span>
-						</Label>
-						<Link
-							href="/forgot-password"
-							className="shrink-0 text-sm font-medium text-gray-600 underline underline-offset-4 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
-						>
-							Forgot password
-						</Link>
-					</div>
-					<div className="flex flex-col gap-1.5">
-						<Input
-							id="current-password"
-							name="currentPassword"
-							type="password"
-							placeholder="Enter current password"
-							autoComplete="current-password"
-							required
-							value={currentPassword}
-							aria-invalid={isCurrentPasswordError}
-							aria-describedby={isCurrentPasswordError ? "current-password-error" : undefined}
-							onChange={(event) => {
-								setCurrentPassword(event.target.value);
-								setChangePasswordError("");
-							}}
-						/>
-						{isCurrentPasswordError && (
-							<p id="current-password-error" role="alert" className="text-sm text-red-600">
-								{changePasswordError}
-							</p>
-						)}
-					</div>
+			<>
+				<div className="px-4 pt-5">
+					<Button
+						variant="ghost"
+						size="sm"
+						type="button"
+						className="text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+						aria-label="Back to account settings"
+						onClick={onBack}
+					>
+						<RiArrowLeftLine aria-hidden="true" />
+						Back
+					</Button>
 				</div>
-				<Button type="submit" className="w-full">
-					Continue
-				</Button>
-			</form>
+				<form
+					method="post"
+					className="mx-auto flex w-full max-w-[31.25rem] flex-col gap-8 px-4 py-10"
+					onSubmit={(event) => {
+						event.preventDefault();
+						setChangePasswordError("");
+						setPasswordStep("new");
+					}}
+				>
+					<h3 className="text-center text-base font-semibold text-gray-800 text-balance">
+						Enter your current password
+					</h3>
+					<div className="flex flex-col gap-3">
+						<div className="flex items-center justify-between gap-4">
+							<Label htmlFor="current-password" className="text-sm font-medium text-gray-600">
+								Current password <span className="font-normal text-gray-400">(required)</span>
+							</Label>
+							<Link
+								href="/forgot-password"
+								className="shrink-0 text-sm font-medium text-gray-600 underline underline-offset-4 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+							>
+								Forgot password
+							</Link>
+						</div>
+						<div className="flex flex-col gap-1.5">
+							<Input
+								id="current-password"
+								name="currentPassword"
+								type="password"
+								placeholder="Enter current password"
+								autoComplete="current-password"
+								required
+								value={currentPassword}
+								aria-invalid={isCurrentPasswordError}
+								aria-describedby={isCurrentPasswordError ? "current-password-error" : undefined}
+								onChange={(event) => {
+									setCurrentPassword(event.target.value);
+									setChangePasswordError("");
+								}}
+							/>
+							{isCurrentPasswordError && (
+								<p id="current-password-error" role="alert" className="text-sm text-red-600">
+									{changePasswordError}
+								</p>
+							)}
+						</div>
+					</div>
+					<Button type="submit" className="w-full">
+						Continue
+					</Button>
+				</form>
+			</>
 		);
 	}
 
 	return (
-		<form
-			method="post"
-			className="mx-auto flex w-full max-w-[31.25rem] flex-col gap-8 px-4 py-10"
-			aria-busy={isPending}
-			onSubmit={(event) => {
-				event.preventDefault();
-				if (newPassword !== confirmedPassword) {
-					setChangePasswordError("Passwords do not match.");
-					return;
-				}
-
-				setChangePasswordError("");
-				startTransition(async () => {
-					try {
-						const { error } = await authClient.changePassword({
-							currentPassword,
-							newPassword,
-							revokeOtherSessions: true,
-						});
-
-						if (error?.code === "INVALID_PASSWORD") {
-							setChangePasswordError("Current password is incorrect.");
-							setPasswordStep("current");
-							return;
-						}
-
-						if (error) {
-							setChangePasswordError("We couldn’t change your password. Please try again.");
-							return;
-						}
-
-						onSuccess();
-					} catch (error) {
-						console.error("Changing the password failed:", error);
-						setChangePasswordError("We couldn’t change your password. Please try again.");
+		<>
+			<div className="px-4 pt-5">
+				<Button
+					variant="ghost"
+					size="sm"
+					type="button"
+					className="text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+					aria-label="Back to current password"
+					onClick={() => {
+						setChangePasswordError("");
+						setPasswordStep("current");
+					}}
+				>
+					<RiArrowLeftLine aria-hidden="true" />
+					Back
+				</Button>
+			</div>
+			<form
+				method="post"
+				className="mx-auto flex w-full max-w-[31.25rem] flex-col gap-8 px-4 py-10"
+				aria-busy={isPending}
+				onSubmit={(event) => {
+					event.preventDefault();
+					if (newPassword !== confirmedPassword) {
+						setChangePasswordError("Passwords do not match.");
+						return;
 					}
-				});
-			}}
-		>
-			<h3 className="text-center text-base font-semibold text-gray-800 text-balance">
-				Enter new password
-			</h3>
-			<div className="flex flex-col gap-4">
-				<div className="flex flex-col gap-3">
-					<Label htmlFor="new-password" className="text-sm font-medium text-gray-600">
-						New password <span className="font-normal text-gray-400">(required)</span>
-					</Label>
-					<div className="relative">
-						<Input
-							id="new-password"
-							name="newPassword"
-							type={isNewPasswordVisible ? "text" : "password"}
-							placeholder="Enter new password"
-							autoComplete="new-password"
-							minLength={8}
-							maxLength={128}
-							required
-							disabled={isPending}
-							value={newPassword}
-							aria-describedby="new-password-requirement"
-							onChange={(event) => {
-								setNewPassword(event.target.value);
-								setChangePasswordError("");
-							}}
-						/>
-						<Button
-							variant="ghost"
-							size="icon"
-							type="button"
-							className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-600 size-auto border-0 hover:bg-transparent hover:text-gray-600 focus-visible:border-0"
-							aria-label={isNewPasswordVisible ? "Hide new password" : "Show new password"}
-							aria-pressed={isNewPasswordVisible}
-							onClick={() => setIsNewPasswordVisible((prev) => !prev)}
-						>
-							{isNewPasswordVisible ? (
-								<RiEyeOffLine className="size-4" aria-hidden="true" />
-							) : (
-								<RiEyeLine className="size-4" aria-hidden="true" />
-							)}
-						</Button>
-					</div>
-					<p id="new-password-requirement" className="text-sm text-gray-400">
-						Use 8 to 128 characters.
-					</p>
-				</div>
-				<div className="flex flex-col gap-3">
-					<Label htmlFor="confirm-new-password" className="text-sm font-medium text-gray-600">
-						Confirm new password <span className="font-normal text-gray-400">(required)</span>
-					</Label>
-					<div className="flex flex-col gap-1.5">
+
+					setChangePasswordError("");
+					startTransition(async () => {
+						try {
+							const { error } = await authClient.changePassword({
+								currentPassword,
+								newPassword,
+								revokeOtherSessions: true,
+							});
+
+							if (error?.code === "INVALID_PASSWORD") {
+								setChangePasswordError("Current password is incorrect.");
+								setPasswordStep("current");
+								return;
+							}
+
+							if (error) {
+								setChangePasswordError("We couldn’t change your password. Please try again.");
+								return;
+							}
+
+							onSuccess();
+						} catch (error) {
+							console.error("Changing the password failed:", error);
+							setChangePasswordError("We couldn’t change your password. Please try again.");
+						}
+					});
+				}}
+			>
+				<h3 className="text-center text-base font-semibold text-gray-800 text-balance">
+					Enter new password
+				</h3>
+				<div className="flex flex-col gap-4">
+					<div className="flex flex-col gap-3">
+						<Label htmlFor="new-password" className="text-sm font-medium text-gray-600">
+							New password <span className="font-normal text-gray-400">(required)</span>
+						</Label>
 						<div className="relative">
 							<Input
-								id="confirm-new-password"
-								name="confirmNewPassword"
-								type={isConfirmPasswordVisible ? "text" : "password"}
+								id="new-password"
+								name="newPassword"
+								type={isNewPasswordVisible ? "text" : "password"}
 								placeholder="Enter new password"
 								autoComplete="new-password"
+								minLength={8}
+								maxLength={128}
 								required
 								disabled={isPending}
-								value={confirmedPassword}
-								aria-invalid={isPasswordMismatch}
-								aria-describedby={isPasswordMismatch ? "confirm-password-error" : undefined}
+								value={newPassword}
+								aria-describedby="new-password-requirement"
 								onChange={(event) => {
-									setConfirmedPassword(event.target.value);
+									setNewPassword(event.target.value);
 									setChangePasswordError("");
 								}}
 							/>
@@ -639,46 +630,89 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 								size="icon"
 								type="button"
 								className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-600 size-auto border-0 hover:bg-transparent hover:text-gray-600 focus-visible:border-0"
-								aria-label={
-									isConfirmPasswordVisible
-										? "Hide confirmation password"
-										: "Show confirmation password"
-								}
-								aria-pressed={isConfirmPasswordVisible}
-								onClick={() => setIsConfirmPasswordVisible((prev) => !prev)}
+								aria-label={isNewPasswordVisible ? "Hide new password" : "Show new password"}
+								aria-pressed={isNewPasswordVisible}
+								onClick={() => setIsNewPasswordVisible((prev) => !prev)}
 							>
-								{isConfirmPasswordVisible ? (
+								{isNewPasswordVisible ? (
 									<RiEyeOffLine className="size-4" aria-hidden="true" />
 								) : (
 									<RiEyeLine className="size-4" aria-hidden="true" />
 								)}
 							</Button>
 						</div>
-						{isPasswordMismatch && (
-							<p id="confirm-password-error" role="alert" className="text-sm text-red-600">
-								{changePasswordError}
-							</p>
-						)}
+						<p id="new-password-requirement" className="text-sm text-gray-400">
+							Use 8 to 128 characters.
+						</p>
+					</div>
+					<div className="flex flex-col gap-3">
+						<Label htmlFor="confirm-new-password" className="text-sm font-medium text-gray-600">
+							Confirm new password <span className="font-normal text-gray-400">(required)</span>
+						</Label>
+						<div className="flex flex-col gap-1.5">
+							<div className="relative">
+								<Input
+									id="confirm-new-password"
+									name="confirmNewPassword"
+									type={isConfirmPasswordVisible ? "text" : "password"}
+									placeholder="Enter new password"
+									autoComplete="new-password"
+									required
+									disabled={isPending}
+									value={confirmedPassword}
+									aria-invalid={isPasswordMismatch}
+									aria-describedby={isPasswordMismatch ? "confirm-password-error" : undefined}
+									onChange={(event) => {
+										setConfirmedPassword(event.target.value);
+										setChangePasswordError("");
+									}}
+								/>
+								<Button
+									variant="ghost"
+									size="icon"
+									type="button"
+									className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-600 size-auto border-0 hover:bg-transparent hover:text-gray-600 focus-visible:border-0"
+									aria-label={
+										isConfirmPasswordVisible
+											? "Hide confirmation password"
+											: "Show confirmation password"
+									}
+									aria-pressed={isConfirmPasswordVisible}
+									onClick={() => setIsConfirmPasswordVisible((prev) => !prev)}
+								>
+									{isConfirmPasswordVisible ? (
+										<RiEyeOffLine className="size-4" aria-hidden="true" />
+									) : (
+										<RiEyeLine className="size-4" aria-hidden="true" />
+									)}
+								</Button>
+							</div>
+							{isPasswordMismatch && (
+								<p id="confirm-password-error" role="alert" className="text-sm text-red-600">
+									{changePasswordError}
+								</p>
+							)}
+						</div>
 					</div>
 				</div>
-			</div>
-			{changePasswordError && !isPasswordMismatch && (
-				<p role="alert" className="text-sm text-red-600">
-					{changePasswordError}
-				</p>
-			)}
-			<Button type="submit" className="grid w-full place-items-center" disabled={isPending}>
-				<span
-					className={isPending ? "invisible col-start-1 row-start-1" : "col-start-1 row-start-1"}
-				>
-					Change password
-				</span>
-				{isPending ? (
-					<span className="col-start-1 row-start-1 flex">
-						<PixelLoader label="Changing password..." />
+				{changePasswordError && !isPasswordMismatch && (
+					<p role="alert" className="text-sm text-red-600">
+						{changePasswordError}
+					</p>
+				)}
+				<Button type="submit" className="grid w-full place-items-center" disabled={isPending}>
+					<span
+						className={isPending ? "invisible col-start-1 row-start-1" : "col-start-1 row-start-1"}
+					>
+						Change password
 					</span>
-				) : null}
-			</Button>
-		</form>
+					{isPending ? (
+						<span className="col-start-1 row-start-1 flex">
+							<PixelLoader label="Changing password..." />
+						</span>
+					) : null}
+				</Button>
+			</form>
+		</>
 	);
 }

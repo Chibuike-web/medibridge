@@ -24,13 +24,11 @@ export function ReviewInvitationsDialog({
 	onOpenChange,
 	inviteMemberRows,
 	organizationName,
-	onInvitationsSent,
 }: {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	inviteMemberRows: InviteMemberRow[];
 	organizationName: string;
-	onInvitationsSent: () => void;
 }) {
 	const [areAllInvitationsVisible, setAreAllInvitationsVisible] = useState(false);
 	const [isInvitationSuccessModalOpen, setIsInvitationSuccessModalOpen] = useState(false);
@@ -101,9 +99,7 @@ export function ReviewInvitationsDialog({
 				>
 					<DialogFooter>
 						<DialogClose asChild>
-							<Button className="flex-1" onClick={onInvitationsSent}>
-								Done
-							</Button>
+							<Button className="flex-1">Done</Button>
 						</DialogClose>
 					</DialogFooter>
 				</SuccessModal>

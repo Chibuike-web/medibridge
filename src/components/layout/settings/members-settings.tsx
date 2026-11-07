@@ -142,9 +142,7 @@ export function MembersSettings({
 	const [memberLimit, setMemberLimit] = useState(ROWS_PER_PAGE_OPTIONS[0]);
 	const [isInviteMembersDialogOpen, setIsInviteMembersDialogOpen] = useState(false);
 	const [isReviewInvitationsDialogOpen, setIsReviewInvitationsDialogOpen] = useState(false);
-	const [inviteMemberRows, setInviteMemberRows] = useState<InviteMemberRow[]>([
-		{ id: crypto.randomUUID(), email: "", role: "" },
-	]);
+	const [inviteMemberRows, setInviteMemberRows] = useState<InviteMemberRow[]>([]);
 
 	const currentUserRow: OrganizationMemberRow = {
 		id: "current-user",
@@ -389,7 +387,10 @@ export function MembersSettings({
 					<Button
 						type="button"
 						className="flex-1"
-						onClick={() => setIsInviteMembersDialogOpen(true)}
+						onClick={() => {
+							setInviteMemberRows([{ id: "invite-member-1", email: "", role: "" }]);
+							setIsInviteMembersDialogOpen(true);
+						}}
 					>
 						Invite member
 					</Button>
@@ -696,9 +697,6 @@ export function MembersSettings({
 				onOpenChange={setIsReviewInvitationsDialogOpen}
 				inviteMemberRows={inviteMemberRows}
 				organizationName={organizationName}
-				onInvitationsSent={() =>
-					setInviteMemberRows([{ id: crypto.randomUUID(), email: "", role: "" }])
-				}
 			/>
 		</section>
 	);
