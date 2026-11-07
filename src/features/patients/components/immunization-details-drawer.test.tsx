@@ -4,9 +4,15 @@ import { beforeEach, expect, test, vi } from "vitest";
 import type { ImmunizationDetailsType } from "@/features/patients/types";
 import { ImmunizationDetailsDrawer } from "./immunization-details-drawer";
 
-const { saveImmunization } = vi.hoisted(() => ({ saveImmunization: vi.fn() }));
-vi.mock("@/features/patients/server/update-patient-immunization-action", () => ({
-	updatePatientImmunizationAction: saveImmunization,
+const { markImmunizationCompleted, discontinueImmunization } = vi.hoisted(() => ({
+	markImmunizationCompleted: vi.fn(),
+	discontinueImmunization: vi.fn(),
+}));
+vi.mock("@/features/patients/server/mark-patient-immunization-completed-action", () => ({
+	markPatientImmunizationCompletedAction: markImmunizationCompleted,
+}));
+vi.mock("@/features/patients/server/discontinue-patient-immunization-action", () => ({
+	discontinuePatientImmunizationAction: discontinueImmunization,
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/lib/better-auth/auth.client", () => ({
@@ -41,7 +47,8 @@ const immunization: ImmunizationDetailsType = {
 };
 
 beforeEach(() => {
-	saveImmunization.mockResolvedValue({ status: "success" });
+	markImmunizationCompleted.mockResolvedValue({ status: "success" });
+	discontinueImmunization.mockResolvedValue({ status: "success" });
 });
 
 function renderActiveImmunization() {
@@ -58,7 +65,7 @@ function renderActiveImmunization() {
 	return { onImmunizationUpdated };
 }
 
-test("marks the immunization as completed, keeping its other values and version", async () => {
+test("marks the immunization as completed for the version that was opened", async () => {
 	const user = userEvent.setup();
 	const { onImmunizationUpdated } = renderActiveImmunization();
 
@@ -66,13 +73,11 @@ test("marks the immunization as completed, keeping its other values and version"
 	await user.click(screen.getByRole("menuitem", { name: "Mark as completed" }));
 
 	await waitFor(() => expect(onImmunizationUpdated).toHaveBeenCalled());
-	const [id, submitted] = saveImmunization.mock.calls[0] as [string, FormData];
-	expect(id).toBe("IMM-review");
-	expect(submitted.get("status")).toBe("Completed");
-	expect(submitted.get("vaccineName")).toBe("Hepatitis B");
-	expect(submitted.get("currentDose")).toBe("2");
-	expect(submitted.get("dateAdministered")).toBe("2026-01-01");
-	expect(submitted.get("updatedAt")).toBe(immunization.editValues.updatedAt);
+	expect(markImmunizationCompleted).toHaveBeenCalledWith(
+		"IMM-review",
+		immunization.editValues.updatedAt,
+	);
+	expect(discontinueImmunization).not.toHaveBeenCalled();
 });
 
 test("discontinues the immunization only after the dialog is confirmed", async () => {
@@ -82,11 +87,13 @@ test("discontinues the immunization only after the dialog is confirmed", async (
 	await user.click(screen.getByRole("button", { name: "Immunization actions" }));
 	await user.click(screen.getByRole("menuitem", { name: "Discontinue" }));
 	const dialog = await screen.findByRole("alertdialog", { name: "Discontinue immunization?" });
-	expect(saveImmunization).not.toHaveBeenCalled();
+	expect(discontinueImmunization).not.toHaveBeenCalled();
 
 	await user.click(within(dialog).getByRole("button", { name: "Discontinue immunization" }));
 
 	await waitFor(() => expect(onImmunizationUpdated).toHaveBeenCalled());
-	const [, submitted] = saveImmunization.mock.calls[0] as [string, FormData];
-	expect(submitted.get("status")).toBe("Discontinued");
+	expect(discontinueImmunization).toHaveBeenCalledWith(
+		"IMM-review",
+		immunization.editValues.updatedAt,
+	);
 });

@@ -71,6 +71,8 @@ import { format, parseISO } from "date-fns";
 import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { updatePatientMedicationAction } from "@/features/patients/server/update-patient-medication-action";
+import { markPatientMedicationCompletedAction } from "@/features/patients/server/mark-patient-medication-completed-action";
+import { discontinuePatientMedicationAction } from "@/features/patients/server/discontinue-patient-medication-action";
 import { medicationRoutes, medicationStatuses } from "@/features/patients/server/schemas";
 
 type MedicationDetailsDrawerProps = {
@@ -145,26 +147,45 @@ export function MedicationDetailsDrawer({
 		});
 	}
 
-	function handleStatusChange(nextStatus: "Completed" | "Discontinued") {
+	function handleMarkAsCompleted() {
 		if (!medication) return;
 
 		setFormError("");
-		const formData = new FormData();
-		formData.set("updatedAt", medication.editValues.updatedAt);
-		formData.set("medicationName", medication.name);
-		formData.set("indication", medication.editValues.indication);
-		formData.set("status", nextStatus);
-		formData.set("dose", medication.editValues.dose);
-		formData.set("route", medication.editValues.route);
-		formData.set("prescribedBy", medication.editValues.prescribedBy);
-		formData.set("frequency", medication.editValues.frequency);
-		formData.set("duration", medication.editValues.duration);
-		formData.set("startedAt", medication.editValues.startedAt);
-		formData.set("clinicalNote", medication.editValues.clinicalNote);
-
 		startTransition(async () => {
 			try {
-				const result = await updatePatientMedicationAction(medication.medicationId, formData);
+				const result = await markPatientMedicationCompletedAction(
+					medication.medicationId,
+					medication.editValues.updatedAt,
+				);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				onMedicationUpdated();
+			} catch (error) {
+				console.error("Marking the medication as completed failed:", error);
+				setFormError("We couldn’t update this medication. Please try again.");
+			}
+		});
+	}
+
+	function handleDiscontinue() {
+		if (!medication) return;
+
+		setFormError("");
+		startTransition(async () => {
+			try {
+				const result = await discontinuePatientMedicationAction(
+					medication.medicationId,
+					medication.editValues.updatedAt,
+				);
 
 				if (result.status === "unauthorized") {
 					router.refresh();
@@ -180,7 +201,7 @@ export function MedicationDetailsDrawer({
 
 				onMedicationUpdated();
 			} catch (error) {
-				console.error("Changing the medication status failed:", error);
+				console.error("Discontinuing the medication failed:", error);
 				setIsDiscontinueDialogOpen(false);
 				setFormError("We couldn’t update this medication. Please try again.");
 			}
@@ -227,7 +248,7 @@ export function MedicationDetailsDrawer({
 										<DropdownMenuItem
 											className="rounded-lg"
 											disabled={isPending}
-											onSelect={() => handleStatusChange("Completed")}
+											onSelect={handleMarkAsCompleted}
 										>
 											<RiCheckLine aria-hidden="true" />
 											Mark as completed
@@ -352,7 +373,7 @@ export function MedicationDetailsDrawer({
 							type="button"
 							className="bg-rose-500 text-white hover:bg-rose-600"
 							disabled={isPending}
-							onClick={() => handleStatusChange("Discontinued")}
+							onClick={handleDiscontinue}
 						>
 							{isPending ? <PixelLoader label="Discontinuing…" /> : "Discontinue medication"}
 						</Button>

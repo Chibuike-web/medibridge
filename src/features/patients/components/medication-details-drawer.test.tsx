@@ -4,9 +4,19 @@ import { beforeEach, expect, test, vi } from "vitest";
 import type { MedicationDetailsType } from "@/features/patients/types";
 import { MedicationDetailsDrawer } from "./medication-details-drawer";
 
-const { saveMedication } = vi.hoisted(() => ({ saveMedication: vi.fn() }));
+const { saveMedication, markMedicationCompleted, discontinueMedication } = vi.hoisted(() => ({
+	saveMedication: vi.fn(),
+	markMedicationCompleted: vi.fn(),
+	discontinueMedication: vi.fn(),
+}));
 vi.mock("@/features/patients/server/update-patient-medication-action", () => ({
 	updatePatientMedicationAction: saveMedication,
+}));
+vi.mock("@/features/patients/server/mark-patient-medication-completed-action", () => ({
+	markPatientMedicationCompletedAction: markMedicationCompleted,
+}));
+vi.mock("@/features/patients/server/discontinue-patient-medication-action", () => ({
+	discontinuePatientMedicationAction: discontinueMedication,
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/lib/better-auth/auth.client", () => ({
@@ -45,6 +55,8 @@ const medication: MedicationDetailsType = {
 
 beforeEach(() => {
 	saveMedication.mockResolvedValue({ status: "success" });
+	markMedicationCompleted.mockResolvedValue({ status: "success" });
+	discontinueMedication.mockResolvedValue({ status: "success" });
 });
 
 test("submits the original record version and preserves entered values when refreshed data arrives during editing", async () => {
@@ -134,7 +146,7 @@ function renderActiveMedication() {
 	return { onMedicationUpdated };
 }
 
-test("marks the medication as completed, keeping its other values and version", async () => {
+test("marks the medication as completed for the version that was opened", async () => {
 	const user = userEvent.setup();
 	const { onMedicationUpdated } = renderActiveMedication();
 
@@ -142,13 +154,11 @@ test("marks the medication as completed, keeping its other values and version", 
 	await user.click(screen.getByRole("menuitem", { name: "Mark as completed" }));
 
 	await waitFor(() => expect(onMedicationUpdated).toHaveBeenCalled());
-	const [id, submitted] = saveMedication.mock.calls[0] as [string, FormData];
-	expect(id).toBe("MED-review");
-	expect(submitted.get("status")).toBe("Completed");
-	expect(submitted.get("medicationName")).toBe("Review medication");
-	expect(submitted.get("dose")).toBe("500 mg");
-	expect(submitted.get("startedAt")).toBe("2026-01-01");
-	expect(submitted.get("updatedAt")).toBe(medication.editValues.updatedAt);
+	expect(markMedicationCompleted).toHaveBeenCalledWith(
+		"MED-review",
+		medication.editValues.updatedAt,
+	);
+	expect(discontinueMedication).not.toHaveBeenCalled();
 });
 
 test("discontinues the medication only after the dialog is confirmed", async () => {
@@ -158,13 +168,12 @@ test("discontinues the medication only after the dialog is confirmed", async () 
 	await user.click(screen.getByRole("button", { name: "Medication actions" }));
 	await user.click(screen.getByRole("menuitem", { name: "Discontinue" }));
 	const dialog = await screen.findByRole("alertdialog", { name: "Discontinue medication?" });
-	expect(saveMedication).not.toHaveBeenCalled();
+	expect(discontinueMedication).not.toHaveBeenCalled();
 
 	await user.click(within(dialog).getByRole("button", { name: "Discontinue medication" }));
 
 	await waitFor(() => expect(onMedicationUpdated).toHaveBeenCalled());
-	const [, submitted] = saveMedication.mock.calls[0] as [string, FormData];
-	expect(submitted.get("status")).toBe("Discontinued");
+	expect(discontinueMedication).toHaveBeenCalledWith("MED-review", medication.editValues.updatedAt);
 	await waitFor(() =>
 		expect(
 			screen.queryByRole("alertdialog", { name: "Discontinue medication?" }),
@@ -174,7 +183,7 @@ test("discontinues the medication only after the dialog is confirmed", async () 
 
 test("shows the server's error in the drawer when the status can't be saved", async () => {
 	const user = userEvent.setup();
-	saveMedication.mockResolvedValue({
+	markMedicationCompleted.mockResolvedValue({
 		status: "failed",
 		error: "This medication was changed after you opened it.",
 	});

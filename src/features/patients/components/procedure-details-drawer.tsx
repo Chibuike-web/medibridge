@@ -72,6 +72,7 @@ import { format, parseISO } from "date-fns";
 import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { updatePatientProcedureAction } from "@/features/patients/server/update-patient-procedure-action";
+import { markPatientProcedureCompletedAction } from "@/features/patients/server/mark-patient-procedure-completed-action";
 import { procedureStatuses } from "@/features/patients/server/schemas";
 
 type ProcedureDetailsDrawerProps = {
@@ -149,20 +150,12 @@ export function ProcedureDetailsDrawer({
 		if (!procedure) return;
 
 		setFormError("");
-		const formData = new FormData();
-		formData.set("updatedAt", procedure.editValues.updatedAt);
-		formData.set("procedureName", procedure.name);
-		formData.set("indication", procedure.editValues.indication);
-		formData.set("status", "Completed");
-		formData.set("procedureDate", procedure.editValues.procedureDate);
-		formData.set("physician", procedure.editValues.physician);
-		formData.set("assistants", procedure.editValues.assistants);
-		formData.set("facility", procedure.editValues.facility);
-		formData.set("clinicalNote", procedure.editValues.clinicalNote);
-
 		startTransition(async () => {
 			try {
-				const result = await updatePatientProcedureAction(procedure.procedureId, formData);
+				const result = await markPatientProcedureCompletedAction(
+					procedure.procedureId,
+					procedure.editValues.updatedAt,
+				);
 
 				if (result.status === "unauthorized") {
 					router.refresh();

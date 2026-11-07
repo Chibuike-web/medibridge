@@ -4,9 +4,9 @@ import { beforeEach, expect, test, vi } from "vitest";
 import type { ProcedureDetailsType } from "@/features/patients/types";
 import { ProcedureDetailsDrawer } from "./procedure-details-drawer";
 
-const { saveProcedure } = vi.hoisted(() => ({ saveProcedure: vi.fn() }));
-vi.mock("@/features/patients/server/update-patient-procedure-action", () => ({
-	updatePatientProcedureAction: saveProcedure,
+const { markProcedureCompleted } = vi.hoisted(() => ({ markProcedureCompleted: vi.fn() }));
+vi.mock("@/features/patients/server/mark-patient-procedure-completed-action", () => ({
+	markPatientProcedureCompletedAction: markProcedureCompleted,
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/lib/better-auth/auth.client", () => ({
@@ -46,10 +46,10 @@ const procedure: ProcedureDetailsType = {
 };
 
 beforeEach(() => {
-	saveProcedure.mockResolvedValue({ status: "success" });
+	markProcedureCompleted.mockResolvedValue({ status: "success" });
 });
 
-test("marks the procedure as completed, keeping its other values and version", async () => {
+test("marks the procedure as completed for the version that was opened", async () => {
 	const user = userEvent.setup();
 	const onProcedureUpdated = vi.fn();
 	render(
@@ -66,11 +66,5 @@ test("marks the procedure as completed, keeping its other values and version", a
 	await user.click(screen.getByRole("menuitem", { name: "Mark as completed" }));
 
 	await waitFor(() => expect(onProcedureUpdated).toHaveBeenCalled());
-	const [id, submitted] = saveProcedure.mock.calls[0] as [string, FormData];
-	expect(id).toBe("PRO-review");
-	expect(submitted.get("status")).toBe("Completed");
-	expect(submitted.get("procedureName")).toBe("Appendectomy");
-	expect(submitted.get("procedureDate")).toBe("2026-01-01");
-	expect(submitted.get("assistants")).toBe("Nurse Ada");
-	expect(submitted.get("updatedAt")).toBe(procedure.editValues.updatedAt);
+	expect(markProcedureCompleted).toHaveBeenCalledWith("PRO-review", procedure.editValues.updatedAt);
 });

@@ -66,6 +66,8 @@ import { format, parseISO } from "date-fns";
 import { Fragment, useId, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { updatePatientImmunizationAction } from "@/features/patients/server/update-patient-immunization-action";
+import { markPatientImmunizationCompletedAction } from "@/features/patients/server/mark-patient-immunization-completed-action";
+import { discontinuePatientImmunizationAction } from "@/features/patients/server/discontinue-patient-immunization-action";
 import { immunizationSeriesTypes, immunizationStatuses } from "@/features/patients/server/schemas";
 
 type ImmunizationDetailsDrawerProps = {
@@ -140,24 +142,45 @@ export function ImmunizationDetailsDrawer({
 		});
 	}
 
-	function handleStatusChange(nextStatus: "Completed" | "Discontinued") {
+	function handleMarkAsCompleted() {
 		if (!immunization) return;
 
 		setFormError("");
-		const formData = new FormData();
-		formData.set("updatedAt", immunization.editValues.updatedAt);
-		formData.set("vaccineName", immunization.vaccineName);
-		formData.set("seriesType", immunization.editValues.seriesType);
-		formData.set("currentDose", immunization.editValues.currentDose);
-		formData.set("totalDoses", immunization.editValues.totalDoses);
-		formData.set("status", nextStatus);
-		formData.set("dateAdministered", immunization.editValues.dateAdministered);
-		formData.set("administeredBy", immunization.editValues.administeredBy);
-		formData.set("clinicalNote", immunization.editValues.clinicalNote);
-
 		startTransition(async () => {
 			try {
-				const result = await updatePatientImmunizationAction(immunization.immunizationId, formData);
+				const result = await markPatientImmunizationCompletedAction(
+					immunization.immunizationId,
+					immunization.editValues.updatedAt,
+				);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				onImmunizationUpdated();
+			} catch (error) {
+				console.error("Marking the immunization as completed failed:", error);
+				setFormError("We couldn’t update this immunization. Please try again.");
+			}
+		});
+	}
+
+	function handleDiscontinue() {
+		if (!immunization) return;
+
+		setFormError("");
+		startTransition(async () => {
+			try {
+				const result = await discontinuePatientImmunizationAction(
+					immunization.immunizationId,
+					immunization.editValues.updatedAt,
+				);
 
 				if (result.status === "unauthorized") {
 					router.refresh();
@@ -173,7 +196,7 @@ export function ImmunizationDetailsDrawer({
 
 				onImmunizationUpdated();
 			} catch (error) {
-				console.error("Changing the immunization status failed:", error);
+				console.error("Discontinuing the immunization failed:", error);
 				setIsDiscontinueDialogOpen(false);
 				setFormError("We couldn’t update this immunization. Please try again.");
 			}
@@ -220,7 +243,7 @@ export function ImmunizationDetailsDrawer({
 										<DropdownMenuItem
 											className="rounded-lg"
 											disabled={isPending}
-											onSelect={() => handleStatusChange("Completed")}
+											onSelect={handleMarkAsCompleted}
 										>
 											<RiCheckLine aria-hidden="true" />
 											Mark as completed
@@ -345,7 +368,7 @@ export function ImmunizationDetailsDrawer({
 							type="button"
 							className="bg-rose-500 text-white hover:bg-rose-600"
 							disabled={isPending}
-							onClick={() => handleStatusChange("Discontinued")}
+							onClick={handleDiscontinue}
 						>
 							{isPending ? <PixelLoader label="Discontinuing…" /> : "Discontinue immunization"}
 						</Button>
