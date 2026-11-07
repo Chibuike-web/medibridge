@@ -66,6 +66,8 @@ import { format, parseISO } from "date-fns";
 import { Fragment, useId, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { updatePatientImmunizationAction } from "@/features/patients/server/update-patient-immunization-action";
+import { markPatientImmunizationCompletedAction } from "@/features/patients/server/mark-patient-immunization-completed-action";
+import { discontinuePatientImmunizationAction } from "@/features/patients/server/discontinue-patient-immunization-action";
 import { immunizationSeriesTypes, immunizationStatuses } from "@/features/patients/server/schemas";
 
 type ImmunizationDetailsDrawerProps = {
@@ -140,6 +142,67 @@ export function ImmunizationDetailsDrawer({
 		});
 	}
 
+	function handleMarkAsCompleted() {
+		if (!immunization) return;
+
+		setFormError("");
+		startTransition(async () => {
+			try {
+				const result = await markPatientImmunizationCompletedAction(
+					immunization.immunizationId,
+					immunization.editValues.updatedAt,
+				);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				onImmunizationUpdated();
+			} catch (error) {
+				console.error("Marking the immunization as completed failed:", error);
+				setFormError("We couldn’t update this immunization. Please try again.");
+			}
+		});
+	}
+
+	function handleDiscontinue() {
+		if (!immunization) return;
+
+		setFormError("");
+		startTransition(async () => {
+			try {
+				const result = await discontinuePatientImmunizationAction(
+					immunization.immunizationId,
+					immunization.editValues.updatedAt,
+				);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				setIsDiscontinueDialogOpen(false);
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				onImmunizationUpdated();
+			} catch (error) {
+				console.error("Discontinuing the immunization failed:", error);
+				setIsDiscontinueDialogOpen(false);
+				setFormError("We couldn’t update this immunization. Please try again.");
+			}
+		});
+	}
+
 	const isEditingImmunizationDetails = immunizationDetailsMode === "edit" && Boolean(immunization);
 
 	return (
@@ -177,7 +240,11 @@ export function ImmunizationDetailsDrawer({
 								</DropdownMenuItem>
 								{immunization.status === "Active" ? (
 									<>
-										<DropdownMenuItem className="rounded-lg">
+										<DropdownMenuItem
+											className="rounded-lg"
+											disabled={isPending}
+											onSelect={handleMarkAsCompleted}
+										>
 											<RiCheckLine aria-hidden="true" />
 											Mark as completed
 										</DropdownMenuItem>
@@ -230,6 +297,25 @@ export function ImmunizationDetailsDrawer({
 						/>
 					) : immunization ? (
 						<div className="flex flex-col gap-10">
+							{formError ? (
+								<div
+									role="alert"
+									className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
+								>
+									<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+									<p className="min-w-0 flex-1 text-pretty">{formError}</p>
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon"
+										className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+										aria-label="Dismiss error"
+										onClick={() => setFormError("")}
+									>
+										<RiCloseLine aria-hidden="true" />
+									</Button>
+								</div>
+							) : null}
 							<ImmunizationDetailsOverview immunization={immunization} />
 							<ImmunizationHistorySection history={immunization.history} />
 						</div>
@@ -281,9 +367,10 @@ export function ImmunizationDetailsDrawer({
 						<Button
 							type="button"
 							className="bg-rose-500 text-white hover:bg-rose-600"
-							onClick={() => setIsDiscontinueDialogOpen(false)}
+							disabled={isPending}
+							onClick={handleDiscontinue}
 						>
-							Discontinue immunization
+							{isPending ? <PixelLoader label="Discontinuing…" /> : "Discontinue immunization"}
 						</Button>
 					</AlertDialogFooter>
 				</AlertDialogContent>

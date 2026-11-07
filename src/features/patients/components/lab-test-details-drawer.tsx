@@ -106,13 +106,15 @@ export function LabTestDetailsDrawer({
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
-	const [labTestDetailsMode, setLabTestDetailsMode] = useState<"view" | "edit">("view");
+	const [labTestDetailsMode, setLabTestDetailsMode] = useState<"view" | "edit" | "complete">(
+		"view",
+	);
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 	const [formError, setFormError] = useState("");
 	const uploadedReportsRef = useRef<UploadedReports>(new Map());
 	const [isPending, startTransition] = useTransition();
 
-	function handleLabTestDetailsModeChange(nextMode: "view" | "edit") {
+	function handleLabTestDetailsModeChange(nextMode: "view" | "edit" | "complete") {
 		setFormError("");
 		setLabTestDetailsMode(nextMode);
 	}
@@ -214,7 +216,7 @@ export function LabTestDetailsDrawer({
 		});
 	}
 
-	const isEditingLabTestDetails = labTestDetailsMode === "edit" && Boolean(labTest);
+	const isEditingLabTestDetails = labTestDetailsMode !== "view" && Boolean(labTest);
 
 	return (
 		<Drawer
@@ -250,7 +252,10 @@ export function LabTestDetailsDrawer({
 									Export
 								</DropdownMenuItem>
 								{labTest.status === "Pending" ? (
-									<DropdownMenuItem className="rounded-lg">
+									<DropdownMenuItem
+										className="rounded-lg"
+										onSelect={() => handleLabTestDetailsModeChange("complete")}
+									>
 										<RiCheckLine aria-hidden="true" />
 										Mark as completed
 									</DropdownMenuItem>
@@ -287,6 +292,7 @@ export function LabTestDetailsDrawer({
 						<LabTestDetailsEditForm
 							key={labTest.labId}
 							labTest={labTest}
+							defaultStatus={labTestDetailsMode === "complete" ? "Completed" : labTest.status}
 							formError={formError}
 							onFormErrorDismiss={() => setFormError("")}
 							onSave={handleSave}
@@ -619,11 +625,13 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 
 function LabTestDetailsEditForm({
 	labTest,
+	defaultStatus,
 	formError,
 	onFormErrorDismiss,
 	onSave,
 }: {
 	labTest: LabTestType;
+	defaultStatus: LabTestType["status"];
 	formError: string;
 	onFormErrorDismiss: () => void;
 	onSave: (formData: FormData) => void;
@@ -784,7 +792,7 @@ function LabTestDetailsEditForm({
 						<Label htmlFor="edit-lab-test-status" className={fieldLabelClassName}>
 							Status<span className={optionalLabelClassName}>(required)</span>
 						</Label>
-						<Select name="status" defaultValue={labTest.status} required>
+						<Select name="status" defaultValue={defaultStatus} required>
 							<SelectTrigger
 								id="edit-lab-test-status"
 								className={`${fieldControlClassName} w-full`}

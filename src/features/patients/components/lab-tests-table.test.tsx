@@ -372,6 +372,32 @@ describe("Lab tests table", () => {
 		expect(onLimitChange).toHaveBeenCalledWith(28);
 	});
 
+	test("opens the edit form with Completed chosen when a pending test is marked as completed", async () => {
+		const user = userEvent.setup();
+		renderLabTestsTable();
+
+		await user.click(
+			screen.getByRole("button", { name: "Open actions for Basic Metabolic Panel" }),
+		);
+		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "Lab test details" });
+		await user.click(within(dialog).getByRole("button", { name: "Lab test actions" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
+		const editDialog = await screen.findByRole("dialog", { name: "Edit lab test details" });
+		expect(within(editDialog).getByRole("combobox", { name: /^Status/ })).toHaveTextContent(
+			"Pending",
+		);
+		await user.click(within(editDialog).getByRole("button", { name: "Cancel" }));
+
+		await user.click(within(dialog).getByRole("button", { name: "Lab test actions" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Mark as completed" }));
+
+		const completeDialog = await screen.findByRole("dialog", { name: "Edit lab test details" });
+		expect(within(completeDialog).getByRole("combobox", { name: /^Status/ })).toHaveTextContent(
+			"Completed",
+		);
+	});
+
 	test("opens the details drawer for the row chosen from its action menu", async () => {
 		const user = userEvent.setup();
 		renderLabTestsTable();

@@ -405,6 +405,30 @@ describe("Imaging table", () => {
 		expect(within(dialog).queryByText("Abdominal Ultrasound")).not.toBeInTheDocument();
 	});
 
+	test("opens the edit form with Completed chosen when a pending study is marked as completed", async () => {
+		const user = userEvent.setup();
+		renderImagingTable();
+
+		await user.click(screen.getByRole("button", { name: "Open actions for Abdominal Ultrasound" }));
+		await user.click(await screen.findByRole("menuitem", { name: "View details" }));
+		const dialog = await screen.findByRole("dialog", { name: "Imaging details" });
+		await user.click(within(dialog).getByRole("button", { name: "Imaging actions" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
+		const editDialog = await screen.findByRole("dialog", { name: "Edit imaging details" });
+		expect(within(editDialog).getByRole("combobox", { name: /^Status/ })).toHaveTextContent(
+			"Pending",
+		);
+		await user.click(within(editDialog).getByRole("button", { name: "Cancel" }));
+
+		await user.click(within(dialog).getByRole("button", { name: "Imaging actions" }));
+		await user.click(await screen.findByRole("menuitem", { name: "Mark as completed" }));
+
+		const completeDialog = await screen.findByRole("dialog", { name: "Edit imaging details" });
+		expect(within(completeDialog).getByRole("combobox", { name: /^Status/ })).toHaveTextContent(
+			"Completed",
+		);
+	});
+
 	test("opens the details drawer when the row itself is activated with the keyboard", async () => {
 		const user = userEvent.setup();
 		renderImagingTable();

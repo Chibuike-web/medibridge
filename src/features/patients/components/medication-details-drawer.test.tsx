@@ -4,9 +4,19 @@ import { beforeEach, expect, test, vi } from "vitest";
 import type { MedicationDetailsType } from "@/features/patients/types";
 import { MedicationDetailsDrawer } from "./medication-details-drawer";
 
-const { saveMedication } = vi.hoisted(() => ({ saveMedication: vi.fn() }));
+const { saveMedication, markMedicationCompleted, discontinueMedication } = vi.hoisted(() => ({
+	saveMedication: vi.fn(),
+	markMedicationCompleted: vi.fn(),
+	discontinueMedication: vi.fn(),
+}));
 vi.mock("@/features/patients/server/update-patient-medication-action", () => ({
 	updatePatientMedicationAction: saveMedication,
+}));
+vi.mock("@/features/patients/server/mark-patient-medication-completed-action", () => ({
+	markPatientMedicationCompletedAction: markMedicationCompleted,
+}));
+vi.mock("@/features/patients/server/discontinue-patient-medication-action", () => ({
+	discontinuePatientMedicationAction: discontinueMedication,
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/lib/better-auth/auth.client", () => ({
@@ -45,6 +55,8 @@ const medication: MedicationDetailsType = {
 
 beforeEach(() => {
 	saveMedication.mockResolvedValue({ status: "success" });
+	markMedicationCompleted.mockResolvedValue({ status: "success" });
+	discontinueMedication.mockResolvedValue({ status: "success" });
 });
 
 test("submits the original record version and preserves entered values when refreshed data arrives during editing", async () => {
@@ -118,4 +130,70 @@ test("starts a fresh edit with the new record values and version when the select
 	expect(id).toBe("MED-next");
 	expect(submitted.get("dose")).toBe("1000 mg");
 	expect(submitted.get("updatedAt")).toBe(nextMedication.editValues.updatedAt);
+});
+
+function renderActiveMedication() {
+	const onMedicationUpdated = vi.fn();
+	render(
+		<MedicationDetailsDrawer
+			open
+			onOpenChange={vi.fn()}
+			medication={medication}
+			isLoading={false}
+			onMedicationUpdated={onMedicationUpdated}
+		/>,
+	);
+	return { onMedicationUpdated };
+}
+
+test("marks the medication as completed for the version that was opened", async () => {
+	const user = userEvent.setup();
+	const { onMedicationUpdated } = renderActiveMedication();
+
+	await user.click(screen.getByRole("button", { name: "Medication actions" }));
+	await user.click(screen.getByRole("menuitem", { name: "Mark as completed" }));
+
+	await waitFor(() => expect(onMedicationUpdated).toHaveBeenCalled());
+	expect(markMedicationCompleted).toHaveBeenCalledWith(
+		"MED-review",
+		medication.editValues.updatedAt,
+	);
+	expect(discontinueMedication).not.toHaveBeenCalled();
+});
+
+test("discontinues the medication only after the dialog is confirmed", async () => {
+	const user = userEvent.setup();
+	const { onMedicationUpdated } = renderActiveMedication();
+
+	await user.click(screen.getByRole("button", { name: "Medication actions" }));
+	await user.click(screen.getByRole("menuitem", { name: "Discontinue" }));
+	const dialog = await screen.findByRole("alertdialog", { name: "Discontinue medication?" });
+	expect(discontinueMedication).not.toHaveBeenCalled();
+
+	await user.click(within(dialog).getByRole("button", { name: "Discontinue medication" }));
+
+	await waitFor(() => expect(onMedicationUpdated).toHaveBeenCalled());
+	expect(discontinueMedication).toHaveBeenCalledWith("MED-review", medication.editValues.updatedAt);
+	await waitFor(() =>
+		expect(
+			screen.queryByRole("alertdialog", { name: "Discontinue medication?" }),
+		).not.toBeInTheDocument(),
+	);
+});
+
+test("shows the server's error in the drawer when the status can't be saved", async () => {
+	const user = userEvent.setup();
+	markMedicationCompleted.mockResolvedValue({
+		status: "failed",
+		error: "This medication was changed after you opened it.",
+	});
+	const { onMedicationUpdated } = renderActiveMedication();
+
+	await user.click(screen.getByRole("button", { name: "Medication actions" }));
+	await user.click(screen.getByRole("menuitem", { name: "Mark as completed" }));
+
+	expect(await screen.findByRole("alert")).toHaveTextContent(
+		"This medication was changed after you opened it.",
+	);
+	expect(onMedicationUpdated).not.toHaveBeenCalled();
 });

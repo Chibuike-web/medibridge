@@ -71,6 +71,8 @@ import { format, parseISO } from "date-fns";
 import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { updatePatientMedicationAction } from "@/features/patients/server/update-patient-medication-action";
+import { markPatientMedicationCompletedAction } from "@/features/patients/server/mark-patient-medication-completed-action";
+import { discontinuePatientMedicationAction } from "@/features/patients/server/discontinue-patient-medication-action";
 import { medicationRoutes, medicationStatuses } from "@/features/patients/server/schemas";
 
 type MedicationDetailsDrawerProps = {
@@ -145,6 +147,67 @@ export function MedicationDetailsDrawer({
 		});
 	}
 
+	function handleMarkAsCompleted() {
+		if (!medication) return;
+
+		setFormError("");
+		startTransition(async () => {
+			try {
+				const result = await markPatientMedicationCompletedAction(
+					medication.medicationId,
+					medication.editValues.updatedAt,
+				);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				onMedicationUpdated();
+			} catch (error) {
+				console.error("Marking the medication as completed failed:", error);
+				setFormError("We couldn’t update this medication. Please try again.");
+			}
+		});
+	}
+
+	function handleDiscontinue() {
+		if (!medication) return;
+
+		setFormError("");
+		startTransition(async () => {
+			try {
+				const result = await discontinuePatientMedicationAction(
+					medication.medicationId,
+					medication.editValues.updatedAt,
+				);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				setIsDiscontinueDialogOpen(false);
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				onMedicationUpdated();
+			} catch (error) {
+				console.error("Discontinuing the medication failed:", error);
+				setIsDiscontinueDialogOpen(false);
+				setFormError("We couldn’t update this medication. Please try again.");
+			}
+		});
+	}
+
 	const isEditingMedicationDetails = medicationDetailsMode === "edit" && Boolean(medication);
 
 	return (
@@ -182,7 +245,11 @@ export function MedicationDetailsDrawer({
 								</DropdownMenuItem>
 								{medication.status === "Active" ? (
 									<>
-										<DropdownMenuItem className="rounded-lg">
+										<DropdownMenuItem
+											className="rounded-lg"
+											disabled={isPending}
+											onSelect={handleMarkAsCompleted}
+										>
 											<RiCheckLine aria-hidden="true" />
 											Mark as completed
 										</DropdownMenuItem>
@@ -235,6 +302,25 @@ export function MedicationDetailsDrawer({
 						/>
 					) : medication ? (
 						<div className="flex flex-col gap-10">
+							{formError ? (
+								<div
+									role="alert"
+									className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
+								>
+									<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+									<p className="min-w-0 flex-1 text-pretty">{formError}</p>
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon"
+										className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+										aria-label="Dismiss error"
+										onClick={() => setFormError("")}
+									>
+										<RiCloseLine aria-hidden="true" />
+									</Button>
+								</div>
+							) : null}
 							<MedicationDetailsOverview medication={medication} />
 							<MedicationHistorySection history={medication.history} />
 						</div>
@@ -286,9 +372,10 @@ export function MedicationDetailsDrawer({
 						<Button
 							type="button"
 							className="bg-rose-500 text-white hover:bg-rose-600"
-							onClick={() => setIsDiscontinueDialogOpen(false)}
+							disabled={isPending}
+							onClick={handleDiscontinue}
 						>
-							Discontinue medication
+							{isPending ? <PixelLoader label="Discontinuing…" /> : "Discontinue medication"}
 						</Button>
 					</AlertDialogFooter>
 				</AlertDialogContent>
