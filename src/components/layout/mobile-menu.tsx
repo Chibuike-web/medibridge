@@ -131,7 +131,7 @@ export function MobileMenu({ menus }: { menus: Menu[] }) {
 						) : null}
 						<Button
 							variant="ghost"
-							className="justify-start font-normal text-gray-600 hover:bg-gray-100"
+							className="justify-start font-normal text-gray-600 hover:bg-gray-100 active:scale-100"
 							aria-expanded={isThemeExpanded}
 							aria-controls={themeOptionsId}
 							onClick={() => setIsThemeExpanded((prev) => !prev)}
@@ -160,7 +160,7 @@ export function MobileMenu({ menus }: { menus: Menu[] }) {
 									<Button
 										key={themeOption.value}
 										variant="ghost"
-										className="justify-start font-normal text-gray-600 hover:bg-gray-100"
+										className="justify-start font-normal text-gray-600 hover:bg-gray-100 active:scale-100"
 										aria-pressed={selectedTheme === themeOption.value}
 										onClick={() => setSelectedTheme(themeOption.value)}
 									>
