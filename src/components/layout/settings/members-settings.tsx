@@ -193,7 +193,7 @@ export function MembersSettings({
 				Members
 			</h3>
 			<div className="flex flex-wrap items-center gap-2">
-				<div className="relative min-w-0 grow-[999] basis-60">
+				<div className="relative min-w-40 grow basis-40">
 					<RiSearchLine className="pointer-events-none absolute bottom-0 left-2 flex h-full size-4 items-center justify-center text-gray-400" />
 					<Input
 						type="search"
@@ -207,7 +207,7 @@ export function MembersSettings({
 						}}
 					/>
 				</div>
-				<div className="flex grow flex-wrap items-center gap-2 max-md:w-full">
+				<div className="flex flex-wrap items-center gap-2 max-md:w-full">
 					<FilterGroup
 						activeFilterCount={
 							(inviteStatusFilter ? 1 : 0) +
