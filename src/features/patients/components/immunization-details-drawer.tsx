@@ -140,6 +140,46 @@ export function ImmunizationDetailsDrawer({
 		});
 	}
 
+	function handleStatusChange(nextStatus: "Completed" | "Discontinued") {
+		if (!immunization) return;
+
+		setFormError("");
+		const formData = new FormData();
+		formData.set("updatedAt", immunization.editValues.updatedAt);
+		formData.set("vaccineName", immunization.vaccineName);
+		formData.set("seriesType", immunization.editValues.seriesType);
+		formData.set("currentDose", immunization.editValues.currentDose);
+		formData.set("totalDoses", immunization.editValues.totalDoses);
+		formData.set("status", nextStatus);
+		formData.set("dateAdministered", immunization.editValues.dateAdministered);
+		formData.set("administeredBy", immunization.editValues.administeredBy);
+		formData.set("clinicalNote", immunization.editValues.clinicalNote);
+
+		startTransition(async () => {
+			try {
+				const result = await updatePatientImmunizationAction(immunization.immunizationId, formData);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				setIsDiscontinueDialogOpen(false);
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				onImmunizationUpdated();
+			} catch (error) {
+				console.error("Changing the immunization status failed:", error);
+				setIsDiscontinueDialogOpen(false);
+				setFormError("We couldn’t update this immunization. Please try again.");
+			}
+		});
+	}
+
 	const isEditingImmunizationDetails = immunizationDetailsMode === "edit" && Boolean(immunization);
 
 	return (
@@ -177,7 +217,11 @@ export function ImmunizationDetailsDrawer({
 								</DropdownMenuItem>
 								{immunization.status === "Active" ? (
 									<>
-										<DropdownMenuItem className="rounded-lg">
+										<DropdownMenuItem
+											className="rounded-lg"
+											disabled={isPending}
+											onSelect={() => handleStatusChange("Completed")}
+										>
 											<RiCheckLine aria-hidden="true" />
 											Mark as completed
 										</DropdownMenuItem>
@@ -230,6 +274,25 @@ export function ImmunizationDetailsDrawer({
 						/>
 					) : immunization ? (
 						<div className="flex flex-col gap-10">
+							{formError ? (
+								<div
+									role="alert"
+									className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
+								>
+									<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+									<p className="min-w-0 flex-1 text-pretty">{formError}</p>
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon"
+										className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+										aria-label="Dismiss error"
+										onClick={() => setFormError("")}
+									>
+										<RiCloseLine aria-hidden="true" />
+									</Button>
+								</div>
+							) : null}
 							<ImmunizationDetailsOverview immunization={immunization} />
 							<ImmunizationHistorySection history={immunization.history} />
 						</div>
@@ -281,9 +344,10 @@ export function ImmunizationDetailsDrawer({
 						<Button
 							type="button"
 							className="bg-rose-500 text-white hover:bg-rose-600"
-							onClick={() => setIsDiscontinueDialogOpen(false)}
+							disabled={isPending}
+							onClick={() => handleStatusChange("Discontinued")}
 						>
-							Discontinue immunization
+							{isPending ? <PixelLoader label="Discontinuing…" /> : "Discontinue immunization"}
 						</Button>
 					</AlertDialogFooter>
 				</AlertDialogContent>

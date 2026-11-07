@@ -145,6 +145,48 @@ export function MedicationDetailsDrawer({
 		});
 	}
 
+	function handleStatusChange(nextStatus: "Completed" | "Discontinued") {
+		if (!medication) return;
+
+		setFormError("");
+		const formData = new FormData();
+		formData.set("updatedAt", medication.editValues.updatedAt);
+		formData.set("medicationName", medication.name);
+		formData.set("indication", medication.editValues.indication);
+		formData.set("status", nextStatus);
+		formData.set("dose", medication.editValues.dose);
+		formData.set("route", medication.editValues.route);
+		formData.set("prescribedBy", medication.editValues.prescribedBy);
+		formData.set("frequency", medication.editValues.frequency);
+		formData.set("duration", medication.editValues.duration);
+		formData.set("startedAt", medication.editValues.startedAt);
+		formData.set("clinicalNote", medication.editValues.clinicalNote);
+
+		startTransition(async () => {
+			try {
+				const result = await updatePatientMedicationAction(medication.medicationId, formData);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				setIsDiscontinueDialogOpen(false);
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				onMedicationUpdated();
+			} catch (error) {
+				console.error("Changing the medication status failed:", error);
+				setIsDiscontinueDialogOpen(false);
+				setFormError("We couldn’t update this medication. Please try again.");
+			}
+		});
+	}
+
 	const isEditingMedicationDetails = medicationDetailsMode === "edit" && Boolean(medication);
 
 	return (
@@ -182,7 +224,11 @@ export function MedicationDetailsDrawer({
 								</DropdownMenuItem>
 								{medication.status === "Active" ? (
 									<>
-										<DropdownMenuItem className="rounded-lg">
+										<DropdownMenuItem
+											className="rounded-lg"
+											disabled={isPending}
+											onSelect={() => handleStatusChange("Completed")}
+										>
 											<RiCheckLine aria-hidden="true" />
 											Mark as completed
 										</DropdownMenuItem>
@@ -235,6 +281,25 @@ export function MedicationDetailsDrawer({
 						/>
 					) : medication ? (
 						<div className="flex flex-col gap-10">
+							{formError ? (
+								<div
+									role="alert"
+									className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
+								>
+									<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+									<p className="min-w-0 flex-1 text-pretty">{formError}</p>
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon"
+										className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+										aria-label="Dismiss error"
+										onClick={() => setFormError("")}
+									>
+										<RiCloseLine aria-hidden="true" />
+									</Button>
+								</div>
+							) : null}
 							<MedicationDetailsOverview medication={medication} />
 							<MedicationHistorySection history={medication.history} />
 						</div>
@@ -286,9 +351,10 @@ export function MedicationDetailsDrawer({
 						<Button
 							type="button"
 							className="bg-rose-500 text-white hover:bg-rose-600"
-							onClick={() => setIsDiscontinueDialogOpen(false)}
+							disabled={isPending}
+							onClick={() => handleStatusChange("Discontinued")}
 						>
-							Discontinue medication
+							{isPending ? <PixelLoader label="Discontinuing…" /> : "Discontinue medication"}
 						</Button>
 					</AlertDialogFooter>
 				</AlertDialogContent>

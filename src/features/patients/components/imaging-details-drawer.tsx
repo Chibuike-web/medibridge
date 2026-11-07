@@ -104,14 +104,16 @@ export function ImagingDetailsDrawer({
 	const router = useRouter();
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const canArchive = activeMemberRole?.role === "owner" || activeMemberRole?.role === "admin";
-	const [imagingDetailsMode, setImagingDetailsMode] = useState<"view" | "edit">("view");
+	const [imagingDetailsMode, setImagingDetailsMode] = useState<"view" | "edit" | "complete">(
+		"view",
+	);
 	const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 	const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 	const [formError, setFormError] = useState("");
 	const uploadedReportsRef = useRef<UploadedReports>(new Map());
 	const [isPending, startTransition] = useTransition();
 
-	function handleImagingDetailsModeChange(nextMode: "view" | "edit") {
+	function handleImagingDetailsModeChange(nextMode: "view" | "edit" | "complete") {
 		setFormError("");
 		setImagingDetailsMode(nextMode);
 	}
@@ -201,7 +203,7 @@ export function ImagingDetailsDrawer({
 		});
 	}
 
-	const isEditingImagingDetails = imagingDetailsMode === "edit" && Boolean(imaging);
+	const isEditingImagingDetails = imagingDetailsMode !== "view" && Boolean(imaging);
 
 	return (
 		<Drawer
@@ -238,7 +240,10 @@ export function ImagingDetailsDrawer({
 								</DropdownMenuItem>
 								{imaging.status === "Pending" ? (
 									<>
-										<DropdownMenuItem className="rounded-lg">
+										<DropdownMenuItem
+											className="rounded-lg"
+											onSelect={() => handleImagingDetailsModeChange("complete")}
+										>
 											<RiCheckLine aria-hidden="true" />
 											Mark as completed
 										</DropdownMenuItem>
@@ -283,6 +288,7 @@ export function ImagingDetailsDrawer({
 						<ImagingDetailsEditForm
 							key={imaging.imagingId}
 							imaging={imaging}
+							defaultStatus={imagingDetailsMode === "complete" ? "Completed" : imaging.status}
 							formError={formError}
 							onFormErrorDismiss={() => setFormError("")}
 							onSave={handleSave}
@@ -641,11 +647,13 @@ function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHist
 
 function ImagingDetailsEditForm({
 	imaging,
+	defaultStatus,
 	formError,
 	onFormErrorDismiss,
 	onSave,
 }: {
 	imaging: ImagingType;
+	defaultStatus: ImagingType["status"];
 	formError: string;
 	onFormErrorDismiss: () => void;
 	onSave: (formData: FormData) => void;
@@ -870,7 +878,7 @@ function ImagingDetailsEditForm({
 						<Label htmlFor="edit-imaging-status" className={imagingDetailsFieldLabelClassName}>
 							Status<span className={imagingDetailsRequiredLabelClassName}>(required)</span>
 						</Label>
-						<Select name="status" defaultValue={imaging.status} required>
+						<Select name="status" defaultValue={defaultStatus} required>
 							<SelectTrigger
 								id="edit-imaging-status"
 								className={`${imagingDetailsFieldControlClassName} w-full`}

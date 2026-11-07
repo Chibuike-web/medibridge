@@ -145,6 +145,43 @@ export function ProcedureDetailsDrawer({
 		});
 	}
 
+	function handleMarkAsCompleted() {
+		if (!procedure) return;
+
+		setFormError("");
+		const formData = new FormData();
+		formData.set("updatedAt", procedure.editValues.updatedAt);
+		formData.set("procedureName", procedure.name);
+		formData.set("indication", procedure.editValues.indication);
+		formData.set("status", "Completed");
+		formData.set("procedureDate", procedure.editValues.procedureDate);
+		formData.set("physician", procedure.editValues.physician);
+		formData.set("assistants", procedure.editValues.assistants);
+		formData.set("facility", procedure.editValues.facility);
+		formData.set("clinicalNote", procedure.editValues.clinicalNote);
+
+		startTransition(async () => {
+			try {
+				const result = await updatePatientProcedureAction(procedure.procedureId, formData);
+
+				if (result.status === "unauthorized") {
+					router.refresh();
+					return;
+				}
+
+				if (result.status !== "success") {
+					setFormError(result.error);
+					return;
+				}
+
+				onProcedureUpdated();
+			} catch (error) {
+				console.error("Marking the procedure as completed failed:", error);
+				setFormError("We couldn’t update this procedure. Please try again.");
+			}
+		});
+	}
+
 	const isEditingProcedureDetails = procedureDetailsMode === "edit" && Boolean(procedure);
 
 	return (
@@ -181,7 +218,11 @@ export function ProcedureDetailsDrawer({
 									Export
 								</DropdownMenuItem>
 								{procedure.status === "Pending" ? (
-									<DropdownMenuItem className="rounded-lg">
+									<DropdownMenuItem
+										className="rounded-lg"
+										disabled={isPending}
+										onSelect={handleMarkAsCompleted}
+									>
 										<RiCheckLine aria-hidden="true" />
 										Mark as completed
 									</DropdownMenuItem>
@@ -226,6 +267,25 @@ export function ProcedureDetailsDrawer({
 						/>
 					) : procedure ? (
 						<div className="flex flex-col gap-10">
+							{formError ? (
+								<div
+									role="alert"
+									className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-3 text-left text-sm font-medium text-red-700"
+								>
+									<RiErrorWarningFill className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+									<p className="min-w-0 flex-1 text-pretty">{formError}</p>
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon"
+										className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
+										aria-label="Dismiss error"
+										onClick={() => setFormError("")}
+									>
+										<RiCloseLine aria-hidden="true" />
+									</Button>
+								</div>
+							) : null}
 							<ProcedureDetailsOverview procedure={procedure} />
 							<ProcedureRelatedRecords relatedRecords={procedure.relatedRecords} />
 							<ProcedureHistorySection history={procedure.history} />
