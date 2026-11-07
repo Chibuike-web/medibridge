@@ -60,7 +60,6 @@ const activeSessions = [
 		location: "Lagos, Nigeria",
 		signedInAt: "21st Apr 2026, 9:40AM",
 		lastActiveAt: "Now",
-		isCurrent: true,
 	},
 	{
 		id: "session-macbook",
@@ -68,7 +67,6 @@ const activeSessions = [
 		location: "Lagos, Nigeria",
 		signedInAt: "14th Apr 2026, 8:15AM",
 		lastActiveAt: "21st Apr 2026, 7:02AM",
-		isCurrent: false,
 	},
 	{
 		id: "session-windows",
@@ -76,7 +74,6 @@ const activeSessions = [
 		location: "Enugu, Nigeria",
 		signedInAt: "2nd Apr 2026, 4:30PM",
 		lastActiveAt: "18th Apr 2026, 6:45PM",
-		isCurrent: false,
 	},
 ];
 
@@ -271,26 +268,24 @@ export function AccountSettings({
 													rowPosition === 0 && "rounded-tr-lg",
 												)}
 											>
-												{session.isCurrent ? null : (
-													<DropdownMenu>
-														<DropdownMenuTrigger
-															type="button"
-															className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-800 data-[state=open]:bg-gray-200 data-[state=open]:text-gray-800"
-															aria-label={`Open actions for ${session.device} in ${session.location}`}
-														>
-															<RiMore2Fill className="size-5" aria-hidden />
-														</DropdownMenuTrigger>
-														<DropdownMenuContent
-															align="end"
-															className="rounded-xl bg-white text-sm text-gray-700"
-														>
-															<DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600">
-																<RiLogoutBoxLine className="text-current" aria-hidden="true" />
-																<span>Log out</span>
-															</DropdownMenuItem>
-														</DropdownMenuContent>
-													</DropdownMenu>
-												)}
+												<DropdownMenu>
+													<DropdownMenuTrigger
+														type="button"
+														className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-800 data-[state=open]:bg-gray-200 data-[state=open]:text-gray-800"
+														aria-label={`Open actions for ${session.device} in ${session.location}`}
+													>
+														<RiMore2Fill className="size-5" aria-hidden />
+													</DropdownMenuTrigger>
+													<DropdownMenuContent
+														align="end"
+														className="rounded-xl bg-white text-sm text-gray-700"
+													>
+														<DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600">
+															<RiLogoutBoxLine className="text-current" aria-hidden="true" />
+															<span>Log out</span>
+														</DropdownMenuItem>
+													</DropdownMenuContent>
+												</DropdownMenu>
 											</TableCell>
 										</TableRow>
 									))
