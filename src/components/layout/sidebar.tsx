@@ -480,7 +480,7 @@ export function Sidebar({
 						)}
 						{isMobile ? (
 							<Drawer open={isSearchOpen} onOpenChange={handleSearchOpenChange}>
-								<DrawerContent className="max-w-none overflow-hidden rounded-2xl border text-sm data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:top-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
+								<DrawerContent className="max-w-none overflow-hidden border text-sm data-[vaul-drawer-direction=bottom]:inset-x-4 data-[vaul-drawer-direction=bottom]:rounded-2xl data-[vaul-drawer-direction=bottom]:top-4 data-[vaul-drawer-direction=bottom]:bottom-4 data-[vaul-drawer-direction=bottom]:mt-0 data-[vaul-drawer-direction=bottom]:max-h-none">
 									<Command className="flex min-h-0 flex-1 flex-col bg-white text-gray-800">
 										{searchContent}
 									</Command>
