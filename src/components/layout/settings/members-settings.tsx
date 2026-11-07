@@ -17,6 +17,7 @@ import {
 } from "@remixicon/react";
 
 import { ExportButton } from "@/components/export-button";
+import { FilterChip } from "@/components/filter-chip";
 import { FilterGroup, FilterPopover } from "@/components/filter-menu";
 import { StatusBadge } from "@/components/status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -216,11 +217,7 @@ export function MembersSettings({
 							(joinedSince ? 1 : 0)
 						}
 					>
-						<FilterPopover
-							label="Invite status"
-							value={inviteStatusFilter ? formatLabel(inviteStatusFilter) : undefined}
-							icon={RiMailLine}
-						>
+						<FilterPopover label="Invite status" icon={RiMailLine}>
 							<RadioGroup
 								value={inviteStatusFilter || "all"}
 								onValueChange={(nextInviteStatus) => {
@@ -269,11 +266,7 @@ export function MembersSettings({
 								</div>
 							</RadioGroup>
 						</FilterPopover>
-						<FilterPopover
-							label="Role"
-							value={roleFilter ? formatLabel(roleFilter) : undefined}
-							icon={RiShieldUserLine}
-						>
+						<FilterPopover label="Role" icon={RiShieldUserLine}>
 							<RadioGroup
 								value={roleFilter || "all"}
 								onValueChange={(nextRole) => {
@@ -320,11 +313,7 @@ export function MembersSettings({
 								</div>
 							</RadioGroup>
 						</FilterPopover>
-						<FilterPopover
-							label="Last active"
-							value={lastActivePresets.find(({ since }) => since === lastActiveSince)?.label}
-							icon={RiCalendarLine}
-						>
+						<FilterPopover label="Last active" icon={RiCalendarLine}>
 							<RadioGroup
 								value={lastActiveSince || "any"}
 								onValueChange={(nextStartDate) => {
@@ -361,11 +350,7 @@ export function MembersSettings({
 								))}
 							</RadioGroup>
 						</FilterPopover>
-						<FilterPopover
-							label="Joined"
-							value={joinedPresets.find(({ since }) => since === joinedSince)?.label}
-							icon={RiCalendarLine}
-						>
+						<FilterPopover label="Joined" icon={RiCalendarLine}>
 							<RadioGroup
 								value={joinedSince || "any"}
 								onValueChange={(nextStartDate) => {
@@ -411,6 +396,52 @@ export function MembersSettings({
 				</div>
 			</div>
 
+			{inviteStatusFilter || roleFilter || lastActiveSince || joinedSince ? (
+				<div className="flex flex-wrap gap-2">
+					{inviteStatusFilter ? (
+						<FilterChip
+							name="Invite status"
+							value={formatLabel(inviteStatusFilter)}
+							onRemove={() => setInviteStatusFilter("")}
+						/>
+					) : null}
+					{roleFilter ? (
+						<FilterChip
+							name="Role"
+							value={formatLabel(roleFilter)}
+							onRemove={() => setRoleFilter("")}
+						/>
+					) : null}
+					{lastActiveSince ? (
+						<FilterChip
+							name="Last active"
+							value={lastActivePresets.find(({ since }) => since === lastActiveSince)?.label ?? ""}
+							onRemove={() => setLastActiveSince("")}
+						/>
+					) : null}
+					{joinedSince ? (
+						<FilterChip
+							name="Joined"
+							value={joinedPresets.find(({ since }) => since === joinedSince)?.label ?? ""}
+							onRemove={() => setJoinedSince("")}
+						/>
+					) : null}
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="h-8.5 text-gray-600"
+						onClick={() => {
+							setInviteStatusFilter("");
+							setRoleFilter("");
+							setLastActiveSince("");
+							setJoinedSince("");
+						}}
+					>
+						Clear all
+					</Button>
+				</div>
+			) : null}
 			<div className="overflow-x-auto rounded-xl border border-gray-200">
 				<Table className="min-w-[56rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="text-sm font-semibold text-gray-500">

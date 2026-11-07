@@ -114,6 +114,31 @@ describe("MembersSettings", () => {
 		expect(screen.queryByRole("row", { name: /Sarah Williams/ })).not.toBeInTheDocument();
 	});
 
+	test("shows a role filter as a pill that brings every member back when removed", async () => {
+		const user = userEvent.setup();
+		render(
+			<MembersSettings
+				currentUser={currentUser}
+				organizationName="Lagos General"
+				viewerRole="owner"
+			/>,
+		);
+
+		await user.click(screen.getByRole("button", { name: "Role" }));
+		await user.click(screen.getByRole("radio", { name: "Admin" }));
+		await user.keyboard("{Escape}");
+
+		expect(screen.getByRole("row", { name: /Sarah Williams/ })).toBeVisible();
+		expect(screen.queryByRole("row", { name: /David Okafor/ })).not.toBeInTheDocument();
+
+		await user.click(screen.getByRole("button", { name: "Remove Role: Admin filter" }));
+
+		expect(screen.getByRole("row", { name: /David Okafor/ })).toBeVisible();
+		expect(
+			screen.queryByRole("button", { name: "Remove Role: Admin filter" }),
+		).not.toBeInTheDocument();
+	});
+
 	test("does not review an invitation with an invalid email", async () => {
 		const user = userEvent.setup();
 		render(

@@ -89,12 +89,10 @@ export function FilterGroup({
 
 export function FilterPopover({
 	label,
-	value,
 	icon: Icon,
 	children,
 }: {
 	label: string;
-	value?: string;
 	icon: RemixiconComponentType;
 	children: ReactNode;
 }) {
@@ -125,7 +123,6 @@ export function FilterPopover({
 				>
 					<Icon aria-hidden className="size-4 text-gray-600" />
 					{label}
-					{value ? <span className="text-gray-800">· {value}</span> : null}
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent align={align} className="min-w-50 p-1 text-sm text-gray-700">
