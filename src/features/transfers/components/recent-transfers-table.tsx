@@ -234,7 +234,7 @@ const recentTransfersColumns: ColumnDef<typeof configuredTableFeatures, Transfer
 		sortFn: sortFn_text,
 		cell: ({ row }) => (
 			<div className="flex items-center gap-3">
-				<Avatar className="size-9 border border-gray-200 bg-gray-100 text-gray-700">
+				<Avatar className="size-8 border border-gray-200 bg-gray-100 text-gray-700">
 					<AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
 						{getInitials(row.original.patientName)}
 					</AvatarFallback>
