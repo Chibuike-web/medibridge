@@ -190,7 +190,7 @@ export function BillingSettings() {
 							</h3>
 							<p className="text-sm text-gray-600">{invoices.length} invoices</p>
 						</div>
-						<div className="flex flex-wrap items-center gap-2">
+						<div className="flex flex-wrap items-center gap-2 max-md:w-full">
 							<div className="relative w-72 max-md:w-full">
 								<RiSearchLine className="pointer-events-none absolute bottom-0 left-2 flex h-full size-4 items-center justify-center text-gray-400" />
 								<Input

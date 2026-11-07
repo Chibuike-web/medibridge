@@ -179,7 +179,7 @@ export function AccountSettings({
 						<h3 id="active-sessions-heading" className="font-semibold">
 							Active sessions
 						</h3>
-						<div className="flex flex-wrap items-center gap-2">
+						<div className="flex flex-wrap items-center gap-2 max-md:w-full">
 							<div className="relative w-72 max-md:w-full">
 								<RiSearchLine className="pointer-events-none absolute bottom-0 left-2 flex h-full size-4 items-center justify-center text-gray-400" />
 								<Input
