@@ -99,34 +99,28 @@ describe("InviteMembersSettings", () => {
 		expect(screen.getByRole("textbox", { name: /Email address/i })).toHaveValue("keep@example.com");
 	});
 
-	test.each([
-		{ viewerRole: "owner" as const, allowedRoles: ["Admin", "Member"] },
-		{ viewerRole: "admin" as const, allowedRoles: ["Member"] },
-	])(
-		"shows only allowed invitation roles for $viewerRole",
-		async ({ viewerRole, allowedRoles }) => {
-			const user = userEvent.setup();
-			render(
-				<InviteMembersSettings
-					inviteMemberRows={[{ id: "invitation-1", email: "", role: "" }]}
-					setInviteMemberRows={vi.fn()}
-					onAddInvitationRow={vi.fn()}
-					onSettingsSubViewChange={vi.fn()}
-					viewerRole={viewerRole}
-				/>,
-			);
+	test("offers the Admin and Member roles for an invitation", async () => {
+		const user = userEvent.setup();
+		render(
+			<InviteMembersSettings
+				inviteMemberRows={[{ id: "invitation-1", email: "", role: "" }]}
+				setInviteMemberRows={vi.fn()}
+				onAddInvitationRow={vi.fn()}
+				onSettingsSubViewChange={vi.fn()}
+			/>,
+		);
 
-			await user.tab();
-			await user.tab();
-			await user.tab();
-			expect(screen.getByRole("combobox", { name: /Role/i })).toHaveFocus();
-			await user.keyboard("{Enter}");
+		await user.tab();
+		await user.tab();
+		await user.tab();
+		expect(screen.getByRole("combobox", { name: /Role/i })).toHaveFocus();
+		await user.keyboard("{Enter}");
 
-			expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual(
-				allowedRoles,
-			);
-		},
-	);
+		expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
+			"Admin",
+			"Member",
+		]);
+	});
 
 	test("reviews an invitation, opens success on send, and returns to members on Done", async () => {
 		const user = userEvent.setup();
@@ -156,7 +150,6 @@ describe("InviteMembersSettings", () => {
 				setInviteMemberRows={vi.fn()}
 				onAddInvitationRow={vi.fn()}
 				onSettingsSubViewChange={onSettingsSubViewChange}
-				viewerRole="owner"
 			/>,
 		);
 		await user.click(screen.getByRole("button", { name: "Review invitations" }));
@@ -173,7 +166,6 @@ describe("InviteMembersSettings", () => {
 				setInviteMemberRows={vi.fn()}
 				onAddInvitationRow={vi.fn()}
 				onSettingsSubViewChange={onSettingsSubViewChange}
-				viewerRole="owner"
 			/>,
 		);
 		await user.click(screen.getByRole("button", { name: "Review invitations" }));

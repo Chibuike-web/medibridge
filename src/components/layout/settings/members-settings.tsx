@@ -120,7 +120,6 @@ export function MembersSettings({
 				setInviteMemberRows={setInviteMemberRows}
 				onAddInvitationRow={handleAddInvitationRow}
 				onSettingsSubViewChange={onSettingsSubViewChange}
-				viewerRole={viewerRole}
 			/>
 		);
 	}
@@ -152,14 +151,10 @@ export function MembersSettings({
 		<div className="flex h-full min-h-0 flex-col">
 			<div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-5">
 				{members.map((member) => (
-					<MemberCard key={member.id} member={member} viewerRole={viewerRole} />
+					<MemberCard key={member.id} member={member} />
 				))}
 				{pendingInvitations.map((pendingInvitation) => (
-					<PendingInvitationCard
-						key={pendingInvitation.id}
-						pendingInvitation={pendingInvitation}
-						viewerRole={viewerRole}
-					/>
+					<PendingInvitationCard key={pendingInvitation.id} pendingInvitation={pendingInvitation} />
 				))}
 			</div>
 			<div className="flex shrink-0 justify-end border-t p-4">
@@ -171,19 +166,8 @@ export function MembersSettings({
 	);
 }
 
-function MemberCard({
-	member,
-	viewerRole,
-}: {
-	member: OrganizationMember;
-	viewerRole: MemberManagerRole;
-}) {
-	const ownerCanManageMember =
-		viewerRole === "owner" && (member.role === "admin" || member.role === "member");
-
-	const adminCanManageMember = viewerRole === "admin" && member.role === "member";
-
-	const canManageMember = !member.isCurrentUser && (ownerCanManageMember || adminCanManageMember);
+function MemberCard({ member }: { member: OrganizationMember }) {
+	const canManageMember = !member.isCurrentUser && member.role !== "owner";
 
 	const [isMemberDetailsExpanded, setIsMemberDetailsExpanded] = useState(canManageMember);
 	const memberDetailsId = useId();
@@ -313,44 +297,40 @@ function MemberCard({
 	);
 }
 
-function PendingInvitationCard({
-	pendingInvitation,
-	viewerRole,
-}: {
-	pendingInvitation: PendingInvitation;
-	viewerRole: MemberManagerRole;
-}) {
-	const canManageAdminInvitation = viewerRole === "owner" && pendingInvitation.role === "admin";
-
-	const canManageMemberInvitation = pendingInvitation.role === "member";
-
-	const canManageInvitation = canManageAdminInvitation || canManageMemberInvitation;
-
-	const [isInvitationDetailsExpanded, setIsInvitationDetailsExpanded] =
-		useState(canManageInvitation);
+function PendingInvitationCard({ pendingInvitation }: { pendingInvitation: PendingInvitation }) {
+	const [isInvitationDetailsExpanded, setIsInvitationDetailsExpanded] = useState(true);
 	const invitationDetailsId = useId();
 	const invitationStatusTone = pendingInvitation.status === "pending" ? "warning" : "danger";
-	const invitationSummary = (
-		<>
-			<div className="flex items-center justify-between gap-4">
-				<p className="truncate text-base font-semibold">
-					{pendingInvitation.name ?? pendingInvitation.email}
-				</p>
-				<SettingsBadge
-					tone={invitationStatusTone}
-					muted={!canManageInvitation}
-					className="capitalize"
-				>
-					{pendingInvitation.status}
-				</SettingsBadge>
-			</div>
-			<div className="mt-3 flex items-center justify-between gap-4">
-				{pendingInvitation.name ? (
-					<p className="min-w-0 truncate text-sm font-medium">{pendingInvitation.email}</p>
-				) : (
-					<span aria-hidden="true" />
-				)}
-				{canManageInvitation ? (
+
+	return (
+		<article
+			className={cn(
+				"group/pending-invitation-card shrink-0 rounded-2xl border transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+				isInvitationDetailsExpanded ? "border-gray-400" : "border-gray-200 hover:border-gray-400",
+			)}
+		>
+			<Button
+				variant="ghost"
+				type="button"
+				className="block w-full rounded-2xl p-4 text-left text-gray-600 h-auto whitespace-normal font-normal hover:bg-transparent hover:text-gray-600 active:scale-100"
+				aria-expanded={isInvitationDetailsExpanded}
+				aria-controls={invitationDetailsId}
+				onClick={() => setIsInvitationDetailsExpanded((prev) => !prev)}
+			>
+				<div className="flex items-center justify-between gap-4">
+					<p className="truncate text-base font-semibold">
+						{pendingInvitation.name ?? pendingInvitation.email}
+					</p>
+					<SettingsBadge tone={invitationStatusTone} className="capitalize">
+						{pendingInvitation.status}
+					</SettingsBadge>
+				</div>
+				<div className="mt-3 flex items-center justify-between gap-4">
+					{pendingInvitation.name ? (
+						<p className="min-w-0 truncate text-sm font-medium">{pendingInvitation.email}</p>
+					) : (
+						<span aria-hidden="true" />
+					)}
 					<span className="inline-flex shrink-0 items-center gap-0.5 text-sm w-full max-w-[90px] font-medium text-gray-400">
 						<span className="flex flex-1 items-center">
 							<span
@@ -376,84 +356,49 @@ function PendingInvitationCard({
 							aria-hidden="true"
 						/>
 					</span>
-				) : null}
-			</div>
-		</>
-	);
+				</div>
+			</Button>
 
-	return (
-		<article
-			className={cn(
-				"group/pending-invitation-card shrink-0 rounded-2xl border",
-				canManageInvitation
-					? cn(
-							"transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
-							isInvitationDetailsExpanded
-								? "border-gray-400"
-								: "border-gray-200 hover:border-gray-400",
-						)
-					: "border-gray-200",
-			)}
-		>
-			{canManageInvitation ? (
-				<Button
-					variant="ghost"
-					type="button"
-					className="block w-full rounded-2xl p-4 text-left text-gray-600 h-auto whitespace-normal font-normal hover:bg-transparent hover:text-gray-600 active:scale-100"
-					aria-expanded={isInvitationDetailsExpanded}
-					aria-controls={invitationDetailsId}
-					onClick={() => setIsInvitationDetailsExpanded((prev) => !prev)}
-				>
-					{invitationSummary}
-				</Button>
-			) : (
-				<div className="p-4 text-gray-400">{invitationSummary}</div>
-			)}
-
-			{canManageInvitation ? (
-				<div
-					id={invitationDetailsId}
-					className={cn(
-						"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
-						isInvitationDetailsExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
-					)}
-					aria-hidden={!isInvitationDetailsExpanded}
-					inert={!isInvitationDetailsExpanded}
-				>
-					<div className="min-h-0 overflow-hidden">
-						<div className="px-4 pb-4">
-							<dl className="flex flex-col gap-3 text-sm">
-								<div className="flex items-center justify-between gap-4">
-									<dt className="text-gray-400">Role</dt>
-									<dd className="font-semibold text-gray-600 capitalize">
-										{pendingInvitation.role}
-									</dd>
-								</div>
-								<div className="flex items-center justify-between gap-4">
-									<dt className="text-gray-400">Invitation sent</dt>
-									<dd className="font-semibold text-gray-600">{pendingInvitation.sentAt}</dd>
-								</div>
-								<div className="flex items-center justify-between gap-4">
-									<dt className="text-gray-400">Expires</dt>
-									<dd className="font-semibold text-gray-600">{pendingInvitation.expiresAt}</dd>
-								</div>
-							</dl>
-							<div className="flex justify-end gap-2 pt-5">
-								<Button type="button" variant="outline">
-									Resend invitation
-								</Button>
-								<Button
-									type="button"
-									variant="destructive"
-									className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive dark:bg-transparent dark:hover:bg-destructive/10"
-								>
-									Cancel invitation
-								</Button>
+			<div
+				id={invitationDetailsId}
+				className={cn(
+					"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+					isInvitationDetailsExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+				)}
+				aria-hidden={!isInvitationDetailsExpanded}
+				inert={!isInvitationDetailsExpanded}
+			>
+				<div className="min-h-0 overflow-hidden">
+					<div className="px-4 pb-4">
+						<dl className="flex flex-col gap-3 text-sm">
+							<div className="flex items-center justify-between gap-4">
+								<dt className="text-gray-400">Role</dt>
+								<dd className="font-semibold text-gray-600 capitalize">{pendingInvitation.role}</dd>
 							</div>
+							<div className="flex items-center justify-between gap-4">
+								<dt className="text-gray-400">Invitation sent</dt>
+								<dd className="font-semibold text-gray-600">{pendingInvitation.sentAt}</dd>
+							</div>
+							<div className="flex items-center justify-between gap-4">
+								<dt className="text-gray-400">Expires</dt>
+								<dd className="font-semibold text-gray-600">{pendingInvitation.expiresAt}</dd>
+							</div>
+						</dl>
+						<div className="flex justify-end gap-2 pt-5">
+							<Button type="button" variant="outline">
+								Resend invitation
+							</Button>
+							<Button
+								type="button"
+								variant="destructive"
+								className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive dark:bg-transparent dark:hover:bg-destructive/10"
+							>
+								Cancel invitation
+							</Button>
 						</div>
 					</div>
 				</div>
-			) : null}
+			</div>
 		</article>
 	);
 }

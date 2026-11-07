@@ -52,7 +52,7 @@ describe("MembersSettings", () => {
 		expect(adminDetails).toHaveAttribute("inert");
 	});
 
-	test("lets an admin manage members only", () => {
+	test("lets an admin manage other admins and members, but not the owner or themselves", () => {
 		render(
 			<MembersSettings
 				activeSettingsSubView={null}
@@ -63,22 +63,23 @@ describe("MembersSettings", () => {
 			/>,
 		);
 
-		for (const name of ["John Doe", "Current User", "Michael Chen"]) {
+		for (const name of ["John Doe", "Current User"]) {
 			const memberName = screen.getByText(name);
 			expect(memberName).toBeVisible();
 			const memberCard = memberName.closest("article");
 			expect(memberCard).not.toBeNull();
 			expect(within(memberCard!).queryByRole("button", { hidden: true })).not.toBeInTheDocument();
 		}
-		expect(screen.getByRole("button", { name: /David Okafor/i })).toHaveAttribute(
-			"aria-expanded",
-			"true",
+		expect(screen.getByRole("combobox", { name: "Role for Michael Chen" })).toHaveTextContent(
+			"Admin",
 		);
-		expect(screen.getAllByRole("combobox", { name: /^Role for / })).toHaveLength(1);
-		expect(screen.getAllByRole("button", { name: "Remove member" })).toHaveLength(1);
+		expect(screen.getByRole("combobox", { name: "Role for David Okafor" })).toHaveTextContent(
+			"Member",
+		);
+		expect(screen.getAllByRole("button", { name: "Remove member" })).toHaveLength(2);
 	});
 
-	test("lets an admin manage member invitations only", () => {
+	test("lets an admin manage admin and member invitations", () => {
 		render(
 			<MembersSettings
 				activeSettingsSubView={null}
@@ -115,9 +116,14 @@ describe("MembersSettings", () => {
 		const memberCard = memberEmail.closest("article");
 		expect(adminCard).not.toBeNull();
 		expect(memberCard).not.toBeNull();
-		expect(within(adminCard!).queryByRole("button", { hidden: true })).not.toBeInTheDocument();
-		expect(within(memberCard!).getByRole("button", { name: "Resend invitation" })).toBeEnabled();
-		expect(within(memberCard!).getByRole("button", { name: "Cancel invitation" })).toBeEnabled();
+		for (const invitationCard of [adminCard!, memberCard!]) {
+			expect(
+				within(invitationCard).getByRole("button", { name: "Resend invitation" }),
+			).toBeEnabled();
+			expect(
+				within(invitationCard).getByRole("button", { name: "Cancel invitation" }),
+			).toBeEnabled();
+		}
 	});
 
 	test("opens the invite-member view from the footer action", async () => {

@@ -2,7 +2,7 @@ import { APIError } from "better-auth";
 
 const invitableRoles: Record<string, string[]> = {
 	owner: ["admin", "member"],
-	admin: ["member"],
+	admin: ["admin", "member"],
 };
 
 type InviterAccess = {
