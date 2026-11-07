@@ -65,18 +65,16 @@ describe("assertInvitationAllowed", () => {
 		expect(() => assertInvitationAllowed({ role: "member" }, verifiedOwner)).not.toThrow();
 	});
 
-	test("lets a verified hospital administrator invite a member", () => {
+	test("lets a verified hospital administrator invite an administrator or a member", () => {
+		expect(() => assertInvitationAllowed({ role: "admin" }, verifiedAdmin)).not.toThrow();
 		expect(() => assertInvitationAllowed({ role: "member" }, verifiedAdmin)).not.toThrow();
 	});
 
-	test("does not let an administrator invite another administrator", () => {
-		expect(() => assertInvitationAllowed({ role: "admin" }, verifiedAdmin)).toThrow(
+	test("does not let an administrator invite an owner, alone or among several roles", () => {
+		expect(() => assertInvitationAllowed({ role: "owner" }, verifiedAdmin)).toThrow(
 			"You can't invite someone with this role.",
 		);
-	});
-
-	test("does not let an administrator gain admin rights by requesting several roles", () => {
-		expect(() => assertInvitationAllowed({ role: "member,admin" }, verifiedAdmin)).toThrow(
+		expect(() => assertInvitationAllowed({ role: "member,owner" }, verifiedAdmin)).toThrow(
 			"You can't invite someone with this role.",
 		);
 	});

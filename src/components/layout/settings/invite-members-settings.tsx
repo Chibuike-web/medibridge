@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useId, type Dispatch, type SetStateAction, type FormEvent } from "react";
+import React, { useId, type Dispatch, type SetStateAction } from "react";
 import { RiAddLine, RiCloseLine } from "@remixicon/react";
 
 import { Button } from "@/components/ui/button";
@@ -14,36 +14,23 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-import type { InviteMemberRow, MemberManagerRole, SettingsSubView } from "./types";
+import type { InviteMemberRow, SettingsSubView } from "./types";
 
 const fieldLabelClassName = "inline-flex items-baseline gap-0.5 text-sm font-medium text-gray-700";
 const requiredLabelClassName = "font-normal text-gray-400";
 const fieldControlClassName =
 	"border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400";
 
-const inviteRoleOptions = {
-	owner: [
-		{ label: "Admin", value: "admin" },
-		{ label: "Member", value: "member" },
-	],
-	admin: [{ label: "Member", value: "member" }],
-} satisfies Record<
-	MemberManagerRole,
-	{ label: string; value: Exclude<InviteMemberRow["role"], ""> }[]
->;
-
 export function InviteMembersSettings({
 	inviteMemberRows,
 	setInviteMemberRows,
 	onAddInvitationRow,
 	onSettingsSubViewChange,
-	viewerRole,
 }: {
 	inviteMemberRows: InviteMemberRow[];
 	setInviteMemberRows: Dispatch<SetStateAction<InviteMemberRow[]>>;
 	onAddInvitationRow: () => void;
 	onSettingsSubViewChange: (view: SettingsSubView | null) => void;
-	viewerRole: MemberManagerRole;
 }) {
 	const inviteFormId = useId();
 	const handleEmailChange = (memberId: string, email: string) => {
@@ -53,20 +40,12 @@ export function InviteMembersSettings({
 	};
 
 	const handleRoleChange = (memberId: string, role: string) => {
-		const isAllowedInviteRole = inviteRoleOptions[viewerRole].some(
-			(roleOption) => roleOption.value === role,
-		);
-
-		if (!isAllowedInviteRole) {
+		if (role !== "admin" && role !== "member") {
 			return;
 		}
 
 		setInviteMemberRows((prev) =>
-			prev.map((memberRow) =>
-				memberRow.id === memberId
-					? { ...memberRow, role: role as Exclude<InviteMemberRow["role"], ""> }
-					: memberRow,
-			),
+			prev.map((memberRow) => (memberRow.id === memberId ? { ...memberRow, role } : memberRow)),
 		);
 	};
 
@@ -148,11 +127,8 @@ export function InviteMembersSettings({
 										<SelectValue placeholder="Select role" />
 									</SelectTrigger>
 									<SelectContent align="start">
-										{inviteRoleOptions[viewerRole].map((roleOption) => (
-											<SelectItem key={roleOption.value} value={roleOption.value}>
-												{roleOption.label}
-											</SelectItem>
-										))}
+										<SelectItem value="admin">Admin</SelectItem>
+										<SelectItem value="member">Member</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>

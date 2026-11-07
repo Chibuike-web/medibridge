@@ -1,9 +1,7 @@
 import { APIError } from "better-auth";
 
-const invitableRoles: Record<string, string[]> = {
-	owner: ["admin", "member"],
-	admin: ["member"],
-};
+const invitingRoles = ["owner", "admin"];
+const invitableRoles = ["admin", "member"];
 
 type InviterAccess = {
 	inviterRole: string;
@@ -49,10 +47,12 @@ export function assertInvitationAllowed(
 	}
 
 	// Better Auth joins multiple requested roles with commas, so every role must be allowed.
-	const allowedRoles = invitableRoles[inviterAccess.inviterRole] ?? [];
 	const requestedRoles = invitation.role.split(",").map((role) => role.trim());
 
-	if (!requestedRoles.every((role) => allowedRoles.includes(role))) {
+	if (
+		!invitingRoles.includes(inviterAccess.inviterRole) ||
+		!requestedRoles.every((role) => invitableRoles.includes(role))
+	) {
 		throw new APIError("FORBIDDEN", {
 			message: "You can't invite someone with this role.",
 		});
