@@ -711,7 +711,7 @@ function getVitalsColumns({
 					<DropdownMenu>
 						<DropdownMenuTrigger
 							type="button"
-							className="inline-flex size-9 items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+							className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-800 data-[state=open]:bg-gray-200 data-[state=open]:text-gray-800"
 							aria-label={`Open actions for vital ${row.original.vitalId}`}
 						>
 							<RiMore2Fill className="size-5" aria-hidden />
