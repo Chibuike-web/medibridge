@@ -164,23 +164,6 @@ export const auth = betterAuth({
 
 				assertInvitationAllowed({ role: requestedRole }, inviterAccess);
 
-				// A renewal keeps the stored role, so the stored invitation must pass too.
-				// Otherwise sending role: "member" would renew an admin invitation.
-				const [pendingInvitation] = await db
-					.select({ role: schema.invitation.role })
-					.from(schema.invitation)
-					.where(
-						and(
-							eq(schema.invitation.organizationId, organizationId),
-							eq(schema.invitation.email, email),
-							eq(schema.invitation.status, "pending"),
-						),
-					)
-					.limit(1);
-
-				if (pendingInvitation) {
-					assertInvitationAllowed({ role: pendingInvitation.role ?? "" }, inviterAccess);
-				}
 				const [inviteeMembership] = await db
 					.select({ id: schema.member.id })
 					.from(schema.member)

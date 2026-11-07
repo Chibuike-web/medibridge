@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useId, type Dispatch, type SetStateAction, type FormEvent } from "react";
+import React, { useId, type Dispatch, type SetStateAction } from "react";
 import { RiAddLine, RiCloseLine } from "@remixicon/react";
 
 import { Button } from "@/components/ui/button";
@@ -40,12 +40,12 @@ export function InviteMembersSettings({
 	};
 
 	const handleRoleChange = (memberId: string, role: string) => {
+		if (role !== "admin" && role !== "member") {
+			return;
+		}
+
 		setInviteMemberRows((prev) =>
-			prev.map((memberRow) =>
-				memberRow.id === memberId
-					? { ...memberRow, role: role as Exclude<InviteMemberRow["role"], ""> }
-					: memberRow,
-			),
+			prev.map((memberRow) => (memberRow.id === memberId ? { ...memberRow, role } : memberRow)),
 		);
 	};
 

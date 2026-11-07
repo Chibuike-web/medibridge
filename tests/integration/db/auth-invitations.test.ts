@@ -363,7 +363,7 @@ describe.skipIf(!testDatabaseUrl)("POST /api/auth/organization/invite-member", (
 			]);
 		});
 
-		test("does not let an administrator invite another administrator", async () => {
+		test("lets an administrator invite another administrator", async () => {
 			const hospitalId = await createHospital("Approved Hospital", { isVerified: true });
 			const adminId = await createHospitalMember(hospitalId, "admin@approved.org", "admin");
 			const adminCookie = await signIn(adminId, hospitalId);
@@ -374,11 +374,13 @@ describe.skipIf(!testDatabaseUrl)("POST /api/auth/organization/invite-member", (
 				organizationId: hospitalId,
 			});
 
-			expect(response.status).toBe(403);
-			expect(await findInvitationsFor("second-admin@approved.org")).toEqual([]);
+			expect(response.status).toBe(200);
+			expect(await findInvitationsFor("second-admin@approved.org")).toEqual([
+				expect.objectContaining({ role: "admin", status: "pending" }),
+			]);
 		});
 
-		test("does not let an administrator renew an administrator invitation by requesting the member role", async () => {
+		test("lets an administrator renew a pending administrator invitation", async () => {
 			const hospitalId = await createHospital("Approved Hospital", { isVerified: true });
 			const ownerId = await createHospitalMember(hospitalId, "owner@approved.org", "owner");
 			const adminId = await createHospitalMember(hospitalId, "admin@approved.org", "admin");
@@ -392,13 +394,30 @@ describe.skipIf(!testDatabaseUrl)("POST /api/auth/organization/invite-member", (
 
 			const response = await inviteMember(adminCookie, {
 				email: "pending-admin@approved.org",
-				role: "member",
+				role: "admin",
 				organizationId: hospitalId,
 				resend: true,
 			});
 
+			expect(response.status).toBe(200);
+			expect((await findInvitationExpiry(invitationId)).getTime()).toBeGreaterThan(
+				expiresAt.getTime(),
+			);
+		});
+
+		test("does not let a member send invitations", async () => {
+			const hospitalId = await createHospital("Approved Hospital", { isVerified: true });
+			const memberId = await createHospitalMember(hospitalId, "member@approved.org", "member");
+			const memberCookie = await signIn(memberId, hospitalId);
+
+			const response = await inviteMember(memberCookie, {
+				email: "new-member@approved.org",
+				role: "member",
+				organizationId: hospitalId,
+			});
+
 			expect(response.status).toBe(403);
-			expect(await findInvitationExpiry(invitationId)).toEqual(expiresAt);
+			expect(await findInvitationsFor("new-member@approved.org")).toEqual([]);
 		});
 
 		test("does not let the owner invite someone who already belongs to another hospital", async () => {
