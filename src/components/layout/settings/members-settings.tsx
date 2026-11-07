@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, subDays, subMonths, subYears } from "date-fns";
 import {
 	RiArrowLeftSLine,
 	RiArrowRightSLine,
@@ -16,9 +16,8 @@ import {
 	RiShieldUserLine,
 } from "@remixicon/react";
 
-import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { ExportButton } from "@/components/export-button";
-import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { FilterGroup, FilterPopover } from "@/components/filter-menu";
 import { StatusBadge } from "@/components/status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -80,8 +79,8 @@ const ownerRow: OrganizationMemberRow = {
 	email: "john@example.com",
 	inviteStatus: "accepted",
 	role: "owner",
-	joinedOn: "2026-08-10",
-	lastActiveOn: "2026-08-24",
+	joinedOn: "2025-09-10",
+	lastActiveOn: "2026-11-07",
 };
 
 const otherMemberRows: OrganizationMemberRow[] = [
@@ -92,7 +91,7 @@ const otherMemberRows: OrganizationMemberRow[] = [
 		inviteStatus: "accepted",
 		role: "admin",
 		joinedOn: "2026-08-12",
-		lastActiveOn: "2026-08-24",
+		lastActiveOn: "2026-11-04",
 	},
 	{
 		id: "david-okafor",
@@ -100,8 +99,8 @@ const otherMemberRows: OrganizationMemberRow[] = [
 		email: "david@example.com",
 		inviteStatus: "accepted",
 		role: "member",
-		joinedOn: "2026-08-15",
-		lastActiveOn: "2026-08-23",
+		joinedOn: "2026-10-28",
+		lastActiveOn: "2026-10-20",
 	},
 	{
 		id: "grace-nwosu-invitation",
@@ -135,11 +134,8 @@ export function MembersSettings({
 	const [memberQuery, setMemberQuery] = useState("");
 	const [inviteStatusFilter, setInviteStatusFilter] = useState<InviteStatus | "">("");
 	const [roleFilter, setRoleFilter] = useState<OrganizationRole | "">("");
-	const [lastActiveFrom, setLastActiveFrom] = useState("");
-	const [lastActiveTo, setLastActiveTo] = useState("");
-	const [joinedFrom, setJoinedFrom] = useState("");
-	const [joinedTo, setJoinedTo] = useState("");
-	const [customDateRangeFilter, setCustomDateRangeFilter] = useState<DateRangeFilter | null>(null);
+	const [lastActiveSince, setLastActiveSince] = useState("");
+	const [joinedSince, setJoinedSince] = useState("");
 	const [memberPage, setMemberPage] = useState(1);
 	const [memberLimit, setMemberLimit] = useState(ROWS_PER_PAGE_OPTIONS[0]);
 	const [isInviteMembersDialogOpen, setIsInviteMembersDialogOpen] = useState(false);
@@ -154,24 +150,29 @@ export function MembersSettings({
 		email: currentUser.email,
 		inviteStatus: "accepted",
 		role: viewerRole,
-		joinedOn: "2026-08-12",
-		lastActiveOn: "2026-08-24",
+		joinedOn: "2026-06-02",
+		lastActiveOn: "2026-11-07",
 		isCurrentUser: true,
 	};
 	const memberRows =
 		viewerRole === "owner"
 			? [currentUserRow, ...otherMemberRows]
 			: [ownerRow, currentUserRow, ...otherMemberRows];
+	const today = format(new Date(), "yyyy-MM-dd");
+	const last7DaysStart = format(subDays(new Date(), 6), "yyyy-MM-dd");
+	const last30DaysStart = format(subDays(new Date(), 29), "yyyy-MM-dd");
+	const last90DaysStart = format(subDays(new Date(), 89), "yyyy-MM-dd");
+	const last3MonthsStart = format(subMonths(new Date(), 3), "yyyy-MM-dd");
+	const last6MonthsStart = format(subMonths(new Date(), 6), "yyyy-MM-dd");
+	const lastYearStart = format(subYears(new Date(), 1), "yyyy-MM-dd");
 	const normalizedMemberQuery = memberQuery.trim().toLowerCase();
 	const matchingMemberRows = memberRows.filter(
 		(row) =>
 			`${row.name ?? ""} ${row.email}`.toLowerCase().includes(normalizedMemberQuery) &&
 			(!inviteStatusFilter || row.inviteStatus === inviteStatusFilter) &&
 			(!roleFilter || row.role === roleFilter) &&
-			(!lastActiveFrom || (row.lastActiveOn !== null && row.lastActiveOn >= lastActiveFrom)) &&
-			(!lastActiveTo || (row.lastActiveOn !== null && row.lastActiveOn <= lastActiveTo)) &&
-			(!joinedFrom || (row.joinedOn !== null && row.joinedOn >= joinedFrom)) &&
-			(!joinedTo || (row.joinedOn !== null && row.joinedOn <= joinedTo)),
+			(!lastActiveSince || (row.lastActiveOn !== null && row.lastActiveOn >= lastActiveSince)) &&
+			(!joinedSince || (row.joinedOn !== null && row.joinedOn >= joinedSince)),
 	);
 	const memberPageCount = Math.max(1, Math.ceil(matchingMemberRows.length / memberLimit));
 	const visibleMemberRows = matchingMemberRows.slice(
@@ -205,8 +206,8 @@ export function MembersSettings({
 						activeFilterCount={
 							(inviteStatusFilter ? 1 : 0) +
 							(roleFilter ? 1 : 0) +
-							(lastActiveFrom || lastActiveTo ? 1 : 0) +
-							(joinedFrom || joinedTo ? 1 : 0)
+							(lastActiveSince ? 1 : 0) +
+							(joinedSince ? 1 : 0)
 						}
 					>
 						<FilterPopover label="Invite status" icon={RiMailLine}>
@@ -305,35 +306,119 @@ export function MembersSettings({
 								</div>
 							</RadioGroup>
 						</FilterPopover>
-						<DateFilterMenu
-							label="Last active"
-							icon={RiCalendarLine}
-							from={lastActiveFrom}
-							to={lastActiveTo}
-							onDateRangeApply={(from, to) => {
-								setLastActiveFrom(from);
-								setLastActiveTo(to);
-								setMemberPage(1);
-							}}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
-						<DateFilterMenu
-							label="Joined"
-							icon={RiCalendarLine}
-							from={joinedFrom}
-							to={joinedTo}
-							onDateRangeApply={(from, to) => {
-								setJoinedFrom(from);
-								setJoinedTo(to);
-								setMemberPage(1);
-							}}
-							onCustomDateRangeSelect={setCustomDateRangeFilter}
-						/>
+						<FilterPopover label="Last active" icon={RiCalendarLine}>
+							<RadioGroup
+								value={lastActiveSince || "any"}
+								onValueChange={(nextStartDate) => {
+									setLastActiveSince(nextStartDate === "any" ? "" : nextStartDate);
+									setMemberPage(1);
+								}}
+								className="flex flex-col gap-0.5"
+							>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="any" id="member-last-active-any" />
+									<Label
+										htmlFor="member-last-active-any"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Any time
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value={today} id="member-last-active-today" />
+									<Label
+										htmlFor="member-last-active-today"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Today
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value={last7DaysStart} id="member-last-active-7-days" />
+									<Label
+										htmlFor="member-last-active-7-days"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Last 7 days
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value={last30DaysStart} id="member-last-active-30-days" />
+									<Label
+										htmlFor="member-last-active-30-days"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Last 30 days
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value={last90DaysStart} id="member-last-active-90-days" />
+									<Label
+										htmlFor="member-last-active-90-days"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Last 90 days
+									</Label>
+								</div>
+							</RadioGroup>
+						</FilterPopover>
+						<FilterPopover label="Joined" icon={RiCalendarLine}>
+							<RadioGroup
+								value={joinedSince || "any"}
+								onValueChange={(nextStartDate) => {
+									setJoinedSince(nextStartDate === "any" ? "" : nextStartDate);
+									setMemberPage(1);
+								}}
+								className="flex flex-col gap-0.5"
+							>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value="any" id="member-joined-any" />
+									<Label
+										htmlFor="member-joined-any"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Any time
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value={last30DaysStart} id="member-joined-30-days" />
+									<Label
+										htmlFor="member-joined-30-days"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Last 30 days
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value={last3MonthsStart} id="member-joined-3-months" />
+									<Label
+										htmlFor="member-joined-3-months"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Last 3 months
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value={last6MonthsStart} id="member-joined-6-months" />
+									<Label
+										htmlFor="member-joined-6-months"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Last 6 months
+									</Label>
+								</div>
+								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
+									<RadioGroupItem value={lastYearStart} id="member-joined-year" />
+									<Label
+										htmlFor="member-joined-year"
+										className="w-full cursor-pointer leading-normal font-normal"
+									>
+										Last year
+									</Label>
+								</div>
+							</RadioGroup>
+						</FilterPopover>
 					</FilterGroup>
-					<SetDateRangeDialog
-						dateRangeFilter={customDateRangeFilter}
-						onClose={() => setCustomDateRangeFilter(null)}
-					/>
 					<ExportButton />
 					<Button
 						type="button"
