@@ -1,6 +1,6 @@
 "use client";
 
-import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { DateFilterSection, FilterGroup, FilterSection } from "@/components/filter-menu";
 
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useOptimistic, useState, useTransition } from "react";
@@ -13,10 +13,6 @@ import {
 	RiEyeLine,
 	RiMore2Fill,
 	RiSearchLine,
-	RiCalendarLine,
-	RiCheckboxCircleLine,
-	RiHistoryLine,
-	RiPulseLine,
 } from "@remixicon/react";
 import {
 	columnVisibilityFeature,
@@ -365,7 +361,7 @@ export function SharedDiagnosesTable({
 							(optimisticCreatedFrom || optimisticCreatedTo ? 1 : 0)
 						}
 					>
-						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
+						<FilterSection label="Status">
 							<RadioGroup
 								value={optimisticStatusFilters[0] ?? "all"}
 								onValueChange={(nextStatusFilter) => {
@@ -404,26 +400,23 @@ export function SharedDiagnosesTable({
 									</div>
 								))}
 							</RadioGroup>
-						</FilterPopover>
-						<DateFilterMenu
+						</FilterSection>
+						<DateFilterSection
 							label="Last updated"
-							icon={RiHistoryLine}
 							from={optimisticReviewedFrom}
 							to={optimisticReviewedTo}
 							onDateRangeApply={handleReviewedRangeApply}
 							onCustomDateRangeSelect={setCustomDateRangeFilter}
 						/>
-						<DateFilterMenu
+						<DateFilterSection
 							label="Diagnosed At"
-							icon={RiPulseLine}
 							from={optimisticDiagnosedFrom}
 							to={optimisticDiagnosedTo}
 							onDateRangeApply={handleDiagnosedRangeApply}
 							onCustomDateRangeSelect={setCustomDateRangeFilter}
 						/>
-						<DateFilterMenu
+						<DateFilterSection
 							label="Created at"
-							icon={RiCalendarLine}
 							from={optimisticCreatedFrom}
 							to={optimisticCreatedTo}
 							onDateRangeApply={handleCreatedRangeApply}

@@ -1,6 +1,6 @@
 "use client";
 
-import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { DateFilterSection, FilterGroup, FilterSection } from "@/components/filter-menu";
 
 import { useMemo, useState } from "react";
 import { authClient } from "@/lib/better-auth/auth.client";
@@ -68,13 +68,9 @@ import {
 	RiArrowLeftSLine,
 	RiArrowRightSLine,
 	RiArrowUpSLine,
-	RiCalendarLine,
 	RiCloseLine,
-	RiCheckboxCircleLine,
 	RiEyeLine,
-	RiHistoryLine,
 	RiMore2Fill,
-	RiPulseLine,
 	RiSearchLine,
 	RiShare2Line,
 } from "@remixicon/react";
@@ -218,7 +214,7 @@ export function DiagnosesTable({
 							(createdFrom || createdTo ? 1 : 0)
 						}
 					>
-						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
+						<FilterSection label="Status">
 							<RadioGroup
 								value={statusFilters[0] ?? "all"}
 								onValueChange={(nextStatusFilter) => {
@@ -255,26 +251,23 @@ export function DiagnosesTable({
 									</div>
 								))}
 							</RadioGroup>
-						</FilterPopover>
-						<DateFilterMenu
+						</FilterSection>
+						<DateFilterSection
 							label="Last updated"
-							icon={RiHistoryLine}
 							from={lastReviewedFrom}
 							to={lastReviewedTo}
 							onDateRangeApply={onLastReviewedRangeApply}
 							onCustomDateRangeSelect={setCustomDateRangeFilter}
 						/>
-						<DateFilterMenu
+						<DateFilterSection
 							label="Diagnosed At"
-							icon={RiPulseLine}
 							from={diagnosedFrom}
 							to={diagnosedTo}
 							onDateRangeApply={onDiagnosedAtRangeApply}
 							onCustomDateRangeSelect={setCustomDateRangeFilter}
 						/>
-						<DateFilterMenu
+						<DateFilterSection
 							label="Created at"
-							icon={RiCalendarLine}
 							from={createdFrom}
 							to={createdTo}
 							onDateRangeApply={onCreatedAtRangeApply}

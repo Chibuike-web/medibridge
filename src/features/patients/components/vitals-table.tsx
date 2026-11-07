@@ -1,6 +1,6 @@
 "use client";
 
-import { DateFilterMenu, FilterGroup } from "@/components/filter-menu";
+import { DateFilterSection, FilterGroup } from "@/components/filter-menu";
 
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
@@ -24,7 +24,6 @@ import {
 	RiArrowLeftSLine,
 	RiArrowRightSLine,
 	RiArrowUpSLine,
-	RiCalendarLine,
 	RiCloseLine,
 	RiEyeLine,
 	RiMore2Fill,
@@ -183,17 +182,15 @@ export function VitalsTable({
 							(recordedFrom || recordedTo ? 1 : 0) + (createdFrom || createdTo ? 1 : 0)
 						}
 					>
-						<DateFilterMenu
+						<DateFilterSection
 							label="Date recorded"
-							icon={RiCalendarLine}
 							from={recordedFrom}
 							to={recordedTo}
 							onDateRangeApply={onRecordedAtRangeApply}
 							onCustomDateRangeSelect={setCustomDateRangeFilter}
 						/>
-						<DateFilterMenu
+						<DateFilterSection
 							label="Created at"
-							icon={RiCalendarLine}
 							from={createdFrom}
 							to={createdTo}
 							onDateRangeApply={onCreatedAtRangeApply}

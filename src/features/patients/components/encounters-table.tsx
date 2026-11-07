@@ -1,6 +1,6 @@
 "use client";
 
-import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { DateFilterSection, FilterGroup, FilterSection } from "@/components/filter-menu";
 
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
@@ -67,14 +67,11 @@ import {
 	RiArrowLeftSLine,
 	RiArrowRightSLine,
 	RiArrowUpSLine,
-	RiCalendarLine,
 	RiCloseLine,
 	RiEyeLine,
 	RiMore2Fill,
 	RiSearchLine,
 	RiShare2Line,
-	RiBuilding4Line,
-	RiFileList2Line,
 } from "@remixicon/react";
 import { format } from "date-fns";
 
@@ -210,38 +207,36 @@ export function EncountersTable({
 							(departmentFilters.length > 0 ? 1 : 0)
 						}
 					>
-						<DateFilterMenu
+						<DateFilterSection
 							label="Encounter date"
-							icon={RiCalendarLine}
 							from={encounterFrom}
 							to={encounterTo}
 							onDateRangeApply={onEncounterDateRangeApply}
 							onCustomDateRangeSelect={setCustomDateRangeFilter}
 						/>
-						<FilterPopover label="Encounter type" icon={RiFileList2Line}>
+						<FilterSection label="Encounter type">
 							<EncounterCheckboxFilterList
 								name="encounter-type"
 								options={encounterTypeFilterOptions}
 								selectedValues={encounterTypeFilters}
 								onSelectedValuesChange={onEncounterTypeFiltersChange}
 							/>
-						</FilterPopover>
-						<DateFilterMenu
+						</FilterSection>
+						<DateFilterSection
 							label="Created at"
-							icon={RiCalendarLine}
 							from={createdFrom}
 							to={createdTo}
 							onDateRangeApply={onCreatedAtRangeApply}
 							onCustomDateRangeSelect={setCustomDateRangeFilter}
 						/>
-						<FilterPopover label="Department" icon={RiBuilding4Line}>
+						<FilterSection label="Department">
 							<EncounterCheckboxFilterList
 								name="encounter-department"
 								options={encounterDepartmentFilterOptions}
 								selectedValues={departmentFilters}
 								onSelectedValuesChange={onDepartmentFiltersChange}
 							/>
-						</FilterPopover>
+						</FilterSection>
 					</FilterGroup>
 					<SetDateRangeDialog
 						dateRangeFilter={customDateRangeFilter}

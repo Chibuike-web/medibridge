@@ -1,6 +1,6 @@
 "use client";
 
-import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { DateFilterSection, FilterGroup, FilterSection } from "@/components/filter-menu";
 
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useOptimistic, useState, useTransition } from "react";
@@ -13,8 +13,6 @@ import {
 	RiEyeLine,
 	RiMore2Fill,
 	RiSearchLine,
-	RiCalendarLine,
-	RiCheckboxCircleLine,
 } from "@remixicon/react";
 import {
 	columnVisibilityFeature,
@@ -319,17 +317,16 @@ export function SharedMedicationsTable({
 							(optimisticCreatedFrom || optimisticCreatedTo ? 1 : 0)
 						}
 					>
-						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
+						<FilterSection label="Status">
 							<CheckboxFilterList
 								name="shared-medication-status"
 								options={medicationStatusFilterOptions}
 								selectedValues={optimisticStatusFilters}
 								onSelectedValuesChange={handleStatusFiltersChange}
 							/>
-						</FilterPopover>
-						<DateFilterMenu
+						</FilterSection>
+						<DateFilterSection
 							label="Created at"
-							icon={RiCalendarLine}
 							from={optimisticCreatedFrom}
 							to={optimisticCreatedTo}
 							onDateRangeApply={handleCreatedAtRangeApply}

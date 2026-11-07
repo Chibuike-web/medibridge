@@ -5,20 +5,17 @@ import { format, parseISO, subDays, subMonths, subYears } from "date-fns";
 import {
 	RiArrowLeftSLine,
 	RiArrowRightSLine,
-	RiCalendarLine,
 	RiCloseLine,
 	RiDeleteBin2Line,
 	RiLinkM,
-	RiMailLine,
 	RiMailSendLine,
 	RiMore2Fill,
 	RiSearchLine,
-	RiShieldUserLine,
 } from "@remixicon/react";
 
 import { ExportButton } from "@/components/export-button";
 import { FilterChip } from "@/components/filter-chip";
-import { FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { FilterGroup, FilterSection } from "@/components/filter-menu";
 import { StatusBadge } from "@/components/status-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -215,7 +212,7 @@ export function MembersSettings({
 							(joinedSince ? 1 : 0)
 						}
 					>
-						<FilterPopover label="Invite status" icon={RiMailLine}>
+						<FilterSection label="Invite status">
 							<RadioGroup
 								value={inviteStatusFilter || "all"}
 								onValueChange={(nextInviteStatus) => {
@@ -263,8 +260,8 @@ export function MembersSettings({
 									</Label>
 								</div>
 							</RadioGroup>
-						</FilterPopover>
-						<FilterPopover label="Role" icon={RiShieldUserLine}>
+						</FilterSection>
+						<FilterSection label="Role">
 							<RadioGroup
 								value={roleFilter || "all"}
 								onValueChange={(nextRole) => {
@@ -310,8 +307,8 @@ export function MembersSettings({
 									</Label>
 								</div>
 							</RadioGroup>
-						</FilterPopover>
-						<FilterPopover label="Last active" icon={RiCalendarLine}>
+						</FilterSection>
+						<FilterSection label="Last active">
 							<RadioGroup
 								value={lastActiveSince || "any"}
 								onValueChange={(nextStartDate) => {
@@ -347,8 +344,8 @@ export function MembersSettings({
 									</div>
 								))}
 							</RadioGroup>
-						</FilterPopover>
-						<FilterPopover label="Joined" icon={RiCalendarLine}>
+						</FilterSection>
+						<FilterSection label="Joined">
 							<RadioGroup
 								value={joinedSince || "any"}
 								onValueChange={(nextStartDate) => {
@@ -381,7 +378,7 @@ export function MembersSettings({
 									</div>
 								))}
 							</RadioGroup>
-						</FilterPopover>
+						</FilterSection>
 					</FilterGroup>
 					<ExportButton />
 					<Button

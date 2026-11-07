@@ -1,6 +1,6 @@
 "use client";
 
-import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { DateFilterSection, FilterGroup, FilterSection } from "@/components/filter-menu";
 
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useOptimistic, useState, useTransition } from "react";
@@ -13,9 +13,6 @@ import {
 	RiEyeLine,
 	RiMore2Fill,
 	RiSearchLine,
-	RiCalendarLine,
-	RiCheckboxCircleLine,
-	RiFlagLine,
 } from "@remixicon/react";
 import {
 	columnVisibilityFeature,
@@ -350,25 +347,24 @@ export function SharedLabTestsTable({
 							(optimisticCreatedFrom || optimisticCreatedTo ? 1 : 0)
 						}
 					>
-						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
+						<FilterSection label="Status">
 							<CheckboxFilterList
 								name="shared-lab-status"
 								options={labTestStatusFilterOptions}
 								selectedValues={optimisticStatusFilters}
 								onSelectedValuesChange={handleStatusFiltersChange}
 							/>
-						</FilterPopover>
-						<FilterPopover label="Flag" icon={RiFlagLine}>
+						</FilterSection>
+						<FilterSection label="Flag">
 							<CheckboxFilterList
 								name="shared-lab-flag"
 								options={labTestFlagFilterOptions}
 								selectedValues={optimisticInterpretationFilters}
 								onSelectedValuesChange={handleFlagFiltersChange}
 							/>
-						</FilterPopover>
-						<DateFilterMenu
+						</FilterSection>
+						<DateFilterSection
 							label="Created at"
-							icon={RiCalendarLine}
 							from={optimisticCreatedFrom}
 							to={optimisticCreatedTo}
 							onDateRangeApply={handleCreatedRangeApply}

@@ -1,6 +1,6 @@
 "use client";
 
-import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { DateFilterSection, FilterGroup, FilterSection } from "@/components/filter-menu";
 
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
@@ -66,13 +66,10 @@ import {
 	RiArrowLeftSLine,
 	RiArrowRightSLine,
 	RiArrowUpSLine,
-	RiCalendarLine,
-	RiCheckboxCircleLine,
 	RiCheckLine,
 	RiCloseLine,
 	RiEyeLine,
 	RiMore2Fill,
-	RiScan2Line,
 	RiSearchLine,
 	RiShare2Line,
 } from "@remixicon/react";
@@ -223,33 +220,31 @@ export function ImagingTable({
 							(createdFrom || createdTo ? 1 : 0)
 						}
 					>
-						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
+						<FilterSection label="Status">
 							<ImagingCheckboxFilterList
 								name="imaging-status"
 								options={imagingStatusFilterOptions}
 								selectedValues={statusFilters}
 								onSelectedValuesChange={onStatusFiltersChange}
 							/>
-						</FilterPopover>
-						<FilterPopover label="Modality" icon={RiScan2Line}>
+						</FilterSection>
+						<FilterSection label="Modality">
 							<ImagingCheckboxFilterList
 								name="imaging-modality"
 								options={imagingModalityFilterOptions}
 								selectedValues={modalityFilters}
 								onSelectedValuesChange={onModalityFiltersChange}
 							/>
-						</FilterPopover>
-						<DateFilterMenu
+						</FilterSection>
+						<DateFilterSection
 							label="Ordered at"
-							icon={RiCalendarLine}
 							from={orderedFrom}
 							to={orderedTo}
 							onDateRangeApply={onOrderedAtRangeApply}
 							onCustomDateRangeSelect={setCustomDateRangeFilter}
 						/>
-						<DateFilterMenu
+						<DateFilterSection
 							label="Created at"
-							icon={RiCalendarLine}
 							from={createdFrom}
 							to={createdTo}
 							onDateRangeApply={onCreatedAtRangeApply}

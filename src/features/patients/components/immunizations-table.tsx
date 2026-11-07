@@ -1,6 +1,6 @@
 "use client";
 
-import { DateFilterMenu, FilterGroup, FilterPopover } from "@/components/filter-menu";
+import { DateFilterSection, FilterGroup, FilterSection } from "@/components/filter-menu";
 
 import { SetDateRangeDialog, type DateRangeFilter } from "@/components/date-range-filter";
 import { useMemo, useState } from "react";
@@ -65,9 +65,7 @@ import {
 	RiArrowLeftSLine,
 	RiArrowRightSLine,
 	RiArrowUpSLine,
-	RiCalendarLine,
 	RiCheckLine,
-	RiCheckboxCircleLine,
 	RiCloseLine,
 	RiEyeLine,
 	RiMore2Fill,
@@ -225,7 +223,7 @@ export function ImmunizationsTable({
 							(statusFilters.length > 0 ? 1 : 0) + (createdFrom || createdTo ? 1 : 0)
 						}
 					>
-						<FilterPopover label="Status" icon={RiCheckboxCircleLine}>
+						<FilterSection label="Status">
 							{immunizationStatusFilterOptions.map((statusOption) => {
 								const isStatusSelected = statusFilters.includes(statusOption.value);
 								const statusOptionId = `immunization-status-${statusOption.value}`;
@@ -254,10 +252,9 @@ export function ImmunizationsTable({
 									</Label>
 								);
 							})}
-						</FilterPopover>
-						<DateFilterMenu
+						</FilterSection>
+						<DateFilterSection
 							label="Created at"
-							icon={RiCalendarLine}
 							from={createdFrom}
 							to={createdTo}
 							onDateRangeApply={onCreatedAtRangeApply}
