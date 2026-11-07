@@ -130,7 +130,10 @@ export function InviteMembersDialog({
 									}
 									required
 								>
-									<SelectTrigger id={`${inviteFormId}-${memberRow.id}-role`} className="w-40">
+									<SelectTrigger
+										id={`${inviteFormId}-${memberRow.id}-role`}
+										className="w-40 max-sm:w-full"
+									>
 										<SelectValue placeholder="Select role" />
 									</SelectTrigger>
 									<SelectContent align="end">
