@@ -358,7 +358,7 @@ export function MembersSettings({
 							<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
 								Invite status
 							</TableHead>
-							<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
+							<TableHead className="h-10 bg-gray-50 py-0 pr-3 pl-6.25 whitespace-nowrap text-gray-600">
 								Role
 							</TableHead>
 							<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
@@ -441,7 +441,7 @@ export function MembersSettings({
 													</SelectContent>
 												</Select>
 											) : (
-												<span className="pl-3 capitalize">{row.role}</span>
+												<span className="pl-3.25 capitalize">{row.role}</span>
 											)}
 										</TableCell>
 										<TableCell
