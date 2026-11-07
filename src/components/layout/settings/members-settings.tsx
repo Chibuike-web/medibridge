@@ -47,6 +47,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils/cn";
+import { formatLabel } from "@/lib/utils/format-label";
 import { getInitials } from "@/lib/utils/get-initials";
 
 import { InviteMembersDialog } from "./invite-members-dialog";
@@ -158,13 +159,18 @@ export function MembersSettings({
 		viewerRole === "owner"
 			? [currentUserRow, ...otherMemberRows]
 			: [ownerRow, currentUserRow, ...otherMemberRows];
-	const today = format(new Date(), "yyyy-MM-dd");
-	const last7DaysStart = format(subDays(new Date(), 6), "yyyy-MM-dd");
-	const last30DaysStart = format(subDays(new Date(), 29), "yyyy-MM-dd");
-	const last90DaysStart = format(subDays(new Date(), 89), "yyyy-MM-dd");
-	const last3MonthsStart = format(subMonths(new Date(), 3), "yyyy-MM-dd");
-	const last6MonthsStart = format(subMonths(new Date(), 6), "yyyy-MM-dd");
-	const lastYearStart = format(subYears(new Date(), 1), "yyyy-MM-dd");
+	const lastActivePresets = [
+		{ label: "Today", since: format(new Date(), "yyyy-MM-dd") },
+		{ label: "Last 7 days", since: format(subDays(new Date(), 6), "yyyy-MM-dd") },
+		{ label: "Last 30 days", since: format(subDays(new Date(), 29), "yyyy-MM-dd") },
+		{ label: "Last 90 days", since: format(subDays(new Date(), 89), "yyyy-MM-dd") },
+	];
+	const joinedPresets = [
+		{ label: "Last 30 days", since: format(subDays(new Date(), 29), "yyyy-MM-dd") },
+		{ label: "Last 3 months", since: format(subMonths(new Date(), 3), "yyyy-MM-dd") },
+		{ label: "Last 6 months", since: format(subMonths(new Date(), 6), "yyyy-MM-dd") },
+		{ label: "Last year", since: format(subYears(new Date(), 1), "yyyy-MM-dd") },
+	];
 	const normalizedMemberQuery = memberQuery.trim().toLowerCase();
 	const matchingMemberRows = memberRows.filter(
 		(row) =>
@@ -210,7 +216,11 @@ export function MembersSettings({
 							(joinedSince ? 1 : 0)
 						}
 					>
-						<FilterPopover label="Invite status" icon={RiMailLine}>
+						<FilterPopover
+							label="Invite status"
+							value={inviteStatusFilter ? formatLabel(inviteStatusFilter) : undefined}
+							icon={RiMailLine}
+						>
 							<RadioGroup
 								value={inviteStatusFilter || "all"}
 								onValueChange={(nextInviteStatus) => {
@@ -259,7 +269,11 @@ export function MembersSettings({
 								</div>
 							</RadioGroup>
 						</FilterPopover>
-						<FilterPopover label="Role" icon={RiShieldUserLine}>
+						<FilterPopover
+							label="Role"
+							value={roleFilter ? formatLabel(roleFilter) : undefined}
+							icon={RiShieldUserLine}
+						>
 							<RadioGroup
 								value={roleFilter || "all"}
 								onValueChange={(nextRole) => {
@@ -306,7 +320,11 @@ export function MembersSettings({
 								</div>
 							</RadioGroup>
 						</FilterPopover>
-						<FilterPopover label="Last active" icon={RiCalendarLine}>
+						<FilterPopover
+							label="Last active"
+							value={lastActivePresets.find(({ since }) => since === lastActiveSince)?.label}
+							icon={RiCalendarLine}
+						>
 							<RadioGroup
 								value={lastActiveSince || "any"}
 								onValueChange={(nextStartDate) => {
@@ -324,45 +342,30 @@ export function MembersSettings({
 										Any time
 									</Label>
 								</div>
-								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
-									<RadioGroupItem value={today} id="member-last-active-today" />
-									<Label
-										htmlFor="member-last-active-today"
-										className="w-full cursor-pointer leading-normal font-normal"
+								{lastActivePresets.map((preset) => (
+									<div
+										key={preset.label}
+										className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100"
 									>
-										Today
-									</Label>
-								</div>
-								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
-									<RadioGroupItem value={last7DaysStart} id="member-last-active-7-days" />
-									<Label
-										htmlFor="member-last-active-7-days"
-										className="w-full cursor-pointer leading-normal font-normal"
-									>
-										Last 7 days
-									</Label>
-								</div>
-								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
-									<RadioGroupItem value={last30DaysStart} id="member-last-active-30-days" />
-									<Label
-										htmlFor="member-last-active-30-days"
-										className="w-full cursor-pointer leading-normal font-normal"
-									>
-										Last 30 days
-									</Label>
-								</div>
-								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
-									<RadioGroupItem value={last90DaysStart} id="member-last-active-90-days" />
-									<Label
-										htmlFor="member-last-active-90-days"
-										className="w-full cursor-pointer leading-normal font-normal"
-									>
-										Last 90 days
-									</Label>
-								</div>
+										<RadioGroupItem
+											value={preset.since}
+											id={`member-last-active-${preset.since}`}
+										/>
+										<Label
+											htmlFor={`member-last-active-${preset.since}`}
+											className="w-full cursor-pointer leading-normal font-normal"
+										>
+											{preset.label}
+										</Label>
+									</div>
+								))}
 							</RadioGroup>
 						</FilterPopover>
-						<FilterPopover label="Joined" icon={RiCalendarLine}>
+						<FilterPopover
+							label="Joined"
+							value={joinedPresets.find(({ since }) => since === joinedSince)?.label}
+							icon={RiCalendarLine}
+						>
 							<RadioGroup
 								value={joinedSince || "any"}
 								onValueChange={(nextStartDate) => {
@@ -380,42 +383,20 @@ export function MembersSettings({
 										Any time
 									</Label>
 								</div>
-								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
-									<RadioGroupItem value={last30DaysStart} id="member-joined-30-days" />
-									<Label
-										htmlFor="member-joined-30-days"
-										className="w-full cursor-pointer leading-normal font-normal"
+								{joinedPresets.map((preset) => (
+									<div
+										key={preset.label}
+										className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100"
 									>
-										Last 30 days
-									</Label>
-								</div>
-								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
-									<RadioGroupItem value={last3MonthsStart} id="member-joined-3-months" />
-									<Label
-										htmlFor="member-joined-3-months"
-										className="w-full cursor-pointer leading-normal font-normal"
-									>
-										Last 3 months
-									</Label>
-								</div>
-								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
-									<RadioGroupItem value={last6MonthsStart} id="member-joined-6-months" />
-									<Label
-										htmlFor="member-joined-6-months"
-										className="w-full cursor-pointer leading-normal font-normal"
-									>
-										Last 6 months
-									</Label>
-								</div>
-								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
-									<RadioGroupItem value={lastYearStart} id="member-joined-year" />
-									<Label
-										htmlFor="member-joined-year"
-										className="w-full cursor-pointer leading-normal font-normal"
-									>
-										Last year
-									</Label>
-								</div>
+										<RadioGroupItem value={preset.since} id={`member-joined-${preset.since}`} />
+										<Label
+											htmlFor={`member-joined-${preset.since}`}
+											className="w-full cursor-pointer leading-normal font-normal"
+										>
+											{preset.label}
+										</Label>
+									</div>
+								))}
 							</RadioGroup>
 						</FilterPopover>
 					</FilterGroup>
