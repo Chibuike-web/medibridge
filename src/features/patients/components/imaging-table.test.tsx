@@ -242,7 +242,7 @@ describe("Imaging table", () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderImagingTable({ statusFilters: ["completed"] });
 
-		await user.click(screen.getByRole("button", { name: "Status" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
 
 		expect(await screen.findByRole("checkbox", { name: "Completed" })).toBeChecked();
 		expect(screen.getByRole("checkbox", { name: "Cancelled" })).not.toBeChecked();
@@ -258,7 +258,7 @@ describe("Imaging table", () => {
 		const user = userEvent.setup();
 		const { onModalityFiltersChange } = renderImagingTable({ modalityFilters: ["mri"] });
 
-		await user.click(screen.getByRole("button", { name: "Modality" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
 
 		for (const label of ["CT", "MRI", "Ultrasound", "X-ray"]) {
 			expect(await screen.findByRole("checkbox", { name: label })).toBeVisible();
@@ -273,8 +273,12 @@ describe("Imaging table", () => {
 		const user = userEvent.setup();
 		const { onOrderedAtRangeApply, onCreatedAtRangeApply } = renderImagingTable();
 
-		await user.click(screen.getByRole("button", { name: "Ordered at" }));
-		await user.click(await screen.findByRole("menuitem", { name: "Last 30 days" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
+		await user.click(
+			within(await screen.findByRole("group", { name: "Ordered at" })).getByRole("button", {
+				name: "Last 30 days",
+			}),
+		);
 
 		const today = new Date();
 		expect(onOrderedAtRangeApply).toHaveBeenCalledWith(
@@ -288,8 +292,12 @@ describe("Imaging table", () => {
 		const user = userEvent.setup();
 		const { onOrderedAtRangeApply, onCreatedAtRangeApply } = renderImagingTable();
 
-		await user.click(screen.getByRole("button", { name: "Created at" }));
-		await user.click(await screen.findByRole("menuitem", { name: "Today" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
+		await user.click(
+			within(await screen.findByRole("group", { name: "Created at" })).getByRole("button", {
+				name: "Today",
+			}),
+		);
 
 		const today = format(new Date(), "yyyy-MM-dd");
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(today, today);

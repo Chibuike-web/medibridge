@@ -70,7 +70,7 @@ export function FilterGroup({
 							</Button>
 						</DrawerClose>
 					</DrawerHeader>
-					<div className="flex flex-col gap-3 overflow-y-auto p-2">{children}</div>
+					<div className="flex flex-col gap-3 overflow-y-auto py-2 pr-0.5 pl-2">{children}</div>
 				</DrawerContent>
 			</Drawer>
 		</>
@@ -79,7 +79,7 @@ export function FilterGroup({
 
 export function FilterSection({ label, children }: { label: string; children: ReactNode }) {
 	return (
-		<div>
+		<div role="group" aria-label={label}>
 			<h3 className="px-2 py-1.5 font-medium text-gray-800">{label}</h3>
 			{children}
 		</div>
@@ -97,14 +97,13 @@ export function DateFilterSection({
 	onCustomDateRangeSelect: (dateRangeFilter: DateRangeFilter) => void;
 }) {
 	return (
-		<div>
-			<h3 className="px-2 py-1.5 font-medium text-gray-800">{label}</h3>
+		<FilterSection label={label}>
 			<DateRangeButtons
 				from={from}
 				to={to}
 				onDateRangeApply={onDateRangeApply}
 				onCustomDateRangeSelect={onCustomDateRangeSelect}
 			/>
-		</div>
+		</FilterSection>
 	);
 }

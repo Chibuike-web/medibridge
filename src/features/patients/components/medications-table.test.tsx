@@ -268,7 +268,7 @@ describe("Medications table", () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderMedicationsTable({ statusFilters: ["active"] });
 
-		await user.click(screen.getByRole("button", { name: "Status" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
 
 		const activeOption = await screen.findByRole("checkbox", { name: "Active" });
 		expect(activeOption).toBeChecked();
@@ -287,17 +287,17 @@ describe("Medications table", () => {
 		const today = new Date();
 		const { onCreatedAtRangeApply } = renderMedicationsTable();
 
-		await user.click(screen.getByRole("button", { name: "Created at" }));
-		await user.click(await screen.findByRole("menuitem", { name: "Today" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
+		await user.click(await screen.findByRole("button", { name: "Today" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(urlDate(today), urlDate(today));
 
-		await user.click(screen.getByRole("menuitem", { name: "Last 7 days" }));
+		await user.click(screen.getByRole("button", { name: "Last 7 days" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
 			urlDate(subDays(today, 6)),
 			urlDate(today),
 		);
 
-		await user.click(screen.getByRole("menuitem", { name: "Last 30 days" }));
+		await user.click(screen.getByRole("button", { name: "Last 30 days" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
 			urlDate(subDays(today, 29)),
 			urlDate(today),

@@ -274,7 +274,7 @@ describe("Allergies table", () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderAllergiesTable({ statusFilters: ["active"] });
 
-		await user.click(screen.getByRole("button", { name: "Status" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
 
 		const activeOption = await screen.findByRole("radio", { name: "Active" });
 		const inactiveOption = screen.getByRole("radio", { name: "Inactive" });
@@ -288,30 +288,11 @@ describe("Allergies table", () => {
 		expect(onStatusFiltersChange).toHaveBeenLastCalledWith([]);
 	});
 
-	test("opens a filter menu from whichever edge of its button leaves it room", async () => {
-		const user = userEvent.setup();
-		renderAllergiesTable();
-		const statusButton = screen.getByRole("button", { name: "Status" });
-
-		vi.spyOn(statusButton, "getBoundingClientRect").mockReturnValue(
-			DOMRect.fromRect({ x: window.innerWidth - 100, y: 0, width: 90, height: 36 }),
-		);
-		await user.click(statusButton);
-		expect(await screen.findByRole("dialog")).toHaveAttribute("data-align", "end");
-
-		await user.keyboard("{Escape}");
-		vi.spyOn(statusButton, "getBoundingClientRect").mockReturnValue(
-			DOMRect.fromRect({ x: 20, y: 0, width: 90, height: 36 }),
-		);
-		await user.click(statusButton);
-		expect(await screen.findByRole("dialog")).toHaveAttribute("data-align", "start");
-	});
-
 	test("adds and removes severity filters from the filter menu", async () => {
 		const user = userEvent.setup();
 		const { onSeverityFiltersChange } = renderAllergiesTable({ severityFilters: ["mild"] });
 
-		await user.click(screen.getByRole("button", { name: "Severity" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
 
 		const mildOption = await screen.findByRole("checkbox", { name: "Mild" });
 		expect(mildOption).toBeChecked();
@@ -329,17 +310,17 @@ describe("Allergies table", () => {
 		const today = new Date();
 		const { onCreatedAtRangeApply } = renderAllergiesTable();
 
-		await user.click(screen.getByRole("button", { name: "Created at" }));
-		await user.click(await screen.findByRole("menuitem", { name: "Today" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
+		await user.click(await screen.findByRole("button", { name: "Today" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(urlDate(today), urlDate(today));
 
-		await user.click(screen.getByRole("menuitem", { name: "Last 7 days" }));
+		await user.click(screen.getByRole("button", { name: "Last 7 days" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
 			urlDate(subDays(today, 6)),
 			urlDate(today),
 		);
 
-		await user.click(screen.getByRole("menuitem", { name: "Last 30 days" }));
+		await user.click(screen.getByRole("button", { name: "Last 30 days" }));
 		expect(onCreatedAtRangeApply).toHaveBeenLastCalledWith(
 			urlDate(subDays(today, 29)),
 			urlDate(today),

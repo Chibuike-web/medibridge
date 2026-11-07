@@ -227,11 +227,12 @@ describe("Lab tests table", () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderLabTestsTable({ statusFilters: ["completed"] });
 
-		await user.click(screen.getByRole("button", { name: "Status" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
+		const statusGroup = await screen.findByRole("group", { name: "Status" });
 
-		expect(await screen.findByRole("checkbox", { name: "Completed" })).toBeChecked();
-		expect(screen.getByRole("checkbox", { name: "Cancelled" })).not.toBeChecked();
-		await user.click(screen.getByRole("checkbox", { name: "Pending" }));
+		expect(within(statusGroup).getByRole("checkbox", { name: "Completed" })).toBeChecked();
+		expect(within(statusGroup).getByRole("checkbox", { name: "Cancelled" })).not.toBeChecked();
+		await user.click(within(statusGroup).getByRole("checkbox", { name: "Pending" }));
 		expect(onStatusFiltersChange).toHaveBeenCalledWith(["completed", "pending"]);
 	});
 
@@ -239,7 +240,7 @@ describe("Lab tests table", () => {
 		const user = userEvent.setup();
 		const { onStatusFiltersChange } = renderLabTestsTable({ statusFilters: ["completed"] });
 
-		await user.click(screen.getByRole("button", { name: "Status" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
 		await user.click(await screen.findByRole("checkbox", { name: "Completed" }));
 		expect(onStatusFiltersChange).toHaveBeenCalledWith([]);
 	});
@@ -248,7 +249,7 @@ describe("Lab tests table", () => {
 		const user = userEvent.setup();
 		const { onFlagFiltersChange } = renderLabTestsTable({ flagFilters: ["high"] });
 
-		await user.click(screen.getByRole("button", { name: "Flag" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
 
 		const flagLabels = [
 			"Within range",
@@ -262,12 +263,13 @@ describe("Lab tests table", () => {
 			"Cancelled",
 			"Inconclusive",
 		];
+		const flagGroup = await screen.findByRole("group", { name: "Flag" });
 		for (const label of flagLabels) {
-			expect(await screen.findByRole("checkbox", { name: label })).toBeVisible();
+			expect(within(flagGroup).getByRole("checkbox", { name: label })).toBeVisible();
 		}
-		expect(screen.getByRole("checkbox", { name: "High" })).toBeChecked();
+		expect(within(flagGroup).getByRole("checkbox", { name: "High" })).toBeChecked();
 
-		await user.click(screen.getByRole("checkbox", { name: "Critical" }));
+		await user.click(within(flagGroup).getByRole("checkbox", { name: "Critical" }));
 		expect(onFlagFiltersChange).toHaveBeenCalledWith(["high", "critical"]);
 	});
 
@@ -275,8 +277,8 @@ describe("Lab tests table", () => {
 		const user = userEvent.setup();
 		const { onCreatedAtRangeApply } = renderLabTestsTable();
 
-		await user.click(screen.getByRole("button", { name: "Created at" }));
-		await user.click(await screen.findByRole("menuitem", { name: "Last 7 days" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
+		await user.click(await screen.findByRole("button", { name: "Last 7 days" }));
 
 		const today = new Date();
 		expect(onCreatedAtRangeApply).toHaveBeenCalledWith(

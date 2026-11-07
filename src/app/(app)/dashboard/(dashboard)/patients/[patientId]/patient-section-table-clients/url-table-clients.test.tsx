@@ -546,7 +546,7 @@ test("shows the filter pill and pending page immediately while navigation waits 
 			</RouterHarness>
 		</Suspense>,
 	);
-	await user.click(screen.getByRole("button", { name: "Status" }));
+	await user.click(screen.getByRole("button", { name: /^Filters/ }));
 	await user.pointer({
 		keys: "[TouchA]",
 		target: screen.getByRole("radio", { name: "Active" }),
@@ -585,7 +585,7 @@ test("settles the filter chip and page on the URL's values once the server respo
 		screen.queryByRole("button", { name: "Remove Status: Active filter" }),
 	).not.toBeInTheDocument();
 	expect(screen.getByText("Page 2 of 4")).toBeVisible();
-	await user.click(screen.getByRole("button", { name: "Status" }));
+	await user.click(screen.getByRole("button", { name: /^Filters/ }));
 	await user.pointer({
 		keys: "[TouchA]",
 		target: screen.getByRole("radio", { name: "Active" }),

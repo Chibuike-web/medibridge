@@ -172,7 +172,7 @@ describe("Encounters table", () => {
 			encounterTypeFilters: ["emergency-visit"],
 		});
 
-		await user.click(screen.getByRole("button", { name: "Encounter type" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
 
 		const emergency = await screen.findByRole("checkbox", { name: "Emergency Visit" });
 		expect(emergency).toBeChecked();
@@ -192,7 +192,7 @@ describe("Encounters table", () => {
 		const user = userEvent.setup();
 		const { onDepartmentFiltersChange } = renderEncountersTable();
 
-		await user.click(screen.getByRole("button", { name: "Department" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
 
 		await user.click(await screen.findByRole("checkbox", { name: "Cardiology" }));
 		expect(onDepartmentFiltersChange).toHaveBeenCalledWith(["cardiology"]);
@@ -202,8 +202,12 @@ describe("Encounters table", () => {
 		const user = userEvent.setup();
 		const { onEncounterDateRangeApply } = renderEncountersTable();
 
-		await user.click(screen.getByRole("button", { name: "Encounter date" }));
-		await user.click(await screen.findByRole("menuitem", { name: "Last 7 days" }));
+		await user.click(screen.getByRole("button", { name: /^Filters/ }));
+		await user.click(
+			within(await screen.findByRole("group", { name: "Encounter date" })).getByRole("button", {
+				name: "Last 7 days",
+			}),
+		);
 
 		const today = new Date();
 		expect(onEncounterDateRangeApply).toHaveBeenCalledWith(
