@@ -19,7 +19,6 @@ import { AppearanceSettings } from "@/components/layout/settings/appearance-sett
 import { BillingSettings } from "@/components/layout/settings/billing-settings";
 import { MembersSettings } from "@/components/layout/settings/members-settings";
 import type {
-	PendingInvitation,
 	SettingsDialogUser,
 	SettingsSectionId,
 	SettingsSubView,
@@ -47,8 +46,6 @@ type SettingsSection = {
 
 const settingsSubViewLabels: Record<SettingsSubView, string> = {
 	"change-password": "Change password",
-	"invite-member": "Invite new member",
-	"review-invitations": "Review invitations",
 };
 
 const settingsSections: SettingsSection[] = [
@@ -61,18 +58,6 @@ const settingsSections: SettingsSection[] = [
 function isOrganizationSettingsSection(sectionId: SettingsSectionId) {
 	return sectionId === "billing" || sectionId === "members";
 }
-
-const pendingInvitations: PendingInvitation[] = [
-	{
-		id: "invitation-grace-nwosu",
-		name: "Grace Nwosu",
-		email: "grace@example.com",
-		role: "member",
-		status: "pending",
-		sentAt: "Aug 15, 2026",
-		expiresAt: "Aug 24, 2026",
-	},
-];
 
 type SettingsDialogProps = {
 	user: SettingsDialogUser;
@@ -94,37 +79,13 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 		({ id }) => canManageOrganization || !isOrganizationSettingsSection(id),
 	);
 	const [activeSettingsSubView, setActiveSettingsSubView] = useState<SettingsSubView | null>(null);
-	const handleSettingsSubViewBack = () => {
-		if (activeSettingsSubView === "review-invitations") {
-			setActiveSettingsSubView("invite-member");
-			return;
-		}
-
-		setActiveSettingsSubView(null);
-	};
 	const selectedSettingsSectionLabel = visibleSettingsSections.find(
 		({ id }) => id === selectedSettingsSection,
 	)?.label;
 
-	function getSettingsBackButtonLabel() {
-		if (activeSettingsSubView === "change-password") {
-			return "Back to account settings";
-		}
-
-		if (activeSettingsSubView === "invite-member") {
-			return "Back to manage members";
-		}
-
-		if (activeSettingsSubView === "review-invitations") {
-			return "Back to invite new member";
-		}
-
-		return "Back to settings";
-	}
-
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="flex h-full max-h-[56.25rem] max-w-[64rem] flex-col overflow-hidden p-0">
+			<DialogContent className="flex h-full max-h-[56.25rem] max-w-[80rem] flex-col overflow-hidden p-0">
 				<div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
 					<DialogTitle>Settings</DialogTitle>
 					<DialogDescription className="sr-only">
@@ -180,8 +141,8 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 										size="sm"
 										type="button"
 										className="text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-										aria-label={getSettingsBackButtonLabel()}
-										onClick={handleSettingsSubViewBack}
+										aria-label="Back to account settings"
+										onClick={() => setActiveSettingsSubView(null)}
 									>
 										<RiArrowLeftLine aria-hidden="true" />
 										Back
@@ -208,10 +169,8 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 							{selectedSettingsSection === "billing" ? <BillingSettings /> : null}
 							{selectedSettingsSection === "members" && manageableOrganizationRole ? (
 								<MembersSettings
-									activeSettingsSubView={activeSettingsSubView}
 									currentUser={user}
-									onSettingsSubViewChange={setActiveSettingsSubView}
-									pendingInvitations={pendingInvitations}
+									organizationName={activeOrganization?.name ?? "your hospital"}
 									viewerRole={manageableOrganizationRole}
 								/>
 							) : null}

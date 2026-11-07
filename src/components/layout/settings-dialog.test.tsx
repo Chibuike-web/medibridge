@@ -119,7 +119,7 @@ describe("SettingsDialog", () => {
 		await user.click(screen.getByRole("button", { name: "Billing" }));
 		expect(screen.getByRole("heading", { name: "Billing" })).toBeVisible();
 		await user.click(screen.getByRole("button", { name: "Manage members" }));
-		expect(screen.getByRole("button", { name: "Invite new member" })).toBeVisible();
+		expect(screen.getByRole("button", { name: "Invite member" })).toBeVisible();
 	});
 
 	test.each(["owner", "admin", "member"])(

@@ -10,17 +10,7 @@ export type InviteMemberRow = {
 	role: Exclude<OrganizationRole, "owner"> | "";
 };
 
-export type PendingInvitation = {
-	id: string;
-	name?: string;
-	email: string;
-	role: Exclude<OrganizationRole, "owner">;
-	status: "pending" | "expired";
-	sentAt: string;
-	expiresAt: string;
-};
-
-export type SettingsSubView = "change-password" | "invite-member" | "review-invitations";
+export type SettingsSubView = "change-password";
 
 export type SettingsDialogUser = {
 	name: string;
