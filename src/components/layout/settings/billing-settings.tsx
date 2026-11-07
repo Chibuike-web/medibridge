@@ -8,6 +8,7 @@ import {
 	RiSearchLine,
 } from "@remixicon/react";
 
+import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -239,7 +240,7 @@ export function BillingSettings() {
 													{invoice.total}
 												</TableCell>
 												<TableCell className="h-14 bg-white px-3 py-0 text-sm text-gray-600">
-													{invoice.status}
+													<StatusBadge status={invoice.status} />
 												</TableCell>
 												<TableCell
 													className={cn(
