@@ -20,12 +20,7 @@ export type PendingInvitation = {
 	expiresAt: string;
 };
 
-export type SettingsSubView =
-	| "change-password"
-	| "payment-method"
-	| "billing-history"
-	| "invite-member"
-	| "review-invitations";
+export type SettingsSubView = "change-password" | "invite-member" | "review-invitations";
 
 export type SettingsDialogUser = {
 	name: string;

@@ -47,8 +47,6 @@ type SettingsSection = {
 
 const settingsSubViewLabels: Record<SettingsSubView, string> = {
 	"change-password": "Change password",
-	"payment-method": "Payment method",
-	"billing-history": "Billing History",
 	"invite-member": "Invite new member",
 	"review-invitations": "Review invitations",
 };
@@ -111,10 +109,6 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 	function getSettingsBackButtonLabel() {
 		if (activeSettingsSubView === "change-password") {
 			return "Back to account settings";
-		}
-
-		if (activeSettingsSubView === "billing-history" || activeSettingsSubView === "payment-method") {
-			return "Back to billing settings";
 		}
 
 		if (activeSettingsSubView === "invite-member") {
@@ -211,12 +205,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 								/>
 							) : null}
 							{selectedSettingsSection === "appearance" ? <AppearanceSettings /> : null}
-							{selectedSettingsSection === "billing" ? (
-								<BillingSettings
-									activeSettingsSubView={activeSettingsSubView}
-									onSettingsSubViewChange={setActiveSettingsSubView}
-								/>
-							) : null}
+							{selectedSettingsSection === "billing" ? <BillingSettings /> : null}
 							{selectedSettingsSection === "members" && manageableOrganizationRole ? (
 								<MembersSettings
 									activeSettingsSubView={activeSettingsSubView}
