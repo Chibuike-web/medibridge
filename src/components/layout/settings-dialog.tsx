@@ -5,8 +5,6 @@ import {
 	RiArrowLeftLine,
 	RiBankCardFill,
 	RiBankCardLine,
-	RiBuildingFill,
-	RiBuildingLine,
 	RiCloseLine,
 	RiMoonFill,
 	RiMoonLine,
@@ -20,7 +18,6 @@ import { AccountSettings } from "@/components/layout/settings/account-settings";
 import { AppearanceSettings } from "@/components/layout/settings/appearance-settings";
 import { BillingSettings } from "@/components/layout/settings/billing-settings";
 import { MembersSettings } from "@/components/layout/settings/members-settings";
-import { ProfileSettings } from "@/components/layout/settings/profile-settings";
 import type {
 	PendingInvitation,
 	SettingsDialogUser,
@@ -49,8 +46,6 @@ type SettingsSection = {
 };
 
 const settingsSubViewLabels: Record<SettingsSubView, string> = {
-	organization: "Organization",
-	"active-session": "Active sessions",
 	"change-password": "Change password",
 	"payment-method": "Payment method",
 	"billing-history": "Billing History",
@@ -59,8 +54,7 @@ const settingsSubViewLabels: Record<SettingsSubView, string> = {
 };
 
 const settingsSections: SettingsSection[] = [
-	{ id: "profile", label: "Profile", icon: RiUserLine, activeIcon: RiUserFill },
-	{ id: "account", label: "Account", icon: RiBuildingLine, activeIcon: RiBuildingFill },
+	{ id: "account", label: "Account", icon: RiUserLine, activeIcon: RiUserFill },
 	{ id: "appearance", label: "Appearance", icon: RiMoonLine, activeIcon: RiMoonFill },
 	{ id: "billing", label: "Billing", icon: RiBankCardLine, activeIcon: RiBankCardFill },
 	{ id: "members", label: "Manage members", icon: RiTeamLine, activeIcon: RiTeamFill },
@@ -90,7 +84,7 @@ type SettingsDialogProps = {
 
 export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps) {
 	const [selectedSettingsSection, setSelectedSettingsSection] =
-		useState<SettingsSectionId>("profile");
+		useState<SettingsSectionId>("account");
 	const { data: activeMemberRole } = authClient.useActiveMemberRole();
 	const { data: activeOrganization } = authClient.useActiveOrganization();
 	const manageableOrganizationRole =
@@ -118,9 +112,6 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 		if (activeSettingsSubView === "change-password") {
 			return "Back to account settings";
 		}
-		if (activeSettingsSubView === "active-session") {
-			return "Back to account settings";
-		}
 
 		if (activeSettingsSubView === "billing-history" || activeSettingsSubView === "payment-method") {
 			return "Back to billing settings";
@@ -128,9 +119,6 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 
 		if (activeSettingsSubView === "invite-member") {
 			return "Back to manage members";
-		}
-		if (activeSettingsSubView === "organization") {
-			return "Back to account settings";
 		}
 
 		if (activeSettingsSubView === "review-invitations") {
@@ -142,16 +130,21 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="h-[43.75rem] max-h-[calc(100vh-2rem)] max-w-[50rem] overflow-hidden p-0">
-				<div className="flex h-full min-h-0">
+			<DialogContent className="flex h-full max-w-[80rem] flex-col overflow-hidden p-0">
+				<div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
+					<DialogTitle>Settings</DialogTitle>
+					<DialogDescription className="sr-only">
+						Manage your Medibridge account and organization settings.
+					</DialogDescription>
+					<DialogClose asChild>
+						<Button variant="ghost" size="icon" aria-label="Close settings">
+							<RiCloseLine aria-hidden="true" />
+						</Button>
+					</DialogClose>
+				</div>
+				<div className="flex min-h-0 flex-1">
 					<aside className="w-[12.5rem] shrink-0 border-r bg-white p-2">
-						<div className="flex h-10 items-center px-2">
-							<DialogTitle>Settings</DialogTitle>
-							<DialogDescription className="sr-only">
-								Manage your Medibridge profile and organization settings.
-							</DialogDescription>
-						</div>
-						<nav aria-label="Settings sections" className="mt-3 flex flex-col gap-px">
+						<nav aria-label="Settings sections" className="flex flex-col gap-px">
 							{visibleSettingsSections.map(({ id, label, icon: Icon, activeIcon: ActiveIcon }) => (
 								<Button
 									variant="ghost"
@@ -180,36 +173,29 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 					</aside>
 
 					<section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-						<div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
-							{activeSettingsSubView ? (
-								<div className="flex items-center gap-2">
-									<Button
-										variant="ghost"
-										size="icon"
-										type="button"
-										className="text-gray-800 hover:bg-gray-100 hover:text-gray-800"
-										aria-label={getSettingsBackButtonLabel()}
-										onClick={handleSettingsSubViewBack}
-									>
-										<RiArrowLeftLine className="size-5" aria-hidden="true" />
-									</Button>
-									<h2 className="text-base font-semibold">
-										{settingsSubViewLabels[activeSettingsSubView]}
-									</h2>
-								</div>
-							) : (
-								<h2 className="text-base font-semibold">{selectedSettingsSectionLabel}</h2>
-							)}
-							<DialogClose asChild>
-								<Button variant="ghost" size="icon" aria-label="Close settings">
-									<RiCloseLine aria-hidden="true" />
+						{activeSettingsSubView ? (
+							<div className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+								<Button
+									variant="ghost"
+									size="icon"
+									type="button"
+									className="text-gray-800 hover:bg-gray-100 hover:text-gray-800"
+									aria-label={getSettingsBackButtonLabel()}
+									onClick={handleSettingsSubViewBack}
+								>
+									<RiArrowLeftLine className="size-5" aria-hidden="true" />
 								</Button>
-							</DialogClose>
-						</div>
+								<h2 className="text-base font-semibold">
+									{settingsSubViewLabels[activeSettingsSubView]}
+								</h2>
+							</div>
+						) : (
+							<h2 className="sr-only">{selectedSettingsSectionLabel}</h2>
+						)}
 						<div className="flex-1 overflow-y-auto">
-							{selectedSettingsSection === "profile" ? <ProfileSettings user={user} /> : null}
 							{selectedSettingsSection === "account" ? (
 								<AccountSettings
+									user={user}
 									viewerRole={
 										activeMemberRole?.role === "owner" ||
 										activeMemberRole?.role === "admin" ||
@@ -218,6 +204,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 											: null
 									}
 									organizationName={activeOrganization?.name ?? null}
+									organizationId={activeOrganization?.id ?? null}
 									activeSettingsSubView={activeSettingsSubView}
 									onSettingsSubViewChange={setActiveSettingsSubView}
 								/>

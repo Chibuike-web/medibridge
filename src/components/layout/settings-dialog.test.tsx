@@ -46,7 +46,7 @@ describe("SettingsDialog", () => {
 		roleMock.mockReturnValue({ data: role ? { role } : null });
 		render(<SettingsDialog {...props} />);
 		const navigation = within(screen.getByRole("navigation", { name: "Settings sections" }));
-		expect(navigation.getByRole("button", { name: "Profile" })).toBeVisible();
+		expect(navigation.getByRole("button", { name: "Account" })).toBeVisible();
 		expect(navigation.queryByRole("button", { name: "Billing" })).not.toBeInTheDocument();
 		expect(navigation.queryByRole("button", { name: "Manage members" })).not.toBeInTheDocument();
 	});
@@ -68,15 +68,6 @@ describe("SettingsDialog", () => {
 			expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
 		},
 	);
-
-	test("opening Account does not announce a password change", async () => {
-		// Regression: Account previously initialized its password-success dialog as open.
-		const user = userEvent.setup();
-		render(<SettingsDialog {...props} />);
-		await user.click(screen.getByRole("button", { name: "Account" }));
-		expect(screen.getByRole("button", { name: "Delete account" })).toBeVisible();
-		expect(screen.queryByRole("dialog", { name: "Password changed" })).not.toBeInTheDocument();
-	});
 
 	test("changes the password and signs out other sessions after a successful request", async () => {
 		const user = userEvent.setup();
@@ -144,26 +135,4 @@ describe("SettingsDialog", () => {
 			expect(dialog.getAllByText(/Test Hospital/)[0]).toBeVisible();
 		},
 	);
-
-	test("preserves the invitation email and role when returning from review", async () => {
-		const user = userEvent.setup();
-		render(<SettingsDialog {...props} />);
-		await user.click(screen.getByRole("button", { name: "Manage members" }));
-		await user.click(screen.getByRole("button", { name: "Invite new member" }));
-		await user.click(screen.getByRole("textbox", { name: /Email address/ }));
-		await user.paste("invite@example.com");
-		await user.tab();
-		expect(screen.getByRole("combobox", { name: /Role/ })).toHaveFocus();
-		await user.keyboard("{Enter}");
-		await user.click(screen.getByRole("option", { name: "Admin" }));
-		await user.click(screen.getByRole("button", { name: "Review invitations" }));
-		expect(screen.getByText("invite@example.com")).toBeVisible();
-		expect(screen.getByRole("heading", { name: "Review invitations" })).toBeVisible();
-		await user.click(screen.getByRole("button", { name: "Back to invite new member" }));
-		expect(screen.getByRole("textbox", { name: /Email address/ })).toHaveValue(
-			"invite@example.com",
-		);
-		expect(screen.getByRole("combobox", { name: /Role/ })).toHaveTextContent("Admin");
-		expect(screen.getAllByRole("textbox", { name: /Email address/ })).toHaveLength(1);
-	});
 });

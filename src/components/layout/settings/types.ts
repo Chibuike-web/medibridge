@@ -1,4 +1,4 @@
-export type SettingsSectionId = "profile" | "account" | "appearance" | "billing" | "members";
+export type SettingsSectionId = "account" | "appearance" | "billing" | "members";
 
 export type OrganizationRole = "owner" | "admin" | "member";
 
@@ -21,8 +21,6 @@ export type PendingInvitation = {
 };
 
 export type SettingsSubView =
-	| "organization"
-	| "active-session"
 	| "change-password"
 	| "payment-method"
 	| "billing-history"

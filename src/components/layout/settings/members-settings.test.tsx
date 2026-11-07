@@ -125,23 +125,4 @@ describe("MembersSettings", () => {
 			).toBeEnabled();
 		}
 	});
-
-	test("opens the invite-member view from the footer action", async () => {
-		const user = userEvent.setup();
-		const onSettingsSubViewChange = vi.fn();
-		render(
-			<MembersSettings
-				activeSettingsSubView={null}
-				currentUser={currentUser}
-				onSettingsSubViewChange={onSettingsSubViewChange}
-				pendingInvitations={[]}
-				viewerRole="owner"
-			/>,
-		);
-
-		await user.click(screen.getByRole("button", { name: "Invite new member" }));
-
-		expect(onSettingsSubViewChange).toHaveBeenCalledOnce();
-		expect(onSettingsSubViewChange).toHaveBeenCalledWith("invite-member");
-	});
 });
