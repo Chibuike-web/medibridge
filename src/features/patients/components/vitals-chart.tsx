@@ -124,10 +124,10 @@ export function VitalsChart({ readings }: { readings: VitalType[] }) {
 					value={selectedMetric}
 					onValueChange={(value) => setSelectedMetric(value as VitalMetric)}
 				>
-					<SelectTrigger className="w-[15.625rem]" aria-label="Vital measurement">
+					<SelectTrigger className="w-[15.625rem] max-md:w-full" aria-label="Vital measurement">
 						<SelectValue />
 					</SelectTrigger>
-					<SelectContent className="w-[15.625rem]" align="start">
+					<SelectContent className="min-w-36" align="start">
 						{Object.entries(vitalMetrics).map(([key, value]) => (
 							<SelectItem key={key} value={key}>
 								{value.label}
@@ -139,10 +139,10 @@ export function VitalsChart({ readings }: { readings: VitalType[] }) {
 					value={selectedPeriod}
 					onValueChange={(value) => setSelectedPeriod(value as VitalChartPeriod)}
 				>
-					<SelectTrigger className="w-36" aria-label="Chart period">
+					<SelectTrigger className="w-36 max-md:w-full" aria-label="Chart period">
 						<SelectValue />
 					</SelectTrigger>
-					<SelectContent className="w-[15.625rem]" align="start">
+					<SelectContent className="min-w-36" align="start">
 						{vitalChartPeriods.map((option) => (
 							<SelectItem key={option.value} value={option.value}>
 								{option.label}

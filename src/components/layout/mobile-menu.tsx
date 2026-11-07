@@ -17,10 +17,24 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import type { Menu } from "@/components/layout/sidebar";
 import { authClient } from "@/lib/better-auth/auth.client";
 import { cn } from "@/lib/utils/cn";
-import { RiCloseLine, RiLogoutBoxLine, RiMenuLine, RiSettingsLine } from "@remixicon/react";
+import {
+	RiArrowRightSLine,
+	RiCheckLine,
+	RiCloseLine,
+	RiContrast2Line,
+	RiLogoutBoxLine,
+	RiMenuLine,
+	RiSettingsLine,
+} from "@remixicon/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
+
+const themeOptions = [
+	{ label: "System", value: "system" },
+	{ label: "Dark", value: "dark" },
+	{ label: "Light", value: "light" },
+];
 
 const badgeToneByRole: Record<string, SettingsBadgeTone> = {
 	owner: "premium",
@@ -31,6 +45,9 @@ const badgeToneByRole: Record<string, SettingsBadgeTone> = {
 export function MobileMenu({ menus }: { menus: Menu[] }) {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+	const [isThemeExpanded, setIsThemeExpanded] = useState(false);
+	const [selectedTheme, setSelectedTheme] = useState("system");
+	const themeOptionsId = useId();
 	const [signOutError, setSignOutError] = useState("");
 	const [isPending, startTransition] = useTransition();
 	const router = useRouter();
@@ -112,6 +129,49 @@ export function MobileMenu({ menus }: { menus: Menu[] }) {
 								</div>
 							</div>
 						) : null}
+						<Button
+							variant="ghost"
+							className="justify-start font-normal text-gray-600 hover:bg-gray-100"
+							aria-expanded={isThemeExpanded}
+							aria-controls={themeOptionsId}
+							onClick={() => setIsThemeExpanded((prev) => !prev)}
+						>
+							<RiContrast2Line aria-hidden="true" />
+							<span className="flex-1 text-left">Theme</span>
+							<RiArrowRightSLine
+								aria-hidden="true"
+								className={cn(
+									"transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+									isThemeExpanded && "rotate-90",
+								)}
+							/>
+						</Button>
+						<div
+							id={themeOptionsId}
+							className={cn(
+								"grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+								isThemeExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+							)}
+							aria-hidden={!isThemeExpanded}
+							inert={!isThemeExpanded}
+						>
+							<div className="flex min-h-0 flex-col gap-1 overflow-hidden pl-6">
+								{themeOptions.map((themeOption) => (
+									<Button
+										key={themeOption.value}
+										variant="ghost"
+										className="justify-start font-normal text-gray-600 hover:bg-gray-100"
+										aria-pressed={selectedTheme === themeOption.value}
+										onClick={() => setSelectedTheme(themeOption.value)}
+									>
+										<span className="flex-1 text-left">{themeOption.label}</span>
+										{selectedTheme === themeOption.value ? (
+											<RiCheckLine aria-hidden="true" />
+										) : null}
+									</Button>
+								))}
+							</div>
+						</div>
 						<Button
 							variant="ghost"
 							className="justify-start font-normal text-gray-600 hover:bg-gray-100"

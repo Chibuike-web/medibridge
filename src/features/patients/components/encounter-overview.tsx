@@ -14,7 +14,7 @@ import {
 	RiMore2Fill,
 	RiShare2Line,
 } from "@remixicon/react";
-import { CopyIdButton } from "@/components/copy-id-button";
+import { CopyableId } from "@/components/copyable-id";
 import {
 	AlertDialog,
 	AlertDialogCancel,
@@ -142,7 +142,7 @@ export function EncounterOverview({
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
 							align="end"
-							className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+							className="w-50 rounded-xl bg-white text-sm text-gray-700"
 						>
 							<DropdownMenuItem
 								onSelect={() => {
@@ -151,23 +151,23 @@ export function EncounterOverview({
 									setOpenedUpdatedAt(encounter.updatedAt.toISOString());
 									setIsEditEncounterDrawerOpen(true);
 								}}
-								className="flex items-center rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
+								className="rounded-lg"
 							>
-								<RiEditLine className="text-white" />
+								<RiEditLine />
 								<span>Edit</span>
 							</DropdownMenuItem>
-							<DropdownMenuItem className="flex items-center rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
-								<RiShare2Line className="text-white" />
+							<DropdownMenuItem className="rounded-lg">
+								<RiShare2Line />
 								<span>Export</span>
 							</DropdownMenuItem>
 							{canArchive ? (
 								<>
-									<DropdownMenuSeparator className="bg-white/10" />
+									<DropdownMenuSeparator />
 									<DropdownMenuItem
 										onSelect={() => setIsArchiveDialogOpen(true)}
-										className="flex items-center rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
+										className="rounded-lg"
 									>
-										<RiArchiveLine className="text-white" />
+										<RiArchiveLine />
 										<span>Archive</span>
 									</DropdownMenuItem>
 								</>
@@ -182,11 +182,11 @@ export function EncounterOverview({
 				<DetailItem label="Encounter date" value={encounterDayLabel} />
 				<div className="flex flex-col items-start gap-2">
 					<span className="text-sm text-gray-400">Encounter ID</span>
-					<CopyIdButton id={encounter.encounterId} />
+					<CopyableId id={encounter.encounterId} />
 				</div>
 				<div className="flex flex-col items-start gap-2">
 					<span className="text-sm text-gray-400">Patient ID</span>
-					<CopyIdButton id={encounter.patientId} />
+					<CopyableId id={encounter.patientId} />
 				</div>
 				<DetailItem label="Reason for encounter" value={encounter.reason} />
 				<DetailItem label="Created by" value={encounter.createdBy} />

@@ -324,6 +324,10 @@ export function SharedLabTestsTable({
 		},
 		state: { sorting },
 	});
+
+	const fitsOnSmallestPage =
+		totalPages === 1 && table.getRowModel().rows.length <= ROWS_PER_PAGE_OPTIONS[0];
+
 	return (
 		<div>
 			<h2 className="text-lg font-semibold text-gray-900">Lab Tests</h2>
@@ -535,58 +539,60 @@ export function SharedLabTestsTable({
 						)}
 					</TableBody>
 				</Table>
-				<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
-					<div className="flex items-center gap-3">
-						<span>Rows per page</span>
-						<Select
-							value={String(optimisticLimit)}
-							onValueChange={(value) => navigateTable({ nextLimit: Number(value) })}
-							disabled={isPending}
-						>
-							<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
-								<SelectValue aria-label="Rows per page" placeholder="Rows" />
-							</SelectTrigger>
-							<SelectContent className="w-20" align="start">
-								{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
-									<SelectItem key={pageSize} value={String(pageSize)}>
-										{pageSize}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-					<div className="flex items-center gap-3">
-						<span>
-							Page {optimisticPage} of {totalPages}
-						</span>
-						<div className="flex items-center gap-2">
-							<Button
-								type="button"
-								variant="outline"
-								size="icon"
-								aria-label="Previous"
-								onClick={() => navigateTable({ nextPage: Math.max(optimisticPage - 1, 1) })}
-								disabled={optimisticPage <= 1 || isPending}
-								className="text-gray-700 shadow-none"
+				{fitsOnSmallestPage ? null : (
+					<div className="flex items-center justify-between gap-3 overflow-x-auto border-t border-gray-200 bg-white p-3 text-sm whitespace-nowrap text-gray-500">
+						<div className="flex items-center gap-3">
+							<span>Rows per page</span>
+							<Select
+								value={String(optimisticLimit)}
+								onValueChange={(value) => navigateTable({ nextLimit: Number(value) })}
+								disabled={isPending}
 							>
-								<RiArrowLeftSLine aria-hidden="true" />
-							</Button>
-							<Button
-								type="button"
-								variant="outline"
-								size="icon"
-								aria-label="Next"
-								onClick={() =>
-									navigateTable({ nextPage: Math.min(optimisticPage + 1, totalPages) })
-								}
-								disabled={optimisticPage >= totalPages || isPending}
-								className="text-gray-700 shadow-none"
-							>
-								<RiArrowRightSLine aria-hidden="true" />
-							</Button>
+								<SelectTrigger className="h-8 w-[4.25rem] bg-white px-2 text-gray-700">
+									<SelectValue aria-label="Rows per page" placeholder="Rows" />
+								</SelectTrigger>
+								<SelectContent className="w-20" align="start">
+									{ROWS_PER_PAGE_OPTIONS.map((pageSize) => (
+										<SelectItem key={pageSize} value={String(pageSize)}>
+											{pageSize}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="flex items-center gap-3">
+							<span>
+								Page {optimisticPage} of {totalPages}
+							</span>
+							<div className="flex items-center gap-2">
+								<Button
+									type="button"
+									variant="outline"
+									size="icon"
+									aria-label="Previous"
+									onClick={() => navigateTable({ nextPage: Math.max(optimisticPage - 1, 1) })}
+									disabled={optimisticPage <= 1 || isPending}
+									className="text-gray-700 shadow-none"
+								>
+									<RiArrowLeftSLine aria-hidden="true" />
+								</Button>
+								<Button
+									type="button"
+									variant="outline"
+									size="icon"
+									aria-label="Next"
+									onClick={() =>
+										navigateTable({ nextPage: Math.min(optimisticPage + 1, totalPages) })
+									}
+									disabled={optimisticPage >= totalPages || isPending}
+									className="text-gray-700 shadow-none"
+								>
+									<RiArrowRightSLine aria-hidden="true" />
+								</Button>
+							</div>
 						</div>
 					</div>
-				</div>
+				)}
 			</div>
 			<SharedLabTestDetailsDrawer
 				open={isDetailsDrawerOpen}
@@ -630,19 +636,13 @@ function RowMenu({ onViewDetails }: { onViewDetails: () => void }) {
 			>
 				<RiMore2Fill className="size-5" aria-hidden="true" />
 			</DropdownMenuTrigger>
-			<DropdownMenuContent
-				align="end"
-				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
-			>
-				<DropdownMenuItem
-					className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
-					onSelect={onViewDetails}
-				>
-					<RiEyeLine className="text-white" aria-hidden="true" />
+			<DropdownMenuContent align="end" className="w-50 rounded-xl bg-white text-sm text-gray-700">
+				<DropdownMenuItem className="rounded-lg" onSelect={onViewDetails}>
+					<RiEyeLine aria-hidden="true" />
 					<span>View details</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-					<RiShare2Line className="text-white" aria-hidden="true" />
+				<DropdownMenuItem className="rounded-lg">
+					<RiShare2Line aria-hidden="true" />
 					<span>Export</span>
 				</DropdownMenuItem>
 			</DropdownMenuContent>

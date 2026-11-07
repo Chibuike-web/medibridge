@@ -104,10 +104,7 @@ export function ContactInformation({
 					<RiMore2Fill aria-hidden="true" />
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent
-				align="end"
-				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
-			>
+			<DropdownMenuContent align="end" className="w-50 rounded-xl bg-white text-sm text-gray-700">
 				<DropdownMenuItem
 					onSelect={() => {
 						setSelectedStateOfOrigin(
@@ -125,13 +122,13 @@ export function ContactInformation({
 						);
 						setIsContactInformationDialogOpen(true);
 					}}
-					className="flex items-center rounded-lg py-2 text-white focus:bg-white/10 focus:text-white"
+					className="rounded-lg"
 				>
-					<RiEditLine className="text-white" />
+					<RiEditLine />
 					<span>Edit info</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
-					<RiShare2Line className="text-white" />
+				<DropdownMenuItem className="rounded-lg">
+					<RiShare2Line />
 					<span>Export info</span>
 				</DropdownMenuItem>
 			</DropdownMenuContent>

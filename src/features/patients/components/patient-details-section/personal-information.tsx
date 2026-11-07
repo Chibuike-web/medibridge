@@ -40,6 +40,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { CopyableId } from "@/components/copyable-id";
 import { DetailItem, DetailsSection } from "./detail-fields";
 
 type PersonalInformationItem = {
@@ -116,22 +117,19 @@ export function PersonalInformation({
 					<RiMore2Fill aria-hidden="true" />
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent
-				align="end"
-				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
-			>
+			<DropdownMenuContent align="end" className="w-50 rounded-xl bg-white text-sm text-gray-700">
 				<DropdownMenuItem
 					onSelect={() => {
 						setIsPersonalInformationDialogOpen(true);
 					}}
-					className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+					className="rounded-lg"
 				>
-					<RiEditLine className="text-white" />
+					<RiEditLine />
 					<span>Edit info</span>
 				</DropdownMenuItem>
 
-				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-					<RiShare2Line className="text-white" />
+				<DropdownMenuItem className="rounded-lg">
+					<RiShare2Line />
 					<span>Export info</span>
 				</DropdownMenuItem>
 			</DropdownMenuContent>
@@ -141,9 +139,16 @@ export function PersonalInformation({
 	return (
 		<>
 			<DetailsSection title="Personal Information" action={action}>
-				{optimisticPersonalInformation.map((item) => (
-					<DetailItem key={item.label} label={item.label} value={item.value} />
-				))}
+				{optimisticPersonalInformation.map((item) =>
+					item.label === "Patient ID" ? (
+						<div key={item.label} className="flex flex-col items-start gap-2">
+							<span className="text-sm text-gray-400">{item.label}</span>
+							<CopyableId id={String(item.value)} />
+						</div>
+					) : (
+						<DetailItem key={item.label} label={item.label} value={item.value} />
+					),
+				)}
 			</DetailsSection>
 
 			<Dialog

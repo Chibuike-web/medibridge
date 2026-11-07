@@ -73,15 +73,14 @@ function PatientAvatarMenu({ patientName }: { patientName: string }) {
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
 				align="center"
-				sideOffset={12}
-				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+				className="w-50 rounded-xl bg-white text-sm text-gray-700"
 			>
-				<DropdownMenuItem className="rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
-					<RiUpload2Line className="text-white" aria-hidden="true" />
+				<DropdownMenuItem className="rounded-lg">
+					<RiUpload2Line aria-hidden="true" />
 					<span>Upload image</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="rounded-lg py-2 text-white focus:bg-white/10 focus:text-white">
-					<RiDeleteBin2Line className="text-white" aria-hidden="true" />
+				<DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600">
+					<RiDeleteBin2Line className="text-current" aria-hidden="true" />
 					<span>Remove image</span>
 				</DropdownMenuItem>
 			</DropdownMenuContent>

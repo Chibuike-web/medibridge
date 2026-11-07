@@ -363,7 +363,7 @@ describe("Lab tests table", () => {
 
 	test("lets the user change the rows per page", async () => {
 		const user = userEvent.setup();
-		const { onLimitChange } = renderLabTestsTable({ limit: 14 });
+		const { onLimitChange } = renderLabTestsTable({ limit: 14, totalPages: 2 });
 
 		const rowsPerPage = screen.getByRole("combobox");
 		expect(rowsPerPage).toHaveTextContent("14");

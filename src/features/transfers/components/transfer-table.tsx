@@ -814,39 +814,39 @@ function getTransferColumns({
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
 							align="end"
-							className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+							className="w-50 rounded-xl bg-white text-sm text-gray-700"
 						>
 							{row.original.status === "pending" ? (
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
-										className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="rounded-lg"
 									>
-										<RiEyeLine className="text-white" />
+										<RiEyeLine />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem
 										disabled={isTransferActionPending}
 										onSelect={() => onResendRequest(row.original.id)}
-										className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="rounded-lg"
 									>
-										<RiSendPlaneLine className="text-white" /> <span>Resend request</span>
+										<RiSendPlaneLine /> <span>Resend request</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem
 										disabled={isTransferActionPending}
 										onSelect={() => onCancelTransfer(row.original.id)}
-										className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600"
 									>
-										<RiCloseLine className="text-white" /> <span>Cancel transfer</span>
+										<RiCloseLine className="text-current" /> <span>Cancel transfer</span>
 									</DropdownMenuItem>
 								</>
 							) : row.original.status === "rejected" ? (
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
-										className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="rounded-lg"
 									>
-										<RiEyeLine className="text-white" />
+										<RiEyeLine />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem
@@ -855,15 +855,15 @@ function getTransferColumns({
 												`/dashboard/new-transfer-request?patientId=${row.original.patientId}&returnTo=${encodeURIComponent(returnTo)}`,
 											)
 										}
-										className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="rounded-lg"
 									>
-										<RiEdit2Line className="text-white" /> <span>Edit and resend request</span>
+										<RiEdit2Line /> <span>Edit and resend request</span>
 									</DropdownMenuItem>
 									{canArchive ? (
 										<>
-											<DropdownMenuSeparator className="bg-white/20" />
-											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-												<RiArchiveLine className="text-white" />
+											<DropdownMenuSeparator />
+											<DropdownMenuItem className="rounded-lg">
+												<RiArchiveLine />
 												<span>Archive transfer</span>
 											</DropdownMenuItem>
 										</>
@@ -873,16 +873,16 @@ function getTransferColumns({
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
-										className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="rounded-lg"
 									>
-										<RiEyeLine className="text-white" />
+										<RiEyeLine />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									{canArchive ? (
 										<>
-											<DropdownMenuSeparator className="bg-white/20" />
-											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-												<RiArchiveLine className="text-white" />
+											<DropdownMenuSeparator />
+											<DropdownMenuItem className="rounded-lg">
+												<RiArchiveLine />
 												<span>Archive transfer</span>
 											</DropdownMenuItem>
 										</>
@@ -892,23 +892,23 @@ function getTransferColumns({
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
-										className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="rounded-lg"
 									>
-										<RiEyeLine className="text-white" />
+										<RiEyeLine />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem
 										disabled={isTransferActionPending}
 										onSelect={() => onRetryTransfer(row.original.id)}
-										className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="rounded-lg"
 									>
-										<RiCornerDownLeftFill className="text-whte" /> <span>Retry transfer</span>
+										<RiCornerDownLeftFill /> <span>Retry transfer</span>
 									</DropdownMenuItem>
 									{canArchive ? (
 										<>
-											<DropdownMenuSeparator className="bg-white/20" />
-											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-												<RiArchiveLine className="text-white" />
+											<DropdownMenuSeparator />
+											<DropdownMenuItem className="rounded-lg">
+												<RiArchiveLine />
 												<span>Archive transfer</span>
 											</DropdownMenuItem>
 										</>
@@ -918,26 +918,26 @@ function getTransferColumns({
 								<>
 									<DropdownMenuItem
 										onSelect={() => onViewTransferDetails(row.original.id)}
-										className="flex items-center rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="rounded-lg"
 									>
-										<RiEyeLine className="text-white" />
+										<RiEyeLine />
 										<span>View transfer details</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem
-										className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+										className="rounded-lg"
 										onSelect={() =>
 											router.push(
 												`/dashboard/new-transfer-request?patientId=${row.original.patientId}&returnTo=${encodeURIComponent(returnTo)}`,
 											)
 										}
 									>
-										<RiAddLine className="text-whte" /> <span>Start new transfer</span>
+										<RiAddLine /> <span>Start new transfer</span>
 									</DropdownMenuItem>
 									{canArchive ? (
 										<>
-											<DropdownMenuSeparator className="bg-white/20" />
-											<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-												<RiArchiveLine className="text-white" />
+											<DropdownMenuSeparator />
+											<DropdownMenuItem className="rounded-lg">
+												<RiArchiveLine />
 												<span>Archive transfer</span>
 											</DropdownMenuItem>
 										</>

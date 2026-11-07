@@ -651,19 +651,13 @@ function RowMenu({ onViewDetails }: { onViewDetails: () => void }) {
 			>
 				<RiMore2Fill className="size-5" aria-hidden="true" />
 			</DropdownMenuTrigger>
-			<DropdownMenuContent
-				align="end"
-				className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
-			>
-				<DropdownMenuItem
-					className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
-					onSelect={onViewDetails}
-				>
-					<RiEyeLine className="text-white" aria-hidden="true" />
+			<DropdownMenuContent align="end" className="w-50 rounded-xl bg-white text-sm text-gray-700">
+				<DropdownMenuItem className="rounded-lg" onSelect={onViewDetails}>
+					<RiEyeLine aria-hidden="true" />
 					<span>View details</span>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-					<RiShare2Line className="text-white" aria-hidden="true" />
+				<DropdownMenuItem className="rounded-lg">
+					<RiShare2Line aria-hidden="true" />
 					<span>Export</span>
 				</DropdownMenuItem>
 			</DropdownMenuContent>

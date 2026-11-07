@@ -56,7 +56,10 @@ export function FilterGroup({
 	return (
 		<Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
 			<DrawerTrigger asChild>
-				<Button variant="outline" className="flex-1 bg-white text-gray-600 hover:bg-gray-50">
+				<Button
+					variant="outline"
+					className="flex-1 bg-white text-gray-600 hover:bg-gray-50 active:scale-100"
+				>
 					<RiFilter3Line aria-hidden className="size-4 text-gray-600" />
 					Filters
 					{activeFilterCount > 0 ? (
@@ -116,7 +119,7 @@ export function FilterPopover({
 				<Button
 					ref={triggerRef}
 					variant="outline"
-					className="w-max bg-white text-gray-600 hover:bg-gray-50"
+					className="w-max bg-white text-gray-600 hover:bg-gray-50 active:scale-100"
 				>
 					<Icon aria-hidden className="size-4 text-gray-600" />
 					{label}
@@ -169,7 +172,7 @@ export function DateFilterMenu({
 				<Button
 					ref={triggerRef}
 					variant="outline"
-					className="w-max bg-white text-gray-600 hover:bg-gray-50"
+					className="w-max bg-white text-gray-600 hover:bg-gray-50 active:scale-100"
 				>
 					<Icon aria-hidden className="size-4 text-gray-600" />
 					{label}

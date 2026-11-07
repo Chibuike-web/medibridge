@@ -280,12 +280,19 @@ async function VitalsSection({
 	const createdFrom = getStringParam(tableParams.vitalsCreatedFrom);
 	const createdTo = getStringParam(tableParams.vitalsCreatedTo);
 	const [{ vitals, totalVitals }, readings, { encounters }] = await Promise.all([
-		getPatientVitals(patientId, page, limit, searchQuery, { sort, order }, {
-			recordedFrom,
-			recordedTo,
-			createdFrom,
-			createdTo,
-		}),
+		getPatientVitals(
+			patientId,
+			page,
+			limit,
+			searchQuery,
+			{ sort, order },
+			{
+				recordedFrom,
+				recordedTo,
+				createdFrom,
+				createdTo,
+			},
+		),
 		getPatientVitalReadings(patientId),
 		getPatientEncounters(patientId, 1, 100),
 	]);
@@ -1109,23 +1116,17 @@ function BreadCrumbSkeleton() {
 function HeaderSkeleton() {
 	return (
 		<div className="flex items-center gap-3 border-b border-gray-200 px-6 py-3.5 text-sm">
-			<div className="relative shrink-0">
-				<div className="size-16 animate-pulse rounded-full border border-gray-200 bg-gray-100" />
-				<div className="absolute right-0 bottom-0 size-4.5 animate-pulse rounded-full bg-gray-300" />
-			</div>
+			<div className="size-16 shrink-0 animate-pulse rounded-full border border-gray-200 bg-gray-100" />
 
-			<div className="flex flex-1 flex-col gap-4 overflow-hidden">
+			<div className="flex flex-1 flex-col gap-3 overflow-hidden">
 				<div className="flex items-center gap-2.5">
 					<div className="h-7 w-52 animate-pulse rounded bg-gray-200" />
 					<div className="h-6 w-16 animate-pulse rounded-full bg-gray-200" />
+					<div className="h-6 w-28 animate-pulse rounded-md bg-gray-200" />
 				</div>
 
 				<div className="flex items-center gap-4 overflow-hidden">
 					<MetaItemSkeleton labelWidth="w-7" valueWidth="w-10" />
-					<div className="flex shrink-0 items-center gap-1">
-						<div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
-						<div className="h-7 w-25 animate-pulse rounded-md bg-gray-200" />
-					</div>
 					<MetaItemSkeleton labelWidth="w-9" valueWidth="w-44" />
 					<MetaItemSkeleton labelWidth="w-24" valueWidth="w-28" />
 					<MetaItemSkeleton labelWidth="w-14" valueWidth="w-52" />

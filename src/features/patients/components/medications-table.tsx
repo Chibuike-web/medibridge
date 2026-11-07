@@ -736,36 +736,36 @@ function getMedicationsColumns({
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
 								align="end"
-								className="w-50 rounded-xl border-white/20 bg-gray-800 text-sm text-white ring ring-gray-800"
+								className="w-50 rounded-xl bg-white text-sm text-gray-700"
 							>
 								<DropdownMenuItem
-									className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2"
+									className="rounded-lg"
 									onSelect={() => onViewMedicationDetails(row.original.medicationId)}
 								>
-									<RiEyeLine className="text-white" />
+									<RiEyeLine />
 									<span>View details</span>
 								</DropdownMenuItem>
-								<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-									<RiShare2Line className="text-white" />
+								<DropdownMenuItem className="rounded-lg">
+									<RiShare2Line />
 									<span>Export</span>
 								</DropdownMenuItem>
 								{canUpdateMedicationStatus ? (
 									<>
-										<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-											<RiCheckLine className="text-white" />
+										<DropdownMenuItem className="rounded-lg">
+											<RiCheckLine />
 											<span>Mark as completed</span>
 										</DropdownMenuItem>
-										<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-											<RiCloseLine className="text-white" />
+										<DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600">
+											<RiCloseLine className="text-current" />
 											<span>Discontinue</span>
 										</DropdownMenuItem>
 									</>
 								) : null}
 								{canArchive ? (
 									<>
-										<DropdownMenuSeparator className="bg-white/20" />
-										<DropdownMenuItem className="rounded-lg text-white focus:bg-white/10 focus:text-white py-2">
-											<RiArchiveLine className="text-white" />
+										<DropdownMenuSeparator />
+										<DropdownMenuItem className="rounded-lg">
+											<RiArchiveLine />
 											<span>Archive</span>
 										</DropdownMenuItem>
 									</>
