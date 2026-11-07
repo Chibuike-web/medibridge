@@ -464,6 +464,7 @@ For your security, all other active sessions have been signed out."
 }
 
 function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
+	const [passwordStep, setPasswordStep] = useState<"current" | "new">("current");
 	const [currentPassword, setCurrentPassword] = useState("");
 	const [newPassword, setNewPassword] = useState("");
 	const [confirmedPassword, setConfirmedPassword] = useState("");
@@ -474,10 +475,66 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 	const isCurrentPasswordError = changePasswordError === "Current password is incorrect.";
 	const isPasswordMismatch = changePasswordError === "Passwords do not match.";
 
+	if (passwordStep === "current") {
+		return (
+			<form
+				method="post"
+				className="mx-auto flex w-full max-w-[31.25rem] flex-col gap-8 px-4 py-10"
+				onSubmit={(event) => {
+					event.preventDefault();
+					setChangePasswordError("");
+					setPasswordStep("new");
+				}}
+			>
+				<h3 className="text-center text-base font-semibold text-gray-800 text-balance">
+					Enter your current password
+				</h3>
+				<div className="flex flex-col gap-3">
+					<div className="flex items-center justify-between gap-4">
+						<Label htmlFor="current-password" className="text-sm font-medium text-gray-600">
+							Current password <span className="font-normal text-gray-400">(required)</span>
+						</Label>
+						<Link
+							href="/forgot-password"
+							className="shrink-0 text-sm font-medium text-gray-600 underline underline-offset-4 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
+						>
+							Forgot password
+						</Link>
+					</div>
+					<div className="flex flex-col gap-1.5">
+						<Input
+							id="current-password"
+							name="currentPassword"
+							type="password"
+							placeholder="Enter current password"
+							autoComplete="current-password"
+							required
+							value={currentPassword}
+							aria-invalid={isCurrentPasswordError}
+							aria-describedby={isCurrentPasswordError ? "current-password-error" : undefined}
+							onChange={(event) => {
+								setCurrentPassword(event.target.value);
+								setChangePasswordError("");
+							}}
+						/>
+						{isCurrentPasswordError && (
+							<p id="current-password-error" role="alert" className="text-sm text-red-600">
+								{changePasswordError}
+							</p>
+						)}
+					</div>
+				</div>
+				<Button type="submit" className="w-full">
+					Continue
+				</Button>
+			</form>
+		);
+	}
+
 	return (
 		<form
 			method="post"
-			className="flex h-full flex-col gap-10 px-4 py-5"
+			className="mx-auto flex w-full max-w-[31.25rem] flex-col gap-8 px-4 py-10"
 			aria-busy={isPending}
 			onSubmit={(event) => {
 				event.preventDefault();
@@ -495,69 +552,31 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 							revokeOtherSessions: true,
 						});
 
+						if (error?.code === "INVALID_PASSWORD") {
+							setChangePasswordError("Current password is incorrect.");
+							setPasswordStep("current");
+							return;
+						}
+
 						if (error) {
-							setChangePasswordError(
-								error.code === "INVALID_PASSWORD"
-									? "Current password is incorrect."
-									: "We couldn’t change your password. Please try again.",
-							);
+							setChangePasswordError("We couldn’t change your password. Please try again.");
 							return;
 						}
 
 						onSuccess();
-					} catch {
+					} catch (error) {
+						console.error("Changing the password failed:", error);
 						setChangePasswordError("We couldn’t change your password. Please try again.");
 					}
 				});
 			}}
 		>
-			<section aria-labelledby="current-password-heading" className="flex flex-col gap-3">
-				<div className="flex items-center justify-between gap-4">
-					<Label
-						htmlFor="current-password"
-						id="current-password-heading"
-						className="text-sm font-medium text-gray-600"
-					>
-						Current password <span className="font-normal text-gray-400">(required)</span>
-					</Label>
-					<Link
-						href="/forgot-password"
-						className="shrink-0 text-sm font-medium text-gray-600 underline underline-offset-4 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-gray-100"
-					>
-						Forgot password
-					</Link>
-				</div>
-				<div className="flex flex-col gap-1.5">
-					<Input
-						id="current-password"
-						name="currentPassword"
-						type="password"
-						placeholder="Enter current password"
-						autoComplete="current-password"
-						required
-						disabled={isPending}
-						value={currentPassword}
-						aria-invalid={isCurrentPasswordError}
-						aria-describedby={isCurrentPasswordError ? "current-password-error" : undefined}
-						onChange={(event) => {
-							setCurrentPassword(event.target.value);
-							setChangePasswordError("");
-						}}
-					/>
-					{isCurrentPasswordError && (
-						<p id="current-password-error" role="alert" className="text-sm text-red-600">
-							{changePasswordError}
-						</p>
-					)}
-				</div>
-			</section>
-			<section aria-labelledby="new-password-heading" className="flex flex-col gap-4">
+			<h3 className="text-center text-base font-semibold text-gray-800 text-balance">
+				Enter new password
+			</h3>
+			<div className="flex flex-col gap-4">
 				<div className="flex flex-col gap-3">
-					<Label
-						htmlFor="new-password"
-						id="new-password-heading"
-						className="text-sm font-medium text-gray-600"
-					>
+					<Label htmlFor="new-password" className="text-sm font-medium text-gray-600">
 						New password <span className="font-normal text-gray-400">(required)</span>
 					</Label>
 					<div className="relative">
@@ -647,13 +666,13 @@ function ChangePasswordForm({ onSuccess }: { onSuccess: () => void }) {
 						)}
 					</div>
 				</div>
-			</section>
-			{changePasswordError && !isCurrentPasswordError && !isPasswordMismatch && (
+			</div>
+			{changePasswordError && !isPasswordMismatch && (
 				<p role="alert" className="text-sm text-red-600">
 					{changePasswordError}
 				</p>
 			)}
-			<Button type="submit" className="grid place-items-center mt-2 self-end" disabled={isPending}>
+			<Button type="submit" className="grid w-full place-items-center" disabled={isPending}>
 				<span
 					className={isPending ? "invisible col-start-1 row-start-1" : "col-start-1 row-start-1"}
 				>

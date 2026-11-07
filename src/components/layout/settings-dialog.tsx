@@ -173,26 +173,27 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 					</aside>
 
 					<section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-						{activeSettingsSubView ? (
-							<div className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-								<Button
-									variant="ghost"
-									size="icon"
-									type="button"
-									className="text-gray-800 hover:bg-gray-100 hover:text-gray-800"
-									aria-label={getSettingsBackButtonLabel()}
-									onClick={handleSettingsSubViewBack}
-								>
-									<RiArrowLeftLine className="size-5" aria-hidden="true" />
-								</Button>
-								<h2 className="text-base font-semibold">
-									{settingsSubViewLabels[activeSettingsSubView]}
-								</h2>
-							</div>
-						) : (
-							<h2 className="sr-only">{selectedSettingsSectionLabel}</h2>
-						)}
+						<h2 className="sr-only">
+							{activeSettingsSubView
+								? settingsSubViewLabels[activeSettingsSubView]
+								: selectedSettingsSectionLabel}
+						</h2>
 						<div className="flex-1 overflow-y-auto">
+							{activeSettingsSubView ? (
+								<div className="px-4 pt-5">
+									<Button
+										variant="ghost"
+										size="sm"
+										type="button"
+										className="text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+										aria-label={getSettingsBackButtonLabel()}
+										onClick={handleSettingsSubViewBack}
+									>
+										<RiArrowLeftLine aria-hidden="true" />
+										Back
+									</Button>
+								</div>
+							) : null}
 							{selectedSettingsSection === "account" ? (
 								<AccountSettings
 									user={user}

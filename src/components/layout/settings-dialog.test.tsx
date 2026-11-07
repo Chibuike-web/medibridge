@@ -76,6 +76,7 @@ describe("SettingsDialog", () => {
 		await user.click(screen.getByRole("button", { name: "Change password" }));
 
 		await user.type(screen.getByLabelText(/Current password/, { selector: "input" }), "OldPass12");
+		await user.click(screen.getByRole("button", { name: "Continue" }));
 		await user.type(screen.getByLabelText(/New password/, { selector: "input" }), "NewPass12");
 		await user.type(screen.getByLabelText(/Confirm new password/), "NewPass12");
 		await user.click(screen.getByRole("button", { name: "Change password" }));
@@ -95,14 +96,19 @@ describe("SettingsDialog", () => {
 		await user.click(screen.getByRole("button", { name: "Account" }));
 		await user.click(screen.getByRole("button", { name: "Change password" }));
 
-		const currentPassword = screen.getByLabelText(/Current password/, { selector: "input" });
-		await user.type(currentPassword, "WrongPass12");
+		await user.type(
+			screen.getByLabelText(/Current password/, { selector: "input" }),
+			"WrongPass12",
+		);
+		await user.click(screen.getByRole("button", { name: "Continue" }));
 		await user.type(screen.getByLabelText(/New password/, { selector: "input" }), "NewPass12");
 		await user.type(screen.getByLabelText(/Confirm new password/), "NewPass12");
 		await user.click(screen.getByRole("button", { name: "Change password" }));
 
 		expect(await screen.findByRole("alert")).toHaveTextContent("Current password is incorrect.");
-		expect(currentPassword).toHaveAccessibleDescription("Current password is incorrect.");
+		expect(
+			screen.getByLabelText(/Current password/, { selector: "input" }),
+		).toHaveAccessibleDescription("Current password is incorrect.");
 		expect(screen.queryByRole("dialog", { name: "Password changed" })).not.toBeInTheDocument();
 	});
 
