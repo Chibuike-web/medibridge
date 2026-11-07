@@ -89,7 +89,7 @@ export function AppearanceSettings() {
 						<Select value={selectedFontSize} onValueChange={setSelectedFontSize}>
 							<SelectTrigger
 								aria-labelledby="font-size-setting-label"
-								className="w-[12.5rem] justify-between font-semibold text-gray-800"
+								className="w-50 justify-between font-semibold text-gray-800"
 							>
 								<SelectValue />
 							</SelectTrigger>
