@@ -3,6 +3,7 @@
 import { useState, type ComponentType } from "react";
 import {
 	RiArrowLeftLine,
+	RiArrowRightSLine,
 	RiBankCardFill,
 	RiBankCardLine,
 	RiCloseLine,
@@ -79,6 +80,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 		({ id }) => canManageOrganization || !isOrganizationSettingsSection(id),
 	);
 	const [activeSettingsSubView, setActiveSettingsSubView] = useState<SettingsSubView | null>(null);
+	const [isPhoneSectionOpen, setIsPhoneSectionOpen] = useState(false);
 	const selectedSettingsSectionLabel = visibleSettingsSections.find(
 		({ id }) => id === selectedSettingsSection,
 	)?.label;
@@ -98,7 +100,12 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 					</DialogClose>
 				</div>
 				<div className="flex min-h-0 flex-1">
-					<aside className="w-[12.5rem] shrink-0 border-r bg-white p-2">
+					<aside
+						className={cn(
+							"w-[12.5rem] shrink-0 border-r bg-white p-2 max-md:w-full max-md:border-r-0",
+							isPhoneSectionOpen && "max-md:hidden",
+						)}
+					>
 						<nav aria-label="Settings sections" className="flex flex-col gap-px">
 							{visibleSettingsSections.map(({ id, label, icon: Icon, activeIcon: ActiveIcon }) => (
 								<Button
@@ -106,7 +113,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 									key={id}
 									type="button"
 									className={cn(
-										"flex h-8 w-full rounded-lg px-2.5 text-left justify-start py-0 font-normal has-[>svg:first-child]:pl-2.5",
+										"flex h-8 w-full rounded-lg px-2.5 text-left justify-start py-0 font-normal has-[>svg:first-child]:pl-2.5 max-md:h-10",
 										selectedSettingsSection === id
 											? "bg-gray-200 font-medium text-gray-800 hover:bg-gray-200 hover:text-gray-800"
 											: "text-gray-600 hover:bg-gray-100 hover:text-gray-800",
@@ -114,6 +121,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 									onClick={() => {
 										setSelectedSettingsSection(id);
 										setActiveSettingsSubView(null);
+										setIsPhoneSectionOpen(true);
 									}}
 								>
 									{selectedSettingsSection === id ? (
@@ -122,12 +130,18 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 										<Icon className="size-4 shrink-0" aria-hidden={true} />
 									)}
 									<span>{label}</span>
+									<RiArrowRightSLine className="ml-auto size-4 md:hidden" aria-hidden={true} />
 								</Button>
 							))}
 						</nav>
 					</aside>
 
-					<section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+					<section
+						className={cn(
+							"flex h-full min-w-0 flex-1 flex-col overflow-hidden",
+							!isPhoneSectionOpen && "max-md:hidden",
+						)}
+					>
 						<h2 className="sr-only">
 							{activeSettingsSubView
 								? settingsSubViewLabels[activeSettingsSubView]
@@ -148,7 +162,21 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 										Back
 									</Button>
 								</div>
-							) : null}
+							) : (
+								<div className="px-4 pt-5 md:hidden">
+									<Button
+										variant="ghost"
+										size="sm"
+										type="button"
+										className="text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+										aria-label="Back to settings sections"
+										onClick={() => setIsPhoneSectionOpen(false)}
+									>
+										<RiArrowLeftLine aria-hidden="true" />
+										Back
+									</Button>
+								</div>
+							)}
 							{selectedSettingsSection === "account" ? (
 								<AccountSettings
 									user={user}

@@ -197,7 +197,7 @@ export function AccountSettings({
 							<Button
 								type="button"
 								variant="destructive"
-								className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive dark:bg-transparent dark:hover:bg-destructive/10"
+								className="border border-destructive bg-transparent text-destructive shadow-none hover:bg-destructive/10 hover:text-destructive focus-visible:border-destructive dark:bg-transparent dark:hover:bg-destructive/10 max-md:w-full"
 							>
 								Log out all devices
 							</Button>
@@ -376,8 +376,8 @@ export function AccountSettings({
 							</dd>
 						</div>
 						<div className="flex h-16 items-center justify-between gap-4 border-b">
-							<dt className="text-sm font-medium text-gray-600">Organization ID</dt>
-							<dd className="truncate text-sm font-semibold text-gray-800">
+							<dt className="shrink-0 text-sm font-medium text-gray-600">Organization ID</dt>
+							<dd className="min-w-0 truncate text-sm font-semibold text-gray-800">
 								{organizationId ?? "-"}
 							</dd>
 						</div>

@@ -155,9 +155,15 @@ export function BillingSettings() {
 					<div className="flex items-center justify-between gap-4 border-b py-3">
 						<div className="flex min-w-0 flex-col gap-1">
 							<div className="flex items-center gap-2">
-								<Image src="/assets/visa-logo.svg" width={40} height={13} alt="Visa" />
+								<Image
+									src="/assets/visa-logo.svg"
+									width={40}
+									height={13}
+									alt="Visa"
+									className="shrink-0"
+								/>
 								<span
-									className="text-sm font-medium text-gray-600"
+									className="text-sm font-medium whitespace-nowrap text-gray-600"
 									aria-label="Card ending in 4242"
 								>
 									******** 4242
@@ -199,7 +205,7 @@ export function BillingSettings() {
 									}}
 								/>
 							</div>
-							<Button type="button" variant="outline">
+							<Button type="button" variant="outline" className="max-md:w-full">
 								<RiDownloadLine aria-hidden="true" />
 								Download all
 							</Button>
