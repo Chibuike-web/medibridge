@@ -88,7 +88,7 @@ export function EmergencyContact({
 					<RiMore2Fill aria-hidden="true" />
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-50 rounded-xl bg-white text-sm text-gray-700">
+			<DropdownMenuContent align="end" className="rounded-xl bg-white text-sm text-gray-700">
 				<DropdownMenuItem
 					onSelect={() => {
 						setIsEmergencyContactDialogOpen(true);

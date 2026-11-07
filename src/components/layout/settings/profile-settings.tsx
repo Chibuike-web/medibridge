@@ -71,10 +71,7 @@ function PatientAvatarMenu({ patientName }: { patientName: string }) {
 					</div>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent
-				align="center"
-				className="w-50 rounded-xl bg-white text-sm text-gray-700"
-			>
+			<DropdownMenuContent align="center" className="rounded-xl bg-white text-sm text-gray-700">
 				<DropdownMenuItem className="rounded-lg">
 					<RiUpload2Line aria-hidden="true" />
 					<span>Upload image</span>

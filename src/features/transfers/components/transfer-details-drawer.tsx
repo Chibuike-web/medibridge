@@ -95,7 +95,7 @@ export function TransferDetailsDrawer({
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
 								align="end"
-								className="w-50 rounded-xl bg-white text-sm text-gray-700"
+								className="min-w-55 rounded-xl bg-white text-sm text-gray-700"
 							>
 								<DropdownMenuItem className="rounded-lg">
 									<RiShare2Line aria-hidden="true" />

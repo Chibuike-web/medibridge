@@ -25,7 +25,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
-const FILTER_MENU_WIDTH_REM = 13.75;
+const FILTER_MENU_WIDTH_REM = 12.5;
 
 const IsInFilterDrawerContext = createContext(false);
 
@@ -125,7 +125,7 @@ export function FilterPopover({
 					{label}
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent align={align} className="w-[13.75rem] p-1 text-sm text-gray-700">
+			<PopoverContent align={align} className="min-w-50 p-1 text-sm text-gray-700">
 				{children}
 			</PopoverContent>
 		</Popover>
@@ -178,10 +178,7 @@ export function DateFilterMenu({
 					{label}
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent
-				align={align}
-				className="w-[13.75rem] rounded-xl bg-white text-sm text-gray-700"
-			>
+			<DropdownMenuContent align={align} className="rounded-xl bg-white text-sm text-gray-700">
 				<DateRangeMenuItems
 					from={from}
 					to={to}

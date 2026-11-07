@@ -739,10 +739,7 @@ function getEncountersColumns(
 						>
 							<RiMore2Fill className="size-5" aria-hidden />
 						</DropdownMenuTrigger>
-						<DropdownMenuContent
-							align="end"
-							className="w-50 rounded-xl bg-white text-sm text-gray-700"
-						>
+						<DropdownMenuContent align="end" className="rounded-xl bg-white text-sm text-gray-700">
 							<DropdownMenuItem asChild>
 								<Link
 									href={

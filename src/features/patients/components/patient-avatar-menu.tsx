@@ -26,7 +26,7 @@ export function PatientAvatarMenu({ patientName }: { patientName: string }) {
 					</Avatar>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start" className="w-50 rounded-xl bg-white text-sm text-gray-700">
+			<DropdownMenuContent align="start" className="rounded-xl bg-white text-sm text-gray-700">
 				<DropdownMenuItem className="rounded-lg">
 					<RiUpload2Line />
 					<span>Upload image</span>

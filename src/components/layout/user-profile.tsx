@@ -96,7 +96,7 @@ export function UserProfile({ isCollapsed }: { isCollapsed: boolean }) {
 				<DropdownMenuContent
 					className={cn(
 						"min-w-68 rounded-xl bg-white text-sm text-gray-700",
-						isCollapsed ? "w-68" : "w-(--radix-dropdown-menu-trigger-width)",
+						isCollapsed && "w-68",
 					)}
 					side={isCollapsed ? "right" : "top"}
 					align={isCollapsed ? "end" : "start"}
