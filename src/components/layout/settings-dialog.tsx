@@ -130,7 +130,7 @@ export function SettingsDialog({ user, open, onOpenChange }: SettingsDialogProps
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="flex h-full max-w-[80rem] flex-col overflow-hidden p-0">
+			<DialogContent className="flex h-full max-h-[56.25rem] max-w-[64rem] flex-col overflow-hidden p-0">
 				<div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
 					<DialogTitle>Settings</DialogTitle>
 					<DialogDescription className="sr-only">
