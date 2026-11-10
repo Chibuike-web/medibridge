@@ -1005,7 +1005,7 @@ function LabTestDetailsEditForm({
 													</Button>
 													<Button
 														type="button"
-														className="bg-red-500 hover:bg-red-600 focus-visible:ring-red-300"
+														className="bg-rose-500 shadow-[0_0_0_1px_var(--color-rose-700),inset_0_1px_3px_rgb(255_255_255/0.3)] hover:bg-rose-600 focus-visible:ring-rose-300"
 														onClick={() => handleRemoveLabTestFile(file.id)}
 													>
 														Remove file

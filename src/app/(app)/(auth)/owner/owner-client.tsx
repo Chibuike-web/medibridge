@@ -283,7 +283,7 @@ export function OwnerClient() {
 						type="button"
 						aria-pressed={isPasswordVisible}
 						aria-label={isPasswordVisible ? "Hide password" : "Show password"}
-						className="absolute right-4 top-1/2 -translate-y-1/2 size-auto rounded-none border-0 hover:bg-transparent focus-visible:border-0"
+						className="absolute right-4 top-1/2 -translate-y-1/2 size-auto rounded-full border-0 hover:bg-transparent focus-visible:border-0"
 						onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 					>
 						<span aria-hidden="true">
