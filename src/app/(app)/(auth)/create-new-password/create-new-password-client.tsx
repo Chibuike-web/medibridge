@@ -136,7 +136,7 @@ export function CreateNewPasswordClient({ token, isTokenInvalid }: CreateNewPass
 								type="button"
 								aria-label={isPasswordVisible ? "Hide password" : "Show password"}
 								aria-pressed={isPasswordVisible}
-								className="absolute right-4 top-1/2 -translate-y-1/2 size-auto rounded-none border-0 hover:bg-transparent focus-visible:border-0"
+								className="absolute right-4 top-1/2 -translate-y-1/2 size-auto rounded-full border-0 hover:bg-transparent focus-visible:border-0"
 								onClick={() => setIsPasswordVisible(!isPasswordVisible)}
 							>
 								{isPasswordVisible ? (
@@ -181,7 +181,7 @@ export function CreateNewPasswordClient({ token, isTokenInvalid }: CreateNewPass
 										: "Show confirmation password"
 								}
 								aria-pressed={isConfirmPasswordVisible}
-								className="absolute right-4 top-1/2 -translate-y-1/2 size-auto rounded-none border-0 hover:bg-transparent focus-visible:border-0"
+								className="absolute right-4 top-1/2 -translate-y-1/2 size-auto rounded-full border-0 hover:bg-transparent focus-visible:border-0"
 								onClick={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
 							>
 								{isConfirmPasswordVisible ? (
