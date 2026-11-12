@@ -14,7 +14,6 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Calendar } from "@/components/ui/calendar";
 import {
 	Drawer,
@@ -341,8 +340,14 @@ export function MedicationDetailsDrawer({
 							>
 								Cancel
 							</Button>
-							<Button type="submit" form={medicationDetailsFormId} disabled={isPending}>
-								{isPending ? <PixelLoader label="Saving…" /> : "Save changes"}
+							<Button
+								type="submit"
+								form={medicationDetailsFormId}
+								disabled={isPending}
+								isLoading={isPending}
+								loadingLabel="Saving…"
+							>
+								Save changes
 							</Button>
 						</div>
 					</DrawerFooter>
@@ -374,8 +379,10 @@ export function MedicationDetailsDrawer({
 							className="bg-rose-500 text-white shadow-[0_0_0_1px_var(--color-rose-700),inset_0_1px_3px_rgb(255_255_255/0.3)] hover:bg-rose-600"
 							disabled={isPending}
 							onClick={handleDiscontinue}
+							isLoading={isPending}
+							loadingLabel="Discontinuing…"
 						>
-							{isPending ? <PixelLoader label="Discontinuing…" /> : "Discontinue medication"}
+							Discontinue medication
 						</Button>
 					</AlertDialogFooter>
 				</AlertDialogContent>

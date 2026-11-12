@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/select";
 
 import { Button } from "@/components/ui/button";
-import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -241,23 +240,13 @@ export function PhysicalInformation({
 								<Button variant="outline">Cancel</Button>
 							</DialogClose>
 							<Button
-								className="grid place-items-center"
 								type="submit"
 								form={physicalInformationFormId}
 								disabled={isPending}
+								isLoading={isPending}
+								loadingLabel="Saving…"
 							>
-								<span
-									className={
-										isPending ? "invisible col-start-1 row-start-1" : "col-start-1 row-start-1"
-									}
-								>
-									Save changes
-								</span>
-								{isPending ? (
-									<span className="col-start-1 row-start-1 flex">
-										<PixelLoader label="Saving…" />
-									</span>
-								) : null}
+								Save changes
 							</Button>
 						</div>
 					</DialogFooter>

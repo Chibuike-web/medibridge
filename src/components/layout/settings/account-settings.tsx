@@ -26,7 +26,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -700,17 +699,14 @@ function ChangePasswordForm({ onBack, onSuccess }: { onBack: () => void; onSucce
 						{changePasswordError}
 					</p>
 				)}
-				<Button type="submit" className="grid w-full place-items-center" disabled={isPending}>
-					<span
-						className={isPending ? "invisible col-start-1 row-start-1" : "col-start-1 row-start-1"}
-					>
-						Change password
-					</span>
-					{isPending ? (
-						<span className="col-start-1 row-start-1 flex">
-							<PixelLoader label="Changing password..." />
-						</span>
-					) : null}
+				<Button
+					type="submit"
+					className="w-full"
+					disabled={isPending}
+					isLoading={isPending}
+					loadingLabel="Changing password..."
+				>
+					Change password
 				</Button>
 			</form>
 		</>

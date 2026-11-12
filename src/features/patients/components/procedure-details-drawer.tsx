@@ -14,7 +14,6 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Calendar } from "@/components/ui/calendar";
 import {
 	Drawer,
@@ -300,8 +299,14 @@ export function ProcedureDetailsDrawer({
 							>
 								Cancel
 							</Button>
-							<Button type="submit" form={procedureDetailsFormId} disabled={isPending}>
-								{isPending ? <PixelLoader label="Saving…" /> : "Save changes"}
+							<Button
+								type="submit"
+								form={procedureDetailsFormId}
+								disabled={isPending}
+								isLoading={isPending}
+								loadingLabel="Saving…"
+							>
+								Save changes
 							</Button>
 						</div>
 					</DrawerFooter>

@@ -2,6 +2,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
+import { PixelLoader } from "@/components/ui/pixel-loader";
 import { cn } from "@/lib/utils/cn";
 
 const buttonVariants = cva(
@@ -39,19 +40,36 @@ function Button({
 	variant,
 	size,
 	asChild = false,
+	isLoading = false,
+	loadingLabel = "Loading…",
+	children,
 	...props
 }: React.ComponentProps<"button"> &
 	VariantProps<typeof buttonVariants> & {
 		asChild?: boolean;
+		isLoading?: boolean;
+		loadingLabel?: string;
 	}) {
 	const Comp = asChild ? Slot : "button";
 
 	return (
 		<Comp
 			data-slot="button"
-			className={cn(buttonVariants({ variant, size, className }))}
+			aria-busy={isLoading || undefined}
+			className={cn(buttonVariants({ variant, size }), isLoading && "relative", className)}
 			{...props}
-		/>
+		>
+			{isLoading ? (
+				<>
+					<span className="invisible contents">{children}</span>
+					<span className="absolute inset-0 flex items-center justify-center">
+						<PixelLoader label={loadingLabel} />
+					</span>
+				</>
+			) : (
+				children
+			)}
+		</Comp>
 	);
 }
 

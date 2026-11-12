@@ -3,7 +3,6 @@
 import { useMediaQuery } from "@/hooks/use-media-query";
 
 import { Button } from "@/components/ui/button";
-import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Calendar } from "@/components/ui/calendar";
 import {
 	Drawer,
@@ -303,8 +302,14 @@ export function CreateDiagnosisDrawer({
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="submit" form={generatedFormId} disabled={isPending}>
-							{isPending ? <PixelLoader label="Adding…" /> : "Add diagnosis"}
+						<Button
+							type="submit"
+							form={generatedFormId}
+							disabled={isPending}
+							isLoading={isPending}
+							loadingLabel="Adding…"
+						>
+							Add diagnosis
 						</Button>
 					</div>
 				</DrawerFooter>

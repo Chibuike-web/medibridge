@@ -202,24 +202,14 @@ export function TransferApprovalClient({ transfer, approvalToken }: TransferAppr
 							<Button variant="outline">Cancel</Button>
 						</DialogClose>
 						<Button
-							className="grid place-items-center"
 							type="button"
 							variant="destructive"
 							disabled={isPending}
 							onClick={handleReject}
+							isLoading={isPending}
+							loadingLabel="Rejecting…"
 						>
-							<span
-								className={
-									isPending ? "invisible col-start-1 row-start-1" : "col-start-1 row-start-1"
-								}
-							>
-								Reject request
-							</span>
-							{isPending ? (
-								<span className="col-start-1 row-start-1 flex">
-									<PixelLoader label="Rejecting…" />
-								</span>
-							) : null}
+							Reject request
 						</Button>
 					</DialogFooter>
 				</DialogContent>

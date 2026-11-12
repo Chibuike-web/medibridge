@@ -3,7 +3,6 @@
 import { useMediaQuery } from "@/hooks/use-media-query";
 
 import { Button } from "@/components/ui/button";
-import { PixelLoader } from "@/components/ui/pixel-loader";
 import {
 	Drawer,
 	DrawerClose,
@@ -271,8 +270,14 @@ export function CreateAllergyDrawer({
 								Cancel
 							</Button>
 						</DrawerClose>
-						<Button type="submit" form={generatedFormId} disabled={isPending}>
-							{isPending ? <PixelLoader label="Adding…" /> : "Add allergy"}
+						<Button
+							type="submit"
+							form={generatedFormId}
+							disabled={isPending}
+							isLoading={isPending}
+							loadingLabel="Adding…"
+						>
+							Add allergy
 						</Button>
 					</div>
 				</DrawerFooter>

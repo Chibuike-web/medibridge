@@ -136,7 +136,7 @@ test.each([
 		expect(
 			section(/Personal Information/).getByRole("textbox", { name: /^First name/ }),
 		).toHaveValue("Ada");
-		await waitFor(() => expect(saveButton).toHaveTextContent("Save patient"));
+		await waitFor(() => expect(saveButton).toHaveAccessibleName("Save patient"));
 		expect(saveButton).toBeEnabled();
 		await user.click(screen.getByRole("button", { name: "Dismiss error" }));
 		expect(screen.queryByRole("alert")).not.toBeInTheDocument();

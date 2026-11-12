@@ -30,7 +30,6 @@ import type { SyntheticEvent } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { PixelLoader } from "@/components/ui/pixel-loader";
 import { updatePatientPersonalInformationAction } from "@/features/patients/server/update-patient-personal-information-action";
 import {
 	Select,
@@ -326,23 +325,13 @@ export function PersonalInformation({
 								<Button variant="outline">Cancel</Button>
 							</DialogClose>
 							<Button
-								className="grid place-items-center"
 								type="submit"
 								form={personalInformationFormId}
 								disabled={isPending}
+								isLoading={isPending}
+								loadingLabel="Saving…"
 							>
-								<span
-									className={
-										isPending ? "invisible col-start-1 row-start-1" : "col-start-1 row-start-1"
-									}
-								>
-									Save changes
-								</span>
-								{isPending ? (
-									<span className="col-start-1 row-start-1 flex">
-										<PixelLoader label="Saving…" />
-									</span>
-								) : null}
+								Save changes
 							</Button>
 						</div>
 					</DialogFooter>

@@ -6,7 +6,6 @@ import { Fragment, use, useEffect, useMemo, useState, useTransition } from "reac
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { PixelLoader } from "@/components/ui/pixel-loader";
 import {
 	Dialog,
 	DialogContent,
@@ -504,25 +503,13 @@ export function NewTransferRequestClient({
 												</Button>
 											</DialogClose>
 											<Button
-												className="grid place-items-center"
 												type="button"
 												disabled={isSubmittingTransferRequests || !isTransferConfirmationChecked}
 												onClick={handleSubmitTransferRequests}
+												isLoading={isSubmittingTransferRequests}
+												loadingLabel="Sending..."
 											>
-												<span
-													className={
-														isSubmittingTransferRequests
-															? "invisible col-start-1 row-start-1"
-															: "col-start-1 row-start-1"
-													}
-												>
-													Send for Approval
-												</span>
-												{isSubmittingTransferRequests ? (
-													<span className="col-start-1 row-start-1 flex">
-														<PixelLoader label="Sending..." />
-													</span>
-												) : null}
+												Send for Approval
 											</Button>
 										</DialogFooter>
 									</DialogContent>

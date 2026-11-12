@@ -15,7 +15,6 @@ import {
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { PixelLoader } from "@/components/ui/pixel-loader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
@@ -831,25 +830,14 @@ export function ReviewExtractedInfoClient({
 							<AlertDialogFooter>
 								<AlertDialogCancel disabled={isPending}>Keep reviewing</AlertDialogCancel>
 								<Button
-									className="grid place-items-center"
 									type="button"
 									variant="destructive"
 									disabled={isPending}
-									aria-busy={isPending}
 									onClick={continueToDashboard}
+									isLoading={isPending}
+									loadingLabel="Discarding…"
 								>
-									<span
-										className={
-											isPending ? "invisible col-start-1 row-start-1" : "col-start-1 row-start-1"
-										}
-									>
-										Discard and continue
-									</span>
-									{isPending ? (
-										<span className="col-start-1 row-start-1 flex">
-											<PixelLoader label="Discarding…" />
-										</span>
-									) : null}
+									Discard and continue
 								</Button>
 							</AlertDialogFooter>
 						</AlertDialogContent>
@@ -858,10 +846,11 @@ export function ReviewExtractedInfoClient({
 						type="submit"
 						form={formId}
 						disabled={!canSave}
-						aria-busy={isPending}
 						className="rounded-lg bg-[#222530] hover:bg-[#222530]/90 max-sm:w-full"
+						isLoading={isPending}
+						loadingLabel="Saving…"
 					>
-						{isPending ? <PixelLoader label="Saving…" /> : "Save patient & review next"}
+						Save patient & review next
 					</Button>
 				</div>
 			</footer>
