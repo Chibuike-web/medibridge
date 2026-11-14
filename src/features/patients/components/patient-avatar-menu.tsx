@@ -1,6 +1,6 @@
 "use client";
 
-import { RiDeleteBin2Line, RiUpload2Line } from "@remixicon/react";
+import { RiDeleteBinLine, RiUpload2Line } from "@remixicon/react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -32,7 +32,7 @@ export function PatientAvatarMenu({ patientName }: { patientName: string }) {
 					<span>Upload image</span>
 				</DropdownMenuItem>
 				<DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600">
-					<RiDeleteBin2Line className="text-current" />
+					<RiDeleteBinLine className="text-current" />
 					<span>Remove image</span>
 				</DropdownMenuItem>
 			</DropdownMenuContent>

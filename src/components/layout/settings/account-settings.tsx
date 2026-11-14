@@ -6,7 +6,7 @@ import {
 	RiArrowLeftLine,
 	RiArrowLeftSLine,
 	RiArrowRightSLine,
-	RiDeleteBin2Line,
+	RiDeleteBinLine,
 	RiEyeLine,
 	RiEyeOffLine,
 	RiLogoutBoxLine,
@@ -156,7 +156,7 @@ export function AccountSettings({
 											<span>Upload image</span>
 										</DropdownMenuItem>
 										<DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600">
-											<RiDeleteBin2Line className="text-current" aria-hidden="true" />
+											<RiDeleteBinLine className="text-current" aria-hidden="true" />
 											<span>Remove image</span>
 										</DropdownMenuItem>
 									</DropdownMenuContent>

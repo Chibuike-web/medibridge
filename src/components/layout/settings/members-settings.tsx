@@ -6,7 +6,7 @@ import {
 	RiArrowLeftSLine,
 	RiArrowRightSLine,
 	RiCloseLine,
-	RiDeleteBin2Line,
+	RiDeleteBinLine,
 	RiLinkM,
 	RiMailSendLine,
 	RiMore2Fill,
@@ -597,13 +597,13 @@ export function MembersSettings({
 														) : null}
 														{row.inviteStatus === "cancelled" ? (
 															<DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600">
-																<RiDeleteBin2Line className="text-current" aria-hidden="true" />
+																<RiDeleteBinLine className="text-current" aria-hidden="true" />
 																<span>Remove invitation</span>
 															</DropdownMenuItem>
 														) : null}
 														{row.inviteStatus === "accepted" ? (
 															<DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600">
-																<RiDeleteBin2Line className="text-current" aria-hidden="true" />
+																<RiDeleteBinLine className="text-current" aria-hidden="true" />
 																<span>Remove member</span>
 															</DropdownMenuItem>
 														) : null}
