@@ -11,6 +11,7 @@ import {
 	RiMailSendLine,
 	RiMore2Fill,
 	RiSearchLine,
+	RiShieldCheckLine,
 } from "@remixicon/react";
 
 import { ExportButton } from "@/components/export-button";
@@ -50,9 +51,11 @@ import { formatLabel } from "@/lib/utils/format-label";
 import { getInitials } from "@/lib/utils/get-initials";
 
 import { InviteMembersDialog } from "./invite-members-dialog";
+import { ManageAccessDialog } from "./manage-access-dialog";
 import { ReviewInvitationsDialog } from "./review-invitations-dialog";
 import type {
 	InviteMemberRow,
+	MemberAccess,
 	MemberManagerRole,
 	OrganizationRole,
 	SettingsDialogUser,
@@ -68,6 +71,7 @@ type OrganizationMemberRow = {
 	email: string;
 	inviteStatus: InviteStatus;
 	role: OrganizationRole;
+	access: MemberAccess | null;
 	joinedOn: string | null;
 	lastActiveOn: string | null;
 	isCurrentUser?: boolean;
@@ -79,6 +83,7 @@ const ownerRow: OrganizationMemberRow = {
 	email: "john@example.com",
 	inviteStatus: "accepted",
 	role: "owner",
+	access: null,
 	joinedOn: "2025-09-10",
 	lastActiveOn: "2026-11-07",
 };
@@ -90,6 +95,7 @@ const otherMemberRows: OrganizationMemberRow[] = [
 		email: "sarah@example.com",
 		inviteStatus: "accepted",
 		role: "admin",
+		access: { role: "admin", staffType: null, departments: null, permissions: [], mcpScopes: [] },
 		joinedOn: "2026-08-12",
 		lastActiveOn: "2026-11-04",
 	},
@@ -99,6 +105,13 @@ const otherMemberRows: OrganizationMemberRow[] = [
 		email: "david@example.com",
 		inviteStatus: "accepted",
 		role: "member",
+		access: {
+			role: "member",
+			staffType: "clinician",
+			departments: ["Emergency Medicine", "Cardiology"],
+			permissions: ["approve_transfers"],
+			mcpScopes: ["read_records"],
+		},
 		joinedOn: "2026-10-28",
 		lastActiveOn: "2026-10-20",
 	},
@@ -108,6 +121,13 @@ const otherMemberRows: OrganizationMemberRow[] = [
 		email: "grace@example.com",
 		inviteStatus: "pending",
 		role: "member",
+		access: {
+			role: "member",
+			staffType: "clinician",
+			departments: null,
+			permissions: [],
+			mcpScopes: [],
+		},
 		joinedOn: null,
 		lastActiveOn: null,
 	},
@@ -116,7 +136,14 @@ const otherMemberRows: OrganizationMemberRow[] = [
 		name: null,
 		email: "tunde@example.com",
 		inviteStatus: "cancelled",
-		role: "admin",
+		role: "member",
+		access: {
+			role: "member",
+			staffType: "front_desk",
+			departments: null,
+			permissions: [],
+			mcpScopes: [],
+		},
 		joinedOn: null,
 		lastActiveOn: null,
 	},
@@ -141,6 +168,7 @@ export function MembersSettings({
 	const [isInviteMembersDialogOpen, setIsInviteMembersDialogOpen] = useState(false);
 	const [isReviewInvitationsDialogOpen, setIsReviewInvitationsDialogOpen] = useState(false);
 	const [inviteMemberRows, setInviteMemberRows] = useState<InviteMemberRow[]>([]);
+	const [managingAccessRowId, setManagingAccessRowId] = useState<string | null>(null);
 
 	const currentUserRow: OrganizationMemberRow = {
 		id: "current-user",
@@ -148,6 +176,7 @@ export function MembersSettings({
 		email: currentUser.email,
 		inviteStatus: "accepted",
 		role: viewerRole,
+		access: null,
 		joinedOn: "2026-06-02",
 		lastActiveOn: "2026-11-07",
 		isCurrentUser: true,
@@ -156,6 +185,7 @@ export function MembersSettings({
 		viewerRole === "owner"
 			? [currentUserRow, ...otherMemberRows]
 			: [ownerRow, currentUserRow, ...otherMemberRows];
+	const managingAccessRow = memberRows.find((row) => row.id === managingAccessRowId);
 	const lastActivePresets = [
 		{ label: "Today", since: format(new Date(), "yyyy-MM-dd") },
 		{ label: "Last 7 days", since: format(subDays(new Date(), 6), "yyyy-MM-dd") },
@@ -386,7 +416,7 @@ export function MembersSettings({
 						type="button"
 						className="flex-1"
 						onClick={() => {
-							setInviteMemberRows([{ id: "invite-member-1", email: "", role: "" }]);
+							setInviteMemberRows([{ id: crypto.randomUUID(), email: "", access: null }]);
 							setIsInviteMembersDialogOpen(true);
 						}}
 					>
@@ -456,7 +486,7 @@ export function MembersSettings({
 							<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
 								Invite status
 							</TableHead>
-							<TableHead className="h-10 bg-gray-50 py-0 pr-3 pl-6.25 whitespace-nowrap text-gray-600">
+							<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
 								Role
 							</TableHead>
 							<TableHead className="h-10 bg-gray-50 px-3 py-0 whitespace-nowrap text-gray-600">
@@ -525,22 +555,10 @@ export function MembersSettings({
 												rowPosition === visibleMemberRows.length - 1 && "border-b-0",
 											)}
 										>
-											{canManageRow && row.inviteStatus !== "cancelled" ? (
-												<Select defaultValue={row.role}>
-													<SelectTrigger
-														aria-label={`Role for ${rowLabel}`}
-														className="border-transparent font-semibold text-gray-800 hover:bg-gray-100"
-													>
-														<SelectValue />
-													</SelectTrigger>
-													<SelectContent align="start" className="min-w-40">
-														<SelectItem value="admin">Admin</SelectItem>
-														<SelectItem value="member">Member</SelectItem>
-													</SelectContent>
-												</Select>
-											) : (
-												<span className="pl-3.25 capitalize">{row.role}</span>
-											)}
+											<span className="whitespace-nowrap">
+												<span className="capitalize">{row.role}</span>
+												{row.access?.staffType ? ` · ${formatLabel(row.access.staffType)}` : null}
+											</span>
 										</TableCell>
 										<TableCell
 											className={cn(
@@ -580,6 +598,13 @@ export function MembersSettings({
 													>
 														{row.inviteStatus === "pending" ? (
 															<>
+																<DropdownMenuItem
+																	className="rounded-lg"
+																	onSelect={() => setManagingAccessRowId(row.id)}
+																>
+																	<RiShieldCheckLine aria-hidden="true" />
+																	<span>Manage access</span>
+																</DropdownMenuItem>
 																<DropdownMenuItem className="rounded-lg">
 																	<RiLinkM aria-hidden="true" />
 																	<span>Copy link</span>
@@ -602,10 +627,20 @@ export function MembersSettings({
 															</DropdownMenuItem>
 														) : null}
 														{row.inviteStatus === "accepted" ? (
-															<DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600">
-																<RiDeleteBinLine className="text-current" aria-hidden="true" />
-																<span>Remove member</span>
-															</DropdownMenuItem>
+															<>
+																<DropdownMenuItem
+																	className="rounded-lg"
+																	onSelect={() => setManagingAccessRowId(row.id)}
+																>
+																	<RiShieldCheckLine aria-hidden="true" />
+																	<span>Manage access</span>
+																</DropdownMenuItem>
+																<DropdownMenuSeparator />
+																<DropdownMenuItem className="rounded-lg text-rose-600 focus:bg-rose-50 focus:text-rose-600">
+																	<RiDeleteBinLine className="text-current" aria-hidden="true" />
+																	<span>Remove member</span>
+																</DropdownMenuItem>
+															</>
 														) : null}
 													</DropdownMenuContent>
 												</DropdownMenu>
@@ -698,6 +733,15 @@ export function MembersSettings({
 				inviteMemberRows={inviteMemberRows}
 				organizationName={organizationName}
 			/>
+			{managingAccessRow ? (
+				<ManageAccessDialog
+					open
+					onOpenChange={(isOpen) => setManagingAccessRowId(isOpen ? managingAccessRow.id : null)}
+					memberLabel={managingAccessRow.name ?? managingAccessRow.email}
+					access={managingAccessRow.access}
+					onSave={() => setManagingAccessRowId(null)}
+				/>
+			) : null}
 		</section>
 	);
 }

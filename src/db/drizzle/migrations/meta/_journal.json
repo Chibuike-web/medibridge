@@ -239,6 +239,13 @@
 			"when": 1793923200000,
 			"tag": "0033_source_documents",
 			"breakpoints": true
+		},
+		{
+			"idx": 34,
+			"version": "7",
+			"when": 1794700800000,
+			"tag": "0034_member_access",
+			"breakpoints": true
 		}
 	]
 }
