@@ -28,7 +28,7 @@ vi.mock("@/lib/api/get-organization-id", () => ({
 	getOrganizationContext: getOrganizationContextMock,
 }));
 vi.mock("@/lib/api/get-patient-extraction-by-id", () => ({
-	getPatientExtractionById: getExtractionMock,
+	getPatientExtractionForOrganization: getExtractionMock,
 }));
 vi.mock("@/features/patients/server/save-patients-action", () => ({ savePatientsAction: vi.fn() }));
 vi.mock("next/navigation", () => ({
@@ -102,7 +102,7 @@ describe("review saved patient extractions", () => {
 			"href",
 			"/api/patient-extractions/saved/documents/Ada.pdf",
 		);
-		expect(getExtractionMock).toHaveBeenCalledWith("saved");
+		expect(getExtractionMock).toHaveBeenCalledWith("saved", "hospital-1");
 	});
 
 	test("shows every stored document with the status saved in the extraction", async () => {
@@ -140,7 +140,7 @@ describe("review saved patient extractions", () => {
 		cleanup();
 		getExtractionMock.mockResolvedValue(null);
 		await renderReviewPage({ extractionId: "unavailable" });
-		expect(getExtractionMock).toHaveBeenCalledWith("unavailable");
+		expect(getExtractionMock).toHaveBeenCalledWith("unavailable", "hospital-1");
 		expect(notFoundMock).toHaveBeenCalled();
 		expect(screen.queryByRole("heading", { name: "Ada Okafor" })).not.toBeInTheDocument();
 	});

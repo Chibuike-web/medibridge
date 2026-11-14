@@ -38,7 +38,7 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { uploadReportFiles, type UploadedReports } from "@/lib/storage/upload-report-files";
 import { patientImagingSchema } from "@/features/patients/server/schemas";
-import { useId, useRef, useState, useTransition, type FormEvent } from "react";
+import { useId, useRef, useState, useTransition, type SubmitEvent } from "react";
 import { CreateSelectedFiles } from "@/components/create-selected-files";
 
 type CreateImagingDrawerProps = {
@@ -84,7 +84,7 @@ export function CreateImagingDrawer({
 		onOpenChange(isOpen);
 	}
 
-	function handleCreate(event: FormEvent<HTMLFormElement>) {
+	function handleCreate(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setFormError("");
 
@@ -426,7 +426,7 @@ export function CreateImagingDrawer({
 								className="bg-white text-gray-600"
 								onClick={handleAddImagingAttachmentRow}
 							>
-								<RiAddLine className="size-5" aria-hidden="true" />
+								<RiAddLine className="size-4" aria-hidden="true" />
 								Add related record
 							</Button>
 						</div>

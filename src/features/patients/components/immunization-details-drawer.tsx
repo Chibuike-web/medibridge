@@ -62,7 +62,7 @@ import {
 	RiShare2Line,
 } from "@remixicon/react";
 import { format, parseISO } from "date-fns";
-import { Fragment, useId, useState, useTransition, type FormEvent } from "react";
+import { Fragment, useId, useState, useTransition, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import { updatePatientImmunizationAction } from "@/features/patients/server/update-patient-immunization-action";
 import { markPatientImmunizationCompletedAction } from "@/features/patients/server/mark-patient-immunization-completed-action";
@@ -115,7 +115,7 @@ export function ImmunizationDetailsDrawer({
 		onOpenChange(nextOpen);
 	}
 
-	function handleSave(event: FormEvent<HTMLFormElement>) {
+	function handleSave(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 
 		if (!immunization) return;
@@ -468,7 +468,7 @@ function ImmunizationDetailsEditForm({
 	immunization: ImmunizationDetailsType;
 	formError: string;
 	onFormErrorDismiss: () => void;
-	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+	onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
 }) {
 	const [originalUpdatedAt] = useState(() => immunization.editValues.updatedAt);
 	const [administeredAt, setAdministeredAt] = useState<Date | undefined>(() =>
@@ -779,7 +779,7 @@ function ImmunizationHistoryCard({
 				</p>
 				<RiArrowDownSLine
 					className={cn(
-						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						"size-4 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						isImmunizationHistoryExpanded ? "rotate-180" : "",
 					)}
 					aria-hidden="true"

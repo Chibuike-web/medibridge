@@ -371,7 +371,7 @@ function TransferContentGroup({ contentGroup }: { contentGroup: TransferContentG
 				</span>
 				<RiArrowDownSLine
 					className={cn(
-						"size-5 transition-transform text-gray-600 duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						"size-4 transition-transform text-gray-600 duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						isTransferContentGroupExpanded ? "rotate-180" : "",
 					)}
 					aria-hidden="true"

@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatedFilterChips } from "@/components/animated-filter-chips";
 import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
 import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
@@ -325,38 +326,36 @@ function TransferActiveFilterChips({
 	const hasRequestedAtFilter = Boolean(requestedFrom || requestedTo);
 	const hasStatusFilters = statusFilters.length > 0;
 
-	if (!hasRequestedAtFilter && !hasStatusFilters) {
-		return null;
-	}
-
 	return (
-		<div className="mb-4 flex flex-wrap gap-2">
-			{hasStatusFilters ? (
-				<FilterChip
-					name="Status"
-					value={formatChecklistFilterLabel(
-						statusFilters.map((statusFilter) => transferStatusFilterLabels[statusFilter]),
-					)}
-					onRemove={() => onStatusFiltersChange([])}
-				/>
-			) : null}
-			{hasRequestedAtFilter ? (
-				<FilterChip
-					name="Requested"
-					value={formatDateRangeFilterLabel(requestedFrom, requestedTo)}
-					onRemove={() => onRequestedAtRangeApply("", "")}
-				/>
-			) : null}
-			<Button
-				type="button"
-				variant="ghost"
-				size="sm"
-				className="h-8.5 text-gray-600"
-				onClick={onFiltersClear}
-			>
-				Clear all
-			</Button>
-		</div>
+		<AnimatedFilterChips isVisible={hasRequestedAtFilter || hasStatusFilters}>
+			<div className="mb-4 flex flex-wrap gap-2">
+				{hasStatusFilters ? (
+					<FilterChip
+						name="Status"
+						value={formatChecklistFilterLabel(
+							statusFilters.map((statusFilter) => transferStatusFilterLabels[statusFilter]),
+						)}
+						onRemove={() => onStatusFiltersChange([])}
+					/>
+				) : null}
+				{hasRequestedAtFilter ? (
+					<FilterChip
+						name="Requested"
+						value={formatDateRangeFilterLabel(requestedFrom, requestedTo)}
+						onRemove={() => onRequestedAtRangeApply("", "")}
+					/>
+				) : null}
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="h-8.5 text-gray-600"
+					onClick={onFiltersClear}
+				>
+					Clear all
+				</Button>
+			</div>
+		</AnimatedFilterChips>
 	);
 }
 

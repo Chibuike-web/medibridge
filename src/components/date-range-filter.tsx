@@ -53,7 +53,7 @@ export function DateRangeButtons({
 					<button
 						key={preset.label}
 						type="button"
-						className="flex h-10 w-full items-center gap-2 rounded-lg px-2 text-left text-gray-600 hover:bg-gray-100"
+						className="flex h-8 w-full items-center gap-2 rounded-lg px-2 text-left text-gray-600 hover:bg-gray-100"
 						onClick={() => onDateRangeApply(presetFrom, today)}
 					>
 						<RiCalendarLine className="size-4" aria-hidden="true" />
@@ -66,7 +66,7 @@ export function DateRangeButtons({
 			})}
 			<button
 				type="button"
-				className="flex h-10 w-full items-center gap-2 rounded-lg px-2 text-left text-gray-600 hover:bg-gray-100"
+				className="flex h-8 w-full items-center gap-2 rounded-lg px-2 text-left text-gray-600 hover:bg-gray-100"
 				onClick={() => onCustomDateRangeSelect({ from, to, onDateRangeApply })}
 			>
 				<RiCalendarLine className="size-4" aria-hidden="true" />

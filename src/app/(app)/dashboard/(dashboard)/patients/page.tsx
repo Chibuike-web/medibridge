@@ -55,6 +55,7 @@ async function PatientsPageContent({ searchParams }: PatientsPageProps) {
 	};
 	const ageRangeFilter = getAgeRangeFilter(currentAgeGroupFilter);
 	const { hasPatients, patients, totalPatients } = await getPatients(
+		organizationContext.organizationId,
 		currentPage,
 		currentLimit,
 		currentQuery,
@@ -64,11 +65,12 @@ async function PatientsPageContent({ searchParams }: PatientsPageProps) {
 	const totalPages = Math.ceil(totalPatients / currentLimit) || 1;
 
 	if (currentPage > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(currentSearchParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(currentSearchParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("page", String(totalPages));
 		redirect(`/dashboard/patients?${lastPageParams}` as Route);
 	}

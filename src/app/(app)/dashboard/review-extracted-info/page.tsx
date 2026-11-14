@@ -1,7 +1,7 @@
 import { getOrganizationContext } from "@/lib/api/get-organization-id";
 import { ReviewExtractedInfoClient } from "./review-extracted-info-client";
 import { verifySession } from "@/lib/api/verify-session";
-import { getPatientExtractionById } from "@/lib/api/get-patient-extraction-by-id";
+import { getPatientExtractionForOrganization } from "@/lib/api/get-patient-extraction-by-id";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -43,7 +43,10 @@ async function ReviewExtractedInfoContent({ searchParams }: ReviewExtractedInfoP
 		redirect("/dashboard/add-new-patient/bulk");
 	}
 
-	const extraction = await getPatientExtractionById(extractionId);
+	const extraction = await getPatientExtractionForOrganization(
+		extractionId,
+		organizationContext.organizationId,
+	);
 	if (!extraction) {
 		notFound();
 	}

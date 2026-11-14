@@ -68,7 +68,7 @@ import {
 	RiMore2Fill,
 	RiShare2Line,
 } from "@remixicon/react";
-import { Fragment, useId, useState, useTransition, type FormEvent } from "react";
+import { Fragment, useId, useState, useTransition, type SubmitEvent } from "react";
 import { format, parseISO } from "date-fns";
 import { useRouter } from "next/navigation";
 
@@ -117,7 +117,7 @@ export function DiagnosisDetailsDrawer({
 		onOpenChange(nextOpen);
 	}
 
-	function handleSave(event: FormEvent<HTMLFormElement>) {
+	function handleSave(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 
 		if (!diagnosis) return;
@@ -335,7 +335,7 @@ function DiagnosisDetailsEditForm({
 	diagnosis: DiagnosisDetailsType;
 	formError: string;
 	onFormErrorDismiss: () => void;
-	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+	onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
 }) {
 	const [originalUpdatedAt] = useState(() => diagnosis.editValues.updatedAt);
 	const generatedAttachmentRowId = useId();
@@ -557,7 +557,7 @@ function DiagnosisDetailsEditForm({
 						className="bg-white text-gray-600"
 						onClick={handleAddDiagnosisAttachmentRow}
 					>
-						<RiAddLine className="size-5" aria-hidden="true" />
+						<RiAddLine className="size-4" aria-hidden="true" />
 						Add related record
 					</Button>
 				</div>
@@ -660,7 +660,7 @@ function DiagnosisHistoryCard({ historyEvent }: { historyEvent: DiagnosisDetails
 				</p>
 				<RiArrowDownSLine
 					className={cn(
-						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						"size-4 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						isDiagnosisHistoryExpanded ? "rotate-180" : "",
 					)}
 					aria-hidden="true"
@@ -806,7 +806,7 @@ function DiagnosisRelatedRecordSection({
 				</span>
 				<RiArrowDownSLine
 					className={cn(
-						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						"size-4 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						isRelatedRecordSectionExpanded ? "rotate-180" : "",
 					)}
 					aria-hidden="true"

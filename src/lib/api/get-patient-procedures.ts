@@ -8,7 +8,6 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
 import { endOfDay, startOfDay } from "date-fns";
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
-import { getOrganizationId } from "./get-organization-id";
 
 function normalizeStatus(value: string): ProcedureType["status"] {
 	const normalizedValue = value.toLowerCase();
@@ -25,6 +24,7 @@ function normalizeStatus(value: string): ProcedureType["status"] {
 }
 
 export const getPatientProcedures = cache(async (
+	organizationId: string,
 	patientId: string,
 	page = 1,
 	limit = 14,
@@ -34,10 +34,6 @@ export const getPatientProcedures = cache(async (
 	statusFilters: ProcedureStatusFilter[] = [],
 	encounterId?: string,
 ): Promise<{ procedures: ProcedureType[]; totalProcedures: number }> => {
-	const organizationId = await getOrganizationId();
-
-	if (!organizationId) return { procedures: [], totalProcedures: 0 };
-
 	return getPatientProceduresForOrganization(
 		patientId,
 		organizationId,

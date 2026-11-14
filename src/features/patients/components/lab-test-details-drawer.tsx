@@ -75,7 +75,7 @@ import {
 } from "@remixicon/react";
 import { format, parseISO } from "date-fns";
 import Image from "next/image";
-import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
+import { Fragment, useId, useRef, useState, useTransition, type SubmitEvent } from "react";
 import { ChooseFileCard } from "@/components/choose-file-card";
 import { useRouter } from "next/navigation";
 import { uploadReportFiles, type UploadedReports } from "@/lib/storage/upload-report-files";
@@ -549,7 +549,7 @@ function LabTestHistoryCard({ historyEvent }: { historyEvent: LabTestDetailsHist
 				</p>
 				<RiArrowDownSLine
 					className={cn(
-						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						"size-4 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						isLabTestHistoryExpanded ? "rotate-180" : "",
 					)}
 					aria-hidden="true"
@@ -658,7 +658,7 @@ function LabTestDetailsEditForm({
 
 	const hasLabTestFiles = editableLabTestFiles.length > 0;
 
-	function handleSubmit(event: FormEvent<HTMLFormElement>) {
+	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 		const formData = new FormData(event.currentTarget);
 
@@ -1038,7 +1038,7 @@ function LabTestDetailsEditForm({
 							variant="outline"
 							onClick={() => labTestFileInputRef.current?.click()}
 						>
-							<RiAddLine className="size-5" aria-hidden="true" />
+							<RiAddLine className="size-4" aria-hidden="true" />
 							Add files
 						</Button>
 					</>
@@ -1075,7 +1075,7 @@ function LabTestDetailsEditForm({
 						className="bg-white text-gray-600"
 						onClick={handleAddLabTestAttachmentRow}
 					>
-						<RiAddLine className="size-5" aria-hidden="true" />
+						<RiAddLine className="size-4" aria-hidden="true" />
 						Add related record
 					</Button>
 				</div>

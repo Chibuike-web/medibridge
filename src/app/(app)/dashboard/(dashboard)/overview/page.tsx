@@ -7,10 +7,11 @@ import { RecentPatientsTable } from "@/features/patients/components/recent-patie
 import { RecentTransfersTable } from "@/features/transfers/components/recent-transfers-table";
 import { Suspense } from "react";
 import { Cards } from "./cards";
-import { getRecentPatients } from "@/lib/api/get-recent-patients";
-import { getRecentTransfer } from "@/lib/api/get-recent-transfers";
-import { getOverviewStats } from "@/lib/api/get-overview-stats";
+import { getRecentPatientsForOrganization } from "@/lib/api/get-recent-patients";
+import { getRecentTransfersForOrganization } from "@/lib/api/get-recent-transfers";
+import { getOverviewStatsForOrganization } from "@/lib/api/get-overview-stats";
 import Image from "next/image";
+import { connection } from "next/server";
 
 export const metadata = {
 	title: "Overview",
@@ -39,60 +40,66 @@ async function OverviewContent() {
 		redirect("/verify");
 	}
 
-	return getOverviewStats().then((stats) => {
-		if (!stats.hasPatients) {
-			return (
-				<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">
-					<div className="flex w-[31.25rem] max-w-full flex-col items-center">
-						<div className="aspect-[473/238] w-full overflow-hidden">
-							<Image
-								src="/assets/empty-state.svg"
-								alt=""
-								aria-hidden="true"
-								width={473}
-								height={357}
-								className="h-auto w-full"
-							/>
-						</div>
-						<div className="relative z-10 -mt-4 flex w-full flex-col items-center text-center">
-							<h1 className="mb-2 text-center text-lg leading-6 font-semibold text-balance">
-								No patient records available
-							</h1>
-							<p className="mb-6 text-center text-sm">
-								You haven't added any patient records yet. Create a new patient profile to get
-								started.
-							</p>
-							<AddPatientDialog returnTo="/dashboard/overview">
-								<Button>Add patient</Button>
-							</AddPatientDialog>
+	await connection();
+	const now = new Date();
+	const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+
+	return getOverviewStatsForOrganization(organizationContext.organizationId, monthStart).then(
+		(stats) => {
+			if (!stats.hasPatients) {
+				return (
+					<div className="w-full mx-auto max-w-7xl flex items-center justify-center h-full p-10">
+						<div className="flex w-[31.25rem] max-w-full flex-col items-center">
+							<div className="aspect-[473/238] w-full overflow-hidden">
+								<Image
+									src="/assets/empty-state.svg"
+									alt=""
+									aria-hidden="true"
+									width={473}
+									height={357}
+									className="h-auto w-full"
+								/>
+							</div>
+							<div className="relative z-10 -mt-4 flex w-full flex-col items-center text-center">
+								<h1 className="mb-2 text-center text-lg leading-6 font-semibold text-balance">
+									No patient records available
+								</h1>
+								<p className="mb-6 text-center text-sm">
+									You haven't added any patient records yet. Create a new patient profile to get
+									started.
+								</p>
+								<AddPatientDialog returnTo="/dashboard/overview">
+									<Button>Add patient</Button>
+								</AddPatientDialog>
+							</div>
 						</div>
 					</div>
+				);
+			}
+			return (
+				<div className="h-full overflow-y-auto">
+					<section className="mx-auto flex w-full max-w-7xl flex-col px-6 pt-4 pb-6 lg:px-10">
+						<h1 className="mb-4 text-lg font-semibold tracking-[-0.015em] text-gray-800 text-balance">
+							Overview
+						</h1>
+						<Cards stats={stats} />
+						<RecentPatients organizationId={organizationContext.organizationId} />
+						<RecentTransfers organizationId={organizationContext.organizationId} />
+					</section>
 				</div>
 			);
-		}
-		return (
-			<div className="h-full overflow-y-auto">
-				<section className="mx-auto flex w-full max-w-7xl flex-col px-6 pt-4 pb-6 lg:px-10">
-					<h1 className="mb-4 text-lg font-semibold tracking-[-0.015em] text-gray-800 text-balance">
-						Overview
-					</h1>
-					<Cards stats={stats} />
-					<RecentPatients />
-					<RecentTransfers />
-				</section>
-			</div>
-		);
-	});
+		},
+	);
 }
 
-async function RecentPatients() {
-	const recentPatients = await getRecentPatients();
+async function RecentPatients({ organizationId }: { organizationId: string }) {
+	const recentPatients = await getRecentPatientsForOrganization(organizationId);
 	if (recentPatients.length === 0) return null;
 	return <RecentPatientsTable data={recentPatients} />;
 }
 
-async function RecentTransfers() {
-	const recentTransfers = await getRecentTransfer();
+async function RecentTransfers({ organizationId }: { organizationId: string }) {
+	const recentTransfers = await getRecentTransfersForOrganization(organizationId);
 	if (recentTransfers.length === 0) return null;
 	return <RecentTransfersTable data={recentTransfers} />;
 }

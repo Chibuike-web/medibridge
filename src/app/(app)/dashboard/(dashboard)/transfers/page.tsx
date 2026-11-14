@@ -71,6 +71,7 @@ async function TransfersContent({ searchParams }: TransfersPageProps) {
 		to: parseDateBoundaryParam(currentRequestedTo, "end"),
 	};
 	const { hasTransfers, transfers, totalTransfers } = await getTransfers(
+		organizationContext.organizationId,
 		currentPage,
 		currentLimit,
 		currentQuery,
@@ -80,11 +81,12 @@ async function TransfersContent({ searchParams }: TransfersPageProps) {
 	const totalPages = Math.max(1, Math.ceil(totalTransfers / currentLimit));
 
 	if (currentPage > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(currentSearchParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(currentSearchParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("page", String(totalPages));
 		redirect(`/dashboard/transfers?${lastPageParams}` as Route);
 	}

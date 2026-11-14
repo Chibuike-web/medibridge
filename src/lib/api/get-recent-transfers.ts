@@ -1,9 +1,7 @@
-import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import { patientPersonalInformation, patientTransfer } from "@/db/schemas";
 import { db } from "../better-auth/auth";
 import { desc, eq } from "drizzle-orm";
-import { getOrganizationId } from "./get-organization-id";
 import type { TransferType } from "@/features/transfers/types";
 
 function formatPatientName({
@@ -35,14 +33,6 @@ function toTransferStatus(status: string): TransferType["status"] {
 
 	return "pending";
 }
-
-export const getRecentTransfer = cache(async () => {
-	const organizationId = await getOrganizationId();
-
-	if (!organizationId) return [];
-
-	return getRecentTransfersForOrganization(organizationId);
-});
 
 export async function getRecentTransfersForOrganization(organizationId: string) {
 	"use cache";

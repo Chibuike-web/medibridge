@@ -363,17 +363,16 @@ function PatientBulkActionBar({
 	onViewPatient: (patient: PatientListItemType) => void;
 	onTransferPatients: (patients: PatientListItemType[]) => void;
 }) {
-	const selectedPatientCount = selectedPatients.length;
-	const singleSelectedPatient = selectedPatientCount === 1 ? selectedPatients[0] : undefined;
+	const singleSelectedPatient = selectedPatients.length === 1 ? selectedPatients[0] : undefined;
 
-	if (selectedPatientCount === 0) {
+	if (selectedPatients.length === 0) {
 		return null;
 	}
 
 	return (
 		<AnimatedBulkBar>
 			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
-				{selectedPatientCount} {selectedPatientCount === 1 ? "item" : "items"} selected
+				{selectedPatients.length} {selectedPatients.length === 1 ? "item" : "items"} selected
 			</span>
 			<TableBulkActionSeparator />
 			<div className="flex items-center">
@@ -386,7 +385,7 @@ function PatientBulkActionBar({
 							size="sm"
 							className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 						>
-							<RiEyeLine className="size-5" aria-hidden={true} />
+							<RiEyeLine className="size-4" aria-hidden={true} />
 							<span>View patient</span>
 						</Button>
 					</>
@@ -397,8 +396,8 @@ function PatientBulkActionBar({
 					size="sm"
 					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				>
-					<RiShare2Line className="size-5" aria-hidden={true} />
-					<span>Export {selectedPatientCount > 1 ? "all" : null}</span>
+					<RiShare2Line className="size-4" aria-hidden={true} />
+					<span>Export {selectedPatients.length > 1 ? "all" : null}</span>
 				</Button>
 				<Button
 					type="button"
@@ -407,8 +406,8 @@ function PatientBulkActionBar({
 					size="sm"
 					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				>
-					<RiShareBoxLine className="size-5" aria-hidden={true} />
-					<span>Transfer {selectedPatientCount === 1 ? "" : "patients"}</span>
+					<RiShareBoxLine className="size-4" aria-hidden={true} />
+					<span>Transfer {selectedPatients.length === 1 ? "" : "patients"}</span>
 				</Button>
 				{canArchive ? (
 					<Button
@@ -417,8 +416,8 @@ function PatientBulkActionBar({
 						size="sm"
 						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
-						<RiArchiveLine className="size-5" aria-hidden={true} />
-						<span>Archive {selectedPatientCount > 1 ? "all" : null}</span>
+						<RiArchiveLine className="size-4" aria-hidden={true} />
+						<span>Archive {selectedPatients.length > 1 ? "all" : null}</span>
 					</Button>
 				) : null}
 			</div>
@@ -430,7 +429,7 @@ function PatientBulkActionBar({
 				className="size-8 rounded-lg border-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected patients"
 			>
-				<RiCloseLine className="size-5" aria-hidden={true} />
+				<RiCloseLine className="size-4" aria-hidden={true} />
 			</Button>
 		</AnimatedBulkBar>
 	);
@@ -553,7 +552,7 @@ function getPatientsColumns(
 							className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-800 data-[state=open]:bg-gray-200 data-[state=open]:text-gray-800"
 							aria-label="Open row actions"
 						>
-							<RiMore2Fill className="size-5" aria-hidden />
+							<RiMore2Fill className="size-4" aria-hidden />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="rounded-xl bg-white text-sm text-gray-700">
 							<DropdownMenuItem

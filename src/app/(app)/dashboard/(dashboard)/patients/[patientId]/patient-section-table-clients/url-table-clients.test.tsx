@@ -595,7 +595,9 @@ test("settles the filter chip and page on the URL's values once the server respo
 	expect(params.get("allergiesStatus")).toBe("active");
 	expect(params.get("allergiesPage")).toBeNull();
 	rerender(<AllergiesClient {...props} page={1} statusFilters={["active"]} />);
-	expect(screen.getByRole("button", { name: "Remove Status: Active filter" })).toBeVisible();
+	await waitFor(() =>
+		expect(screen.getByRole("button", { name: "Remove Status: Active filter" })).toBeVisible(),
+	);
 	expect(screen.getByText("Page 1 of 4")).toBeVisible();
 	expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "false");
 });

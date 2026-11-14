@@ -1,4 +1,4 @@
-import { getPatientAllergyDetails } from "@/lib/api/get-patient-allergy-details";
+import { getPatientAllergyDetailsForOrganization } from "@/lib/api/get-patient-allergy-details";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 
@@ -35,7 +35,7 @@ export async function GET(
 	}
 
 	const { allergyId } = await context.params;
-	const allergy = await getPatientAllergyDetails(allergyId);
+	const allergy = await getPatientAllergyDetailsForOrganization(allergyId, organizationId);
 
 	if (!allergy) {
 		return Response.json({ allergy: null }, { status: 404 });

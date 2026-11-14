@@ -24,19 +24,19 @@ vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMoc
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
 
 vi.mock("@/lib/api/get-patient-allergy-details", () => ({
-	getPatientAllergyDetails: getAllergyDetailsMock,
+	getPatientAllergyDetailsForOrganization: getAllergyDetailsMock,
 }));
 vi.mock("@/lib/api/get-patient-diagnosis-details", () => ({
-	getPatientDiagnosisDetails: getDiagnosisDetailsMock,
+	getPatientDiagnosisDetailsForOrganization: getDiagnosisDetailsMock,
 }));
 vi.mock("@/lib/api/get-patient-immunization-details", () => ({
-	getPatientImmunizationDetails: getImmunizationDetailsMock,
+	getPatientImmunizationDetailsForOrganization: getImmunizationDetailsMock,
 }));
 vi.mock("@/lib/api/get-patient-medication-details", () => ({
-	getPatientMedicationDetails: getMedicationDetailsMock,
+	getPatientMedicationDetailsForOrganization: getMedicationDetailsMock,
 }));
 vi.mock("@/lib/api/get-patient-procedure-details", () => ({
-	getPatientProcedureDetails: getProcedureDetailsMock,
+	getPatientProcedureDetailsForOrganization: getProcedureDetailsMock,
 }));
 
 import { GET as getAllergyDetails } from "@/app/api/patient-allergy-details/[allergyId]/route";
@@ -151,7 +151,7 @@ describe("Patient records API", () => {
 
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({ allergy });
-		expect(getAllergyDetailsMock).toHaveBeenCalledWith("allergy-1");
+		expect(getAllergyDetailsMock).toHaveBeenCalledWith("allergy-1", "hospital-1");
 	});
 
 	test("returns a 404 null allergy payload when the allergy is missing", async () => {
@@ -181,7 +181,7 @@ describe("Patient records API", () => {
 
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({ diagnosis });
-		expect(getDiagnosisDetailsMock).toHaveBeenCalledWith("diagnosis-1");
+		expect(getDiagnosisDetailsMock).toHaveBeenCalledWith("diagnosis-1", "hospital-1");
 	});
 
 	test("returns a 404 null diagnosis payload when the diagnosis is missing", async () => {
@@ -209,7 +209,7 @@ describe("Patient records API", () => {
 
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({ immunization });
-		expect(getImmunizationDetailsMock).toHaveBeenCalledWith("immunization-1");
+		expect(getImmunizationDetailsMock).toHaveBeenCalledWith("immunization-1", "hospital-1");
 	});
 
 	test("returns a 404 null immunization payload when the immunization is missing", async () => {
@@ -237,7 +237,7 @@ describe("Patient records API", () => {
 
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({ medication });
-		expect(getMedicationDetailsMock).toHaveBeenCalledWith("medication-1");
+		expect(getMedicationDetailsMock).toHaveBeenCalledWith("medication-1", "hospital-1");
 	});
 
 	test("returns a 404 null medication payload when the medication is missing", async () => {
@@ -267,7 +267,7 @@ describe("Patient records API", () => {
 
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({ procedure });
-		expect(getProcedureDetailsMock).toHaveBeenCalledWith("procedure-1");
+		expect(getProcedureDetailsMock).toHaveBeenCalledWith("procedure-1", "hospital-1");
 	});
 
 	test("returns a 404 null procedure payload when the procedure is missing", async () => {

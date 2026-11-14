@@ -1,4 +1,4 @@
-import { getPatientImmunizationDetails } from "@/lib/api/get-patient-immunization-details";
+import { getPatientImmunizationDetailsForOrganization } from "@/lib/api/get-patient-immunization-details";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 
@@ -35,7 +35,10 @@ export async function GET(
 	}
 
 	const { immunizationId } = await context.params;
-	const immunization = await getPatientImmunizationDetails(immunizationId);
+	const immunization = await getPatientImmunizationDetailsForOrganization(
+		immunizationId,
+		organizationId,
+	);
 
 	if (!immunization) {
 		return Response.json({ immunization: null }, { status: 404 });

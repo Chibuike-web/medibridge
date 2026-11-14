@@ -1,13 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { getRecentTransfer } from "../get-recent-transfers";
+import { getRecentTransfersForOrganization } from "../get-recent-transfers";
 
-const { getOrganizationIdMock, selectMock } = vi.hoisted(() => ({
-	getOrganizationIdMock: vi.fn(),
+const { selectMock } = vi.hoisted(() => ({
 	selectMock: vi.fn(),
-}));
-
-vi.mock("../get-organization-id", () => ({
-	getOrganizationId: getOrganizationIdMock,
 }));
 
 vi.mock("@/lib/better-auth/auth", () => ({
@@ -21,21 +16,12 @@ vi.mock("next/cache", () => ({
 	cacheTag: vi.fn(),
 }));
 
-describe("getRecentTransfer", () => {
+describe("getRecentTransfersForOrganization", () => {
 	beforeEach(() => {
-		getOrganizationIdMock.mockReset();
 		selectMock.mockReset();
 	});
 
-	test("returns no recent transfers without an active organization", async () => {
-		getOrganizationIdMock.mockResolvedValue(null);
-
-		expect(await getRecentTransfer()).toEqual([]);
-		expect(selectMock).not.toHaveBeenCalled();
-	});
-
 	test("maps recent transfer rows and normalizes statuses", async () => {
-		getOrganizationIdMock.mockResolvedValue("org-1");
 		const requestedAt = new Date("2026-02-05T00:00:00.000Z");
 		const limitMock = vi.fn().mockResolvedValue([
 			{
@@ -79,7 +65,7 @@ describe("getRecentTransfer", () => {
 			})),
 		});
 
-		expect(await getRecentTransfer()).toEqual([
+		expect(await getRecentTransfersForOrganization("org-1")).toEqual([
 			{
 				id: "transfer-1",
 				patientName: "Ada Lovelace",

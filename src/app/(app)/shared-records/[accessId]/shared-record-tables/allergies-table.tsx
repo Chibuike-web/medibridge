@@ -28,6 +28,7 @@ import {
 
 import { CopyIdButton } from "@/components/copy-id-button";
 import { StatusBadge } from "@/components/status-badge";
+import { AnimatedFilterChips } from "@/components/animated-filter-chips";
 import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
 import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
@@ -391,10 +392,14 @@ export function SharedAllergiesTable({
 					<ExportButton />
 				</div>
 			</div>
-			{optimisticStatusFilters.length > 0 ||
-			optimisticSeverityFilters.length > 0 ||
-			optimisticCreatedFrom ||
-			optimisticCreatedTo ? (
+			<AnimatedFilterChips
+				isVisible={Boolean(
+					optimisticStatusFilters.length > 0 ||
+					optimisticSeverityFilters.length > 0 ||
+					optimisticCreatedFrom ||
+					optimisticCreatedTo,
+				)}
+			>
 				<div className="mb-4 flex flex-wrap gap-2">
 					{optimisticStatusFilters.length > 0 ? (
 						<FilterChip
@@ -427,7 +432,7 @@ export function SharedAllergiesTable({
 						Clear all
 					</Button>
 				</div>
-			) : null}
+			</AnimatedFilterChips>
 
 			<div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
 				<Table aria-busy={isPending}>
@@ -636,7 +641,7 @@ function RowMenu({ onViewDetails }: { onViewDetails: () => void }) {
 				className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-800 data-[state=open]:bg-gray-200 data-[state=open]:text-gray-800"
 				aria-label="Open allergy actions"
 			>
-				<RiMore2Fill className="size-5" aria-hidden="true" />
+				<RiMore2Fill className="size-4" aria-hidden="true" />
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="rounded-xl bg-white text-sm text-gray-700">
 				<DropdownMenuItem className="rounded-lg" onSelect={onViewDetails}>

@@ -13,7 +13,6 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
-import { getOrganizationId } from "./get-organization-id";
 
 type LabTestDateFilters = {
 	createdFrom?: string;
@@ -44,6 +43,7 @@ function toDatabaseFlagFilter(flagFilter: LabTestFlagFilter) {
 
 export const getPatientLabTests = cache(
 	async (
+		organizationId: string,
 		patientId: string,
 		page = 1,
 		limit = 14,
@@ -54,10 +54,6 @@ export const getPatientLabTests = cache(
 		flagFilters: LabTestFlagFilter[] = [],
 		encounterId?: string,
 	): Promise<{ labTests: LabTestType[]; totalLabTests: number }> => {
-		const organizationId = await getOrganizationId();
-
-		if (!organizationId) return { labTests: [], totalLabTests: 0 };
-
 		return getPatientLabTestsForOrganization(
 			patientId,
 			organizationId,

@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { patientExtraction, type PatientExtractionDocument } from "@/db/schemas/patient";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
-import { getPatientExtractionById } from "@/lib/api/get-patient-extraction-by-id";
+import { getPatientExtractionForOrganization } from "@/lib/api/get-patient-extraction-by-id";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { db } from "@/lib/better-auth/auth";
 import { extractPatientDocumentsService } from "./extract-patient-documents-service";
@@ -37,7 +37,7 @@ export async function retryPatientExtractionService(
 	}
 
 	try {
-		const extraction = await getPatientExtractionById(extractionId);
+		const extraction = await getPatientExtractionForOrganization(extractionId, organizationId);
 
 		if (!extraction) {
 			return { status: "invalid", error: "This review was already cleared." };

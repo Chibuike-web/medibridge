@@ -13,7 +13,6 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
-import { getOrganizationId } from "./get-organization-id";
 
 type ImagingDateFilters = {
 	orderedFrom?: string;
@@ -63,6 +62,7 @@ function toDatabaseModalityFilter(modalityFilter: ImagingModalityFilter) {
 
 export const getPatientImaging = cache(
 	async (
+		organizationId: string,
 		patientId: string,
 		page = 1,
 		limit = 14,
@@ -73,10 +73,6 @@ export const getPatientImaging = cache(
 		modalityFilters: ImagingModalityFilter[] = [],
 		encounterId?: string,
 	): Promise<{ imagingStudies: ImagingType[]; totalImagingStudies: number }> => {
-		const organizationId = await getOrganizationId();
-
-		if (!organizationId) return { imagingStudies: [], totalImagingStudies: 0 };
-
 		return getPatientImagingForOrganization(
 			patientId,
 			organizationId,

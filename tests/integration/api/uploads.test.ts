@@ -73,7 +73,7 @@ vi.mock("@/lib/storage/client", () => ({
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
 vi.mock("@/lib/api/get-patient-extraction-by-id", () => ({
-	getPatientExtractionById: getPatientExtractionByIdMock,
+	getPatientExtractionForOrganization: getPatientExtractionByIdMock,
 }));
 vi.mock("@/lib/better-auth/auth", () => ({
 	db: {
@@ -683,7 +683,7 @@ describe("Uploads and extraction API", () => {
 				extractionId: "saved-extraction",
 				hasReadyDocument: true,
 			});
-			expect(getPatientExtractionByIdMock).toHaveBeenCalledWith("saved-extraction");
+			expect(getPatientExtractionByIdMock).toHaveBeenCalledWith("saved-extraction", "hospital-1");
 			expect(storedExtraction.extractedData).toEqual([
 				savedPatient,
 				readyDocument("first.docx"),

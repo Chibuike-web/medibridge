@@ -1,11 +1,9 @@
-import { cache } from "react";
 import { patient, patientAllergy, patientAllergyHistory } from "@/db/schemas";
 import type { AllergyDetailsHistoryEvent, AllergyDetailsType } from "@/features/patients/types";
 import { db } from "@/lib/better-auth/auth";
 import { getOrdinal } from "@/lib/utils/get-ordinal";
 import { and, desc, eq } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
-import { getOrganizationId } from "./get-organization-id";
 
 const EMPTY_VALUE = "-";
 
@@ -105,16 +103,6 @@ function groupHistoryEvents(
 		return events;
 	}, []);
 }
-
-export const getPatientAllergyDetails = cache(async (allergyId: string) => {
-	const organizationId = await getOrganizationId();
-
-	if (!organizationId) {
-		return null;
-	}
-
-	return getPatientAllergyDetailsForOrganization(allergyId, organizationId);
-});
 
 export async function getPatientAllergyDetailsForOrganization(
 	allergyId: string,

@@ -15,7 +15,7 @@ export default function Home() {
 					src={heroImage}
 					alt="african american physician discussing disease symptoms questionnaire with sick woman patient"
 					className="w-full h-full object-cover"
-					loading="lazy"
+					loading="eager"
 					placeholder="blur"
 					sizes="(max-width: 80rem) 100vw, 50vw"
 				/>

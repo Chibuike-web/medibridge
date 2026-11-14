@@ -76,7 +76,7 @@ export function CreateSelectedFiles({
 				className="w-max"
 				onClick={() => fileInputRef.current?.click()}
 			>
-				<RiAddLine className="size-5" aria-hidden="true" />
+				<RiAddLine className="size-4" aria-hidden="true" />
 				Add files
 			</Button>
 		</>

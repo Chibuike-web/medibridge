@@ -1,4 +1,3 @@
-import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import {
 	patient,
@@ -12,9 +11,8 @@ import {
 import { db } from "@/lib/better-auth/auth";
 import { formatDateTime } from "@/lib/utils/format-date-time";
 import { and, desc, eq } from "drizzle-orm";
-import { getOrganizationId } from "./get-organization-id";
 
-export type PatientProfile = Awaited<ReturnType<typeof getPatientProfile>>;
+export type PatientProfile = Awaited<ReturnType<typeof getPatientProfileForOrganization>>;
 
 function empty(value: string | number | null | undefined) {
 	return value ?? "-";
@@ -52,16 +50,6 @@ function normalizeDiagnosisStatus(status: string): "Active" | "Resolved" {
 function normalizeAllergyStatus(status: string): "Active" | "Inactive" {
 	return status === "Inactive" ? "Inactive" : "Active";
 }
-
-export const getPatientProfile = cache(async (patientId: string) => {
-	const organizationId = await getOrganizationId();
-
-	if (!organizationId) {
-		return null;
-	}
-
-	return getPatientProfileForOrganization(patientId, organizationId);
-});
 
 export async function getPatientProfileForOrganization(patientId: string, organizationId: string) {
 	"use cache";

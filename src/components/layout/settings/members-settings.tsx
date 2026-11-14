@@ -14,6 +14,7 @@ import {
 } from "@remixicon/react";
 
 import { ExportButton } from "@/components/export-button";
+import { AnimatedFilterChips } from "@/components/animated-filter-chips";
 import { FilterChip } from "@/components/filter-chip";
 import { FilterGroup, FilterSection } from "@/components/filter-menu";
 import { StatusBadge } from "@/components/status-badge";
@@ -394,7 +395,9 @@ export function MembersSettings({
 				</div>
 			</div>
 
-			{inviteStatusFilter || roleFilter || lastActiveSince || joinedSince ? (
+			<AnimatedFilterChips
+				isVisible={Boolean(inviteStatusFilter || roleFilter || lastActiveSince || joinedSince)}
+			>
 				<div className="flex flex-wrap gap-2">
 					{inviteStatusFilter ? (
 						<FilterChip
@@ -439,7 +442,7 @@ export function MembersSettings({
 						Clear all
 					</Button>
 				</div>
-			) : null}
+			</AnimatedFilterChips>
 			<div className="overflow-x-auto rounded-xl border border-gray-200">
 				<Table className="min-w-[56rem] border-separate border-spacing-0 bg-gray-50 text-left">
 					<TableHeader className="text-sm font-semibold text-gray-500">
@@ -569,7 +572,7 @@ export function MembersSettings({
 														className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-800 data-[state=open]:bg-gray-200 data-[state=open]:text-gray-800"
 														aria-label={`Open actions for ${rowLabel}`}
 													>
-														<RiMore2Fill className="size-5" aria-hidden />
+														<RiMore2Fill className="size-4" aria-hidden />
 													</DropdownMenuTrigger>
 													<DropdownMenuContent
 														align="end"

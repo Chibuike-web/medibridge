@@ -18,7 +18,6 @@ import {
 } from "./auth-policies";
 import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
 
-// const sql = postgres(ENV.DATABASE_URL!);
 const globalForDb = globalThis as unknown as {
 	sql: ReturnType<typeof postgres> | undefined;
 };

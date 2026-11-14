@@ -1,4 +1,3 @@
-import { cache } from "react";
 import { patient, patientImmunization, patientImmunizationHistory } from "@/db/schemas";
 import type {
 	ImmunizationDetailsHistoryEvent,
@@ -8,7 +7,6 @@ import { db } from "@/lib/better-auth/auth";
 import { getOrdinal } from "@/lib/utils/get-ordinal";
 import { and, desc, eq } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
-import { getOrganizationId } from "./get-organization-id";
 
 const EMPTY_VALUE = "-";
 
@@ -108,16 +106,6 @@ function groupHistoryEvents(
 		return events;
 	}, []);
 }
-
-export const getPatientImmunizationDetails = cache(async (immunizationId: string) => {
-	const organizationId = await getOrganizationId();
-
-	if (!organizationId) {
-		return null;
-	}
-
-	return getPatientImmunizationDetailsForOrganization(immunizationId, organizationId);
-});
 
 export async function getPatientImmunizationDetailsForOrganization(
 	immunizationId: string,

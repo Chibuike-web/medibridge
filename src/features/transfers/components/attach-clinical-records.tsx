@@ -209,7 +209,7 @@ export function AttachClinicalRecords({
 							{selectedRecordsForActiveTab.length} selected in {activeTab.label}
 						</span>
 					)}
-					<RiArrowDownSLine className="size-5 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+					<RiArrowDownSLine className="size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
 				</PopoverTrigger>
 
 				<PopoverContent className="flex h-[24rem] flex-col rounded-2xl p-0">

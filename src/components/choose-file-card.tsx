@@ -51,7 +51,7 @@ export function ChooseFileCard({
 				aria-describedby={error ? `${inputId}-error` : undefined}
 			/>
 
-			<RiUploadCloud2Line className="size-5 text-gray-600" aria-hidden="true" />
+			<RiUploadCloud2Line className="size-4 text-gray-600" aria-hidden="true" />
 
 			<div className="flex flex-col items-center gap-1.5 text-center">
 				<p className="text-sm font-medium text-gray-800">{title}</p>

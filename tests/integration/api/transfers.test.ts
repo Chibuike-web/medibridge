@@ -29,7 +29,9 @@ const {
 }));
 
 vi.mock("@/lib/api/get-patients", () => ({ getPatients: getPatientsMock }));
-vi.mock("@/lib/api/get-transfer-details", () => ({ getTransferDetails: getTransferDetailsMock }));
+vi.mock("@/lib/api/get-transfer-details", () => ({
+	getTransferDetailsForOrganization: getTransferDetailsMock,
+}));
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: getSessionDataMock }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: getOrganizationIdMock }));
 vi.mock("@/lib/api/get-patient-allergies", () => ({ getPatientAllergies: getAllergiesMock }));
@@ -137,7 +139,7 @@ describe("Transfers API", () => {
 			expect(response.status).toBe(200);
 			expect(await response.json()).toEqual({ transfer });
 			expect(getSessionDataMock).toHaveBeenCalledOnce();
-			expect(getTransferDetailsMock).toHaveBeenCalledWith("transfer-1");
+			expect(getTransferDetailsMock).toHaveBeenCalledWith("transfer-1", "hospital-1");
 		});
 
 		test("returns a 404 null transfer payload when the transfer is missing", async () => {
@@ -182,7 +184,7 @@ describe("Transfers API", () => {
 
 			expect(response.status).toBe(200);
 			expect(await response.json()).toEqual({ patients, page: 1, totalPages: 3 });
-			expect(getPatientsMock).toHaveBeenCalledWith(1, 20);
+			expect(getPatientsMock).toHaveBeenCalledWith("hospital-1", 1, 20);
 		});
 
 		test("normalizes invalid pagination values to defaults", async () => {
@@ -192,7 +194,7 @@ describe("Transfers API", () => {
 				nextRequest("http://localhost/api/transfer-patient-options?page=0&limit=not-a-number"),
 			);
 
-			expect(getPatientsMock).toHaveBeenCalledWith(1, 20);
+			expect(getPatientsMock).toHaveBeenCalledWith("hospital-1", 1, 20);
 		});
 
 		test("uses valid page and limit values", async () => {
@@ -204,7 +206,7 @@ describe("Transfers API", () => {
 
 			expect(response.status).toBe(200);
 			expect(await response.json()).toEqual({ patients: [], page: 2, totalPages: 1 });
-			expect(getPatientsMock).toHaveBeenCalledWith(2, 5);
+			expect(getPatientsMock).toHaveBeenCalledWith("hospital-1", 2, 5);
 		});
 	});
 
@@ -249,7 +251,7 @@ describe("Transfers API", () => {
 				totalRecords: 1,
 				totalPages: 1,
 			});
-			expect(getDiagnosesMock).toHaveBeenCalledWith("patient-1", 2, 3, "as");
+			expect(getDiagnosesMock).toHaveBeenCalledWith("hospital-1", "patient-1", 2, 3, "as");
 		});
 
 		test("maps each remaining clinical record type into transfer options", async () => {
@@ -306,7 +308,7 @@ describe("Transfers API", () => {
 				),
 			);
 
-			expect(getAllergiesMock).toHaveBeenCalledWith("patient-1", 1, 50, "");
+			expect(getAllergiesMock).toHaveBeenCalledWith("hospital-1", "patient-1", 1, 50, "");
 		});
 	});
 });

@@ -35,7 +35,7 @@ import { authClient } from "@/lib/better-auth/auth.client";
 import { RiAddLine, RiCalendarLine, RiCloseLine, RiErrorWarningFill } from "@remixicon/react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { useId, useRef, useState, useTransition, type FormEvent } from "react";
+import { useId, useRef, useState, useTransition, type SubmitEvent } from "react";
 
 type CreateDiagnosisDrawerProps = {
 	open: boolean;
@@ -74,7 +74,7 @@ export function CreateDiagnosisDrawer({
 		onOpenChange(isOpen);
 	}
 
-	function handleCreate(event: FormEvent<HTMLFormElement>) {
+	function handleCreate(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setFormError("");
 		const formData = new FormData(event.currentTarget);
@@ -288,7 +288,7 @@ export function CreateDiagnosisDrawer({
 								className="bg-white text-gray-600"
 								onClick={handleAddAttachmentRow}
 							>
-								<RiAddLine className="size-5" aria-hidden="true" />
+								<RiAddLine className="size-4" aria-hidden="true" />
 								Add related record
 							</Button>
 						</div>

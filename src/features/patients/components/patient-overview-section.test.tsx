@@ -5,7 +5,9 @@ import { PatientOverviewSection } from "./patient-overview-section";
 
 const { getPatientProfileMock } = vi.hoisted(() => ({ getPatientProfileMock: vi.fn() }));
 
-vi.mock("@/lib/api/get-patient-profile", () => ({ getPatientProfile: getPatientProfileMock }));
+vi.mock("@/lib/api/get-patient-profile", () => ({
+	getPatientProfileForOrganization: getPatientProfileMock,
+}));
 vi.mock("next/navigation", () => ({ notFound: vi.fn() }));
 
 const diagnosis = {
@@ -35,9 +37,12 @@ const profile = {
 
 async function renderOverview() {
 	cleanup();
-	const stream = await renderToReadableStream(<PatientOverviewSection patientId="QA-1001" />, {
-		onError: () => {},
-	});
+	const stream = await renderToReadableStream(
+		<PatientOverviewSection organizationId="hospital-1" patientId="QA-1001" />,
+		{
+			onError: () => {},
+		},
+	);
 	await stream.allReady;
 	render(<div dangerouslySetInnerHTML={{ __html: await new Response(stream).text() }} />);
 }

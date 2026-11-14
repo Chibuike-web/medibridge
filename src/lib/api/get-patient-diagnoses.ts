@@ -8,7 +8,6 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
 import { endOfDay, startOfDay } from "date-fns";
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
-import { getOrganizationId } from "./get-organization-id";
 
 type DiagnosisDateFilters = {
 	createdFrom?: string;
@@ -39,6 +38,7 @@ function normalizeStatus(value: string): DiagnosisType["status"] {
 }
 
 export const getPatientDiagnoses = cache(async (
+	organizationId: string,
 	patientId: string,
 	page = 1,
 	limit = 14,
@@ -48,12 +48,9 @@ export const getPatientDiagnoses = cache(async (
 	statusFilters: DiagnosisStatusFilter[] = [],
 	encounterId?: string,
 ): Promise<{ diagnoses: DiagnosisType[]; totalDiagnoses: number }> => {
-	const organizationId = await getOrganizationId();
 	const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
 	const currentLimit = Number.isFinite(limit) && limit > 0 ? limit : 14;
 	const normalizedQuery = query.trim();
-
-	if (!organizationId) return { diagnoses: [], totalDiagnoses: 0 };
 
 	return getPatientDiagnosesForOrganization(
 		patientId,

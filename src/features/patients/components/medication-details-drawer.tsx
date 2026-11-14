@@ -67,7 +67,7 @@ import {
 	RiShare2Line,
 } from "@remixicon/react";
 import { format, parseISO } from "date-fns";
-import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
+import { Fragment, useId, useRef, useState, useTransition, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import { updatePatientMedicationAction } from "@/features/patients/server/update-patient-medication-action";
 import { markPatientMedicationCompletedAction } from "@/features/patients/server/mark-patient-medication-completed-action";
@@ -120,7 +120,7 @@ export function MedicationDetailsDrawer({
 		onOpenChange(nextOpen);
 	}
 
-	function handleSave(event: FormEvent<HTMLFormElement>) {
+	function handleSave(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 
 		if (!medication) return;
@@ -470,7 +470,7 @@ function MedicationDetailsEditForm({
 	medication: MedicationDetailsType;
 	formError: string;
 	onFormErrorDismiss: () => void;
-	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+	onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
 }) {
 	const [originalUpdatedAt] = useState(() => medication.editValues.updatedAt);
 	const generatedAttachmentRowId = useId();
@@ -753,7 +753,7 @@ function MedicationDetailsEditForm({
 						className="bg-white text-gray-600"
 						onClick={handleAddMedicationAttachmentRow}
 					>
-						<RiAddLine className="size-5" aria-hidden="true" />
+						<RiAddLine className="size-4" aria-hidden="true" />
 						Add related record
 					</Button>
 				</div>
@@ -833,7 +833,7 @@ function MedicationHistoryCard({ historyEvent }: { historyEvent: MedicationDetai
 				</p>
 				<RiArrowDownSLine
 					className={cn(
-						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						"size-4 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						isMedicationHistoryExpanded ? "rotate-180" : "",
 					)}
 					aria-hidden="true"

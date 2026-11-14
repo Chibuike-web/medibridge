@@ -1,12 +1,18 @@
-import { getPatientProfile } from "@/lib/api/get-patient-profile";
+import { getPatientProfileForOrganization } from "@/lib/api/get-patient-profile";
 import { notFound } from "next/navigation";
 import { ContactInformation } from "./contact-information";
 import { EmergencyContact } from "./emergency-contact";
 import { PersonalInformation } from "./personal-information";
 import { PhysicalInformation } from "./physical-information";
 
-export async function PatientDetailsSection({ patientId }: { patientId: string }) {
-	const profile = await getPatientProfile(patientId);
+export async function PatientDetailsSection({
+	organizationId,
+	patientId,
+}: {
+	organizationId: string;
+	patientId: string;
+}) {
+	const profile = await getPatientProfileForOrganization(patientId, organizationId);
 
 	if (!profile) {
 		notFound();

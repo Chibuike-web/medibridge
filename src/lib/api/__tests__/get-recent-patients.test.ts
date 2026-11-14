@@ -1,13 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { getRecentPatients } from "../get-recent-patients";
+import { getRecentPatientsForOrganization } from "../get-recent-patients";
 
-const { getOrganizationIdMock, selectMock } = vi.hoisted(() => ({
-	getOrganizationIdMock: vi.fn(),
+const { selectMock } = vi.hoisted(() => ({
 	selectMock: vi.fn(),
-}));
-
-vi.mock("../get-organization-id", () => ({
-	getOrganizationId: getOrganizationIdMock,
 }));
 
 vi.mock("@/lib/better-auth/auth", () => ({
@@ -21,21 +16,12 @@ vi.mock("next/cache", () => ({
 	cacheTag: vi.fn(),
 }));
 
-describe("getRecentPatients", () => {
+describe("getRecentPatientsForOrganization", () => {
 	beforeEach(() => {
-		getOrganizationIdMock.mockReset();
 		selectMock.mockReset();
 	});
 
-	test("returns no recent patients without an active organization", async () => {
-		getOrganizationIdMock.mockResolvedValue(null);
-
-		expect(await getRecentPatients()).toEqual([]);
-		expect(selectMock).not.toHaveBeenCalled();
-	});
-
 	test("maps recent patient rows into dashboard records", async () => {
-		getOrganizationIdMock.mockResolvedValue("org-1");
 		const createdAt = new Date("2026-02-01T00:00:00.000Z");
 		const limitMock = vi.fn().mockResolvedValue([
 			{
@@ -67,7 +53,7 @@ describe("getRecentPatients", () => {
 			})),
 		});
 
-		const patients = await getRecentPatients();
+		const patients = await getRecentPatientsForOrganization("org-1");
 		expect(patients).toMatchObject([
 			{
 				name: "Ada Lovelace",

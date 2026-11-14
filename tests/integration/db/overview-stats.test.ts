@@ -83,11 +83,62 @@ describe.skipIf(!testDatabaseUrl)("Overview transfer cards", () => {
 	});
 
 	test("count only the hospital's own outgoing transfers that were sent or are waiting on the patient", async () => {
-		const stats = await getOverviewStatsForOrganization(hospitalId);
+		const stats = await getOverviewStatsForOrganization(
+			hospitalId,
+			new Date("2026-10-01T00:00:00.000Z"),
+		);
 
-		expect(stats.completedTransfers).toBe(1);
-		expect(stats.patientTransferredAt).toEqual([completedAt.toISOString()]);
-		expect(stats.pendingTransfers).toBe(2);
-		expect(stats.pendingTransferredAt).toHaveLength(2);
+		expect(stats.completedTransfers).toEqual({ total: 1, thisMonth: 1, lastMonth: 0 });
+		expect(stats.pendingTransfers.total).toBe(2);
+	});
+
+	test("counts this month from its first instant and last month as the whole previous month, across the new year", async () => {
+		await authModule.db.insert(schema.organization).values({
+			id: "hospital-c",
+			name: "Hospital C",
+			slug: "hospital-c",
+			createdAt: new Date(),
+			isVerified: true,
+		});
+		await authModule.db.insert(schema.patient).values([
+			{
+				id: "c-new-year",
+				organizationId: "hospital-c",
+				createdAt: new Date("2026-01-01T00:00:00.000Z"),
+			},
+			{
+				id: "c-january",
+				organizationId: "hospital-c",
+				createdAt: new Date("2026-01-20T08:00:00.000Z"),
+			},
+			{
+				id: "c-new-years-eve",
+				organizationId: "hospital-c",
+				createdAt: new Date("2025-12-31T23:59:59.000Z"),
+			},
+			{
+				id: "c-december",
+				organizationId: "hospital-c",
+				createdAt: new Date("2025-12-01T00:00:00.000Z"),
+			},
+			{
+				id: "c-november",
+				organizationId: "hospital-c",
+				createdAt: new Date("2025-11-30T23:59:59.000Z"),
+			},
+			{
+				id: "b-january",
+				organizationId: otherHospitalId,
+				createdAt: new Date("2026-01-05T08:00:00.000Z"),
+			},
+		]);
+
+		const stats = await getOverviewStatsForOrganization(
+			"hospital-c",
+			new Date("2026-01-01T00:00:00.000Z"),
+		);
+
+		expect(stats.patients).toEqual({ total: 5, thisMonth: 2, lastMonth: 2 });
+		expect(stats.hasPatients).toBe(true);
 	});
 });

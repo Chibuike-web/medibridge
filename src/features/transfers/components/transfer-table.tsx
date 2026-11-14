@@ -647,17 +647,16 @@ function TransferBulkActionBar({
 	onClearSelection: () => void;
 	onViewTransferDetails: (transferId: string) => void;
 }) {
-	const selectedTransferCount = selectedTransfers.length;
-	const singleSelectedTransfer = selectedTransferCount === 1 ? selectedTransfers[0] : undefined;
+	const singleSelectedTransfer = selectedTransfers.length === 1 ? selectedTransfers[0] : undefined;
 
-	if (selectedTransferCount === 0) {
+	if (selectedTransfers.length === 0) {
 		return null;
 	}
 
 	return (
 		<AnimatedBulkBar>
 			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
-				{selectedTransferCount} {selectedTransferCount === 1 ? "item" : "items"} selected
+				{selectedTransfers.length} {selectedTransfers.length === 1 ? "item" : "items"} selected
 			</span>
 			<TableBulkActionSeparator />
 			<div className="flex items-center">
@@ -670,7 +669,7 @@ function TransferBulkActionBar({
 							size="sm"
 							className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 						>
-							<RiEyeLine className="size-5" aria-hidden={true} />
+							<RiEyeLine className="size-4" aria-hidden={true} />
 							<span>View transfer details</span>
 						</Button>
 					</>
@@ -681,8 +680,8 @@ function TransferBulkActionBar({
 					size="sm"
 					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				>
-					<RiShare2Line className="size-5" aria-hidden={true} />
-					<span>Export {selectedTransferCount > 1 ? "all" : null}</span>
+					<RiShare2Line className="size-4" aria-hidden={true} />
+					<span>Export {selectedTransfers.length > 1 ? "all" : null}</span>
 				</Button>
 				{canArchive ? (
 					<Button
@@ -691,8 +690,8 @@ function TransferBulkActionBar({
 						size="sm"
 						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
-						<RiArchiveLine className="size-5" aria-hidden={true} />
-						<span>Archive {selectedTransferCount > 1 ? "all" : null}</span>
+						<RiArchiveLine className="size-4" aria-hidden={true} />
+						<span>Archive {selectedTransfers.length > 1 ? "all" : null}</span>
 					</Button>
 				) : null}
 			</div>
@@ -704,7 +703,7 @@ function TransferBulkActionBar({
 				className="size-8 border-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected transfers"
 			>
-				<RiCloseLine className="size-5" aria-hidden={true} />
+				<RiCloseLine className="size-4" aria-hidden={true} />
 			</Button>
 		</AnimatedBulkBar>
 	);
@@ -810,7 +809,7 @@ function getTransferColumns({
 							className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-800 data-[state=open]:bg-gray-200 data-[state=open]:text-gray-800"
 							aria-label="Open transfer actions"
 						>
-							<RiMore2Fill className="size-5" aria-hidden />
+							<RiMore2Fill className="size-4" aria-hidden />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
 							align="end"

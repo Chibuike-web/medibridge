@@ -41,7 +41,7 @@ import {
 } from "@remixicon/react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { useId, useRef, useState, useTransition, type FormEvent } from "react";
+import { useId, useRef, useState, useTransition, type SubmitEvent } from "react";
 
 type CreateProcedureDrawerProps = {
 	open: boolean;
@@ -136,7 +136,7 @@ export function CreateProcedureDrawer({
 		onOpenChange(isOpen);
 	}
 
-	function handleCreate(event: FormEvent<HTMLFormElement>) {
+	function handleCreate(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setFormError("");
 		const formData = new FormData(event.currentTarget);
@@ -317,7 +317,7 @@ export function CreateProcedureDrawer({
 										{selectedAssistantSummary ?? "Enter assistants"}
 									</span>
 									<RiArrowDownSLine
-										className="size-5 shrink-0 text-gray-500 transition-transform group-data-[state=open]:rotate-180"
+										className="size-4 shrink-0 text-gray-500 transition-transform group-data-[state=open]:rotate-180"
 										aria-hidden="true"
 									/>
 								</PopoverTrigger>
@@ -359,7 +359,7 @@ export function CreateProcedureDrawer({
 										className="flex w-full justify-between bg-gray-100 px-3 text-left text-gray-600 hover:bg-gray-200 border-0 font-normal hover:text-gray-600 focus-visible:border-0 active:scale-100"
 									>
 										<span>Add more</span>
-										<RiAddLine className="size-5" aria-hidden="true" />
+										<RiAddLine className="size-4" aria-hidden="true" />
 									</Button>
 								</PopoverContent>
 							</Popover>
@@ -411,7 +411,7 @@ export function CreateProcedureDrawer({
 								className="bg-white text-gray-600"
 								onClick={handleAddAttachmentRow}
 							>
-								<RiAddLine className="size-5" aria-hidden="true" />
+								<RiAddLine className="size-4" aria-hidden="true" />
 								Add related record
 							</Button>
 						</div>

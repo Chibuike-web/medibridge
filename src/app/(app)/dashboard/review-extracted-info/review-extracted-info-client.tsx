@@ -672,11 +672,11 @@ export function ReviewExtractedInfoClient({
 						<div className="flex min-h-60 flex-col items-center justify-center gap-3 text-center">
 							{isExtracting ? (
 								<RiLoader2Fill
-									className="size-5 animate-spin text-blue-500 motion-reduce:animate-none"
+									className="size-4 animate-spin text-blue-500 motion-reduce:animate-none"
 									aria-hidden="true"
 								/>
 							) : (
-								<RiErrorWarningFill className="size-5 text-red-700" aria-hidden="true" />
+								<RiErrorWarningFill className="size-4 text-red-700" aria-hidden="true" />
 							)}
 							<h2 className="text-base font-semibold text-balance">
 								{isExtracting

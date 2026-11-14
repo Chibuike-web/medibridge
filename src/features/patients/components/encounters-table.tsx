@@ -18,6 +18,7 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
 import { CreateEncounterDrawer } from "@/features/patients/components/create-encounter-drawer";
+import { AnimatedFilterChips } from "@/components/animated-filter-chips";
 import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
 import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
@@ -476,15 +477,15 @@ function EncountersBulkActionBar({
 	onClearSelection: () => void;
 	onViewEncounterDetails: (encounterId: string) => void;
 }) {
-	const selectedEncounterCount = selectedEncounters.length;
-	const singleSelectedEncounter = selectedEncounterCount === 1 ? selectedEncounters[0] : undefined;
+	const singleSelectedEncounter =
+		selectedEncounters.length === 1 ? selectedEncounters[0] : undefined;
 
-	if (selectedEncounterCount === 0) return null;
+	if (selectedEncounters.length === 0) return null;
 
 	return (
 		<AnimatedBulkBar>
 			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
-				{selectedEncounterCount} {selectedEncounterCount === 1 ? "item" : "items"} selected
+				{selectedEncounters.length} {selectedEncounters.length === 1 ? "item" : "items"} selected
 			</span>
 			<TableBulkActionSeparator />
 			<div className="flex items-center">
@@ -494,9 +495,9 @@ function EncountersBulkActionBar({
 						onClick={() => onViewEncounterDetails(singleSelectedEncounter.encounterId)}
 						variant="ghost"
 						size="sm"
-						className="h-9 gap-2 rounded-lg border-0 px-2 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
+						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
-						<RiEyeLine className="size-5" aria-hidden />
+						<RiEyeLine className="size-4" aria-hidden />
 						<span>View details</span>
 					</Button>
 				) : null}
@@ -506,8 +507,8 @@ function EncountersBulkActionBar({
 					size="sm"
 					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				>
-					<RiShare2Line className="size-5" aria-hidden />
-					<span>Export {selectedEncounterCount > 1 ? "all" : null}</span>
+					<RiShare2Line className="size-4" aria-hidden />
+					<span>Export {selectedEncounters.length > 1 ? "all" : null}</span>
 				</Button>
 				{canArchive ? (
 					<Button
@@ -516,8 +517,8 @@ function EncountersBulkActionBar({
 						size="sm"
 						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
-						<RiArchiveLine className="size-5" aria-hidden />
-						<span>Archive {selectedEncounterCount > 1 ? "all" : null}</span>
+						<RiArchiveLine className="size-4" aria-hidden />
+						<span>Archive {selectedEncounters.length > 1 ? "all" : null}</span>
 					</Button>
 				) : null}
 			</div>
@@ -529,7 +530,7 @@ function EncountersBulkActionBar({
 				className="size-8 border-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected encounters"
 			>
-				<RiCloseLine className="size-5" aria-hidden />
+				<RiCloseLine className="size-4" aria-hidden />
 			</Button>
 		</AnimatedBulkBar>
 	);
@@ -565,63 +566,69 @@ function EncounterActiveFilterChips({
 	const hasEncounterTypeFilters = encounterTypeFilters.length > 0;
 	const hasDepartmentFilters = departmentFilters.length > 0;
 
-	if (
-		!hasEncounterDateFilter &&
-		!hasCreatedAtFilter &&
-		!hasEncounterTypeFilters &&
-		!hasDepartmentFilters
-	) {
-		return null;
-	}
-
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{hasEncounterTypeFilters ? (
-				<FilterChip
-					name="Type"
-					value={formatChecklistFilterLabel(
-						encounterTypeFilters.map((encounterTypeFilter) =>
-							formatEncounterFilterValue(encounterTypeFilter),
-						),
-					)}
-					onRemove={() => onEncounterTypeFiltersChange([])}
-				/>
-			) : null}
-			{hasDepartmentFilters ? (
-				<FilterChip
-					name="Department"
-					value={formatChecklistFilterLabel(
-						departmentFilters.map((departmentFilter) =>
-							formatEncounterFilterValue(departmentFilter),
-						),
-					)}
-					onRemove={() => onDepartmentFiltersChange([])}
-				/>
-			) : null}
-			{hasEncounterDateFilter ? (
-				<FilterChip
-					name="Encounter"
-					value={formatDateRangeFilterLabel(encounterFrom, encounterTo)}
-					onRemove={() => onEncounterDateRangeApply("", "")}
-				/>
-			) : null}
-			{hasCreatedAtFilter ? (
-				<FilterChip
-					name="Created"
-					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
-			<Button
-				type="button"
-				variant="ghost"
-				size="sm"
-				className="h-8.5 text-gray-600"
-				onClick={onFiltersClear}
-			>
-				Clear all
-			</Button>
-		</div>
+		<AnimatedFilterChips
+			isVisible={
+				hasEncounterDateFilter ||
+				hasCreatedAtFilter ||
+				hasEncounterTypeFilters ||
+				hasDepartmentFilters
+			}
+		>
+			<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+				{hasEncounterTypeFilters ? (
+					<FilterChip
+						name="Type"
+						value={formatChecklistFilterLabel(
+							encounterTypeFilters.map((encounterTypeFilter) =>
+								encounterTypeFilter
+									.split("-")
+									.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+									.join(" "),
+							),
+						)}
+						onRemove={() => onEncounterTypeFiltersChange([])}
+					/>
+				) : null}
+				{hasDepartmentFilters ? (
+					<FilterChip
+						name="Department"
+						value={formatChecklistFilterLabel(
+							departmentFilters.map((departmentFilter) =>
+								departmentFilter
+									.split("-")
+									.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+									.join(" "),
+							),
+						)}
+						onRemove={() => onDepartmentFiltersChange([])}
+					/>
+				) : null}
+				{hasEncounterDateFilter ? (
+					<FilterChip
+						name="Encounter"
+						value={formatDateRangeFilterLabel(encounterFrom, encounterTo)}
+						onRemove={() => onEncounterDateRangeApply("", "")}
+					/>
+				) : null}
+				{hasCreatedAtFilter ? (
+					<FilterChip
+						name="Created"
+						value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+						onRemove={() => onCreatedAtRangeApply("", "")}
+					/>
+				) : null}
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="h-8.5 text-gray-600"
+					onClick={onFiltersClear}
+				>
+					Clear all
+				</Button>
+			</div>
+		</AnimatedFilterChips>
 	);
 }
 
@@ -646,13 +653,6 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 	}
 
 	return "Any date";
-}
-
-function formatEncounterFilterValue(value: string) {
-	return value
-		.split("-")
-		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-		.join(" ");
 }
 
 function getEncountersColumns(
@@ -732,7 +732,7 @@ function getEncountersColumns(
 							className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-800 data-[state=open]:bg-gray-200 data-[state=open]:text-gray-800"
 							aria-label={`Open actions for ${row.original.encounterId}`}
 						>
-							<RiMore2Fill className="size-5" aria-hidden />
+							<RiMore2Fill className="size-4" aria-hidden />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="rounded-xl bg-white text-sm text-gray-700">
 							<DropdownMenuItem asChild>

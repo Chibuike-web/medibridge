@@ -18,6 +18,7 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
+import { AnimatedFilterChips } from "@/components/animated-filter-chips";
 import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
 import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
@@ -214,42 +215,14 @@ export function AllergiesTable({
 						}
 					>
 						<FilterSection label="Status">
-							<RadioGroup
-								value={statusFilters[0] ?? "all"}
-								onValueChange={(nextStatusFilter) => {
-									onStatusFiltersChange(
-										nextStatusFilter === "all" ? [] : [nextStatusFilter as AllergyStatusFilter],
-									);
+							<AllergyRadioFilterList
+								name="allergy-status"
+								options={allergyStatusFilterOptions}
+								selectedValue={statusFilters[0]}
+								onSelectedValueChange={(nextStatusFilter) => {
+									onStatusFiltersChange(nextStatusFilter ? [nextStatusFilter] : []);
 								}}
-								className="flex flex-col gap-0.5"
-							>
-								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
-									<RadioGroupItem value="all" id="allergy-status-all" />
-									<Label
-										htmlFor="allergy-status-all"
-										className="cursor-pointer w-full leading-normal font-normal"
-									>
-										All
-									</Label>
-								</div>
-								{allergyStatusFilterOptions.map((statusOption) => (
-									<div
-										key={statusOption.value}
-										className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100"
-									>
-										<RadioGroupItem
-											value={statusOption.value}
-											id={`allergy-status-${statusOption.value}`}
-										/>
-										<Label
-											htmlFor={`allergy-status-${statusOption.value}`}
-											className="cursor-pointer w-full leading-normal font-normal"
-										>
-											{statusOption.label}
-										</Label>
-									</div>
-								))}
-							</RadioGroup>
+							/>
 						</FilterSection>
 						<FilterSection label="Severity">
 							<AllergyCheckboxFilterList
@@ -568,15 +541,14 @@ function AllergiesBulkActionBar({
 	onClearSelection: () => void;
 	onViewAllergyDetails: (allergyId: string) => void;
 }) {
-	const selectedAllergyCount = selectedAllergies.length;
-	const singleSelectedAllergy = selectedAllergyCount === 1 ? selectedAllergies[0] : undefined;
+	const singleSelectedAllergy = selectedAllergies.length === 1 ? selectedAllergies[0] : undefined;
 
-	if (selectedAllergyCount === 0) return null;
+	if (selectedAllergies.length === 0) return null;
 
 	return (
 		<AnimatedBulkBar>
 			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
-				{selectedAllergyCount} {selectedAllergyCount === 1 ? "item" : "items"} selected
+				{selectedAllergies.length} {selectedAllergies.length === 1 ? "item" : "items"} selected
 			</span>
 			<TableBulkActionSeparator />
 			<div className="flex items-center">
@@ -586,9 +558,9 @@ function AllergiesBulkActionBar({
 						onClick={() => onViewAllergyDetails(singleSelectedAllergy.allergyId)}
 						variant="ghost"
 						size="sm"
-						className="h-9 gap-2 rounded-lg border-0 px-2 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
+						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
-						<RiEyeLine className="size-5" aria-hidden />
+						<RiEyeLine className="size-4" aria-hidden />
 						<span>View details</span>
 					</Button>
 				) : null}
@@ -598,8 +570,8 @@ function AllergiesBulkActionBar({
 					size="sm"
 					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				>
-					<RiShare2Line className="size-5" aria-hidden />
-					<span>Export {selectedAllergyCount > 1 ? "all" : null}</span>
+					<RiShare2Line className="size-4" aria-hidden />
+					<span>Export {selectedAllergies.length > 1 ? "all" : null}</span>
 				</Button>
 				{canArchive ? (
 					<Button
@@ -608,8 +580,8 @@ function AllergiesBulkActionBar({
 						size="sm"
 						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
-						<RiArchiveLine className="size-5" aria-hidden />
-						<span>Archive {selectedAllergyCount > 1 ? "all" : null}</span>
+						<RiArchiveLine className="size-4" aria-hidden />
+						<span>Archive {selectedAllergies.length > 1 ? "all" : null}</span>
 					</Button>
 				) : null}
 			</div>
@@ -621,7 +593,7 @@ function AllergiesBulkActionBar({
 				className="size-8 border-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected allergies"
 			>
-				<RiCloseLine className="size-5" aria-hidden />
+				<RiCloseLine className="size-4" aria-hidden />
 			</Button>
 		</AnimatedBulkBar>
 	);
@@ -650,47 +622,50 @@ function AllergyActiveFilterChips({
 	const hasStatusFilters = statusFilters.length > 0;
 	const hasSeverityFilters = severityFilters.length > 0;
 
-	if (!hasCreatedAtFilter && !hasStatusFilters && !hasSeverityFilters) {
-		return null;
-	}
-
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{hasStatusFilters ? (
-				<FilterChip
-					name="Status"
-					value={formatChecklistFilterLabel(
-						statusFilters.map((statusFilter) => formatAllergyFilterValue(statusFilter)),
-					)}
-					onRemove={() => onStatusFiltersChange([])}
-				/>
-			) : null}
-			{hasSeverityFilters ? (
-				<FilterChip
-					name="Severity"
-					value={formatChecklistFilterLabel(
-						severityFilters.map((severityFilter) => formatAllergyFilterValue(severityFilter)),
-					)}
-					onRemove={() => onSeverityFiltersChange([])}
-				/>
-			) : null}
-			{hasCreatedAtFilter ? (
-				<FilterChip
-					name="Created"
-					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
-			<Button
-				type="button"
-				variant="ghost"
-				size="sm"
-				className="h-8.5 text-gray-600"
-				onClick={onFiltersClear}
-			>
-				Clear all
-			</Button>
-		</div>
+		<AnimatedFilterChips isVisible={hasCreatedAtFilter || hasStatusFilters || hasSeverityFilters}>
+			<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+				{hasStatusFilters ? (
+					<FilterChip
+						name="Status"
+						value={formatChecklistFilterLabel(
+							statusFilters.map(
+								(statusFilter) => statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1),
+							),
+						)}
+						onRemove={() => onStatusFiltersChange([])}
+					/>
+				) : null}
+				{hasSeverityFilters ? (
+					<FilterChip
+						name="Severity"
+						value={formatChecklistFilterLabel(
+							severityFilters.map(
+								(severityFilter) =>
+									severityFilter.charAt(0).toUpperCase() + severityFilter.slice(1),
+							),
+						)}
+						onRemove={() => onSeverityFiltersChange([])}
+					/>
+				) : null}
+				{hasCreatedAtFilter ? (
+					<FilterChip
+						name="Created"
+						value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+						onRemove={() => onCreatedAtRangeApply("", "")}
+					/>
+				) : null}
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="h-8.5 text-gray-600"
+					onClick={onFiltersClear}
+				>
+					Clear all
+				</Button>
+			</div>
+		</AnimatedFilterChips>
 	);
 }
 
@@ -715,10 +690,6 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 	}
 
 	return "Any date";
-}
-
-function formatAllergyFilterValue(value: string) {
-	return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 async function fetchPatientAllergyDetails(selectedId: string) {
@@ -820,7 +791,7 @@ function getAllergiesColumns({
 							className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-800 data-[state=open]:bg-gray-200 data-[state=open]:text-gray-800"
 							aria-label={`Open actions for ${row.original.allergen}`}
 						>
-							<RiMore2Fill className="size-5" aria-hidden />
+							<RiMore2Fill className="size-4" aria-hidden />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="rounded-xl bg-white text-sm text-gray-700">
 							<DropdownMenuItem
@@ -849,6 +820,43 @@ function getAllergiesColumns({
 			),
 		},
 	];
+}
+
+function AllergyRadioFilterList<TValue extends string>({
+	name,
+	options,
+	selectedValue,
+	onSelectedValueChange,
+}: {
+	name: string;
+	options: { label: string; value: TValue }[];
+	selectedValue: TValue | undefined;
+	onSelectedValueChange: (selectedValue: TValue | undefined) => void;
+}) {
+	return (
+		<RadioGroup
+			value={selectedValue ?? "all"}
+			onValueChange={(nextValue) => {
+				onSelectedValueChange(nextValue === "all" ? undefined : (nextValue as TValue));
+			}}
+			className="flex flex-col gap-0.5"
+		>
+			{[{ label: "All", value: "all" }, ...options].map((option) => (
+				<div
+					key={option.value}
+					className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100"
+				>
+					<RadioGroupItem value={option.value} id={`${name}-${option.value}`} />
+					<Label
+						htmlFor={`${name}-${option.value}`}
+						className="cursor-pointer w-full leading-normal font-normal"
+					>
+						{option.label}
+					</Label>
+				</div>
+			))}
+		</RadioGroup>
+	);
 }
 
 function AllergyCheckboxFilterList<TValue extends string>({

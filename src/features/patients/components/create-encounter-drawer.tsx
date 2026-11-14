@@ -2,7 +2,7 @@
 
 import { useMediaQuery } from "@/hooks/use-media-query";
 
-import { useId, useState, useTransition, type FormEvent } from "react";
+import { useId, useState, useTransition, type SubmitEvent } from "react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -56,7 +56,7 @@ export function CreateEncounterDrawer({
 	const [selectedEncounterDate, setSelectedEncounterDate] = useState(() => new Date());
 	const [isPending, startTransition] = useTransition();
 
-	function handleCreate(event: FormEvent<HTMLFormElement>) {
+	function handleCreate(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setFormError("");
 		const now = new Date();

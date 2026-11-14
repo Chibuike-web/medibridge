@@ -12,7 +12,6 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
-import { getOrganizationId } from "./get-organization-id";
 
 type AllergyDateFilters = {
 	createdFrom?: string;
@@ -32,6 +31,7 @@ function normalizeStatus(value: string): AllergyType["status"] {
 }
 
 export const getPatientAllergies = cache(async (
+	organizationId: string,
 	patientId: string,
 	page = 1,
 	limit = 14,
@@ -42,10 +42,6 @@ export const getPatientAllergies = cache(async (
 	severityFilters: AllergySeverityFilter[] = [],
 	encounterId?: string,
 ): Promise<{ allergies: AllergyType[]; totalAllergies: number }> => {
-	const organizationId = await getOrganizationId();
-
-	if (!organizationId) return { allergies: [], totalAllergies: 0 };
-
 	return getPatientAllergiesForOrganization(
 		patientId,
 		organizationId,

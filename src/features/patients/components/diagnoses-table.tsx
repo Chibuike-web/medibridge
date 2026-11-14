@@ -8,6 +8,7 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
+import { AnimatedFilterChips } from "@/components/animated-filter-chips";
 import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
 import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
@@ -215,42 +216,14 @@ export function DiagnosesTable({
 						}
 					>
 						<FilterSection label="Status">
-							<RadioGroup
-								value={statusFilters[0] ?? "all"}
-								onValueChange={(nextStatusFilter) => {
-									onStatusFiltersChange(
-										nextStatusFilter === "all" ? [] : [nextStatusFilter as DiagnosisStatusFilter],
-									);
+							<DiagnosisRadioFilterList
+								name="diagnosis-status"
+								options={diagnosisStatusFilterOptions}
+								selectedValue={statusFilters[0]}
+								onSelectedValueChange={(nextStatusFilter) => {
+									onStatusFiltersChange(nextStatusFilter ? [nextStatusFilter] : []);
 								}}
-								className="flex flex-col gap-0.5"
-							>
-								<div className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100">
-									<RadioGroupItem value="all" id="diagnosis-status-all" />
-									<Label
-										htmlFor="diagnosis-status-all"
-										className="cursor-pointer w-full leading-normal font-normal"
-									>
-										All
-									</Label>
-								</div>
-								{diagnosisStatusFilterOptions.map((statusOption) => (
-									<div
-										key={statusOption.value}
-										className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100"
-									>
-										<RadioGroupItem
-											value={statusOption.value}
-											id={`diagnosis-status-${statusOption.value}`}
-										/>
-										<Label
-											htmlFor={`diagnosis-status-${statusOption.value}`}
-											className="cursor-pointer w-full leading-normal font-normal"
-										>
-											{statusOption.label}
-										</Label>
-									</div>
-								))}
-							</RadioGroup>
+							/>
 						</FilterSection>
 						<DateFilterSection
 							label="Last updated"
@@ -578,17 +551,16 @@ function DiagnosesBulkActionBar({
 	onClearSelection: () => void;
 	onViewDiagnosisDetails: (diagnosisId: string) => void;
 }) {
-	const selectedDiagnosisCount = selectedDiagnoses.length;
-	const singleSelectedDiagnosis = selectedDiagnosisCount === 1 ? selectedDiagnoses[0] : undefined;
+	const singleSelectedDiagnosis = selectedDiagnoses.length === 1 ? selectedDiagnoses[0] : undefined;
 
-	if (selectedDiagnosisCount === 0) {
+	if (selectedDiagnoses.length === 0) {
 		return null;
 	}
 
 	return (
 		<AnimatedBulkBar>
 			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
-				{selectedDiagnosisCount} {selectedDiagnosisCount === 1 ? "item" : "items"} selected
+				{selectedDiagnoses.length} {selectedDiagnoses.length === 1 ? "item" : "items"} selected
 			</span>
 			<TableBulkActionSeparator />
 			<div className="flex items-center">
@@ -601,9 +573,9 @@ function DiagnosesBulkActionBar({
 							}}
 							variant="ghost"
 							size="sm"
-							className="h-9 gap-2 rounded-lg border-0 px-2 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
+							className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 						>
-							<RiEyeLine className="size-5" aria-hidden={true} />
+							<RiEyeLine className="size-4" aria-hidden={true} />
 							<span>View details</span>
 						</Button>
 					</>
@@ -614,8 +586,8 @@ function DiagnosesBulkActionBar({
 					size="sm"
 					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				>
-					<RiShare2Line className="size-5" aria-hidden={true} />
-					<span>Export {selectedDiagnosisCount > 1 ? "all" : null}</span>
+					<RiShare2Line className="size-4" aria-hidden={true} />
+					<span>Export {selectedDiagnoses.length > 1 ? "all" : null}</span>
 				</Button>
 				{canArchive ? (
 					<Button
@@ -624,8 +596,8 @@ function DiagnosesBulkActionBar({
 						size="sm"
 						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
-						<RiArchiveLine className="size-5" aria-hidden={true} />
-						<span>Archive {selectedDiagnosisCount > 1 ? "all" : null}</span>
+						<RiArchiveLine className="size-4" aria-hidden={true} />
+						<span>Archive {selectedDiagnoses.length > 1 ? "all" : null}</span>
 					</Button>
 				) : null}
 			</div>
@@ -637,7 +609,7 @@ function DiagnosesBulkActionBar({
 				className="size-8 border-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected diagnoses"
 			>
-				<RiCloseLine className="size-5" aria-hidden={true} />
+				<RiCloseLine className="size-4" aria-hidden={true} />
 			</Button>
 		</AnimatedBulkBar>
 	);
@@ -675,58 +647,60 @@ function DiagnosisActiveFilterChips({
 	const hasLastReviewedFilter = Boolean(lastReviewedFrom || lastReviewedTo);
 	const hasStatusFilters = statusFilters.length > 0;
 
-	if (!hasCreatedAtFilter && !hasDiagnosedAtFilter && !hasLastReviewedFilter && !hasStatusFilters) {
-		return null;
-	}
-
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{hasStatusFilters ? (
-				<FilterChip
-					name="Status"
-					value={formatChecklistFilterLabel(
-						statusFilters.map((statusFilter) => {
-							const statusOption = diagnosisStatusFilterOptions.find(
-								(option) => option.value === statusFilter,
-							);
+		<AnimatedFilterChips
+			isVisible={
+				hasCreatedAtFilter || hasDiagnosedAtFilter || hasLastReviewedFilter || hasStatusFilters
+			}
+		>
+			<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+				{hasStatusFilters ? (
+					<FilterChip
+						name="Status"
+						value={formatChecklistFilterLabel(
+							statusFilters.map((statusFilter) => {
+								const statusOption = diagnosisStatusFilterOptions.find(
+									(option) => option.value === statusFilter,
+								);
 
-							return statusOption?.label ?? statusFilter;
-						}),
-					)}
-					onRemove={() => onStatusFiltersChange([])}
-				/>
-			) : null}
-			{hasDiagnosedAtFilter ? (
-				<FilterChip
-					name="Diagnosed"
-					value={formatDateRangeFilterLabel(diagnosedFrom, diagnosedTo)}
-					onRemove={() => onDiagnosedAtRangeApply("", "")}
-				/>
-			) : null}
-			{hasLastReviewedFilter ? (
-				<FilterChip
-					name="Last reviewed"
-					value={formatDateRangeFilterLabel(lastReviewedFrom, lastReviewedTo)}
-					onRemove={() => onLastReviewedRangeApply("", "")}
-				/>
-			) : null}
-			{hasCreatedAtFilter ? (
-				<FilterChip
-					name="Created"
-					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
-			<Button
-				type="button"
-				variant="ghost"
-				size="sm"
-				className="h-8.5 text-gray-600"
-				onClick={onFiltersClear}
-			>
-				Clear all
-			</Button>
-		</div>
+								return statusOption?.label ?? statusFilter;
+							}),
+						)}
+						onRemove={() => onStatusFiltersChange([])}
+					/>
+				) : null}
+				{hasDiagnosedAtFilter ? (
+					<FilterChip
+						name="Diagnosed"
+						value={formatDateRangeFilterLabel(diagnosedFrom, diagnosedTo)}
+						onRemove={() => onDiagnosedAtRangeApply("", "")}
+					/>
+				) : null}
+				{hasLastReviewedFilter ? (
+					<FilterChip
+						name="Last reviewed"
+						value={formatDateRangeFilterLabel(lastReviewedFrom, lastReviewedTo)}
+						onRemove={() => onLastReviewedRangeApply("", "")}
+					/>
+				) : null}
+				{hasCreatedAtFilter ? (
+					<FilterChip
+						name="Created"
+						value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+						onRemove={() => onCreatedAtRangeApply("", "")}
+					/>
+				) : null}
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="h-8.5 text-gray-600"
+					onClick={onFiltersClear}
+				>
+					Clear all
+				</Button>
+			</div>
+		</AnimatedFilterChips>
 	);
 }
 
@@ -854,7 +828,7 @@ function getDiagnosesColumns({
 							className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-800 data-[state=open]:bg-gray-200 data-[state=open]:text-gray-800"
 							aria-label={`Open actions for ${row.original.name}`}
 						>
-							<RiMore2Fill className="size-5" aria-hidden />
+							<RiMore2Fill className="size-4" aria-hidden />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="rounded-xl bg-white text-sm text-gray-700">
 							<DropdownMenuItem
@@ -885,4 +859,41 @@ function getDiagnosesColumns({
 			),
 		},
 	];
+}
+
+function DiagnosisRadioFilterList<TValue extends string>({
+	name,
+	options,
+	selectedValue,
+	onSelectedValueChange,
+}: {
+	name: string;
+	options: { label: string; value: TValue }[];
+	selectedValue: TValue | undefined;
+	onSelectedValueChange: (selectedValue: TValue | undefined) => void;
+}) {
+	return (
+		<RadioGroup
+			value={selectedValue ?? "all"}
+			onValueChange={(nextValue) => {
+				onSelectedValueChange(nextValue === "all" ? undefined : (nextValue as TValue));
+			}}
+			className="flex flex-col gap-0.5"
+		>
+			{[{ label: "All", value: "all" }, ...options].map((option) => (
+				<div
+					key={option.value}
+					className="flex h-8 items-center gap-2 rounded-lg px-2 hover:bg-gray-100"
+				>
+					<RadioGroupItem value={option.value} id={`${name}-${option.value}`} />
+					<Label
+						htmlFor={`${name}-${option.value}`}
+						className="cursor-pointer w-full leading-normal font-normal"
+					>
+						{option.label}
+					</Label>
+				</div>
+			))}
+		</RadioGroup>
+	);
 }

@@ -31,7 +31,7 @@ import { createPatientAllergyAction } from "@/features/patients/server/create-pa
 import { allergySeverities, allergyStatuses } from "@/features/patients/server/schemas";
 import { RiAddLine, RiCloseLine, RiErrorWarningFill } from "@remixicon/react";
 import { useRouter } from "next/navigation";
-import { useId, useRef, useState, useTransition, type FormEvent } from "react";
+import { SubmitEvent, useId, useRef, useState, useTransition } from "react";
 
 type CreateAllergyDrawerProps = {
 	open: boolean;
@@ -67,7 +67,7 @@ export function CreateAllergyDrawer({
 		onOpenChange(isOpen);
 	}
 
-	function handleCreate(event: FormEvent<HTMLFormElement>) {
+	function handleCreate(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setFormError("");
 		const formData = new FormData(event.currentTarget);
@@ -256,7 +256,7 @@ export function CreateAllergyDrawer({
 								className="bg-white text-gray-600"
 								onClick={handleAddAttachmentRow}
 							>
-								<RiAddLine className="size-5" aria-hidden="true" />
+								<RiAddLine className="size-4" aria-hidden="true" />
 								Add related record
 							</Button>
 						</div>

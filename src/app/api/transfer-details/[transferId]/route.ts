@@ -1,4 +1,4 @@
-import { getTransferDetails } from "@/lib/api/get-transfer-details";
+import { getTransferDetailsForOrganization } from "@/lib/api/get-transfer-details";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 
@@ -35,7 +35,7 @@ export async function GET(
 	}
 
 	const { transferId } = await context.params;
-	const transfer = await getTransferDetails(transferId);
+	const transfer = await getTransferDetailsForOrganization(transferId, organizationId);
 
 	if (!transfer) {
 		return Response.json({ transfer: null }, { status: 404 });

@@ -68,7 +68,7 @@ import {
 	RiShare2Line,
 } from "@remixicon/react";
 import { format, parseISO } from "date-fns";
-import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
+import { Fragment, useId, useRef, useState, useTransition, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import { updatePatientProcedureAction } from "@/features/patients/server/update-patient-procedure-action";
 import { markPatientProcedureCompletedAction } from "@/features/patients/server/mark-patient-procedure-completed-action";
@@ -119,7 +119,7 @@ export function ProcedureDetailsDrawer({
 		onOpenChange(nextOpen);
 	}
 
-	function handleSave(event: FormEvent<HTMLFormElement>) {
+	function handleSave(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 
 		if (!procedure) return;
@@ -407,7 +407,7 @@ function ProcedureDetailsEditForm({
 	procedure: ProcedureDetailsType;
 	formError: string;
 	onFormErrorDismiss: () => void;
-	onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+	onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
 }) {
 	const [originalUpdatedAt] = useState(() => procedure.editValues.updatedAt);
 	const generatedAttachmentRowId = useId();
@@ -641,7 +641,7 @@ function ProcedureDetailsEditForm({
 									{selectedAssistantSummary ?? "Enter assistants"}
 								</span>
 								<RiArrowDownSLine
-									className="size-5 shrink-0 text-gray-500 transition-transform group-data-[state=open]:rotate-180"
+									className="size-4 shrink-0 text-gray-500 transition-transform group-data-[state=open]:rotate-180"
 									aria-hidden="true"
 								/>
 							</PopoverTrigger>
@@ -683,7 +683,7 @@ function ProcedureDetailsEditForm({
 									className="flex w-full justify-between bg-gray-100 px-3 text-left text-gray-600 hover:bg-gray-200 border-0 font-normal hover:text-gray-600 focus-visible:border-0 active:scale-100"
 								>
 									<span>Add more</span>
-									<RiAddLine className="size-5" aria-hidden="true" />
+									<RiAddLine className="size-4" aria-hidden="true" />
 								</Button>
 							</PopoverContent>
 						</Popover>
@@ -743,7 +743,7 @@ function ProcedureDetailsEditForm({
 						className="bg-white text-gray-600"
 						onClick={handleAddProcedureAttachmentRow}
 					>
-						<RiAddLine className="size-5" aria-hidden="true" />
+						<RiAddLine className="size-4" aria-hidden="true" />
 						Add related record
 					</Button>
 				</div>
@@ -857,7 +857,7 @@ function ProcedureRelatedRecordSection({
 				</span>
 				<RiArrowDownSLine
 					className={cn(
-						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						"size-4 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						isRelatedProcedureRecordExpanded ? "rotate-180" : "",
 					)}
 					aria-hidden="true"
@@ -948,7 +948,7 @@ function ProcedureHistoryCard({ historyEvent }: { historyEvent: ProcedureDetails
 				</p>
 				<RiArrowDownSLine
 					className={cn(
-						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						"size-4 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						isProcedureHistoryExpanded ? "rotate-180" : "",
 					)}
 					aria-hidden="true"

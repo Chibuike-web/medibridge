@@ -1,6 +1,6 @@
 import { patientUploads } from "@/lib/storage/client";
 import path from "node:path";
-import { getPatientExtractionById } from "@/lib/api/get-patient-extraction-by-id";
+import { getPatientExtractionForOrganization } from "@/lib/api/get-patient-extraction-by-id";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 
@@ -45,7 +45,7 @@ export async function GET(
 	}
 
 	const { extractionId, documentId } = await context.params;
-	const extraction = await getPatientExtractionById(extractionId);
+	const extraction = await getPatientExtractionForOrganization(extractionId, organizationId);
 	const fileExtension = path.extname(documentId).toLowerCase();
 	const contentType = documentContentTypes[fileExtension];
 

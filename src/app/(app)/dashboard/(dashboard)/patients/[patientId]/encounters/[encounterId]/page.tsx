@@ -17,15 +17,18 @@ import {
 	CreateVitalsEmptyStateAction,
 } from "@/features/patients/components/patient-empty-state-actions";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
-import { getPatientById } from "@/lib/api/get-patient-by-id";
+import { getPatientByIdForOrganization } from "@/lib/api/get-patient-by-id";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
-import { getPatientEncounter } from "@/lib/api/get-patient-encounter";
+import { getPatientEncounterForOrganization } from "@/lib/api/get-patient-encounter";
 import { getPatientImaging } from "@/lib/api/get-patient-imaging";
 import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
 import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
 import { getPatientMedications } from "@/lib/api/get-patient-medications";
 import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
-import { getPatientVitalReadings, getPatientVitals } from "@/lib/api/get-patient-vitals";
+import {
+	getPatientVitalReadingsForOrganization,
+	getPatientVitals,
+} from "@/lib/api/get-patient-vitals";
 import { verifySession } from "@/lib/api/verify-session";
 import { getOrganizationContext } from "@/lib/api/get-organization-id";
 import { AllergiesClient } from "../../patient-section-table-clients/allergies-client";
@@ -247,9 +250,10 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 		vitalsResult,
 		vitalReadings,
 	] = await Promise.all([
-		getPatientById(patientId),
-		getPatientEncounter(patientId, encounterId),
+		getPatientByIdForOrganization(patientId, organizationContext.organizationId),
+		getPatientEncounterForOrganization(patientId, encounterId, organizationContext.organizationId),
 		getPatientMedications(
+			organizationContext.organizationId,
 			patientId,
 			medicationsParams.page,
 			medicationsParams.limit,
@@ -260,6 +264,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			encounterId,
 		),
 		getPatientAllergies(
+			organizationContext.organizationId,
 			patientId,
 			allergiesParams.page,
 			allergiesParams.limit,
@@ -271,6 +276,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			encounterId,
 		),
 		getPatientDiagnoses(
+			organizationContext.organizationId,
 			patientId,
 			diagnosesParams.page,
 			diagnosesParams.limit,
@@ -288,6 +294,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			encounterId,
 		),
 		getPatientImmunizations(
+			organizationContext.organizationId,
 			patientId,
 			immunizationsParams.page,
 			immunizationsParams.limit,
@@ -298,6 +305,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			encounterId,
 		),
 		getPatientProcedures(
+			organizationContext.organizationId,
 			patientId,
 			proceduresParams.page,
 			proceduresParams.limit,
@@ -308,6 +316,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			encounterId,
 		),
 		getPatientLabTests(
+			organizationContext.organizationId,
 			patientId,
 			labTestsParams.page,
 			labTestsParams.limit,
@@ -319,6 +328,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			encounterId,
 		),
 		getPatientImaging(
+			organizationContext.organizationId,
 			patientId,
 			imagingParams.page,
 			imagingParams.limit,
@@ -335,6 +345,7 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			encounterId,
 		),
 		getPatientVitals(
+			organizationContext.organizationId,
 			patientId,
 			vitalsParams.page,
 			vitalsParams.limit,
@@ -348,7 +359,11 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 			},
 			encounterId,
 		),
-		getPatientVitalReadings(patientId, encounterId),
+		getPatientVitalReadingsForOrganization(
+			patientId,
+			organizationContext.organizationId,
+			encounterId,
+		),
 	]);
 
 	if (!patient || !encounter) {
@@ -385,11 +400,12 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 		Math.ceil(imagingResult.totalImagingStudies / imagingParams.limit),
 	);
 
-	const lastPageParams = new URLSearchParams(
-		Object.entries(tableParams).flatMap(([name, value]) =>
-			typeof value === "string" ? [[name, value]] : [],
-		),
-	);
+	const lastPageParams = new URLSearchParams();
+	for (const [name, value] of Object.entries(tableParams)) {
+		if (typeof value === "string") {
+			lastPageParams.set(name, value);
+		}
+	}
 	const currentQueryString = lastPageParams.toString();
 	if (vitalsParams.page > vitalsTotalPages) {
 		lastPageParams.set("vitalsPage", String(vitalsTotalPages));
@@ -446,15 +462,15 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 					<RiArrowLeftLine className="size-4" aria-hidden="true" />
 					Patients
 				</Link>
-				<RiArrowRightSLine className="size-5 shrink-0 text-gray-400" aria-hidden />
+				<RiArrowRightSLine className="size-4 shrink-0 text-gray-400" aria-hidden />
 				<Link href={backHref} className="shrink-0 text-gray-600">
 					{`${patient.firstName} ${patient.lastName}`}
 				</Link>
-				<RiArrowRightSLine className="size-5 shrink-0 text-gray-400" aria-hidden />
+				<RiArrowRightSLine className="size-4 shrink-0 text-gray-400" aria-hidden />
 				<Link href={backHref} className="shrink-0 text-gray-600">
 					Encounters
 				</Link>
-				<RiArrowRightSLine className="size-5 shrink-0 text-gray-400" aria-hidden />
+				<RiArrowRightSLine className="size-4 shrink-0 text-gray-400" aria-hidden />
 				<span className="shrink-0 font-semibold text-gray-800">Encounter details</span>
 			</nav>
 
@@ -468,14 +484,11 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 							title="Vitals"
 							isEmpty={
 								vitalsResult.totalVitals === 0 &&
-								!(
-									vitalsParams.page !== 1 ||
-									Boolean(vitalsParams.searchQuery) ||
-									Boolean(vitalsParams.recordedFrom) ||
-									Boolean(vitalsParams.recordedTo) ||
-									Boolean(vitalsParams.createdFrom) ||
-									Boolean(vitalsParams.createdTo)
-								)
+								vitalsParams.searchQuery === "" &&
+								vitalsParams.recordedFrom === "" &&
+								vitalsParams.recordedTo === "" &&
+								vitalsParams.createdFrom === "" &&
+								vitalsParams.createdTo === ""
 							}
 							addAction={
 								<CreateVitalsEmptyStateAction
@@ -509,13 +522,10 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 							title="Medications"
 							isEmpty={
 								medicationsResult.totalMedications === 0 &&
-								!(
-									medicationsParams.page !== 1 ||
-									Boolean(medicationsParams.searchQuery) ||
-									Boolean(medicationsParams.createdFrom) ||
-									Boolean(medicationsParams.createdTo) ||
-									medicationsParams.statusFilters.length > 0
-								)
+								medicationsParams.searchQuery === "" &&
+								medicationsParams.createdFrom === "" &&
+								medicationsParams.createdTo === "" &&
+								medicationsParams.statusFilters.length === 0
 							}
 							addAction={
 								<CreateMedicationEmptyStateAction
@@ -545,14 +555,11 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 							title="Allergies"
 							isEmpty={
 								allergiesResult.totalAllergies === 0 &&
-								!(
-									allergiesParams.page !== 1 ||
-									Boolean(allergiesParams.searchQuery) ||
-									Boolean(allergiesParams.createdFrom) ||
-									Boolean(allergiesParams.createdTo) ||
-									allergiesParams.statusFilters.length > 0 ||
-									allergiesParams.severityFilters.length > 0
-								)
+								allergiesParams.searchQuery === "" &&
+								allergiesParams.createdFrom === "" &&
+								allergiesParams.createdTo === "" &&
+								allergiesParams.statusFilters.length === 0 &&
+								allergiesParams.severityFilters.length === 0
 							}
 							addAction={
 								<CreateAllergyEmptyStateAction
@@ -583,17 +590,14 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 							title="Diagnoses"
 							isEmpty={
 								diagnosesResult.totalDiagnoses === 0 &&
-								!(
-									diagnosesParams.page !== 1 ||
-									Boolean(diagnosesParams.searchQuery) ||
-									Boolean(diagnosesParams.createdFrom) ||
-									Boolean(diagnosesParams.createdTo) ||
-									Boolean(diagnosesParams.diagnosedFrom) ||
-									Boolean(diagnosesParams.diagnosedTo) ||
-									Boolean(diagnosesParams.lastReviewedFrom) ||
-									Boolean(diagnosesParams.lastReviewedTo) ||
-									diagnosesParams.statusFilters.length > 0
-								)
+								diagnosesParams.searchQuery === "" &&
+								diagnosesParams.createdFrom === "" &&
+								diagnosesParams.createdTo === "" &&
+								diagnosesParams.diagnosedFrom === "" &&
+								diagnosesParams.diagnosedTo === "" &&
+								diagnosesParams.lastReviewedFrom === "" &&
+								diagnosesParams.lastReviewedTo === "" &&
+								diagnosesParams.statusFilters.length === 0
 							}
 							addAction={
 								<CreateDiagnosisEmptyStateAction
@@ -627,13 +631,10 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 							title="Immunizations"
 							isEmpty={
 								immunizationsResult.totalImmunizations === 0 &&
-								!(
-									immunizationsParams.page !== 1 ||
-									Boolean(immunizationsParams.searchQuery) ||
-									Boolean(immunizationsParams.createdFrom) ||
-									Boolean(immunizationsParams.createdTo) ||
-									immunizationsParams.statusFilters.length > 0
-								)
+								immunizationsParams.searchQuery === "" &&
+								immunizationsParams.createdFrom === "" &&
+								immunizationsParams.createdTo === "" &&
+								immunizationsParams.statusFilters.length === 0
 							}
 							addAction={
 								<CreateImmunizationEmptyStateAction
@@ -663,13 +664,10 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 							title="Procedures"
 							isEmpty={
 								proceduresResult.totalProcedures === 0 &&
-								!(
-									proceduresParams.page !== 1 ||
-									Boolean(proceduresParams.searchQuery) ||
-									Boolean(proceduresParams.createdFrom) ||
-									Boolean(proceduresParams.createdTo) ||
-									proceduresParams.statusFilters.length > 0
-								)
+								proceduresParams.searchQuery === "" &&
+								proceduresParams.createdFrom === "" &&
+								proceduresParams.createdTo === "" &&
+								proceduresParams.statusFilters.length === 0
 							}
 							addAction={
 								<CreateProcedureEmptyStateAction
@@ -699,14 +697,11 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 							title="Lab tests"
 							isEmpty={
 								labTestsResult.totalLabTests === 0 &&
-								!(
-									labTestsParams.page !== 1 ||
-									Boolean(labTestsParams.searchQuery) ||
-									Boolean(labTestsParams.createdFrom) ||
-									Boolean(labTestsParams.createdTo) ||
-									labTestsParams.statusFilters.length > 0 ||
-									labTestsParams.flagFilters.length > 0
-								)
+								labTestsParams.searchQuery === "" &&
+								labTestsParams.createdFrom === "" &&
+								labTestsParams.createdTo === "" &&
+								labTestsParams.statusFilters.length === 0 &&
+								labTestsParams.flagFilters.length === 0
 							}
 							addAction={
 								<CreateLabTestEmptyStateAction
@@ -737,16 +732,13 @@ async function EncounterDetailsContent({ params, searchParams }: EncounterDetail
 							title="Imaging"
 							isEmpty={
 								imagingResult.totalImagingStudies === 0 &&
-								!(
-									imagingParams.page !== 1 ||
-									Boolean(imagingParams.searchQuery) ||
-									Boolean(imagingParams.orderedFrom) ||
-									Boolean(imagingParams.orderedTo) ||
-									Boolean(imagingParams.createdFrom) ||
-									Boolean(imagingParams.createdTo) ||
-									imagingParams.statusFilters.length > 0 ||
-									imagingParams.modalityFilters.length > 0
-								)
+								imagingParams.searchQuery === "" &&
+								imagingParams.orderedFrom === "" &&
+								imagingParams.orderedTo === "" &&
+								imagingParams.createdFrom === "" &&
+								imagingParams.createdTo === "" &&
+								imagingParams.statusFilters.length === 0 &&
+								imagingParams.modalityFilters.length === 0
 							}
 							addAction={
 								<CreateImagingEmptyStateAction

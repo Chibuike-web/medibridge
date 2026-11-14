@@ -66,6 +66,7 @@ export async function GET(request: Request) {
 	}
 
 	const { records, totalRecords } = await getClinicalRecordOptions({
+		organizationId,
 		patientId,
 		type,
 		page,
@@ -82,12 +83,14 @@ export async function GET(request: Request) {
 }
 
 async function getClinicalRecordOptions({
+	organizationId,
 	patientId,
 	type,
 	page,
 	limit,
 	query,
 }: {
+	organizationId: string;
 	patientId: string;
 	type: string;
 	page: number;
@@ -110,7 +113,13 @@ async function getClinicalRecordOptions({
 	}
 
 	if (type === "diagnoses") {
-		const { diagnoses, totalDiagnoses } = await getPatientDiagnoses(patientId, page, limit, query);
+		const { diagnoses, totalDiagnoses } = await getPatientDiagnoses(
+			organizationId,
+			patientId,
+			page,
+			limit,
+			query,
+		);
 
 		return {
 			totalRecords: totalDiagnoses,
@@ -124,7 +133,13 @@ async function getClinicalRecordOptions({
 	}
 
 	if (type === "allergies") {
-		const { allergies, totalAllergies } = await getPatientAllergies(patientId, page, limit, query);
+		const { allergies, totalAllergies } = await getPatientAllergies(
+			organizationId,
+			patientId,
+			page,
+			limit,
+			query,
+		);
 
 		return {
 			totalRecords: totalAllergies,
@@ -139,6 +154,7 @@ async function getClinicalRecordOptions({
 
 	if (type === "immunizations") {
 		const { immunizations, totalImmunizations } = await getPatientImmunizations(
+			organizationId,
 			patientId,
 			page,
 			limit,
@@ -158,6 +174,7 @@ async function getClinicalRecordOptions({
 
 	if (type === "procedures") {
 		const { procedures, totalProcedures } = await getPatientProcedures(
+			organizationId,
 			patientId,
 			page,
 			limit,
@@ -177,6 +194,7 @@ async function getClinicalRecordOptions({
 
 	if (type === "medications") {
 		const { medications, totalMedications } = await getPatientMedications(
+			organizationId,
 			patientId,
 			page,
 			limit,
@@ -195,7 +213,13 @@ async function getClinicalRecordOptions({
 	}
 
 	if (type === "lab-tests") {
-		const { labTests, totalLabTests } = await getPatientLabTests(patientId, page, limit, query);
+		const { labTests, totalLabTests } = await getPatientLabTests(
+			organizationId,
+			patientId,
+			page,
+			limit,
+			query,
+		);
 
 		return {
 			totalRecords: totalLabTests,
@@ -209,6 +233,7 @@ async function getClinicalRecordOptions({
 	}
 
 	const { imagingStudies, totalImagingStudies } = await getPatientImaging(
+		organizationId,
 		patientId,
 		page,
 		limit,

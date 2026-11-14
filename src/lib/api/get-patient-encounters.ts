@@ -12,7 +12,6 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 import { toSortValue } from "@/lib/utils/to-sort-value";
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { endOfDay, startOfDay } from "date-fns";
-import { getOrganizationId } from "./get-organization-id";
 
 type EncounterDateFilters = {
 	encounterFrom?: string;
@@ -51,6 +50,7 @@ function toDatabaseEncounterDepartmentFilter(departmentFilter: EncounterDepartme
 }
 
 export const getPatientEncounters = cache(async (
+	organizationId: string,
 	patientId: string,
 	page = 1,
 	limit = 14,
@@ -60,10 +60,6 @@ export const getPatientEncounters = cache(async (
 	encounterTypeFilters: EncounterTypeFilter[] = [],
 	departmentFilters: EncounterDepartmentFilter[] = [],
 ): Promise<{ encounters: EncounterType[]; totalEncounters: number }> => {
-	const organizationId = await getOrganizationId();
-
-	if (!organizationId) return { encounters: [], totalEncounters: 0 };
-
 	return getPatientEncountersForOrganization(
 		patientId,
 		organizationId,

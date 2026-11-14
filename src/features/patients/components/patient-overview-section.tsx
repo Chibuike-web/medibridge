@@ -8,7 +8,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { getPatientProfile } from "@/lib/api/get-patient-profile";
+import { getPatientProfileForOrganization } from "@/lib/api/get-patient-profile";
 import { cn } from "@/lib/utils/cn";
 import { notFound } from "next/navigation";
 import { DetailItem, DetailsSection } from "./patient-details-section/detail-fields";
@@ -31,8 +31,14 @@ type RecentAllergy = {
 	status: "Active" | "Inactive";
 };
 
-export async function PatientOverviewSection({ patientId }: { patientId: string }) {
-	const profile = await getPatientProfile(patientId);
+export async function PatientOverviewSection({
+	organizationId,
+	patientId,
+}: {
+	organizationId: string;
+	patientId: string;
+}) {
+	const profile = await getPatientProfileForOrganization(patientId, organizationId);
 
 	if (!profile) {
 		notFound();

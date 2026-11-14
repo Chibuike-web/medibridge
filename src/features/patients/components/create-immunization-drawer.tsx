@@ -31,7 +31,7 @@ import { authClient } from "@/lib/better-auth/auth.client";
 import { RiCalendarLine, RiCloseLine, RiErrorWarningFill } from "@remixicon/react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { useId, useState, useTransition, type FormEvent } from "react";
+import { useId, useState, useTransition, type SubmitEvent } from "react";
 
 type CreateImmunizationDrawerProps = {
 	open: boolean;
@@ -67,7 +67,7 @@ export function CreateImmunizationDrawer({
 		onOpenChange(isOpen);
 	}
 
-	function handleCreate(event: FormEvent<HTMLFormElement>) {
+	function handleCreate(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setFormError("");
 		const formData = new FormData(event.currentTarget);

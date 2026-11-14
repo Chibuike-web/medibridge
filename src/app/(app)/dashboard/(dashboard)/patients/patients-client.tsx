@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatedFilterChips } from "@/components/animated-filter-chips";
 import { FilterChip } from "@/components/filter-chip";
 import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
@@ -363,43 +364,43 @@ function PatientActiveFilterChips({
 }) {
 	const hasCreatedAtFilter = Boolean(createdFrom || createdTo);
 
-	if (!ageGroupFilter && !genderFilter && !hasCreatedAtFilter) {
-		return null;
-	}
-
 	return (
-		<div className="mb-4 flex flex-wrap gap-2">
-			{genderFilter ? (
-				<FilterChip
-					name="Gender"
-					value={patientGenderFilterLabels[genderFilter]}
-					onRemove={() => onGenderFilterChange("")}
-				/>
-			) : null}
-			{ageGroupFilter ? (
-				<FilterChip
-					name="Age"
-					value={patientAgeGroupFilterLabels[ageGroupFilter]}
-					onRemove={() => onAgeGroupFilterChange("")}
-				/>
-			) : null}
-			{hasCreatedAtFilter ? (
-				<FilterChip
-					name="Created"
-					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
-			<Button
-				type="button"
-				variant="ghost"
-				size="sm"
-				className="h-8.5 text-gray-600"
-				onClick={onFiltersClear}
-			>
-				Clear all
-			</Button>
-		</div>
+		<AnimatedFilterChips
+			isVisible={ageGroupFilter !== "" || genderFilter !== "" || hasCreatedAtFilter}
+		>
+			<div className="mb-4 flex flex-wrap gap-2">
+				{genderFilter ? (
+					<FilterChip
+						name="Gender"
+						value={patientGenderFilterLabels[genderFilter]}
+						onRemove={() => onGenderFilterChange("")}
+					/>
+				) : null}
+				{ageGroupFilter ? (
+					<FilterChip
+						name="Age"
+						value={patientAgeGroupFilterLabels[ageGroupFilter]}
+						onRemove={() => onAgeGroupFilterChange("")}
+					/>
+				) : null}
+				{hasCreatedAtFilter ? (
+					<FilterChip
+						name="Created"
+						value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+						onRemove={() => onCreatedAtRangeApply("", "")}
+					/>
+				) : null}
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="h-8.5 text-gray-600"
+					onClick={onFiltersClear}
+				>
+					Clear all
+				</Button>
+			</div>
+		</AnimatedFilterChips>
 	);
 }
 

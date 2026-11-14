@@ -3,7 +3,6 @@ import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/better-auth/auth";
 import { patient, patientPersonalInformation } from "@/db/schemas";
 import { and, count, desc, eq, gte, ilike, lte, or } from "drizzle-orm";
-import { getOrganizationId } from "./get-organization-id";
 import type { PatientGenderFilter } from "@/features/patients/types";
 
 export type PatientCreatedAtFilter = {
@@ -21,20 +20,16 @@ export type PatientFilterOptions = {
 
 export const getPatients = cache(
 	async (
+		organizationId: string,
 		page: number,
 		limit: number,
 		query = "",
 		createdAtFilter: PatientCreatedAtFilter = {},
 		patientFilterOptions: PatientFilterOptions = {},
 	) => {
-		const organizationId = await getOrganizationId();
 		const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
 		const currentLimit = Number.isFinite(limit) && limit > 0 ? limit : 14;
 		const normalizedQuery = query.trim();
-
-		if (!organizationId) {
-			return { totalPatients: 0, patientCreatedAt: [], patients: [], hasPatients: false };
-		}
 
 		return getPatientsForOrganization(
 			organizationId,

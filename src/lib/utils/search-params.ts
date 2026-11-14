@@ -3,8 +3,8 @@ import { parseDateParam } from "@/lib/utils/parse-date-param";
 
 export type DateBoundary = "start" | "end";
 
-export function getStringParam(value: unknown, fallback = "") {
-	return typeof value === "string" ? value : fallback;
+export function getStringParam(value: unknown) {
+	return typeof value === "string" ? value : "";
 }
 
 export function getNumberParam(value: unknown, fallback: number, options?: { min?: number }) {

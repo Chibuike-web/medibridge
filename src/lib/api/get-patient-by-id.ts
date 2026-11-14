@@ -1,8 +1,6 @@
-import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/better-auth/auth";
 import { patient, patientContactInformation, patientPersonalInformation } from "@/db/schemas";
-import { getOrganizationId } from "./get-organization-id";
 import { and, eq } from "drizzle-orm";
 
 function formatSex(value: string | null) {
@@ -15,16 +13,6 @@ function formatSex(value: string | null) {
 
 	return value;
 }
-
-export const getPatientById = cache(async (patientId: string) => {
-	const organizationId = await getOrganizationId();
-
-	if (!organizationId) {
-		return null;
-	}
-
-	return getPatientByIdForOrganization(patientId, organizationId);
-});
 
 export async function getPatientByIdForOrganization(patientId: string, organizationId: string) {
 	"use cache";

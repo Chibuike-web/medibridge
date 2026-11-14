@@ -1,9 +1,5 @@
-"use client";
-
-import { countRecordsWithinRange } from "@/lib/utils/count-records-within-range";
 import { formatStat } from "@/lib/utils/format-stat";
-import type { OverviewStats } from "@/services/patient/types";
-import { useMemo, useState } from "react";
+import type { OverviewStats } from "@/lib/api/get-overview-stats";
 import { cn } from "@/lib/utils/cn";
 
 const TOTAL_PATIENTS_LABEL = "Total No. of Patients";
@@ -16,84 +12,37 @@ function getComparison(currentCount: number, previousCount: number) {
 	const percentChange =
 		previousCount > 0 ? Math.round((difference / previousCount) * 100) : currentCount > 0 ? 100 : 0;
 
-	return { currentCount, difference, percentChange };
-}
-
-function getOverviewCards(
-	stats: OverviewStats,
-	patientCreatedAt: Date[],
-	patientTransferredAt: Date[],
-	pendingTransferredAt: Date[],
-	encounterCreatedAt: Date[],
-) {
-	const thisMonthPatients = countRecordsWithinRange(patientCreatedAt, "This Month");
-	const lastMonthPatients = countRecordsWithinRange(patientCreatedAt, "Last Month");
-	const patientGrowth = getComparison(thisMonthPatients, lastMonthPatients);
-	const thisMonthTransfers = countRecordsWithinRange(patientTransferredAt, "This Month");
-	const lastMonthTransfers = countRecordsWithinRange(patientTransferredAt, "Last Month");
-	const transferredGrowth = getComparison(thisMonthTransfers, lastMonthTransfers);
-	const thisMonthPendingTransfers = countRecordsWithinRange(pendingTransferredAt, "This Month");
-	const lastMonthPendingTransfers = countRecordsWithinRange(pendingTransferredAt, "Last Month");
-	const pendingTransfersGrowth = getComparison(
-		thisMonthPendingTransfers,
-		lastMonthPendingTransfers,
-	);
-	const thisMonthEncounters = countRecordsWithinRange(encounterCreatedAt, "This Month");
-	const lastMonthEncounters = countRecordsWithinRange(encounterCreatedAt, "Last Month");
-	const encounterGrowth = getComparison(thisMonthEncounters, lastMonthEncounters);
-
-	return [
-		{
-			label: TOTAL_PATIENTS_LABEL,
-			value: stats.totalPatients,
-			growth: patientGrowth,
-		},
-		{
-			label: COMPLETED_TRANSFERS_LABEL,
-			value: stats.completedTransfers,
-			growth: transferredGrowth,
-		},
-		{
-			label: PENDING_TRANSFERS_LABEL,
-			value: stats.pendingTransfers,
-			growth: pendingTransfersGrowth,
-		},
-		{
-			label: NEW_ENCOUNTERS_LABEL,
-			value: thisMonthEncounters,
-			growth: encounterGrowth,
-		},
-	];
+	return { difference, percentChange };
 }
 
 export function Cards({ stats }: { stats: OverviewStats }) {
-	const [patientCreatedAt] = useState(() =>
-		stats.patientCreatedAt.map((createdAt) => new Date(createdAt)),
-	);
-	const [patientTransferredAt] = useState(() =>
-		stats.patientTransferredAt.map((transferredAt) => new Date(transferredAt)),
-	);
-	const [pendingTransferredAt] = useState(() =>
-		stats.pendingTransferredAt.map((transferredAt) => new Date(transferredAt)),
-	);
-	const [encounterCreatedAt] = useState(() =>
-		stats.encounterCreatedAt.map((createdAt) => new Date(createdAt)),
-	);
-
-	const cards = useMemo(() => {
-		return getOverviewCards(
-			stats,
-			patientCreatedAt,
-			patientTransferredAt,
-			pendingTransferredAt,
-			encounterCreatedAt,
-		);
-	}, [stats, patientCreatedAt, patientTransferredAt, pendingTransferredAt, encounterCreatedAt]);
+	const cards = [
+		{
+			label: TOTAL_PATIENTS_LABEL,
+			value: stats.patients.total,
+			growth: getComparison(stats.patients.thisMonth, stats.patients.lastMonth),
+		},
+		{
+			label: COMPLETED_TRANSFERS_LABEL,
+			value: stats.completedTransfers.total,
+			growth: getComparison(stats.completedTransfers.thisMonth, stats.completedTransfers.lastMonth),
+		},
+		{
+			label: PENDING_TRANSFERS_LABEL,
+			value: stats.pendingTransfers.total,
+			growth: getComparison(stats.pendingTransfers.thisMonth, stats.pendingTransfers.lastMonth),
+		},
+		{
+			label: NEW_ENCOUNTERS_LABEL,
+			value: stats.encounters.thisMonth,
+			growth: getComparison(stats.encounters.thisMonth, stats.encounters.lastMonth),
+		},
+	];
 
 	return (
 		<div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
 			{cards.map((card) => {
-				const diff = card.growth?.difference ?? 0;
+				const diff = card.growth.difference;
 
 				return (
 					<div key={card.label} className="rounded-xl bg-gray-50 ring ring-gray-200">
@@ -109,7 +58,7 @@ export function Cards({ stats }: { stats: OverviewStats }) {
 									)}
 								>
 									{diff > 0 ? "+" : ""}
-									{card.growth?.percentChange}%
+									{card.growth.percentChange}%
 								</span>
 								<span className="text-gray-400">vs last month</span>
 							</div>

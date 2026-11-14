@@ -10,7 +10,9 @@ const { session, organization, extraction, sign, storageFetch } = vi.hoisted(() 
 }));
 vi.mock("@/lib/api/get-session-data", () => ({ getSessionData: session }));
 vi.mock("@/lib/api/get-organization-id", () => ({ getOrganizationId: organization }));
-vi.mock("@/lib/api/get-patient-extraction-by-id", () => ({ getPatientExtractionById: extraction }));
+vi.mock("@/lib/api/get-patient-extraction-by-id", () => ({
+	getPatientExtractionForOrganization: extraction,
+}));
 vi.mock("@/lib/storage/client", () => ({ patientUploads: { createSignedUrl: sign } }));
 const request = (documentId: string) =>
 	GET(new Request("http://localhost"), {

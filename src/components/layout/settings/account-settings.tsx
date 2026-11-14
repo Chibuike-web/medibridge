@@ -274,7 +274,7 @@ export function AccountSettings({
 														className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-800 data-[state=open]:bg-gray-200 data-[state=open]:text-gray-800"
 														aria-label={`Open actions for ${session.device} in ${session.location}`}
 													>
-														<RiMore2Fill className="size-5" aria-hidden />
+														<RiMore2Fill className="size-4" aria-hidden />
 													</DropdownMenuTrigger>
 													<DropdownMenuContent
 														align="end"

@@ -321,7 +321,7 @@ export function NewTransferRequestClient({
 								<div className="flex flex-col gap-2">
 									{recordCountsArray.map((recordCount) => (
 										<div key={recordCount[0]} className="flex items-center gap-2.5 font-medium">
-											<RiCheckLine className="size-5 shrink-0" />
+											<RiCheckLine className="size-4 shrink-0" />
 											<div>
 												<span>{clinicalRecordLabelByType[recordCount[0]] ?? recordCount[0]}: </span>
 												<span>{recordCount[1]}</span>
@@ -458,13 +458,13 @@ export function NewTransferRequestClient({
 											<ul className="mt-6 mb-8 text-gray-600 flex flex-col gap-1">
 												<li className="flex items-center gap-2">
 													<span aria-hidden>
-														<RiCheckLine className="size-5" />
+														<RiCheckLine className="size-4" />
 													</span>
 													<span>Selected patients are correct</span>
 												</li>
 												<li className="flex items-center gap-2">
 													<span aria-hidden>
-														<RiCheckLine className="size-5" />
+														<RiCheckLine className="size-4" />
 													</span>
 													<span>
 														The appropriate clinical records are attached for each patient
@@ -472,7 +472,7 @@ export function NewTransferRequestClient({
 												</li>
 												<li className="flex items-center gap-2">
 													<span aria-hidden>
-														<RiCheckLine className="size-5" />
+														<RiCheckLine className="size-4" />
 													</span>
 													<span>Target hospital details are accurate for every patient</span>
 												</li>

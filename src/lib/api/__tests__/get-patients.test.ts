@@ -1,13 +1,8 @@
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import { getPatients } from "../get-patients";
 
-const { getOrganizationIdMock, selectMock } = vi.hoisted(() => ({
-	getOrganizationIdMock: vi.fn(),
+const { selectMock } = vi.hoisted(() => ({
 	selectMock: vi.fn(),
-}));
-
-vi.mock("../get-organization-id", () => ({
-	getOrganizationId: getOrganizationIdMock,
 }));
 
 vi.mock("@/lib/better-auth/auth", () => ({
@@ -23,23 +18,9 @@ vi.mock("next/cache", () => ({
 
 describe("getPatients", () => {
 	beforeEach(() => {
-		getOrganizationIdMock.mockReset();
 		selectMock.mockReset();
 	});
-	test("returns an empty result when there is no active organization", async () => {
-		getOrganizationIdMock.mockResolvedValue(null);
-		const result = await getPatients(1, 14);
-		expect(selectMock).not.toHaveBeenCalled();
-		expect(result).toEqual({
-			totalPatients: 0,
-			patientCreatedAt: [],
-			patients: [],
-			hasPatients: false,
-		});
-	});
 	test("returns an empty result when the organization has no patients", async () => {
-		getOrganizationIdMock.mockResolvedValue("org-1");
-
 		const allPatientsCountQuery = {
 			from: vi.fn(() => ({
 				where: vi.fn().mockResolvedValue([{ value: 0 }]),
@@ -73,9 +54,7 @@ describe("getPatients", () => {
 			.mockReturnValueOnce(filteredPatientsCountQuery)
 			.mockReturnValueOnce(patientRowsQuery);
 
-		const result = await getPatients(1, 14);
-
-		expect(getOrganizationIdMock).toHaveBeenCalledOnce();
+		const result = await getPatients("org-1", 1, 14);
 
 		expect(result).toEqual({
 			totalPatients: 0,
@@ -85,8 +64,6 @@ describe("getPatients", () => {
 		});
 	});
 	test("returns patients for the active organization", async () => {
-		getOrganizationIdMock.mockResolvedValue("org-1");
-
 		const createdAt = new Date("2026-01-10T10:00:00.000Z");
 
 		const allPatientsCountQuery = {
@@ -131,7 +108,7 @@ describe("getPatients", () => {
 			.mockReturnValueOnce(filteredPatientsCountQuery)
 			.mockReturnValueOnce(patientRowsQuery);
 
-		const result = await getPatients(1, 14);
+		const result = await getPatients("org-1", 1, 14);
 
 		expect(result).toEqual({
 			totalPatients: 1,

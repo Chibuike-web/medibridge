@@ -183,11 +183,12 @@ async function SharedDiagnoses({
 	const totalPages = Math.ceil(totalRows / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("diagnosesPage", String(totalPages));
 		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
 	}
@@ -250,11 +251,12 @@ async function SharedAllergies({
 	const totalPages = Math.ceil(totalRows / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("allergiesPage", String(totalPages));
 		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
 	}
@@ -310,11 +312,12 @@ async function SharedImmunizations({
 	const totalPages = Math.ceil(totalRows / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("immunizationsPage", String(totalPages));
 		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
 	}
@@ -369,11 +372,12 @@ async function SharedProcedures({
 	const totalPages = Math.ceil(totalRows / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("proceduresPage", String(totalPages));
 		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
 	}
@@ -428,11 +432,12 @@ async function SharedMedications({
 	const totalPages = Math.ceil(totalRows / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("medicationsPage", String(totalPages));
 		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
 	}
@@ -504,11 +509,12 @@ async function SharedLabTests({
 	const totalPages = Math.ceil(totalRows / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("labTestsPage", String(totalPages));
 		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
 	}
@@ -574,11 +580,12 @@ async function SharedImaging({
 	const totalPages = Math.ceil(totalRows / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("imagingPage", String(totalPages));
 		redirect(`/shared-records/${accessId}?${lastPageParams}` as Route);
 	}

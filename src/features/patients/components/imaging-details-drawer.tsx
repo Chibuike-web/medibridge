@@ -73,7 +73,7 @@ import {
 } from "@remixicon/react";
 import { format, parseISO } from "date-fns";
 import Image from "next/image";
-import { Fragment, useId, useRef, useState, useTransition, type FormEvent } from "react";
+import { Fragment, useId, useRef, useState, useTransition, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import { uploadReportFiles, type UploadedReports } from "@/lib/storage/upload-report-files";
 import { patientImagingSchema } from "@/features/patients/server/schemas";
@@ -571,7 +571,7 @@ function ImagingHistoryCard({ historyEvent }: { historyEvent: ImagingDetailsHist
 				</p>
 				<RiArrowDownSLine
 					className={cn(
-						"size-5 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
+						"size-4 shrink-0 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none",
 						isImagingHistoryExpanded ? "rotate-180" : "",
 					)}
 					aria-hidden="true"
@@ -679,7 +679,7 @@ function ImagingDetailsEditForm({
 	);
 	const hasImagingFiles = editableImagingFiles.length > 0;
 
-	function handleSubmit(event: FormEvent<HTMLFormElement>) {
+	function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 		const formData = new FormData(event.currentTarget);
 
@@ -1036,7 +1036,7 @@ function ImagingDetailsEditForm({
 							variant="outline"
 							onClick={() => imagingFileInputRef.current?.click()}
 						>
-							<RiAddLine className="size-5" aria-hidden="true" />
+							<RiAddLine className="size-4" aria-hidden="true" />
 							Add files
 						</Button>
 					</>
@@ -1069,7 +1069,7 @@ function ImagingDetailsEditForm({
 
 				<div>
 					<Button type="button" variant="outline" onClick={handleAddImagingAttachmentRow}>
-						<RiAddLine className="size-5" aria-hidden="true" />
+						<RiAddLine className="size-4" aria-hidden="true" />
 						Add related record
 					</Button>
 				</div>

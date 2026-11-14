@@ -6,7 +6,6 @@ import { patient, patientEncounter, patientVital } from "@/db/schemas";
 import type { VitalType } from "@/features/patients/types";
 import { db } from "@/lib/better-auth/auth";
 import { parseDateParam } from "@/lib/utils/parse-date-param";
-import { getOrganizationId } from "./get-organization-id";
 
 type VitalDateFilters = {
 	recordedFrom?: string;
@@ -57,6 +56,7 @@ export function toVitalType(
 
 export const getPatientVitals = cache(
 	async (
+		organizationId: string,
 		patientId: string,
 		page = 1,
 		limit = 14,
@@ -65,10 +65,6 @@ export const getPatientVitals = cache(
 		dateFilters: VitalDateFilters = {},
 		encounterId?: string,
 	): Promise<{ vitals: VitalType[]; totalVitals: number }> => {
-		const organizationId = await getOrganizationId();
-
-		if (!organizationId) return { vitals: [], totalVitals: 0 };
-
 		return getPatientVitalsForOrganization(
 			patientId,
 			organizationId,
@@ -151,16 +147,6 @@ export async function getPatientVitalsForOrganization(
 		vitals: rows.map(({ vital, encounterType }) => toVitalType(vital, encounterType)),
 	};
 }
-
-export const getPatientVitalReadings = cache(
-	async (patientId: string, encounterId?: string): Promise<VitalType[]> => {
-		const organizationId = await getOrganizationId();
-
-		if (!organizationId) return [];
-
-		return getPatientVitalReadingsForOrganization(patientId, organizationId, encounterId);
-	},
-);
 
 export async function getPatientVitalReadingsForOrganization(
 	patientId: string,

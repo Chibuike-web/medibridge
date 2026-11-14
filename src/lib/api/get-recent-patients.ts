@@ -1,18 +1,8 @@
-import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import { patient, patientPersonalInformation } from "@/db/schemas/patient";
 import { db } from "@/lib/better-auth/auth";
 import { desc, eq } from "drizzle-orm";
 import { RecentPatientType } from "@/features/patients/types";
-import { getOrganizationId } from "./get-organization-id";
-
-export const getRecentPatients = cache(async (): Promise<RecentPatientType[]> => {
-	const organizationId = await getOrganizationId();
-
-	if (!organizationId) return [];
-
-	return getRecentPatientsForOrganization(organizationId);
-});
 
 export async function getRecentPatientsForOrganization(
 	organizationId: string,

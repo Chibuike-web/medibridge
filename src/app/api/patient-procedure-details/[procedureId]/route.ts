@@ -1,4 +1,4 @@
-import { getPatientProcedureDetails } from "@/lib/api/get-patient-procedure-details";
+import { getPatientProcedureDetailsForOrganization } from "@/lib/api/get-patient-procedure-details";
 import { getSessionData } from "@/lib/api/get-session-data";
 import { getOrganizationId } from "@/lib/api/get-organization-id";
 
@@ -35,7 +35,7 @@ export async function GET(
 	}
 
 	const { procedureId } = await context.params;
-	const procedure = await getPatientProcedureDetails(procedureId);
+	const procedure = await getPatientProcedureDetailsForOrganization(procedureId, organizationId);
 
 	if (!procedure) {
 		return Response.json({ procedure: null }, { status: 404 });

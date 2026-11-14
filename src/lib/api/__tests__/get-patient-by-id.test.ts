@@ -1,14 +1,9 @@
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { getPatientById } from "../get-patient-by-id";
+import { getPatientByIdForOrganization } from "../get-patient-by-id";
 import { PgDialect } from "drizzle-orm/pg-core";
 
-const { getOrganizationIdMock, selectMock } = vi.hoisted(() => ({
-	getOrganizationIdMock: vi.fn(),
+const { selectMock } = vi.hoisted(() => ({
 	selectMock: vi.fn(),
-}));
-
-vi.mock("../get-organization-id", () => ({
-	getOrganizationId: getOrganizationIdMock,
 }));
 
 vi.mock("next/cache", () => ({
@@ -22,19 +17,11 @@ vi.mock("@/lib/better-auth/auth", () => ({
 	},
 }));
 
-describe("getPatientById", () => {
+describe("getPatientByIdForOrganization", () => {
 	beforeEach(() => {
-		getOrganizationIdMock.mockReset();
 		selectMock.mockReset();
 	});
-	test("returns an empty result when there is no active organization", async () => {
-		getOrganizationIdMock.mockResolvedValue(null);
-		const result = await getPatientById("patient-1");
-		expect(selectMock).not.toHaveBeenCalled();
-		expect(result).toBeNull();
-	});
 	test("return a patient when there is an active organization", async () => {
-		getOrganizationIdMock.mockResolvedValue("org-1");
 		selectMock.mockReturnValueOnce({
 			from: vi.fn(() => ({
 				innerJoin: vi.fn(() => ({
@@ -56,7 +43,7 @@ describe("getPatientById", () => {
 				})),
 			})),
 		});
-		const patient = await getPatientById("PAT-01");
+		const patient = await getPatientByIdForOrganization("PAT-01", "org-1");
 		expect(patient).toMatchObject({
 			patientId: "PAT-01",
 			firstName: "Chibuike",
@@ -69,8 +56,6 @@ describe("getPatientById", () => {
 	});
 
 	test("returns null when the patient is not found", async () => {
-		getOrganizationIdMock.mockResolvedValue("org-1");
-
 		selectMock.mockReturnValueOnce({
 			from: vi.fn(() => ({
 				innerJoin: vi.fn(() => ({
@@ -83,13 +68,12 @@ describe("getPatientById", () => {
 			})),
 		});
 
-		const patient = await getPatientById("missing-patient");
+		const patient = await getPatientByIdForOrganization("missing-patient", "org-1");
 
 		expect(patient).toBeNull();
 	});
 
 	test("restricts the lookup to both the requested patient and active organization", async () => {
-		getOrganizationIdMock.mockResolvedValue("org-1");
 		selectMock.mockReturnValueOnce({
 			from: vi.fn(() => ({
 				innerJoin: vi.fn(() => ({
@@ -101,9 +85,8 @@ describe("getPatientById", () => {
 				})),
 			})),
 		});
-		const patient = await getPatientById("patient-from-org-2");
+		const patient = await getPatientByIdForOrganization("patient-from-org-2", "org-1");
 		expect(patient).toBeNull();
-		expect(getOrganizationIdMock).toHaveBeenCalledOnce();
 		const from = selectMock.mock.results[0].value.from;
 		const innerJoin = from.mock.results[0].value.innerJoin;
 		const leftJoin = innerJoin.mock.results[0].value.leftJoin;
@@ -116,7 +99,6 @@ describe("getPatientById", () => {
 	});
 
 	test("return - when sex is null", async () => {
-		getOrganizationIdMock.mockResolvedValue("org-1");
 		selectMock.mockReturnValueOnce({
 			from: vi.fn(() => ({
 				innerJoin: vi.fn(() => ({
@@ -138,7 +120,7 @@ describe("getPatientById", () => {
 				})),
 			})),
 		});
-		const patient = await getPatientById("PAT-01");
+		const patient = await getPatientByIdForOrganization("PAT-01", "org-1");
 		expect(patient?.sex).toBe("-");
 	});
 });

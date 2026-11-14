@@ -3,7 +3,6 @@ import { cacheLife, cacheTag } from "next/cache";
 import { and, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { patient, patientPersonalInformation, patientTransfer } from "@/db/schemas";
 import { db } from "../better-auth/auth";
-import { getOrganizationId } from "./get-organization-id";
 import type { TransferStatusFilter, TransferType } from "@/features/transfers/types";
 
 function formatPatientName({
@@ -49,20 +48,16 @@ function toTransferStatus(status: string): TransferType["status"] {
 
 export const getTransfers = cache(
 	async (
+		organizationId: string,
 		page: number,
 		limit: number,
 		query = "",
 		requestedAtFilter: TransferRequestedAtFilter = {},
 		statusFilters: TransferStatusFilter[] = [],
 	): Promise<GetTransfersResult> => {
-		const organizationId = await getOrganizationId();
 		const currentPage = Number.isFinite(page) && page > 0 ? page : 1;
 		const currentLimit = Number.isFinite(limit) && limit > 0 ? limit : 14;
 		const normalizedQuery = query.trim();
-
-		if (!organizationId) {
-			return { transfers: [], totalTransfers: 0, hasTransfers: false };
-		}
 
 		return getTransfersForOrganization(
 			organizationId,

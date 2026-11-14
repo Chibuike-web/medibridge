@@ -1,4 +1,3 @@
-import { cache } from "react";
 import {
 	patient,
 	patientDiagnosis,
@@ -17,7 +16,6 @@ import { db } from "@/lib/better-auth/auth";
 import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 import { getOrdinal } from "@/lib/utils/get-ordinal";
-import { getOrganizationId } from "./get-organization-id";
 
 const EMPTY_VALUE = "-";
 
@@ -134,16 +132,6 @@ function mapRelatedRecord(record: {
 		status: normalizeRecordStatus(record.status),
 	};
 }
-
-export const getPatientDiagnosisDetails = cache(async (diagnosisId: string) => {
-	const organizationId = await getOrganizationId();
-
-	if (!organizationId) {
-		return null;
-	}
-
-	return getPatientDiagnosisDetailsForOrganization(diagnosisId, organizationId);
-});
 
 export async function getPatientDiagnosisDetailsForOrganization(
 	diagnosisId: string,

@@ -46,7 +46,11 @@ async function NewTransferRequestContent({ searchParams }: NewTransferRequestPag
 
 	const { returnTo } = await searchParams;
 	const safeReturnTo = getSafeReturnTo(getStringParam(returnTo));
-	const { patients, totalPatients } = await getPatients(1, PATIENT_OPTIONS_LIMIT);
+	const { patients, totalPatients } = await getPatients(
+		organizationContext.organizationId,
+		1,
+		PATIENT_OPTIONS_LIMIT,
+	);
 	const totalPatientPages = Math.max(1, Math.ceil(totalPatients / PATIENT_OPTIONS_LIMIT));
 
 	return (

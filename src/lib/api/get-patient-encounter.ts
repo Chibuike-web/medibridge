@@ -1,20 +1,10 @@
-import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import { patient, patientEncounter } from "@/db/schemas";
 import { db } from "@/lib/better-auth/auth";
 import { formatDateTime } from "@/lib/utils/format-date-time";
 import { toSortValue } from "@/lib/utils/to-sort-value";
 import { and, eq } from "drizzle-orm";
-import { getOrganizationId } from "./get-organization-id";
 import { normalizeEncounterType } from "./get-patient-encounters";
-
-export const getPatientEncounter = cache(async (patientId: string, encounterId: string) => {
-	const organizationId = await getOrganizationId();
-
-	if (!organizationId) return null;
-
-	return getPatientEncounterForOrganization(patientId, encounterId, organizationId);
-});
 
 export async function getPatientEncounterForOrganization(
 	patientId: string,

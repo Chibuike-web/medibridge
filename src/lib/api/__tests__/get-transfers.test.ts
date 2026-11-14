@@ -1,13 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { getTransfers } from "../get-transfers";
 
-const { getOrganizationIdMock, selectMock } = vi.hoisted(() => ({
-	getOrganizationIdMock: vi.fn(),
+const { selectMock } = vi.hoisted(() => ({
 	selectMock: vi.fn(),
-}));
-
-vi.mock("../get-organization-id", () => ({
-	getOrganizationId: getOrganizationIdMock,
 }));
 
 vi.mock("@/lib/better-auth/auth", () => ({
@@ -63,25 +58,10 @@ function transferRowsQuery(rows: unknown[]) {
 
 describe("getTransfers", () => {
 	beforeEach(() => {
-		getOrganizationIdMock.mockReset();
 		selectMock.mockReset();
 	});
 
-	test("returns an empty result without querying when there is no active organization", async () => {
-		getOrganizationIdMock.mockResolvedValue(null);
-
-		const result = await getTransfers(1, 14);
-
-		expect(result).toEqual({
-			transfers: [],
-			totalTransfers: 0,
-			hasTransfers: false,
-		});
-		expect(selectMock).not.toHaveBeenCalled();
-	});
-
 	test("normalizes invalid pagination and maps database rows", async () => {
-		getOrganizationIdMock.mockResolvedValue("org-1");
 		const requestedAt = new Date("2026-02-03T12:00:00.000Z");
 		const rowsQuery = transferRowsQuery([
 			{
@@ -113,7 +93,7 @@ describe("getTransfers", () => {
 			.mockReturnValueOnce(filteredCountQuery([{ value: 2 }]))
 			.mockReturnValueOnce(rowsQuery.query);
 
-		const result = await getTransfers(0, 0, "  patient  ");
+		const result = await getTransfers("org-1", 0, 0, "  patient  ");
 
 		expect(result).toEqual({
 			totalTransfers: 2,
@@ -149,7 +129,6 @@ describe("getTransfers", () => {
 	});
 
 	test("returns empty transfers when the organization has no matching rows", async () => {
-		getOrganizationIdMock.mockResolvedValue("org-1");
 		const rowsQuery = transferRowsQuery([]);
 
 		selectMock
@@ -157,7 +136,7 @@ describe("getTransfers", () => {
 			.mockReturnValueOnce(filteredCountQuery([]))
 			.mockReturnValueOnce(rowsQuery.query);
 
-		const result = await getTransfers(1, 10);
+		const result = await getTransfers("org-1", 1, 10);
 
 		expect(result).toEqual({
 			transfers: [],

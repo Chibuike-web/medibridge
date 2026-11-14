@@ -36,7 +36,7 @@ export async function GET(request: Request) {
 	const limitParam = searchParams.get("limit") ?? "20";
 	const page = parsePositiveInteger(pageParam, 1);
 	const limit = parsePositiveInteger(limitParam, 20);
-	const { patients, totalPatients } = await getPatients(page, limit);
+	const { patients, totalPatients } = await getPatients(organizationId, page, limit);
 
 	return Response.json({
 		patients,

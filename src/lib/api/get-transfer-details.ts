@@ -1,4 +1,3 @@
-import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import { and, eq, inArray } from "drizzle-orm";
 import {
@@ -22,7 +21,6 @@ import type {
 	TransferType,
 } from "@/features/transfers/types";
 import { db } from "../better-auth/auth";
-import { getOrganizationId } from "./get-organization-id";
 
 function formatPatientName({
 	firstName,
@@ -255,16 +253,6 @@ async function getTransferContentMetadata(
 
 	return metadataByRecordId;
 }
-
-export const getTransferDetails = cache(
-	async (transferId: string): Promise<TransferDetailsType | null> => {
-		const organizationId = await getOrganizationId();
-
-		if (!organizationId) return null;
-
-		return getTransferDetailsForOrganization(transferId, organizationId);
-	},
-);
 
 export async function getTransferDetailsForOrganization(
 	transferId: string,

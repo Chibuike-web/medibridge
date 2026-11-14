@@ -23,7 +23,7 @@ vi.mock("@/lib/api/get-organization-id", () => ({
 	}),
 }));
 vi.mock("@/lib/api/get-patient-by-id", () => ({
-	getPatientById: async () => ({
+	getPatientByIdForOrganization: async () => ({
 		patientId: "patient-1",
 		firstName: "Ada",
 		lastName: "Okafor",
@@ -32,7 +32,7 @@ vi.mock("@/lib/api/get-patient-by-id", () => ({
 	}),
 }));
 vi.mock("@/lib/api/get-patient-encounter", () => ({
-	getPatientEncounter: async () => ({
+	getPatientEncounterForOrganization: async () => ({
 		patientId: "patient-1",
 		encounterId: "ENC-1",
 		encounterType: "Routine Checkup",
@@ -67,7 +67,7 @@ vi.mock("@/lib/api/get-patient-encounters", () => ({
 }));
 vi.mock("@/lib/api/get-patient-vitals", () => ({
 	getPatientVitals: async () => ({ vitals: [], totalVitals: 0 }),
-	getPatientVitalReadings: async () => [],
+	getPatientVitalReadingsForOrganization: async () => [],
 }));
 vi.mock("@/lib/better-auth/auth.client", () => ({
 	authClient: {
@@ -174,6 +174,7 @@ test("opens a patient section with its bookmarked page, search, and filters", as
 	expect(screen.getByRole("button", { name: "Remove Status: Active filter" })).toBeVisible();
 	expect(screen.getByRole("button", { name: "Remove Severity: Severe filter" })).toBeVisible();
 	expect(getAllergies).toHaveBeenCalledWith(
+		"hospital-1",
 		"patient-1",
 		2,
 		28,
@@ -209,6 +210,7 @@ test("opens an encounter with independent allergy and medication parameters scop
 	expect(screen.getByDisplayValue("pen")).toBeVisible();
 	expect(screen.getByDisplayValue("asp")).toBeVisible();
 	expect(getAllergies).toHaveBeenCalledWith(
+		"hospital-1",
 		"patient-1",
 		2,
 		28,
@@ -220,6 +222,7 @@ test("opens an encounter with independent allergy and medication parameters scop
 		"ENC-1",
 	);
 	expect(getMedications).toHaveBeenCalledWith(
+		"hospital-1",
 		"patient-1",
 		3,
 		14,

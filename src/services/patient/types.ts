@@ -15,14 +15,3 @@ export type SavePatientsResult =
 			status: "failed" | "unauthorized" | "invalid";
 			error: string;
 	  };
-
-export type OverviewStats = {
-	totalPatients: number;
-	completedTransfers: number;
-	pendingTransfers: number;
-	patientCreatedAt: string[];
-	patientTransferredAt: string[];
-	pendingTransferredAt: string[];
-	encounterCreatedAt: string[];
-	hasPatients: boolean;
-};

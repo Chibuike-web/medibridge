@@ -22,7 +22,7 @@ import {
 	CreateProcedureEmptyStateAction,
 	CreateVitalsEmptyStateAction,
 } from "@/features/patients/components/patient-empty-state-actions";
-import { getPatientById } from "@/lib/api/get-patient-by-id";
+import { getPatientByIdForOrganization } from "@/lib/api/get-patient-by-id";
 import { getPatientAllergies } from "@/lib/api/get-patient-allergies";
 import { getPatientDiagnoses } from "@/lib/api/get-patient-diagnoses";
 import { getPatientEncounters } from "@/lib/api/get-patient-encounters";
@@ -31,7 +31,10 @@ import { getPatientImmunizations } from "@/lib/api/get-patient-immunizations";
 import { getPatientLabTests } from "@/lib/api/get-patient-lab-tests";
 import { getPatientMedications } from "@/lib/api/get-patient-medications";
 import { getPatientProcedures } from "@/lib/api/get-patient-procedures";
-import { getPatientVitalReadings, getPatientVitals } from "@/lib/api/get-patient-vitals";
+import {
+	getPatientVitalReadingsForOrganization,
+	getPatientVitals,
+} from "@/lib/api/get-patient-vitals";
 import { verifySession } from "@/lib/api/verify-session";
 import { getOrganizationContext } from "@/lib/api/get-organization-id";
 import type {
@@ -108,25 +111,37 @@ async function PatientPageContent({ searchParams, params }: PatientPageProps) {
 						<RiArrowLeftLine className="size-4" aria-hidden="true" />
 						Patients
 					</Link>
-					<RiArrowRightSLine aria-hidden="true" className="size-5" />
+					<RiArrowRightSLine aria-hidden="true" className="size-4" />
 					<Suspense fallback={<BreadCrumbSkeleton />}>
-						<BreadCrumb searchParams={searchParams} params={params} />
+						<BreadCrumb
+							organizationId={organizationContext.organizationId}
+							searchParams={searchParams}
+							params={params}
+						/>
 					</Suspense>
 				</nav>
 				<Suspense fallback={<HeaderSkeleton />}>
-					<Header params={params} />
+					<Header organizationId={organizationContext.organizationId} params={params} />
 				</Suspense>
 			</div>
-			<Main searchParams={searchParams} params={params} />
+			<Main
+				organizationId={organizationContext.organizationId}
+				searchParams={searchParams}
+				params={params}
+			/>
 		</div>
 	);
 }
 
-async function BreadCrumb({ searchParams, params }: PatientPageProps) {
+async function BreadCrumb({
+	organizationId,
+	searchParams,
+	params,
+}: PatientPageProps & { organizationId: string }) {
 	const [{ section }, { patientId }] = await Promise.all([searchParams, params]);
 	const currentSection = getStringParam(section);
 
-	const patient = await getPatientById(patientId);
+	const patient = await getPatientByIdForOrganization(patientId, organizationId);
 
 	if (!patient) {
 		notFound();
@@ -137,15 +152,18 @@ async function BreadCrumb({ searchParams, params }: PatientPageProps) {
 			<span className="shrink-0">
 				{patient.firstName} {patient.lastName}
 			</span>
-			<RiArrowRightSLine aria-hidden="true" className="size-5" />
+			<RiArrowRightSLine aria-hidden="true" className="size-4" />
 			<span className="font-semibold shrink-0">{formatPatientSectionLabel(currentSection)}</span>
 		</>
 	);
 }
 
-async function Header({ params }: PatientPageParamsProps) {
+async function Header({
+	organizationId,
+	params,
+}: PatientPageParamsProps & { organizationId: string }) {
 	const { patientId } = await params;
-	const patient = await getPatientById(patientId);
+	const patient = await getPatientByIdForOrganization(patientId, organizationId);
 
 	if (!patient) {
 		notFound();
@@ -186,7 +204,11 @@ async function Header({ params }: PatientPageParamsProps) {
 	);
 }
 
-async function Main({ searchParams, params }: PatientPageProps) {
+async function Main({
+	organizationId,
+	searchParams,
+	params,
+}: PatientPageProps & { organizationId: string }) {
 	const { section } = await searchParams;
 	const currentSection = getStringParam(section);
 
@@ -200,72 +222,128 @@ async function Main({ searchParams, params }: PatientPageProps) {
 					key={currentSection}
 					fallback={<SectionContentSkeleton section={currentSection} />}
 				>
-					<SectionContent searchParams={searchParams} params={params} />
+					<SectionContent
+						organizationId={organizationId}
+						searchParams={searchParams}
+						params={params}
+					/>
 				</Suspense>
 			</div>
 		</div>
 	);
 }
 
-async function SectionContent({ searchParams, params }: PatientPageProps) {
-	const [tableParams, { patientId }] = await Promise.all([searchParams, params]);
+async function SectionContent({
+	organizationId,
+	searchParams,
+	params,
+}: PatientPageProps & { organizationId: string }) {
+	const [{ section }, { patientId }] = await Promise.all([searchParams, params]);
 
-	return renderSectionContent(getStringParam(tableParams.section), patientId, searchParams);
-}
-
-async function renderSectionContent(
-	section: string,
-	patientId: string,
-	searchParams: PatientPageProps["searchParams"],
-) {
 	if (section === "patient-overview") {
-		return <PatientOverviewSection patientId={patientId} />;
+		return <PatientOverviewSection organizationId={organizationId} patientId={patientId} />;
 	}
 	if (section === "patient-details") {
-		return <PatientDetailsSection patientId={patientId} />;
+		return <PatientDetailsSection organizationId={organizationId} patientId={patientId} />;
 	}
 
 	if (section === "vitals") {
-		return <VitalsSection patientId={patientId} searchParams={searchParams} />;
+		return (
+			<VitalsSection
+				organizationId={organizationId}
+				patientId={patientId}
+				searchParams={searchParams}
+			/>
+		);
 	}
 
 	if (section === "diagnoses") {
-		return <DiagnosesSection patientId={patientId} searchParams={searchParams} />;
+		return (
+			<DiagnosesSection
+				organizationId={organizationId}
+				patientId={patientId}
+				searchParams={searchParams}
+			/>
+		);
 	}
 
 	if (section === "allergies") {
-		return <AllergiesSection patientId={patientId} searchParams={searchParams} />;
+		return (
+			<AllergiesSection
+				organizationId={organizationId}
+				patientId={patientId}
+				searchParams={searchParams}
+			/>
+		);
 	}
 
 	if (section === "immunizations") {
-		return <ImmunizationSection patientId={patientId} searchParams={searchParams} />;
+		return (
+			<ImmunizationSection
+				organizationId={organizationId}
+				patientId={patientId}
+				searchParams={searchParams}
+			/>
+		);
 	}
 
 	if (section === "procedures") {
-		return <ProceduresSection patientId={patientId} searchParams={searchParams} />;
+		return (
+			<ProceduresSection
+				organizationId={organizationId}
+				patientId={patientId}
+				searchParams={searchParams}
+			/>
+		);
 	}
 
 	if (section === "medications") {
-		return <MedicationsSection patientId={patientId} searchParams={searchParams} />;
+		return (
+			<MedicationsSection
+				organizationId={organizationId}
+				patientId={patientId}
+				searchParams={searchParams}
+			/>
+		);
 	}
 
 	if (section === "encounters") {
-		return <EncountersSection patientId={patientId} searchParams={searchParams} />;
+		return (
+			<EncountersSection
+				organizationId={organizationId}
+				patientId={patientId}
+				searchParams={searchParams}
+			/>
+		);
 	}
 
 	if (section === "lab-tests") {
-		return <LabTestsSection patientId={patientId} searchParams={searchParams} />;
+		return (
+			<LabTestsSection
+				organizationId={organizationId}
+				patientId={patientId}
+				searchParams={searchParams}
+			/>
+		);
 	}
 
 	if (section === "imaging") {
-		return <ImagingSection patientId={patientId} searchParams={searchParams} />;
+		return (
+			<ImagingSection
+				organizationId={organizationId}
+				patientId={patientId}
+				searchParams={searchParams}
+			/>
+		);
 	}
 }
 
 async function VitalsSection({
+	organizationId,
 	patientId,
 	searchParams,
 }: {
+	organizationId: string;
 	patientId: string;
 	searchParams: PatientPageProps["searchParams"];
 }) {
@@ -281,6 +359,7 @@ async function VitalsSection({
 	const createdTo = getStringParam(tableParams.vitalsCreatedTo);
 	const [{ vitals, totalVitals }, readings, { encounters }] = await Promise.all([
 		getPatientVitals(
+			organizationId,
 			patientId,
 			page,
 			limit,
@@ -293,18 +372,19 @@ async function VitalsSection({
 				createdTo,
 			},
 		),
-		getPatientVitalReadings(patientId),
-		getPatientEncounters(patientId, 1, 100),
+		getPatientVitalReadingsForOrganization(patientId, organizationId),
+		getPatientEncounters(organizationId, patientId, 1, 100),
 	]);
 
 	const totalPages = Math.ceil(totalVitals / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("vitalsPage", String(totalPages));
 		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
 	}
@@ -317,14 +397,11 @@ async function VitalsSection({
 
 	if (
 		readings.length === 0 &&
-		!(
-			page !== 1 ||
-			Boolean(searchQuery) ||
-			Boolean(recordedFrom) ||
-			Boolean(recordedTo) ||
-			Boolean(createdFrom) ||
-			Boolean(createdTo)
-		)
+		searchQuery === "" &&
+		recordedFrom === "" &&
+		recordedTo === "" &&
+		createdFrom === "" &&
+		createdTo === ""
 	) {
 		return renderEmptyState({
 			title: "No vitals yet",
@@ -356,9 +433,11 @@ async function VitalsSection({
 }
 
 async function DiagnosesSection({
+	organizationId,
 	patientId,
 	searchParams,
 }: {
+	organizationId: string;
 	patientId: string;
 	searchParams: PatientPageProps["searchParams"];
 }) {
@@ -378,6 +457,7 @@ async function DiagnosesSection({
 		.split(",")
 		.filter((value): value is DiagnosisStatusFilter => ["active", "resolved"].includes(value));
 	const { diagnoses, totalDiagnoses } = await getPatientDiagnoses(
+		organizationId,
 		patientId,
 		page,
 		limit,
@@ -390,28 +470,26 @@ async function DiagnosesSection({
 	const totalPages = Math.ceil(totalDiagnoses / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("diagnosesPage", String(totalPages));
 		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
 	}
 
 	if (
 		diagnoses.length === 0 &&
-		!(
-			page !== 1 ||
-			Boolean(searchQuery) ||
-			Boolean(createdFrom) ||
-			Boolean(createdTo) ||
-			Boolean(diagnosedFrom) ||
-			Boolean(diagnosedTo) ||
-			Boolean(lastReviewedFrom) ||
-			Boolean(lastReviewedTo) ||
-			statusFilters.length > 0
-		)
+		searchQuery === "" &&
+		createdFrom === "" &&
+		createdTo === "" &&
+		diagnosedFrom === "" &&
+		diagnosedTo === "" &&
+		lastReviewedFrom === "" &&
+		lastReviewedTo === "" &&
+		statusFilters.length === 0
 	) {
 		return renderEmptyState({
 			title: "No diagnoses yet",
@@ -442,9 +520,11 @@ async function DiagnosesSection({
 }
 
 async function AllergiesSection({
+	organizationId,
 	patientId,
 	searchParams,
 }: {
+	organizationId: string;
 	patientId: string;
 	searchParams: PatientPageProps["searchParams"];
 }) {
@@ -465,6 +545,7 @@ async function AllergiesSection({
 			["mild", "moderate", "severe"].includes(value),
 		);
 	const { allergies, totalAllergies } = await getPatientAllergies(
+		organizationId,
 		patientId,
 		page,
 		limit,
@@ -478,25 +559,23 @@ async function AllergiesSection({
 	const totalPages = Math.ceil(totalAllergies / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("allergiesPage", String(totalPages));
 		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
 	}
 
 	if (
 		allergies.length === 0 &&
-		!(
-			page !== 1 ||
-			Boolean(searchQuery) ||
-			Boolean(createdFrom) ||
-			Boolean(createdTo) ||
-			statusFilters.length > 0 ||
-			severityFilters.length > 0
-		)
+		searchQuery === "" &&
+		createdFrom === "" &&
+		createdTo === "" &&
+		statusFilters.length === 0 &&
+		severityFilters.length === 0
 	) {
 		return renderEmptyState({
 			title: "No allergies yet",
@@ -524,9 +603,11 @@ async function AllergiesSection({
 }
 
 async function ImmunizationSection({
+	organizationId,
 	patientId,
 	searchParams,
 }: {
+	organizationId: string;
 	patientId: string;
 	searchParams: PatientPageProps["searchParams"];
 }) {
@@ -544,6 +625,7 @@ async function ImmunizationSection({
 			["active", "completed", "cancelled", "discontinued"].includes(value),
 		);
 	const { immunizations, totalImmunizations } = await getPatientImmunizations(
+		organizationId,
 		patientId,
 		page,
 		limit,
@@ -556,24 +638,22 @@ async function ImmunizationSection({
 	const totalPages = Math.ceil(totalImmunizations / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("immunizationsPage", String(totalPages));
 		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
 	}
 
 	if (
 		immunizations.length === 0 &&
-		!(
-			page !== 1 ||
-			Boolean(searchQuery) ||
-			Boolean(createdFrom) ||
-			Boolean(createdTo) ||
-			statusFilters.length > 0
-		)
+		searchQuery === "" &&
+		createdFrom === "" &&
+		createdTo === "" &&
+		statusFilters.length === 0
 	) {
 		return renderEmptyState({
 			title: "No immunizations yet",
@@ -600,9 +680,11 @@ async function ImmunizationSection({
 }
 
 async function ProceduresSection({
+	organizationId,
 	patientId,
 	searchParams,
 }: {
+	organizationId: string;
 	patientId: string;
 	searchParams: PatientPageProps["searchParams"];
 }) {
@@ -620,6 +702,7 @@ async function ProceduresSection({
 			["pending", "completed", "cancelled"].includes(value),
 		);
 	const { procedures, totalProcedures } = await getPatientProcedures(
+		organizationId,
 		patientId,
 		page,
 		limit,
@@ -632,24 +715,22 @@ async function ProceduresSection({
 	const totalPages = Math.ceil(totalProcedures / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("proceduresPage", String(totalPages));
 		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
 	}
 
 	if (
 		procedures.length === 0 &&
-		!(
-			page !== 1 ||
-			Boolean(searchQuery) ||
-			Boolean(createdFrom) ||
-			Boolean(createdTo) ||
-			statusFilters.length > 0
-		)
+		searchQuery === "" &&
+		createdFrom === "" &&
+		createdTo === "" &&
+		statusFilters.length === 0
 	) {
 		return renderEmptyState({
 			title: "No procedures yet",
@@ -676,9 +757,11 @@ async function ProceduresSection({
 }
 
 async function MedicationsSection({
+	organizationId,
 	patientId,
 	searchParams,
 }: {
+	organizationId: string;
 	patientId: string;
 	searchParams: PatientPageProps["searchParams"];
 }) {
@@ -696,6 +779,7 @@ async function MedicationsSection({
 			["active", "completed", "discontinued"].includes(value),
 		);
 	const { medications, totalMedications } = await getPatientMedications(
+		organizationId,
 		patientId,
 		page,
 		limit,
@@ -708,24 +792,22 @@ async function MedicationsSection({
 	const totalPages = Math.ceil(totalMedications / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("medicationsPage", String(totalPages));
 		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
 	}
 
 	if (
 		medications.length === 0 &&
-		!(
-			page !== 1 ||
-			Boolean(searchQuery) ||
-			Boolean(createdFrom) ||
-			Boolean(createdTo) ||
-			statusFilters.length > 0
-		)
+		searchQuery === "" &&
+		createdFrom === "" &&
+		createdTo === "" &&
+		statusFilters.length === 0
 	) {
 		return renderEmptyState({
 			title: "No medications yet",
@@ -752,9 +834,11 @@ async function MedicationsSection({
 }
 
 async function EncountersSection({
+	organizationId,
 	patientId,
 	searchParams,
 }: {
+	organizationId: string;
 	patientId: string;
 	searchParams: PatientPageProps["searchParams"];
 }) {
@@ -786,6 +870,7 @@ async function EncountersSection({
 			].includes(value),
 		);
 	const { encounters, totalEncounters } = await getPatientEncounters(
+		organizationId,
 		patientId,
 		page,
 		limit,
@@ -799,27 +884,25 @@ async function EncountersSection({
 	const totalPages = Math.ceil(totalEncounters / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("encountersPage", String(totalPages));
 		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
 	}
 
 	if (
 		encounters.length === 0 &&
-		!(
-			page !== 1 ||
-			Boolean(searchQuery) ||
-			Boolean(encounterFrom) ||
-			Boolean(encounterTo) ||
-			Boolean(createdFrom) ||
-			Boolean(createdTo) ||
-			encounterTypeFilters.length > 0 ||
-			departmentFilters.length > 0
-		)
+		searchQuery === "" &&
+		encounterFrom === "" &&
+		encounterTo === "" &&
+		createdFrom === "" &&
+		createdTo === "" &&
+		encounterTypeFilters.length === 0 &&
+		departmentFilters.length === 0
 	) {
 		return renderEmptyState({
 			title: "No encounters yet",
@@ -849,9 +932,11 @@ async function EncountersSection({
 }
 
 async function LabTestsSection({
+	organizationId,
 	patientId,
 	searchParams,
 }: {
+	organizationId: string;
 	patientId: string;
 	searchParams: PatientPageProps["searchParams"];
 }) {
@@ -885,6 +970,7 @@ async function LabTestsSection({
 			].includes(value),
 		);
 	const { labTests, totalLabTests } = await getPatientLabTests(
+		organizationId,
 		patientId,
 		page,
 		limit,
@@ -898,25 +984,23 @@ async function LabTestsSection({
 	const totalPages = Math.ceil(totalLabTests / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("labTestsPage", String(totalPages));
 		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
 	}
 
 	if (
 		labTests.length === 0 &&
-		!(
-			page !== 1 ||
-			Boolean(searchQuery) ||
-			Boolean(createdFrom) ||
-			Boolean(createdTo) ||
-			statusFilters.length > 0 ||
-			flagFilters.length > 0
-		)
+		searchQuery === "" &&
+		createdFrom === "" &&
+		createdTo === "" &&
+		statusFilters.length === 0 &&
+		flagFilters.length === 0
 	) {
 		return renderEmptyState({
 			title: "No lab tests yet",
@@ -944,9 +1028,11 @@ async function LabTestsSection({
 }
 
 async function ImagingSection({
+	organizationId,
 	patientId,
 	searchParams,
 }: {
+	organizationId: string;
 	patientId: string;
 	searchParams: PatientPageProps["searchParams"];
 }) {
@@ -971,6 +1057,7 @@ async function ImagingSection({
 			["ct", "mri", "ultrasound", "x-ray"].includes(value),
 		);
 	const { imagingStudies, totalImagingStudies } = await getPatientImaging(
+		organizationId,
 		patientId,
 		page,
 		limit,
@@ -984,27 +1071,25 @@ async function ImagingSection({
 	const totalPages = Math.ceil(totalImagingStudies / limit) || 1;
 
 	if (page > totalPages) {
-		const lastPageParams = new URLSearchParams(
-			Object.entries(tableParams).flatMap(([name, value]) =>
-				typeof value === "string" ? [[name, value]] : [],
-			),
-		);
+		const lastPageParams = new URLSearchParams();
+		for (const [name, value] of Object.entries(tableParams)) {
+			if (typeof value === "string") {
+				lastPageParams.set(name, value);
+			}
+		}
 		lastPageParams.set("imagingPage", String(totalPages));
 		redirect(`/dashboard/patients/${patientId}?${lastPageParams}` as Route);
 	}
 
 	if (
 		imagingStudies.length === 0 &&
-		!(
-			page !== 1 ||
-			Boolean(searchQuery) ||
-			Boolean(orderedFrom) ||
-			Boolean(orderedTo) ||
-			Boolean(createdFrom) ||
-			Boolean(createdTo) ||
-			statusFilters.length > 0 ||
-			modalityFilters.length > 0
-		)
+		searchQuery === "" &&
+		orderedFrom === "" &&
+		orderedTo === "" &&
+		createdFrom === "" &&
+		createdTo === "" &&
+		statusFilters.length === 0 &&
+		modalityFilters.length === 0
 	) {
 		return renderEmptyState({
 			title: "No imaging yet",
@@ -1088,16 +1173,13 @@ function PatientPageSkeleton() {
 						<RiArrowLeftLine className="size-4" aria-hidden="true" />
 						Patients
 					</Link>
-					<RiArrowRightSLine aria-hidden="true" className="size-5" />
+					<RiArrowRightSLine aria-hidden="true" className="size-4" />
 					<BreadCrumbSkeleton />
 				</nav>
 				<HeaderSkeleton />
 			</div>
 			<div className="flex min-h-0 flex-1 flex-col">
 				<SectionTabsSkeleton />
-				<div className="min-h-0 flex-1 overflow-y-auto">
-					<PatientOverviewSkeleton />
-				</div>
 			</div>
 		</div>
 	);
@@ -1107,7 +1189,7 @@ function BreadCrumbSkeleton() {
 	return (
 		<div className="flex items-center gap-2">
 			<div className="h-4 w-24 shrink-0 animate-pulse rounded bg-gray-200" />
-			<RiArrowRightSLine aria-hidden="true" className="shrink-0 size-5 text-gray-400" />
+			<RiArrowRightSLine aria-hidden="true" className="shrink-0 size-4 text-gray-400" />
 			<div className="h-4 w-32 shrink-0 animate-pulse rounded bg-gray-200" />
 		</div>
 	);
@@ -1154,11 +1236,8 @@ function SectionTabsSkeleton() {
 	return (
 		<div className="no-scrollbar relative flex w-full overflow-x-auto border-b px-6 whitespace-nowrap">
 			{tabWidths.map((width, index) => (
-				<div key={index} className="relative shrink-0 px-6 py-3">
+				<div key={index} className="shrink-0 px-6 py-3">
 					<div className={`h-5 ${width} animate-pulse rounded bg-gray-200`} />
-					{index === 0 ? (
-						<div className="absolute right-0 bottom-0 left-0 h-0.5 animate-pulse bg-gray-300" />
-					) : null}
 				</div>
 			))}
 		</div>

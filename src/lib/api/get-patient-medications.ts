@@ -6,7 +6,6 @@ import { db } from "@/lib/better-auth/auth";
 import { formatDateTime } from "@/lib/utils/format-date-time";
 import { toSortValue } from "@/lib/utils/to-sort-value";
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
-import { getOrganizationId } from "./get-organization-id";
 
 type MedicationDateFilters = {
 	createdFrom?: string;
@@ -28,6 +27,7 @@ function normalizeStatus(value: string): MedicationType["status"] {
 }
 
 export const getPatientMedications = cache(async (
+	organizationId: string,
 	patientId: string,
 	page = 1,
 	limit = 14,
@@ -37,10 +37,6 @@ export const getPatientMedications = cache(async (
 	statusFilters: MedicationStatusFilter[] = [],
 	encounterId?: string,
 ): Promise<{ medications: MedicationType[]; totalMedications: number }> => {
-	const organizationId = await getOrganizationId();
-
-	if (!organizationId) return { medications: [], totalMedications: 0 };
-
 	return getPatientMedicationsForOrganization(
 		patientId,
 		organizationId,

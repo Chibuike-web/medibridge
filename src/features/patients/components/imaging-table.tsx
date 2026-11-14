@@ -17,6 +17,7 @@ import { IndeterminateCheckbox } from "@/components/indeterminate-checkbox";
 import { StatusBadge } from "@/components/status-badge";
 import { TableBulkActionSeparator } from "@/components/table-bulk-action-separator";
 import { AnimatedBulkBar } from "@/components/animated-bulk-bar";
+import { AnimatedFilterChips } from "@/components/animated-filter-chips";
 import { FilterChip, formatChecklistFilterLabel } from "@/components/filter-chip";
 import { ExportButton } from "@/components/export-button";
 import { Button } from "@/components/ui/button";
@@ -478,15 +479,16 @@ function ImagingBulkActionBar({
 	onClearSelection: () => void;
 	onViewImagingDetails: (imaging: ImagingType) => void;
 }) {
-	const selectedImagingCount = selectedImagingRecords.length;
-	const singleSelectedImaging = selectedImagingCount === 1 ? selectedImagingRecords[0] : undefined;
+	const singleSelectedImaging =
+		selectedImagingRecords.length === 1 ? selectedImagingRecords[0] : undefined;
 
-	if (selectedImagingCount === 0) return null;
+	if (selectedImagingRecords.length === 0) return null;
 
 	return (
 		<AnimatedBulkBar>
 			<span className="shrink-0 whitespace-nowrap text-sm font-medium">
-				{selectedImagingCount} {selectedImagingCount === 1 ? "item" : "items"} selected
+				{selectedImagingRecords.length} {selectedImagingRecords.length === 1 ? "item" : "items"}{" "}
+				selected
 			</span>
 			<TableBulkActionSeparator />
 			<div className="flex items-center">
@@ -496,9 +498,9 @@ function ImagingBulkActionBar({
 						onClick={() => onViewImagingDetails(singleSelectedImaging)}
 						variant="ghost"
 						size="sm"
-						className="h-9 gap-2 rounded-lg border-0 px-2 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
+						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
-						<RiEyeLine className="size-5" aria-hidden />
+						<RiEyeLine className="size-4" aria-hidden />
 						<span>View details</span>
 					</Button>
 				) : null}
@@ -508,8 +510,8 @@ function ImagingBulkActionBar({
 					size="sm"
 					className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				>
-					<RiShare2Line className="size-5" aria-hidden />
-					<span>Export {selectedImagingCount > 1 ? "all" : null}</span>
+					<RiShare2Line className="size-4" aria-hidden />
+					<span>Export {selectedImagingRecords.length > 1 ? "all" : null}</span>
 				</Button>
 				{canArchive ? (
 					<Button
@@ -518,8 +520,8 @@ function ImagingBulkActionBar({
 						size="sm"
 						className="gap-2 border-0 px-2.5 has-[>svg:first-child]:pl-2.5 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 					>
-						<RiArchiveLine className="size-5" aria-hidden />
-						<span>Archive {selectedImagingCount > 1 ? "all" : null}</span>
+						<RiArchiveLine className="size-4" aria-hidden />
+						<span>Archive {selectedImagingRecords.length > 1 ? "all" : null}</span>
 					</Button>
 				) : null}
 			</div>
@@ -531,7 +533,7 @@ function ImagingBulkActionBar({
 				className="size-8 border-0 text-white hover:bg-white/10 hover:text-white focus-visible:border-0 focus-visible:ring-2 focus-visible:ring-white/30"
 				aria-label="Clear selected imaging records"
 			>
-				<RiCloseLine className="size-5" aria-hidden />
+				<RiCloseLine className="size-4" aria-hidden />
 			</Button>
 		</AnimatedBulkBar>
 	);
@@ -567,54 +569,64 @@ function ImagingActiveFilterChips({
 	const hasStatusFilters = statusFilters.length > 0;
 	const hasModalityFilters = modalityFilters.length > 0;
 
-	if (!hasOrderedAtFilter && !hasCreatedAtFilter && !hasStatusFilters && !hasModalityFilters) {
-		return null;
-	}
-
 	return (
-		<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
-			{hasStatusFilters ? (
-				<FilterChip
-					name="Status"
-					value={formatChecklistFilterLabel(
-						statusFilters.map((statusFilter) => formatImagingFilterValue(statusFilter)),
-					)}
-					onRemove={() => onStatusFiltersChange([])}
-				/>
-			) : null}
-			{hasModalityFilters ? (
-				<FilterChip
-					name="Modality"
-					value={formatChecklistFilterLabel(
-						modalityFilters.map((modalityFilter) => formatImagingFilterValue(modalityFilter)),
-					)}
-					onRemove={() => onModalityFiltersChange([])}
-				/>
-			) : null}
-			{hasOrderedAtFilter ? (
-				<FilterChip
-					name="Ordered"
-					value={formatDateRangeFilterLabel(orderedFrom, orderedTo)}
-					onRemove={() => onOrderedAtRangeApply("", "")}
-				/>
-			) : null}
-			{hasCreatedAtFilter ? (
-				<FilterChip
-					name="Created"
-					value={formatDateRangeFilterLabel(createdFrom, createdTo)}
-					onRemove={() => onCreatedAtRangeApply("", "")}
-				/>
-			) : null}
-			<Button
-				type="button"
-				variant="ghost"
-				size="sm"
-				className="h-8.5 text-gray-600"
-				onClick={onFiltersClear}
-			>
-				Clear all
-			</Button>
-		</div>
+		<AnimatedFilterChips
+			isVisible={hasOrderedAtFilter || hasCreatedAtFilter || hasStatusFilters || hasModalityFilters}
+		>
+			<div className="mx-auto mb-4 flex max-w-7xl flex-wrap gap-2">
+				{hasStatusFilters ? (
+					<FilterChip
+						name="Status"
+						value={formatChecklistFilterLabel(
+							statusFilters.map((statusFilter) =>
+								statusFilter
+									.split("-")
+									.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+									.join(" "),
+							),
+						)}
+						onRemove={() => onStatusFiltersChange([])}
+					/>
+				) : null}
+				{hasModalityFilters ? (
+					<FilterChip
+						name="Modality"
+						value={formatChecklistFilterLabel(
+							modalityFilters.map((modalityFilter) =>
+								modalityFilter
+									.split("-")
+									.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+									.join(" "),
+							),
+						)}
+						onRemove={() => onModalityFiltersChange([])}
+					/>
+				) : null}
+				{hasOrderedAtFilter ? (
+					<FilterChip
+						name="Ordered"
+						value={formatDateRangeFilterLabel(orderedFrom, orderedTo)}
+						onRemove={() => onOrderedAtRangeApply("", "")}
+					/>
+				) : null}
+				{hasCreatedAtFilter ? (
+					<FilterChip
+						name="Created"
+						value={formatDateRangeFilterLabel(createdFrom, createdTo)}
+						onRemove={() => onCreatedAtRangeApply("", "")}
+					/>
+				) : null}
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="h-8.5 text-gray-600"
+					onClick={onFiltersClear}
+				>
+					Clear all
+				</Button>
+			</div>
+		</AnimatedFilterChips>
 	);
 }
 
@@ -639,13 +651,6 @@ function formatDateRangeFilterLabel(from: string, to: string) {
 	}
 
 	return "Any date";
-}
-
-function formatImagingFilterValue(value: string) {
-	return value
-		.split("-")
-		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-		.join(" ");
 }
 
 function getImagingColumns({
@@ -783,7 +788,7 @@ function getImagingColumns({
 								className="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-transparent text-gray-500 transition hover:bg-gray-200 hover:text-gray-800 data-[state=open]:bg-gray-200 data-[state=open]:text-gray-800"
 								aria-label={`Open actions for ${row.original.study}`}
 							>
-								<RiMore2Fill className="size-5" aria-hidden />
+								<RiMore2Fill className="size-4" aria-hidden />
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
 								align="end"

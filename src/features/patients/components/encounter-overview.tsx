@@ -2,7 +2,7 @@
 
 import { useMediaQuery } from "@/hooks/use-media-query";
 
-import { useId, useState, useTransition, type FormEvent } from "react";
+import { useId, useState, useTransition, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
@@ -94,7 +94,7 @@ export function EncounterOverview({
 	const [openedUpdatedAt, setOpenedUpdatedAt] = useState(encounter.updatedAt.toISOString());
 	const [isPending, startTransition] = useTransition();
 
-	function handleSave(event: FormEvent<HTMLFormElement>) {
+	function handleSave(event: SubmitEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setFormError("");
 		const encounterDate = new Date(encounter.encounterDate);

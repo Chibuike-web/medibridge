@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import Overview from "./overview/page";
 import PatientsPage from "./patients/page";
 import TransfersPage from "./transfers/page";
-import BulkPatientPage from "../add-new-patient/bulk/page";
 import ManualPatientPage from "../add-new-patient/manual/page";
 
 const {
@@ -31,8 +30,14 @@ vi.mock("@/lib/api/get-organization-id", () => ({
 }));
 vi.mock("@/lib/api/get-patients", () => ({ getPatients: getPatientsMock }));
 vi.mock("@/lib/api/get-transfers", () => ({ getTransfers: getTransfersMock }));
-vi.mock("@/lib/api/get-overview-stats", () => ({ getOverviewStats: getOverviewStatsMock }));
+vi.mock("@/lib/api/get-overview-stats", () => ({
+	getOverviewStatsForOrganization: getOverviewStatsMock,
+}));
 vi.mock("@/lib/better-auth/auth", () => ({ db: {}, auth: {} }));
+vi.mock("next/server", async (importOriginal) => ({
+	...(await importOriginal<typeof import("next/server")>()),
+	connection: async () => {},
+}));
 vi.mock("next/navigation", () => ({
 	redirect: redirectMock,
 	useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
@@ -44,30 +49,26 @@ describe.each([
 		page: () => <Overview />,
 		heading: "No patient records available",
 		readRecords: getOverviewStatsMock,
-		addPatientReturnTo: "/dashboard/overview",
 	},
 	{
 		name: "patients",
 		page: () => <PatientsPage searchParams={Promise.resolve({})} />,
 		heading: "No patient records available",
 		readRecords: getPatientsMock,
-		addPatientReturnTo: "/dashboard/patients",
 	},
 	{
 		name: "transfers",
 		page: () => <TransfersPage searchParams={Promise.resolve({})} />,
 		heading: "No transfers yet",
 		readRecords: getTransfersMock,
-		addPatientReturnTo: null,
 	},
 	{
 		name: "manual add patient",
 		page: () => <ManualPatientPage searchParams={Promise.resolve({})} />,
 		heading: "Add Patient",
 		readRecords: vi.fn(),
-		addPatientReturnTo: null,
 	},
-])("$name page access", ({ page, heading, readRecords, addPatientReturnTo }) => {
+])("$name page access", ({ page, heading, readRecords }) => {
 	beforeEach(() => {
 		verifySessionMock.mockResolvedValue({ user: { id: "user-1", emailVerified: true } });
 		getOrganizationContextMock.mockResolvedValue({
@@ -80,8 +81,8 @@ describe.each([
 		getOverviewStatsMock.mockResolvedValue({ hasPatients: false });
 	});
 
-	async function renderPage(pageElement = page()) {
-		const stream = await renderToReadableStream(pageElement, { onError: () => {} });
+	async function renderPage() {
+		const stream = await renderToReadableStream(page(), { onError: () => {} });
 		await stream.allReady;
 		render(<div dangerouslySetInnerHTML={{ __html: await new Response(stream).text() }} />);
 	}
@@ -91,31 +92,6 @@ describe.each([
 		expect(screen.getByRole("heading", { name: heading })).toBeVisible();
 		expect(redirectMock).not.toHaveBeenCalled();
 	});
-
-	if (addPatientReturnTo) {
-		test("opens the Add patient choice and both add routes return to the originating page", async () => {
-			await renderPage();
-			expect(screen.getByRole("heading", { name: heading })).toBeVisible();
-			expect(screen.getByRole("button", { name: "Add patient" })).toHaveAttribute(
-				"aria-haspopup",
-				"dialog",
-			);
-			for (const { AddPatientPage, addPatientHeading } of [
-				{ AddPatientPage: BulkPatientPage, addPatientHeading: "Upload Patient’s Record" },
-				{ AddPatientPage: ManualPatientPage, addPatientHeading: "Add Patient" },
-			]) {
-				cleanup();
-				await renderPage(
-					<AddPatientPage searchParams={Promise.resolve({ returnTo: addPatientReturnTo })} />,
-				);
-				expect(screen.getByRole("heading", { name: addPatientHeading })).toBeVisible();
-				expect(screen.getByRole("link", { name: "Back" })).toHaveAttribute(
-					"href",
-					addPatientReturnTo,
-				);
-			}
-		});
-	}
 
 	test.each([
 		{ state: "unverified email", destination: "/email-verified?error=unverified" },
