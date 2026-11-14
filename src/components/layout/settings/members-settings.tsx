@@ -533,7 +533,7 @@ export function MembersSettings({
 													>
 														<SelectValue />
 													</SelectTrigger>
-													<SelectContent align="start" className="min-w-50">
+													<SelectContent align="start" className="min-w-40">
 														<SelectItem value="admin">Admin</SelectItem>
 														<SelectItem value="member">Member</SelectItem>
 													</SelectContent>
