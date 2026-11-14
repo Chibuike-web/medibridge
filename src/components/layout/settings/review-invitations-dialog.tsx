@@ -14,6 +14,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { formatLabel } from "@/lib/utils/format-label";
 
 import type { InviteMemberRow } from "./types";
 
@@ -55,7 +56,20 @@ export function ReviewInvitationsDialog({
 								className="flex items-center justify-between gap-6 text-sm font-semibold text-gray-600"
 							>
 								<span className="min-w-0 truncate">{memberRow.email}</span>
-								<span className="shrink-0 capitalize">{memberRow.role}</span>
+								{memberRow.access?.role === "admin" ? (
+									<span className="shrink-0">Admin</span>
+								) : null}
+								{memberRow.access?.role === "member" ? (
+									<span className="shrink-0">
+										{formatLabel(memberRow.access.staffType ?? "member")} ·{" "}
+										{memberRow.access.departments
+											? memberRow.access.departments[0]
+											: "All departments"}
+										{memberRow.access.departments && memberRow.access.departments.length > 1
+											? ` +${memberRow.access.departments.length - 1}`
+											: null}
+									</span>
+								) : null}
 							</div>
 						))}
 						{inviteMemberRows.length > MAX_VISIBLE_INVITATIONS ? (

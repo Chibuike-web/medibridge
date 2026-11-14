@@ -12,5 +12,9 @@ export const member = pgTable("member", {
 		.unique("member_user_id_unique")
 		.references(() => user.id, { onDelete: "cascade" }),
 	role: text("role").default("member").notNull(),
+	staffType: text("staff_type"),
+	departments: text("departments").array(),
+	permissions: text("permissions").array().default([]).notNull(),
+	mcpScopes: text("mcp_scopes").array().default([]).notNull(),
 	createdAt: timestamp("created_at").notNull(),
 }).enableRLS();
