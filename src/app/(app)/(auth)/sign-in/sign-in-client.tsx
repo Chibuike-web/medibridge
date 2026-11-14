@@ -314,7 +314,7 @@ export function SignInClient() {
 							type="button"
 							variant="ghost"
 							size="icon"
-							className="ml-auto -my-1 size-6 rounded-full"
+							className="ml-auto -my-1 size-6 rounded-full text-red-700 hover:bg-red-100 hover:text-red-700"
 							aria-label="Dismiss error message"
 							onClick={() => setSignInError("")}
 						>
